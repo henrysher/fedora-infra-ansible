@@ -1,0 +1,65 @@
+# setup jenkins slave
+---
+- name: install pkgs for jenkins
+  action: yum state=installed pkg=$item
+  with_items:
+  - vim
+  - java-1.7.0-openjdk
+  - subversion
+  - bzr
+  - git
+  - rpmlint
+  - mercurial
+  - mock
+  - python-bugzilla
+  - python-straight-plugin
+  - python-pip
+  - python-virtualenv 
+  - python-coverage
+  - pylint
+  - python-argparse
+  - python-nose
+  - python-BeautifulSoup
+  - python-fedora
+  tags:
+  - packages
+
+- name: install pkgs for jenkins for fedora systems
+  action: yum state=installed pkg=$item
+  only_if: '$is_fedora'
+  with_items:
+  - python3
+  - python-nose-cover3
+  - python3-nose-cover3
+  tags:
+  - packages
+
+- name: set the hostname to jenkins-osversion
+  action: command hostname jenkins-${dist_tag}
+  tags:
+  - config
+
+- name: setup jenkins_slave user
+  action: user name=jenkins_slave state=present createhome=yes system=no password=$jenkins_slave_pw
+
+- name: jenkins_slave to mock group
+  action: user name=jenkins_slave groups=mock
+
+- name: add .gitconfig for jenkins_slave user
+  action: template src=$files/jenkins/gitconfig dest=/home/jenkins_slave/.gitconfig owner=jenkins_slave group=jenkins_slave mode=664
+  tags:
+   - config
+
+- name: template sshd_config
+  action: template src=$item dest=/etc/ssh/sshd_config mode=0600 owner=root group=root
+  first_available_file:
+    - $files/jenkins/sshd_config_slave.$ansible_distribution
+    - $files/jenkins/sshd_config_slave
+  notify:
+  - restart sshd
+  tags:
+   - config
+
+- name: mkdir dir for jenkins data
+  action: file state=directory path=/mnt/jenkins owner=jenkins_slave group=jenkins_slave
+

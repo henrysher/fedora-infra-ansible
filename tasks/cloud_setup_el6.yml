@@ -1,0 +1,34 @@
+---
+- name: put repos on system
+  action: copy src=$files/common/$item dest=/etc/yum.repos.d/$item
+  with_items:
+  - epel6.repo
+  - rhel6.repo
+  tags:
+  - config
+
+- name: update all
+  action: command yum -y update
+  tags:
+  - packages
+  
+- name: ntpdate install
+  action: yum state=installed pkg=ntpdate
+  tags:
+  - packages
+- name: sync time - just once
+  action: command /usr/sbin/ntpdate -s -b 66.187.233.4
+
+- name: edit hostname to be instance name
+  action: shell hostname  `curl -s http://169.254.169.254/latest/meta-data/instance-id`
+  tags:
+  - config
+  
+- name: put sysadmin-main in place for sshing in
+  action: copy src=$files/common/sysadmin-main dest=/root/.ssh/authorized_keys mode=600 backup=true
+  tags:
+  - config
+
+- name: put /dev/vda2 up as /mnt
+  action: mount name=/mnt src=/dev/vda2 fstype=ext3 passno=1 dump=1 state=mounted
+

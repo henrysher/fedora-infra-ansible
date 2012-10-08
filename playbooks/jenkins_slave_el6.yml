@@ -1,0 +1,16 @@
+# restricted to run on cloud instances only
+- hosts: 209.132.184.*
+  user: root
+  vars_files: 
+   - /home/fedora/skvidal/ansible/public/vars/global.yml
+   - $vars/${ansible_distribution}.yml
+   - $private/playbooks/vars.yml
+
+  
+  tasks:
+  - include: $tasks/cloud_setup_el6.yml
+  - include: $tasks/jenkins_slave.yml
+
+
+  handlers:
+  - include: $handlers/restart_services.yml
