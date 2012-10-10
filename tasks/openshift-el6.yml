@@ -52,4 +52,13 @@
   - "restorecon -rv /usr/lib/ruby/gems/1.8/gems/passenger-*"
   - "restorecon -rv /usr/sbin/mcollectived /var/log/mcollective.log /run/mcollective.pid"
 
+- name: mongodb.conf
+  action: copy src=$files/openshift/mongodb.conf dest=/etc/mongodb.conf backup=true
 
+- name: mongod service start
+  action: service name=mongod state=running enabled=yes
+
+- name: setup openshift mongo pw
+  action: command "mongo stickshift_broker_dev --eval 'db.addUser("stickshift", "mooo")'"
+  tags:
+  - mongoacct
