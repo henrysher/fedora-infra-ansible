@@ -54,11 +54,14 @@
 
 - name: mongodb.conf
   action: copy src=$files/openshift/mongodb.conf dest=/etc/mongodb.conf backup=true
-
+  tags:
+  - mongo
 - name: mongod service start
   action: service name=mongod state=running enabled=yes
-
+  tags:
+  - mongo
 - name: setup openshift mongo pw
   action: command mongo stickshift_broker_dev --eval 'db.addUser("stickshift", "mooo")'
   tags:
-  - mongoacct
+  - mongo
+
