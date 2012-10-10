@@ -1,0 +1,54 @@
+# setup openshift broker on el6
+---
+- name: set the hostname to openshift-
+  action: command hostname openshift-${dist_tag}
+  tags:
+  - config
+
+- name: setup openshift and jenkins repos
+  action: copy src=$files/openshift/$item dest=/etc/yum.repos.d/$item
+  with_items:
+  - openshift-el6.repo
+  - jenkins.repo
+
+- name: install openshift pkg core
+  action: yum state=installed name=$item
+  with_items:
+  - mcollective 
+  - mcollective-qpid-plugin 
+  - mongodb 
+  - qpid-cpp-server 
+  - rubygem-gearchanger-mcollective-plugin 
+  - rubygem-swingshift-mongo-plugin 
+  - rubygem-uplift-bind-plugin 
+  - rhc 
+  - stickshift-broker
+
+- name: set selinux bools appropriately
+  action: seboolean state=true persistent=yes name=$item
+  with_items:
+  - httpd_unified
+  - httpd_can_network_connect
+  - httpd_can_network_relay
+  - named_write_master_zones
+  - allow_ypbind
+
+- name: selinux module install: stickshift
+  action: command semodule -i /usr/share/selinux/packages/rubygem-stickshift-common/stickshift.pp
+
+- name: selinux module disable: passenger
+  action: comand semodule -d passenger
+
+- name: selinux module install: other passenger
+  action: command semodule -i /usr/share/selinux/packages/rubygem-passenger/rubygem-passenger.pp
+
+- name: fix up files for selinux
+  action: command '$item'
+  with_items:
+  - "fixfiles -R rubygem-passenger restore"
+  - "fixfiles -R mod_passenger restore"
+  - "restorecon -rv /var/run"
+  - "restorecon -rv /usr/lib/ruby/gems/1.8/gems/passenger-*"
+  - "restorecon -rv /usr/sbin/mcollectived /var/log/mcollective.log /run/mcollective.pid"
+
+
