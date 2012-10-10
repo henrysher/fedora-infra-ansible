@@ -23,7 +23,6 @@
   - rubygem-uplift-bind-plugin 
   - rhc 
   - stickshift-broker
-  - stickshift-port-proxy
 
 - name: set selinux bools appropriately
   action: seboolean state=true persistent=yes name=$item
@@ -87,11 +86,13 @@
   - --service=dns
   - --port=5672:tcp
 
+- name: put our external ip into /etc/hosts as 'openshift-el6'
+  action: lineinfile dest=/etc/hosts state=present line='${inventory_hostname} openshift-el6' regexp='${inventory_hostname}.*'
+
 - name: enable services until I turn peach
   action: service state=restarted enabled=yes name=$item
   with_items:
   - httpd
-  - stickshift-proxy
   - named
   - qpidd
   - stickshift-broker
@@ -107,6 +108,5 @@
 
 - name: stickshift broker gemfile
   action: copy src=$files/openshift/Gemfile dest=/var/www/stickshift/broker/Gemfile owner=apache group=apache mode=0640
-
 
   
