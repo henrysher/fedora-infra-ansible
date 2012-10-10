@@ -77,4 +77,35 @@
   tags:
   - mongo
 
+- name: poke holes in the firewall
+  action: command lokkit $item
+  with_items:
+  - --service=ssh
+  - --service=https
+  - --service=http
+  - --service=dns
+  - --port=5672:tcp
 
+- name: enable services until I turn peach
+  action: service state=running enabled=yes name=$item
+  with_items:
+  - httpd
+  - stickshift-proxy
+  - named
+  - qpidd
+  - stickshift-broker
+
+- name: disable mcollective
+  action: service state=stopped enabled=no name=mcollective
+
+- name: mcollective client setup
+  action: template src=$files/openshift/mcollective-client.cfg dest=/etc/mcollective/client.cfg
+
+- name: qpidd.conf
+  action: copy src=$files/openshift/qpidd.conf dest=/etc/qpidd.conf
+
+- name: stickshift broker gemfile
+  action: copy src=$files/openshift/Gemfile dest=/var/www/stickshift/broker/Gemfile owner=apache group=apache mode=0640
+
+
+  
