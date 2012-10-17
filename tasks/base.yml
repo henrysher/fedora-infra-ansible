@@ -1,0 +1,109 @@
+---
+- name: put repos on system
+  action: copy src=$files/common/$item dest=/etc/yum.repos.d/$item
+  with_items:
+  - epel6.repo
+  - rhel6.repo
+  only_if: '$is_rhel'
+  tags:
+  - config
+
+- name: default packages to install
+  action: yum state=installed name=$item
+  with_items:
+  - joe
+  - vim-enhanced
+  - strace
+  - telnet
+  - nc
+  - bind-utils
+  - traceroute
+  - openssh-clients
+  - patch
+  - xz
+  - zsh
+  tags:
+  - packages
+
+- name: default pkgs to remove
+  action: yum state=removed name=$item
+  with_items:
+  - logwatch
+  - firstboot-tui
+  - bluez-utils
+  - sendmail
+  tags:
+  - packages
+
+- name: disabled services:
+  action: service state=stopped enabled=false name=$item
+  with_items:
+  - yum-updatesd
+  - gpm
+  - rhnsd
+  tags:
+  - services
+  - config
+
+- name: set root passwd
+  action: user name=root password=$rootpw state=present
+  only_if: is_set('$rootpw')
+  tags:
+  - rootpw
+  - config
+
+# XXX FIXME
+# this is fine but we should consider a template or a first_available here
+- name: iptables
+  action: copy src=$iptables dest=/etc/sysconfig/iptables mode=600
+  only_if: is_set('$iptables')
+  notify:
+  - restart iptables
+  tags:
+  - iptables
+  - config
+
+- name: sshd_config 
+  action: copy src=$sshd_config dest=/etc/ssh/sshd_config mode=600
+  only_if: is_set('$sshd_config')
+  notify:
+  - restart sshd
+  tags:
+  - sshd_config
+  - config
+  - sshd
+
+# XXX fixme - this should use first_available and we need
+# a datacenter 'fact' from setup
+- name: /etc/resolv.conf
+  action: copy src=$resolvconf dest=/etc/resolv.conf
+  only_if: is_set('$resolvconf')
+  tags:
+  - config
+  - resolvconf
+
+# XXX fixme
+# potentially first available
+
+- name: rsyslog.conf
+  action: copy src=$rsyslogconf dest=/etc/rsyslog.conf mode=644
+  only_if: is_set('$rsyslogconf')
+  notify:
+  - restart rsyslog
+  tags:
+  - rsyslogd
+  - config
+
+- name: /etc/postfix/main.cf
+  action: copy src=$itemf dest=/etc/postfix/main.cf
+  first_available_file:
+    - $postfix_maincf
+    - $files/common/postfix/main.cf.${ansible_fqdn}
+    - $files/common/postfix/main.cf.${postfix_group}
+    - $files/common/postfix/main.cf
+  notify:
+  - restart postifx
+  tags:
+  - postfix
+  - config
+
