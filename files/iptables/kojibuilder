@@ -1,0 +1,67 @@
+*filter
+:INPUT DROP []
+:FORWARD DROP []
+:OUTPUT DROP []
+
+# loopback allowed
+-A INPUT -i lo -j ACCEPT
+-A OUTPUT -o lo -j ACCEPT
+-A INPUT  -d 127.0.0.0/8 -j ACCEPT
+-A OUTPUT -d 127.0.0.0/8 -j ACCEPT
+
+# Accept ping and traceroute (needs icmp)
+-A INPUT -p icmp -j ACCEPT
+-A OUTPUT -p icmp -j ACCEPT
+
+# Established connections allowed
+-A INPUT -m state --state RELATED,ESTABLISHED -j ACCEPT
+-A OUTPUT -m state --state RELATED,ESTABLISHED -j ACCEPT
+
+# kojipkgs
+-A OUTPUT -p tcp -m tcp -d 10.5.125.36 --dport 80 -j ACCEPT
+
+#koji.fp.o
+-A OUTPUT -p tcp -m tcp -d 10.5.125.63 --dport 80 -j ACCEPT
+-A OUTPUT -p tcp -m tcp -d 10.5.125.63 --dport 443 -j ACCEPT
+
+# DNS
+-A OUTPUT -p udp -m udp -d 10.5.126.21 --dport 53 -j ACCEPT
+-A OUTPUT -p udp -m udp -d 10.5.126.22 --dport 53 -j ACCEPT
+
+# bastion smtp
+-A OUTPUT -p tcp -m tcp -d 10.5.126.12 --dport 25 -j ACCEPT
+
+# infra.fp.o
+-A OUTPUT -p tcp -m tcp -d 10.5.126.23 --dport 80 -j ACCEPT
+-A OUTPUT -p tcp -m tcp -d 10.5.126.23 --dport 443 -j ACCEPT
+
+# rsyslog out to log02
+-A OUTPUT -p tcp -m tcp -d 10.5.126.29 --dport 514 -j ACCEPT
+
+# SSH
+-A INPUT -p tcp -m tcp -s 10.5.0.0/16 --dport 22 -j ACCEPT 
+-A OUTPUT -p tcp -m tcp -d 10.5.0.0/16 --sport 22  -j ACCEPT
+
+# git to pkgs
+-A OUTPUT -m tcp -p tcp --dport 9418 -d 10.5.125.44 -j ACCEPT
+-A OUTPUT -m udp -p udp --dport 9418 -d 10.5.125.44 -j ACCEPT
+
+# http to pull sources from pkgs lookaside
+-A OUTPUT -m tcp -p tcp --dport 80 -d 10.5.125.44 -j ACCEPT
+
+# git to fedorahosted
+-A OUTPUT -m tcp -p tcp --dport 9418 -d 66.135.62.191 -j ACCEPT
+-A OUTPUT -m udp -p udp --dport 9418 -d 66.135.62.191 -j ACCEPT
+
+#nfs to nfs01.phx2.fedoraproject.org - a little to wide-open - but 
+# kinda necessary
+-A INPUT -m tcp -p tcp -s 10.5.127.11 -j ACCEPT
+-A OUTPUT -m tcp -p tcp -d 10.5.127.11 -j ACCEPT
+
+# ntp
+-A OUTPUT -m udp -p udp --dport 123 -d 66.187.233.4 -j ACCEPT
+-A OUTPUT -m udp -p udp --dport 123 -d 192.43.244.18 -j ACCEPT
+-A OUTPUT -m udp -p udp --dport 123 -d 128.118.25.5 -j ACCEPT
+-A OUTPUT -m udp -p udp --dport 123 -d 204.152.184.72 -j ACCEPT
+
+COMMIT

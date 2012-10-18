@@ -1,0 +1,105 @@
+- hosts: 
+  - buildvm-*
+  - buildhw-*
+  - bkernel-*
+  user: root
+  vars_files: 
+   - /srv/web/infra/ansible/vars/global.yml
+   - $private/vars.yml
+   - $vars/${ansible_distribution}.yml
+  vars:
+  - host_group: kojibuilder
+
+  tasks:
+  - include: $tasks/base.yml rootpw=$buildvm_rootpw tags=rootpw
+  - name: add mock user as 425
+    action: user name=mock uid=425 state=present home=/var/lib/mock createhome=yes system=yes
+  - name: make mock homedir perms
+    action: file state=directory path=/var/lib/mock mode=2775 owner=root group=mock
+    tags:
+    - mock_homedir_perms
+  - name: add mock ssh dir
+    action: file state=directory path=/var/lib/mock/.ssh mode=700 owner=mock group=mock
+    tags:
+    - mock_sshdir_perms
+  - name: add mock ssh keys
+    action: copy src=$configs/mock_auth_keys dest=/var/lib/mock/.ssh/authorized_keys mode=640 owner=mock group=mock
+    tags:
+     - mock_ssh_keys
+  - name: add kojibuilder
+    action: user name=kojibuilder groups=mock 
+  - name: add mockbuilder
+    action: user name=mockbuilder groups=mock
+  - name: mockbuilder .ssh dir
+    action: file state=directory path=/home/mockbuilder/.ssh mode=700 owner=mockbuilder group=mockbuilder
+  - name: mockbuilder ssh key
+    action: copy src=$configs/ftbfs_auth_keys dest=/home/mockbuilder/.ssh/authorized_keys mode=644 owner=mockbuilder group=mockbuilder
+  - name: add to hosts
+    action: fileline file=/etc/hosts present="$item"
+    with_items:
+     - '10.5.125.63    koji.fedoraproject.org'
+     - '10.5.125.36    kojipkgs.fedoraproject.org'
+     - '10.5.126.23    infrastructure.fedoraproject.org'
+     - '10.5.125.44    pkgs.fedoraproject.org  pkgs'
+     - '66.35.62.166   mirrors.fedoraproject.org'
+  - name: make a bunch of dirs
+    action: file state=directory path=$item
+    with_items:
+      - /pub
+      - /mnt/koji
+      - /pub/fedora
+      - /pub/epel
+      - /var/spool/rsyslog
+  - name: add builder infra yum repo
+    action: copy src=$configs/builder-infrastructure.repo dest=/etc/yum.repos.d/builder-infrastructure.repo
+  - name: remove include= from yum.conf for now
+    action: command /usr/bin/perl -pi -e "s/include=.*//g;" /etc/yum.conf
+  - name: clean up packages we do not need
+    action: yum state=removed pkg=$item
+    with_items:
+      - \*firmware\*
+      - audit
+      - cronie\*
+  - name: add pkgs
+    action: yum  state=installed pkg=$item
+    with_items:
+      - yum-utils
+      - koji-builder
+      - strace
+      - mock
+      - nfs-utils
+      - kmod-hfsplus
+      - kernel-firmware
+    tags:
+    - installed_packages
+  - name: update latest
+    action: command /usr/bin/yum -y update
+  - name: downgrade rpm
+    action: command /usr/bin/yum -y downgrade rpm\*
+  - name: /etc/kojid/kojid.conf
+    action: copy src=$configs/kojid.conf dest=/etc/kojid/kojid.conf
+  - name: /etc/koji/koji.conf
+    action: copy src=$configs/koji.conf dest=/etc/koji.conf
+  - name: copy over koji ca cert
+    action: copy src=../buildercerts/fedora-ca.cert dest=/etc/kojid/cacert.pem
+  - name: copy over /etc/security/limits.conf
+    action: copy src=$configs/limits.conf dest=/etc/security/limits.conf
+  - name: copy over builder cert to /etc/kojid/kojibuilder.pem
+    action: copy src=../buildercerts/${ansible_fqdn}.pem dest=/etc/kojid/kojibuilder.pem mode=600   
+  - name: chkconfig kojid on
+    action: service name=kojid enabled=on
+  - name: nfs mount points
+    action: mount name=/mnt/koji src=nfs01.phx2.fedoraproject.org:/ fstype=nfs4 opts=ro,hard,bg,intr,noatime,nodev,nosuid passno=0 dump=0 state=present
+  # mock configs for pungify job
+  - name: put extra special  mock configs in
+    action: copy src=$configs/builders/$item dest=/etc/mock/$item mode=644
+    with_items:
+      - fedora-devel-pungi-i386.cfg
+      - fedora-devel-pungi-x86_64.cfg
+    tags:
+    - mock_config_files
+ 
+
+
+  handlers:
+  - include: $handlers/restart_services.yml

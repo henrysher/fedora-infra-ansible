@@ -7,6 +7,7 @@
   only_if: '$is_rhel'
   tags:
   - config
+  - packages
 
 - name: default packages to install
   action: yum state=installed name=$item
@@ -50,13 +51,14 @@
   only_if: is_set('$rootpw')
   tags:
   - rootpw
-  - config
 
-# XXX FIXME
-# this is fine but we should consider a template or a first_available here
 - name: iptables
-  action: copy src=$iptables dest=/etc/sysconfig/iptables mode=600
-  only_if: is_set('$iptables')
+  action: template src=$item dest=/etc/sysconfig/iptables mode=600
+  first_available_file:
+    - $iptables
+    - $files/iptables/iptables.${ansible_fqdn}
+    - $files/iptables/iptables.${host_group}
+    - $files/iptables/iptables
   notify:
   - restart iptables
   tags:
@@ -65,7 +67,11 @@
 
 - name: sshd_config 
   action: copy src=$sshd_config dest=/etc/ssh/sshd_config mode=600
-  only_if: is_set('$sshd_config')
+  first_available_file:
+    - $sshd_config
+    - $files/ssh/sshd_config.${ansible_fqdn}
+    - $files/ssh/sshd_config.${host_group}
+    - $files/ssh/sshd_config.${dist_tag}
   notify:
   - restart sshd
   tags:
@@ -73,21 +79,28 @@
   - config
   - sshd
 
-# XXX fixme - this should use first_available and we need
-# a datacenter 'fact' from setup
+# XXX fixme # a datacenter 'fact' from setup
 - name: /etc/resolv.conf
   action: copy src=$resolvconf dest=/etc/resolv.conf
-  only_if: is_set('$resolvconf')
+  first_available_file:
+    - $resolvconf
+    - $files/resolv.conf/${ansible_fqdn}
+    - $files/resolv.conf/${host_group}
+    - $files/resolv.conf/${datacenter}
+    - $files/resolv.conf/resolv.conf
   tags:
   - config
   - resolvconf
 
-# XXX fixme
-# potentially first available
-
 - name: rsyslog.conf
   action: copy src=$rsyslogconf dest=/etc/rsyslog.conf mode=644
-  only_if: is_set('$rsyslogconf')
+  first_available_file:
+    - $rsyslogconf
+    - $files/rsyslog/rsyslog.conf.${ansible_fqdn}
+    - $files/rsyslog/rsyslog.conf.${host_group}
+    - $files/rsyslog/rsyslog.conf.${datacenter}
+    - $files/rsyslog/rsyslog.conf
+
   notify:
   - restart rsyslog
   tags:
@@ -95,12 +108,13 @@
   - config
 
 - name: /etc/postfix/main.cf
-  action: copy src=$itemf dest=/etc/postfix/main.cf
+  action: copy src=$item dest=/etc/postfix/main.cf
   first_available_file:
     - $postfix_maincf
-    - $files/common/postfix/main.cf.${ansible_fqdn}
-    - $files/common/postfix/main.cf.${postfix_group}
-    - $files/common/postfix/main.cf
+    - $files/postfix/main.cf.${ansible_fqdn}
+    - $files/postfix/main.cf.${host_group}
+    - $files/postfix/main.cf.${postfix_group}
+    - $files/postfix/main.cf
   notify:
   - restart postifx
   tags:
