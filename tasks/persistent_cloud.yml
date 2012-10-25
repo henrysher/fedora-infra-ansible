@@ -1,0 +1,19 @@
+---
+- name: check it out
+  local_action: shell nc -d -z -w 5 ${inventory_hostname} 22 >>/dev/null
+  register: host_is_up
+  ignore_errors: true
+
+- name: spin it up
+  local_action: ec2_create keypair=${keypair} image=${image} type=${instance_type} wait=true
+  register: inst_res
+  only_if: "'${host_is_up.rc}' != '0'"   
+
+- name: assign it a special ip
+  local_action: shell euca-associate-address -i ${inst_res.instances[0].id} ${public_ip}
+  only_if: "'${host_is_up.rc}' != '0'"   
+
+- name: wait for the reassignation
+  local_action: wait_for host=${public_ip} port=22 delay=20 timeout=300
+  only_if: "'${host_is_up.rc}' != '0'"   
+

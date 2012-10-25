@@ -1,0 +1,37 @@
+- name: check/create instance
+  hosts: 209.132.184.111
+  user: root
+  gather_facts: False
+
+  vars_files: 
+   - /srv/web/infra/ansible/vars/global.yml
+   - ${private}/vars.yml
+
+  tasks:
+  - include: $tasks/persistent_cloud.yml
+  
+- name: provision instance
+  hosts: 209.132.184.111
+  user: root
+  gather_facts: True
+
+  vars_files: 
+   - /srv/web/infra/ansible/vars/global.yml
+   - ${private}/vars.yml
+   - ${vars}/${ansible_distribution}.yml
+
+  tasks:
+  - include: $tasks/cloud_setup_basic.yml
+  - name: install pkgs for jenkins
+    action: yum state=installed pkg=$item
+    with_items:
+    - vim
+    - java-1.7.0-openjdk
+    - subversion
+    - bzr
+    - git
+    tags:
+    - packages
+  
+  handlers:
+  - include: $handlers/restart_services.yml
