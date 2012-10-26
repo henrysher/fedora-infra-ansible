@@ -22,16 +22,8 @@
 
   tasks:
   - include: $tasks/cloud_setup_basic.yml
-  - name: install pkgs for jenkins
-    action: yum state=installed pkg=$item
-    with_items:
-    - vim
-    - java-1.7.0-openjdk
-    - subversion
-    - bzr
-    - git
-    tags:
-    - packages
+  - name: add root keys for other allowed users
+    action: authorized_key user=root key=$PIPE(/srv/web/ansible/scripts/auth-keys-from-fas ${root_auth_users})
   
   handlers:
   - include: $handlers/restart_services.yml
