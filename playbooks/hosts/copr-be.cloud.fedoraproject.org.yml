@@ -28,6 +28,12 @@
 
   tasks:
   - include: $tasks/cloud_setup_basic.yml
+  - name: mount up disk of copr repo
+    action: mount name=/srv/copr-repo src='LABEL=copr-repo' fstype=ext4 state=mounted
+
+  - name: mount up disk of copr work
+    action: mount name=/srv/copr-work src='LABEL=copr-work' fstype=ext4 state=mounted
+
   # open up ports (22, 80, 443)
   - name: poke holes in the firewall
     action: command lokkit $item
@@ -36,11 +42,12 @@
     - --service=https
     - --service=http
 
+
   # setup webserver
   - name: add lighttpd
     action: yum state=present name=lighttpd
   - name: start webserver
-    action: server state=running enable=1 name=lighttpd
+    action: service state=running enable=true name=lighttpd
     
 
   handlers:
