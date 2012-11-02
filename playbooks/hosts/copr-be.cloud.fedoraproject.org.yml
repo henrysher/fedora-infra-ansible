@@ -48,7 +48,12 @@
     action: yum state=present name=lighttpd
 
   - name: add config for copr-repo path
-    action: copy src=$files/copr/repo-lighttpd.conf dest=/etc/lighttpd/lighttpd.conf owner=root group=root mode=0644
+    action: copy src=$files/copr/lighttpd/lighttpd.conf dest=/etc/lighttpd/lighttpd.conf owner=root group=root mode=0644
+    notify: 
+    - restart lighttpd
+
+  - name: turn on dirlisting
+    action: copy src=$files/copr/lighttpd/dirlisting.conf dest=/etc/lighttpd/conf.d/dirlisting.conf owner=root group=root mode=0644
     notify: 
     - restart lighttpd
 
