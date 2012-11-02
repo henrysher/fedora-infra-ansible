@@ -43,10 +43,19 @@
     - --service=http
 
 
-  # setup webserver
-  - name: add lighttpd
-    action: yum state=present name=lighttpd
+  # packages needed
+  - name: add packages for copr-be
+    action: yum state=present name=$item
+    with_items:
+    - lighttpd
+    - euca2ools
+    - rsync
+    - openssh-clients
+    - mock
+    - yum-utils
+    - createrepo
 
+  # setup webserver
   - name: add config for copr-repo path
     action: copy src=$files/copr/lighttpd/lighttpd.conf dest=/etc/lighttpd/lighttpd.conf owner=root group=root mode=0644
     notify: 
