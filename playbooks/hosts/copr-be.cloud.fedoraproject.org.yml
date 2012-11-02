@@ -46,6 +46,12 @@
   # setup webserver
   - name: add lighttpd
     action: yum state=present name=lighttpd
+
+  - name: add config for copr-repo path
+    action: copy src=$files/copr/repo-vhost.conf dest=/etc/lighttpd/vhosts.d/repo-vhost.conf owner=root group=root mode=0644
+    notify: 
+    - restart lighttpd
+
   - name: start webserver
     action: service state=running enabled=yes name=lighttpd
     
