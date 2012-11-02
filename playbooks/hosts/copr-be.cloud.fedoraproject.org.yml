@@ -1,0 +1,47 @@
+- name: check/create instance
+  hosts: 209.132.184.100
+  user: root
+  gather_facts: False
+
+  vars_files: 
+   - /srv/web/infra/ansible/vars/global.yml
+   - ${private}/vars.yml
+
+  tasks:
+  - include: $tasks/persistent_cloud.yml
+
+  # attach and mount volumes
+  - name: attach volumes to the system
+    local_action: shell euca-attach-volume -i ${inst_res.instances[0].id} $item
+    only_if: is_set($inst_res) 
+    with_items: $volumes
+  
+- name: provision instance
+  hosts: 209.132.184.111
+  user: root
+  gather_facts: True
+
+  vars_files: 
+   - /srv/web/infra/ansible/vars/global.yml
+   - ${private}/vars.yml
+   - ${vars}/${ansible_distribution}.yml
+
+  tasks:
+  - include: $tasks/cloud_setup_basic.yml
+  # open up ports (22, 80, 443)
+  - name: poke holes in the firewall
+    action: command lokkit $item
+    with_items:
+    - --service=ssh
+    - --service=https
+    - --service=http
+
+  # setup webserver
+  - name: add lighttpd
+    action: yum state=present name=lighttpd
+  - name: start webserver
+    action: server state=running enable=1 name=lighttpd
+    
+
+  handlers:
+  - include: $handlers/restart_services.yml
