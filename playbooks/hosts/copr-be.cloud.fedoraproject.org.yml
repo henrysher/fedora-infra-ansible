@@ -69,16 +69,24 @@
 
   - name: start webserver
     action: service state=running enabled=yes name=lighttpd
+  
+  - name: make copr account
+    action: user name=copr state=present system=yes home=/srv/copr-work/copr 
+  
+  - name: setup euca goo in there
+    action: file state=directory path=/srv/copr-work/copruser/euca owner=copr group=copr mode=0700
 
-  # need copr account to run backend as
-  # needs write access to all copr dirs
-  # needs read access to euca keys
+  - name: setup privkey for copr user
+    action: copy src=$private/files/copr/buildsys.priv dest=/srv/copr-work/copr/buildsys.priv owner=copr group=copr mode=600
+
+  - name: set dir ownership for copr-work and copr-repo
+    action: file path=$item owner=copr group=copr
+    with_items:
+    - /srv/copr-work
+    - /srv/copr-user
+
   # /srv/copr-work/provision/ needs ansible playbook + files
-  #    (including ssh pub key set) for mockbuilding
   # 
-
-  - name: make dir for euca keys
-    action: file state=directory path=/srv/copr-work/provision/euca owner=root group=root mode=0700
 
   - name: add copr-buildsys keys to work path
     action: copy src=$item dest=/srv/copr-work/provision/euca/ owner=root group=root mode=0600
