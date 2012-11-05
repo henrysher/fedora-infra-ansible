@@ -47,6 +47,7 @@
   - name: add packages for copr-be
     action: yum state=present name=$item
     with_items:
+    - ansible
     - lighttpd
     - euca2ools
     - rsync
@@ -68,7 +69,23 @@
 
   - name: start webserver
     action: service state=running enabled=yes name=lighttpd
-    
+
+  # need copr account to run backend as
+  # needs write access to all copr dirs
+  # needs read access to euca keys
+  # /srv/copr-work/provision/ needs ansible playbook + files
+  #    (including ssh pub key set) for mockbuilding
+  # 
+
+  - name: make dir for euca keys
+    action: file state=directory path=/srv/copr-work/provision/euca owner=root group=root mode=0700
+
+  - name: add copr-buildsys keys to work path
+    action: copy src=$item dest=/srv/copr-work/provision/euca/ owner=root group=root mode=0600
+    with_fileglob: $private/files/euca/accounts/copr-buildsys/*
+
+
+
 
   handlers:
   - include: $handlers/restart_services.yml
