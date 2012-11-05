@@ -1,0 +1,80 @@
+---
+- name: check/create instance
+  hosts: localhost
+  user: root
+  gather_facts: False
+
+  vars:
+  - keypair: buildsys
+  - image: emi-B8793915
+  - instance_type: m1.large
+  - security_group: builder
+
+  tasks:
+  - name: spin it up
+    local_action: ec2_create keypair=${keypair} image=${image} type=${instance_type} wait=true group=${security_group}
+    register: inst_res
+
+  - name: add it to the special group
+    local_action: add_host hostname=${inst_res.instances[0].public_ip} groupname=builder_temp_group
+
+  - name: wait for the host to be hot
+    local_action: wait_for host=${inst_res.instances[0].public_ip} port=22 delay=5 timeout=300
+
+
+- hosts: builder_temp_group
+  user: root
+  
+  tasks:
+  - name: edit hostname to be instance name
+    action: shell hostname  `curl -s http://169.254.169.254/2009-04-04/meta-data/instance-id`
+  
+  - name: mount /dev/vda2 to /mnt/mock
+    action: mount name=/mnt/mock src=/dev/vda2 fstype=ext3 passno=1 dump=1 state=mounted
+
+  - name: builder.repo
+    action: copy src=files/builder.repo dest=/etc/yum.repos.d/builder.repo
+
+  - name: make some dirs for mock
+    action: file state=directory path=$item
+    with_items:
+    - /mnt/mock/cache
+    - /mnt/mock/lib
+    - /mnt/mock/tmp
+
+  - name: bind mount dirs over to /mnt/mock    
+    action: mount src=/mnt/mock/$item name=/var/$item/mock fstype=none opts=bind state=mounted passno=0 dump=0
+    with_items:
+    - lib
+    - cache
+
+  - name: bind mount /var/tmp to /mnt/mock/tmp
+    action: mount src=/mnt/mock/tmp name=/var/tmp fstype=none opts=bind state=mounted
+
+  - name: /var/tmp perms
+    action: file state=directory path=/var/tmp mode=1777
+
+  - name: install pkgs
+    action: yum state=present pkg=$item
+    with_items:
+    - createrepo
+    - yum-utils
+    - rsync
+    - openssh-clients
+
+  - name: install newest mock 
+    action: shell test -d /etc/mock ||  yum -y install http://kojipkgs.fedoraproject.org/packages/mock/1.1.28/1.el6/noarch/mock-1.1.28-1.el6.noarch.rpm
+
+  - name: mockbuilder user   
+    action: user name=mockbuilder groups=mock
+
+  - name: mockbuilder .ssh
+    action: file state=directory path=/home/mockbuilder/.ssh mode=0700 owner=mockbuilder group=mockbuilder
+
+  - name: mockbuilder authorized_keys
+    action: copy src=files/ftbfs.pub dest=/home/mockbuilder/.ssh/authorized_keys owner=mockbuilder group=mockbuilder mode=0644
+
+  - name: downgrade rpm to the bonkers one
+    action: command /usr/bin/yum -y downgrade rpm\*
+  
+
