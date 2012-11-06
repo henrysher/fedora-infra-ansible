@@ -1,0 +1,34 @@
+- name: check/create instances for twistedbots
+  hosts: twistedbots
+  user: root
+  gather_facts: False
+
+  vars_files: 
+   - /srv/web/infra/ansible/vars/global.yml
+   - ${private}/vars.yml
+
+  tasks:
+  - include: $tasks/persistent_cloud.yml
+
+- name: provision instance
+  hosts: twistedbots
+  user: root
+  gather_facts: True
+
+  vars_files: 
+   - /srv/web/infra/ansible/vars/global.yml
+   - ${private}/vars.yml
+   - ${vars}/${ansible_distribution}.yml
+
+  tasks:
+  - include: $tasks/cloud_setup_basic.yml
+
+  # packages needed
+  - name: add packages for them
+    action: yum state=present name=$item
+    with_items:
+    - rsync
+    - openssh-clients
+
+  handlers:
+  - include: $handlers/restart_services.yml
