@@ -1,0 +1,90 @@
+# restricted to run on cloud instances only
+- hosts: 209.132.184.*
+  user: root
+  vars_files: 
+   - /srv/web/infra/ansible/vars/global.yml
+   - ${private}/vars.yml
+   - ${vars}/${ansible_distribution}.yml
+  vars:
+   - hostbase: jenkins-master-${dist_tag}-
+
+  tasks:
+  - include: $tasks/cloud_setup_basic.yml
+  - name: install pkgs for jenkins
+    action: yum state=installed pkg=$item
+    with_items:
+    - vim
+    - dejavu-s\*
+    - fontconfig
+    - java-1.6.0-openjdk
+    tags:
+    - packages
+
+  - name: add jenkins upstream repo 
+    action: template src=$files/jenkins/master/jenkins.repo dest=/etc/yum.repos.d/jenkins.repo
+        owner=root group=root
+    tags:
+     - config
+
+  - name: import jenkins upstream gg key
+    action: template src=$files/jenkins/master/jenkins-ci.org.key dest=/etc/pki/rpm-gpg/RPM-GPG-KEY-jenkins-ci.org
+        owner=root group=root
+    tags:
+     - config
+
+  - name: install pkgs for jenkins
+    action: yum state=installed pkg=$item
+    with_items:
+    - jenkins
+    tags:
+    - packages
+
+  - name: set the hostname to jenkins-osversion
+    action: command hostname jenkins-master-${dist_tag}
+    tags:
+    - config
+
+  - name: mkdir dir for jenkins data
+    action: file state=directory path=/var/lib/jenkins/plugins/ owner=jenkins group=jenkins
+
+  - name: import jenkins plugins
+    action: template src=$item owner=jenkins group=jenkins
+        dest=/var/lib/jenkins/plugins/
+        with_fileglob: $files/jenkins/master/plugins/*.hpi
+    tags:
+     - config
+
+  - name: import jenkins configuration files
+    action: template src=$item owner=jenkins group=jenkins
+        dest=/var/lib/jenkins/
+        with_fileglob: $files/jenkins/master/*.xml
+    tags:
+     - config
+
+  - name: set the jenkins port to 80 instead of 8080
+    action: command sed -i -e 's|JENKINS_PORT="8080"|JENKINS_PORT="80"|' /etc/sysconfig/jenkins
+    tags:
+    - config
+
+  - name: add jenkins-admin-keys for ssh'ing as root
+    action: copy src=$files/jenkins/jenkins-admin-keys dest=/root/.ssh/authorized_keys mode=600 backup=true
+    tags:
+    - config
+
+## Missing:
+# Configuration of file jenkins : config.xml
+#   config.xml changes according to: 
+#        - the IP of the slaves
+#        - the number of projects
+#        - the admins
+# Configuration of postfix
+# Configuration of the ssh key to jenkins to access the slaves
+# Does it need the : lokkit -p 80:tcp ?
+
+  - name: set the jenkins port to 80 instead of 8080
+    action: command service jenkins start
+    tags:
+    - config
+
+  handlers:
+  - include: $handlers/restart_services.yml
