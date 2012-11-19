@@ -1,11 +1,14 @@
 - name: install postfix
   action: yum pkg=postfix state=installed
+  tags:
+  - postfix
 
 - name: /etc/postfix/main.cf
   action: copy src=$item dest=/etc/postfix/main.cf
   first_available_file:
     - $postfix_maincf
     - $files/postfix/main.cf.${ansible_fqdn}
+    - $files/postfix/main.cf.${inventory_hostname}
     - $files/postfix/main.cf.${host_group}
     - $files/postfix/main.cf.${postfix_group}
     - $files/postfix/main.cf
