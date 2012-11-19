@@ -17,3 +17,9 @@
   local_action: wait_for host=${public_ip} port=22 delay=20 timeout=300
   only_if: "'${host_is_up.rc}' != '0'"   
 
+# attach and mount volumes
+- name: attach volumes to the system
+  local_action: shell euca-attach-volume -i ${inst_res.instances[0].id} $item
+  only_if: "'${host_is_up.rc}' != '0' and is_set('${volumes}')"
+  with_items: $volumes
+
