@@ -65,12 +65,27 @@ Setting up a new persistent cloud host:
   - add it into dns - normally in the cloud.fedoraproject.org but it doesn't
     have to be
 
-2. set up the host/ip in ansible host inventory
+2. If needed create a persistent storage disk for the instance:
+   sudo -i euca-create-volume -z fedoracloud -s <size in gigabytes>
+
+
+3. set up the host/ip in ansible host inventory
    - add to ansible/inventory/inventory under [persistent-cloud]
      - either the ip itself or the hostname you want to refer to it as
 
-3. setup the host_vars
+4. setup the host_vars
    - create file named by the hostname or ip you used in the inventory
+   - for adding persistent volumes add an entry like this into the host_vars file
+
+   volumes: ['-d /dev/vdb vol-BCA33FCD', '-d /dev/vdc vol-DC833F48']
+
+   for each volume you want to attach to the instance.
+
+   The device names matter - they start at /dev/vdb and increment. However,
+   they are not reliable IN the instance. You should find the device, partition
+   it, format it and label the formatted device then mount the device by label
+   or  by UUID. Do not count on the device name being the same each time.
+
 
 Contents should look like this (remove all the comments)
 
