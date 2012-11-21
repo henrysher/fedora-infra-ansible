@@ -1,12 +1,22 @@
-# pass in --limit and a vhost you wish to reboot
+# requires --extra-vars="vhost=somevhost fqdn"
+
+#General overview:
 # talk to the vhost
 # get back list of instances
 # add each of their hostnames to an addhoc group
 # halt each of them in a second play
+# wait for them to die
 # third play, reboot the vhost
 #     wait for vhost to come back
+
+# TO BE DONE - should be fixable w/ansible 0.9
 # wait for all of the instances to return(?)
-# fail if they don't (?)
+# compare the first list to the second for state info
+# how to do this:
+# capture output of action: virt command=info before halting guests
+# compare to same command after vhost comes back
+# ansible 0.9 should allow us to preserve content of two registered variables
+# across multiple plays
 
 
 - name: find instances
@@ -18,7 +28,7 @@
     action: virt command=list_vms
     register: vmlist
 
-  - name: add them to a bogus group
+  - name: add them to myvms_new group
     local_action: add_host hostname=$item groupname=myvms_new
     with_items: ${vmlist.list_vms}
 
@@ -50,5 +60,6 @@
   - name: look up vmlist
     action: virt command=list_vms
     register: newvmlist
-#  - name: print it out?
+
+
 
