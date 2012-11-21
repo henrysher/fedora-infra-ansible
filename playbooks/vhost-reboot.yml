@@ -1,0 +1,39 @@
+# pass in --limit and a vhost you wish to reboot
+# talk to the vhost
+# get back list of instances
+# add each of their hostnames to an addhoc group
+# halt each of them in a second play
+# third play, reboot the vhost
+#     wait for vhost to come back
+# wait for all of the instances to return(?)
+# fail if they don't (?)
+
+
+- name: find instances
+  hosts: $vhost
+  user: root
+
+  tasks:
+  - name: get list of guests
+    action: virt command=list_vms
+    register: vmlist
+  - name: add them to a bogus group
+    local_action: add_host hostname=$item groupname=myvms_new
+    with_items = ${vmlist['list_vms']}
+
+
+
+- name: halt instances
+  hosts: myvms_new
+  user: root
+
+  tasks:
+  - name: echo-y
+    action: command uname -a
+  - name: echo-ymore
+    action: command uptime
+
+
+#- name: reboot vhost
+#  hosts: $vhost
+#  user: root
