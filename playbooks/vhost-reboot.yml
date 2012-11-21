@@ -34,25 +34,21 @@
     # if one of them is down we don't care
 
   - name: wait for them to die
-    local_action: wait_for port=23 delay=30 timeout=300 state=stopped host=$item
-    with_items: ${vmlist.list_vms}
-
+    local_action: wait_for port=22 delay=30 timeout=300 state=stopped host=${inventory_hostname}
 
 - name: reboot vhost
   hosts: $vhost
   user: root
 
   tasks:
-  - name: echo what I would do
+  - name: halt -r the $vhost
     action: command echo 'I would run halt -r'
 
-  - name: wait for vhost to be back
+  - name: wait for $vhost to come back - up to 6 minutes
     local_action: wait_for host=$vhost port=22 delay=120 timeout=420
 
-  - name: check out vms again
+  - name: look up vmlist
     action: virt command=list_vms
     register: newvmlist
+#  - name: print it out?
 
-  - name: should match
-    action: fail msg="Not all vms listed on system returned to the same state" rc=100
-    only_if: "$vmlist' != '$newvmlist'"
