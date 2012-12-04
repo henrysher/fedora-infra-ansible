@@ -67,6 +67,9 @@
   - name: install newest mock 
     action: shell test -d /etc/mock ||  yum -y install http://kojipkgs.fedoraproject.org/packages/mock/1.1.28/1.el6/noarch/mock-1.1.28-1.el6.noarch.rpm
 
+  - name: make sure newest rpm
+    action: yum name=rpm state=latest
+
   - name: mockbuilder user   
     action: user name=mockbuilder groups=mock
 
@@ -76,9 +79,6 @@
   - name: mockbuilder authorized_keys
     action: authorized_key user=mockbuilder key='$FILE(${files}/buildsys.pub)'
 
-  - name: downgrade rpm to the bonkers one
-    action: command /usr/bin/yum -y downgrade rpm\*
-  
   - name: put updated mock configs into /etc/mock
     action: copy src=$files/$item dest=/etc/mock
     with_items:
