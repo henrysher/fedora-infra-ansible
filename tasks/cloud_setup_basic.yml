@@ -18,8 +18,20 @@
   action: yum state=installed pkg=ntpdate
   tags:
   - packages
+
 - name: sync time - just once
   action: command /usr/sbin/ntpdate -s -b 66.187.233.4
+
+- name: ntp install
+  action: yum state=installed pkg=ntp
+  tags:
+  - packages
+
+- name: put step-tickers in place
+  action: copy src=$files/common/step-tickers dest=/etc/ntp/step-tickers
+
+- name: enable the service
+  action: service name=ntpd state=running enabled=true
 
 - name: edit hostname to be instance name - prefix hostbase var if it exists
   action: shell hostname  ${hostbase}`curl -s http://169.254.169.254/latest/meta-data/instance-id`
