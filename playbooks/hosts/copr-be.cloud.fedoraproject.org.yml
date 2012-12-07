@@ -58,8 +58,12 @@
     notify: 
     - restart lighttpd
 
-  - name: turn on dirlisting
-    action: copy src=$files/copr/lighttpd/dirlisting.conf dest=/etc/lighttpd/conf.d/dirlisting.conf owner=root group=root mode=0644
+  # mime default to text/plain and enable dirlisting for indexes
+  - name: update lighttpd configs
+    action: copy src=$files/copr/lighttpd/$item dest=/etc/lighttpd/conf.d/$item owner=root group=root mode=0644
+    with_items:
+    - dirlisting.conf
+    - mime.conf
     notify: 
     - restart lighttpd
 
