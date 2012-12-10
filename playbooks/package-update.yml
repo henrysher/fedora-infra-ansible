@@ -1,0 +1,22 @@
+# requires --extra-vars="hostlist='host1 host2 group etc'"
+
+- name: update all run rkhunter if installed
+  hosts: $hostlist
+  user: root
+
+  tasks:
+  - name: yum update
+    action: command yum -y update
+
+  - name: check for rkhunter
+    action: command /usr/bin/test -f /usr/bin/rkhunter
+    register: rkhunter
+  
+  - name: run rkhunter --propupd
+    action: command /usr/bin/rkhunter --propupd
+    only_if: "'${rkhunter.rc}' == '0'"
+
+
+
+
+
