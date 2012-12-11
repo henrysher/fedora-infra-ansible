@@ -1,0 +1,16 @@
+# requires --extra-vars="hosts=hostspec"
+
+- name: reboot hosts
+  hosts: $hosts
+  user: root
+
+  tasks:
+  - name: halt -r the host
+    action: command /sbin/halt -r
+
+  - name: wait for $host to come back - up to 6 minutes
+    local_action: wait_for host=${inventory_hostname} port=22 delay=10 timeout=420
+
+
+
+
