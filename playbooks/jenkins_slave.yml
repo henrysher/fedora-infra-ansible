@@ -53,9 +53,13 @@
     - config
   
   - name: setup jenkins_slave user
-    action: user name=jenkins_slave state=present createhome=yes system=no password=${jenkins_slave_pw}
+    action: user name=jenkins_slave state=present createhome=yes system=no
     tags:
     - jenkinsuser  
+
+  - name: setup jenkins_slave ssh key
+    action: authorized_key user=jenkins_slave key='$FILE($private/files/jenkins/ssh/jenkins_master.pub)'
+
   - name: jenkins_slave to mock group
     action: user name=jenkins_slave groups=mock
   
