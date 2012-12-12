@@ -10,14 +10,17 @@
     ignore_errors: True
     register: needsreboot
 
+  # ADDME tell nagios to be quiet
+
   - name: reboot the host
-    action: command touch /tmp/would-reboot
-#/sbin/reboot
+    action: command /sbin/reboot
     only_if: "'${needsreboot.stdout}'.find('yes') != -1"
 
   - name: wait for host to come back - up to 6 minutes
     local_action: wait_for host=${inventory_hostname} port=22 delay=10 timeout=420
     only_if: "'${needsreboot.stdout}'.find('yes') != -1"
+
+  # ADDME give nagios the all clear
 
 
 
