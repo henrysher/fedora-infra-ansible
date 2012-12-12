@@ -10,7 +10,7 @@
     register: needsreboot
 
   - name: tell nagios to shush
-    action: nagios action=silence host=${ansible_hostname}
+    action: nagios action=silence host=${inventory_hostname_short}
     delegate_to: noc01.phx2.fedoraproject.org
     only_if: "'${needsreboot.stdout}'.find('yes') != -1"
 
@@ -23,7 +23,7 @@
     only_if: "'${needsreboot.stdout}'.find('yes') != -1"
 
   - name: tell nagios to shush
-    action: nagios action=unsilence host=${ansible_hostname}
+    action: nagios action=unsilence host=${inventory_hostname_short}
     delegate_to: noc01.phx2.fedoraproject.org
     only_if: "'${needsreboot.stdout}'.find('yes') != -1"
 
