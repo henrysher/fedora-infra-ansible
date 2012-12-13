@@ -1,0 +1,88 @@
+#!/usr/bin/env python
+
+# (c) 2012, Red Hat, Inc
+# Seth Vidal <skvidal at fedoraproject.org>
+#
+#
+########################################################
+
+import sys
+import getpass
+
+import ansible.runner
+import ansible.constants as C
+from ansible import utils
+from ansible import callbacks
+
+########################################################
+
+def main(args):
+
+    # simple parser
+    parser = utils.base_parser(constants=C, runas_opts=True, async_opts=False,
+        output_opts=True, connect_opts=True, usage='ans-command [options]')
+    parser.add_option('--host', dest='hostlist', action='append',
+        help="hosts to contact, defaults to all in your inventory", default=[])
+    parser.add_option('--needsreboot', dest='needsreboot', help="command to run for needs-reboot", 
+        default="/usr/local/bin/needs-reboot.py")    
+    options, args = parser.parse_args(args)
+    options.module_name = 'command'
+    options.module_args = options.needsreboot
+    
+    # no hosts specified? Run against all of them
+    if not options.hostlist:
+        options.pattern = 'all'
+    else:
+        options.pattern = ';'.join(options.hostlist)
+    
+    # setup the cli call back so we can use the simple output handling
+    # our callbacks for easy terminal formatting
+    
+    mycallback = callbacks.DefaultRunnerCallbacks()
+    mycallback.options = options
+
+    runner = ansible.runner.Runner(
+        module_name=options.module_name, module_path=options.module_path,
+        module_args=options.module_args,
+        remote_user=options.remote_user, 
+        host_list=options.inventory, timeout=options.timeout, 
+        forks=options.forks, 
+        pattern=options.pattern, 
+        callbacks=mycallback, sudo=options.sudo, 
+        transport=options.connection
+    )
+    
+    needsreboot = []
+    results = runner.run()
+    for (host,d) in results['contacted'].items():
+         answer = d.get('stdout', 'null').strip()
+         if answer == 'yes':
+             needsreboot.append(host)
+         elif answer == 'no':
+             pass
+         else:
+             if d.get('failed', False):
+                 err = d.get('stderr', '').strip()
+                 if err:
+                     print >> sys.stderr, 'Error: %s said %s' % (host, err)
+                 msg = d.get('msg', '').strip()
+                 if msg:
+                     print >> sys.stderr, 'Error: %s said %s' % (host, msg)                 
+             
+    for host in results['dark']:
+        print >> sys.stderr, 'Error: Could not reach: %s' % host
+        
+    for host in sorted(needsreboot):
+        print host
+        
+
+
+
+if __name__ == '__main__':
+    try:
+        main(sys.argv)
+    except Exception, e:
+        # Generic handler for ansible specific errors
+        print "ERROR: %s" % str(e)
+        sys.exit(1)
+
