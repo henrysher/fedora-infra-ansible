@@ -54,8 +54,11 @@
   - name: link artboard into /var/www/html
     action: file state=link src=/srv/persist/artboard path=/var/www/html/artboard
 
-  - name: add artboard apache conf
-    action: copy src=$files/artboard/artboard.conf dest=/etc/httpd/conf.d/artboard.conf  backup=True
+  - name: add apache confs
+    action: copy src=$files/artboard/$item dest=/etc/httpd/conf.d/$item  backup=True
+    with_items:
+    - artboard.conf
+    - redirect.conf
     notify: restart httpd
     
   - name: startup apache
