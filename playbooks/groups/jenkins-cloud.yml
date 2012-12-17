@@ -101,6 +101,8 @@
   hosts: jenkins-slaves
   user: root
   gather_facts: False
+  tags:
+   - jenkins_workers
 
   vars_files: 
    - /srv/web/infra/ansible/vars/global.yml
@@ -109,10 +111,12 @@
   tasks:
   - include: $tasks/persistent_cloud.yml
 
-- name: provision master
+- name: provision workers
   hosts: jenkins-slaves
   user: root
   gather_facts: True
+  tags:
+   - jenkins_workers
 
   vars_files: 
    - /srv/web/infra/ansible/vars/global.yml
