@@ -36,7 +36,7 @@
     - --service=http
 
   # packages needed
-  - name: add packages for repo
+  - name: add packages
     action: yum state=present name=$item
     with_items:
     - rsync
@@ -47,6 +47,12 @@
     - php-gd
     - php-mysql
     - cronie-noanacron
+
+  # packages needed to be gone
+  - name: erase packages
+    action: yum state=absent name=$item
+    with_items:
+    - cronie-anacron
 
   - name: artboard backup thing
     action: copy src=$files/artboard/artboard-backup dest=/etc/cron.daily/artboard-backup
