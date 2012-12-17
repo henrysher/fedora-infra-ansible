@@ -41,14 +41,12 @@
     - packages
 
   - name: add jenkins upstream repo 
-    action: template src=$files/jenkins/master/jenkins.repo dest=/etc/yum.repos.d/jenkins.repo
-        owner=root group=root
+    action: copy src=$files/jenkins/master/jenkins.repo dest=/etc/yum.repos.d/jenkins.repo  owner=root group=root
     tags:
      - config
 
   - name: import jenkins upstream gpg key
-    action: template src=$files/jenkins/master/jenkins-ci.org.key dest=/etc/pki/rpm-gpg/RPM-GPG-KEY-jenkins-ci.org
-        owner=root group=root
+    action: copy src=$files/jenkins/master/jenkins-ci.org.key dest=/etc/pki/rpm-gpg/RPM-GPG-KEY-jenkins-ci.org owner=root group=root
     tags:
      - config
 
@@ -68,13 +66,13 @@
     action: file state=directory path=/var/lib/jenkins/plugins/ owner=jenkins group=jenkins
 
   - name: import jenkins plugins
-    action: template src=$item owner=jenkins group=jenkins dest=/var/lib/jenkins/plugins/
+    action: copy src=$item owner=jenkins group=jenkins dest=/var/lib/jenkins/plugins/
     with_fileglob: $files/jenkins/master/plugins/*.hpi
     tags:
      - config
 
   - name: import jenkins configuration files
-    action: template src=$item owner=jenkins group=jenkins dest=/var/lib/jenkins/
+    action: copy src=$item owner=jenkins group=jenkins dest=/var/lib/jenkins/
     with_fileglob: $files/jenkins/master/*.xml
     tags:
      - config
@@ -184,12 +182,12 @@
     action: user name=jenkins_slave groups=mock
   
   - name: add .gitconfig for jenkins_slave user
-    action: template src=$files/jenkins/gitconfig dest=/home/jenkins_slave/.gitconfig owner=jenkins_slave group=jenkins_slave mode=664
+    action: copy src=$files/jenkins/gitconfig dest=/home/jenkins_slave/.gitconfig owner=jenkins_slave group=jenkins_slave mode=664
     tags:
      - config
   
   - name: template sshd_config
-    action: template src=$item dest=/etc/ssh/sshd_config mode=0600 owner=root group=root
+    action: copy src=$item dest=/etc/ssh/sshd_config mode=0600 owner=root group=root
     first_available_file:
       - $files/jenkins/sshd_config_slave.$ansible_distribution
       - $files/jenkins/sshd_config_slave
