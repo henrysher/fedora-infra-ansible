@@ -1,0 +1,213 @@
+- name: check/create instance for jenkins-master
+  hosts: 209.132.184.117
+  user: root
+  gather_facts: False
+
+  vars_files: 
+   - /srv/web/infra/ansible/vars/global.yml
+   - ${private}/vars.yml
+
+  tasks:
+  - include: $tasks/persistent_cloud.yml
+
+- name: provision master
+  hosts: jenkins.cloud.fedoraproject.org
+  user: root
+  gather_facts: True
+
+  vars_files: 
+   - /srv/web/infra/ansible/vars/global.yml
+   - ${private}/vars.yml
+   - ${vars}/${ansible_distribution}.yml
+
+  tasks:
+  - include: $tasks/cloud_setup_basic.yml
+  - include: $tasks/postfix_basic.yml
+
+  - name: make the jenkins path
+    action: file state=directory path=/var/lib/jenkins
+  
+  - name: mount our persistent space
+    action: mount name=/var/lib/jenkins src='LABEL=jenkins' fstype=ext4 state=mounted
+
+  - name: install pkgs for jenkins
+    action: yum state=installed pkg=$item
+    with_items:
+    - vim
+    - dejavu-s\*
+    - fontconfig
+    - java-1.6.0-openjdk
+    tags:
+    - packages
+
+  - name: add jenkins upstream repo 
+    action: template src=$files/jenkins/master/jenkins.repo dest=/etc/yum.repos.d/jenkins.repo
+        owner=root group=root
+    tags:
+     - config
+
+  - name: import jenkins upstream gg key
+    action: template src=$files/jenkins/master/jenkins-ci.org.key dest=/etc/pki/rpm-gpg/RPM-GPG-KEY-jenkins-ci.org
+        owner=root group=root
+    tags:
+     - config
+
+  - name: install pkgs for jenkins
+    action: yum state=installed pkg=$item
+    with_items:
+    - jenkins
+    tags:
+    - packages
+
+  - name: set the hostname to jenkins-osversion
+    action: command hostname jenkins-master-${dist_tag}
+    tags:
+    - config
+
+  - name: mkdir dir for jenkins data
+    action: file state=directory path=/var/lib/jenkins/plugins/ owner=jenkins group=jenkins
+
+  - name: import jenkins plugins
+    action: template src=$item owner=jenkins group=jenkins
+        dest=/var/lib/jenkins/plugins/
+        with_fileglob: $files/jenkins/master/plugins/*.hpi
+    tags:
+     - config
+
+  - name: import jenkins configuration files
+    action: template src=$item owner=jenkins group=jenkins dest=/var/lib/jenkins/
+        with_fileglob: $files/jenkins/master/*.xml
+    tags:
+     - config
+
+  - name: set the jenkins port to 80 instead of 8080
+    action: command sed -i -e 's|JENKINS_PORT="8080"|JENKINS_PORT="80"|' /etc/sysconfig/jenkins
+    tags:
+    - config
+
+  - name: add jenkins-admin-keys for ssh as root
+    action: copy src=$files/jenkins/jenkins-admin-keys dest=/root/.ssh/authorized_keys mode=600 backup=true
+    tags:
+    - config
+
+  - name: add jenkins ssh priv key so it can connect to clients
+    action: copy src=$private/files/jenkins/ssh/jenkins_master dest=/root/.ssh/id_rsa mode=600
+    tags:
+    - config
+
+  - name: start jenkins itself
+    action: service name=jenkins state=running
+
+  
+  handlers:
+  - include: $handlers/restart_services.yml
+
+###################################################
+# jenkins slaves
+
+- name: check/create instance for jenkins-slaves
+  hosts: jenkins-slaves
+  user: root
+  gather_facts: False
+
+  vars_files: 
+   - /srv/web/infra/ansible/vars/global.yml
+   - ${private}/vars.yml
+
+  tasks:
+  - include: $tasks/persistent_cloud.yml
+
+- name: provision master
+  hosts: jenkins-slaves
+  user: root
+  gather_facts: True
+
+  vars_files: 
+   - /srv/web/infra/ansible/vars/global.yml
+   - ${private}/vars.yml
+   - ${vars}/${ansible_distribution}.yml
+
+  tasks:
+  - include: $tasks/cloud_setup_basic.yml
+
+  - include: $tasks/cloud_setup_basic.yml
+  - name: install pkgs for jenkins
+    action: yum state=installed pkg=$item
+    with_items:
+    - vim
+    - java-1.7.0-openjdk
+    - subversion
+    - bzr
+    - git
+    - rpmlint
+    - rpmdevtools
+    - mercurial
+    - mock
+    - python-bugzilla
+    - python-straight-plugin
+    - python-pip
+    - python-virtualenv 
+    - python-coverage
+    - pylint
+    - python-argparse
+    - python-nose
+    - python-BeautifulSoup
+    - python-fedora
+    - python-unittest2
+    - python-pep8
+    tags:
+    - packages
+  
+  - name: install pkgs for jenkins for fedora systems
+    action: yum state=installed pkg=$item
+    only_if: '$is_fedora'
+    with_items:
+    - python3
+    - python-nose-cover3
+    - python3-nose-cover3
+    tags:
+    - packages
+  
+  - name: set the hostname to jenkins-osversion
+    action: command hostname jenkins-${dist_tag}
+    tags:
+    - config
+  
+  - name: setup jenkins_slave user
+    action: user name=jenkins_slave state=present createhome=yes system=no
+    tags:
+    - jenkinsuser  
+
+  - name: setup jenkins_slave ssh key
+    action: authorized_key user=jenkins_slave key='$FILE($private/files/jenkins/ssh/jenkins_master.pub)'
+
+  - name: jenkins_slave to mock group
+    action: user name=jenkins_slave groups=mock
+  
+  - name: add .gitconfig for jenkins_slave user
+    action: template src=$files/jenkins/gitconfig dest=/home/jenkins_slave/.gitconfig owner=jenkins_slave group=jenkins_slave mode=664
+    tags:
+     - config
+  
+  - name: template sshd_config
+    action: template src=$item dest=/etc/ssh/sshd_config mode=0600 owner=root group=root
+    first_available_file:
+      - $files/jenkins/sshd_config_slave.$ansible_distribution
+      - $files/jenkins/sshd_config_slave
+    notify:
+    - restart sshd
+    tags:
+     - config
+  
+  - name: mkdir dir for jenkins data
+    action: file state=directory path=/mnt/jenkins owner=jenkins_slave group=jenkins_slave
+
+  - name: add jenkins-admin-keys for ssh'ing as root
+    action: copy src=$files/jenkins/jenkins-admin-keys dest=/root/.ssh/authorized_keys mode=600 backup=true
+    tags:
+    - config
+    
+  
+  handlers:
+  - include: $handlers/restart_services.yml
+
