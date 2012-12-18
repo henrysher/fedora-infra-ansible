@@ -37,9 +37,20 @@
     - dejavu-s\*
     - fontconfig
     - java-1.6.0-openjdk
+    - httpd
     tags:
     - packages
 
+  - name: add jenkins proxy config file for apache
+    action: copy src=$files/jenkins/master/jenkins-apache.conf dest=/etc/httpd/conf.d/jenkins-apache.conf owner=root group=root mode=0644
+    notify:
+    - restart httpd
+    tags:
+    - config
+ 
+  - name: enable apache
+    action: service name=httpd state=running enabled=true
+    
   - name: add jenkins upstream repo 
     action: copy src=$files/jenkins/master/jenkins.repo dest=/etc/yum.repos.d/jenkins.repo  owner=root group=root
     tags:
