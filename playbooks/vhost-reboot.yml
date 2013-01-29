@@ -39,9 +39,9 @@
   serial: 1
 
   tasks:
-  - name: tell nagios to shush
-    action: nagios action=silence host=${inventory_hostname_short}
-    delegate_to: noc01.phx2.fedoraproject.org
+#  - name: tell nagios to shush
+#    action: nagios action=silence host=${inventory_hostname_short}
+#    delegate_to: noc01.phx2.fedoraproject.org
 
   - name: echo-y
     action: command /sbin/halt -p
@@ -51,9 +51,9 @@
   - name: wait for them to die
     local_action: wait_for port=22 delay=30 timeout=300 state=stopped host=${inventory_hostname}
 
-  - name: tell nagios to unshush
-    action: nagios action=unsilence host=${inventory_hostname_short}
-    delegate_to: noc01.phx2.fedoraproject.org
+#  - name: tell nagios to unshush
+#    action: nagios action=unsilence host=${inventory_hostname_short}
+#    delegate_to: noc01.phx2.fedoraproject.org
 
 
 - name: reboot vhost
@@ -61,9 +61,9 @@
   user: root
 
   tasks:
-  - name: tell nagios to shush
-    action: nagios action=silence host=${inventory_hostname_short}
-    delegate_to: noc01.phx2.fedoraproject.org
+#  - name: tell nagios to shush
+#    action: nagios action=silence host=${inventory_hostname_short}
+#    delegate_to: noc01.phx2.fedoraproject.org
 
   - name: halt -r the $vhost
     action: command /sbin/reboot
@@ -71,9 +71,9 @@
   - name: wait for $vhost to come back - up to 6 minutes
     local_action: wait_for host=$vhost port=22 delay=120 timeout=420
 
-  - name: tell nagios to unshush
-    action: nagios action=unsilence host=${inventory_hostname_short}
-    delegate_to: noc01.phx2.fedoraproject.org
+#  - name: tell nagios to unshush
+#    action: nagios action=unsilence host=${inventory_hostname_short}
+#    delegate_to: noc01.phx2.fedoraproject.org
 
   - name: look up vmlist
     action: virt command=list_vms
