@@ -34,8 +34,11 @@
   - name: mount /dev/vda2 to /mnt/mock
     action: mount name=/mnt/mock src=/dev/vda2 fstype=ext3 passno=1 dump=1 state=mounted
 
-  - name: builder.repo
-    action: copy src=$files/builder.repo dest=/etc/yum.repos.d/builder.repo
+  - name: add repos
+    action: copy src=$files/$item dest=/etc/yum.repos.d/$item
+    with_items:
+    - builder.repo
+    - epel6.repo
 
   - name: make some dirs for mock
     action: file state=directory path=$item
