@@ -1,0 +1,39 @@
+# requires --extra-vars="vhost=somevhostname yumcommand=update"
+
+- name: find instances
+  hosts: $vhost
+  user: root
+
+  tasks:
+  - name: get list of guests
+    action: virt command=list_vms
+    register: vmlist
+
+  - name: add them to myvms_new group
+    local_action: add_host hostname=$item groupname=myvms_new
+    with_items: ${vmlist.list_vms}
+
+- name: update all run rkhunter if installed
+  hosts: $vhost;myvms_new
+  user: root
+
+  tasks:
+  - name: expire-caches
+    action: command yum clean expire-cache
+    
+  - name: yum -y ${yumcommand}
+    action: command yum -y ${yumcommand}
+
+  - name: check for rkhunter
+    action: command /usr/bin/test -f /usr/bin/rkhunter
+    register: rkhunter
+    ignore_errors: true
+  
+  - name: run rkhunter --propupd
+    action: command /usr/bin/rkhunter --propupd
+    only_if: "'${rkhunter.rc}' == '0'"
+
+
+
+
+
