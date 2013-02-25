@@ -5,12 +5,12 @@
   ignore_errors: true
 
 - name: spin it up
-  local_action: ec2_create keypair=${keypair} image=${image} type=${instance_type} wait=true group=${security_group}
+  local_action: ec2 keypair=${keypair} image=${image} type=${instance_type} wait=true group=${security_group} ec2_access_key=$persistent_access_key ec2_secret_key=$persistent_secret_key ec2_url=$os_ec2_url 
   register: inst_res
   only_if: "'${host_is_up.rc}' != '0'"   
 
 - name: assign it a special ip
-  local_action: shell euca-associate-address -i ${inst_res.instances[0].id} ${public_ip}
+  local_action: shell euca-associate-address --config ${persist_config} -i ${inst_res.instances[0].id} ${public_ip}
   only_if: "'${host_is_up.rc}' != '0'"   
 
 - name: wait for the reassignation
@@ -19,6 +19,6 @@
 
 # attach and mount volumes
 - name: attach volumes to the system
-  local_action: shell euca-attach-volume -i ${inst_res.instances[0].id} $item
+  local_action: shell euca-attach-volume --config ${persist_config} -i ${inst_res.instances[0].id} $item
   only_if: "'${host_is_up.rc}' != '0' and len('$item') != 0"
   with_items: $volumes
