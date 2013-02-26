@@ -74,12 +74,15 @@
   - name: make copr account
     action: user name=copr state=present system=yes home=/srv/copr-work/copr 
   
-  - name: setup euca goo in there
-    action: file state=directory path=/srv/copr-work/copr/euca owner=copr group=copr mode=0700
+  - name: setup dirs there
+    action: file state=directory path=/srv/copr-work/copr/$item owner=copr group=copr mode=0700
+    with_items: 
+    - cloud
+    - .ssh
 
   - name: add copr-buildsys keys to copr user path
-    action: copy src=$item dest=/srv/copr-work/copr/euca/ owner=copr group=copr mode=0600
-    with_fileglob: $private/files/euca/accounts/copr-buildsys/*
+    action: copy src=$item dest=/srv/copr-work/copr/cloud/ owner=copr group=copr mode=0600
+    with_fileglob: $private/files/openstack/copr-copr/*
 
   - name: setup privkey for copr user
     action: copy src=$private/files/copr/buildsys.priv dest=/srv/copr-work/copr/.ssh/id_rsa owner=copr group=copr mode=600
