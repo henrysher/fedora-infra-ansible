@@ -6,13 +6,13 @@
 
   vars:
   - keypair: buildsys
-  - image: emi-68D638BF
-  - instance_type: m1.large
+  - image: ami-0000000e
+  - instance_type: m1.builder
   - security_group: builder
 
   tasks:
   - name: spin it up
-    local_action: ec2_create keypair=${keypair} image=${image} type=${instance_type} wait=true group=${security_group}
+    local_action: ec2 keypair=${keypair} image=${image} type=${instance_type} wait=true group=${security_group}
     register: inst_res
 
   - name: add it to the special group
@@ -25,39 +25,17 @@
 - hosts: builder_temp_group
   user: root
   vars:
-   - files: /srv/copr-work/provision/files
+   - files: files/
   
   tasks:
   - name: edit hostname to be instance name
     action: shell hostname  `curl -s http://169.254.169.254/2009-04-04/meta-data/instance-id`
   
-  - name: mount /dev/vda2 to /mnt/mock
-    action: mount name=/mnt/mock src=/dev/vda2 fstype=ext3 passno=1 dump=1 state=mounted
-
   - name: add repos
     action: copy src=$files/$item dest=/etc/yum.repos.d/$item
     with_items:
     - builder.repo
     - epel6.repo
-
-  - name: make some dirs for mock
-    action: file state=directory path=$item
-    with_items:
-    - /mnt/mock/cache
-    - /mnt/mock/lib
-    - /mnt/mock/tmp
-
-  - name: bind mount dirs over to /mnt/mock    
-    action: mount src=/mnt/mock/$item name=/var/$item/mock fstype=none opts=bind state=mounted passno=0 dump=0
-    with_items:
-    - lib
-    - cache
-
-  - name: bind mount /var/tmp to /mnt/mock/tmp
-    action: mount src=/mnt/mock/tmp name=/var/tmp fstype=none opts=bind state=mounted
-
-  - name: /var/tmp perms
-    action: file state=directory path=/var/tmp mode=1777
 
   - name: install pkgs
     action: yum state=present pkg=$item
