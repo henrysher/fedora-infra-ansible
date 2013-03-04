@@ -1,5 +1,5 @@
 - name: check/create instance
-  hosts: 209.132.184.120
+  hosts: 209.132.184.146
   user: root
   gather_facts: False
 
@@ -9,9 +9,10 @@
 
   tasks:
   - include: $tasks/persistent_cloud.yml
+  - include: $tasks/growroot_cloud.yml
 
 - name: provision instance
-  hosts: 209.132.184.120
+  hosts: 209.132.184.146
   user: root
   gather_facts: True
 
@@ -27,19 +28,6 @@
     action: mount name=/srv/persist src='LABEL=logstash01' fstype=ext4 state=mounted
     tags:
     - mount_disk
-
-  - name: mount up second disk of persistent storage
-    action: mount name=/srv/persist2 src='LABEL=logstash02' fstype=ext4 state=mounted
-    tags:
-    - mount_disk
-
-  # open up ports (22, 80, 443)
-  - name: poke holes in the firewall
-    action: command lokkit $item
-    with_items:
-    - --service=ssh
-    - --service=https
-    - --service=http
 
   # packages needed
   - name: add packages for repo
