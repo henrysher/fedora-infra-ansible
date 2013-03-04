@@ -1,4 +1,4 @@
-# requires --extra-vars="vhost=somevhost fqdn"
+# requires --extra-vars="target=somevhost fqdn"
 
 #General overview:
 # talk to the vhost
@@ -20,7 +20,7 @@
 
 
 - name: find instances
-  hosts: $vhost
+  hosts: $target
   user: root
 
   tasks:
@@ -57,7 +57,7 @@
 
 
 - name: reboot vhost
-  hosts: $vhost
+  hosts: $target
   user: root
 
   tasks:
@@ -65,11 +65,11 @@
     action: nagios action=silence host=${inventory_hostname_short}
     delegate_to: noc01.phx2.fedoraproject.org
 
-  - name: halt -r the $vhost
+  - name: halt -r the $target
     action: command /sbin/reboot
 
-  - name: wait for $vhost to come back - up to 6 minutes
-    local_action: wait_for host=$vhost port=22 delay=120 timeout=420
+  - name: wait for $target to come back - up to 6 minutes
+    local_action: wait_for host=$target port=22 delay=120 timeout=420
 
   - name: tell nagios to unshush
     action: nagios action=unsilence host=${inventory_hostname_short}
