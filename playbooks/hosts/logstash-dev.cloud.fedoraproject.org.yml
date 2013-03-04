@@ -24,11 +24,6 @@
   tasks:
   - include: $tasks/cloud_setup_basic.yml
 
-  - name: mount up disk of persistent storage
-    action: mount name=/srv/persist src='LABEL=logstash01' fstype=ext4 state=mounted
-    tags:
-    - mount_disk
-
   # packages needed
   - name: add packages for repo
     action: yum state=present name=$item
@@ -38,6 +33,12 @@
     - httpd
     - httpd-tools
     - cronie-noanacron
+
+
+  - name: mount up disk of persistent storage
+    action: mount name=/srv/persist src='LABEL=logstash01' fstype=ext4 state=mounted
+    tags:
+    - mount_disk
 
   handlers:
   - include: $handlers/restart_services.yml
