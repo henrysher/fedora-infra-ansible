@@ -35,17 +35,15 @@
     - euca2ools
     - rsync
     - openssh-clients
+    - system-config-firewall-base
 
   - name: mount up disk of fedocal persistent storage
     action: mount name=/srv/persist src='LABEL=fedocal.dev' fstype=ext4 state=mounted
 
-  # open up tcp ports (22, 80, 443)
-  #- name: poke holes in the firewall
-  #  action: command 
-  #  with_items:
-  #  - --service=ssh
-  #  - --service=https
-  #  - --service=http
+  # open up tcp ports 
+  - name: poke holes in the firewall
+    action: command lokkit -p $item
+    with_items: $tcp_ports
 
 
   handlers:
