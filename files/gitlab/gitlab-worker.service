@@ -1,0 +1,13 @@
+[Unit]
+Description=Gitlab Resque Worker
+Requires=redis.service
+After=redis.service
+Wants=postfix.service mysqld.service
+
+[Service]
+Type=forking
+User=gitlab
+WorkingDirectory=/home/gitlab/gitlab
+ExecStart=/bin/sh -c "RAILS_ENV=production bundle exec rake sidekiq:start"
+ExecStopPost=/bin/sh -c "RAILS_ENV=production bundle exec rake sidekiq:stop"
+PIDFile=/home/gitlab/gitlab/tmp/pids/sidekiq.pid

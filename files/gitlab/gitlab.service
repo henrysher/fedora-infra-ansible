@@ -1,0 +1,15 @@
+[Unit]
+Description=Gitlab Unicorn
+Requires=redis.service mysqld.service
+After=redis.service mysqld.service
+Wants=postfix.service mysqld.service gitlab-worker.service
+
+[Service]
+Type=simple
+User=gitlab
+WorkingDirectory=/home/gitlab/gitlab
+ExecStart=/bin/sh -c "bundle exec unicorn_rails -c /home/gitlab/gitlab/config/unicorn.rb -E production"
+PIDFile=/home/gitlab/gitlab/tmp/pids/unicorn.pid
+
+[Install]
+WantedBy=multi-user.target
