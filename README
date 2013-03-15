@@ -75,13 +75,15 @@ c1.xlarge  8   8192    40
 
 Setting up a new persistent cloud host:
 1. select an ip:
-   sudo -i euca-describe-addresses
+   source /srv/private/ansible/files/openstack/persistent-admin/ec2rc.sh
+   euca-describe-addresses
   - pick an ip from the list that is not assigned anywhere
   - add it into dns - normally in the cloud.fedoraproject.org but it doesn't
     have to be
 
 2. If needed create a persistent storage disk for the instance:
-   sudo -i euca-create-volume -z fedoracloud -s <size in gigabytes>
+   source /srv/private/ansible/files/openstack/persistent-admin/ec2rc.sh
+   euca-create-volume -z nova -s <size in gigabytes>
 
 
 3. set up the host/ip in ansible host inventory
@@ -122,7 +124,8 @@ root_auth_users:  skvidal bkabrda
 description: some description so someone else can know what this is
 
 The available images can be found by running::
-   sudo -i euca-describe-images | grep emi
+   source /srv/private/ansible/files/openstack/persistent-admin/ec2rc.sh
+   euca-describe-images | grep emi
 
 4. setup a host playbook ansible/playbooks/hosts/$YOUR_HOSTNAME_HERE.yml
    Note: the name of this file doesn't really matter but it should normally
