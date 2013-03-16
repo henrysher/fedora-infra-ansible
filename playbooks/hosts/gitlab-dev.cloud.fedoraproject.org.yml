@@ -222,3 +222,62 @@
 
     - name: Restart iptables
       command: service iptables restart
+
+- name: Phabricator
+  user: root
+  hosts: gitlab-dev.cloud.fedoraproject.org
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+  tasks:
+    - name: Install dependencies
+      yum: state=present name=$item
+      with_items:
+        - git
+        - subversion
+        - mercurial
+        - httpd
+        - php
+        - php-process
+        - php-mysql
+        - php-gd
+        - php-mbstring
+        - php-apc
+        - mysql-server
+        - python-pygments
+
+    # TODO: Make permanent.
+    - name: Set SELinux to permissive
+      selinux: policy=targeted state=permissive
+
+    - name: Set PHABRICATOR_ENV. Forever.
+      shell: creates=/etc/profile.d/phabricator.sh echo 'export PHABRICATOR_ENV=custom/myconfig' > /etc/profile.d/phabricator.sh
+
+    - name: Source the new profile
+      shell: source /etc/profile.d/phabricator.sh
+
+    - name: Configure Apache
+      template: src=$files/gitlab/phabricator-vhost.conf dest=/etc/httpd/conf.d/phabricator.conf
+
+    - name: Graceful Apache
+      command: service httpd graceful
+
+    - name: Clone facebook/libphutil
+      git: repo=git://github.com/facebook/libphutil dest=/srv/www/facebook/libphutil
+
+    - name: Clone facebook/arcanist
+      git: repo=git://github.com/facebook/arcanist dest=/srv/www/facebook/arcanist
+
+    - name: Clone facebook/phabricator
+      git: repo=git://github.com/facebook/phabricator dest=/srv/www/facebook/phabricator
+
+    - name: Create a conf/custom directory.
+      file: state=directory path=/srv/www/facebook/phabricator/conf/custom
+
+    - name: Place a starting-point custom config in /srv/www/facebook/phabricator/conf/custom/myconfig.conf.php
+      template: src=$files/gitlab/phabricator.conf.php dest=/srv/www/facebook/phabricator/conf/custom/myconfig.conf.php
+
+    - name: Create the databases and bring them up to date
+      action: command chdir=/srv/www/facebook/phabricator ./bin/storage upgrade --force
+
+    - name: Start PHD daemons
+      action: command chdir=/srv/www/facebook/phabricator ./bin/phd start
