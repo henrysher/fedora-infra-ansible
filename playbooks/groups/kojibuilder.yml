@@ -25,22 +25,21 @@
     action: user name=mock uid=425 state=present home=/var/lib/mock createhome=yes system=yes
   - name: make mock homedir perms
     action: file state=directory path=/var/lib/mock mode=2775 owner=root group=mock
-    tags:
-    - mock_homedir_perms
   - name: add mock ssh dir
     action: file state=directory path=/var/lib/mock/.ssh mode=700 owner=mock group=mock
-    tags:
-    - mock_sshdir_perms
+
+  # FIXME - authkeys
   - name: add mock ssh keys
     action: copy src=$configs/mock_auth_keys dest=/var/lib/mock/.ssh/authorized_keys mode=640 owner=mock group=mock
-    tags:
-     - mock_ssh_keys
+
   - name: add kojibuilder
     action: user name=kojibuilder groups=mock 
   - name: add mockbuilder
     action: user name=mockbuilder groups=mock
   - name: mockbuilder .ssh dir
     action: file state=directory path=/home/mockbuilder/.ssh mode=700 owner=mockbuilder group=mockbuilder
+
+  # FIXME authkeys
   - name: mockbuilder ssh key
     action: copy src=$configs/ftbfs_auth_keys dest=/home/mockbuilder/.ssh/authorized_keys mode=644 owner=mockbuilder group=mockbuilder
   - name: iptables
@@ -51,8 +50,6 @@
     action: copy src=$configs/sshd_config dest=/etc/ssh/sshd_config mode=600
     notify:
     - restart sshd
-    tags:
-    - sshd_config
   - name: /etc/resolv.conf
     action: copy src=$configs/resolv.conf dest=/etc/resolv.conf
 
