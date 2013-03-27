@@ -26,6 +26,33 @@
   - name: mount up disk of copr fe
     action: mount name=/srv/copr-fe src='LABEL=copr-fe' fstype=ext4 state=mounted
 
+  - name: mount up bind mount for postgres
+    action: mount src=/srv/copr-fe/pgsqldb name=/var/lib/pgsql fstype=auto opts=bind
+
+  - name: install copr-fe pkgs
+    action: yum state=installed name=$item
+    with_items:
+    - httpd
+    - mod_wsgi
+    - postgresql
+    - bash-completion
+    - postgresql-server
+    - git
+
+  - name: copy apache files to conf.d
+    action: copy src=$files/copr/fe/httpd/$item dest=/etc/httpd/conf.d/$item
+    with_items:
+    - coprs.conf
+    - welcome.conf
+
+   
+  - name: start services
+    action: service state=running enabled=yes name=$item
+    with_items:
+    - httpd
+    - postgresql
+
+
   # open up ports (22, 80, 443)
   - name: poke holes in the firewall
     action: command lokkit $item
