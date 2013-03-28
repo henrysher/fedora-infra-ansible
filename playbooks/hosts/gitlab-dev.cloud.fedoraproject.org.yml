@@ -281,3 +281,35 @@
 
     - name: Start PHD daemons
       action: command chdir=/srv/www/facebook/phabricator ./bin/phd start
+
+- name: Set up Trac 1.0.1
+  user: root
+  hosts: gitlab-dev.cloud.fedoraproject.org
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+
+    - name: Install dependencies
+      yum: state=present name=$item
+      with_items:
+        - git
+        - subversion
+        - httpd
+        - python-setuptools
+        - python-genshi
+        - python-pip
+        - mod_wsgi
+
+    - name: Grab latest Trac via pip.
+      pip: name=trac
+
+    - name: Directory structure
+      file: state=directory path=/srv/www/trac
+
+    - name: Trac WSGI File
+      template: src=$files/gitlab/trac.wsgi dest=/srv/www/trac/trac.wsgi
+
+    - name: Apache config
+      template: src=$files/trac-vhost.conf dest=/etc/httpd/conf.d/trac.conf
+
+    - name: Apache restart
+      command: service httpd restart
