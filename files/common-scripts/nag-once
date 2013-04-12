@@ -1,0 +1,108 @@
+#!/usr/bin/python -tt
+# nag once
+# take stdin and arguments: commandid time-to-ignore-same-output
+# if we encounter any kind of error just output whatever we're given
+# and prepend our own errors
+# so we don't hurt things any worse :)
+# copyright (c) 2011 Red Hat, inc
+# gpl v2 blah blah
+# skvidal - skvidal@fedoraproject.org 
+
+import tempfile
+import sys
+import time
+import os
+import stat
+import glob
+
+
+def translate_tti(tti):
+    # translate 1w, 2d, 3d, 1m, 2h, 55m etc to seconds here
+    
+    if tti is None:
+        return None
+        
+    seconds_per_unit = {"s": 1, "m": 60, "h": 3600, "d": 86400, "w": 604800,}
+    if tti.isdigit():# just seconds
+        return int(tti) 
+    return int(tti[:-1]) * seconds_per_unit[tti[-1]]
+
+    
+
+def get_cmdid_dir(cmdid):
+    """return a path to a valid and safe cachedir"""
+    tmpdir="/var/tmp"
+    prefix = "nag-once:" + cmdid + "#"
+    dirpath = '%s/%s*' % (tmpdir, prefix)
+    cachedirs = sorted(glob.glob(dirpath))
+    for thisdir in cachedirs:
+        stats = os.lstat(thisdir)
+        if stat.S_ISDIR(stats[0]) and stat.S_IMODE(stats[0]) == 448 and stats[4] == os.getuid():
+            return thisdir
+
+    # make the dir (tempfile.mkdtemp())
+    cachedir = tempfile.mkdtemp(prefix=prefix, dir=tmpdir)
+    return cachedir
+
+
+    
+def main():
+    
+    if len(sys.argv) < 2:
+        raise Exception("Usage: nag-once cmdid [time-to-ignore]")
+    
+    cmdid = sys.argv[1]
+    # go through and remove stupid shit from cmdid
+    cmdid = cmdid.replace('/', '')
+    cmdid = cmdid.replace('#', '')
+    cmdid = cmdid.replace('..', '')
+    cmdid = cmdid.replace(';', '')
+    cmdid = cmdid.replace('|', '')
+    cmdid = cmdid.replace('&', '')
+    cmdid = cmdid.replace('\\', '')
+
+    now = time.time()
+    tti = None
+    if len(sys.argv) > 2:
+        tti = sys.argv[2]
+    
+    tti = translate_tti(tti)
+    
+    # make up or find our tempdir
+    mydir = get_cmdid_dir(cmdid)
+
+    old_output = None
+    old_date = 0
+    if os.path.exists(mydir + '/output'):
+        old_output = open(mydir + '/output').read()
+        old_date = os.lstat(mydir + '/output')[stat.ST_MTIME]
+            
+    # take from stdin
+    # 
+    theinput = sys.stdin.read()
+    try:
+        # at this point we have to handle any outputs more ourself b/c we've just read
+        # out of sys.stdin :(
+        
+        if theinput != old_output or (tti and now - old_date > tti):
+            if theinput.strip(): # if there is nothing here, don't output and don't drop a \n on the end of it
+                 print theinput,
+            fo = open(mydir + '/output', 'w')
+            fo.write(theinput)
+            fo.flush()
+            fo.close()
+        
+        
+    except Exception, e:
+        print >> sys.stderr, e
+        print >> sys.stderr, theinput
+
+if __name__ == '__main__':
+    try:
+        main()
+    except Exception, e:
+        print >> sys.stderr, e
+        if not sys.stdin.isatty():
+            print >> sys.stderr, sys.stdin.read()
+
+
