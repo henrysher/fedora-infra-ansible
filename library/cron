@@ -147,15 +147,15 @@ def get_jobs_file(module, user, tmpfile, cron_file):
 def install_jobs(module, user, tmpfile, cron_file):
     if cron_file:
         dest_tmp = "%s.%s.%s.tmp" % (cron_file,os.getpid(),time.time())
-        shutil.copyfile(tmpfile, dest_tmp)
         try:
+            shutil.copyfile(tmpfile, dest_tmp)
             module.atomic_replace(dest_tmp, cron_file)
         except (OSError, IOError), e:
-            return (0, "", str(e))
+            return (1, "", str(e))
         except:
-            return (0, "", str(e))
+            return (1, "", str(e))
         else:
-            return (1, "", "")
+            return (0, "", "")
             
         
     else:
