@@ -148,11 +148,17 @@ def install_jobs(module, user, tmpfile, cron_file):
     if cron_file:
         dest_tmp = "%s.%s.%s.tmp" % (cron_file,os.getpid(),time.time())
         shutil.copyfile(tmpfile, dest_tmp)
-        module.atomic_replace(dest_tmp, cron_file)
+        try:
+            module.atomic_replace(dest_tmp, cron_file)
+        except (OSError, IOError), e:
+            return (1, "", str(e))
+        else:
+            return (0, "", "")
+            
+        
     else:
         cmd = "crontab %s %s" % (user, tmpfile)
-
-    return module.run_command(cmd)
+        return module.run_command(cmd)
 
 def get_jobs(tmpfile):
     lines = open(tmpfile).read().splitlines()
