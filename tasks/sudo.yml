@@ -1,0 +1,23 @@
+---
+#
+# This task sets up /etc/sudoers.d/fedora on a machine. 
+#
+
+#
+# Put in place the default sysadmin-main sudoers file. 
+#
+- name: setup /etc/sudoers.d/sysadmin-main-sudoers
+  action: copy src=$private/files/sudo/sysadmin-main-sudoers dest=/etc/sudoers.d/ owner=root group=root mode=0600
+  tags:
+  - config
+#
+# This will move a /etc/sudoers.d/ file in place 
+#
+- name: setup /etc/sudoers.d/fedora for client use
+  action: copy src=$item dest=/etc/sudoers.d/ owner=root group=root mode=0600
+  with_first_found:
+  - $private/files/sudo/${ansible_fqdn}-sudoers
+  - $private/files/sudo/${ansible_hostname}-sudoers
+  - $private/files/sudo/${ansible_domain}-sudoers
+  tags:
+  - config
