@@ -113,7 +113,9 @@ class LookupModule(object):
 
     def run(self, terms, inject=None, **kwargs):
 
-        terms = utils.listify_lookup_plugin_terms(terms, self.basedir, inject) 
+        if isinstance(terms, basestring):
+            terms = [ terms ]
+            
 
         result = None
         anydict = False
