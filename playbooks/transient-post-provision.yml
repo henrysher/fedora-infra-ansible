@@ -1,0 +1,16 @@
+- name: provision instance
+  hosts: $target
+  user: root
+  gather_facts: True
+
+  vars_files: 
+   - /srv/web/infra/ansible/vars/global.yml
+   - ${private}/vars.yml
+   - ${vars}/${ansible_distribution}.yml
+
+  tasks:
+  - include: $tasks/growroot_cloud.yml
+  - include: $tasks/cloud_setup_basic.yml
+
+  handlers:
+  - include: $handlers/restart_services.yml
