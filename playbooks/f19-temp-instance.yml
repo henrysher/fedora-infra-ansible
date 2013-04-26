@@ -1,0 +1,44 @@
+# setup a transient fedora instance
+# optionally can take --extra-vars="hostbase=hostnamebase root_auth_users='user1 user2 user3'"
+
+- name: check/create instance
+  hosts: lockbox01.phx2.fedoraproject.org
+  user: root
+  gather_facts: False
+
+  vars_files: 
+   - /srv/web/infra/ansible/vars/global.yml
+   - ${private}/vars.yml
+  vars:
+  - keypair: fedora-admin
+  - image: $f19_qcow_id
+  - instance_type: m1.small
+  - security_group: default
+
+  tasks:
+  - include: $tasks/transient_cloud.yml
+
+- name: provision instance
+  hosts: tmp_just_created
+  user: root
+  gather_facts: True
+
+  vars_files: 
+   - /srv/web/infra/ansible/vars/global.yml
+   - ${private}/vars.yml
+   - ${vars}/${ansible_distribution}.yml
+
+  tasks:
+  - name: growpart the second partition (/) to full size
+    action: command growpart /dev/vda 1
+    ignore_errors: true
+    register: growpart
+
+  - name: resize the /dev/vda 1 fs
+    action: command resize2fs /dev/vda1
+    when_integer: ${growpart.rc} == 0
+
+  - include: $tasks/cloud_setup_basic.yml
+
+  handlers:
+  - include: $handlers/restart_services.yml
