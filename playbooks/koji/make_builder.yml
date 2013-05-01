@@ -1,0 +1,56 @@
+# create a new koji builder 
+# NOTE: should be used with --limit most of the time
+# NOTE: make sure there is room/space for this builder on the buildvmhost
+# NOTE: most of these vars come from group_vars/buildvm or from hostvars
+
+- name: make koji builder(s)
+  hosts: buildvm
+  user: root
+  gather_facts: False
+
+  vars_files: 
+   - /srv/web/infra/ansible/vars/global.yml
+   - ${private}/vars.yml
+   - ${vars}/${ansible_distribution}.yml
+
+  tasks:
+  - name: get vm list on the vmhost
+    delegate_to: $vmhost
+    virt: command=list_vms
+    register: result
+
+  - name: check if the host is already defined/existent
+    local_action: fail msg="host is up, need to kill it first"
+    when_string: ${inventory_hostname} in ${result.list_vms}
+
+  - name: echo well we got here
+    local_action: ping
+    delegate_to: $vmhost
+
+  - name: ensure the lv for the host is made
+    lvol: lv=$inventory_hostname_short vg=$volgroup size=$lvm_size state=present
+    delegate_to: $vmhost
+  
+  - name: run the virt-install
+    shell: ${install_command}
+    delegate_to: $vmhost
+  
+  - name: wait for the install to finish - by watching the vnc port
+    local_action: wait_for delay=180 host=${inventory_hostname} port=1 state=stopped timeout=900
+
+  - name: start the vm up
+    action: virt state=running name=${inventory_hostname}
+    delegate_to: $vmhost
+    
+  - name: set the vm up to autostart
+    action: virt command=autostart name=${inventory_hostname}
+    delegate_to: $vmhost
+  
+  - name: wait for ssh on the vm to start back
+    local_action: wait_for delay=10 host=${inventory_hostname} port=22 state=started timeout=300
+
+  
+  # include postinstall playbook
+#  - include: $playbooks/koji/build_postinstall.yml
+
+
