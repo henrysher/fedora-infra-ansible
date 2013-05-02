@@ -1,0 +1,2 @@
+unset HISTFILE
+set HISTSIZE=0

@@ -1,0 +1,38 @@
+---
+- name: add pkgs for bkernel boxes
+  action: yum state=latest pkg=$item enablerepo=epel-test
+  with_items:
+    - pesign
+    - ccid
+    - pcsc-lite
+    - pcsc-lite-libs
+    - opensc
+    - nss-tools
+
+- name: enable pcscd
+  action: service name=pcscd state=running enabled=1
+
+- name: setup opensc in pcscd
+  action: shell modutil -dbdir /etc/pki/pesign -list | grep -q Fedora ||  modutil -force -dbdir /etc/pki/pesign -add opensc -libfile /usr/lib64/pkcs11/opensc-pkcs11.so
+
+- name: /var/run/pesign perms
+  action: file state=directory path=/var/run/pesign owner=pesign group=pesign mode=0770
+
+- name: enable pesign
+  action: service name=pesign state=started enabled=true
+
+- name: when you awake you will remember nothing
+  action: copy src=$files/kojibuilder/history_off.sh dest=/etc/profile.d/history_off.sh mode=0644
+
+- name: mock site-defaults.cfg
+  action: copy src=$files/kojibuilder/builders/bkernel-site-defaults.cfg dest=/etc/mock/site-defaults.cfg mode=0644 owner=root group=mock
+
+- name: put hw reinstall onto bkernel boxes since they are raw hw
+  action: copy src=$files/common-scriptshardware-reinstall dest=/usr/local/bin/hardware-reinstall mode=0750 owner=root group=root
+
+- name: no nfs mounts on bkernel boxes
+  action: mount name=/mnt/koji src=nfs01.phx2.fedoraproject.org:/ fstype=nfs4 state=absent
+
+- name: make sure our bkernel boxes have static ip
+  action: template src=$files/kojibuilder/builders/bkernel-eth0-network dest=/etc/sysconfig/network-scripts/ifcfg-eth0 
+

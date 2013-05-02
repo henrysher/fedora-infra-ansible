@@ -1,0 +1,228 @@
+#!/usr/bin/env python
+# hardware-reinstall - Prepare a physical box in FI for re-install.
+# (c) 2012 Red Hat, Inc.
+# Ricky Elrod <codeblock@fedoraproject.org>
+# GPLv2+
+
+import os
+import sys
+import urllib
+import socket
+import subprocess
+import shlex
+import platform
+from optparse import OptionParser
+
+parser = OptionParser(
+    description='Prepare a physical box in FI for re-install.')
+parser.add_option('-n',
+                  '--noop',
+                  action='store_true',
+                  help="Don't actually modify/download anything, just "
+                       "output stuff.")
+parser.add_option('-y',
+                  '--yes',
+                  action='store_true',
+                  default=False,
+                  dest="yes",
+                  help="Don't prompt to confirm, just do it.")
+parser.add_option('--ip',
+                  help="Override the IP of the box (passed to Grubby)")
+parser.add_option('--gw',
+                  help="Override the Gateway of the box (passed to Grubby)",
+                  dest='gateway')
+parser.add_option('--nm',
+                  help="Override the Netmask of the box (passed to Grubby)",
+                  dest='netmask')
+parser.add_option('--dns',
+                  help="Comma-delimited list of DNS resolvers (passed to "
+                       "Grubby)",
+                  dest='dns_resolvers')
+parser.add_option('--ks-file',
+                  help="Set the kickstart file to use (default:"
+                       "hardware-rhel-6-nohd)",
+                  default='hardware-rhel-6-nohd',
+                  dest='ks_file')
+(options, args) = parser.parse_args()
+
+if options.yes and options.noop:
+    print "Don't ask AND don't do anything? Cmon"
+    sys.exit(1)
+    
+# 0. Get our hostname/primary ip
+# Get our primary IP by resolving our hostname.
+if options.ip:
+    if not options.netmask:
+        print 'You gave a custom IP and should specify a custom netmask too.'
+        sys.exit(1)
+    primary_ip = options.ip
+else:
+    primary_ip = socket.gethostbyname(socket.gethostname())
+
+# so - anaconda sometimes doesn't seem to listen to our dns
+# when fetching kickstarts, etc - so if we give the ip of the host
+# if we're in 10.5.X network (phx2) then things just work.
+if primary_ip.startswith('10.5.'):
+    basehost = "http://10.5.126.23/"
+else:
+    basehost = "http://infrastructure.fedoraproject.org/"
+
+arch = platform.machine()
+VMLINUZ_URL = '%srepo/rhel/RHEL6-%s/images/pxeboot/vmlinuz' % (basehost, arch)
+INITRD_URL = '%srepo/rhel/RHEL6-%s/images/pxeboot/initrd.img' % (basehost,
+                                                                 arch)
+
+# 1. Grab initrd and vmlinuz and throw them in /boot
+# FIXME - more error catching here
+if not options.noop:
+    print 'Fetching vmlinuz'
+    urllib.urlretrieve(VMLINUZ_URL, "/boot/vmlinuz-install")
+
+    print 'Fetching initrd'
+    urllib.urlretrieve(INITRD_URL, "/boot/initrd-install.img")
+
+
+# 2. Find our network info.
+if options.netmask:
+    primary_netmask = options.netmask
+
+# We still have to get the MAC address, of the primary NIC
+# even if we specify a custom IP/NM.
+cmd = subprocess.Popen('/sbin/ifconfig', stdout=subprocess.PIPE)
+stdout = cmd.communicate()[0]
+i = 0
+lines = stdout.split("\n")
+for line in lines:
+    if socket.gethostbyname(socket.gethostname()) in line:
+        # Somewhere between EL6 and F17, ifconfig output has changed.
+        # We accommodate for both.
+        if ':' in line:
+            # We are EL6
+            if not options.netmask:
+                # inet addr:10.5.127.51  Bcast:10.5.127.255  Mask:255.255.255.0
+                primary_netmask = line.split('Mask:')[1]
+
+            # On EL6 MAC addr is always one line before the IP address line
+            primary_mac = lines[i - 1].split('HWaddr ')[1]
+        else:
+            # We are likely something newer
+            if not options.netmask:
+                # inet 10.10.10.113  netmask 255.255.255.0  broadcast
+                # 10.10.10.255           # (cont. from above comment)
+                primary_netmask = line.split('netmask ')[1].split(' ')[0]
+
+            # On newer things, life gets harder. We have to continue
+            # parsing lines until we get one with 'ether ' in it.
+            # The range is the line we're on now -> the last line.
+            for y in xrange(i, len(lines) - 1):
+                if 'ether ' in lines[y]:
+                    primary_mac = lines[y].split('ether ')[1].split(' ')[0]
+                    break
+        break
+    i += 1
+
+# Gateway
+if options.gateway:
+    primary_gateway = options.gateway
+else:
+    cmd = subprocess.Popen(['/sbin/ip', 'route'], stdout=subprocess.PIPE)
+    stdout = cmd.communicate()[0]
+    for line in stdout.split("\n"):
+        if 'default' in line:
+            # default via 10.10.10.1 dev wlan0  proto static
+            primary_gateway = line.split('via ')[1].split(' ')[0]
+            break
+
+# And DNS servers
+if options.dns_resolvers:
+    dns_resolvers = options.dns_resolvers
+else:
+    dns_servers = []
+    with open('/etc/resolv.conf', 'r') as f:
+        for line in f.readlines():
+            if 'nameserver' in line:
+                dns = line.split(' ')
+                if len(dns) == 2:
+                    dns_servers.append(dns[1].strip())
+    dns_resolvers = ','.join(dns_servers)
+
+print '-' * 30
+print 'Primary IP: ' + primary_ip
+print 'Primary Netmask: ' + primary_netmask
+print 'Primary Gateway: ' + primary_gateway
+print 'Primary MAC Address: ' + primary_mac
+print 'DNS Resolvers: ' + dns_resolvers
+print '-' * 30
+
+# 3. Construct the grubby line.
+# grubby --add-kernel=/boot/vmlinuz-install \
+#        --args="ks=http://infrastructure.fedoraproject.org/\
+#        repo/rhel/ks/hardware-rhel-6-nohd \
+#        repo=http://infrastructure.fedoraproject.org/repo/rhel/RHEL6-x86_64/ \
+#        ksdevice=link ip=$IP gateway=$GATEWAY netmask=$NETMASK dns=$DNS" \
+#        --title="install el6" --initrd=/boot/initrd-install.img
+grubby_command = '/sbin/grubby --add-kernel=/boot/vmlinuz-install ' \
+    '--args="ks=%srepo/rhel/ks/%s ksdevice=%s ' \
+    'ip=%s gateway=%s netmask=%s dns=%s repo=%srepo/rhel/RHEL6-x86_64/" ' \
+    '--title="install el6" --initrd=/boot/initrd-install.img' % (basehost,
+    options.ks_file,
+    primary_mac,
+    primary_ip,
+    primary_gateway,
+    primary_netmask,
+    dns_resolvers,
+    basehost)
+
+print 'This grubby command seems like it will work:'
+print '-' * 30
+print grubby_command
+print '-' * 30
+print 'Check the command and be sure that it looks correct.'
+
+if not options.noop:
+    if not options.yes:
+        print 'Type yes to continue, anything else to abort.'
+        print 'By continuing, I will run the above command.'
+        if  raw_input('> ') != 'yes':
+            print 'Removing downloaded files.'
+            os.unlink('/boot/vmlinuz-install')
+            os.unlink('/boot/initrd-install.img')
+            print 'Aborting.'
+            sys.exit(1)
+
+    cmd = subprocess.Popen(shlex.split(grubby_command),
+                           stdout=subprocess.PIPE,
+                           stderr=subprocess.PIPE)
+    stdout, stderr = cmd.communicate()
+    if stdout:
+        print stdout
+    if stderr:
+        print "[STDERR output]"
+        print stderr
+
+    if not options.yes:
+        raw_input(
+            'Examine the above output, if it looks sane, press enter to '
+            'continue.')
+print 'The next command I will run is:'
+print 'echo "savedefault --default=0 --once" | grub --batch'
+
+if not options.noop:
+    cmd = subprocess.Popen(['/sbin/grub', '--batch'],
+                           stdin=subprocess.PIPE,
+                           stdout=subprocess.PIPE,
+                           stderr=subprocess.STDOUT)
+    stdout = cmd.communicate(input='savedefault --default=0 --once\n')
+    print stdout[0]
+
+print 'Done.'
+print 'When you are ready, run: `shutdown -r now` to reboot.'
+print 'Go here:'
+print 'http://infrastructure.fedoraproject.org/infra/docs/kickstarts.txt'
+print 'And control-f for "Installation" (no quotes). Continue from there.'
+
+if options.noop:
+    print '-' * 30
+    print 'Script was run in "no-op" mode - none of the above commands ' \
+          'actually ran.'
+    print '-' * 30
