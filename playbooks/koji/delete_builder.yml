@@ -1,0 +1,35 @@
+# only works with -e target=
+# read configs from host_vars
+# check for host already existing
+# if it exists
+# kill it
+# lvremove disk
+# if not
+# exit with failure
+
+# requires --extra-vars="target=hostspec"
+
+- name: destroy and undefine vm
+  hosts: $target
+  user: root
+  gather_facts: false
+
+  tasks:
+  - name: get vm list on the vmhost
+    delegate_to: $vmhost
+    virt: command=list_vms
+    register: result
+
+  - name: check if the host is already defined/existent
+    local_action: fail msg="host does not exist on $vmhost"
+    when_string: ${inventory_hostname} not in ${result.list_vms}
+
+  - name: destroy the vm
+    action: virt name=${inventory_hostname} command=destroy
+    delegate_to: $vmhost
+
+  - name: undefine the vm
+    action: virt name=${inventory_hostname} command=undefine
+    delegate_to: $vmhost
+
+
