@@ -1,0 +1,28 @@
+# create a new releng system
+# NOTE: should be used with --limit most of the time
+# NOTE: make sure there is room/space for this instance on the buildvmhost
+# NOTE: most of these vars come from group_vars/releng or from hostvars
+
+- name: make releng systems
+  hosts: releng
+  user: root
+  gather_facts: False
+
+  vars_files: 
+   - /srv/web/infra/ansible/vars/global.yml
+   - ${private}/vars.yml
+   - ${vars}/${ansible_distribution}.yml
+
+  tasks:
+  - include: $tasks/virt_instance_create.yml
+  - include: $tasks/koji/releng_config.yml
+
+  handlers:
+  - include: $handlers/restart_services.yml
+
+  - name: restart kojid
+    action: service name=kojid state=restarted
+  
+
+
+
