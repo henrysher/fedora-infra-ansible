@@ -15,11 +15,16 @@
 
   tasks:
   - include: $tasks/virt_instance_create.yml
-  - name: ping the host
-    action: ping
+  - include: $tasks/koji/config_builder.yml
+  - include: $tasks/koji/builder_kernel_config.yml
+
+
+  handlers:
+  - include: $handlers/restart_services.yml
+
+  - name: restart kojid
+    action: service name=kojid state=restarted
   
-  # include postinstall playbook
-#- include: /srv/web/infra/ansible/playbooks/koji/config_builder.yml
 
 
 

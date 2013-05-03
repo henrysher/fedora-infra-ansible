@@ -1,0 +1,145 @@
+- name: enforce certain packages previously assumed from kickstarts
+  action: yum name=$item state=installed
+  with_items:
+  - postfix
+  - joe
+  - perl
+
+- name: set root passwd
+  action: user name=root password=$builder_rootpw state=present
+
+- name: add mock user as 425
+  action: user name=mock uid=425 state=present home=/var/lib/mock createhome=yes system=yes
+
+- name: make mock homedir perms
+  action: file state=directory path=/var/lib/mock mode=2775 owner=root group=mock
+
+- name: add mock ssh dir
+  action: file state=directory path=/var/lib/mock/.ssh mode=700 owner=mock group=mock
+
+- name: add mock ssh keys
+  action: copy src=$files/kojibuilder/mock_auth_keys dest=/var/lib/mock/.ssh/authorized_keys mode=640 owner=mock group=mock
+
+- name: add kojibuilder
+  action: user name=kojibuilder groups=mock 
+
+- name: add mockbuilder
+  action: user name=mockbuilder groups=mock
+
+- name: mockbuilder .ssh dir
+  action: file state=directory path=/home/mockbuilder/.ssh mode=700 owner=mockbuilder group=mockbuilder
+
+- name: mockbuilder ssh key
+  action: copy src=$files/kojibuilder/ftbfs_auth_keys dest=/home/mockbuilder/.ssh/authorized_keys mode=644 owner=mockbuilder group=mockbuilder
+
+- name: iptables
+  action: copy src=$files/iptables/kojibuilder dest=/etc/sysconfig/iptables mode=600
+  notify:
+  - restart iptables
+
+- name: sshd_config
+  action: copy src=$files/ssh/sshd_config.kojibuilder dest=/etc/ssh/sshd_config mode=600
+  notify:
+  - restart sshd
+
+- name: /etc/resolv.conf
+  action: copy src=$files/resolv.conf/kojibuilder dest=/etc/resolv.conf
+
+- name: add to hosts
+  action: copy src=$files/hosts/kojibuilder-hosts dest=/etc/hosts
+
+- name: rsyslog.conf
+  action: copy src=$files/rsyslog/rsyslog.conf.kojibuilder dest=/etc/rsyslog.conf mode=644
+  notify:
+  - restart rsyslog
+
+- name: /etc/postfix/main.cf
+  action: copy src=$files/postfix/main.cf.kojibuilder dest=/etc/postfix/main.cf
+  notify:
+  - restart postfix
+
+- name: make a bunch of dirs
+  action: file state=directory path=$item
+  with_items:
+    - /pub
+    - /mnt/koji
+    - /pub/fedora
+    - /pub/epel
+    - /var/spool/rsyslog
+
+- name: add builder infra yum repo
+  action: copy src=$files/kojibuilder/builder-infrastructure.repo dest=/etc/yum.repos.d/builder-infrastructure.repo
+
+- name: clean up packages we do not need
+  action: yum state=removed pkg=$item
+  with_items:
+    - audit
+    - 'cronie\*'
+
+- name: add pkgs
+  action: yum  state=installed pkg=$item
+  with_items:
+    - yum-utils
+    - koji-builder
+    - strace
+    - mock
+    - nfs-utils
+    - kernel-firmware
+    - ntp
+    - ntpdate
+
+- name: /etc/kojid/kojid.conf
+  action: copy src=$files/kojibuilder/kojid.conf dest=/etc/kojid/kojid.conf
+  only_if: "not '${ansible_fqdn}'.startswith(('arm01','arm03','arm04'))"
+  notify:
+  - restart kojid
+
+
+- name: arm /etc/kojid/kojid.conf
+  action: copy src=$files/kojibuilder/arm-kojid.conf dest=/etc/kojid/kojid.conf
+  only_if: "'${ansible_fqdn}'.startswith(('arm01','arm03','arm04'))"
+  notify:
+  - restart kojid
+
+- name: /etc/koji/koji.conf
+  action: copy src=$files/kojibuilder/koji.conf dest=/etc/koji.conf
+  only_if: "not '${ansible_fqdn}'.startswith(('arm01','arm03','arm04'))"
+
+- name: /etc/koji/koji.conf
+  action: copy src=$files/kojibuilder/arm-koji.conf dest=/etc/koji.conf
+  only_if: "'${ansible_fqdn}'.startswith(('arm01','arm03','arm04'))"
+
+- name: copy over koji ca cert
+  action: copy src=$private/files/koji/buildercerts/fedora-ca.cert dest=/etc/kojid/cacert.pem
+
+- name: copy over /etc/security/limits.conf
+  action: copy src=$files/kojibuilder/limits.conf dest=/etc/security/limits.conf
+
+- name: copy over builder cert to /etc/kojid/kojibuilder.pem
+  action: copy src=$private/files/koji/buildercerts/${ansible_fqdn}.pem dest=/etc/kojid/kojibuilder.pem mode=600   
+
+- name: chkconfig kojid on
+  action: service name=kojid enabled=on
+
+- name: copy over authorized keys for root
+  action: copy src=$files/kojibuilder/root_auth_keys dest=/root/.ssh/authorized_keys mode=644
+
+- name: nfs mount points
+  action: mount name=/mnt/koji src=nfs01.phx2.fedoraproject.org:/ fstype=nfs4 opts=ro,hard,bg,intr,noatime,nodev,nosuid passno=0 dump=0 state=present
+  only_if: "not '${ansible_fqdn}'.startswith('bkernel')"
+
+# mock configs for pungify job
+- name: put extra special  mock configs in
+  action: copy src=$files/kojibuilder/builders/$item dest=/etc/mock/$item mode=644
+  with_items:
+    - fedora-devel-pungi-i386.cfg
+    - fedora-devel-pungi-x86_64.cfg
+
+- name: ntp steptickers
+  action: copy src=$files/common/step-tickers dest=/etc/ntp/step-tickers
+
+- name: ntp.conf
+  action: copy src=$files/common/ntp.conf dest=/etc/ntp.conf
+
+- name: enable ntpd
+  action: service name=ntpd enabled=true state=started
