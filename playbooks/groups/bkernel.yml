@@ -1,0 +1,29 @@
+# provision a new koji bkernel 
+# NOTE: this assumes the bkernel boxes are already up and are accessible
+# NOTE: most of these vars come from group_vars/bkernel or from hostvars
+
+- name: make koji bkernel
+  hosts: bkernel
+  user: root
+  gather_facts: False
+
+  vars_files: 
+   - /srv/web/infra/ansible/vars/global.yml
+   - ${private}/vars.yml
+   - ${vars}/${ansible_distribution}.yml
+
+  tasks:
+  - include: $tasks/koji/base_builder.yml
+  - include: $tasks/koji/builder_kernel_config.yml
+  - include: $tasks/koji/bkernel-setup.yml
+
+
+  handlers:
+  - include: $handlers/restart_services.yml
+
+  - name: restart kojid
+    action: service name=kojid state=restarted
+  
+
+
+
