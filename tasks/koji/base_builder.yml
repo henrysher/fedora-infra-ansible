@@ -90,24 +90,24 @@
 
 - name: /etc/kojid/kojid.conf
   action: copy src=$files/kojibuilder/kojid.conf dest=/etc/kojid/kojid.conf
-  only_if: "not '${ansible_fqdn}'.startswith(('arm01','arm03','arm04'))"
+  only_if: "not '${inventory_hostname}'.startswith(('arm01','arm03','arm04'))"
   notify:
   - restart kojid
 
 
 - name: arm /etc/kojid/kojid.conf
   action: copy src=$files/kojibuilder/arm-kojid.conf dest=/etc/kojid/kojid.conf
-  only_if: "'${ansible_fqdn}'.startswith(('arm01','arm03','arm04'))"
+  only_if: "'${inventory_hostname}'.startswith(('arm01','arm03','arm04'))"
   notify:
   - restart kojid
 
 - name: /etc/koji/koji.conf
   action: copy src=$files/kojibuilder/koji.conf dest=/etc/koji.conf
-  only_if: "not '${ansible_fqdn}'.startswith(('arm01','arm03','arm04'))"
+  only_if: "not '${inventory_hostname}'.startswith(('arm01','arm03','arm04'))"
 
 - name: /etc/koji/koji.conf
   action: copy src=$files/kojibuilder/arm-koji.conf dest=/etc/koji.conf
-  only_if: "'${ansible_fqdn}'.startswith(('arm01','arm03','arm04'))"
+  only_if: "'${inventory_hostname}'.startswith(('arm01','arm03','arm04'))"
 
 - name: copy over koji ca cert
   action: copy src=$private/files/koji/buildercerts/fedora-ca.cert dest=/etc/kojid/cacert.pem
@@ -116,7 +116,7 @@
   action: copy src=$files/kojibuilder/limits.conf dest=/etc/security/limits.conf
 
 - name: copy over builder cert to /etc/kojid/kojibuilder.pem
-  action: copy src=$private/files/koji/buildercerts/${ansible_fqdn}.pem dest=/etc/kojid/kojibuilder.pem mode=600   
+  action: copy src=$private/files/koji/buildercerts/${inventory_hostname}.pem dest=/etc/kojid/kojibuilder.pem mode=600   
 
 - name: chkconfig kojid on and leave it running
   action: service name=kojid enabled=on state=started
@@ -126,7 +126,7 @@
 
 - name: nfs mount points
   action: mount name=/mnt/koji src=nfs01.phx2.fedoraproject.org:/ fstype=nfs4 opts=ro,hard,bg,intr,noatime,nodev,nosuid passno=0 dump=0 state=present
-  only_if: "not '${ansible_fqdn}'.startswith('bkernel')"
+  only_if: "not '${inventory_hostname}'.startswith('bkernel')"
 
 # mock configs for pungify job
 - name: put extra special  mock configs in
