@@ -124,8 +124,23 @@
 - name: copy over authorized keys for root
   action: copy src=$files/kojibuilder/root_auth_keys dest=/root/.ssh/authorized_keys mode=644
 
+
+
+# idmapd and make sure it's set to run
+- name: idmapd.conf
+  action: copy src=$files/kojibuilder/idmapd.conf dest=/etc/idmapd.conf
+  tags:
+  - configs
+- name: enable nfs-related services and run them
+  action: service name=$item  enabled=true state=started
+  with_items:
+  - rpcidmapd
+  - rpcbind
+  - nfs
+  - nfslock
+
 - name: nfs mount points
-  action: mount name=/mnt/koji src=nfs01.phx2.fedoraproject.org:/ fstype=nfs4 opts=ro,hard,bg,intr,noatime,nodev,nosuid passno=0 dump=0 state=present
+  action: mount name=/mnt/koji src=nfs01.phx2.fedoraproject.org:/ fstype=nfs4 opts=ro,hard,bg,intr,noatime,nodev,nosuid passno=0 dump=0 state=mounted
   only_if: "not '${inventory_hostname}'.startswith('bkernel')"
 
 # mock configs for pungify job
