@@ -1,0 +1,99 @@
+#!/usr/bin/python -tt
+# by skvidal
+# gplv2+
+# print out the ACTUAL freemem - not overcommitted value
+
+
+import sys
+import ansible.runner
+import os
+
+from optparse import OptionParser
+
+def parse_args(args):
+    parser = OptionParser(version = "1.0")
+    parser.add_option('--host', default=[], action='append',
+               help="hosts to act on, defaults to ALL")
+    parser.add_option('--timeout', default=30, type='int',
+               help='set the wait timeout for func commands')
+    parser.add_option('--hosts-from-file', default=None, dest="hostfile",
+               help="read list of hosts from this file, if '-' read from stdin")
+    (opts, args) = parser.parse_args(args)
+
+    if opts.hostfile:
+        hosts = []
+        if opts.hostfile == '-':
+            hosts = sys.stdin.readlines()
+        else:
+            hosts = open(opts.hostfile, 'r').readlines()
+
+        for hn in hosts:
+            hn = hn.strip()
+            if hn.startswith('#'):
+                continue
+            hn = hn.replace('\n', '')
+            opts.host.append(hn)
+
+    return opts, args, parser
+
+
+opts, args, parser = parse_args(sys.argv[1:])
+hosts ='*'
+if opts.host:
+    hosts = ';'.join(opts.host)
+
+if os.geteuid() == 0:
+    login = 'root'
+else:
+    login = os.getlogin()
+
+# get results of nodeinfo phymemory
+#    "phymemory": "24018", 
+
+
+errors = []
+
+mem_per_host = {}
+mem_used_in_vm = {}
+ans = ansible.runner.Runner(pattern=hosts, forks=25, transport='paramiko', timeout=10,
+                      module_name='virt', module_args='command=nodeinfo', remote_user=login)
+res = ans.run()
+
+for hn in sorted(res['contacted']):
+    if 'failed' in res['contacted'][hn] and res['contacted'][hn]['failed']:
+        continue
+    mem_per_host[hn] = int(res['contacted'][hn]['phymemory'])
+
+
+
+ans = ansible.runner.Runner(pattern=hosts, forks=25, transport='paramiko', timeout=10,
+                      module_name='virt', module_args='command=info', remote_user=login)
+res = ans.run()
+
+
+for hn in sorted(res['contacted']):
+    mem_used = 0
+    if 'failed' in res['contacted'][hn] and res['contacted'][hn]['failed']:
+        errors.append('Failed to contact/run virt lookups on %s' % hn)
+        continue
+    for vm in sorted(res['contacted'][hn]):
+        info = res['contacted'][hn][vm]
+
+        if vm == 'Domain-0':
+            continue
+        elif type(info) != dict:
+            continue
+        elif 'maxMem' not in info:
+            continue    
+        mem_used += int(info['maxMem'])/1024
+        
+    mem_used_in_vm[hn] = mem_used
+
+
+for hn in sorted(mem_per_host):
+    freemem = mem_per_host[hn] - mem_used_in_vm[hn]
+    print '%s : %s' % (hn, freemem)
+
+
+for err in errors:
+    print >> sys.stderr, err
