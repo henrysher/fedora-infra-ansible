@@ -5,16 +5,30 @@
 
 import ansible.inventory
 import sys
+from optparse import OptionParser
 
-inv = ansible.inventory.Inventory()
+
+
+parser = OptionParser(version = "1.0")
+parser.add_option('-i', dest='inventory', default=None,
+         help="Path to inventory file/dir")
+opts,args = parser.parse_args(sys.argv[1:])
+
+if opts.inventory:
+    inv = ansible.inventory.Inventory(host_list=opts.inventory)
+else:
+    inv = ansible.inventory.Inventory()
+    
+    
 frozen = []
 unfrozen = []
 for host in sorted(inv.get_hosts()):
     vars = inv.get_variables(host.name)
     freezes = vars.get('freezes', None)
+    
     if freezes:
         frozen.append(host.name)
-    elif freezes == 'None':
+    elif freezes is None:
         print 'Error: missing freezes: %s' % host.name
     else:
         unfrozen.append(host.name)
