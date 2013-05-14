@@ -1,0 +1,29 @@
+import ansible.inventory
+import sys
+
+inv = ansible.inventory.Inventory()
+frozen = []
+unfrozen = []
+for host in sorted(inv.get_hosts()):
+    vars = inv.get_variables(host.name)
+    freezes = vars.get('freezes', None)
+    if freezes:
+        frozen.append(host.name)
+    elif freezes == 'None':
+        print 'Error: missing freeezes: %s' % host.name
+    else:
+        unfrozen.append(host.name)
+        
+print 'freeze:'
+for host in frozen:
+    print '  ' + host
+
+
+print 'do not freeze:'
+for host in unfrozen:
+    print '  ' + host
+
+        
+        
+                
+        
