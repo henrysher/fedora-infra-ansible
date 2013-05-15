@@ -1,0 +1,27 @@
+# provision a new kernel-qa system
+# NOTE: this assumes the kernel-qa boxes are already up and are accessible
+# NOTE: most of these vars come from group_vars/kernel-qa or from hostvars
+
+- name: make kernel-qa
+  hosts: kernel-qa
+  user: root
+  gather_facts: True
+
+  vars_files: 
+   - /srv/web/infra/ansible/vars/global.yml
+   - ${private}/vars.yml
+   - ${vars}/${ansible_distribution}.yml
+
+  tasks:
+  # dummy task as filler
+  - name: dummy ping
+    action: ping
+  # this is how you include other task lists
+  # - include: $tasks/sometasks.yml
+
+  handlers:
+  - include: $handlers/restart_services.yml
+
+
+
+
