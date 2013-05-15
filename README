@@ -173,3 +173,53 @@ only setup/create a new instance if the ip is not up/responding.
 
 
 
+
+
+SECURITY GROUPS
+- to edit security groups you must either have your own cloud account or
+  be a member of sysadmin-main
+
+This gives you the credential to change things in the persistent tenant
+- source /srv/private/ansible/files/openstack/persistent-admin/ec2rc.sh
+
+
+This lists all security groups in that tenant:
+- euca-describe-groups | grep GROUP
+
+the output will look like this:
+euca-describe-groups  | grep GROU
+GROUP	d4e664a10e2c4210839150be09c46e5e	default	default
+GROUP	d4e664a10e2c4210839150be09c46e5e	jenkins	jenkins instance group
+GROUP	d4e664a10e2c4210839150be09c46e5e	logstash	logstash security group
+GROUP	d4e664a10e2c4210839150be09c46e5e	smtpserver	list server group. needs web and smtp
+GROUP	d4e664a10e2c4210839150be09c46e5e	webserver	webserver security group
+GROUP	d4e664a10e2c4210839150be09c46e5e	wideopen	wideopen
+
+
+This lets you list the rules in a specific group:
+- euca-describe-group groupname
+
+the output will look like this:
+
+euca-describe-group wideopen
+GROUP	d4e664a10e2c4210839150be09c46e5e	wideopen	wideopen
+PERMISSION	d4e664a10e2c4210839150be09c46e5e	wideopen ALLOWS	tcp	1	65535	FROM	CIDR	0.0.0.0/0
+PERMISSION	d4e664a10e2c4210839150be09c46e5e	wideopen ALLOWS	icmp	-1	-1	FROM	CIDR	0.0.0.0/0
+
+
+To create a new group:
+euca-create-group -d "group description here" groupname
+
+To add a rule to a group:
+euca-authorize -P tcp -p 22 groupname
+
+To delete a rule from a group:
+euca-revoke <rule here> groupname
+
+Notes:
+- Be careful removing or adding rules to existing groups b/c you could be
+impacting other instances using that security group.
+
+- You will almost always want to allow 22/tcp (sshd) and icmp -1 -1 (ping
+and traceroute and friends). 
+
