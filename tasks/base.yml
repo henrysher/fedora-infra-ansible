@@ -1,4 +1,30 @@
 ---
+
+- name: sshd_config 
+  action: copy src=$sshd_config dest=/etc/ssh/sshd_config mode=600
+  first_available_file:
+    - $sshd_config
+    - $files/ssh/sshd_config.${ansible_fqdn}
+    - $files/ssh/sshd_config.${host_group}
+    - $files/ssh/sshd_config.${dist_tag}
+  notify:
+  - restart sshd
+  tags:
+  - sshd_config
+  - config
+  - sshd
+
+- name: set root passwd
+  action: user name=root password=$rootpw state=present
+  tags:
+  - rootpw
+
+- name: add ansible root key 
+  action: authorized_key user=root key='$FILE(${files}/common/ansible-pub-key)'
+  tags:
+  - config
+
+
 - name: put repos on system
   action: copy src=$files/common/$item dest=/etc/yum.repos.d/$item
   with_items:
@@ -33,6 +59,7 @@
   - firstboot-tui
   - bluez-utils
   - sendmail
+  only_if: '$is_rhel'
   tags:
   - packages
 
@@ -42,18 +69,9 @@
   - yum-updatesd
   - gpm
   - rhnsd
+  only_if: '$is_rhel'
   tags:
   - services
-  - config
-
-- name: set root passwd
-  action: user name=root password=$rootpw state=present
-  tags:
-  - rootpw
-
-- name: add ansible root key 
-  action: authorized_key user=root key='$FILE(${files}/common/ansible-pub-key)'
-  tags:
   - config
 
 - name: iptables
@@ -68,20 +86,6 @@
   tags:
   - iptables
   - config
-
-- name: sshd_config 
-  action: copy src=$sshd_config dest=/etc/ssh/sshd_config mode=600
-  first_available_file:
-    - $sshd_config
-    - $files/ssh/sshd_config.${ansible_fqdn}
-    - $files/ssh/sshd_config.${host_group}
-    - $files/ssh/sshd_config.${dist_tag}
-  notify:
-  - restart sshd
-  tags:
-  - sshd_config
-  - config
-  - sshd
 
 # XXX fixme # a datacenter 'fact' from setup
 - name: /etc/resolv.conf
