@@ -1,0 +1,25 @@
+# This is the absolute bare minimum base configuration file.  User supplied
+# configurations are pushed onto this.
+
+[mailman]
+site_owner: root@localhost
+
+# Set the paths to be Fedora-compliant
+layout: fhs
+[paths.fhs]
+var_dir: /srv/persist/mailman
+bin_dir: /usr/libexec/mailman
+lock_dir: /run/lock/mailman
+pid_file: /run/mailman/master.pid
+
+[database]
+class: mailman.database.postgresql.PostgreSQLDatabase
+url: postgres://mailman:{{ lists_dev_mm_db_pass }}@localhost/mailman
+
+[archiver.hyperkitty]
+class: hyperkitty.archiver.Archiver
+enable: yes
+configuration: /etc/mailman.d/hyperkitty.cfg
+
+#[archiver.prototype]
+#enable: yes
