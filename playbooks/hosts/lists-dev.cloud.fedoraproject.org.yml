@@ -103,8 +103,13 @@
   gather_facts: no
   sudo: yes
   sudo_user: postgres
-  vars_files:
-    - vars.yaml
+  vars_files: 
+   - /srv/web/infra/ansible/vars/global.yml
+   - ${private}/vars.yml
+   - ${vars}/${ansible_distribution}.yml
+  vars:
+   - mailman_vardir: /srv/persist/mailman
+
 
   tasks:
     - name: mailman DB user
@@ -126,8 +131,12 @@
 - name: setup mailman and hyperkitty
   hosts: hyperkitty-stg
   gather_facts: no
-  vars_files:
-    - vars.yaml
+  vars_files: 
+   - /srv/web/infra/ansible/vars/global.yml
+   - ${private}/vars.yml
+   - ${vars}/${ansible_distribution}.yml
+  vars:
+   - mailman_vardir: /srv/persist/mailman
 
   tasks:
 
