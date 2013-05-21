@@ -2,16 +2,25 @@
 #install denyhosts
 - name: install denyhosts
   yum: name=denyhosts state=installed
+  tags:
+  - packages
 
 - name: /etc/denyhosts.conf
   copy: src=$files/denyhosts/denyhosts.conf dest=/etc/denyhosts.conf
   notify:
   - restart denyhosts
+  tags:
+  - config
 
 - name: /var/lib/denyhosts/allowed-hosts
   copy: src=$files/denyhosts/allowed-hosts dest=/var/lib/denyhosts/allowed-hosts
   notify:
   - restart denyhosts
+  tags:
+  - config
 
 - name: enable the service
   service: name=denyhosts state=running enabled=true
+  tags:
+  - service
+

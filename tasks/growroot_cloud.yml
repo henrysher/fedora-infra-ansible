@@ -1,9 +1,14 @@
 - name: add infra repo 
   action: get_url url=http://infrastructure.fedoraproject.org/el/infrastructure.repo dest=/etc/yum.repos.d/
   only_if: '$is_rhel'
+  tags:
+  - config
+  
 
 - name: install cloud-utils
   action: yum name=cloud-utils state=present
+  tags:
+  - packages
 
 - name: growpart the second partition (/) to full size
   action: command growpart /dev/vda 2
