@@ -1,0 +1,43 @@
+# nagios-client/nrpe
+
+---
+# install pkgs:
+- name: install nagios client pkgs
+  yum: name=$item state=installed
+  with_items:
+  - nrpe
+  - nagios-plugins
+  - nagios-plugins-disk
+  - nagios-plugins-file_age
+  - nagios-plugins-users
+  - nagios-plugins-procs
+  - nagios-plugins-swap
+  - nagios-plugins-load
+  - nagios-plugins-ping
+  tags:
+  - packages
+
+# create dirs
+# puppet used to make /var/spool/nagios (owned by nagios.nagios) mode 750
+# and /usr/lib/nagios/plugins (owned by root) mode 755 - but we don't know WHY 
+# then stuff it with plugins from the plugins dir in the nagios module
+# then we symlinked that to /usr/lib64/nagios/plugins
+# it was a nightmare - don't do that - my ghost will haunt you if you do
+# skvidal 2013-05-21
+
+
+# FIXME? figure out nrpe selinux policy of DOOM is needed
+
+- name: /etc/nagios/nrpe.cfg
+  copy: src=$files/nagios/client/nrpe.cfg dest=/etc/nagios/nrpe.cfg 
+  notify:
+  - restart nrpe
+  tags:
+  - config
+
+- name: nrpe service start
+  service: name=nrpe state=running enabled=true
+  tags:
+  - service
+
+
