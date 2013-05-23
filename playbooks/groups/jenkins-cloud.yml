@@ -109,6 +109,12 @@
   - name: start jenkins itself
     action: service name=jenkins state=running
 
+  - name: jenkins hotfix big file
+    copy: src=$item dest=/var/lib/jenkins/plugins/openid/WEB-INF/lib/ group=jenkins mode=655
+    with_fileglob: $bigfiles/hotfixes/jenkins/openid/*.jar
+    notify: 
+      - restart jenkins
+
   
   handlers:
   - include: $handlers/restart_services.yml
