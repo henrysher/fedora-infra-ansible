@@ -115,6 +115,11 @@
   - name: start jenkins itself
     action: service name=jenkins state=running
 
+  - name: wait for a dir to exist - this is just ugly
+    shell: while `true`; do [ -d /var/lib/jenkins/plugins/openid/WEB-INF/lib/ ] && break; sleep 5; done
+    async: 1800
+    poll: 20
+
   - name: jenkins hotfix big file
     copy: src=$item dest=/var/lib/jenkins/plugins/openid/WEB-INF/lib/ group=jenkins mode=655
     with_fileglob: $bigfiles/hotfixes/jenkins/openid/*.jar
