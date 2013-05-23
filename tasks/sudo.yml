@@ -6,8 +6,8 @@
 #
 # Put in place the default sysadmin-main sudoers file. 
 #
-- name: setup /etc/sudoers.d/sysadmin-main-sudoers
-  action: copy src=$private/files/sudo/sysadmin-main-sudoers dest=/etc/sudoers.d/ owner=root group=root mode=0600
+- name: setup /etc/sudoers.d/sysadmin-main
+  action: copy src=$private/files/sudo/sysadmin-main dest=/etc/sudoers.d/ owner=root group=root mode=0600
   tags:
   - config
 #
@@ -16,7 +16,7 @@
 - name: setup /etc/sudoers.d/sudoer file for client use
   action: copy src=$item dest=/etc/sudoers.d/ owner=root group=root mode=0600
   with_first_found:
-  - files: $sudoers $private/files/sudo/${ansible_fqdn}-sudoers $private/files/sudo/${ansible_hostname}-sudoers $private/files/sudo/${ansible_domain}-sudoers
+  - files: ${sudoers} ${private}/files/sudo/${ansible_fqdn}-sudoers ${private}/files/sudo/${ansible_hostname}-sudoers ${private}/files/sudo/${ansible_domain}-sudoers
   - skip: true
   tags:
   - config
