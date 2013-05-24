@@ -1,3 +1,4 @@
+# {{ ansible_managed }}
 *filter
 :INPUT DROP []
 :FORWARD DROP []
@@ -70,4 +71,20 @@
 
 # dhcp
 -A OUTPUT -m udp -p udp --dport 67 -d 10.5.126.41 -j ACCEPT
+
+# if the host/group defines incoming tcp_ports - allow them
+{% for port in tcp_ports %}
+-A INPUT -p tcp -m tcp --dport {{ port }} -j ACCEPT
+{% endfor %}
+
+# if the host/group defines incoming udp_ports - allow them
+{% for port in udp_ports %}
+-A INPUT -p udp -m udp --dport {{ port }} -j ACCEPT
+{% endfor %}
+
+# if there are custom rules - put them in as-is
+{% for rule in custom_rules %}
+{{ rule }}
+{% endfor %}
+
 COMMIT

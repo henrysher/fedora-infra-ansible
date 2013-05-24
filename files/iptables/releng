@@ -1,3 +1,4 @@
+# {{ ansible_managed }}
 #
 # NOTE: Chaging this template updates iptables on all releng hosts :)
 # Please check with sysadmin-main before pushing out an update here. 
@@ -203,6 +204,20 @@ COMMIT
 # Services UDP
 
 # more services we use - ports for random services and TG listeners.
+# if the host/group defines incoming tcp_ports - allow them
+{% for port in tcp_ports %}
+-A INPUT -p tcp -m tcp --dport {{ port }} -j ACCEPT
+{% endfor %}
+
+# if the host/group defines incoming udp_ports - allow them
+{% for port in udp_ports %}
+-A INPUT -p udp -m udp --dport {{ port }} -j ACCEPT
+{% endfor %}
+
+# if there are custom rules - put them in as-is
+{% for rule in custom_rules %}
+{{ rule }}
+{% endfor %}
 
 # Extra protection for 192.168.100.x vpn hosts. 
 -A INPUT -s 192.168.100.0/24 -j REJECT --reject-with icmp-host-prohibited
