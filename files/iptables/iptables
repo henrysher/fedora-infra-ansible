@@ -1,15 +1,39 @@
-# Simple static firewall loaded by iptables.service. Replace
-# this with your own custom rules, run lokkit, or switch to 
-# shorewall or firewalld as your needs dictate.
+# {{ ansible_managed }}
 *filter
 :INPUT ACCEPT [0:0]
 :FORWARD ACCEPT [0:0]
 :OUTPUT ACCEPT [0:0]
--A INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+
+# allow ping and traceroute
 -A INPUT -p icmp -j ACCEPT
+
+# localhost is fine
 -A INPUT -i lo -j ACCEPT
+
+# Established connections allowed
+-A INPUT -m state --state RELATED,ESTABLISHED -j ACCEPT
+-A OUTPUT -m state --state RELATED,ESTABLISHED -j ACCEPT
+
+# allow ssh - always
 -A INPUT -m conntrack --ctstate NEW -m tcp -p tcp --dport 22 -j ACCEPT
--A INPUT -m conntrack --ctstate NEW -m tcp -p tcp --dport 80 -j ACCEPT
+
+
+# if the host/group defines incoming tcp_ports - allow them
+{% for port in tcp_ports %}
+-A INPUT -p tcp -m tcp --dport {{ port }} -j ACCEPT
+{% endfor %}
+
+# if the host/group defines incoming udp_ports - allow them
+{% for port in udp_ports %}
+-A INPUT -p udp -m udp --dport {{ port }} -j ACCEPT
+{% endfor %}
+
+# if there are custom rules - put them in as-is
+{% for rule in custom_rules %}
+{{ rule }}
+{% endfor %}
+
+# otherwise kick everything out
 -A INPUT -j REJECT --reject-with icmp-host-prohibited
 -A FORWARD -j REJECT --reject-with icmp-host-prohibited
 COMMIT
