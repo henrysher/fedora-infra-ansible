@@ -46,7 +46,7 @@
   tags:
   - packages
 
-- name: default pkgs to remove
+- name: default pkgs to remove on rhel
   action: yum state=removed name=$item
   with_items:
   - logwatch
@@ -54,6 +54,24 @@
   - bluez-utils
   - sendmail
   only_if: '$is_rhel'
+  tags:
+  - packages
+
+- name: default pkgs to remove on fedora
+  action: yum state=removed name=$item
+  with_items:
+  - firewalld
+  - PackageKit*
+  - sendmail
+  only_if: '$is_fedora'
+  tags:
+  - packages
+
+- name: pkgs to install on fedora
+  action: yum state=removed name=$item
+  with_items:
+  - iptables-services
+  only_if: '$is_fedora'
   tags:
   - packages
 
