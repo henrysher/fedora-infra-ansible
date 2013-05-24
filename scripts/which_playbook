@@ -1,0 +1,107 @@
+#!/usr/bin/python -tt
+# skvidal
+# gplv2
+
+# takes hostnames as arguments
+# returns the group or host playbook which will setup/configure this host
+# or outputs an error message if there is no playbook for that host
+
+#NB - this does not read the actual hosts entries from the plays in the
+# playbooks b/c that captures lots of issues with delegated hosts and VM and
+# silliness. It just uses the filename :)
+
+# takes 2 dirs:
+# - host-specific-playbooks
+# - group-specific-playbooks
+
+# looks for a host playbook matching the hostname first
+# looks up groups for that host specified
+# looks if any of the groups have playbooks
+# if more than one playbook exists - emits an error (either a group AND a
+# hostname playbook or a 2 group playbooks)
+# output the command to run
+# if it is a group playbook include the --limit option
+
+
+
+import os
+import sys
+import ansible.inventory
+from optparse import OptionParser
+
+host_path = '/srv/web/infra/ansible/playbooks/hosts'
+group_path = '/srv/web/infra/ansible/playbooks/groups'
+pb_extension = '.yml'
+
+
+
+def main():
+    group_playbooks = []
+    for (d, dirs, files) in os.walk(group_path):
+        for fn in files:
+            if fn.endswith(pb_extension):
+                group_playbooks.append(d + '/' + fn)
+            
+            
+
+    host_playbooks = []
+    for (d, dirs, files) in os.walk(host_path):
+        for fn in files:
+            if fn.endswith(pb_extension):
+                host_playbooks.append(d + '/' + fn)
+
+
+    if not host_playbooks and not group_playbooks:
+        print "No Playbooks found - that seems unlikely"
+        return 1
+
+
+    parser = OptionParser(version = "1.0")
+    parser.add_option('-i', dest='inventory', default=None,
+         help="Path to inventory file/dir")
+    opts,hosts = parser.parse_args(sys.argv[1:])
+
+    if opts.inventory:
+        inv = ansible.inventory.Inventory(host_list=opts.inventory)
+    else:
+        inv = ansible.inventory.Inventory()
+    
+
+    for host in hosts:
+        matched_host = None
+        matched_group = None
+        for h_pb in host_playbooks:
+            if matched_host:
+                break
+            if host == os.path.basename(h_pb).replace(pb_extension, ''):
+                matched_host = h_pb
+        for group in inv.groups_for_host(host):
+            if matched_group:
+                break
+            for g_pb in group_playbooks:
+                if group.name == os.path.basename(g_pb).replace(pb_extension, ''):
+                    matched_group = g_pb
+                    
+        if matched_host and matched_group:
+            print "\nError: Found a group playbook and a host playbook for %s" % host
+            continue
+            
+        if not matched_host and not matched_group:
+            print "\nNo playbook found for %s" % host
+            continue
+            
+        if matched_group:
+            print "\nplaybook is %s" % matched_group
+            print "Run with: \n ansible-playbook %s --limit=%s\n" % (matched_group, host)
+            
+        if matched_host:
+            print "\nplaybook is %s" % matched_host
+            print "Run with: \n ansible-playbook %s" % (matched_host)
+            
+            
+                        
+    print ''                                 
+    return 0
+
+if __name__ == "__main__":
+    sys.exit(main())
