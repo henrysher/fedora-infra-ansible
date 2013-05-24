@@ -216,23 +216,25 @@
     tags:
     - packages
   
-  - name: install android sdk
+  - name: drop current android SDK
     only_if: '$is_fedora'
+    action: file state=absent path=/var/android
 
-    - name: drop current android SDK
-      action: file state=absent path=/var/android
+  - name: mkdir dir for android SDK
+    only_if: '$is_fedora'
+    action: file state=directory path=/var/android owner=jenkins_slave group=jenkins_slave
 
-    - name: mkdir dir for android SDK
-      action: file state=directory path=/var/android owner=jenkins_slave group=jenkins_slave
+  - name: copy android SDK
+    only_if: '$is_fedora'
+    action: copy src=$bigfiles/jenkins/android-sdk-with-platform-17.tar.gz dest=/var/android/ owner=jenkins_slave group=jenkins_slave
 
-    - name: copy android SDK
-      action: copy src=$bigfiles/jenkins/android-sdk-with-platform-17.tar.gz dest=/var/android/ owner=jenkins_slave group=jenkins_slave
+  - name: extract android SDK
+    only_if: '$is_fedora'
+    command: tar -xvf /var/android/android-sdk-with-platform-17.tar.gz
 
-    - name: extract android SDK
-      command: tar -xvf /var/android/android-sdk-with-platform-17.tar.gz
-
-    - name: delete sdk archive
-      action: file state=absent path=/var/android/android-sdk-with-platform-17.tar.gz
+  - name: delete sdk archive
+    only_if: '$is_fedora'
+    action: file state=absent path=/var/android/android-sdk-with-platform-17.tar.gz
   
   - name: set the hostname to jenkins-osversion
     action: command hostname jenkins-${dist_tag}
