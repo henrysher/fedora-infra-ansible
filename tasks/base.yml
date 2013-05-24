@@ -46,6 +46,7 @@
   tags:
   - packages
 
+#### RHEL SPECIFIC - see the only_if
 - name: default pkgs to remove on rhel
   action: yum state=removed name=$item
   with_items:
@@ -56,6 +57,22 @@
   only_if: '$is_rhel'
   tags:
   - packages
+
+
+- name: disabled services on rhel
+  action: service state=stopped enabled=false name=$item
+  with_items:
+  - yum-updatesd
+  - gpm
+  - rhnsd
+  only_if: '$is_rhel'
+  tags:
+  - service
+  - config
+
+### END RHEL SPECIFIC ####
+
+### FEDORA SPECIFIC BITS ####
 
 - name: default pkgs to remove on fedora
   action: yum state=removed name=$item
@@ -68,23 +85,25 @@
   - packages
 
 - name: pkgs to install on fedora
-  action: yum state=removed name=$item
+  action: yum state=installed name=$item
   with_items:
   - iptables-services
   only_if: '$is_fedora'
   tags:
   - packages
 
-- name: disabled services
+- name: disabled services on fedora
   action: service state=stopped enabled=false name=$item
   with_items:
-  - yum-updatesd
-  - gpm
-  - rhnsd
-  only_if: '$is_rhel'
+  - avahi-daemon
+  - atd
+  only_if: '$is_fedora'
   tags:
   - service
   - config
+
+#### END FEDORA SPECIFIC ####
+
 
 - name: iptables
   action: template src=$item dest=/etc/sysconfig/iptables mode=600
