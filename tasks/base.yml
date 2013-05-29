@@ -109,19 +109,19 @@
 
 # XXX fixme # a datacenter 'fact' from setup
 - name: /etc/resolv.conf
-  action: copy src=$resolvconf dest=/etc/resolv.conf
+  action: copy src=$item dest=/etc/resolv.conf
   with_first_found:
-    - $resolvconf
-    - $files/resolv.conf/${ansible_fqdn}
-    - $files/resolv.conf/${host_group}
-    - $files/resolv.conf/${datacenter}
-    - $files/resolv.conf/resolv.conf
+  - ${resolvconf}
+  - $files/resolv.conf/${ansible_fqdn}
+  - $files/resolv.conf/${host_group}
+  - $files/resolv.conf/${datacenter}
+  - $files/resolv.conf/resolv.conf
   tags:
   - config
   - resolvconf
 
 - name: rsyslog.conf
-  action: copy src=$rsyslogconf dest=/etc/rsyslog.conf mode=644
+  action: copy src=$item dest=/etc/rsyslog.conf mode=644
   with_first_found:
     - $rsyslogconf
     - $files/rsyslog/rsyslog.conf.${ansible_fqdn}
