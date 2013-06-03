@@ -4,5 +4,16 @@
   action: yum state=installed name=$item
   with_items:
   - sigul
+  - ntp
+  - ntpdate
   tags:
   - packages
+
+- name: ntp steptickers
+  action: copy src=$files/common/step-tickers dest=/etc/ntp/step-tickers
+
+- name: ntp.conf
+  action: copy src=$files/common/ntp.conf dest=/etc/ntp.conf
+
+- name: enable ntpd
+  action: service name=ntpd enabled=true state=started
