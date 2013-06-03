@@ -1,0 +1,41 @@
+#!/usr/bin/python -tt
+
+import ansible
+import ansible.runner
+import sys
+
+
+
+
+def isbuilding(res, host):
+       if res['contacted'][host]['stdout'].strip() == 'none':
+            return False
+       else:
+            return True
+    
+
+pattern = 'builders'
+if len(sys.argv) > 1:
+    pattern=';'.join(sys.argv[1:])
+
+conn = ansible.runner.Runner(pattern=pattern, timeout=20, forks=30, remote_user='root')
+conn.module_name='shell'
+# this checks koji building or anything running as mock or mockbuilder
+# first part check if kojid has any child processes
+# second part is our catch for failure
+# third part is to see if anything is running as mock or mockbuilder
+conn.module_args="ps -opid=  --ppid $(pidof -s -x kojid) || echo -n none || ps -u mock -u mockbuilder -opid="
+res = conn.run()
+
+for host in sorted(res['dark'].keys() + res['contacted'].keys()):
+   print host,
+   if host in res['dark']:
+       print ' down'
+   else:
+       if isbuilding(res, host):
+            print ' yes'
+       else:
+            print ' no'
+            
+       
+

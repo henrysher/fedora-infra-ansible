@@ -1,0 +1,37 @@
+#!/usr/bin/python -tt
+
+import ansible
+import ansible.runner
+import ansible.playbook
+import sys
+import os
+import time
+
+if len(sys.argv) < 2:
+   print "installedon hostname or group"
+   sys.exit(1)
+
+pattern = '*'
+if len(sys.argv) > 1:
+    pattern=';'.join(sys.argv[1:])
+
+
+conn = ansible.runner.Runner(pattern=pattern, timeout=20, forks=30, remote_user='root')
+conn.module_name='shell'
+conn.module_args='rpm -qa --qf "%{installtime}\n" | sort -rn| tail -n 1'
+
+res = conn.run()
+
+
+for host in sorted(res['dark'].keys()):
+    print '%s is down' % host
+   
+now = time.time()
+for host in sorted(res['contacted'].keys()):
+    insttime = float(res['contacted'][host]['stdout'])
+    days = (now - insttime) / 86400
+    
+    print '%s install is %d days old' % (host, days)
+
+    
+
