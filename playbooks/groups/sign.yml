@@ -1,0 +1,24 @@
+# provision a new sign server.
+# NOTE: this assumes the boxes are already up and are accessible
+# NOTE: most of these vars come from group_vars/sign or from hostvars
+#
+# FURTHER NOTE: some of These machines run day to day with sshd disabled/off. 
+# Access is via management interface only. This playbook does initial setup. 
+# Please check with rel-eng before doing anything here. 
+
+- name: make sign server
+  hosts: sign
+  user: root
+  gather_facts: true
+
+  vars_files: 
+   - /srv/web/infra/ansible/vars/global.yml
+   - ${private}/vars.yml
+   - ${vars}/${ansible_distribution}.yml
+
+  tasks:
+  - include: $tasks/base.yml
+  - include: $tasks/sign_setup.yml
+
+  handlers:
+  - include: $handlers/restart_services.yml
