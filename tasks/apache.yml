@@ -1,0 +1,32 @@
+---
+# install apache(httpd)
+- name: install apache
+  yum: name=$item state=installed
+  with_items:
+  - httpd
+  - httpd-tools
+  tags:
+  - packages
+
+- name: set apache running/enabled
+  service: name=httpd state=running enabled=yes
+  tags:
+  - service
+  
+# install hash randomization hotfix
+- name: hotfix - copy over new httpd init script 
+  copy: src=$files/hotfix/httpd/httpd.init dest=/etc/init.d/httpd
+  notify:
+  - restart apache
+  tags:
+  - config
+  - hotfix
+
+- name: hotfix - copy over new httpd sysconfig
+  copy: src=$files/hotfix/httpd/httpd.sysconfig dest=/etc/sysconfig/httpd
+  notify:
+  - restart apache
+  tags:
+  - config
+  - hotfix
+
