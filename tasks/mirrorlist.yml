@@ -1,0 +1,30 @@
+---
+# tasklist for setting up the mirrorlist app components
+# install supervisor
+# install mirrormanager
+- name: install supervisor and mirrormanager
+  yum: pkg=$item state=installed
+  with_items:
+  - supervisor
+  - mirrormanager
+  tags:
+  - packages
+
+# create mirrormanager user
+- name: add mirrormanager user - uid 441
+  user: name=mirrormanager uid=441 state=present home=/home/mirrormanager createhome=yes system=yes
+
+# mirrormanager user ssh key(s)
+- name: add authorized_keys for mirrormanager
+  authorized_key: key=$files/mirrorlist/mm-authorized_key user=mirrormanager state=present
+
+# install mirrorlist-server.conf apache config
+- name: mirrorlist-server apache conf
+  copy: src=$files/mirrorlist/mirrorlist-server.conf dest=/etc/httpd/conf.d/mirrorlist-server.conf
+  notify:
+  - restart apache
+  tags:
+  - config
+
+# selinux policy - mirrormanager - put in place - for the sockfile
+# 
