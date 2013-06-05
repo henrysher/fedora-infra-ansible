@@ -9,5 +9,6 @@
   copy: src=$item dest=/usr/share/GeoIP/$item
   with_fileglob: $bigfiles/hotfixes/geoip/*.dat
 
-- name: setup cron job to suck down these files
-  cron: cron_file=geoip_sync name=geoip_sync state=present minute=0 hour=1 day=4 user=root
+- name: geoip syncing script via cron
+  cron: cron_file=geoip_sync name=geoip_sync state=present minute=0 hour=1 day=4 user=root job="/usr/local/bin/syncFiles.sh bigfiles/geoip /usr/share/GeoIP"
+
