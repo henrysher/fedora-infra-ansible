@@ -1,0 +1,13 @@
+---
+# install python-geoIP
+- name: install python-geoIP
+  yum: name=mod_python-geoIP state=installed
+  tags:
+  - packages
+
+- name: push over the geoip db once
+  copy: src=$item dest=/usr/share/GeoIP/$item
+  with_fileglob: $bigfiles/hotfixes/geoip/*.dat
+
+- name: setup cron job to suck down these files
+  cron: cron_file=geoip_sync name=geoip_sync state=present minute=0 hour=1 day=4 user=root
