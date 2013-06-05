@@ -38,11 +38,13 @@ then
     quit "$0 source dest"
 fi
 
-newlock $1
+lockname=`basename $1`
+newlock $lockname
 if [ ! -d $2 ]
 then
 	mkdir $2
 fi
 /usr/bin/rsync -a $HOST::$1/* $2
-cleanlock $1
+cleanlock $lockname
+
 
