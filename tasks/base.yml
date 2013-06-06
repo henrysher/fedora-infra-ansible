@@ -66,26 +66,21 @@
 
 - name: default pkgs to remove on fedora
   action: yum state=removed name=$item
-  with_items:
-  - firewalld
-  - PackageKit*
-  - sendmail
-  - at
+  with_items: $base_pkgs_erase
   only_if: '$is_fedora'
   tags:
   - packages
 
 - name: pkgs to install on fedora
   action: yum state=installed name=$item
-  with_items:
-  - iptables-services
+  with_items: $base_pkgs_inst
   only_if: '$is_fedora'
   tags:
   - packages
 
 - name: disabled services on fedora
   action: service state=stopped enabled=false name=$item
-  with_items:
+  with_items: $service_disabled
   only_if: '$is_fedora'
   tags:
   - service
