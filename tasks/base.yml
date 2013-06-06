@@ -26,67 +26,37 @@
   - config
 
   
-- name: default packages to install
+- name: global default packages to install
   action: yum state=installed name=$item
-  with_items:
-  - bind-utils
-  - joe
-  - mailx
-  - nc
-  - openssh-clients
-  - patch
-  - postfix
-  - rsync
-  - strace
-  - telnet
-  - tmpwatch
-  - traceroute
-  - vim-enhanced
-  - xz
-  - zsh
+  with_items: $global_pkgs_inst
   tags:
   - packages
 
-#### RHEL SPECIFIC - see the only_if
-- name: default pkgs to remove on rhel
-  action: yum state=removed name=$item
-  with_items:
-  - logwatch
-  - firstboot-tui
-  - bluez-utils
-  - sendmail
-  only_if: '$is_rhel'
-  tags:
-  - packages
-
-
-### END RHEL SPECIFIC ####
-
-### FEDORA SPECIFIC BITS ####
-
-- name: default pkgs to remove on fedora
+- name: dist pkgs to remove
   action: yum state=removed name=$item
   with_items: $base_pkgs_erase
-  only_if: '$is_fedora'
   tags:
   - packages
 
-- name: pkgs to install on fedora
+- name: dist pkgs to install
   action: yum state=installed name=$item
   with_items: $base_pkgs_inst
-  only_if: '$is_fedora'
   tags:
   - packages
 
-- name: disabled services on fedora
+- name: dist disabled services
   action: service state=stopped enabled=false name=$item
   with_items: $service_disabled
-  only_if: '$is_fedora'
   tags:
   - service
   - config
 
-#### END FEDORA SPECIFIC ####
+- name: dist enabled services
+  action: service state=running enabled=true name=$item
+  with_items: $service_enabled
+  tags:
+  - service
+  - config
 
 
 - name: iptables
