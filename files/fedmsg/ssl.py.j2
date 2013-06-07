@@ -1,0 +1,320 @@
+
+{% if environment = 'staging' %}
+suffix = "stg.phx2.fedoraproject.org"
+app_hosts = [
+    "app01.stg.phx2.fedoraproject.org",
+    "app02.stg.phx2.fedoraproject.org",
+]
+topic_prefix = "org.fedoraproject.stg."
+{% else %}
+suffix = "phx2.fedoraproject.org"
+app_hosts = [
+    "app01.phx2.fedoraproject.org",
+    "app02.phx2.fedoraproject.org",
+    "app03.phx2.fedoraproject.org",
+    "app04.phx2.fedoraproject.org",
+    "app05.fedoraproject.org",
+    "app06.fedoraproject.org",
+    "app07.phx2.fedoraproject.org",
+    "app08.fedoraproject.org",
+]
+topic_prefix = "org.fedoraproject.prod."
+{% endif %}
+
+vpn_suffix = "vpn.fedoraproject.org"
+
+config = dict(
+    sign_messages=True,
+    validate_signatures=True,
+    ssldir="/etc/pki/fedmsg",
+
+    crl_location="https://fedoraproject.org/fedmsg/crl.pem",
+    crl_cache="/var/run/fedmsg/crl.pem",
+    crl_cache_expiry=86400,  # Daily
+
+    certnames=dict(
+    [
+        ("shell.app0%i" % i, "shell-%s" % app_hosts[i-1])
+        for i in range(1, len(app_hosts) + 1)
+    ] + [
+        ("bodhi.app0%i" % i, "bodhi-%s" % app_hosts[i-1])
+        for i in range(1, len(app_hosts) + 1)
+    ] + [
+        ("pkgdb.app0%i" % i, "pkgdb-%s" % app_hosts[i-1])
+        for i in range(1, len(app_hosts) + 1)
+    ] + [
+        ("mediawiki.app0%i" % i, "mediawiki-%s" % app_hosts[i-1])
+        for i in range(1, len(app_hosts) + 1)
+    ] + [
+        ("shell.fas0%i" % i, "shell-fas0%i.%s" % (i, suffix))
+        for i in range(1, 4)
+    ] + [
+        ("fas.fas0%i" % i, "fas-fas0%i.%s" % (i, suffix))
+        for i in range(1, 4)
+    ] + [
+        ("shell.packages0%i" % i, "shell-packages0%i.%s" % (i, suffix))
+        for i in range(1, 3)
+    ] + [
+        ("fedoratagger.packages0%i" % i, "fedoratagger-packages0%i.%s" % (i, suffix))
+        for i in range(1, 3)
+    ] + [
+        ("shell.pkgs0%i" % i, "shell-pkgs0%i.%s" % (i, suffix))
+        for i in range(1, 2)
+    ] + [
+        ("scm.pkgs0%i" % i, "scm-pkgs0%i.%s" % (i, suffix))
+        for i in range(1, 2)
+    ] + [
+        ("lookaside.pkgs0%i" % i, "lookaside-pkgs0%i.%s" % (i, suffix))
+        for i in range(1, 2)
+    ] + [
+        ("shell.relepel01", "shell-relepel01.%s" % suffix),
+        ("shell.releng04", "shell-releng04.%s" % suffix),
+        ("shell.releng01", "shell-releng01.%s" % suffix),
+        ("shell.releng03", "shell-releng03.%s" % suffix),
+        ("bodhi.relepel01", "bodhi-relepel01.%s" % suffix),
+        ("bodhi.releng04", "bodhi-releng04.%s" % suffix),
+        ("bodhi.releng01", "bodhi-releng01.%s" % suffix),
+        ("bodhi.releng03", "bodhi-releng03.%s" % suffix),
+    ] + [
+        ("busmon_consumers.busgateway01", "busmon-busgateway01.%s" % suffix),
+        ("shell.busgateway01", "shell-busgateway01.%s" % suffix),
+    ] + [
+        ("shell.value01", "shell-value01.%s" % suffix),
+        ("shell.value03", "shell-value03.%s" % suffix),
+        ("supybot.value03", "supybot-value03.%s" % suffix),
+    ] + [
+        ("koji.koji04", "koji-koji04.%s" % suffix),
+        ("koji.koji01", "koji-koji01.%s" % suffix),
+        ("koji.koji03", "koji-koji03.%s" % suffix),
+        ("shell.koji04", "shell-koji04.%s" % suffix),
+        ("shell.koji01", "shell-koji01.%s" % suffix),
+        ("shell.koji03", "shell-koji03.%s" % suffix),
+    ] + [
+        ("nagios.noc01", "nagios-noc01.%s" % suffix),
+        ("shell.noc01", "shell-noc01.%s" % suffix),
+    ] + [
+        ("git.hosted03", "git-hosted03.%s" % vpn_suffix),
+        ("git.hosted04", "git-hosted04.%s" % vpn_suffix),
+        ("trac.hosted03", "trac-hosted03.%s" % vpn_suffix),
+        ("trac.hosted04", "trac-hosted04.%s" % vpn_suffix),
+        ("shell.hosted03", "shell-hosted03.%s" % vpn_suffix),
+        ("shell.hosted04", "shell-hosted04.%s" % vpn_suffix),
+    ] + [
+        ("shell.lockbox01", "shell-lockbox01.%s" % suffix),
+        ("announce.lockbox01", "announce-lockbox01.%s" % suffix),
+    ] + [
+        # These first two entries are here to placate a bug in
+        # python-askbot-fedmsg-0.0.4.  They can be removed once
+        # python-askbot-fedmsg-0.0.5 hits town.
+        ("askbot.ask01.phx2.fedoraproject.org", "askbot-ask01.%s" % suffix),
+        ("askbot.ask01.stg.phx2.fedoraproject.org", "askbot-ask01.%s" % suffix),
+
+        ("askbot.ask01", "askbot-ask01.%s" % suffix),
+        ("shell.ask01", "shell-ask01.%s" % suffix),
+
+        ("askbot.ask02", "askbot-ask02.%s" % suffix),
+        ("shell.ask02", "shell-ask02.%s" % suffix),
+    ]),
+    routing_policy={
+        # The gist here is that only messages signed by the
+        # bodhi-app0{1,2,3,4,5,6,7,8} certificates may bear the
+        # "org.fedoraproject.prod.bodhi.update.request.stable" topic, or else
+        # they fail validation and are either dropped or marked as invalid
+        # (depending on the consumer's wishes).
+        #
+        # There is another option that we do not set.  If `routing_nitpicky` is
+        # set to True, then a given message's topic *must* appear in this list
+        # in order for it to pass validation.  For instance, we have
+        # routing_nitpicky set to False by default and no
+        # "org.fedoraproject.prod.logger.log" topics appear in this policy,
+        # therefore, any message bearing that topic and *any* certificate signed
+        # by our CA may pass validation.
+        #
+        topic_prefix + "bodhi.update.request.stable": [
+            "bodhi-%s" % app_hosts[i-1]
+            for i in range(1, len(app_hosts) + 1)
+        ],
+        topic_prefix + "bodhi.update.request.testing": [
+            "bodhi-%s" % app_hosts[i-1]
+            for i in range(1, len(app_hosts) + 1)
+        ],
+        topic_prefix + "bodhi.update.request.unpush": [
+            "bodhi-%s" % app_hosts[i-1]
+            for i in range(1, len(app_hosts) + 1)
+        ],
+        topic_prefix + "bodhi.update.comment": [
+            "bodhi-%s" % app_hosts[i-1]
+            for i in range(1, len(app_hosts) + 1)
+        ],
+        topic_prefix + "bodhi.buildroot_override.tag": [
+            "bodhi-%s" % app_hosts[i-1]
+            for i in range(1, len(app_hosts) + 1)
+        ],
+        topic_prefix + "bodhi.buildroot_override.untag": [
+            "bodhi-%s" % app_hosts[i-1]
+            for i in range(1, len(app_hosts) + 1)
+        ],
+        topic_prefix + "bodhi.mashtask.mashing": [
+            "bodhi-releng04.%s" % suffix,
+            "bodhi-relepel01.%s" % suffix,
+        ],
+        topic_prefix + "bodhi.mashtask.complete": [
+            "bodhi-releng04.%s" % suffix,
+            "bodhi-relepel01.%s" % suffix,
+        ],
+
+
+        # Compose (rel-eng) messages (use the bodhi certs)
+        topic_prefix + "compose.rawhide.start": [
+            "bodhi-releng03.%s" % suffix,
+        ],
+        topic_prefix + "compose.rawhide.complete": [
+            "bodhi-releng03.%s" % suffix,
+        ],
+        topic_prefix + "compose.rawhide.mash.start": [
+            "bodhi-releng03.%s" % suffix,
+        ],
+        topic_prefix + "compose.rawhide.mash.complete": [
+            "bodhi-releng03.%s" % suffix,
+        ],
+        topic_prefix + "compose.rawhide.rsync.start": [
+            "bodhi-releng03.%s" % suffix,
+        ],
+        topic_prefix + "compose.rawhide.rsync.complete": [
+            "bodhi-releng03.%s" % suffix,
+        ],
+        topic_prefix + "compose.branched.start": [
+            "bodhi-releng03.%s" % suffix,
+        ],
+        topic_prefix + "compose.branched.complete": [
+            "bodhi-releng03.%s" % suffix,
+        ],
+        topic_prefix + "compose.branched.pungify.start": [
+            "bodhi-releng03.%s" % suffix,
+        ],
+        topic_prefix + "compose.branched.pungify.complete": [
+            "bodhi-releng03.%s" % suffix,
+        ],
+        topic_prefix + "compose.branched.mash.start": [
+            "bodhi-releng03.%s" % suffix,
+        ],
+        topic_prefix + "compose.branched.mash.complete": [
+            "bodhi-releng03.%s" % suffix,
+        ],
+        topic_prefix + "compose.branched.rsync.start": [
+            "bodhi-releng03.%s" % suffix,
+        ],
+        topic_prefix + "compose.branched.rsync.complete": [
+            "bodhi-releng03.%s" % suffix,
+        ],
+
+
+        #FAS messages
+        topic_prefix + "fas.user.create": [
+            "fas-fas0%i.%s" % (i, suffix) for i in range(1, 4)
+        ],
+        topic_prefix + "fas.user.update": [
+            "fas-fas0%i.%s" % (i, suffix) for i in range(1, 4)
+        ],
+        topic_prefix + "fas.group.edit": [
+            "fas-fas0%i.%s" % (i, suffix) for i in range(1, 4)
+        ],
+        topic_prefix + "fas.group.update": [
+            "fas-fas0%i.%s" % (i, suffix) for i in range(1, 4)
+        ],
+        topic_prefix + "fas.group.create": [
+            "fas-fas0%i.%s" % (i, suffix) for i in range(1, 4)
+        ],
+        topic_prefix + "fas.role.update": [
+            "fas-fas0%i.%s" % (i, suffix) for i in range(1, 4)
+        ],
+        topic_prefix + "fas.group.member.remove": [
+            "fas-fas0%i.%s" % (i, suffix) for i in range(1, 4)
+        ],
+        topic_prefix + "fas.group.member.sponsor": [
+            "fas-fas0%i.%s" % (i, suffix) for i in range(1, 4)
+        ],
+        topic_prefix + "fas.group.member.apply": [
+            "fas-fas0%i.%s" % (i, suffix) for i in range(1, 4)
+        ],
+
+        # Git/SCM messages
+        topic_prefix + "git.receive": [
+            "scm-pkgs01.%s" % suffix,
+        ],
+        topic_prefix + "git.lookaside.new": [
+            "lookaside-pkgs01.%s" % suffix,
+        ],
+
+        # Tagger messages
+        topic_prefix + "fedoratagger.tag.update": [
+            "fedoratagger-packages0%i.%s" % (i, suffix) for i in range(1, 3)
+        ],
+        topic_prefix + "fedoratagger.tag.create": [
+            "fedoratagger-packages0%i.%s" % (i, suffix) for i in range(1, 3)
+        ],
+        topic_prefix + "fedoratagger.user.rank.update": [
+            "fedoratagger-packages0%i.%s" % (i, suffix) for i in range(1, 3)
+        ],
+
+        # Mediawiki messages
+        topic_prefix + "wiki.article.edit": [
+            "mediawiki-%s" % app_hosts[i-1]
+            for i in range(1, len(app_hosts) + 1)
+        ],
+        topic_prefix + "wiki.upload.complete": [
+            "mediawiki-%s" % app_hosts[i-1]
+            for i in range(1, len(app_hosts) + 1)
+        ],
+
+        # Pkgdb messages
+        topic_prefix + "pkgdb.acl.update": [
+            "pkgdb-%s" % app_hosts[i-1]
+            for i in range(1, len(app_hosts) + 1)
+        ],
+        topic_prefix + "pkgdb.acl.request.toggle": [
+            "pkgdb-%s" % app_hosts[i-1]
+            for i in range(1, len(app_hosts) + 1)
+        ],
+        topic_prefix + "pkgdb.acl.user.remove": [
+            "pkgdb-%s" % app_hosts[i-1]
+            for i in range(1, len(app_hosts) + 1)
+        ],
+        topic_prefix + "pkgdb.owner.update": [
+            "pkgdb-%s" % app_hosts[i-1]
+            for i in range(1, len(app_hosts) + 1)
+        ],
+        topic_prefix + "pkgdb.package.new": [
+            "pkgdb-%s" % app_hosts[i-1]
+            for i in range(1, len(app_hosts) + 1)
+        ],
+        topic_prefix + "pkgdb.package.update": [
+            "pkgdb-%s" % app_hosts[i-1]
+            for i in range(1, len(app_hosts) + 1)
+        ],
+        topic_prefix + "pkgdb.package.retire": [
+            "pkgdb-%s" % app_hosts[i-1]
+            for i in range(1, len(app_hosts) + 1)
+        ],
+        topic_prefix + "pkgdb.critpath.update": [
+            "pkgdb-%s" % app_hosts[i-1]
+            for i in range(1, len(app_hosts) + 1)
+        ],
+
+        # Planet/venus
+        topic_prefix + "planet.post.new": [
+            "planet-people03.vpn.fedoraproject.org",
+        ],
+
+        # Supybot/meetbot
+        topic_prefix + "meetbot.meeting.start": [
+            "supybot-value03.%s" % suffix,
+        ],
+
+        # Only @spot and @rbergeron can use this one
+        topic_prefix + "announce.announcement": [
+            "announce-lockbox01.phx2.fedoraproject.org",
+        ],
+    },
+)
+

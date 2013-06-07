@@ -1,0 +1,53 @@
+---
+# tasklist for setting up fedmsg
+# This is the base set of files needed for fedmsg
+
+- name: setup /etc/fedmsg.d directory
+  file: path=/etc/fedmsg.d owner=root group=root mode=0755
+  tags:
+  - config
+
+- name: setup /etc/pki/fedmsg directory
+  file: path=/etc/pki/fedmsg owner=root group=root mode=0755
+  tags:
+  - config
+
+- name: install fedmsg ca.cert
+  file: source=$puppet_private/fedmsg-certs/keys/ca.crt dest=/etc/pki/fedmsg/ca.crt owner=root group=root mode=0644
+  tags:
+  - config
+
+- name: setup /etc/fedmsg.d/ssl.py file
+  template: src=$files/fedmsg/ssl.py.j2 dest=/etc/fedmsg.d/ssl.py owner=root group=root mode=644
+  - config
+
+- name: setup /etc/fedmsg.d/endpoints.py file
+  template: src=$files/fedmsg/endpoints.py.j2 dest=/etc/fedmsg.d/endpoints.py owner=root group=root mode=644
+  - config
+
+- name: setup /etc/fedmsg.d/relay.py file
+  template: src=$files/fedmsg/relay.py.j2 dest=/etc/fedmsg.d/relay.py owner=root group=root mode=644
+  - config
+
+- name: setup /etc/fedmsg.d/pkgdb.py file
+  template: src=$files/fedmsg/pkgdb.py.j2 dest=/etc/fedmsg.d/pkgdb.py owner=root group=root mode=644
+  - config
+
+- name: setup /etc/fedmsg.d/login.py file
+  template: src=$files/fedmsg/pkgdb.py.j2 dest=/etc/fedmsg.d/pkgdb.py owner=root group=root mode=644
+  - config
+
+- name: setup /etc/fedmsg.d/logging.py file
+  template: src=$files/fedmsg/logging.py.j2 dest=/etc/fedmsg.d/logging.py owner=root group=root mode=644
+  - config
+
+- name: setup /etc/fedmsg.d/base.py file
+  template: src=$files/fedmsg/base.py.j2 dest=/etc/fedmsg.d/base.py owner=root group=root mode=644
+  - config
+
+- name: install needed packages
+  yum: pkg=$item state=installed
+  with_items:
+  - fedmsg
+  tags:
+  - packages

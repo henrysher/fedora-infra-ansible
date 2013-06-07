@@ -1,0 +1,39 @@
+{% if environment == 'staging' %}
+suffix  = 'stg.phx2.fedoraproject.org'
+non_phx_suffix = 'stg.fedoraproject.org'
+{% else %}
+suffix = 'phx2.fedoraproject.org'
+non_phx_suffix = 'fedoraproject.org'
+{% endif %}
+
+# This is just an extension of fedmsg.d/endpoints.py.  This dict
+# will get merged in with the other.
+config = dict(
+    endpoints={
+        # This is the output side of the relay to which all other
+        # services can listen.
+        "relay_outbound": [
+            # Messages from inside phx2 and the vpn emerge here
+            "tcp://app01.%s:3999" % suffix,
+
+            # Messages from coprs and secondary arch composes emerge here
+            "tcp://busgateway01.%s:3999" % suffix,
+        ],
+    },
+    # This is the address of an active->passive relay.  It is used for the
+    # fedmsg-logger command which requires another service with a stable
+    # listening address for it to send messages to.
+    # It is also used by the git-hook, for the same reason.
+    # It is also used by the mediawiki php plugin which, due to the oddities of
+    # php, can't maintain a single passive-bind endpoint of it's own.
+    relay_inbound=[
+        # Scripts inside phx2 connect here
+        "tcp://app01.%s:3998" % suffix,
+
+        # Scripts from the vpn (people03) connect here
+        "tcp://app01.vpn.fedoraproject.org:3998",
+
+        # Scripts from outside connect here (coprs, secondary arch composes)
+        "tcp://busgateway01.%s:9941" % suffix,
+    ],
+)
