@@ -1,0 +1,63 @@
+---
+# collectd client setup 
+
+# install pkg
+- name: install collectd
+  yum: name=collectd state=installed
+
+# enable collectd
+- name: enable collectd svc
+  service: state=running enabled=true name=collectd
+
+# install collected.conf
+- name: /etc/collectd.conf
+  template: src=$files/collectd/collectd.conf dest=/etc/collectd.conf state=present
+  notify:
+  - restart collectd
+
+# install collectd-network config
+- name: /etc/collectd.d/nework.conf
+  copy: src=$files/collectd/network-client.conf dest=/etc/collectd/network.conf state=present
+  notify:
+  - restart collectd
+
+# apache - localhost only - pretty much any apache server
+- name: install collectd-apache
+  yum: state=installed name=collectd-apache
+  notify:
+  - restart collectd
+  when_set: $collectd_apache
+
+- name: /etc/collectd/apache.conf
+  copy: src=$files/collectd/apache.conf dest=/etc/collectd/apache.conf state=present
+  notify:
+  - restart collectd
+  when_set: $collectd_apache
+
+  
+# each of the below should move to a separate task list
+# since they are odd-balls and one-offs
+
+# bind - localhost only - ns servers only
+
+# fedmsg - busgateway## only
+  # add /usr/share/collectd/fedmsg-types.db
+  
+# memcached - memcached only
+
+# postgres - this is a conn check
+## add /usr/share/collectd/pgconn-types.db 
+
+# openvpn - for bastion/openvpn gateways only
+
+# mysql
+## collectd-mysql
+
+# haproxy
+## add /usr/share/collectd/haproxy-types.db
+## add socat pkg
+## 
+
+# webproxy
+
+  

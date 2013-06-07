@@ -1,0 +1,46 @@
+#
+# Config file for collectd(1).
+# Please read collectd.conf(5) for a list of options.
+# http://collectd.org/
+#
+
+Hostname    "{{ inventory_hostname }}"
+FQDNLookup   true
+#BaseDir     "/usr/var/lib/collectd"
+#PIDFile     "/usr/var/run/collectd.pid"
+#PluginDir   "/usr/lib/collectd"
+#TypesDB     "/usr/lib/collectd/types.db"
+#Interval     10
+#ReadThreads  5
+
+LoadPlugin syslog
+
+<Plugin syslog>
+	LogLevel err
+</Plugin>
+
+LoadPlugin cpu
+LoadPlugin df
+LoadPlugin disk
+LoadPlugin exec
+LoadPlugin interface
+LoadPlugin load
+LoadPlugin memory
+LoadPlugin processes
+LoadPlugin swap
+LoadPlugin tail
+LoadPlugin users
+LoadPlugin vmem
+
+<Plugin disk>
+    Disk "/^[hs]d[a-f]?$/"
+    Disk "/^xvd[a-f]?$/"
+    Disk "/dev/xvdb1"
+    IgnoreSelected false
+</Plugin>
+
+<Plugin hddtemp>
+	TranslateDevicename false
+</Plugin>
+
+Include "/etc/collectd.d"
