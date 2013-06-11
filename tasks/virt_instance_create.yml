@@ -10,12 +10,12 @@
 - name: ensure the lv for the host is made
   lvol: lv=$inventory_hostname vg=$volgroup size=$lvm_size state=present
   delegate_to: $vmhost
-  when_string: ${inventory_hostname} not in ${result.list_vms}  
+  when: inventory_hostname not in result.list_vms
 
 - name: run the virt-install
   shell: ${install_command}
   delegate_to: $vmhost
-  when_string: ${inventory_hostname} not in ${result.list_vms}  
+  when: inventory_hostname not in result.list_vms
 
 - name: wait for the install to finish - by watching the domstate
   # this just keeps checking the domstate until it stops running
@@ -23,15 +23,16 @@
   delegate_to: $vmhost
   async: 1200
   poll: 10
-  when_string: ${inventory_hostname} not in ${result.list_vms}
+  when_string: inventory_hostname not in result.list_vms
 
 - name: start the vm up
   action: virt state=running name=${inventory_hostname}
   delegate_to: $vmhost
-  when_string: ${inventory_hostname} not in ${result.list_vms}    
+  when_string: inventory_hostname not in result.list_vms
 
 - name: wait for ssh on the vm to start back
   local_action: wait_for delay=10 host=${inventory_hostname} port=22 state=started timeout=1200
-  when_string: ${inventory_hostname} not in ${result.list_vms}
+  when_string: inventory_hostname not in result.list_vms
+
 
 
