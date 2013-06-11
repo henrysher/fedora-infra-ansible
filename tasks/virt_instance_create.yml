@@ -23,16 +23,16 @@
   delegate_to: $vmhost
   async: 1200
   poll: 10
-  when_string: inventory_hostname not in result.list_vms
+  when: inventory_hostname not in result.list_vms
 
 - name: start the vm up
   action: virt state=running name=${inventory_hostname}
   delegate_to: $vmhost
-  when_string: inventory_hostname not in result.list_vms
+  when: inventory_hostname not in result.list_vms
 
 - name: wait for ssh on the vm to start back
   local_action: wait_for delay=10 host=${inventory_hostname} port=22 state=started timeout=1200
-  when_string: inventory_hostname not in result.list_vms
+  when: inventory_hostname not in result.list_vms
 
 
 
