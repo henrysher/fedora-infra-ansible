@@ -24,6 +24,13 @@
   user: root
   gather_facts: True
 
+  # Roles are executed before all other "loose" items in a playbook regardless
+  # of where they appear in the yaml config.  We put them here first to help us
+  # remember that.
+  roles:
+  - /srv/web/infra/ansible/roles/fedmsg-hub
+  - /srv/web/infra/ansible/roles/badges-backend
+
   vars_files: 
    - /srv/web/infra/ansible/vars/global.yml
    - ${private}/vars.yml
@@ -44,7 +51,3 @@
 
   handlers:
   - include: $handlers/restart_services.yml
-
-  roles:
-  - /srv/web/infra/ansible/roles/fedmsg-hub
-  - /srv/web/infra/ansible/roles/badges-backend
