@@ -1,4 +1,5 @@
 config = {
+
     # We need to tell the fedmsg-hub that it should load our consumer on start.
     "fedmsg.consumers.badges.enabled": True,
 
