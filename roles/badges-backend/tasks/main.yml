@@ -12,3 +12,14 @@
 
   notify:
   - restart fedmsg-hub
+
+- name: make badge definition directory
+  file: path=/usr/share/badges/rules state=directory
+
+- name: copy over all our badge definitions
+  copy: src=$item dest=/usr/share/badges/rules/$item
+  with_items:
+  - badges/test_badge.yml
+
+  notify:
+  - restart fedmsg-hub
