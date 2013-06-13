@@ -1,6 +1,14 @@
 ---
 # Configuration for the fedbadges consumer
 
+- name: install needed packages
+  yum: pkg=$item state=installed
+  with_items:
+  - python-fedbadges
+  - python-psycopg2
+  tags:
+  - packages
+
 - name: copy database configuration
   template: src=$item dest=/etc/fedmsg.d/$item owner=fedmsg group=fedmsg mode=0600
   with_items:
