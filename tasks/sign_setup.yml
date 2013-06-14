@@ -1,11 +1,21 @@
 ---
 
+- name: put builder-repo on system
+  action: copy src=$files/sign/$item dest=/etc/yum.repos.d/$item
+  with_items:
+  - builder-rpms.repo
+  only_if: '$is_rhel'
+  tags:
+  - config
+  - packages
+
 - name: install sigul
   action: yum state=installed name=$item
   with_items:
   - sigul
   - ntp
   - ntpdate
+  - gpg1
   tags:
   - packages
 
