@@ -1,0 +1,37 @@
+%YAML 1.2
+---
+
+# This is some metadata about the badge
+name:           Proven Packager
+description:    Became a member of the provenpackager group.
+creator:        ralph
+
+# This is a link to the discussion about adopting this as a for-real badge.
+discussion:     https://github.com/oddshocks/badges/blob/master/docs/badges.rst
+
+# A link to the image for the badge
+image_url:      http://upload.wikimedia.org/wikipedia/commons/5/53/PSM_V37_D209_Fisher_island_sound_rock_forming_natural_breakwater.jpg
+
+# That's us!
+issuer_id: fedora-project
+
+# We'll perform our more costly check (defined below) only when
+# we receive messages that match this 'trigger'
+trigger:
+  all:
+  - topic: fas.group.member.sponsor
+  - lambda: msg.get('msg', {}).get('group', {}).get('username', None) == 'provenpackager'
+
+# Once the check has been triggered, this defines what we actually check.
+criteria:
+  datanommer:
+      filter:
+        topics:
+        - "{topic}"     # The topic of the message that triggered us.
+        usernames:
+        - "{msg.user.username}"
+      operation: count
+      condition:
+        greater than or equal to: 1 
+
+recipient_key: "{msg.user.username}"
