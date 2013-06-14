@@ -1,0 +1,37 @@
+%YAML 1.2
+---
+
+# This is some metadata about the badge
+name:           If you build it...
+description:    Succesfully completed a koji build.
+creator:        ralph
+
+# This is a link to the discussion about adopting this as a for-real badge.
+discussion:     https://github.com/oddshocks/badges/pull/2
+
+# A link to the image for the badge
+image_url:      http://upload.wikimedia.org/wikipedia/commons/5/53/PSM_V37_D209_Fisher_island_sound_rock_forming_natural_breakwater.jpg
+
+# That's us!
+issuer_id: fedora-project
+
+# We'll perform our more costly check (defined below) only when
+# we receive messages that match this 'trigger'
+trigger:
+  all:
+  - topic:  buildsys.build.state.change
+  - lambda: msg.get('msg', {}).get('new', None) is 1
+
+# Once the check has been triggered, this defines what we actually check.
+criteria:
+  datanommer:
+      filter:
+        topics:
+        - "{topic}"     # The topic of the message that triggered us.
+        usernames:
+        - "{msg.owner}"  # The user that was created.
+      operation: count
+      condition:
+        greater than or equal to: 1 
+
+recipient_key: "{msg.owner}"
