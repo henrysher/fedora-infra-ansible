@@ -27,93 +27,11 @@ COMMIT
 -A INPUT -m state --state RELATED,ESTABLISHED -j ACCEPT
 
 # Overwrite any global rules
-
-# allow func through from the overlord (puppet1)
--A INPUT -p tcp -m tcp -s 209.132.181.6 --dport 51234 -j ACCEPT
--A INPUT -p tcp -m tcp -s 10.5.126.23 --dport 51234 -j ACCEPT
--A INPUT -p tcp -m tcp -s 10.5.127.51 --dport 51234 -j ACCEPT
-
-# Staging separation.  Do not allow stg server to hit _any_ production hosts
-#    exceptions being for infrastructure.fp.o (for packages) and admin.fp.o
-#    for accounts
-
-
-# Temporary measure for ro access to nfs1
-# source app1.stg
--A INPUT -p tcp -m tcp -s 10.5.126.81 --dport 48621:48624 -j ACCEPT
--A INPUT -p udp -m udp -s 10.5.126.81 --dport 48621:48624 -j ACCEPT
--A INPUT -p tcp -m tcp -s 10.5.126.81 --dport 2049 -j ACCEPT
--A INPUT -p udp -m udp -s 10.5.126.81 --dport 2049 -j ACCEPT
--A INPUT -p tcp -m tcp -s 10.5.126.81 --dport 111 -j ACCEPT
--A INPUT -p udp -m udp -s 10.5.126.81 --dport 111 -j ACCEPT
-
-# source app2.stg
--A INPUT -p tcp -m tcp -s 10.5.126.82 --dport 48621:48624 -j ACCEPT
--A INPUT -p udp -m udp -s 10.5.126.82 --dport 48621:48624 -j ACCEPT
--A INPUT -p tcp -m tcp -s 10.5.126.82 --dport 2049 -j ACCEPT
--A INPUT -p udp -m udp -s 10.5.126.82 --dport 2049 -j ACCEPT
--A INPUT -p tcp -m tcp -s 10.5.126.82 --dport 111 -j ACCEPT
--A INPUT -p udp -m udp -s 10.5.126.82 --dport 111 -j ACCEPT
-
-# source koji1.stg
--A INPUT -p tcp -m tcp -s 10.5.126.87 --dport 48621:48624 -j ACCEPT
--A INPUT -p udp -m udp -s 10.5.126.87 --dport 48621:48624 -j ACCEPT
--A INPUT -p tcp -m tcp -s 10.5.126.87 --dport 2049 -j ACCEPT
--A INPUT -p udp -m udp -s 10.5.126.87 --dport 2049 -j ACCEPT
--A INPUT -p tcp -m tcp -s 10.5.126.87 --dport 111 -j ACCEPT
--A INPUT -p udp -m udp -s 10.5.126.87 --dport 111 -j ACCEPT
-
-# source releng1.stg
--A INPUT -p tcp -m tcp -s 10.5.126.90 --dport 48621:48624 -j ACCEPT
--A INPUT -p udp -m udp -s 10.5.126.90 --dport 48621:48624 -j ACCEPT
--A INPUT -p tcp -m tcp -s 10.5.126.90 --dport 2049 -j ACCEPT
--A INPUT -p udp -m udp -s 10.5.126.90 --dport 2049 -j ACCEPT
--A INPUT -p tcp -m tcp -s 10.5.126.90 --dport 111 -j ACCEPT
--A INPUT -p udp -m udp -s 10.5.126.90 --dport 111 -j ACCEPT
-
-# infrastucture.fp.o
-# proxy1
--A INPUT -p tcp -m tcp -d 10.5.126.52 --dport 80 -j ACCEPT
-# proxy2.stg
--A INPUT -p tcp -m tcp -d 10.5.126.89 --dport 80 -j ACCEPT
-
-# kojipkgs
--A INPUT -p tcp -m tcp -d 10.5.125.36 --dport 80 -j ACCEPT
-
-# admin.fp.o
-# puppet1
--A INPUT -p tcp -m tcp -d 10.5.126.23 --dport 8140 -j ACCEPT
--A INPUT -p tcp -m tcp -d 10.5.126.23 --dport 873 -j ACCEPT
--A INPUT -p tcp -m tcp -d 10.5.126.23 --dport 80 -j ACCEPT
-#-A INPUT -p tcp -m tcp -d 10.5.126.23 --dport 51234:51235 -j ACCEPT
-
-# DNS
--A INPUT -p udp -m udp -d 10.5.126.21 --dport 53 -j ACCEPT
--A INPUT -p udp -m udp -d 10.5.126.22 --dport 53 -j ACCEPT
-
-# bastion
--A INPUT -p tcp -m tcp -d 10.5.126.12 --dport 25 -j ACCEPT
-
-# Func and staging bits
--A INPUT -s 10.5.126.81 -p tcp -m tcp --dport 51234:51235 -j ACCEPT
--A INPUT -s 10.5.126.82 -p tcp -m tcp --dport 51234:51235 -j ACCEPT
-# proxy1.stg
--A INPUT -s 10.5.126.88 -p tcp -m tcp --dport 51234:51235 -j ACCEPT
-# db1.stg
--A INPUT -s 10.5.126.84 -p tcp -m tcp --dport 51234:51235 -j ACCEPT
--A INPUT -s 10.5.126.87 -p tcp -m tcp --dport 51234:51235 -j ACCEPT
--A INPUT -s 10.5.126.90 -p tcp -m tcp --dport 51234:51235 -j ACCEPT
--A INPUT -s 10.5.126.91 -p tcp -m tcp --dport 51234:51235 -j ACCEPT
--A INPUT -s 10.5.126.92 -p tcp -m tcp --dport 51234:51235 -j ACCEPT
-# cvs.stg
--A INPUT -s 10.5.126.83 -p tcp -m tcp --dport 51234:51235 -j ACCEPT
-
-# Allow staging to talk to log02.
--A INPUT -p tcp -m tcp -d 10.5.126.29 --dport 514 -j ACCEPT
-
-# Ban staging on non-staging hosts only.
-
-
+# for nrpe - allow it from nocs
+-A INPUT -p tcp -m tcp -s 192.168.1.10 --dport 5666 -j ACCEPT
+# FIXME - this is the global nat-ip and we need the noc01-specific ip
+-A INPUT -p tcp -m tcp -s 209.132.181.102 --dport 5666 -j ACCEPT
+-A INPUT -p tcp -m tcp -s 10.5.126.41  --dport 5666 -j ACCEPT
 
 # SSH
 # ssh block against uni in .cz where problem(s) have been cited
@@ -131,67 +49,10 @@ COMMIT
 -A INPUT -p udp -m udp -s 10.5.88.21 -j ACCEPT
 -A INPUT -p tcp -m tcp -s 10.5.88.21 -j ACCEPT
 
-# Allow other PHX-local NFS servers traffic
-# secondary1 server
--A INPUT -p udp -m udp -s 10.5.126.0/24 -d 10.5.126.27 -j ACCEPT
--A INPUT -p tcp -m tcp -s 10.5.126.0/24 -d 10.5.126.27 -j ACCEPT
--A INPUT -p udp -m udp -s 10.5.127.0/24 -d 10.5.126.27 -j ACCEPT
--A INPUT -p tcp -m tcp -s 10.5.127.0/24 -d 10.5.126.27 -j ACCEPT
-# secondary1 mounters
--A INPUT -p udp -m udp -s 10.5.126.27 -j ACCEPT
-
-# NRPE (nagios monitoring)
--A INPUT -p tcp -m tcp -s 10.5.126.41 --dport 5666 -j ACCEPT
--A INPUT -p tcp -m tcp -s 192.168.1.10 --dport 5666 -j ACCEPT
--A INPUT -p tcp -m tcp -s 192.168.1.20 --dport 5666 -j ACCEPT
--A INPUT -p tcp -m tcp -s 209.132.181.102 --dport 5666 -j ACCEPT
--A INPUT -p tcp -m tcp -s 209.132.181.102 --dport 5666 -j ACCEPT
-
-# SNMP allows from our monitoring systems
--A INPUT -p udp -m udp -s 10.5.126.41 --dport 161 -j ACCEPT
--A INPUT -p udp -m udp -s 10.5.126.10 --dport 161 -j ACCEPT
--A INPUT -p udp -m udp -s 10.5.126.11 --dport 161 -j ACCEPT
--A INPUT -p udp -m udp -s 10.5.126.12 --dport 161 -j ACCEPT
--A INPUT -p udp -m udp -s 10.5.126.23 --dport 161 -j ACCEPT
--A INPUT -p udp -m udp -s 209.132.181.102 --dport 161 -j ACCEPT
--A INPUT -p udp -m udp -s 209.132.181.102 --dport 161 -j ACCEPT
--A INPUT -p udp -m udp -s 192.168.0.0/24 --dport 161 -j ACCEPT
--A INPUT -p udp -m udp -s 192.168.1.0/24 --dport 161 -j ACCEPT
-
-# NTP servers (if any)
-#-A INPUT -p udp -m udp -s ips-allowed-here --dport 123 -j ACCEPT
-
 # Bacula Backups backup03
 -A INPUT -p tcp -m tcp -s 10.5.126.161 --dport 9102 -j ACCEPT
 -A INPUT -p tcp -m tcp -s 192.168.1.64 --dport 9102 -j ACCEPT
 
-
-# allow fedmsg ports through - this happens after the staging ban so
-# we should be safe from evil (or what not)
-# fedmsg - (tagger, bodhi, and fas) WSGI process ports
--A INPUT -p tcp -m tcp -s 10.5.124.0/24 --dport 3000:3007 -j ACCEPT
--A INPUT -p tcp -m tcp -s 10.5.125.0/24 --dport 3000:3007 -j ACCEPT
--A INPUT -p tcp -m tcp -s 10.5.126.0/24 --dport 3000:3007 -j ACCEPT
--A INPUT -p tcp -m tcp -s 192.168.1.0/24 --dport 3000:3007 -j ACCEPT
--A INPUT -p tcp -m tcp -s 192.168.0.0/24 --dport 3000:3007 -j ACCEPT
-# fedmsg - busmon hub consumer
--A INPUT -p tcp -m tcp -s 10.5.124.0/24 --dport 3008 -j ACCEPT
--A INPUT -p tcp -m tcp -s 10.5.125.0/24 --dport 3008 -j ACCEPT
--A INPUT -p tcp -m tcp -s 10.5.126.0/24 --dport 3008 -j ACCEPT
--A INPUT -p tcp -m tcp -s 192.168.1.0/24 --dport 3008 -j ACCEPT
--A INPUT -p tcp -m tcp -s 192.168.0.0/24 --dport 3008 -j ACCEPT
-# fedmsg - fedmsg-relay
--A INPUT -p tcp -m tcp -s 10.5.124.0/24 --dport 3998:3999 -j ACCEPT
--A INPUT -p tcp -m tcp -s 10.5.125.0/24 --dport 3998:3999 -j ACCEPT
--A INPUT -p tcp -m tcp -s 10.5.126.0/24 --dport 3998:3999 -j ACCEPT
--A INPUT -p tcp -m tcp -s 192.168.1.0/24 --dport 3998:3999 -j ACCEPT
--A INPUT -p tcp -m tcp -s 192.168.0.0/24 --dport 3998:3999 -j ACCEPT
-# fedmsg - hub websocket server
--A INPUT -p tcp -m tcp -s 10.5.124.0/24 --dport 9919 -j ACCEPT
--A INPUT -p tcp -m tcp -s 10.5.125.0/24 --dport 9919 -j ACCEPT
--A INPUT -p tcp -m tcp -s 10.5.126.0/24 --dport 9919 -j ACCEPT
--A INPUT -p tcp -m tcp -s 192.168.1.0/24 --dport 9919 -j ACCEPT
--A INPUT -p tcp -m tcp -s 192.168.0.0/24 --dport 9919 -j ACCEPT
 
 # Custom Services
 
@@ -199,7 +60,6 @@ COMMIT
 -A INPUT -p tcp -m tcp  --dport 22 -j ACCEPT
 -A INPUT -p tcp -m tcp  --dport 80 -j ACCEPT
 -A INPUT -p tcp -m tcp  --dport 443 -j ACCEPT
--A INPUT -p tcp -m tcp  --dport 5666 -j ACCEPT
 
 # Services UDP
 
