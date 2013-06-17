@@ -97,7 +97,9 @@
     action: copy src=$files/copr/copr_bashrc dest=/srv/copr-work/copr/.bashrc owner=copr group=copr mode=600
 
   - name: auth_key so we can login to localhost as the copr user from the copr user
-    action: authorized_key user=copr key='$FILE(${files}/copr/provision/files/buildsys.pub)'
+    action: authorized_key user=copr key="{{ item }}"
+    with_file:
+    - ${files}/copr/provision/files/buildsys.pub
 
   - name: set dir ownership for copr-work and copr-repo
     action: file state=directory path=$item owner=copr group=copr

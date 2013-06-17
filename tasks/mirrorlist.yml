@@ -14,7 +14,9 @@
 
 # mirrormanager user ssh key(s)
 - name: add authorized_keys for mirrormanager
-  authorized_key: key='$FILE($files/mirrorlist/mm-authorized_key)' user=mirrormanager state=present
+  authorized_key: key="{{ item }}" user=mirrormanager state=present
+  with_file:
+  - $files/mirrorlist/mm-authorized_key
 
 # install mirrorlist-server.conf apache config
 - name: mirrorlist-server apache conf
