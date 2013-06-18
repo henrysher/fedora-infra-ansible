@@ -7,18 +7,19 @@
 - name: spin it up
   local_action: ec2 keypair=${keypair} image=${image} type=${instance_type} wait=true group=${security_group} ec2_access_key=$persist_access_key ec2_secret_key=$persist_secret_key ec2_url=$os_ec2_url 
   register: inst_res
-  when_failed: $host_is_up
+  when: host_is_up|failed
 
 - name: assign it a special ip
   local_action: shell euca-associate-address --config ${persist_config} -i ${inst_res.instances[0].id} ${public_ip}
-  when_failed: $host_is_up
+  when: host_is_up|failed
 
 - name: wait for the reassignation
   local_action: wait_for host=${public_ip} port=22 delay=20 timeout=300
-  when_failed: $host_is_up
+  when: host_is_up|failed
 
 # attach and mount volumes
 - name: attach volumes to the system
   local_action: shell euca-attach-volume --config ${persist_config} -i ${inst_res.instances[0].id} $item
   with_items: $volumes
-  only_if: 'is_set("${volumes}") and "${host_is_up.rc}" != "0"'
+  when: volumes is defined and host_is_up|failed
+
