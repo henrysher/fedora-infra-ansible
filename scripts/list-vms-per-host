@@ -1,0 +1,92 @@
+#!/usr/bin/env python
+
+# (c) 2012, Red Hat, Inc
+# Seth Vidal <skvidal at fedoraproject.org>
+#
+#
+########################################################
+
+#list to stdout vms on each virthost/libvirt-running box
+#list to stderr hosts you could not contact
+####
+
+import sys
+
+import ansible.runner
+import ansible.constants as C
+from ansible import utils
+from ansible import callbacks
+import logging
+logging.basicConfig()
+
+
+########################################################
+
+def main(args):
+
+    # simple parser
+    parser = utils.base_parser(constants=C, runas_opts=True, async_opts=False,
+        output_opts=True, connect_opts=True, usage='list-vms-per-host [options]')
+    parser.add_option('--host', dest='hostlist', action='append',
+        help="hosts to contact, defaults to all in your inventory", default=[])
+    options, args = parser.parse_args(args)
+
+    options.module_name = 'virt'
+    options.module_args = 'command=info'
+    
+    # no hosts specified? Run against all of them
+    if not options.hostlist:
+        options.pattern = 'all'
+    else:
+        options.pattern = ';'.join(options.hostlist)
+    
+    # setup the cli call back so we can use the simple output handling
+    # our callbacks for easy terminal formatting
+    
+    mycallback = callbacks.DefaultRunnerCallbacks()
+    mycallback.options = options
+
+
+#    if options.connection == 'paramiko':
+#        logging.basicConfig()
+    
+    runner = ansible.runner.Runner(
+        module_name=options.module_name, module_path=options.module_path,
+        module_args=options.module_args,
+        remote_user=options.remote_user, 
+        host_list=options.inventory, timeout=options.timeout, 
+        forks=options.forks, 
+        pattern=options.pattern, 
+        callbacks=mycallback, sudo=options.sudo, 
+        transport=options.connection
+    )
+    
+    res = runner.run()
+    for hn in sorted(res['contacted']):
+        if 'failed' in res['contacted'][hn] and res['contacted'][hn]['failed']:
+            continue
+        for vm in sorted(res['contacted'][hn]):
+            info = res['contacted'][hn][vm]
+
+            if vm == 'Domain-0':
+                continue
+            elif type(info) != dict:
+                continue
+            elif 'maxMem' not in info:
+                continue    
+            autostart = '?'
+            if 'autostart' in info:
+                autostart = info['autostart']
+            print '%s:%s:%s:%s' % (hn, vm, info['state'], autostart)
+    for hn in sorted(res['dark']):
+        print >> sys.stderr, hn
+
+
+if __name__ == '__main__':
+    try:
+        main(sys.argv)
+    except Exception, e:
+        # Generic handler for ansible specific errors
+        print "ERROR: %s" % str(e)
+        sys.exit(1)
+
