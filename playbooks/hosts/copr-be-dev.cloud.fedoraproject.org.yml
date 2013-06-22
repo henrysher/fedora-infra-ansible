@@ -43,15 +43,16 @@
     - screen
     
 
+  - name: make /srv dirs
+    file: state=directory path=$item
+    with_items:
+    - /srv/copr-work
+    - /srv/copr-repos
+
   
   - name: make copr account
     action: user name=copr state=present system=yes home=/srv/copr-work/copr 
   
-  - name: make /srv dirs
-    file: state=directory path=$item owner=copr group=copr
-    with_items:
-    - /srv/copr-work
-    - /srv/copr-repos
 
   - name: setup dirs there
     action: file state=directory path=/srv/copr-work/copr/$item owner=copr group=copr mode=0700
