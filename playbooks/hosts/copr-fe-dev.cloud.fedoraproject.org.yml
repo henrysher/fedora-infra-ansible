@@ -38,14 +38,16 @@
     - postgresql-server
     - git
 
+  - name: add copr-fe user
+    action: user name=copr-fe state=present system=yes home=/home/copr-fe
+
   - name: copy apache files to conf.d
     action: copy src=$files/copr/fe/httpd/$item dest=/etc/httpd/conf.d/$item
     with_items:
     - coprs.conf
     - welcome.conf
-
-   
-  - name: start services
+  
+  - name: enable services
     action: service state=running enabled=yes name=$item
     with_items:
     - httpd
