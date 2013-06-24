@@ -1,0 +1,28 @@
+---
+# tasklist for setting up the virthost server.
+
+- name: set selinux to enforcing
+  selinux: policy=targeted state=enforcing
+
+- name: install libvirt packages
+  yum: pkg=$item state=installed
+  with_items:
+  - qemu-kvm
+  - libvirtd
+  - python-virtinst
+  tags:
+  - packages
+
+# install libvirtd.conf 
+#
+# This provides us with the ability to use virt-manager from non root accounts. 
+#
+- name: install libvirtd.conf
+  copy: src=$files/virthost/libvirtd.conf dest=/etc/libvirt/libvirtd.conf
+  notify:
+  - restart libvirtd
+  tags:
+  - config
+
+- name: enable libvirtd
+  service: name=libvirtd state=started enabled=yes
