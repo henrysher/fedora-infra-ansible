@@ -1,0 +1,20 @@
+---
+#
+# Setup postgresql server. 
+#
+- name: install postgresql server packages
+  yum: name=$item state=installed
+  with_items:
+  - postgresql-server
+  - postgresql-contrib
+  - postgresql-plpython
+  tags:
+  - packages
+
+- name: Set postgresql-server to run on boot
+  service: name=postgresql enabled=yes
+  ignore_errors: true
+  notify:
+  - restart postgresql
+  tags:
+  - service
