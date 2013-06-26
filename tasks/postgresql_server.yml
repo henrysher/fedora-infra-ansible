@@ -11,10 +11,17 @@
   tags:
   - packages
 
-- name: Set postgresql-server to run on boot
-  service: name=postgresql enabled=yes
-  ignore_errors: true
-  notify:
-  - restart postgresql
-  tags:
-  - service
+  - name: initialize postgresql
+    command: service postgresql initdb
+             creates=/var/lib/pgsql/data/postgresql.conf
+    ignore_errors: true
+    tags:
+    - service
+
+  - name: Set postgresql-server to run on boot
+    service: name=postgresql enabled=yes
+    ignore_errors: true
+    notify:
+    - restart postgresql
+    tags:
+    - service
