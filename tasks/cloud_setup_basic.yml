@@ -1,16 +1,21 @@
 ---
 - name: update all
-  action: command yum -y update
-  tags:
-  - packages
-  
-- name: ntpdate install
-  action: yum state=installed pkg=ntpdate
+  command: yum -y update creates=/etc/sysconfig/global-update-applied
+  register: updated
   tags:
   - packages
 
-- name: ntp install
-  action: yum state=installed pkg=ntp
+- name: write out global-update-applied file if we updated
+  copy: content="updated" dest=/etc/sysconfig/global-update-applied 
+  when: updated is defined
+  tags:
+  - packages
+  
+- name: ntp pkgs
+  action: yum state=installed pkg=$item
+  with_items:
+  - ntpdate
+  - ntp
   tags:
   - packages
 
