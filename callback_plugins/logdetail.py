@@ -36,7 +36,7 @@ class LogMech(object):
         self.logpath = LOG_PATH
         if not os.path.exists(self.logpath):
             try:
-                os.makedirs(self.logpath)
+                os.makedirs(self.logpath, mode=750)
             except OSError, e:
                 if e.errno != 17:
                     raise
@@ -159,7 +159,8 @@ class CallbackModule(object):
     def runner_on_skipped(self, host, item=None):
         category = 'SKIPPED'
         task = getattr(self,'task', None)
-        res = {'item':item}
+        res = {}
+        res['item'] = item
         logmech.log(host, category, res, task, self._task_count)
 
     def runner_on_unreachable(self, host, res):
@@ -206,11 +207,15 @@ class CallbackModule(object):
 
     def playbook_on_import_for_host(self, host, imported_file):
         task = getattr(self,'task', None)
-        logmech.log(host, 'IMPORTED', imported_file, task)
+        res = {}
+        res['imported_file'] = imported_file
+        logmech.log(host, 'IMPORTED', res, task)
 
     def playbook_on_not_import_for_host(self, host, missing_file):
         task = getattr(self,'task', None)
-        logmech.log(host, 'NOTIMPORTED', missing_file, task)
+        res = {}
+        res['missing_file'] = missing_file
+        logmech.log(host, 'NOTIMPORTED', res, task)
 
     def playbook_on_play_start(self, pattern):
         self._task_count = 0
@@ -251,6 +256,6 @@ class CallbackModule(object):
             results[host] = stats.summarize(host)
             logmech.log(host, 'STATS', results[host])
         logmech.play_log(json.dumps({'stats': results}, indent=4))
-        print ' logs written to: %s\n' % logmech.logpath_play
+        print 'logs written to: %s' % logmech.logpath_play
         
 
