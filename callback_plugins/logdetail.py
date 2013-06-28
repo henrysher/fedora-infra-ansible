@@ -107,7 +107,8 @@ class LogMech(object):
                 name = invoc['module_name']
                 
             del(data['invocation'])
-            data.update(invoc)
+            #don't add this since it can often contain complete passwords :(
+            #data.update(invoc)
 
         if task:
             name = task.name
