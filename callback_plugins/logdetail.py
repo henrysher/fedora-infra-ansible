@@ -36,7 +36,7 @@ class LogMech(object):
         self.logpath = LOG_PATH
         if not os.path.exists(self.logpath):
             try:
-                os.makedirs(self.logpath, mode=750)
+                os.makedirs(self.logpath, mode=0750)
             except OSError, e:
                 if e.errno != 17:
                     raise
