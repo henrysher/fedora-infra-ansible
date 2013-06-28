@@ -118,7 +118,7 @@ class LogMech(object):
             data.update(self.task_to_json(task))
         
         if self.playbook_id == 'ansible-cmd':
-            res['task_userid'] = os.getlogin()
+            data['task_userid'] = os.getlogin()
             
         if category == 'OK' and data.get('changed', False):
             category = 'CHANGED'
