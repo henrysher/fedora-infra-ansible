@@ -48,7 +48,7 @@ class LogMech(object):
         if self._pb_fn:
             return os.path.basename(self._pb_fn).replace('.yml', '').replace('.yaml', '')
         else:
-            return "Unknown-playbook"
+            return "ansible-cmd"
     
     @playbook_id.setter
     def playbook_id(self, value):
@@ -74,7 +74,7 @@ class LogMech(object):
         # record out playbook.log
         # include path to playbook, checksums, user running playbook
         # any args we can get back from the invocation
-        fd = open(self.logpath_play + '/' + 'playbook.log', 'a')
+        fd = open(self.logpath_play + '/' + 'playbook.info', 'a')
         fd.write('%s\n' % content) 
         fd.close()
 
@@ -83,6 +83,8 @@ class LogMech(object):
         res['task_name'] = task.name
         res['task_module'] = task.module_name
         res['task_args'] = task.module_args
+        if self.playbook_id == 'ansible-cmd':
+            res['task_userid'] = os.getlogin()
         for k in ("delegate_to", "environment", "first_available_file", 
                   "local_action", "notified_by", "notify", "only_if", 
                   "register", "sudo", "sudo_user", "tags", 
@@ -105,10 +107,9 @@ class LogMech(object):
             invoc = data['invocation']
             if not name and 'module_name' in invoc:
                 name = invoc['module_name']
-                
-            del(data['invocation'])
+
             #don't add this since it can often contain complete passwords :(
-            #data.update(invoc)
+            del(data['invocation'])
 
         if task:
             name = task.name
