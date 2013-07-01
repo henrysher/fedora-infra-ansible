@@ -242,6 +242,7 @@ class CallbackModule(object):
             # write out playbook info now
             if not self._play_count:
                 pb_info = {}
+                pb_info['playbook_start'] = time.time()
                 pb_info['playbook'] = path
                 pb_info['userid'] = os.getlogin()
                 pb_info['extra_vars'] = play.playbook.extra_vars
@@ -266,6 +267,7 @@ class CallbackModule(object):
             results[host] = stats.summarize(host)
             logmech.log(host, 'STATS', results[host])
         logmech.play_log(json.dumps({'stats': results}, indent=4))
+        logmech.play_log(json.dumps({'playbook_end': time.time()}, indent=4))
         print 'logs written to: %s' % logmech.logpath_play
         
 
