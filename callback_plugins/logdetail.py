@@ -22,7 +22,7 @@ from ansible import utils
 
 TIME_FORMAT="%b %d %Y %H:%M:%S"
 
-MSG_FORMAT="%(now)s - %(count)s - %(category)s - %(name)s - %(data)s\n"
+MSG_FORMAT="%(now)s\t%(count)s\t%(category)s\t%(name)s\t%(data)s\n"
 
 LOG_PATH = '/var/log/ansible'
 
