@@ -99,7 +99,10 @@ class LogMech(object):
         if not host:
             host = 'HOSTMISSING'
         
-        name = data.get('module_name',None)
+        if type(data) == dict:
+            name = data.get('module_name',None)
+        else:
+            name = "unknown"
             
 
         # we're in setup - move the invocation  info up one level
@@ -168,9 +171,11 @@ class CallbackModule(object):
         res['item'] = item
         logmech.log(host, category, res, task, self._task_count)
 
-    def runner_on_unreachable(self, host, res):
+    def runner_on_unreachable(self, host, output):
         category = 'UNREACHABLE'
         task = getattr(self,'task', None)
+        res = {}
+        res['output'] = output
         logmech.log(host, category, res, task, self._task_count)
 
     def runner_on_no_hosts(self):
