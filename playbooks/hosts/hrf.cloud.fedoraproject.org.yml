@@ -25,3 +25,27 @@
 
   handlers:
   - include: $handlers/restart_services.yml
+
+- name: deploy hrf
+  hosts: hrf.cloud.fedoraproject.org
+  user: root
+  gather_facts: True
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - ${private}/vars.yml
+   - ${vars}/${ansible_distribution}.yml
+
+  tasks:
+    - name: install deps
+      yum: state=present name=$item
+      with_items:
+        - httpd
+        - python-flask
+        - python-fedmsg-meta-fedora-infrastructure
+        - fedmsg
+        - mod_wsgi
+        - htop # not a dep, but handy
+        - git
+    - name: clone the flask repo
+      git: repo=git://github.com/fedora-infra/hrf.git dest=/srv/www/
