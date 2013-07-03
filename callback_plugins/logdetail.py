@@ -30,7 +30,7 @@ LOG_PATH = '/var/log/ansible'
 class LogMech(object):
     def __init__(self):
         self.started = time.time()
-        self.pid = os.getpid()
+        self.pid = str(os.getpid())
         self._pb_fn = None
         self._last_task_start = None
         self.play_info = {}
