@@ -17,12 +17,16 @@ fi
 ts=`date -d "$when" +%Y/%m/%d`
 
 if [ -z "$2" ]; then
-    find $logpath/$ts -mindepth 1 -maxdepth 1 -type d -print 
+    for dir in $logpath/*/$ts; do
+      if [ -d $dir ]; then
+        echo $dir
+      fi
+    done
 exit;
 fi
 
 if [ -d $logpath/$ts/$2 ]; then
-    find $logpath/$ts/$2 -mindepth 1 -maxdepth 1 -type d -print
+    find $logpath/$2/$ts -mindepth 1 -maxdepth 1 -type d -print
 else
    echo "No such playbook log: $2"
    exit 1
