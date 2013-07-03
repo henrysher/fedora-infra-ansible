@@ -1,10 +1,16 @@
 # {{ ansible_managed }}
 {% if env == "staging" %}
 *nat
+:PREROUTING ACCEPT []
+:POSTROUTING ACCEPT []
+:OUTPUT ACCEPT []
+
 # Redirect staging attempts to talk to the external proxy to an internal ip.
 # This is primarily for openid in staging which needs to get around proxy
 # redirects.
 -A OUTPUT -d 209.132.181.14 -j DNAT --to-destination 10.5.126.89
+
+COMMIT
 {% endif %}
 
 *filter
