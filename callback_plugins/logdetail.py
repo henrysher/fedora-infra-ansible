@@ -30,6 +30,7 @@ LOG_PATH = '/var/log/ansible'
 class LogMech(object):
     def __init__(self):
         self.started = time.time()
+        self.pid = os.getpid()
         self._pb_fn = None
         self._last_task_start = None
         self.play_info = {}
@@ -57,9 +58,8 @@ class LogMech(object):
     @property
     def logpath_play(self):
         # this is all to get our path to look nice ish
-        day = time.strftime('%Y/%m/%d', time.localtime(self.started))
-        offset_in_sec = str(self.started - time.mktime(time.strptime(day, '%Y/%m/%d')))
-        path = os.path.normpath(self.logpath + '/' + day + '/'  + self.playbook_id + '/' + offset_in_sec)
+        tstamp = time.strftime('%Y/%m/%d/%H.%M.%S', time.localtime(self.started))
+        path = os.path.normpath(self.logpath + '/' + self.playbook_id +  '/' + tstamp + '/')
         
         if not os.path.exists(path):
             try:
@@ -74,7 +74,7 @@ class LogMech(object):
         # record out playbook.log
         # include path to playbook, checksums, user running playbook
         # any args we can get back from the invocation
-        fd = open(self.logpath_play + '/' + 'playbook.info', 'a')
+        fd = open(self.logpath_play + '/' + 'playbook-' + self.pid + '.info', 'a')
         fd.write('%s\n' % content) 
         fd.close()
 
