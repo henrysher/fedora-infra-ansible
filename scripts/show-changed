@@ -31,8 +31,12 @@ do
     if [ "$verbose" == 'yes' ]; then
       echo $json| python -m json.tool
     else
-      echo $json| /srv/web/infra/ansible/scripts/keyreturn task_userid
-      echo $json| /srv/web/infra/ansible/scripts/keyreturn cmd
+      for term in task_userid cmd task_args task_module; do
+         echo $json| /srv/web/infra/ansible/scripts/keyreturn $term 2>/dev/null >&2
+         if [ $? == 0 ]; then
+             echo $json| /srv/web/infra/ansible/scripts/keyreturn $term
+         fi
+        done
     fi
   fi
 done
