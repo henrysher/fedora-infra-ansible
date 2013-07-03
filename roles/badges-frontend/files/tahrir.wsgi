@@ -13,11 +13,4 @@ from pyramid.paster import get_app, setup_logging
 ini_path = '/etc/tahrir/tahrir.ini'
 setup_logging(ini_path)
 
-pyramid_app = get_app(ini_path, 'main')
-
-def reverse_proxy_handler(environ, start_response):
-    environ['HTTP_HOST'] = environ['HTTP_X_FORWARDED_HOST']
-    environ['wsgi.url_scheme'] = 'https'
-    return pyramid_app(environ, start_response)
-
-application = reverse_proxy_handler
+application = get_app(ini_path, 'main')
