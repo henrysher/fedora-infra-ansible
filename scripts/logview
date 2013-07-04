@@ -54,17 +54,6 @@ def search_logs(opts, logfiles):
             things = line.split('\t')
             if things[2] in opts.search_terms or 'ANY' in opts.search_terms:
                 slurp = json.loads(things[4])
-                msg += '%s\t%s\t%s\t%s\t%s\t%s'  % (timestamp, hostname, things[0], things[1], things[2], things[3])
-                if not opts.verbose:
-                    if type(slurp) == dict:
-                        for term in ['task_userid', 'cmd']:
-                            if term in slurp:
-                                msg += '\t%s:%s' % (term, slurp.get(term, None))
-                    msg += '\n'
-                else:
-                    msg += '\n'
-                    msg += json.dumps(slurp, indent=4)
-                    msg += '\n'
                 if opts.profile:
                     st = slurp.get('task_start', 0)
                     end = slurp.get('task_end', 0)
@@ -72,8 +61,24 @@ def search_logs(opts, logfiles):
                         dur = '%.2f' % (float(end) - float(st))
                     else:
                         dur = "Unknown"
-                    msg += '    Duration: %s sec\n' % dur
                     
+                msg += '%s\t%s\t%s\t%s\t%s\t%s'  % (timestamp, hostname, things[0], things[1], things[2], things[3])
+                if not opts.verbose:
+                    if type(slurp) == dict:
+                        for term in ['task_userid', 'cmd']:
+                            if term in slurp:
+                                msg += '\t%s:%s' % (term, slurp.get(term, None))
+                    if opts.profile:
+                        msg += '\t%s:%s' % ('dur', dur)
+                        
+                    msg += '\n'
+                else:
+                    msg += '\n'
+                    msg += json.dumps(slurp, indent=4)
+                    msg += '\n'
+                    if opts.profile:
+                        msg += 'Duration: %s\n' % dur
+                        
 
     return msg
 
