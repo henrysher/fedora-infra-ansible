@@ -37,6 +37,7 @@ def parse_args(args):
     parser.add_option("-v", default=False, dest='verbose', action='store_true', help='Verbose')
     parser.add_option("-s", default=[], dest='search_terms', action='append', help="status to search for")
     parser.add_option("-l", default=False, dest="list_pb", action='store_true', help="list playbooks for a specific date")
+    parser.add_option("--profile", default=False, dest="profile", action='store_true', help="output timing input per task")
     (opts, args) = parser.parse_args(args)
 
     opts.datestr = date_cheat(opts.datestr)
@@ -64,6 +65,15 @@ def search_logs(opts, logfiles):
                     msg += '\n'
                     msg += json.dumps(slurp, indent=4)
                     msg += '\n'
+                if opts.profile:
+                    st = slurp.get('task_start', 0)
+                    end = slurp.get('task_end', 0)
+                    if st and end:
+                        dur = str(float(end) - float(st))
+                    else:
+                        dur = "Unknown"
+                    msg += '    Duration: %s sec' % dur
+                    
 
     return msg
 
