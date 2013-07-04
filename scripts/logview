@@ -60,7 +60,7 @@ def search_logs(opts, logfiles):
                     if st and end:
                         dur = '%.2f' % (float(end) - float(st))
                     else:
-                        dur = "Unknown"
+                        dur = None
                     
                 msg += '%s\t%s\t%s\t%s\t%s\t%s'  % (timestamp, hostname, things[0], things[1], things[2], things[3])
                 if not opts.verbose:
@@ -68,16 +68,16 @@ def search_logs(opts, logfiles):
                         for term in ['task_userid', 'cmd']:
                             if term in slurp:
                                 msg += '\t%s:%s' % (term, slurp.get(term, None))
-                    if opts.profile:
+                    if opts.profile and dur:
                         msg += '\t%s:%s' % ('dur', dur)
                         
                     msg += '\n'
                 else:
+                    if opts.profile and dur:
+                        msg += '\t%s:%s' % ('dur', dur)
                     msg += '\n'
                     msg += json.dumps(slurp, indent=4)
                     msg += '\n'
-                    if opts.profile:
-                        msg += 'Duration: %s\n' % dur
                         
 
     return msg
