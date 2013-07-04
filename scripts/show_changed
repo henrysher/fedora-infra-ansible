@@ -29,33 +29,32 @@ def parse_args(args):
 
     opts.datestr = date_cheat(opts.datestr)
     if not opts.search_terms:
-        opts.search_terms = search_terms        
+        opts.search_terms = search_terms
     return opts, args
 
 def search_logs(opts, logfiles):
-   msg = ''
-   for fn in logfiles:
-       hostname=os.path.basename(fn).replace('.log', '')
-       timestamp = os.path.basename(os.path.dirname(fn))
-       for line in open(fn):
-           things = line.split('\t')
-      	   if things[2] in opts.search_terms:
-      	       slurp = json.loads(things[4])
-               msg += '%s\t%s\t%s\t%s\t%s\t%s'  % (timestamp, hostname, things[0], things[1], things[2], things[3])
-               if not opts.verbose:
-                   if type(slurp) == dict:
-                       for term in ['task_userid', 'cmd']:
-                           if term in slurp:
-                               msg += '\t%s:%s' % (term, slurp.get(term, None))
-                   msg += '\n'
-      	       else:
-      	           msg += '\n'
-      	           msg += json.dumps(slurp, indent=4)
-      	           msg += '\n'
-            
-   return msg              
-               	       
-      	    
+    msg = ''
+    for fn in logfiles:
+        hostname=os.path.basename(fn).replace('.log', '')
+        timestamp = os.path.basename(os.path.dirname(fn))
+        for line in open(fn):
+            things = line.split('\t')
+            if things[2] in opts.search_terms:
+                slurp = json.loads(things[4])
+                msg += '%s\t%s\t%s\t%s\t%s\t%s'  % (timestamp, hostname, things[0], things[1], things[2], things[3])
+                if not opts.verbose:
+                    if type(slurp) == dict:
+                        for term in ['task_userid', 'cmd']:
+                            if term in slurp:
+                                msg += '\t%s:%s' % (term, slurp.get(term, None))
+                    msg += '\n'
+                else:
+                    msg += '\n'
+                    msg += json.dumps(slurp, indent=4)
+                    msg += '\n'
+
+    return msg
+
    
 def main(args):
     opts,args = parse_args(args)
