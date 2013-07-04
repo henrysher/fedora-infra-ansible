@@ -18,6 +18,7 @@
 import os
 import time
 import json
+import pwd
 from ansible import utils
 
 TIME_FORMAT="%b %d %Y %H:%M:%S"
@@ -26,6 +27,8 @@ MSG_FORMAT="%(now)s\t%(count)s\t%(category)s\t%(name)s\t%(data)s\n"
 
 LOG_PATH = '/var/log/ansible'
 
+def getlogin():
+    return pwd.getpwuid(os.geteuid())[0]
 
 class LogMech(object):
     def __init__(self):
@@ -84,7 +87,7 @@ class LogMech(object):
         res['task_module'] = task.module_name
         res['task_args'] = task.module_args
         if self.playbook_id == 'ansible-cmd':
-            res['task_userid'] = os.getlogin()
+            res['task_userid'] = getlogin()
         for k in ("delegate_to", "environment", "first_available_file", 
                   "local_action", "notified_by", "notify", "only_if", 
                   "register", "sudo", "sudo_user", "tags", 
@@ -119,7 +122,7 @@ class LogMech(object):
             data['task_start'] = self._last_task_start
             data['task_end'] = time.time()
             data.update(self.task_to_json(task))
-            data['task_userid'] = os.getlogin()
+            data['task_userid'] = getlogin()
             
         if category == 'OK' and data.get('changed', False):
             category = 'CHANGED'
@@ -242,7 +245,7 @@ class CallbackModule(object):
                 pb_info = {}
                 pb_info['playbook_start'] = time.time()
                 pb_info['playbook'] = path
-                pb_info['userid'] = os.getlogin()
+                pb_info['userid'] = getlogin()
                 pb_info['extra_vars'] = play.playbook.extra_vars
                 pb_info['inventory'] = play.playbook.inventory.host_list
                 pb_info['playbook_checksum'] = utils.md5(path)
