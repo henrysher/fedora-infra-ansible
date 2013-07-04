@@ -28,7 +28,11 @@ MSG_FORMAT="%(now)s\t%(count)s\t%(category)s\t%(name)s\t%(data)s\n"
 LOG_PATH = '/var/log/ansible'
 
 def getlogin():
-    return pwd.getpwuid(os.geteuid())[0]
+    try:
+        user = os.getlogin()
+    except OSError, e:
+        user = pwd.getpwuid(os.geteuid())[0]
+    return user
 
 class LogMech(object):
     def __init__(self):
