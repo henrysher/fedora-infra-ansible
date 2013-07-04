@@ -1,0 +1,75 @@
+#!/usr/bin/python -tt
+import sys
+import json
+import time
+from optparse import OptionParser
+import subprocess
+import os
+import glob
+
+logpath='/var/log/ansible'
+search_terms=['CHANGED','FAILED']
+
+def date_cheat(datestr):
+    dc = subprocess.Popen(['date', '-d', datestr, '+%Y/%m/%d'], stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()[0]
+    dc = dc.strip()
+    return dc
+    
+
+def parse_args(args):
+    usage = """
+          show_changed [options] [-d datestr] [-p playbook]
+          """
+    parser = OptionParser(usage=usage)
+    parser.add_option("-d", default='today', dest='datestr', help="time string of when you want logs")
+    parser.add_option("-p", default='*', dest='playbook', help="the playbook you want to look for")
+    parser.add_option("-v", default=False, dest='verbose', action='store_true', help='Verbose')
+    parser.add_option("-s", default=[], dest='search_terms', action='append', help="status to search for")
+    (opts, args) = parser.parse_args(args)
+
+    opts.datestr = date_cheat(opts.datestr)
+    if not opts.search_terms:
+        opts.search_terms = search_terms        
+    return opts, args
+
+def search_logs(opts, logfiles):
+   msg = ''
+   for fn in logfiles:
+       hostname=os.path.basename(fn).replace('.log', '')
+       timestamp = os.path.basename(os.path.dirname(fn))
+       for line in open(fn):
+           things = line.split('\t')
+      	   if things[2] in opts.search_terms:
+      	       slurp = json.loads(things[4])
+               msg += '%s\t%s\t%s\t%s\t%s\t%s'  % (timestamp, hostname, things[0], things[1], things[2], things[3])
+               if not opts.verbose:
+                   if type(slurp) == dict:
+                       for term in ['task_userid', 'cmd']:
+                           if term in slurp:
+                               msg += '\t%s:%s' % (term, slurp.get(term, None))
+                   msg += '\n'
+      	       else:
+      	           msg += '\n'
+      	           msg += json.dumps(slurp, indent=4)
+      	           msg += '\n'
+            
+   return msg              
+               	       
+      	    
+   
+def main(args):
+    opts,args = parse_args(args)
+    for pb in glob.glob(logpath + '/' + opts.playbook):
+        pb_name = os.path.basename(pb)
+        for pb_logdir in glob.glob(pb + '/' + opts.datestr):
+            logfiles = glob.glob(pb_logdir + '/*/*.log')
+            msg = search_logs(opts, logfiles)
+            if msg:
+                print pb_name
+                print msg
+                
+          
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv[1:]))
+    
