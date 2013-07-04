@@ -25,6 +25,7 @@ def parse_args(args):
     parser.add_option("-p", default='*', dest='playbook', help="the playbook you want to look for")
     parser.add_option("-v", default=False, dest='verbose', action='store_true', help='Verbose')
     parser.add_option("-s", default=[], dest='search_terms', action='append', help="status to search for")
+    parser.add_option("-l", default=False, dest="list_pb", action='store_true', help="list playbooks for a specific date")
     (opts, args) = parser.parse_args(args)
 
     opts.datestr = date_cheat(opts.datestr)
@@ -61,6 +62,10 @@ def main(args):
     for pb in glob.glob(logpath + '/' + opts.playbook):
         pb_name = os.path.basename(pb)
         for pb_logdir in glob.glob(pb + '/' + opts.datestr):
+            if opts.list_pb:
+                print pb_name
+                continue
+                
             logfiles = glob.glob(pb_logdir + '/*/*.log')
             msg = search_logs(opts, logfiles)
             if msg:
