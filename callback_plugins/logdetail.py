@@ -131,7 +131,7 @@ class LogMech(object):
         if category == 'OK' and data.get('changed', False):
             category = 'CHANGED'
         
-        if self.play_info.check:
+        if self.play_info.get('check', False):
             category = 'CHECK:' + category
                 
         fd = open(self.logpath_play + '/' + host + '.log', 'a')
