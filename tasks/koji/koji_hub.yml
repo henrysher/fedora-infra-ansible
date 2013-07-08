@@ -1,0 +1,23 @@
+---
+#
+# Setup koji hub server. 
+#
+- name: install koji hub server packages
+  yum: name=$item state=installed
+  with_items:
+  - koji-hub
+  - koji-web
+  - koji-utils
+  - mod_ssl
+  - git
+  - gnupg2
+  tags:
+  - packages
+
+- name: Set httpd to run on boot
+  service: name=httpd enabled=yes
+  ignore_errors: true
+  notify:
+  - restart httpd
+  tags:
+  - service
