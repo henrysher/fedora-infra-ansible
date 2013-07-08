@@ -126,6 +126,8 @@ class LogMech(object):
             data['task_start'] = self._last_task_start
             data['task_end'] = time.time()
             data.update(self.task_to_json(task))
+        
+        if 'task_userid' not in data:
             data['task_userid'] = getlogin()
             
         if category == 'OK' and data.get('changed', False):
