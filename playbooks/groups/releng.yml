@@ -15,15 +15,26 @@
 
   tasks:
   - include: $tasks/virt_instance_create.yml
+
+  handlers:
+  - include: $handlers/restart_services.yml
+
+# Once the instance exists, configure it. 
+
+- name: make releng server system
+  hosts: releng
+  user: root
+  gather_facts: True
+
+  vars_files:
+  - /srv/web/infra/ansible/vars/global.yml
+  - ${private}/vars.yml
+  - ${vars}/${ansible_distribution}.yml
+
+  tasks:
   - include: $tasks/koji/releng_config.yml
   - include: $tasks/motd.yml
 
   handlers:
   - include: $handlers/restart_services.yml
-
-  - name: restart kojid
-    action: service name=kojid state=restarted
-  
-
-
 
