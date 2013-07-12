@@ -27,6 +27,9 @@ config = dict(
         "bodhi.releng01": [
             "tcp://releng01.%s:3000" % suffix
         ],
+        "bodhi.releng02": [
+            "tcp://releng02.%s:3000" % suffix
+        ],
         "bodhi.app03": [
             "tcp://app03.%s:300%i" % (suffix, i)
             for i in range(8)

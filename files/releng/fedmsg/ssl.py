@@ -52,9 +52,11 @@ config = dict(
         ("shell.relepel01", "shell-relepel01.%s" % suffix),
         ("shell.releng04", "shell-releng04.%s" % suffix),
         ("shell.releng01", "shell-releng01.%s" % suffix),
+        ("shell.releng02", "shell-releng02.%s" % suffix),
         ("bodhi.relepel01", "bodhi-relepel01.%s" % suffix),
         ("bodhi.releng04", "bodhi-releng04.%s" % suffix),
         ("bodhi.releng01", "bodhi-releng01.%s" % suffix),
+        ("bodhi.releng02", "bodhi-releng02.%s" % suffix),
     ] + [
         ("shell.value01", "shell-value01.%s" % suffix),
         ("shell.value03", "shell-value03.%s" % suffix),
