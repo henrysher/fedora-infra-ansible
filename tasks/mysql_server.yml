@@ -1,0 +1,18 @@
+---
+#
+# Setup mysql server. 
+#
+- name: install mysql server packages
+  yum: name=$item state=installed
+  with_items:
+  - mysql-server
+  tags:
+  - packages
+
+- name: install our my.cnf
+  copy: src=$files/mysql/my.cnf dest=/etc/my.cnf owner=root group=root mode=0644
+
+- name: Set mysql-server to run
+  service: name=mysqld enabled=yes state=running
+  tags:
+  - service
