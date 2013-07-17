@@ -16,7 +16,7 @@ config = {
         # should be kept as the issuer of all the badges we create.
         "badge_issuer": dict(
             issuer_id='Fedora Project',
-            issuer_origin='http://apps.fedoraproject.com/badges/',
+            issuer_origin='https://apps.fedoraproject.com',
             issuer_name='Fedora Project',
             issuer_org='http://fedoraproject.org',
             issuer_contact='badges@fedoraproject.org',
