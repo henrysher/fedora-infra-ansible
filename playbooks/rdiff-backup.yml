@@ -1,0 +1,36 @@
+# all this does is use the ansible scheduler to allow you to fork off
+# a set number of rdiff-backup runs against an array of backup targets
+# Since rdiff-backup doesn't  have its own built-in-scheduler
+# this seemed like an obvious cheat
+
+- name: rdiff-backup
+  hosts: backup_clients
+  user: root
+  gather_facts: False
+  # host_backup_targets set in host_vars or group_vars
+  # global_backup_targets can be defined in vars, group_vars/all or anywhere
+  # take the 'echo' out below for it to actually run 
+  # FIXME - see how this copes with timeouts
+  # FIXME - storing/reporting results and output?
+  # FIXME - coping with errors?
+
+  vars:
+  - global_backup_targets: ['/etc', '/home']
+
+  tasks:
+  - name: run rdiff-backup hitting all the global targets
+    local_action: "shell echo rdiff-backup ${inventory_hostname}::${item} /fedora_backups/${inventory_hostname}/`basename ${item}`"
+    with_items: $global_backup_targets
+    when: global_backup_targets is defined
+    serial: 5
+    async: 100000
+    poll: 120
+
+  - name: run rdiff-backup hitting all the host targets
+    local_action: "shell echo rdiff-backup ${inventory_hostname}::${item} /fedora_backups/${inventory_hostname}/`basename ${item}`"
+    with_items: $host_backup_targets
+    when: host_backup_targets is defined
+    serial: 5
+    async: 100000
+    poll: 120
+
