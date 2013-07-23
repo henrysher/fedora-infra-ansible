@@ -7,6 +7,7 @@
   hosts: backup_clients
   user: root
   gather_facts: False
+  serial: 5
   # host_backup_targets set in host_vars or group_vars
   # global_backup_targets can be defined in vars, group_vars/all or anywhere
   # take the 'echo' out below for it to actually run 
@@ -22,7 +23,6 @@
     local_action: "shell echo rdiff-backup ${inventory_hostname}::${item} /fedora_backups/${inventory_hostname}/`basename ${item}`"
     with_items: $global_backup_targets
     when: global_backup_targets is defined
-    serial: 5
     async: 100000
     poll: 120
 
@@ -30,7 +30,6 @@
     local_action: "shell echo rdiff-backup ${inventory_hostname}::${item} /fedora_backups/${inventory_hostname}/`basename ${item}`"
     with_items: $host_backup_targets
     when: host_backup_targets is defined
-    serial: 5
     async: 100000
     poll: 120
 
