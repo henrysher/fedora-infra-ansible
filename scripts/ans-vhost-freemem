@@ -70,8 +70,7 @@ for hn in sorted(res['contacted']):
     if 'failed' in res['contacted'][hn] and res['contacted'][hn]['failed']:
         continue
     mem_per_host[hn] = int(res['contacted'][hn]['phymemory'])
-    cpu_per_host[hn] = int(res['contacted'][hn]['cpus']) * \
-            int(res['contacted'][hn]['cpucores'])
+    cpu_per_host[hn] = int(res['contacted'][hn]['cpus'])
 
 
 ans = ansible.runner.Runner(
@@ -106,7 +105,7 @@ for hn in sorted(res['contacted']):
 for hn in sorted(mem_per_host):
     freemem = mem_per_host[hn] - mem_used_in_vm[hn]
     freecpu = cpu_per_host[hn] - cpu_used_in_vm[hn]
-    print '%s:\t%s mem\t%s/%s cores' % (
+    print '%s:\t%s mem\t%s/%s cpus' % (
         hn, freemem, freecpu, cpu_per_host[hn])
 
 
