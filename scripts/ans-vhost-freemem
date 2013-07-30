@@ -58,27 +58,34 @@ errors = []
 
 mem_per_host = {}
 mem_used_in_vm = {}
-ans = ansible.runner.Runner(pattern=hosts, forks=25, transport='paramiko', timeout=10,
-                      module_name='virt', module_args='command=nodeinfo', remote_user=login)
+cpu_per_host = {}
+cpu_used_in_vm = {}
+
+ans = ansible.runner.Runner(
+    pattern=hosts, forks=25, transport='paramiko', timeout=10,
+    module_name='virt', module_args='command=nodeinfo', remote_user=login)
 res = ans.run()
 
 for hn in sorted(res['contacted']):
     if 'failed' in res['contacted'][hn] and res['contacted'][hn]['failed']:
         continue
     mem_per_host[hn] = int(res['contacted'][hn]['phymemory'])
+    cpu_per_host[hn] = int(res['contacted'][hn]['cpus']) * \
+            int(res['contacted'][hn]['cpucores'])
 
 
-
-ans = ansible.runner.Runner(pattern=hosts, forks=25, transport='paramiko', timeout=10,
-                      module_name='virt', module_args='command=info', remote_user=login)
+ans = ansible.runner.Runner(
+    pattern=hosts, forks=25, transport='paramiko', timeout=10,
+    module_name='virt', module_args='command=info', remote_user=login)
 res = ans.run()
-
 
 for hn in sorted(res['contacted']):
     mem_used = 0
+    cpu_used = 0
     if 'failed' in res['contacted'][hn] and res['contacted'][hn]['failed']:
         errors.append('Failed to contact/run virt lookups on %s' % hn)
         continue
+
     for vm in sorted(res['contacted'][hn]):
         info = res['contacted'][hn][vm]
 
@@ -88,14 +95,19 @@ for hn in sorted(res['contacted']):
             continue
         elif 'maxMem' not in info:
             continue    
+
         mem_used += int(info['maxMem'])/1024
+        cpu_used += info['nrVirtCpu']
         
     mem_used_in_vm[hn] = mem_used
+    cpu_used_in_vm[hn] = cpu_used
 
 
 for hn in sorted(mem_per_host):
     freemem = mem_per_host[hn] - mem_used_in_vm[hn]
-    print '%s : %s' % (hn, freemem)
+    freecpu = cpu_per_host[hn] - cpu_used_in_vm[hn]
+    print '%s:\t%s mem\t%s/%s cores' % (
+        hn, freemem, freecpu, cpu_per_host[hn])
 
 
 for err in errors:
