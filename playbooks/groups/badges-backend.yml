@@ -19,17 +19,10 @@
   handlers:
   - include: $handlers/restart_services.yml
 
-- name: make the box be real
+- name: dole out the generic configuration
   hosts: badges-backend;badges-backend-stg
   user: root
   gather_facts: True
-
-  # Roles are executed before all other "loose" items in a playbook regardless
-  # of where they appear in the yaml config.  We put them here first to help us
-  # remember that.
-  roles:
-  - /srv/web/infra/ansible/roles/fedmsg-hub
-  - /srv/web/infra/ansible/roles/badges-backend
 
   vars_files: 
    - /srv/web/infra/ansible/vars/global.yml
@@ -51,3 +44,17 @@
 
   handlers:
   - include: $handlers/restart_services.yml
+
+- name: dole out the service-specific config
+  hosts: badges-backend;badges-backend-stg
+  user: root
+  gather_facts: True
+
+  roles:
+  - /srv/web/infra/ansible/roles/fedmsg-hub
+  - /srv/web/infra/ansible/roles/badges-backend
+
+  vars_files: 
+   - /srv/web/infra/ansible/vars/global.yml
+   - ${private}/vars.yml
+   - ${vars}/${ansible_distribution}.yml
