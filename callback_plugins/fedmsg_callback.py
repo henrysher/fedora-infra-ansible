@@ -70,7 +70,7 @@ class CallbackModule(object):
     def playbook_on_stats(self, stats):
         results = dict([(h, stats.summarize(h)) for h in stats.processed])
         fedmsg.publish(
-            modname="ansible", topic="playbook.start",
+            modname="ansible", topic="playbook.complete",
             msg=dict(
                 playbook=self.playbook,
                 userid=getlogin(),
