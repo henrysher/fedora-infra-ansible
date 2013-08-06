@@ -40,7 +40,7 @@ class CallbackModule(object):
         config = fedmsg.config.load_config()
         config.update(dict(
             name='relay_inbound',
-            cert_prefix='ansible',
+            cert_prefix='shell',
             active=True,
         ))
         fedmsg.init(**config)
