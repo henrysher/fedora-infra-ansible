@@ -58,7 +58,7 @@ class CallbackModule(object):
                     msg=dict(
                         playbook=path,
                         userid=getlogin(),
-                        extra_vars=play.playbook.extra_vars
+                        extra_vars=play.playbook.extra_vars,
                         inventory=play.playbook.inventory.host_list,
                         playbook_checksum=play.playbook.check,
                         check=play.playbook.check,
