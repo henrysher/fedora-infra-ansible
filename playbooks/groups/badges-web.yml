@@ -3,16 +3,6 @@
 # NOTE: make sure there is room/space for this server on the vmhost
 # NOTE: most of these vars come from group_vars/badges-web* or from hostvars
 
-- name: emit a fedmsg message that we are done
-  hosts: badges-web;badges-web-stg
-  user: root
-  gather_facts: False
-  tasks:
-  - local_action: fedmsg
-                  cert_prefix="shell"
-                  topic="playbook.start"
-                  msg="just a test that we are starting"
-
 - name: make badges-web server
   hosts: badges-web;badges-web-stg
   user: root
@@ -61,13 +51,3 @@
 
   handlers:
   - include: $handlers/restart_services.yml
-
-- name: emit a fedmsg message that we are done
-  hosts: badges-web;badges-web-stg
-  user: root
-  gather_facts: False
-  tasks:
-  - local_action: fedmsg
-                  cert_prefix="shell"
-                  topic="playbook.complete"
-                  msg="just a test that we are completing"
