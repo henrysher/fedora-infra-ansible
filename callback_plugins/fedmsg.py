@@ -20,6 +20,7 @@ import os
 import pwd
 
 import fedmsg
+import fedmsg.config
 
 
 def getlogin():
