@@ -50,24 +50,24 @@ class LogMech(object):
                     raise
 
         # checksum of full playbook?
-        
+
     @property
     def playbook_id(self):
         if self._pb_fn:
             return os.path.basename(self._pb_fn).replace('.yml', '').replace('.yaml', '')
         else:
             return "ansible-cmd"
-    
+
     @playbook_id.setter
     def playbook_id(self, value):
         self._pb_fn = value
-    
+
     @property
     def logpath_play(self):
         # this is all to get our path to look nice ish
         tstamp = time.strftime('%Y/%m/%d/%H.%M.%S', time.localtime(self.started))
         path = os.path.normpath(self.logpath + '/' + self.playbook_id +  '/' + tstamp + '/')
-        
+
         if not os.path.exists(path):
             try:
                 os.makedirs(path)
@@ -76,13 +76,13 @@ class LogMech(object):
                     raise
 
         return path
-        
+
     def play_log(self, content):
         # record out playbook.log
         # include path to playbook, checksums, user running playbook
         # any args we can get back from the invocation
         fd = open(self.logpath_play + '/' + 'playbook-' + self.pid + '.info', 'a')
-        fd.write('%s\n' % content) 
+        fd.write('%s\n' % content)
         fd.close()
 
     def task_to_json(self, task):
@@ -92,25 +92,25 @@ class LogMech(object):
         res['task_args'] = task.module_args
         if self.playbook_id == 'ansible-cmd':
             res['task_userid'] = getlogin()
-        for k in ("delegate_to", "environment", "first_available_file", 
-                  "local_action", "notified_by", "notify", "only_if", 
-                  "register", "sudo", "sudo_user", "tags", 
+        for k in ("delegate_to", "environment", "first_available_file",
+                  "local_action", "notified_by", "notify", "only_if",
+                  "register", "sudo", "sudo_user", "tags",
                   "transport", "when"):
             v = getattr(task, k, None)
             if v:
                 res['task_' + k] = v
-            
+
         return res
-        
+
     def log(self, host, category, data, task=None, count=0):
         if not host:
             host = 'HOSTMISSING'
-        
+
         if type(data) == dict:
             name = data.get('module_name',None)
         else:
             name = "unknown"
-            
+
 
         # we're in setup - move the invocation  info up one level
         if 'invocation' in data:
@@ -126,21 +126,21 @@ class LogMech(object):
             data['task_start'] = self._last_task_start
             data['task_end'] = time.time()
             data.update(self.task_to_json(task))
-        
+
         if 'task_userid' not in data:
             data['task_userid'] = getlogin()
-            
+
         if category == 'OK' and data.get('changed', False):
             category = 'CHANGED'
-        
+
         if self.play_info.get('check', False):
             category = 'CHECK:' + category
-                
+
         fd = open(self.logpath_play + '/' + host + '.log', 'a')
         now = time.strftime(TIME_FORMAT, time.localtime())
         fd.write(MSG_FORMAT % dict(now=now, name=name, count=count, category=category, data=json.dumps(data)))
         fd.close()
-        
+
 
 logmech = LogMech()
 
@@ -238,7 +238,7 @@ class CallbackModule(object):
 
     def playbook_on_play_start(self, pattern):
         self._task_count = 0
-        
+
         play = getattr(self, 'play', None)
         if play:
             # figure out where the playbook FILE is
@@ -259,9 +259,9 @@ class CallbackModule(object):
                 pb_info['playbook_checksum'] = utils.md5(path)
                 pb_info['check'] = play.playbook.check
                 logmech.play_log(json.dumps(pb_info, indent=4))
-            
-            self._play_count += 1            
-            # then write per-play info that doesn't duplcate the playbook info                
+
+            self._play_count += 1
+            # then write per-play info that doesn't duplcate the playbook info
             info = {}
             info['play'] = play.name
             info['hosts'] = play.hosts
@@ -273,12 +273,12 @@ class CallbackModule(object):
 
 
     def playbook_on_stats(self, stats):
-        results = {} 
+        results = {}
         for host in stats.processed.keys():
             results[host] = stats.summarize(host)
             logmech.log(host, 'STATS', results[host])
         logmech.play_log(json.dumps({'stats': results}, indent=4))
         logmech.play_log(json.dumps({'playbook_end': time.time()}, indent=4))
         print 'logs written to: %s' % logmech.logpath_play
-        
+
 
