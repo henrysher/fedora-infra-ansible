@@ -63,6 +63,26 @@
   notify:
   - restart apache
 
+- name: make badge rst directory
+  file: >
+    path=/usr/share/badges/sitedocs
+    state=directory
+    owner=root group=root mode=0755
+  tags:
+  - config
+  - assets
+
+- name: copy over all our .rst site docs
+  copy: >
+    src=$item
+    dest=/usr/share/badges/sitedocs
+    owner=root group=root mode=0644
+  with_fileglob:
+  - files/fedora-sitedocs/*.rst
+  tags:
+  - config
+  - assets
+
 - name: make badge png directory
   file: >
     path=/usr/share/badges/pngs
