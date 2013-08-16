@@ -1,0 +1,17 @@
+# requires --extra-vars="target='host1;host2;group etc' yumcommand=update'"
+#
+# Alternatively, you could update a specific package like
+# --extra-vars="yumcommand='update python-tahrir*'"
+
+- name: push packages out
+  hosts: $target
+  user: root
+
+  tasks:
+  - name: expire-caches
+    action: command yum clean expire-cache
+    
+  - name: yum -y ${yumcommand}
+    action: command yum -y ${yumcommand}
+    async: 7200
+    poll: 15
