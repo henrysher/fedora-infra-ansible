@@ -9,7 +9,7 @@
 # nss_db is needed to store user/group info.
 #
 - name: install package needed for fas-client
-  action: yum state=installed name=$item
+  yum: state=installed name=$item
   with_items:
   - fas-clients
   - cronie
@@ -27,7 +27,7 @@
   - packages
 
 - name: install nss_db on rhel hosts only
-  action: yum state=installed name=nss_db
+  yum: state=installed name=nss_db
   only_if: "'${ansible_distribution}' == 'RedHat'"
   tags:
   - packages
@@ -36,7 +36,7 @@
 # setup /etc/nsswitch.conf to use nssdb
 #
 - name: setup /etc/nsswitch.conf for client use
-  action: copy src=$files/fas-client/nsswitch.conf  dest=/etc/nsswitch.conf owner=root mode=644
+  copy: src=nsswitch.conf  dest=/etc/nsswitch.conf owner=root mode=644
   tags:
   - config
 
@@ -54,12 +54,12 @@
 # Currently the default template is used, but could be modified on a host basis. 
 #
 - name: setup /etc/fas.conf for client use
-  action: template src=$item dest=/etc/fas.conf owner=root mode=600
+  template: src=$item dest=/etc/fas.conf owner=root mode=600
   with_first_found:
-  - $files/fas-client/${ansible_fqdn}.fas.conf.j2 
-  - $files/fas-client/${ansible_hostname}.fas.conf.j2 
-  - $files/fas-client/${ansible_hostname}.fas.conf.j2 
-  - $files/fas-client/fas.conf.j2
+  - ${ansible_fqdn}.fas.conf.j2 
+  - ${ansible_hostname}.fas.conf.j2 
+  - ${ansible_hostname}.fas.conf.j2 
+  - fas.conf.j2
   tags:
   - config
   notify:
@@ -75,6 +75,6 @@
 #  - config
 
 - name: fas_client cron job
-  action: copy src=$files/fas-client/fas-client.cron dest=/etc/cron.d/fas-client owner=root mode=644
+  copy: src=fas-client.cron dest=/etc/cron.d/fas-client owner=root mode=644
   tags:
   - config
