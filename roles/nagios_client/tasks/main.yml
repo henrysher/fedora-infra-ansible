@@ -18,7 +18,7 @@
   - packages
 
 - name: install local nrpe check scripts that are not packaged
-  copy: src=$files/nagios/client/scripts/$item dest=/usr/lib64/nagios/plugins/$item mode=0755 owner=nagios group=nagios
+  copy: src=scripts/$item dest=/usr/lib64/nagios/plugins/$item mode=0755 owner=nagios group=nagios
   with_items:
   - check_postfix_queue
   - check_raid.py
@@ -36,22 +36,22 @@
 # FIXME? figure out nrpe selinux policy of DOOM is needed
 
 - name: /etc/nagios/nrpe.cfg
-  template: src=$files/nagios/client/nrpe.cfg dest=/etc/nagios/nrpe.cfg
+  template: src=nrpe.cfg.j2 dest=/etc/nagios/nrpe.cfg
   notify:
   - restart nrpe
   tags:
   - config
 
 - name: install nrpe client configs
-  template: src=$files/nagios/client/$item dest=/etc/nrpe.d/$item
+  template: src=$item dest=/etc/nrpe.d/$item
   with_items:
-  - check_mirrorlist_cache.cfg
-  - check_raid.cfg
-  - check_cron.cfg
-  - check_disk.cfg
-  - check_swap.cfg
-  - check_postfix_queue.cfg
-  - check_lock.cfg
+  - check_mirrorlist_cache.cfg.j2
+  - check_raid.cfg.j2
+  - check_cron.cfg.j2
+  - check_disk.cfg.j2
+  - check_swap.cfg.j2
+  - check_postfix_queue.cfg.j2
+  - check_lock.cfg.j2
   notify:
   - restart nrpe
   tags:
