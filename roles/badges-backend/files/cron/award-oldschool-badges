@@ -1,0 +1,158 @@
+#!/usr/bin/env python
+
+import __main__
+# This is going to require sqlalchemy 0.8 sooner than later.
+__main__.__requires__ = __requires__ = ["tahrir-api", "sqlalchemy>=0.7"];
+import pkg_resources
+pkg_resources.require(__requires__)
+
+import time
+import urllib
+import socket
+from hashlib import md5
+import getpass
+import pprint
+
+from tahrir_api.dbapi import TahrirDatabase
+import transaction
+
+
+_fas_cache = {}
+
+import logging
+log = logging.getLogger()
+logging.basicConfig()
+import fedora.client.fas2
+
+
+import fedmsg
+import fedmsg.config
+
+fm_config = fedmsg.config.load_config()
+fm_config['cert_prefix'] = 'fedbadges'
+fm_config['name'] = 'relay_inbound'
+fm_config['active'] = True
+fedmsg.init(**fm_config)
+
+
+def get_cla_signers(**config):
+    creds = config['fas_credentials']
+
+    fasclient = fedora.client.fas2.AccountSystem(
+        username=creds['username'],
+        password=creds['password'],
+    )
+
+    timeout = socket.getdefaulttimeout()
+    socket.setdefaulttimeout(600)
+    try:
+        log.info("Downloading FAS cache")
+        request = fasclient.send_request('/user/list',
+                                         req_params={'search': '*'},
+                                         auth=True)
+    finally:
+        socket.setdefaulttimeout(timeout)
+
+    mega_list = request['people'] + request['unapproved_people']
+    print len(mega_list), "people in total"
+    print len(request['people']), "'people'"
+    print len(request['unapproved_people']), "'unapproved'"
+
+    clas, sponsors, provenpackagers, proventesters = [], [], [], []
+    for user in mega_list:
+        if any([group.name == 'cla_done' for group in user.memberships]):
+            clas.append(user)
+        if any([group.name == 'provenpackager' for group in user.memberships]):
+            provenpackagers.append(user)
+        if any([group.name == 'proventesters' for group in user.memberships]):
+            proventesters.append(user)
+
+    return clas, sponsors, provenpackagers, proventesters
+
+
+def main():
+    d = {}
+    print "fascache.db code is commented out --  querying fas."
+    clas, sponsors, provenpackagers, proventesters = \
+        get_cla_signers(fas_credentials=fm_config['fas_credentials'])
+    d['clas'] = clas
+    d['sponsors'] = sponsors
+    d['provenpackagers'] = provenpackagers
+    d['proventesters'] = proventesters
+
+    # When running by hand, its often nice to use the code below instead of the code above.
+    #import shelve
+    #d = shelve.open("fascache.db")
+    #if not d:
+    #    print "fascache.db not found.. querying fas."
+    #    clas, sponsors, provenpackagers, proventesters = \
+    #        get_cla_signers(fas_credentials=dict(
+    #            username="ralph",
+    #            password=getpass.getpass(),
+    #        ))
+    #    d['clas'] = clas
+    #    d['sponsors'] = sponsors
+    #    d['provenpackagers'] = provenpackagers
+    #    d['proventesters'] = proventesters
+    #    d.sync()
+    #else:
+    #    print "** using cached fas data **"
+
+    clas, sponsors, provenpackagers, proventesters = \
+        d['clas'], d['sponsors'], \
+        d['provenpackagers'], d['proventesters']    
+
+    print len(list(clas)), "clas in the end"
+    print len(list(sponsors)), "sponsors in the end"
+    print len(list(provenpackagers)), "provenpackagers in the end"
+    print len(list(proventesters)), "proventesters in the end"
+
+
+    print "Awarding for involvement."
+    badge = tahrir.get_badge(badge_id='involvement')    
+    hit_em_up(badge, clas)
+
+    badge = tahrir.get_badge(badge_id='proven-packager')
+    hit_em_up(badge, provenpackagers)
+
+    badge = tahrir.get_badge(badge_id='proven-tester')
+    hit_em_up(badge, proventesters)
+
+def hit_em_up(badge, group):
+    for fas_user in group:
+        email = fas_user.username + "@fedoraproject.org"
+        user = tahrir.get_person(email)
+
+        if not user:
+            continue
+
+        if tahrir.assertion_exists(badge.id, email):
+            print email, "already has", badge.id, "skipping."
+            continue
+
+        time.sleep(1)
+        print "awarding", badge.id, "to", email
+        try:
+            transaction.begin()
+            tahrir.add_assertion(badge.id, email, None)
+            transaction.commit()
+            fedmsg.publish(topic="badge.award",
+                modname="fedbadges",
+                msg=dict(
+                    badge=dict(
+                        name=badge.name,
+                        description=badge.description,
+                        image_url=badge.image,
+                    ),
+                    user=dict(
+                        username=user.nickname,
+                        badges_user_id=user.id,
+                    ),
+            ))
+        except Exception as e:
+            transaction.abort()
+            print "Failure:", e
+
+uri = fm_config['badges_global']['database_uri']
+tahrir = TahrirDatabase(uri)
+main()

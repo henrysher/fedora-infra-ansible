@@ -1,0 +1,38 @@
+# This playbook takes new rpms specified with a fileglob, signs them, and adds
+# them to the infrastructure repo.
+#
+# requires --extra-vars="rpmdir='/home/fedora/ralph/rpms/'"
+
+# TODO -- grab rpms from koji build/task ids beforehand?
+# TODO -- how do make it easy to select the infra-testing repo?
+# TODO -- other arches than x86_64?
+
+- name: batch sign and import a directory full of rpms
+  user: root
+
+  tasks:
+
+  - name: sign all the rpms with our gpg key
+    local_action: /bin/rpm --resign ${rpmdir}/${item}.rpm
+    with_fileglob: ${rpmdir}/*.rpm
+
+  - name: copy the source rpms to the SRPMS dir
+    local_action: copy src=${rpmdir}/${item} dest=/mnt/fedora/app/fi-repo/6/SRPMS/${item}
+    with_fileglob: ${rpmdir}/*.src.rpm
+
+  - name: Run createrepo on the srpm dir
+    local_action: createrepo --update /mnt/fedora/app/fi-repo/6/SRPMS/
+
+  - name: copy the binary rpms to the x86_64 dir
+    local_action: copy src=${rpmdir}/${item} dest=/mnt/fedora/app/fi-repo/6/x86_64/${item}
+    with_fileglob: ${rpmdir}/*.rpm
+
+  - name: Run createrepo on the x86_64 dir
+    local_action: createrepo --update /mnt/fedora/app/fi-repo/6/x86_64/
+
+  - name: make a directory where we store the rpms afterwards
+    local_action: file path=${rpmdir}-old state=directory
+     
+  - name: move processed rpms out to ${rpmdir}-old
+    local_action: "/bin/mv ${rpmdir}/${item} ${rpmdir}-old/${item}"
+    with_fileglob: ${rpmdir}/*.rpm

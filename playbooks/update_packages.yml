@@ -1,0 +1,24 @@
+# requires --extra-vars="target='host1;host2;group etc' package='python-tahrir'
+#
+# Alternatively, you could update a group of packages like
+# --extra-vars="package='python-t*'"
+
+# TODO -- how do make it easy to select the infra-testing repo?
+
+- name: push packages out
+  hosts: $target
+  user: root
+
+  tasks:
+
+  # TODO -- I'm not sure if state=latest will go ahead and expire the cache for
+  # us or not.  I'll comment this out for now, but if we experience problems in
+  # the future we can just uncomment it.  It definitely works with it in place,
+  # the problem is that the expire-cache command is not idempotent which results
+  # in partly confusing ansible-playbook results.  -threebean
+  #
+  #- name: expire-caches
+  #  action: command yum clean expire-cache
+  #
+  - name: yum update ${package}
+    yum: name=${package} state=latest
