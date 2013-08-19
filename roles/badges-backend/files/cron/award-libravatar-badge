@@ -1,0 +1,78 @@
+#!/usr/bin/env python
+
+import __main__
+__main__.__requires__ = __requires__ = ["tahrir-api", "sqlalchemy>=0.7"];
+import pkg_resources
+pkg_resources.require(__requires__)
+
+import hashlib
+import requests
+import time
+import transaction
+
+from tahrir_api.dbapi import TahrirDatabase
+from tahrir_api.model import Person
+
+import fedmsg
+import fedmsg.config
+
+fm_config = fedmsg.config.load_config()
+fm_config['cert_prefix'] = 'fedbadges'
+fm_config['name'] = 'relay_inbound'
+fm_config['active'] = True
+fedmsg.init(**fm_config)
+
+
+def main():
+    persons = tahrir.session.query(Person)\
+        .filter(Person.opt_out==False).all()
+
+    badge = tahrir.get_badge('mugshot')
+    already_has_it = [assertion.person for assertion in badge.assertions]
+
+    good, bad = [], []
+    for person in persons:
+
+        if person in already_has_it:
+            good.append(person)
+            print "Skipping %r" % person
+            continue
+
+        openid = "http://%s.id.fedoraproject.org/" % person.nickname
+        hash = hashlib.sha256(openid).hexdigest()
+        url = "https://seccdn.libravatar.org/avatar/%s?d=404" % hash
+        response = requests.get(url)
+
+        if response.status_code == 200:
+            print person.nickname, "totally gets the mugshot badge."
+            good.append(person)
+            try:
+                transaction.begin()
+                tahrir.add_assertion(badge.id, person.email, None)
+                transaction.commit()
+                fedmsg.publish(topic="badge.award",
+                    modname="fedbadges",
+                    msg=dict(
+                        badge=dict(
+                            name=badge.name,
+                            description=badge.description,
+                            image_url=badge.image,
+                        ),
+                        user=dict(
+                            username=person.nickname,
+                            badges_user_id=person.id,
+                        ),
+                ))
+                time.sleep(1)
+            except Exception as e:
+                transaction.abort()
+                print "Failure:", e
+        else:
+            bad.append(person)
+
+    print len(good), "good peoples"
+    print len(bad), "bad peoples"
+
+uri = fm_config['badges_global']['database_uri']
+tahrir = TahrirDatabase(uri)
+main()
