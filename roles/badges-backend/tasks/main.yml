@@ -54,3 +54,41 @@
   - badges
   notify:
   - restart fedmsg-hub
+
+
+- name: ensure badges cron directories exist
+  file: >
+    state=directory
+    path=$item
+    mode=755
+    owner=root
+  with_items:
+  - /usr/share/badges/cronjobs/
+  - /etc/cron.d/
+  tags:
+  - config
+  - cron
+
+- name: oldschool badge award scripts
+  copy: >
+    src=$item
+    dest=/usr/share/badges/cronjobs/$item
+    owner=root
+    mode=644
+  with_items:
+  - award-oldschool-badges
+  tags:
+  - config
+  - cron
+
+- name: oldschool badge award cronjobs
+  copy: >
+    src=$item
+    dest=/etc/cron.d/$item
+    owner=root
+    mode=644
+  with_items:
+  - award-oldschool-badges
+  tags:
+  - config
+  - cron
