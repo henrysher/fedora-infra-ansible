@@ -1,0 +1,25 @@
+---
+
+#
+# This role adds yum cron package and configuration. 
+# We want this on any public facing Fedora installs so we 
+# can pick up security updates. 
+#
+
+- name: install yum-cron
+  yum: name=yum-cron state=present
+  tags:
+  - packages
+  when: ansible_distribution == 'Fedora'
+
+- name: install yum-cron.conf
+  template: src=yum-cron.conf.j2 dest=/etc/yum/yum-cron.conf mode=0644
+  tags:
+  - config
+  when: ansible_distribution == 'Fedora'
+
+- name: enable yum-cron
+  copy: content="enable yum cron" dest=/var/lock/subsys/yum-cron mode=0644
+  tags:
+  - config
+  when: ansible_distribution == 'Fedora'
