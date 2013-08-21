@@ -1,0 +1,12 @@
+# requires --extra-vars="repos='yokan.git;yumex.git;yum-langpacks.git'"
+
+- name: Install the fedmsg hook into a number of fedrahosted git repos
+  hosts: hosted03
+  user: root
+
+  tasks:
+  - name: ensure there is a post-receive-chained.d/ directory
+    file: >
+        ensure=directory
+        path=/srv/git/${item}/hooks/post-receive-chained.d/
+    with_items: ${repos}
