@@ -4,6 +4,11 @@
   tags:
   - packages
 
+- name: install mod_ssl
+  yum: name=mod_ssl state=installed
+  tags:
+  - packages
+
 - name: /srv/sks
   file: >
     path=/srv/sks
@@ -38,6 +43,17 @@
 
 - name: /etc/httpd/conf.d/sks.conf
   copy: src=$files/keyserver/sks.conf dest=/etc/httpd/conf.d/sks.conf owner=root group=root mode=0644
+  tags:
+  - config
+
+- name: /etc/pki/tls/keys_fedoraproject_org.crt.pem
+  copy: src=$puppet_private/private/keys_fedoraproject_org.crt.pem dest=/etc/pki/tls/keys_fedoraproject_org.crt.pem owner=root group=root mode=0600
+  tags:
+  - config
+
+- name: /etc/pki/tls/keys_fedoraproject_org.key
+  copy: src=$puppet_private/private/keys_fedoraproject_org.key dest=/etc/pki/tls/keys_fedoraproject_org.key owner=root group=root mo
+de=0600
   tags:
   - config
 
