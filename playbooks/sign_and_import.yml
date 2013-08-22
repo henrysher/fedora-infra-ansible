@@ -9,30 +9,45 @@
 
 - name: batch sign and import a directory full of rpms
   user: root
+  hosts: lockbox01.phx2.fedoraproject.org
+  connection: local
 
   tasks:
+  - name: Fail if no rpmdir provided
+    fail: msg="No rpmdir provided"
+    when: rpmdir is not defined
+  # TODO -- I'd also like to fail if rpmdir does not exist.
+  # TODO -- I'd also like to fail if there are no *.rpm files in there.
+
 
   - name: sign all the rpms with our gpg key
-    local_action: /bin/rpm --resign ${rpmdir}/${item}.rpm
-    with_fileglob: ${rpmdir}/*.rpm
+    shell: /bin/rpm --resign ${rpmdir}/*.rpm
+
+  - name: make a directory where we store the rpms afterwards
+    file: path=${rpmdir}-old state=directory
+
+
 
   - name: copy the source rpms to the SRPMS dir
-    local_action: copy src=${rpmdir}/${item} dest=/mnt/fedora/app/fi-repo/6/SRPMS/${item}
+    copy: src=${item} dest=/mnt/fedora/app/fi-repo/6/SRPMS/
     with_fileglob: ${rpmdir}/*.src.rpm
 
   - name: Run createrepo on the srpm dir
-    local_action: createrepo --update /mnt/fedora/app/fi-repo/6/SRPMS/
+    command: createrepo --update /mnt/fedora/app/fi-repo/6/SRPMS/
+
+  - name: move processed srpms out to ${rpmdir}-old
+    command: /bin/mv ${item} ${rpmdir}-old/
+    with_fileglob: ${rpmdir}/*.src.rpm
+
+
 
   - name: copy the binary rpms to the x86_64 dir
-    local_action: copy src=${rpmdir}/${item} dest=/mnt/fedora/app/fi-repo/6/x86_64/${item}
+    copy: src=${item} dest=/mnt/fedora/app/fi-repo/6/x86_64/
     with_fileglob: ${rpmdir}/*.rpm
 
   - name: Run createrepo on the x86_64 dir
-    local_action: createrepo --update /mnt/fedora/app/fi-repo/6/x86_64/
+    command: createrepo --update /mnt/fedora/app/fi-repo/6/x86_64/
 
-  - name: make a directory where we store the rpms afterwards
-    local_action: file path=${rpmdir}-old state=directory
-     
   - name: move processed rpms out to ${rpmdir}-old
-    local_action: "/bin/mv ${rpmdir}/${item} ${rpmdir}-old/${item}"
+    command: /bin/mv ${item} ${rpmdir}-old/
     with_fileglob: ${rpmdir}/*.rpm
