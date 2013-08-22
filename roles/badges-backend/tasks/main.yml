@@ -55,6 +55,17 @@
   notify:
   - restart fedmsg-hub
 
+- name: ensure the fedmsg user has a homedir for cron to work
+  file: >
+    state=directory
+    path=/usr/share/fedmsg
+    mode=700
+    owner=fedmsg
+    group=fedmsg
+  only_if: "'$env' != 'staging'"
+  tags:
+  - config
+  - cron
 
 - name: ensure badges cron directories exist
   file: >
@@ -62,6 +73,7 @@
     path=$item
     mode=755
     owner=root
+  only_if: "'$env' != 'staging'"
   with_items:
   - /usr/share/badges/cronjobs/
   - /etc/cron.d/
@@ -75,6 +87,7 @@
     dest=/usr/share/badges/cronjobs/$item
     owner=fedmsg
     mode=744
+  only_if: "'$env' != 'staging'"
   with_items:
   - award-oldschool-badges
   - award-libravatar-badge
@@ -84,10 +97,11 @@
 
 - name: oldschool badge award cronjobs
   copy: >
-    src=cron/$item
+    src=cron/$item.cron
     dest=/etc/cron.d/$item
     owner=root
     mode=644
+  only_if: "'$env' != 'staging'"
   with_items:
   - award-oldschool-badges
   - award-libravatar-badge
