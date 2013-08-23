@@ -54,10 +54,8 @@ def get_cla_signers(**config):
         socket.setdefaulttimeout(timeout)
 
     mega_list = request['people'] + request['unapproved_people']
-    print len(mega_list), "people in total"
-    print len(request['people']), "'people'"
-    print len(request['unapproved_people']), "'unapproved'"
 
+    packager_id = None
     clas, sponsors, provenpackagers, proventesters = [], [], [], []
     for user in mega_list:
         if any([group.name == 'cla_done' for group in user.memberships]):
@@ -66,6 +64,15 @@ def get_cla_signers(**config):
             provenpackagers.append(user)
         if any([group.name == 'proventesters' for group in user.memberships]):
             proventesters.append(user)
+
+        for group in user.memberships:
+            if group.name == 'packager':
+                packager_id = group.id
+
+        for role in user.roles:
+            if role.group_id == packager_id:
+                if role.role_type == 'sponsor' and role.role_status == 'approved':
+                    sponsors.append(user)
 
     return clas, sponsors, provenpackagers, proventesters
 
@@ -111,6 +118,9 @@ def main():
     print "Awarding for involvement."
     badge = tahrir.get_badge(badge_id='involvement')    
     hit_em_up(badge, clas)
+
+    badge = tahrir.get_badge(badge_id='packager-sponsor')
+    hit_em_up(badge, sponsors)
 
     badge = tahrir.get_badge(badge_id='proven-packager')
     hit_em_up(badge, provenpackagers)
