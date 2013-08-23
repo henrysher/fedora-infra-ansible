@@ -24,10 +24,10 @@ def parse_args():
     parser.add_argument('--user', default=None, help="A FAS username")
     parser.add_argument('--badge', default=None, help="A badge id")
     args = parser.parse_args()
-    if not parser.user:
+    if not args.user:
         print "You must specify a FAS username."
         sys.exit(1)
-    if not parser.badge:
+    if not args.badge:
         print "You must specify a badge id."
         sys.exit(1)
     return args
@@ -59,10 +59,10 @@ def main(tahrir, nickname, badge_id):
     already_has_it = [assertion.person for assertion in badge.assertions]
 
     if person in already_has_it:
-        print "%r already has the badge..."
+        print "%r already has the %r badge..." % (nickname, badge_id)
         return
 
-    print person.nickname, "totally gets the mugshot badge."
+    print person.nickname, "totally gets the %r badge." % badge_id
     try:
         transaction.begin()
         tahrir.add_assertion(badge.id, person.email, None)
@@ -88,4 +88,4 @@ def main(tahrir, nickname, badge_id):
 if __name__ == '__main__':
     args = parse_args()
     tahrir = initialize()
-    main(tahrir, username, badge_id)
+    main(tahrir, args.user, args.badge)
