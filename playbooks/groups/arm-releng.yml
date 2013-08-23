@@ -6,15 +6,24 @@
   tags:
    - arm-releng
 
+  vars:
+   libdir: /usr/lib
+
   vars_files:
    - /srv/web/infra/ansible/vars/global.yml
    - ${private}/vars.yml
 
   roles:
   - /srv/web/infra/ansible/roles/fas_client
+  - /srv/web/infra/ansible/roles/rkhunter
+  - /srv/web/infra/ansible/roles/denyhosts
+  - /srv/web/infra/ansible/roles/nagios_client
 
   tasks:
-  # This task sets up /etc/hosts for us
+  # this is how you include other task lists
   - include: $tasks/hosts.yml
-  # This task includes our common scripts
+  - include: $tasks/base.yml
+  - include: $tasks/2fa_client.yml
+  - include: $tasks/motd.yml
   - include: $tasks/common_scripts.yml
+  - include: $tasks/koji/releng_config.yml
