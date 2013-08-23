@@ -2,7 +2,7 @@
 
 - name: sshd_config 
   action: copy src=$item dest=/etc/ssh/sshd_config mode=600
-  with_first_found:
+  first_available_file:
     - $sshd_config
     - ${files}/ssh/sshd_config.${ansible_fqdn}
     - ${files}/ssh/sshd_config.${host_group}
@@ -67,7 +67,7 @@
 
 - name: iptables
   action: template src=$item dest=/etc/sysconfig/iptables mode=600 backup=yes
-  with_first_found:
+  first_available_file:
     - $iptables
     - $files/iptables/iptables.${ansible_fqdn}
     - $files/iptables/iptables.${host_group}
@@ -82,7 +82,7 @@
 # XXX fixme # a datacenter 'fact' from setup
 - name: /etc/resolv.conf
   action: copy src=$item dest=/etc/resolv.conf
-  with_first_found:
+  first_available_file:
   - ${resolvconf}
   - $files/resolv.conf/${ansible_fqdn}
   - $files/resolv.conf/${host_group}
@@ -94,7 +94,7 @@
 
 - name: rsyslog.conf
   action: copy src=$item dest=/etc/rsyslog.conf mode=644
-  with_first_found:
+  first_available_file:
     - $rsyslogconf
     - $files/rsyslog/rsyslog.conf.${ansible_fqdn}
     - $files/rsyslog/rsyslog.conf.${host_group}
@@ -109,7 +109,7 @@
 
 - name: /etc/postfix/main.cf
   action: copy src=$item dest=/etc/postfix/main.cf
-  with_first_found:
+  first_available_file:
     - $postfix_maincf
     - $files/postfix/main.cf.${ansible_fqdn}
     - $files/postfix/main.cf.${host_group}
