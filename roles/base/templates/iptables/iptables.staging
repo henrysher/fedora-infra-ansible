@@ -1,0 +1,64 @@
+# {{ ansible_managed }}
+*nat
+:PREROUTING ACCEPT []
+:POSTROUTING ACCEPT []
+:OUTPUT ACCEPT []
+
+# Redirect staging attempts to talk to the external proxy to an internal ip.
+# This is primarily for openid in staging which needs to get around proxy
+# redirects.
+-A OUTPUT -d 209.132.181.14 -j DNAT --to-destination 10.5.126.89
+
+COMMIT
+
+*filter
+:INPUT ACCEPT [0:0]
+:FORWARD ACCEPT [0:0]
+:OUTPUT ACCEPT [0:0]
+
+# allow ping and traceroute
+-A INPUT -p icmp -j ACCEPT
+
+# localhost is fine
+-A INPUT -i lo -j ACCEPT
+
+# Established connections allowed
+-A INPUT -m state --state RELATED,ESTABLISHED -j ACCEPT
+-A OUTPUT -m state --state RELATED,ESTABLISHED -j ACCEPT
+
+# allow ssh - always
+-A INPUT -m conntrack --ctstate NEW -m tcp -p tcp --dport 22 -j ACCEPT
+
+# for fireball mode - allow port 5099 from lockbox and it's ips
+-A INPUT -p tcp -m tcp --dport 5099 -s 192.168.1.58 -j ACCEPT
+-A INPUT -p tcp -m tcp --dport 5099 -s 10.5.126.23 -j ACCEPT
+-A INPUT -p tcp -m tcp --dport 5099 -s 10.5.127.51 -j ACCEPT
+-A INPUT -p tcp -m tcp --dport 5099 -s 209.132.181.6 -j ACCEPT
+
+# for nrpe - allow it from nocs
+-A INPUT -p tcp -m tcp --dport 5666 -s 192.168.1.10 -j ACCEPT
+# FIXME - this is the global nat-ip and we need the noc01-specific ip
+-A INPUT -p tcp -m tcp --dport 5666  -s 209.132.181.102 -j ACCEPT
+-A INPUT -p tcp -m tcp --dport 5666  -s 209.132.181.35 -j ACCEPT
+-A INPUT -p tcp -m tcp --dport 5666 -s 10.5.126.41 -j ACCEPT
+
+
+# if the host/group defines incoming tcp_ports - allow them
+{% for port in tcp_ports %}
+-A INPUT -p tcp -m tcp --dport {{ port }} -j ACCEPT
+{% endfor %}
+
+# if the host/group defines incoming udp_ports - allow them
+{% for port in udp_ports %}
+-A INPUT -p udp -m udp --dport {{ port }} -j ACCEPT
+{% endfor %}
+
+# if there are custom rules - put them in as-is
+{% for rule in custom_rules %}
+{{ rule }}
+{% endfor %}
+
+# otherwise kick everything out
+-A INPUT -j REJECT --reject-with icmp-host-prohibited
+-A FORWARD -j REJECT --reject-with icmp-host-prohibited
+COMMIT

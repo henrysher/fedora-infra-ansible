@@ -1,0 +1,138 @@
+---
+
+#
+# This is the base role for all machines. 
+# Things in here are things we want to do to every machine no matter what. 
+#
+
+- name: sshd_config 
+  copy: src={{ item }} dest=/etc/ssh/sshd_config mode=600
+  first_available_file:
+    - ${sshd_config}
+    - ssh/sshd_config.{{ ansible_fqdn }}
+    - ssh/sshd_config.{{ host_group }}
+    - ssh/sshd_config.{{ dist_tag }}
+    - ssh/sshd_config.{{ ansible_distribution }}
+    - ssh/sshd_config.{{ ansible_distribution_version }}
+  notify:
+  - restart sshd
+  tags:
+  - sshd_config
+  - config
+  - sshd
+
+- name: set root passwd
+  user: name=root password={{ rootpw }} state=present
+  tags:
+  - rootpw
+
+- name: add ansible root key 
+  authorized_key: user=root key="{{ item }}"
+  with_file:
+  - ansible-pub-key
+  tags:
+  - config
+
+- name: make sure our resolv.conf is the one being used - set RESOLV_MODS=no in /etc/sysconfig/network
+  lineinfile: dest=/etc/sysconfig/network create=yes backup=yes state=present line='RESOLV_MODS=no' regexp=^RESOLV_MODS=
+  tags:
+  - config
+  
+- name: global default packages to install
+  yum: state=installed name={{ item }}
+  with_items: global_pkgs_inst
+  tags:
+  - packages
+
+- name: dist pkgs to remove
+  yum: state=removed name={{ item }}
+  with_items: base_pkgs_erase
+  tags:
+  - packages
+
+- name: dist pkgs to install
+  yum: state=installed name={{ item }}
+  with_items: base_pkgs_inst
+  tags:
+  - packages
+
+- name: dist disabled services
+  service: state=stopped enabled=false name={{ item }}
+  with_items: service_disabled
+  tags:
+  - service
+  - config
+
+- name: dist enabled services
+  service: state=running enabled=true name={{ item }}
+  with_items: service_enabled
+  tags:
+  - service
+  - config
+
+- name: iptables
+  template: src={{ item }} dest=/etc/sysconfig/iptables mode=600 backup=yes
+  first_available_file:
+    - $iptables
+    - iptables/iptables.{{ ansible_fqdn }}
+    - iptables/iptables.{{ host_group }}
+    - iptables/iptables.{{ env }}
+    - iptables/iptables
+  notify:
+  - restart iptables
+  tags:
+  - iptables
+  - config
+
+# XXX fixme # a datacenter 'fact' from setup
+- name: /etc/resolv.conf
+  copy: src={{ item }} dest=/etc/resolv.conf
+  first_available_file:
+  - ${resolvconf}
+  - resolv.conf/{{ ansible_fqdn }}
+  - resolv.conf/{{ host_group }}
+  - resolv.conf/{{ datacenter }}
+  - resolv.conf/resolv.conf
+  tags:
+  - config
+  - resolvconf
+
+- name: rsyslog.conf
+  copy: src={{ item }} dest=/etc/rsyslog.conf mode=644
+  first_available_file:
+    - $rsyslogconf
+    - rsyslog/rsyslog.conf.{{ ansible_fqdn }}
+    - rsyslog/rsyslog.conf.{{ host_group }}
+    - rsyslog/rsyslog.conf.{{ datacenter }}
+    - rsyslog/rsyslog.conf
+
+  notify:
+  - restart rsyslog
+  tags:
+  - rsyslogd
+  - config
+
+- name: /etc/postfix/main.cf
+  copy: src={{ item }} dest=/etc/postfix/main.cf
+  first_available_file:
+    - $postfix_maincf
+    - postfix/main.cf.{{ ansible_fqdn }}
+    - postfix/main.cf.{{ host_group }}
+    - postfix/main.cf.{{ postfix_group }}
+    - postfix/main.cf
+  notify:
+  - restart postfix
+  tags:
+  - postfix
+  - config
+
+#
+# This task installs some common scripts to /usr/local/bin
+# scripts are under roles/base/files/common-scripts
+#
+
+- name: Install common scripts
+  copy: src=$item dest=/usr/local/bin/ owner=root group=root mode=0755
+  with_fileglob: common-scripts/*
+  tags:
+  - config

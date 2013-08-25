@@ -1,9 +1,15 @@
-ansible repository/structure
+== ansible repository/structure ==
 
 files - files and templates for use in playbooks/tasks
       - subdirs for specific tasks/dirs highly recommended
 
 inventory - where the inventory and additional vars is stored
+          - All files in this directory in ini format 
+          - added together for total inventory
+  group_vars: 
+          - per group variables set here in a file per group 
+  host_vars: 
+          - per host variables set here in a file per host 
 
 library - library of custom local ansible modules
 
@@ -11,6 +17,10 @@ playbooks - collections of plays we want to run on systems
 
 tasks - snippets of tasks that should be included in plays
 
+roles - specific roles to be use in playbooks. 
+        Each role has it's own files/templates/vars
+
+== Paths ==
 
 public path for everything is:
 
@@ -20,12 +30,11 @@ private path - which is sysadmin-main accessible only is:
 
  /srv/private/ansible
 
-
 In general to run any ansible playbook you will want to run:
 
 sudo -i ansible-playbook /path/to/playbook.yml
 
-
+== Cloud information ==
 
 cloud instances:
 to startup a new cloud instance and configure for basic server use run (as
@@ -60,9 +69,6 @@ hostbase=basename for hostname - will have instance id appended to it
 define these with:
 
 --extra-vars="varname=value varname1=value varname2=value"
-
-
-
 
 Name        Memory_MB  Disk   VCPUs
 m1.tiny     512        0      1    
@@ -170,10 +176,6 @@ The available images can be found by running::
 
 You should be able to run that playbook over and over again safely, it will
 only setup/create a new instance if the ip is not up/responding.
-
-
-
-
 
 SECURITY GROUPS
 - to edit security groups you must either have your own cloud account or

@@ -1,0 +1,112 @@
+This file describes some conventions we are going to try and use
+to keep things organized and everyone on the same page. 
+
+If you find you need to diverge from this document for something, 
+please discuss it on the infrastructure list and see if we can 
+adjust this document for that use case. 
+
+Playbook naming
+===============
+The top level playbooks directory should contain: 
+
+* Playbooks that are generic and used by serveral groups/hosts playbooks
+* Playbooks used for utility purposes from command line
+* Groups and Hosts subdirs. 
+
+Generic playbooks are included in other playbooks and perform 
+basic setup that is used by other groups/hosts. 
+Examples: cloud setup, collectd, webserver, iptables, etc
+
+Utility playbooks are used by sysadmins command line to perform some 
+specific function. Examples: host update, vhost update, vhost reboot. 
+
+The playbooks/groups/ directory should contain one playbook per 
+group. This should be used in the case of multiple machines/instances
+in a group. MUST include a hosts entry that describes the hosts in the group.
+Examples: packages, proxy, unbound, virthost, etc.
+Try and be descriptive with the name here. 
+
+The playbooks/hosts/ directory should contain one playbook per 'host'
+for when a role is handled by only one host. Hosts playbooks
+MUST be FQDN.yml, MUST contain Hosts: the host or ip. 
+Examples: persistent cloud images, special hosts. 
+
+Where possible groups should be used. Hosts playbooks should only 
+be used in specific cases where a generic group playbook would not work. 
+
+Both groups and hosts playbooks should always include:  
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - ${private}/vars.yml
+   - ${vars}/${ansible_distribution}.yml
+
+Play naming
+===========
+Plays in playbooks should be a short readable description of what the play
+is doing. This will be displayed to the user and/or mailed out, so think 
+about what you would like to see if the play you are writing failed that 
+would be descriptive to the reader to help fix it. 
+
+Inventory
+=========
+The inventory file should add all hosts to one (or more) groups. 
+
+When there are staging hosts for a role/service, they should be in the 
+main group for that role as well as a staging for the role. 
+FIXME: will depend on how we do staging. (see below)
+
+Tags
+====
+Tags allow you to run just a subset of plays with a specific tag(s). 
+
+We have some standard tags we should use on all plays: 
+
+packages - this play installs or removes packages. 
+
+config - this play installs config files. 
+
+check - we could use this tag to include 'is everything running that should be' 
+        type tasks. 
+
+FIXME: others?
+
+Production vs Staging vs Development
+====================================
+In the default state, we should strive to have production and staging using 
+the same exact playbooks. development can also do so, or just be a more 
+minimal free form for the developer. 
+
+When needing to make changes to test in staging the following process should
+be used: 
+
+FIXME... :) 
+
+Requirements: 
+
+1. shouldn't touch prod playbook by default
+2. should be easy to merge changes back to prod
+3. should not require people to remember to do a bunch of steps. 
+4. should be easy to see exactly what changes are pending only in stg. 
+
+Cron job/automatic execution
+============================
+
+We would like to get ansible running over hosts in an automated way. 
+A git hook could do this. 
+
+* On commit:
+	If we have a way to detemine exactly what hosts are affected by a 
+        change we could simply run only on those hosts. 
+
+        We might want a short delay (10m) to allow someone to see a problem
+        or others to note one from the commit. 
+
+* Once a day: (more often? less often?) 
+
+        We may want to re-run on all hosts once a day and yell loudly 
+        if anything changed. 
+
+        FIXME: perhaps we want a tag of items to run at this time? 
+        FIXME: alternately we could have a util playbook that runs a 
+               bunch of checks for us? 
+
