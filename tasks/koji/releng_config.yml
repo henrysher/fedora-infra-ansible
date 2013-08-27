@@ -36,7 +36,6 @@
 - name: add masher ssh priv key
   action: copy src=$private/files/mash/masher.id_rsa dest=/home/masher/.ssh/id_rsa mode=600 owner=masher group=masher
 
-
 # rawhide group
 - name: rawhide group
   action: group name=rawhide gid=265
@@ -44,46 +43,6 @@
 - name: add rawhide user
   action: user name=rawhide uid=265 group=rawhide home=/tmp comment="rawhide compose account"
  
-
-- name: iptables
-  action: template src=$files/iptables/releng dest=/etc/sysconfig/iptables mode=600
-  notify:
-  - restart iptables
-  tags:
-  - configs
-
-- name: sshd_config
-  action: copy src=$files/ssh/sshd_config.releng dest=/etc/ssh/sshd_config mode=600
-  notify:
-  - restart sshd
-  tags:
-  - sshd_config
-  - configs
-
-- name: /etc/resolv.conf
-  action: copy src=$files/resolv.conf/phx2 dest=/etc/resolv.conf
-  tags:
-  - configs
-
-- name: /etc/hosts
-  action: copy src=$files/hosts/releng-hosts dest=/etc/hosts
-  tags:
-  - configs
-
-
-- name: rsyslog.conf
-  action: copy src=$files/rsyslog/rsyslog.conf.releng dest=/etc/rsyslog.conf mode=644
-  tags:
-  - configs
-
-- name: /etc/postfix/main.cf
-  action: copy src=$files/postfix/main.cf.releng01 dest=/etc/postfix/main.cf
-  tags:
-  - configs
-
-- name: ensure postfix is started
-  action: service name=postfix state=started enabled=true
-
 - name: make a bunch of dirs
   action: file state=directory path=$item
   with_items:
@@ -249,4 +208,3 @@
   tags:
   - fedmsg
   only_if: "'${inventory_hostname}'.startswith('releng02')"
-

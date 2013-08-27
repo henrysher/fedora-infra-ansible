@@ -1,10 +1,3 @@
-- name: enforce certain packages previously assumed from kickstarts
-  action: yum name=$item state=installed
-  with_items:
-  - postfix
-  - joe
-  - perl
-
 - name: set root passwd
   action: user name=root password=$builder_rootpw state=present
 
@@ -31,32 +24,6 @@
 
 - name: mockbuilder ssh key
   action: copy src=$files/kojibuilder/ftbfs_auth_keys dest=/home/mockbuilder/.ssh/authorized_keys mode=644 owner=mockbuilder group=mockbuilder
-
-- name: iptables
-  action: template src=$files/iptables/kojibuilder dest=/etc/sysconfig/iptables mode=600
-  notify:
-  - restart iptables
-
-- name: sshd_config
-  action: copy src=$files/ssh/sshd_config.kojibuilder dest=/etc/ssh/sshd_config mode=600
-  notify:
-  - restart sshd
-
-- name: /etc/resolv.conf
-  action: copy src=$files/resolv.conf/kojibuilder dest=/etc/resolv.conf
-
-- name: add to hosts
-  action: copy src=$files/hosts/kojibuilder-hosts dest=/etc/hosts
-
-- name: rsyslog.conf
-  action: copy src=$files/rsyslog/rsyslog.conf.kojibuilder dest=/etc/rsyslog.conf mode=644
-  notify:
-  - restart rsyslog
-
-- name: /etc/postfix/main.cf
-  action: copy src=$files/postfix/main.cf.norelay dest=/etc/postfix/main.cf
-  notify:
-  - restart postfix
 
 - name: make a bunch of dirs
   action: file state=directory path=$item
