@@ -3,8 +3,8 @@
 lvm_size: 150000
 mem_size: 6144
 num_cpus: 5
-ks_url: http://10.5.126.23/repo/rhel/ks/buildvm-el-6
-ks_repo: http://10.5.126.23/repo/rhel/RHEL6-x86_64/
+ks_url: http://10.5.126.23/repo/rhel/ks/buildvm-fedora
+ks_repo: http://10.5.126.23/pub/fedora/linux/releases/19/Fedora/x86_64/os/
 nm: 255.255.255.0
 gw: 10.5.125.254
 dns: 10.5.126.21
@@ -12,9 +12,8 @@ volgroup: /dev/vg_host01
 virt_install_command: /usr/sbin/virt-install -n ${inventory_hostname} -r ${mem_size} 
                  --disk ${volgroup}/${inventory_hostname}
                  --vcpus=${num_cpus}  -l ${ks_repo} -x 
-                 "ksdevice=eth0 ks=${ks_url} ip=${eth0_ip} netmask=${nm} 
-                  gateway=${gw} dns=${dns} console=tty0 console=ttyS0
-                  hostname=${inventory_hostname}" 
+                 "ks=${ks_url} ip=${eth0_ip}::${gw}:${nm}:${inventory_hostname}:eth0:on
+                  nameserver=${dns} console=tty0 console=ttyS0"
                  --network=bridge=br0 --network=bridge=br1 --graphics none 
                  --autostart --noautoconsole
 
