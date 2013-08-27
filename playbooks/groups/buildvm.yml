@@ -3,10 +3,26 @@
 # NOTE: make sure there is room/space for this builder on the buildvmhost
 # NOTE: most of these vars come from group_vars/buildvm or from hostvars
 
-- name: make koji builder(s)
+- name: make buildvm
   hosts: buildvm
   user: root
   gather_facts: False
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - ${private}/vars.yml
+   - ${vars}/${ansible_distribution}.yml
+
+  tasks:
+  - include: $tasks/virt_instance_create.yml
+
+  handlers:
+  - include: $handlers/restart_services.yml
+
+- name: make koji builder(s)
+  hosts: buildvm
+  user: root
+  gather_facts: True
 
   vars_files: 
    - /srv/web/infra/ansible/vars/global.yml
@@ -17,18 +33,12 @@
   - /srv/web/infra/ansible/roles/base
 
   tasks:
-  - include: $tasks/virt_instance_create.yml
   - include: $tasks/hosts.yml
   - include: $tasks/koji/base_builder.yml
   - include: $tasks/koji/builder_kernel_config.yml
-
 
   handlers:
   - include: $handlers/restart_services.yml
 
   - name: restart kojid
     action: service name=kojid state=restarted
-  
-
-
-
