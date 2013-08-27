@@ -9,13 +9,13 @@ nm: 255.255.255.0
 gw: 10.5.125.254
 dns: 10.5.126.21
 volgroup: /dev/vg_host01
-virt_install_command: /usr/sbin/virt-install -n ${inventory_hostname} -r ${mem_size} 
+virt_install_fedora_command: /usr/sbin/virt-install -n ${inventory_hostname} -r ${mem_size}
                  --disk bus=virtio,path=${volgroup}/${inventory_hostname}
-                 --vcpus=${num_cpus}  -l ${ks_repo} -x 
-                 "ks=${ks_url} ip=${eth0_ip}::${gw}:${nm}:${inventory_hostname}:eth0:on
-                  nameserver=${dns} console=tty0 console=ttyS0"
-                 --network=bridge=br0 --network=bridge=br1 --graphics none 
-                 --autostart --noautoconsole
+                 --vcpus=${num_cpus}  -l ${ks_repo} -x
+                 "ksdevice=eth0 ks=${ks_url} ip=${eth0_ip} netmask=${nm}
+                  gateway=${gw} dns=${dns} console=tty0 console=ttyS0
+                  hostname=${inventory_hostname}"
+                 --network=bridge=br0 --network=bridge=br1 --autostart --noautoconsole
 
 # for systems that do not match the above - specify the same parameter in
 # the host_vars/$hostname file
