@@ -1,0 +1,250 @@
+#!/usr/bin/python -tt
+# skvidal
+# take builder/instance name
+# look for it on buildvmhost boxes
+# if it is there/up
+# confirm to kill it
+# destroy it
+# lvremove the disk
+# undefine it
+# 
+
+import os
+import sys
+import socket
+from socket import gaierror
+import ansible
+import ansible.runner
+import ansible.playbook
+import time
+from ansible import callbacks
+from pprint import pprint
+import optparse
+
+def get_ans_results(results, hostname):
+    if hostname in results['dark']:
+        return results['dark'][hostname]
+    if hostname in results['contacted']:
+        return results['contacted'][hostname]
+    
+    return {}
+
+def confirm():
+    ans = raw_input()
+    if ans.lower() == 'yes':
+        return True
+    return False
+
+
+
+def find_instance(conn, instance):
+    vmdict  = get_vm_to_host_map(conn)
+
+    if instance in vmdict:
+        return vmdict[instance]
+    return None
+    
+def get_vm_to_host_map(conn):
+
+    conn.module_name='virt'
+    conn.module_args='command=list_vms'
+
+    res = conn.run()
+
+    vm_to_host = {}
+
+    for (host,data) in sorted(res['contacted'].items()):
+        for vm in data['list_vms']:
+            vm_to_host[vm] = host
+
+    return vm_to_host
+    
+def check_for_ans_error(results, hostname, err_codes=[], success_codes=[0], 
+                             return_on_error=['stdout', 'stderr']):
+    # returns True or False + dict
+    # dict includes 'msg'
+    # may include 'rc', 'stderr', 'stdout' and any other
+    # requested result codes
+    err_results = {}
+    
+    if 'dark' in results and hostname in results['dark']:
+        err_results['msg'] = "Error: Could not contact/connect to %s." % hostname
+        return (True, err_results)
+    
+    error = False
+
+    if err_codes or success_codes:
+        if hostname in results['contacted']:
+            if 'rc' in results['contacted'][hostname]:
+                rc = int(results['contacted'][hostname]['rc'])
+                err_results['rc'] = rc
+                # check for err codes first
+                if rc in err_codes:
+                    error = True
+                    err_results['msg'] = 'rc %s matched err_codes' % rc
+                elif rc not in success_codes:
+                    error = True
+                    err_results['msg'] = 'rc %s not in success_codes' % rc
+            elif 'failed' in results['contacted'][hostname] and results['contacted'][hostname]['failed']:
+                error = True
+                err_results['msg'] = 'results included failed as true'
+                 
+        if error:
+            for item in return_on_error:
+                if item in results['contacted'][hostname]:
+                    err_results[item] = results['contacted'][hostname][item]
+                    
+    return error, err_results
+
+def vm_is_defined(conn, vm, vmhost):
+    # get list of vms
+    conn.module_name = 'virt'
+    conn.module_args = 'command=list_vms'
+    results = get_ans_results(conn.run(), vmhost)
+    # if vm is in in there
+    if vm in results.get('list_vms', []):
+        return True
+    return False
+    
+
+def vm_is_alive(conn, vm, vmhost):
+    if not vm_is_defined(conn, vm, vmhost):
+        return False
+    conn.module_name = 'virt'
+    conn.module_args = 'command=status guest=%s' % vm
+    results = get_ans_results(conn.run(), vmhost)
+    if results.get('status', None)  == 'running':
+        return True
+
+    return False
+
+def wait_for_host(hn, timeout=300):
+    # watch for that host ssh to come up
+    conn = ansible.runner.Runner(host_list=hn +',', pattern=hn, remote_user='root')
+    is_up = False
+    start = time.time()
+    while not is_up:
+        if time.time() - start >= timeout:
+            raise Exception, "Hit Timeout waiting for %s to boot" % hn
+        conn.module_name='ping'
+        res = get_ans_results(conn.run(), hn)
+        if res.get('ping'):
+            is_up=True
+        else:
+            time.sleep(2)
+        
+
+
+
+def parse_args(args):
+    parser = optparse.OptionParser('\nkillvm [options] vm')
+    parser.add_option('-i', '--inventory', default='/srv/web/infra/ansible/inventory', 
+                   help="path to ansible inventory file")
+    parser.add_option('-p', '--pattern', default='buildvmhost:bvirthost:virthost:colo-virt', 
+                   help="ansible host pattern to use to look up vmhosts")                   
+    parser.add_option('-y', '--yes', default=False, dest='yes', action="store_true",
+                    help='Do not confirm any of the destructive actions - just do them')
+    parser.add_option('--vg', default='/dev/vg_host01', dest='vg',
+                    help='path to volumegroup to use on vmhost for vm disk: %default')                    
+
+    opts, args = parser.parse_args(args)
+
+    if not os.path.exists(opts.inventory):
+        print "Could not find ansible inventory at: %s" % opts.inventory
+        sys.exit(1)
+        
+    if len(args) != 1:
+        parser.print_usage()
+        sys.exit(1)
+
+
+    return opts, args
+
+
+
+def main():
+
+    opts, args = parse_args(sys.argv[1:])
+    # args
+    vm = args[0]
+
+    try:
+        ip = socket.gethostbyname(vm)
+    except gaierror,e:
+        print 'Could not find ip for %s' % vm
+        return 1
+
+    if vm.find('.') == -1:
+        print '%s was not a fqdn, cmon!' % vm
+        return 1
+           
+    s_vm = vm.split('.')[0]
+
+    print 'Checking for %s' % vm
+
+    conn = ansible.runner.Runner(host_list=opts.inventory, pattern=opts.pattern, timeout=20, forks=30, remote_user='root')
+    vmhost = find_instance(conn, instance=vm)
+    if not vmhost:
+        print 'Could not find vm %s on any virthost in %s' % (vm, opts.pattern)
+        sys.exit(1)
+
+    print 'Found on %s' % vmhost    
+
+    vmhost_conn = ansible.runner.Runner(host_list=vmhost+',', pattern=vmhost, remote_user='root')
+    if vm_is_defined(vmhost_conn, vm, vmhost):
+        if vm_is_alive(vmhost_conn, vm, vmhost):
+            if not opts.yes:
+                print "%s is running. Okay to Destroy? ('yes' to confirm): " % vm,
+                if not confirm():
+                    print 'Exiting on user input'
+                    return 1
+                
+            # destroy it
+            vmhost_conn.module_args = "command=destroy guest=%s" % vm
+            err, err_res = check_for_ans_error(vmhost_conn.run(), vmhost)
+            if err:
+                print 'Error destroying %s on %s' % (vm, vmhost)
+                print err_res
+                return 1
+                
+        # undefine it
+        if not opts.yes:
+            print "%s is defined. Okay to Undefine? ('yes' to confirm): " % vm,
+            if not confirm():
+                print 'Exiting on user input'
+                return 1
+        
+        vmhost_conn.module_args = "command=undefine guest=%s" % vm
+        err, err_res = check_for_ans_error(vmhost_conn.run(), vmhost)
+        if err:
+            print 'Error undefining %s on %s' % (vm, vmhost)
+            print err_res
+            return 1
+
+    # check for the lv being allocated already
+    lv_check = '/sbin/lvs %s/%s --noheadings' % (opts.vg, s_vm)
+    vmhost_conn.module_name='command'
+    vmhost_conn.module_args=lv_check
+    results = get_ans_results(vmhost_conn.run(), vmhost)
+    if 'rc' not in results:
+        print 'Could not talk to vmhost about disks'
+        return 1
+
+    if results['rc'] == 0:
+        print 'Removing old disk: %s/%s' % (opts.vg, s_vm)
+        # lvremove its disk
+        lvrm='/sbin/lvremove -f %s/%s' % (opts.vg, s_vm)
+        vmhost_conn.module_name='command'   
+        vmhost_conn.module_args=lvrm
+        results = get_ans_results(vmhost_conn.run(), vmhost)
+        if results.get('rc', None) != 0:
+            print "Could not remove lv for old vm %s" % vm
+            print results
+            return 1
+
+
+     
+
+if __name__ == "__main__":
+    sys.exit(main())
+        
