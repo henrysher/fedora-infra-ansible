@@ -1,0 +1,45 @@
+- name: make docs-backend server
+  hosts: docs-backend
+  user: root
+  gather_facts: False
+
+  vars_files: 
+   - /srv/web/infra/ansible/vars/global.yml
+   - ${private}/vars.yml
+   - ${vars}/${ansible_distribution}.yml
+
+  tasks:
+  - include: $tasks/virt_instance_create.yml
+
+  handlers:
+  - include: $handlers/restart_services.yml
+
+- name: make the box be real
+  hosts: docs-backend
+  user: root
+  gather_facts: True
+
+  vars_files: 
+   - /srv/web/infra/ansible/vars/global.yml
+   - ${private}/vars.yml
+   - ${vars}/${ansible_distribution}.yml
+
+  roles:
+  - /srv/web/infra/ansible/roles/base
+  - /srv/web/infra/ansible/roles/rkhunter
+  - /srv/web/infra/ansible/roles/denyhosts
+  - /srv/web/infra/ansible/roles/nagios_client
+  - /srv/web/infra/ansible/roles/fas_client
+  - /srv/web/infra/ansible/roles/yum-cron
+
+  tasks:
+  # this is how you include other task lists
+  - include: $tasks/hosts.yml
+  - include: $tasks/yumrepos.yml
+  - include: $tasks/2fa_client.yml
+  - include: $tasks/collectd/client.yml
+  - include: $tasks/motd.yml
+  - include: $tasks/sudo.yml
+
+  handlers:
+  - include: $handlers/restart_services.yml
