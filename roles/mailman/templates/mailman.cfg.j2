@@ -1,0 +1,32 @@
+# This is the absolute bare minimum base configuration file.  User supplied
+# configurations are pushed onto this.
+
+[mailman]
+# This address is the "site owner" address.  Certain messages which must be
+# delivered to a human, but which can't be delivered to a list owner (e.g. a
+# bounce from a list owner), will be sent to this address.  It should point to
+# a human.
+site_owner: root@localhost
+
+# Set the paths to be Fedora-compliant
+layout: fhs
+[paths.fhs]
+bin_dir: /usr/libexec/mailman3
+var_dir: /var/lib/mailman3
+queue_dir: /var/spool/mailman3
+log_dir: /var/log/mailman3
+lock_dir: /run/lock/mailman3
+ext_dir: /etc/mailman3.d
+pid_file: /run/mailman3/master.pid
+
+[database]
+class: mailman.database.postgresql.PostgreSQLDatabase
+url: postgres://mailmanadmin:{{ mailman_mm_db_pass }}@localhost/mailman
+
+[archiver.hyperkitty]
+class: hyperkitty.archiver.Archiver
+enable: yes
+configuration: /etc/mailman3.d/hyperkitty.cfg
+
+#[archiver.prototype]
+#enable: yes

@@ -7,7 +7,7 @@
   user: root
   gather_facts: False
 
-  vars_files: 
+  vars_files:
    - /srv/web/infra/ansible/vars/global.yml
    - ${private}/vars.yml
    - ${vars}/${ansible_distribution}.yml
@@ -23,18 +23,18 @@
   user: root
   gather_facts: True
 
-  vars_files: 
+  vars_files:
    - /srv/web/infra/ansible/vars/global.yml
    - ${private}/vars.yml
    - ${vars}/${ansible_distribution}.yml
 
   roles:
-  - /srv/web/infra/ansible/roles/base
-  - /srv/web/infra/ansible/roles/rkhunter
-  - /srv/web/infra/ansible/roles/denyhosts
-  - /srv/web/infra/ansible/roles/nagios_client
-  - /srv/web/infra/ansible/roles/fas_client
-  - /srv/web/infra/ansible/roles/yum-cron
+  - ${roles}/base
+  - ${roles}/rkhunter
+  - ${roles}/denyhosts
+  - ${roles}/nagios_client
+  - ${roles}/fas_client
+  - ${roles}/yum-cron
 
   tasks:
   # this is how you include other task lists
@@ -44,6 +44,83 @@
   - include: $tasks/collectd/client.yml
   - include: $tasks/motd.yml
   - include: $tasks/sudo.yml
+  - include: $tasks/apache.yml
+  - include: $tasks/mod_wsgi.yml
+
+  handlers:
+  - include: $handlers/restart_services.yml
+
+
+# Database setup
+- name: setup the database
+  hosts: dbserver-stg
+  gather_facts: no
+  sudo: yes
+  sudo_user: postgres
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - ${private}/vars.yml
+   - ${vars}/${ansible_distribution}.yml
+
+  tasks:
+    # mailman auto-updates its schema, there can only be one admin user
+    - name: mailman DB user
+      postgresql_user: name=mailmanadmin password=$mailman_mm_db_pass
+    - name: hyperkitty DB admin user
+      postgresql_user: name=hyperkittyadmin password=$mailman_hk_admin_db_pass
+    - name: hyperkitty DB user
+      postgresql_user: name=hyperkittyapp password=$mailman_hk_db_pass
+                       db=hyperkitty priv=SELECT,INSERT,UPDATE,DELETE
+    - name: kittystore DB admin user
+      postgresql_user: name=kittystoreadmin password=$mailman_ks_admin_db_pass
+    - name: kittystore DB user
+      postgresql_user: name=kittystoreapp password=$mailman_ks_db_pass
+                       db=kittystore priv=SELECT,INSERT,UPDATE,DELETE
+    - name: postorius DB admin user
+      postgresql_user: name=postoriusadmin password=$mailman_ps_admin_db_pass
+    - name: postorius DB user
+      postgresql_user: name=postoriusapp password=$mailman_ps_db_pass
+                       db=postorius priv=SELECT,INSERT,UPDATE,DELETE
+    - name: databases creation
+      postgresql_db: name=$item owner=${item}admin encoding=UTF-8
+      with_items:
+        - mailman
+        - hyperkitty
+        - kittystore
+        - postorius
+
+
+# Real MM/HK-specific work
+- name: setup mailman and hyperkitty
+  hosts: mailman-stg
+  user: root
+  gather_facts: True
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - ${private}/vars.yml
+   - ${vars}/${ansible_distribution}.yml
+
+  roles:
+  - ${roles}/mailman
+
+  tasks:
+  - name: server front page
+    copy: src=$files/mailman/index.html
+          dest=/var/www/html/index.html
+
+  #- name: easy access to the postgresql databases
+  #  template: src=$files/mailman/pgpass.j2 dest=/root/.pgpass
+  #            owner=root group=root mode=0600
+
+  - name: start services
+    service: state=started name=$item
+    with_items:
+      - httpd
+      - postgresql
+      - mailman
+      - postfix
+
 
   handlers:
   - include: $handlers/restart_services.yml

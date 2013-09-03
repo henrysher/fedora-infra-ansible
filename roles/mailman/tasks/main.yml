@@ -1,0 +1,138 @@
+---
+# Configuration for Mailman 3
+# PostgreSQL initialization must have been done already
+
+- name: install needed packages
+  yum: pkg=$item state=installed
+  with_items:
+  - mailman3
+  - python-psycopg2
+  - python-storm-postgresql
+  - kittystore
+  - hyperkitty
+  - postorius
+  - yum-plugin-post-transaction-actions
+  tags:
+  - packages
+
+# Initialize mailman (must be done after settings up the DBs)
+- name: add mailman to the apache group
+  user: name=mailman groups=apache append=yes
+  tags:
+  - config
+  notify:
+    - restart mailman
+
+- name: set the mailman conffile
+  template: src=mailman.cfg.j2 dest=/etc/mailman.cfg
+  tags:
+  - config
+  notify:
+    - restart mailman
+
+# Logging
+- name: hyperkitty logging -- directory
+  file: path=/var/log/hyperkitty state=directory
+        owner=root group=apache mode=2775
+- name: hyperkitty logging -- file creation
+  copy: content="" dest=/var/log/hyperkitty/hyperkitty.log
+        force=no
+- name: hyperkitty logging -- file permissions
+  file: path=/var/log/hyperkitty/hyperkitty.log state=file
+        owner=root group=apache mode=664
+- name: hyperkitty logging -- rotation
+  copy: src=hyperkitty.logrotate.conf
+        dest=/etc/logrotate.d/hyperkitty
+
+# settings / conf
+- name: install the hyperkitty/postorius settings file
+  template: src=$item.settings_local.py.j2
+            dest=/etc/$item/sites/default/settings_local.py
+            owner=root group=apache mode=0640
+  with_items:
+    - hyperkitty
+    - postorius
+  tags:
+  - config
+  notify:
+    - reload apache
+    - restart mailman
+
+- name: install the hyperkitty/postorius settings admin file
+  template: src=$item.settings_admin.py.j2
+            dest=/etc/$item/sites/default/settings_admin.py
+            owner=root group=root mode=0600
+  with_items:
+    - hyperkitty
+    - postorius
+  tags:
+  - config
+
+- name: install the hyperkitty/postorius urls file
+  copy: src=$item.urls.py
+        dest=/etc/$item/sites/default/urls.py
+        owner=root group=root mode=0644
+  with_items:
+    - hyperkitty
+    - postorius
+  tags:
+  - config
+  notify:
+    - reload apache
+    - restart mailman
+
+- name: install the hyperkitty/postorius httpd conf file
+  copy: src=$item.apache.conf
+        dest=/etc/httpd/conf.d/$item.conf
+  with_items:
+    - hyperkitty
+    - postorius
+  tags:
+  - config
+  notify:
+    - reload apache
+
+- name: set the hyperkitty conffile in mailman
+  copy: src=hyperkitty.cfg
+        dest=/etc/mailman.d/hyperkitty.cfg
+  tags:
+  - config
+  notify:
+    - restart mailman
+
+
+# Sync databases
+# FIXME the db migrations should happen no matter when the pkgs are updated
+# so really this should be run once
+# and then stored in a yum-post-transaction-action on the system(s)
+# so no matter when it is run the right thing happens
+#
+- name: run django syncdb
+  command: /usr/bin/django-admin syncdb --pythonpath=/etc/$item/sites/default --settings=settings_admin
+  with_items:
+    - hyperkitty
+    - postorius
+- name: run django migrate
+  command: /usr/bin/django-admin migrate --pythonpath=/etc/hyperkitty/sites/default --settings=settings_admin hyperkitty
+- name: kittystore schema update
+  command: /usr/bin/kittystore-updatedb --pythonpath=/etc/hyperkitty/sites/default --settings=settings_admin
+
+- name: copy the initial user fixture
+  copy: src=postorius.initial-user.json
+        dest=/etc/postorius/sites/default/initial-user.json
+        owner=root group=apache mode=0640
+
+- name: load the inital user
+  command: /usr/bin/django-admin loaddata --pythonpath=/etc/postorius/sites/default --settings=settings /etc/postorius/sites/default/initial-user.json
+
+
+# Postfix
+- name: set the postfix conffile
+  copy: src=postfix-main.cf dest=/etc/postfix/main.cf
+  notify:
+    - restart postfix
+
+
+
+handlers:
+- include: $handlers/restart_services.yml
