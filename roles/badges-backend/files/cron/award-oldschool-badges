@@ -16,14 +16,12 @@ import pprint
 from tahrir_api.dbapi import TahrirDatabase
 import transaction
 
-
 _fas_cache = {}
 
 import logging
 log = logging.getLogger()
 logging.basicConfig()
 import fedora.client.fas2
-
 
 import fedmsg
 import fedmsg.config
@@ -33,6 +31,8 @@ fm_config['cert_prefix'] = 'fedbadges'
 fm_config['name'] = 'relay_inbound'
 fm_config['active'] = True
 fedmsg.init(**fm_config)
+
+import fedbadges.utils
 
 
 def get_cla_signers(**config):
@@ -145,24 +145,14 @@ def hit_em_up(badge, group):
             transaction.begin()
             tahrir.add_assertion(badge.id, email, None)
             transaction.commit()
-            fedmsg.publish(topic="badge.award",
-                modname="fedbadges",
-                msg=dict(
-                    badge=dict(
-                        name=badge.name,
-                        description=badge.description,
-                        image_url=badge.image,
-                    ),
-                    user=dict(
-                        username=user.nickname,
-                        badges_user_id=user.id,
-                    ),
-            ))
         except Exception as e:
             transaction.abort()
             print "Failure:", e
 
 if __name__ == '__main__':
     uri = fm_config['badges_global']['database_uri']
-    tahrir = TahrirDatabase(uri)
+    tahrir = TahrirDatabase(
+        uri,
+        notification_callback=fedbadges.utils.notification_callback,
+    )
     main()

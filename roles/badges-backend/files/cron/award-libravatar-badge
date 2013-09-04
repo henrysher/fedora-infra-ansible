@@ -22,6 +22,7 @@ fm_config['name'] = 'relay_inbound'
 fm_config['active'] = True
 fedmsg.init(**fm_config)
 
+import fedbadges.utils
 
 def main():
     persons = tahrir.session.query(Person)\
@@ -50,19 +51,6 @@ def main():
                 transaction.begin()
                 tahrir.add_assertion(badge.id, person.email, None)
                 transaction.commit()
-                fedmsg.publish(topic="badge.award",
-                    modname="fedbadges",
-                    msg=dict(
-                        badge=dict(
-                            name=badge.name,
-                            description=badge.description,
-                            image_url=badge.image,
-                        ),
-                        user=dict(
-                            username=person.nickname,
-                            badges_user_id=person.id,
-                        ),
-                ))
                 time.sleep(1)
             except Exception as e:
                 transaction.abort()
@@ -74,5 +62,8 @@ def main():
     print len(bad), "bad peoples"
 
 uri = fm_config['badges_global']['database_uri']
-tahrir = TahrirDatabase(uri)
+tahrir = TahrirDatabase(
+    uri,
+    notification_callback=fedbadges.utils.notification_callback,
+)
 main()
