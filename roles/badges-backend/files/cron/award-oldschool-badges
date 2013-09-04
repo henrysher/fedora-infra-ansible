@@ -87,11 +87,17 @@ def main():
         'provenpackager': 'proven-packager',
         'proventesters': 'proven-tester',
         'ambassadors': 'ambassador',
-        'sysadmin-main': 'trust-me-i-know-what-i-am-doing',
+        'sysadmin-main': 'trust-me,-i-know-what-i-am-doing',
         'sysadmin-badges': 'inside-job',
         'sponsors': 'packager-sponsor',
     }
 
+    # First, some validation that the badge ids actually exist.
+    for k, v in mapping.items():
+        badge = tahrir.get_badge(badge_id=badge_id)
+        assert(badge.id)
+
+    # Then, do a long query against FAS for our candidates.
     results = get_fas_groupings(fas_credentials=fm_config['fas_credentials'],
                                 lookup=mapping)
 
