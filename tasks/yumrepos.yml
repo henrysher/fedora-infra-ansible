@@ -1,11 +1,22 @@
 ---
 
-- name: put repos on system
+- name: put rhel repos on system
   action: copy src=$files/common/$item dest=/etc/yum.repos.d/$item
   with_items:
   - epel6.repo
   - rhel6.repo
   only_if: '$is_rhel'
+  tags:
+  - config
+  - packages
+
+- name: put fedora repos on system
+  action: copy src=$files/common/$item dest=/etc/yum.repos.d/$item
+  with_items:
+  - fedora.repo
+  - fedora-updates.repo
+  - fedora-updates-testing.repo
+  only_if: '$is_fedora'
   tags:
   - config
   - packages
