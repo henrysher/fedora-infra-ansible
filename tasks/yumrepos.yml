@@ -10,13 +10,24 @@
   - config
   - packages
 
-- name: put fedora repos on system
+- name: put fedora repos on x86 systems
   action: copy src=$files/common/$item dest=/etc/yum.repos.d/$item
   with_items:
   - fedora.repo
   - fedora-updates.repo
   - fedora-updates-testing.repo
-  only_if: '$is_fedora'
+  only_if: "$is_fedora and '${ansible_architecture}'.startswith('x86_64')"
+  tags:
+  - config
+  - packages
+
+- name: put fedora repos on arm systems
+  action: copy src=$files/common/$item-arm dest=/etc/yum.repos.d/$item
+  with_items:
+  - fedora.repo
+  - fedora-updates.repo
+  - fedora-updates-testing.repo
+  only_if: "$is_fedora and '${ansible_architecture}'.startswith('armv7l')"
   tags:
   - config
   - packages
