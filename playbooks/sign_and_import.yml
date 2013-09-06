@@ -12,8 +12,12 @@
   hosts: lockbox01.phx2.fedoraproject.org
   connection: local
 
+  # Toggle this variable to import to the testing repo as opposed to the staging
+  # repo.  Since we're in freeze right now, we'll default to the testing repo.
+  # It would be nice to be able to toggle this from the command line.
   vars:
-  - repodir: /mnt/fedora/app/fi-repo/6
+  - repodir: /mnt/fedora/app/fi-repo/testing/6
+  #- repodir: /mnt/fedora/app/fi-repo/6
 
   tasks:
   - name: Fail if no rpmdir provided
@@ -21,7 +25,6 @@
     when: rpmdir is not defined
   # TODO -- I'd also like to fail if rpmdir does not exist.
   # TODO -- I'd also like to fail if there are no *.rpm files in there.
-
 
   - name: sign all the rpms with our gpg key
     shell: /bin/rpm --resign ${rpmdir}/*.rpm
