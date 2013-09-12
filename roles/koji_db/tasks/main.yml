@@ -3,15 +3,6 @@
 # These tasks only run on koji db servers from the postgresql playbook
 #
 #
-# create a koji database if not already created
-#
-- name: databases creation
-  postgresql_db: name=koji owner=koji encoding=UTF-8
-  tags:
-  - db
-  only_if: '$is_kojidb'
-
-#
 # create a koji db user to own the db with the kojidatabasepassword from private
 #
 - name: koji db user
@@ -19,7 +10,14 @@
   tags:
   - db
   only_if: '$is_kojidb'
-
+#
+# create a koji database if not already created
+#
+- name: databases creation
+  postgresql_db: name=koji owner=koji encoding=UTF-8
+  tags:
+  - db
+  only_if: '$is_kojidb'
 # 
 # Load the initial schema and create a file to note that it's loaded now. 
 #
