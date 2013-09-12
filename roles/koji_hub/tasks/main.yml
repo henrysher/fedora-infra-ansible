@@ -50,7 +50,7 @@
   - config
 
 - name: init koji ca cert file
-  shell: "openssl req -config /etc/pki/koji/ssl.cnf -new -x509 -subj "/C=US/ST=Arizona/L=Phoenix/O=IT/CN=aarch64.koji.fedoraproject.org" -days 3650 -key /etc/pki/koji/private/koji_ca_cert.key -out /etc/pki/koji/koji_ca_cert.crt -extensions v3_ca" creates=/etc/pki/koji/koji_ca_cert.crt
+  shell: creates=/etc/pki/koji/koji_ca_cert.crt openssl req -config /etc/pki/koji/ssl.cnf -new -x509 -subj "/C=US/ST=Arizona/L=Phoenix/O=IT/CN=aarch64.koji.fedoraproject.org" -days 3650 -key /etc/pki/koji/private/koji_ca_cert.key -out /etc/pki/koji/koji_ca_cert.crt -extensions v3_ca
   tags:
   - config
 
@@ -78,7 +78,7 @@
      - db
 
    - name: load initial schema 
-     shell: "psql koji koji < /usr/share/doc/koji*/docs/schema.sql" creates=/var/lib/pgql/koji-schema
+     shell: creates=/var/lib/pgql/koji-schema psql koji koji < /usr/share/doc/koji*/docs/schema.sql
      tags:
      - db
 
