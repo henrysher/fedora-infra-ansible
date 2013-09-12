@@ -56,32 +56,6 @@
 
 # setup certs needed here for kojiweb/hub
 
-# Database setup
-- name: setup the database
-  hosts: db-aarch64.qa.fedoraproject.org
-  gather_facts: no
-  sudo: yes
-  sudo_user: postgres
-  vars_files:
-   - /srv/web/infra/ansible/vars/global.yml
-   - ${private}/vars.yml
-   - ${vars}/${ansible_distribution}.yml
-
-  tasks:
-
-   - name: databases creation
-     postgresql_db: name=koji owner=koji encoding=UTF-8
-
-   - name: koji db user
-     postgresql_user: name=koji password=$kojidatabasepassword
-     tags:
-     - db
-
-   - name: load initial schema 
-     shell: creates=/var/lib/pgql/koji-schema psql koji koji < /usr/share/doc/koji*/docs/schema.sql
-     tags:
-     - db
-
 # Todo here
 # httpd ssl.conf changes
 # koji hub.conf template
