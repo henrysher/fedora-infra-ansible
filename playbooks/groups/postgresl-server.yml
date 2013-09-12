@@ -37,7 +37,6 @@
   - /srv/web/infra/ansible/roles/nagios_client
   - /srv/web/infra/ansible/roles/fas_client
   - /srv/web/infra/ansible/roles/postgresql_server
-  - /srv/web/infra/ansible/roles/koji_db
 
   tasks:
   - include: $tasks/hosts.yml
@@ -46,6 +45,20 @@
   - include: $tasks/motd.yml
   - include: $tasks/sudo.yml
   - include: $tasks/collectd/client.yml
+
+- name: make koji db
+  hosts: dbserver-secondary
+  gather_facts: no
+  sudo: yes
+  sudo_user: postgres
+
+  vars_files: 
+   - /srv/web/infra/ansible/vars/global.yml
+   - ${private}/vars.yml
+   - ${vars}/${ansible_distribution}.yml
+
+  roles:
+  - /srv/web/infra/ansible/roles/koji_db
 
 # TODO: add iscsi task
 

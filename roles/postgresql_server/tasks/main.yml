@@ -19,6 +19,13 @@
   tags:
   - service
 
+- name: setup postgresql koji config file
+  template: src=pg_hba.conf.j2 dest=/var/lib/pgsql/data/pg_hba.conf mode=600 backup=yes
+  notify:
+  - restart postgresql
+  tags:
+  - config
+
 - name: Set postgresql-server to run on boot
   service: name=postgresql enabled=yes
   ignore_errors: true
