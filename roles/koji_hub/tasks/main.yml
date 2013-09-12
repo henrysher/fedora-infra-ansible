@@ -1,0 +1,99 @@
+---
+#
+# Setup koji hub server. 
+#
+- name: install koji hub server packages
+  yum: name=$item state=installed
+  with_items:
+  - koji-hub
+  - koji-web
+  - koji-utils
+  - mod_ssl
+  - mod_wsgi
+  - git
+  - gnupg2
+  tags:
+  - packages
+
+- name: make koji pki directory
+  file: state=directory path=/etc/pki/koji/ owner=root group=root
+
+- name: make koji pki subdirectories
+  file: state=directory path=/etc/pki/koji/{{ item }} owner=root group=root
+  with_items:
+  - certs
+  - private
+  - confs
+
+- name: setup ssl config for koji
+  copy: src={{ item }} dest=/etc/pki/koji/openssl.cnf mode=600
+  first_available_file:
+    - openssl.cnf.{{ ansible_fqdn }}
+    - openssl.cnf.{{ host_group }}
+    - openssl.cnf.{{ dist_tag }}
+  tags:
+  - config
+
+- name: create index.txt
+  file: name=/etc/pki/koji/index.txt
+  tags:
+  - config
+
+- name: init serial file
+  shell: "echo 01 > /etc/pki/koji/serial.txt" creates=/etc/pki/koji/serial.txt
+  tags:
+  - config
+
+- name: init koji ca key file
+  shell: "openssl genrsa -out /etc/pki/koji/private/koji_ca_cert.key 2048" creates=/etc/pki/koji/private/koji_ca_cert.key
+  tags:
+  - config
+
+- name: init koji ca cert file
+  shell: "openssl req -config /etc/pki/koji/ssl.cnf -new -x509 -subj "/C=US/ST=Arizona/L=Phoenix/O=IT/CN=aarch64.koji.fedoraproject.org" -days 3650 -key /etc/pki/koji/private/koji_ca_cert.key -out /etc/pki/koji/koji_ca_cert.crt -extensions v3_ca" creates=/etc/pki/koji/koji_ca_cert.crt
+  tags:
+  - config
+
+# setup certs needed here for kojiweb/hub
+
+# Database setup
+- name: setup the database
+  hosts: db-aarch64.qa.fedoraproject.org
+  gather_facts: no
+  sudo: yes
+  sudo_user: postgres
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - ${private}/vars.yml
+   - ${vars}/${ansible_distribution}.yml
+
+  tasks:
+
+   - name: databases creation
+     postgresql_db: name=koji owner=koji encoding=UTF-8
+
+   - name: koji db user
+     postgresql_user: name=koji password=$kojidatabasepassword
+     tags:
+     - db
+
+   - name: load initial schema 
+     shell: "psql koji koji < /usr/share/doc/koji*/docs/schema.sql" creates=/var/lib/pgql/koji-schema
+     tags:
+     - db
+
+# Todo here
+# httpd ssl.conf changes
+# koji hub.conf template
+# create skeleton /mnt/koji dirs
+# selinux config: 
+#   httpd_can_network_connect_db=1 allow_httpd_anon_write=1
+#   chcon -R -t public_content_rw_t /mnt/koji/*
+
+- name: Set httpd to run on boot
+  service: name=httpd enabled=yes
+  ignore_errors: true
+  notify:
+  - restart httpd
+  tags:
+  - service
