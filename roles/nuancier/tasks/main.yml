@@ -1,0 +1,22 @@
+---
+# Configuration for the nuancier webapp
+
+- name: install needed packages
+  yum: pkg=$item state=installed
+  with_items:
+  - nuancier-lite
+  tags:
+  - packages
+
+- name: copy sundry nuancier configuration
+  template: >
+    src={{ item.file }} dest={{ item.location }}/{{ item.file }}
+    owner=apache group=apache mode=0600
+  with_items:
+  - { file: nuancier.cfg, location: /etc/nuancier }
+  - { file: nuancier.conf, location: /etc/httpd/conf.d }
+  - { file: nuancier.wsgi, location: /usr/share/nuancier }
+  tags:
+  - config
+  notify:
+  - restart apache
