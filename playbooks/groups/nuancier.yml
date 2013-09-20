@@ -37,7 +37,6 @@
   - /srv/web/infra/ansible/roles/denyhosts
   - /srv/web/infra/ansible/roles/nagios_client
   - /srv/web/infra/ansible/roles/fas_client
-  - /srv/web/infra/ansible/roles/nuancier
 
   tasks:
   - include: $tasks/hosts.yml
@@ -53,3 +52,17 @@
 
   handlers:
   - include: $handlers/restart_services.yml
+
+- name: deploy nuancier itself
+  # TODO -- add the nuancier production group when its ready
+  hosts: nuancier-stg
+  user: root
+  gather_facts: True
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - ${private}/vars.yml
+   - ${vars}/${ansible_distribution}.yml
+
+  roles:
+  - /srv/web/infra/ansible/roles/nuancier
