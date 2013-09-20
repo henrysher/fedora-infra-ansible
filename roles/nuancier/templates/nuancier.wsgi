@@ -13,4 +13,4 @@ os.environ['NUANCIER_CONFIG'] = '/etc/nuancier/nuancier-lite.cfg'
 
 # The most import line to make the wsgi working
 from nuancier import APP as application
-
+application.debug = True
