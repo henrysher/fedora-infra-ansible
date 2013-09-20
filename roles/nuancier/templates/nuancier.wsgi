@@ -9,7 +9,7 @@ import pkg_resources
 
 import os
 # Set the environment variable pointing to the configuration file
-os.environ['NUANCIER_CONFIG'] = '/etc/nuancier/nuancier.cfg'
+os.environ['NUANCIER_CONFIG'] = '/etc/nuancier/nuancier-lite.cfg'
 
 # The most import line to make the wsgi working
 from nuancier import APP as application
