@@ -25,27 +25,26 @@
   - include: $tasks/cloud_setup_basic.yml
   - include: $tasks/iptables.yml
 
-  - name: /srv/copr-fe dir
-    action: file state=directory path=/srv/copr-fe
+  - name: copy copr.repo
+    action: copy src=$files/copr/fe/yum/copr.repo dest=/etc/yum.repos.d/copr.repo
 
   - name: install copr-fe pkgs
-    action: yum state=installed name=$item
-    with_items:
-    - httpd
-    - mod_wsgi
-    - postgresql
-    - bash-completion
+    action: yum state=installed pkg=$item
+    - copr-frontend
+    - copr-selinux
     - postgresql-server
-    - git
-
-  - name: add copr-fe user
-    action: user name=copr-fe state=present system=yes home=/home/copr-fe
+    - bash-completion
+    tags:
+    - packages
 
   - name: copy apache files to conf.d
     action: copy src=$files/copr/fe/httpd/$item dest=/etc/httpd/conf.d/$item
     with_items:
     - coprs.conf
     - welcome.conf
+
+  - name: copy pg_hba.conf
+    action: copy src=$files/copr/fe/pg/pg_hba.conf dest=/var/lib/pgsql/data/pg_hba.conf owner=postgres group=postgres mode=0600
   
   - name: enable services
     action: service state=running enabled=yes name=$item
