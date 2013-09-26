@@ -4,6 +4,11 @@
 # This is the base role for all machines. 
 # Things in here are things we want to do to every machine no matter what. 
 #
+- name: global default packages to install
+  yum: state=installed name={{ item }}
+  with_items: global_pkgs_inst
+  tags:
+  - packages
 
 - name: sshd_config 
   copy: src={{ item }} dest=/etc/ssh/sshd_config mode=600
@@ -38,12 +43,6 @@
   tags:
   - config
   
-- name: global default packages to install
-  yum: state=installed name={{ item }}
-  with_items: global_pkgs_inst
-  tags:
-  - packages
-
 - name: dist pkgs to remove
   yum: state=removed name={{ item }}
   with_items: base_pkgs_erase
