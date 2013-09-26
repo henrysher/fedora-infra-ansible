@@ -48,6 +48,22 @@
     when: env != "staging"
   - include: $tasks/apache.yml
   - include: $tasks/mod_wsgi.yml
+
+  handlers:
+  - include: $handlers/restart_services.yml
+
+- name: set up fedmsg
+  hosts: nuancier;nuancier-stg
+  user: root
+  gather_facts: True
+  accelerate: True
+
+  vars_files: 
+   - /srv/web/infra/ansible/vars/global.yml
+   - ${private}/vars.yml
+   - ${vars}/${ansible_distribution}.yml
+
+  tasks:
   - include: $tasks/fedmsg_base.yml
 
   handlers:
