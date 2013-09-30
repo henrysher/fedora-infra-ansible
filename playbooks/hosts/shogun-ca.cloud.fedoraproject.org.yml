@@ -1,0 +1,29 @@
+- name: check/create instance
+  hosts: 209.132.184.157
+  user: root
+  gather_facts: False
+
+  vars_files: 
+   - /srv/web/infra/ansible/vars/global.yml
+   - ${private}/vars.yml
+
+  tasks:
+  - include: $tasks/persistent_cloud.yml
+  - include: $tasks/growroot_cloud.yml
+
+- name: provision instance
+  hosts: 209.132.184.157
+  user: root
+  gather_facts: True
+
+  vars_files: 
+   - /srv/web/infra/ansible/vars/global.yml
+   - ${private}/vars.yml
+   - ${vars}/${ansible_distribution}.yml
+
+  tasks:
+  - include: $tasks/cloud_setup_basic.yml
+  - include: $tasks/postfix_basic.yml
+
+  handlers:
+  - include: $handlers/restart_services.yml
