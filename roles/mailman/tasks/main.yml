@@ -44,46 +44,52 @@
   copy: src=hyperkitty.logrotate.conf
         dest=/etc/logrotate.d/hyperkitty
 
-# settings / conf
-- name: install the hyperkitty/postorius settings file
-  template: src=$item.settings_local.py.j2
-            dest=/etc/$item/sites/default/settings_local.py
+#
+# HyperKitty + Postorius setup
+#
+
+- name: create the configuration directory
+  file: path=${mailman_webui_confdir} state=directory
+
+- name: install the hyperkitty settings file
+  template: src=settings.py.j2
+            dest=${mailman_webui_confdir}/settings.py
             owner=root group=apache mode=0640
-  with_items:
-    - hyperkitty
-    - postorius
   tags:
   - config
   notify:
     - reload apache
     - restart mailman3
 
-- name: install the hyperkitty/postorius settings admin file
-  template: src=$item.settings_admin.py.j2
-            dest=/etc/$item/sites/default/settings_admin.py
+- name: install the hyperkitty settings admin file
+  template: src=settings_admin.py.j2
+            dest=${mailman_webui_confdir}/settings_admin.py
             owner=root group=root mode=0600
-  with_items:
-    - hyperkitty
-    - postorius
   tags:
   - config
 
-- name: install the hyperkitty/postorius urls file
-  copy: src=$item.urls.py
-        dest=/etc/$item/sites/default/urls.py
+- name: install the hyperkitty urls file
+  copy: src=urls.py
+        dest=${mailman_webui_confdir}/urls.py
         owner=root group=root mode=0644
-  with_items:
-    - hyperkitty
-    - postorius
   tags:
   - config
   notify:
     - reload apache
     - restart mailman3
 
-- name: install the hyperkitty/postorius httpd conf file
-  copy: src=$item.apache.conf
-        dest=/etc/httpd/conf.d/$item.conf
+- name: install the hyperkitty wsgi file
+  copy: src=webui.wsgi
+        dest=${mailman_webui_confdir}/webui.wsgi
+        owner=root group=root mode=0644
+  tags:
+  - config
+  notify:
+    - reload apache
+
+- name: install the hyperkitty/postorius dummy httpd conf file
+  template: src=apache-dummy.conf.j2
+            dest=/etc/httpd/conf.d/$item.conf
   with_items:
     - hyperkitty
     - postorius
@@ -92,14 +98,70 @@
   notify:
     - reload apache
 
-- name: set the hyperkitty conffile in mailman
-  copy: src=hyperkitty.cfg
+- name: install the hyperkitty httpd conf file
+  template: src=apache.conf.j2
+            dest=${mailman_webui_confdir}/apache.conf
+  tags:
+  - config
+  notify:
+    - reload apache
+
+- name: install the hyperkitty httpd conf symlink
+  file: src=${mailman_webui_confdir}/apache.conf
+        dest=/etc/httpd/conf.d/mailman-webui.conf
+        state=link
+  tags:
+  - config
+  notify:
+    - reload apache
+
+- name: copy the manage.py script
+  command: /bin/cp /etc/hyperkitty/sites/default/manage.py ${mailman_webui_confdir}/manage.py
+           creates=${mailman_webui_confdir}/manage.py
+
+- name: create the kittystore plain text index dir
+  file: path=${mailman_webui_basedir}/kittystore_search_index
+        state=directory owner=mailman group=mailman mode=0755
+
+- name: create the hyperkitty static files dir
+  file: path=${mailman_webui_basedir}/static
+        state=directory owner=root group=root mode=0755
+
+
+# Plug HyperKitty into Mailman
+- name: copy the mailman-hyperkitty conffile
+  template: src=mailman-hyperkitty.cfg.j2
+            dest=${mailman_webui_confdir}/mailman-hyperkitty.cfg
+  tags:
+  - config
+  notify:
+    - restart mailman3
+
+- name: symlink the hyperkitty conffile in mailman directory
+  copy: src=${mailman_webui_confdir}/mailman-hyperkitty.cfg
         dest=/etc/mailman3.d/hyperkitty.cfg
+        state=link
   tags:
   - config
   notify:
     - restart mailman3
 
+
+# Post-update script
+- name: install the post-update script
+  template: src=post-update.sh.j2
+            dest=${mailman_webui_basedir}/bin/post-update.sh
+            owner=root group=root mode=0755
+
+- name: install the post-update database script
+  template: src=pg-give-rights.py.j2
+            dest=${mailman_webui_basedir}/bin/pg-give-rights.py
+            owner=root group=root mode=0755
+
+- name: copy the initial user fixture
+  copy: src=postorius.initial-user.json
+        dest=/etc/postorius/sites/default/initial-user.json
+        owner=root group=apache mode=0640
 
 # Sync databases
 # FIXME the db migrations should happen no matter when the pkgs are updated
@@ -107,23 +169,9 @@
 # and then stored in a yum-post-transaction-action on the system(s)
 # so no matter when it is run the right thing happens
 #
-- name: run django syncdb
-  command: /usr/bin/django-admin syncdb --pythonpath=/etc/$item/sites/default --settings=settings_admin
-  with_items:
-    - hyperkitty
-    - postorius
-- name: run django migrate
-  command: /usr/bin/django-admin migrate --pythonpath=/etc/hyperkitty/sites/default --settings=settings_admin hyperkitty
-- name: kittystore schema update
-  command: /usr/bin/kittystore-updatedb --pythonpath=/etc/hyperkitty/sites/default --settings=settings_admin
+- name: run the post-update script
+  command: ${mailman_webui_basedir}/bin/post-update.sh
 
-- name: copy the initial user fixture
-  copy: src=postorius.initial-user.json
-        dest=/etc/postorius/sites/default/initial-user.json
-        owner=root group=apache mode=0640
-
-- name: load the inital user
-  command: /usr/bin/django-admin loaddata --pythonpath=/etc/postorius/sites/default --settings=settings /etc/postorius/sites/default/initial-user.json
 
 
 # Postfix

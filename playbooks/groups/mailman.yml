@@ -74,24 +74,12 @@
       postgresql_user: name=kittystoreadmin password=$mailman_ks_admin_db_pass
     - name: kittystore DB user
       postgresql_user: name=kittystoreapp password=$mailman_ks_db_pass
-    - name: postorius DB admin user
-      postgresql_user: name=postoriusadmin password=$mailman_ps_admin_db_pass
-    - name: postorius DB user
-      postgresql_user: name=postoriusapp password=$mailman_ps_db_pass
     - name: databases creation
       postgresql_db: name=$item owner=${item}admin encoding=UTF-8
       with_items:
         - mailman
         - hyperkitty
         - kittystore
-        - postorius
-#    - name: database users permissions
-#      postgresql_privs: database=$item role=${item}app type=database
-#                        priv=SELECT,INSERT,UPDATE,DELETE
-#      with_items:
-#        - hyperkitty
-#        - kittystore
-#        - postorius
 
 
 # Real MM/HK-specific work
@@ -109,16 +97,20 @@
   - /srv/web/infra/ansible/roles/mailman
 
   tasks:
-  - name: server front page
-    copy: src=$files/mailman/index.html
-          dest=/var/www/html/index.html
+  - name: install more needed packages
+    yum: pkg=$item state=installed
+    with_items:
+    - tar
+    - mailman # transition from mailman2.1
+    tags:
+    - packages
 
   #- name: easy access to the postgresql databases
   #  template: src=$files/mailman/pgpass.j2 dest=/root/.pgpass
   #            owner=root group=root mode=0600
 
   - name: start services
-    service: state=started name=$item
+    service: state=started enabled=yes name=$item
     with_items:
       - httpd
       - mailman3

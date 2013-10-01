@@ -1,0 +1,16 @@
+#!/bin/bash
+
+BASEDIR={{ mailman_webui_basedir }}
+CONFDIR={{ mailman_webui_confdir }}
+
+set -e 
+
+django-admin collectstatic --clear --noinput --pythonpath $CONFDIR --settings settings
+django-admin assets build --parse-templates --pythonpath $CONFDIR --settings settings
+django-admin syncdb --pythonpath $CONFDIR --settings settings_admin
+django-admin migrate hyperkitty --pythonpath $CONFDIR --settings settings_admin
+django-admin loaddata /etc/postorius/sites/default/initial-user.json --pythonpath $CONFDIR --settings settings_admin
+kittystore-updatedb --pythonpath $CONFDIR --settings settings_admin
+
+# Give database rights to the non-admin user
+$CONFDIR/pg-give-rights.py
