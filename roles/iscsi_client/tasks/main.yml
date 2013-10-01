@@ -1,0 +1,39 @@
+---
+#
+# This task sets up iscsid and mpathd on a machine. 
+#
+
+#
+- name: install packages needed for iscsi_client
+  yum: state=installed name=$item
+  with_items:
+  - iscsi-initiator-utils
+  - device-mapper-multipath
+  tags:
+  - packages
+
+- name: enable iscsi service
+  service: state=running enabled=yes name=iscsi
+  tags:
+  - services
+
+- name: enable multipathd service
+  service: state=running enabled=yes name=multipathd
+  tags:
+  - services
+
+- name: setup multipath.conf file
+  copy: src=multipath.conf dest=/etc/multipath.conf
+  tags:
+  - config
+
+- name: setup initiatorname.iscsi
+  template: src=initiatorname.iscsi.j2 dest=/etc/iscsi/initiatorname.iscsi
+  tags:
+  - config
+
+- name: run iscsiadm command for initial connect
+  command: creates=/var/lib/iscsi/nodes/{{ netapp_iscsi_name }}/{{ netapp_iscsi_portal }},3260 /sbin/iscsiadm --mode node --targetname  --portal {{ netapp_iscsi_portal }} -o new ; /sbin/iscsiadm --mode node --targetname {{ netapp_iscsi_name }} --portal {{ netapp_iscsi_portal }} --login
+  tags:
+  - config
+
