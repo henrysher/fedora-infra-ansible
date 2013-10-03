@@ -25,20 +25,15 @@
   - include: $tasks/cloud_setup_basic.yml
   - include: $tasks/iptables.yml
 
+  - name: copy copr.repo
+    action: copy src=$files/copr/fe/yum/copr.repo dest=/etc/yum.repos.d/copr.repo
+
   # packages needed
   - name: add packages for copr-be
     action: yum state=present name=$item
     with_items:
-    - ansible
-    - lighttpd
-    - euca2ools
-    - rsync
-    - openssh-clients
-    - mock
-    - yum-utils
-    - createrepo
-    - python-bunch
-    - python-requests
+    - copr-selinux
+    - copr-backend
     - git
     - screen
     
@@ -46,43 +41,33 @@
   - name: make /srv dirs
     file: state=directory path=$item
     with_items:
-    - /srv/copr-work
-    - /srv/copr-repo
+    - /var/lib/copr/jobs
+    - /var/lib/copr/public_html/results
 
   
-  - name: make copr account
-    action: user name=copr state=present system=yes home=/srv/copr-work/copr 
-  
-
   - name: setup dirs there
-    action: file state=directory path=/srv/copr-work/copr/$item owner=copr group=copr mode=0700
+    action: file state=directory path=/home/copr/$item owner=copr group=copr mode=0700
     with_items: 
     - cloud
     - .ssh
 
   - name: add copr-buildsys keys to copr user path
-    action: copy src=$item dest=/srv/copr-work/copr/cloud/ owner=copr group=copr mode=0600
+    action: copy src=$item dest=/home/copr/cloud/ owner=copr group=copr mode=0600
     with_fileglob: $private/files/openstack/copr-copr/*
 
   - name: setup privkey for copr user
-    action: copy src=$private/files/copr/buildsys.priv dest=/srv/copr-work/copr/.ssh/id_rsa owner=copr group=copr mode=600
+    action: copy src=$private/files/copr/buildsys.priv dest=/home/copr/.ssh/id_rsa owner=copr group=copr mode=600
 
   - name: setup copr user ssh config file
-    action: copy src=$files/copr/ssh_config dest=/srv/copr-work/copr/.ssh/config  owner=copr group=copr mode=600
+    action: copy src=$files/copr/ssh_config dest=/home/copr/.ssh/config  owner=copr group=copr mode=600
 
   - name: replace bashrc for copr user
-    action: copy src=$files/copr/copr_bashrc dest=/srv/copr-work/copr/.bashrc owner=copr group=copr mode=600
+    action: copy src=$files/copr/copr_bashrc dest=/home/copr/.bashrc owner=copr group=copr mode=600
 
   - name: auth_key so we can login to localhost as the copr user from the copr user
     action: authorized_key user=copr key="{{ item }}"
     with_file:
     - ${files}/copr/provision/files/buildsys.pub
-
-  - name: set dir ownership for copr-work and copr-repo
-    action: file state=directory path=$item owner=copr group=copr
-    with_items:
-    - /srv/copr-work
-    - /srv/copr-work/copr
 
   # setup webserver
   - name: add config for copr-repo path
@@ -104,7 +89,7 @@
 
   # setup dirs for the ansible execution off of provisioning
   - name: dirs from provision
-    action: file state=directory path=/srv/copr-work/provision/$item owner=copr group=copr
+    action: file state=directory path=/home/copr/provision/$item owner=copr group=copr
     with_items:
     - action_plugins
     - library
@@ -120,7 +105,7 @@
 
 
   - name: put some files into the provision subdir
-    action: copy src=$files/copr/provision/$item dest=/srv/copr-work/provision/$item
+    action: copy src=$files/copr/provision/$item dest=/home/copr/provision/$item
     with_items:
     - inventory
     - builderpb.yml
@@ -129,17 +114,21 @@
     - provision_config
 
   - name: put files into the files subdir off of provisioning
-    action: copy src=$item dest=/srv/copr-work/provision/files/
+    action: copy src=$item dest=/home/copr/provision/files/
     with_fileglob: $files/copr/provision/files/*
     tags:
     - provision_config
 
   # ansible lacks a recurse - so we need this until then
   - name: put files into the files/mock subdir off of provisioning
-    action: copy src=$item dest=/srv/copr-work/provision/files/mock
+    action: copy src=$item dest=/home/copr/provision/files/mock
     with_fileglob: $files/copr/provision/files/mock/*
     tags:
     - provision_config
 
+  - name: copy copr-be.conf
+    action: copy src=$files/copr/copr-be.conf-dev dest=/etc/copr/copr-be.conf
+
   handlers:
   - include: $handlers/restart_services.yml
+
