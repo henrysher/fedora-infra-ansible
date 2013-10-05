@@ -59,6 +59,11 @@
   notify:
   - restart apache
 
+# FIXME: Probably need other selinux booleans and tweaks here
+- name: set sebooleans so nuancier can talk to the db
+  action: seboolean name=httpd_can_network_connect_db
+                    state=true
+                    persistent=true
 - name: hotfix python-fedora-flask to include latest flask_fas_openid
   template: src={{ item.file }}
             dest={{ item.location }}/{{ item.file }}
