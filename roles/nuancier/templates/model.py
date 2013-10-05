@@ -268,7 +268,7 @@ class Candidates(BASE):
         ).filter(
             Candidates.id == Votes.candidate_id
         ).group_by(
-            Candidates.id
+            Candidates.id, Candidates.candidate_file, Candidates.candidate_name, Candidates.candidate_author, Candidates.election_id, Candidates.date_created, Candidates.date_updated
         ).order_by(
             'votes DESC'
         )

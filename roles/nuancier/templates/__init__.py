@@ -88,11 +88,14 @@ def fas_login_required(function):
     """
     @wraps(function)
     def decorated_function(*args, **kwargs):
-        if flask.g.fas_user is None \
-                or not flask.g.fas_user.cla_done \
-                or len(flask.g.fas_user.groups) < 1:
+        if flask.g.fas_user is None:
             return flask.redirect(flask.url_for(
                 '.login', next=flask.request.url))
+        if not flask.g.fas_user.cla_done \
+                or len(flask.g.fas_user.groups) < 1:
+	    flask.flash('You need to have signed the FPCA and be in one non-CLA'
+                    ' group to vote in this election', 'errors')
+            return flask.redirect(flask.url_for('index'))
         return function(*args, **kwargs)
     return decorated_function
 
@@ -103,15 +106,13 @@ def nuancier_admin_required(function):
     """
     @wraps(function)
     def decorated_function(*args, **kwargs):
-        if flask.g.fas_user is None or \
-                not flask.g.fas_user.cla_done or \
-                len(flask.g.fas_user.groups) < 1:
+        if flask.g.fas_user is None:
             return flask.redirect(flask.url_for('.login',
                                                 next=flask.request.url))
         elif not is_nuancier_admin():
             flask.flash('You are not an administrator of nuancier-lite',
                         'errors')
-            return flask.redirect(flask.url_for('msg'))
+            return flask.redirect(flask.url_for('index'))
         else:
             return function(*args, **kwargs)
     return decorated_function
