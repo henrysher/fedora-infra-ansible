@@ -49,3 +49,20 @@
 
   handlers:
   - include: $handlers/restart_services.yml
+
+- name: deploy gallery itself
+  hosts: gallery-stg
+  user: root
+  gather_facts: True
+  accelerate: True
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - ${private}/vars.yml
+   - ${vars}/${ansible_distribution}.yml
+
+  roles:
+  - /srv/web/infra/ansible/roles/gallery
+
+  handlers:
+  - include: $handlers/restart_services.yml
