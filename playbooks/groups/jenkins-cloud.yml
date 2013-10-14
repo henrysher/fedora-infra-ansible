@@ -31,7 +31,7 @@
 
   - name: make the jenkins path
     action: file state=directory path=/var/lib/jenkins
-  
+
   - name: mount our persistent space
     action: mount name=/var/lib/jenkins src='LABEL=jenkins' fstype=ext4 state=mounted
 
@@ -60,10 +60,10 @@
     - restart httpd
     tags:
     - config
- 
+
   - name: enable apache
     action: service name=httpd state=running enabled=true
-    
+
   - name: add jenkins upstream repo 
     action: copy src=$files/jenkins/master/jenkins.repo dest=/etc/yum.repos.d/jenkins.repo  owner=root group=root
     tags:
@@ -126,7 +126,7 @@
     notify: 
       - restart jenkins
 
-  
+
   handlers:
   - include: $handlers/restart_services.yml
 
@@ -203,9 +203,12 @@
     - make               # Required by gimp-help-2
     - automake           # Required by gimp-help-2
     - libcurl-devel      # Required by blockerbugs
+    - python-formencode  # Required by javapackages-tools
+    - asciidoc           # Required by javapackages-tools
+    - xmlto              # Required by javapackages-tools
     tags:
     - packages
-  
+
   - name: install pkgs for jenkins for fedora systems
     action: yum state=installed pkg=$item
     only_if: '$is_fedora'
@@ -250,9 +253,10 @@
     - perl-Socket
     - perl-NetAddr-IP
     - pcre-devel            ## End of request list for 389-ds-base
+    - maven                 # Required by xmvn https://fedorahosted.org/fedora-infrastructure/ticket/4054
     tags:
     - packages
-  
+
   - name: drop current android SDK
     only_if: '$is_fedora'
     action: file state=absent path=/var/android
@@ -272,12 +276,12 @@
   - name: delete sdk archive
     only_if: '$is_fedora'
     action: file state=absent path=/var/android/android-sdk-with-platform-17.tar.gz
-  
+
   - name: set the hostname to jenkins-osversion
     action: command hostname jenkins-${dist_tag}
     tags:
     - config
-  
+
   - name: setup jenkins_slave user
     action: user name=jenkins_slave state=present createhome=yes system=no
     tags:
