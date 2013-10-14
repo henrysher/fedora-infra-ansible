@@ -59,39 +59,10 @@
   notify:
   - restart apache
 
-# FIXME: Probably need other selinux booleans and tweaks here
-# seboolean action requires libsemanage-python to be installed.  Have to decide
-# if we actually want to install that on the hosts.
-# selinux is currently set to permissive due to other things that nuancier is
-# trying to do.  So no harm in leaving this disabled for now.
-#- name: set sebooleans so nuancier can talk to the db
-#  action: seboolean name=httpd_can_network_connect_db
-#                    state=true
-#                    persistent=true
-
-- name: hotfix nuancier to get an error message for people not in cla_plus_one
-  template: src={{ item.file }}
-            dest={{ item.location }}/{{ item.file }}
-            owner=root group=root mode=0644
-  with_items:
-  - { file: __init__.py, location: /usr/lib/python2.6/site-packages/nuancier }
-  tags:
-  - config
-  - hotfix
-  notify:
-  - restart apache
-
-- name: hotfix nuancier to fix results page
-  template: src={{ item.file }}
-            dest={{ item.location }}/{{ item.file }}
-            owner=root group=root mode=0644
-  with_items:
-  - { file: model.py, location: /usr/lib/python2.6/site-packages/nuancier/lib }
-  tags:
-  - config
-  - hotfix
-  notify:
-  - restart apache
+- name: set sebooleans so nuancier can talk to the db
+  action: seboolean name=httpd_can_network_connect_db
+                    state=true
+                    persistent=true
 
 - name: hotfix python-fedora-flask to include latest flask_fas_openid
   template: src={{ item.file }}
