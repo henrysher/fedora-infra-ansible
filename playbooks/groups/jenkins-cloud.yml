@@ -211,7 +211,7 @@
 
   - name: install pkgs for jenkins for fedora systems
     action: yum state=installed pkg=$item
-    only_if: '$is_fedora'
+    when: is_fedora == 'True'
     with_items:
     - python3
     - python-nose-cover3
@@ -258,23 +258,23 @@
     - packages
 
   - name: drop current android SDK
-    only_if: '$is_fedora'
+    when: is_fedora == 'True'
     action: file state=absent path=/var/android
 
   - name: mkdir dir for android SDK
-    only_if: '$is_fedora'
+    when: is_fedora == 'True'
     action: file state=directory path=/var/android owner=jenkins_slave group=jenkins_slave
 
   - name: copy android SDK
-    only_if: '$is_fedora'
+    when: is_fedora == 'True'
     action: copy src=$bigfiles/jenkins/android-sdk-with-platform-17.tar.gz dest=/var/android/ owner=jenkins_slave group=jenkins_slave
 
   - name: extract android SDK
-    only_if: '$is_fedora'
+    when: is_fedora == 'True'
     command: tar -xvf /var/android/android-sdk-with-platform-17.tar.gz --owner=jenkins_slave --group=jenkins_slave -C /var/android/
 
   - name: delete sdk archive
-    only_if: '$is_fedora'
+    when: is_fedora == 'True'
     action: file state=absent path=/var/android/android-sdk-with-platform-17.tar.gz
 
   - name: set the hostname to jenkins-osversion
