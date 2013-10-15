@@ -34,22 +34,27 @@
   tasks:
   - name: edit hostname to be instance name
     action: shell hostname  `curl -s http://169.254.169.254/2009-04-04/meta-data/instance-id`
-  
+
+  - name: install pkgs
+    action: yum state=present pkg=$item
+    with_items:
+    - rsync
+    - openssh-clients
+    - libselinux-python
+    - libsemanage-python
+
   - name: add repos
     action: copy src=$files/$item dest=/etc/yum.repos.d/$item
     with_items:
     - builder.repo
     - epel6.repo
 
-  - name: install pkgs
+  - name: install additional pkgs
     action: yum state=present pkg=$item
     with_items:
     - mock
     - createrepo
     - yum-utils
-    - rsync
-    - openssh-clients
-    - python-selinux
 
   - name: make sure newest rpm
     action: yum name=rpm state=latest
