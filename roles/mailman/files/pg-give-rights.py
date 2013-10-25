@@ -5,11 +5,12 @@
 Give non-admin rights to the database app user.
 """
 
-CONF_DIR = "{{ mailman_webui_confdir }}"
+CONFFILE = "/etc/mailman-migration.conf"
 
 
 import site
 import re
+import yaml
 import psycopg2
 
 
@@ -36,7 +37,9 @@ def give_rights(dbhost, dbuser, dbpasswd, dbname):
 
 
 def main():
-    site.addsitedir(CONF_DIR)
+    with open(CONFFILE) as conffile:
+        conf = yaml.safe_load(conffile)
+    site.addsitedir(conf["confdir"])
     import settings_admin
 
     # KittyStore

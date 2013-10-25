@@ -146,16 +146,29 @@
     - restart mailman3
 
 
-# Post-update script
-- name: install the post-update script
-  template: src=post-update.sh.j2
-            dest=${mailman_webui_basedir}/bin/post-update.sh
-            owner=root group=root mode=0755
+# Scripts
+- name: install the migration conffile
+  template: src=mailman-migration.conf.j2
+            dest=/etc/mailman-migration.conf
+            owner=root group=root mode=0644
 
-- name: install the post-update database script
-  template: src=pg-give-rights.py.j2
-            dest=${mailman_webui_basedir}/bin/pg-give-rights.py
-            owner=root group=root mode=0755
+- name: create the scripts dir
+  file: path=${mailman_webui_basedir}/bin
+        state=directory owner=root group=root mode=0755
+
+- name: install the migration environment
+  template: src=mailman-migration-path.sh.j2
+            dest=/etc/profile.d/mailman-migration-path.sh
+            owner=root group=root mode=0644
+
+- name: install the scripts
+  copy: src=${item} dest=${mailman_webui_basedir}/bin/${item}
+        owner=root group=root mode=0755
+  with_items:
+  - yamlget
+  - pg-give-rights.py
+  - post-update.sh
+  - import-mm2.py
 
 - name: copy the initial user fixture
   copy: src=postorius.initial-user.json

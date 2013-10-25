@@ -1,0 +1,110 @@
+#!/usr/bin/env python
+# vim: set fileencoding=utf-8 tabstop=4 shiftwidth=4 expandtab smartindent:
+
+u"""
+yamlget
+-------
+
+Output any key in a YAML-formatted file. The aim is to make such a
+configuration file accessible to shell scripts.
+
+.. :Authors:
+      Aurélien Bompard <aurelien@bompard.org> <http://aurelien.bompard.org>
+
+.. :License:
+      GNU GPL v3 or later
+"""
+
+from __future__ import print_function
+
+import os
+import sys
+from optparse import OptionParser
+
+import yaml
+
+
+def get_key(fullkey, data):
+    """
+    Get the requested key from the parsed data.
+    :param fullkey: the key to get, nested values can be accessed by using a
+                    colon (":") as the separator
+    :param data: the parsed data, from yaml.load()
+
+    Examples:
+
+    >>> data = {
+    ...  'bool': [True, False, True, False],
+    ...  'dict': {'hp': 13, 'sp': 5},
+    ...  'float': 3.14159,
+    ...  'int': 42,
+    ...  'list': ['LITE', 'RES_ACID', 'SUS_DEXT'],
+    ...  'none': [None, None],
+    ...  'text': "The Set of Gauntlets 'Pauraegen'",
+    ... }
+    >>> get_key('bool', data)
+    [True, False, True, False]
+    >>> get_key('bool:2', data)
+    False
+    >>> get_key('dict', data)
+    {'hp': 13, 'sp': 5}
+    >>> get_key('dict:hp', data)
+    13
+    >>> get_key('float', data)
+    3.14159
+    >>> get_key('int', data)
+    42
+    >>> get_key('list', data)
+    ['LITE', 'RES_ACID', 'SUS_DEXT']
+    >>> get_key('list:2', data)
+    'RES_ACID'
+    >>> get_key('list:2:5', data)
+    'RES_ACID'
+    >>> get_key('none', data)
+    [None, None]
+    >>> get_key('none:1', data)
+    >>> get_key('text', data)
+    "The Set of Gauntlets 'Pauraegen'"
+    >>> get_key('2', ['item1', 'item2', 'item3'])
+    'item2'
+    """
+
+    value = data
+    while value is not None:
+        key, _sep, fullkey = fullkey.partition(":")
+        if isinstance(value, list):
+            try:
+                key = int(key)
+            except TypeError:
+                print("Wrong key format: %s, it should be an integer" % key,
+                      file=sys.stderr)
+                sys.exit(1)
+            value = value[key - 1] # start at 1, not 0
+        elif isinstance(value, dict):
+            value = value.get(key)
+        else:
+            break # we've got the value now
+        if not fullkey:
+            break # can't go any further
+    return value
+
+def main():
+    parser = OptionParser(usage="%prog <key> <yaml-file>")
+    args = parser.parse_args()[1]
+    if len(args) != 2:
+        parser.error("wrong number of arguments")
+    fullkey, filepath = args
+    if not os.path.exists(filepath):
+        parser.error("no such file: %s" % filepath)
+
+    with open(filepath) as yamlfile:
+        data = yaml.safe_load_all(yamlfile).next()
+
+    #from pprint import pprint; pprint(data)
+    value = get_key(fullkey, data)
+    if value is not None:
+        print(value)
+
+
+if __name__ == "__main__":
+    main()

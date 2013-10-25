@@ -1,7 +1,8 @@
 #!/bin/bash
 
-BASEDIR={{ mailman_webui_basedir }}
-CONFDIR={{ mailman_webui_confdir }}
+CONFFILE=/etc/mailman-migration.conf
+BASEDIR=`yamlget basedir $CONFFILE`
+CONFDIR=`yamlget confdir $CONFFILE`
 
 set -e 
 
