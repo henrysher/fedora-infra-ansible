@@ -1,10 +1,13 @@
 #!/bin/bash
 
 CONFFILE=/etc/mailman-migration.conf
-BASEDIR=`yamlget basedir $CONFFILE`
-CONFDIR=`yamlget confdir $CONFFILE`
 
 set -e 
+
+export PATH=$PATH:$(dirname $(realpath $0)) # make yamlget available
+
+BASEDIR=`yamlget basedir $CONFFILE`
+CONFDIR=`yamlget confdir $CONFFILE`
 
 django-admin collectstatic --clear --noinput --pythonpath $CONFDIR --settings settings
 django-admin assets build --parse-templates --pythonpath $CONFDIR --settings settings
