@@ -5,6 +5,7 @@ import sys
 import subprocess
 import pickle
 from optparse import OptionParser
+import yaml
 
 
 def call(command):
@@ -66,7 +67,8 @@ class Importer(object):
                          self.config["confdir"], "-s", "settings_admin",
                          "-l", listaddr, "--continue", archivefile])
                 if self.index_path:
-                    call(["sudo", "chown", "mailman:", "-R", self.index_path])
+                    call(["sudo", "chown", "mailman:apache", "-R", self.index_path])
+                    call(["sudo", "chmod", "g+w", self.index_path])
 
 
 
