@@ -21,6 +21,10 @@
    - ${private}/vars.yml
    - ${vars}/${ansible_distribution}.yml
 
+  # Roles are run first, before tasks, regardless of where you place them here.
+  roles:
+  - /srv/web/infra/ansible/roles/fedmsg_base
+
   tasks:
   - include: $tasks/cloud_setup_basic.yml
   - include: $tasks/iptables.yml
@@ -148,9 +152,21 @@
   - name: copy copr-be.conf
     action: copy src=$files/copr/copr-be.conf-dev dest=/etc/copr/copr-be.conf
 
+  - name: fedmsg certs
+    copy: >
+      src=$private/files/fedmsg-certs/keys/copr-copr-be.cloud.fedoraproject.org.crt
+      dest=/etc/pki/fedmsg/
+      mode=644
+      owner=root
+      group=copr
+
+  - name: fedmsg keys
+    copy: >
+      src=$private/files/fedmsg-certs/keys/copr-copr-be.cloud.fedoraproject.org.key
+      dest=/etc/pki/fedmsg/
+      mode=0640
+      owner=root
+      group=copr
+
   handlers:
   - include: $handlers/restart_services.yml
-
-  roles:
-  - role: /srv/web/infra/ansible/roles/fedmsg_base
-    ansible_fqdn: copr-be.cloud.fedoraproject.org
