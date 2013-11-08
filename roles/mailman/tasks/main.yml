@@ -13,6 +13,7 @@
   - postorius
   - yum-plugin-post-transaction-actions
   - mailman3-fedmsg-plugin
+  - policycoreutils-python  # for semanage
   tags:
   - packages
 
@@ -32,6 +33,8 @@
     - restart mailman3
 
 # Logging
+- name: set the SELinux policy for the log directory
+  command: semanage fcontext -a -t httpd_log_t "/var/log/hyperkitty(/.*)?"
 - name: hyperkitty logging -- directory
   file: path=/var/log/hyperkitty state=directory
         owner=root group=apache mode=2775
@@ -48,6 +51,12 @@
 #
 # HyperKitty + Postorius setup
 #
+
+- name: set the SELinux policy for the configuration directory
+  command: semanage fcontext -a -t etc_t "${mailman_webui_confdir}(/.*)?"
+
+- name: allow Apache to remotely connect to PostgreSQL
+  seboolean: name=httpd_can_network_connect_db state=yes persistent=yes
 
 - name: create the configuration directory
   file: path=${mailman_webui_confdir} state=directory
