@@ -59,7 +59,15 @@
 
   - name: copy pg_hba.conf
     action: copy src=$files/copr/fe/pg/pg_hba.conf dest=/var/lib/pgsql/data/pg_hba.conf owner=postgres group=postgres mode=0600
-  
+
+  # open up ports (22, 80, 443)
+  - name: poke holes in the firewall
+    action: command lokkit $item
+    with_items:
+    - --service=ssh
+    - --service=https
+    - --service=http
+ 
   - name: enable services
     action: service state=running enabled=yes name=$item
     with_items:
