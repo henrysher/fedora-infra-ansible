@@ -150,7 +150,11 @@
     - provision_config
 
   - name: copy copr-be.conf
-    action: copy src=$files/copr/copr-be.conf-dev dest=/etc/copr/copr-be.conf
+    template: src=$files/copr/copr-be.conf dest=/etc/copr/copr-be.conf  mode=640
+    notify:
+    - restart copr-backend
+    tags:
+    - config
 
   - name: fedmsg certs
     copy: >
