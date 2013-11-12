@@ -1,0 +1,24 @@
+---
+# Define resources for this group of hosts here. 
+lvm_size: 20000
+mem_size: 2048
+num_cpus: 2
+
+# for systems that do not match the above - specify the same parameter in
+# the host_vars/$hostname file
+
+tcp_ports: [ 80, 443,
+    # These 16 ports are used by fedmsg.  One for each wsgi thread.
+    3000, 3001, 3002, 3003, 3004, 3005, 3006, 3007,
+    3008, 3009, 3010, 3011, 3012, 3013, 3014, 3015]
+
+fas_client_groups: sysadmin-noc,sysadmin-web
+
+# These are consumed by a task in roles/fedmsg_base/main.yml
+fedmsg_certs:
+- service: shell
+  owner: root
+  group: sysadmin
+- service: fedocal
+  owner: root
+  group: apache
