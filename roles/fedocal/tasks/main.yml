@@ -22,7 +22,8 @@
             dest={{ item.location }}/{{ item.dest }}
             owner=apache group=apache mode=0600
   with_items:
-  - { file: fedocal_admin.cfg, location: /etc/fedocal, dest: fedocal.cfg }
+  - { file: fedocal.cfg, location: /etc/fedocal, dest: fedocal.cfg }
+  - { file: alembic.ini, location: /etc/fedocal, dest: alembic.ini }
   tags:
   - config
   notify:
@@ -33,18 +34,27 @@
   environment:
       FEDOCAL_CONFIG: /etc/fedocal/fedocal.cfg
 
-- name: replace the fedocal configuration file by the one with the normal user
+- name: Install all the configuration file of fedocal
   template: src={{ item.file }}
             dest={{ item.location }}/{{ item.file }}
             owner=apache group=apache mode=0600
   with_items:
   - { file: fedocal.cfg, location: /etc/fedocal }
+  - { file: alembic.ini, location: /etc/fedocal }
   - { file: fedocal.conf, location: /etc/httpd/conf.d }
   - { file: fedocal.wsgi, location: /usr/share/fedocal }
   tags:
   - config
   notify:
   - restart apache
+
+- name: Install the reminder cron job
+  template: src={{ item.file }}
+            dest={{ item.location }}/{{ item.file }}
+  with_items:
+  - { file: 'fedocal-reminder.cron', location: /etc/cron.d }
+  tags:
+  - config
 
 - name: set sebooleans so fedocal can talk to the db
   action: seboolean name=httpd_can_network_connect_db
