@@ -1,0 +1,64 @@
+---
+# Configuration for the fedocal webapp
+
+- name: clean yum metadata
+  command: yum clean all
+  tags:
+  - packages
+
+- name: install needed packages
+  yum: pkg=$item state=installed
+  with_items:
+  - fedocal
+  - python-psycopg2
+  - python-openid-cla
+  - python-openid-teams
+  - python-memcached
+  tags:
+  - packages
+
+- name: copy sundry fedocal configuration
+  template: src={{ item.file }}
+            dest={{ item.location }}/{{ item.dest }}
+            owner=apache group=apache mode=0600
+  with_items:
+  - { file: fedocal_admin.cfg, location: /etc/fedocal, dest: fedocal.cfg }
+  tags:
+  - config
+  notify:
+  - restart apache
+
+- name: create the database scheme
+  command: /usr/bin/python2 /usr/share/fedocal/fedocal_createdb.py
+  environment:
+      FEDOCAL_CONFIG: /etc/fedocal/fedocal.cfg
+
+- name: replace the fedocal configuration file by the one with the normal user
+  template: src={{ item.file }}
+            dest={{ item.location }}/{{ item.file }}
+            owner=apache group=apache mode=0600
+  with_items:
+  - { file: fedocal.cfg, location: /etc/fedocal }
+  - { file: fedocal.conf, location: /etc/httpd/conf.d }
+  - { file: fedocal.wsgi, location: /usr/share/fedocal }
+  tags:
+  - config
+  notify:
+  - restart apache
+
+- name: set sebooleans so fedocal can talk to the db
+  action: seboolean name=httpd_can_network_connect_db
+                    state=true
+                    persistent=true
+
+
+- name: hotfix python-fedora-flask to include latest flask_fas_openid
+  template: src={{ item.file }}
+            dest={{ item.location }}/{{ item.file }}
+            owner=apache group=apache mode=0600
+  with_items:
+  - { file: flask_fas_openid.py, location: /usr/lib/python2.6/site-packages/ }
+  tags:
+  - config
+  notify:
+  - restart apache
