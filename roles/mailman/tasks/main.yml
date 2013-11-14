@@ -2,6 +2,35 @@
 # Configuration for Mailman 3
 # PostgreSQL initialization must have been done already
 
+
+#
+# SELinux
+#
+- name: install semanage
+  yum: pkg=policycoreutils-python state=installed
+
+- name: set the SELinux policy for the configuration directory
+  command: semanage fcontext -a -t etc_t "${mailman_webui_confdir}(/.*)?"
+
+- name: set the SELinux policy for the fulltext index
+  command: semanage fcontext -a -t httpd_sys_content_t "${mailman_webui_basedir}/kittystore_search_index(/.*)?"
+
+- name: set the SELinux policy for the static files directory
+  command: semanage fcontext -a -t httpd_sys_content_t "${mailman_webui_basedir}/static(/.*)?"
+
+- name: set the SELinux policy for the log directory
+  command: semanage fcontext -a -t httpd_log_t "/var/log/hyperkitty(/.*)?"
+
+- name: allow Apache to remotely connect to PostgreSQL
+  seboolean: name=httpd_can_network_connect_db state=yes persistent=yes
+
+- name: set the SELinux policy to allow postfix to access the mailman aliases
+  command: semanage fcontext -a -t etc_aliases_t "/var/lib/mailman3?/data/postfix_.*"
+
+
+#
+# Packages
+#
 - name: install needed packages
   yum: pkg=$item state=installed
   with_items:
@@ -13,11 +42,13 @@
   - postorius
   - yum-plugin-post-transaction-actions
   - mailman3-fedmsg-plugin
-  - policycoreutils-python  # for semanage
   tags:
   - packages
 
+
+#
 # Initialize mailman (must be done after settings up the DBs)
+#
 - name: add mailman to the apache group
   user: name=mailman groups=apache append=yes
   tags:
@@ -32,9 +63,10 @@
   notify:
     - restart mailman3
 
+
+#
 # Logging
-- name: set the SELinux policy for the log directory
-  command: semanage fcontext -a -t httpd_log_t "/var/log/hyperkitty(/.*)?"
+#
 - name: hyperkitty logging -- directory
   file: path=/var/log/hyperkitty state=directory
         owner=root group=apache mode=2775
@@ -48,15 +80,10 @@
   copy: src=hyperkitty.logrotate.conf
         dest=/etc/logrotate.d/hyperkitty
 
+
 #
 # HyperKitty + Postorius setup
 #
-
-- name: set the SELinux policy for the configuration directory
-  command: semanage fcontext -a -t etc_t "${mailman_webui_confdir}(/.*)?"
-
-- name: allow Apache to remotely connect to PostgreSQL
-  seboolean: name=httpd_can_network_connect_db state=yes persistent=yes
 
 - name: create the configuration directory
   file: path=${mailman_webui_confdir} state=directory
@@ -129,7 +156,9 @@
         state=directory owner=root group=root mode=0755
 
 
+#
 # Plug HyperKitty into Mailman
+#
 - name: copy the mailman-hyperkitty conffile
   template: src=mailman-hyperkitty.cfg.j2
             dest=${mailman_webui_confdir}/mailman-hyperkitty.cfg
@@ -147,7 +176,9 @@
     - restart mailman3
 
 
+#
 # Scripts
+#
 - name: install the migration conffile
   template: src=mailman-migration.conf.j2
             dest=/etc/mailman-migration.conf
@@ -176,15 +207,13 @@
         dest=/etc/postorius/sites/default/initial-user.json
         owner=root group=apache mode=0640
 
-# Sync databases
-# FIXME the db migrations should happen no matter when the pkgs are updated
-# so really this should be run once
-# and then stored in a yum-post-transaction-action on the system(s)
-# so no matter when it is run the right thing happens
-#
-#- name: run the post-update script
-#  command: ${mailman_webui_basedir}/bin/post-update.sh
 
+# Sync databases
+- name: install the post-transaction trigger
+  template: src=post-transaction.action.j2
+            dest=/etc/yum/post-actions/hyperkitty.action
+- name: run the post-update script
+  command: ${mailman_webui_basedir}/bin/post-update.sh
 
 
 # Postfix
@@ -192,3 +221,6 @@
   copy: src=postfix-main.cf dest=/etc/postfix/main.cf
   notify:
     - restart postfix
+
+- name: create the postfix aliases
+  command: mailman3 aliases
