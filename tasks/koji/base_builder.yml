@@ -113,11 +113,11 @@
 
 - name: nfs mount points
   action: mount name=/mnt/fedora_koji src=vtap-fedora-nfs01.storage.phx2.redhat.com:/vol/fedora_koji fstype=nfs opts=ro,hard,bg,intr,noatime,nodev,nosuid passno=0 dump=0 state=mounted
-  only_if: "'${inventory_hostname}'.startswith('build')"
+  when: inventory_hostname startswith 'build'
 
 - name: make a mnt/koji link
   action: file state=link src=/mnt/fedora_koji/koji dest=/mnt/koji
-  only_if: "'${inventory_hostname}'.startswith('build')"
+  when: inventory_hostname startswith 'build'
 
 # mock configs for pungify job
 # TODO: restore this to "copy:", this is a temporary "fix" for https://github.com/ansible/ansible/issues/4377
