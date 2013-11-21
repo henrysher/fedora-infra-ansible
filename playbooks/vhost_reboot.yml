@@ -29,8 +29,8 @@
 #    register: vminfo_pre
 
   - name: add them to myvms_new group
-    local_action: add_host hostname=$item groupname=myvms_new
-    with_items: mlist.list_vms
+    local_action: add_host hostname={{ item }} groupname=myvms_new
+    with_items: vmlist.list_vms
 
 - name: halt instances
   hosts: myvms_new
@@ -43,13 +43,13 @@
     nagios: action=downtime minutes=30 service=host host={{ inventory_hostname_short }}
     delegate_to: noc01.phx2.fedoraproject.org
     ignore_errors: true
-    when: not ansible_domain.startswith('stg')
+    when: inventory_hostname.startswith('stg')
 
   - name: schedule stg host downtime
     nagios: action=downtime minutes=30 service=host host={{ inventory_hostname_short }}.stg
     delegate_to: noc01.phx2.fedoraproject.org
     ignore_errors: true
-    when: ansible_domain.startswith('stg')
+    when: inventory_hostname.startswith('stg')
 
   - name: halt the vm instances - to poweroff
     command: /sbin/halt -p
