@@ -1,3 +1,6 @@
+#
+# This playbook lets you safely reboot a virthost and all it's guests. 
+# 
 # requires --extra-vars="target=somevhost fqdn"
 
 #General overview:
@@ -9,82 +12,88 @@
 # third play, reboot the vhost
 #     wait for vhost to come back
 
-# TO BE DONE - should be fixable w/ansible 0.9
-# wait for all of the instances to return(?)
-# compare the first list to the second for state info
-# how to do this:
-# capture output of action: virt command=info before halting guests
-# compare to same command after vhost comes back
-# ansible 0.9 should allow us to preserve content of two registered variables
-# across multiple plays
-
+# TODO: Figure out how to compare virt info pre and post boot. 
 
 - name: find instances
-  hosts: $target
+  hosts: "{{ target }}"
+  gather_facts: False
   user: root
 
   tasks:
   - name: get list of guests
-    action: virt command=list_vms
+    virt: command=list_vms
     register: vmlist
+
+#  - name: get info on guests (prereboot)
+#    virt: command=info
+#    register: vminfo_pre
 
   - name: add them to myvms_new group
     local_action: add_host hostname=$item groupname=myvms_new
-    with_items: ${vmlist.list_vms}
-
+    with_items: {{ vmlist.list_vms }}
 
 - name: halt instances
   hosts: myvms_new
   user: root
+  gather_facts: False
   serial: 1
 
   tasks:
-  - name: schedule host downtime
-    action: nagios action=downtime minutes=30 service=host host={{ inventory_hostname_short }}
+  - name: schedule regular host downtime
+    nagios: action=downtime minutes=30 service=host host={{ inventory_hostname_short }}
     delegate_to: noc01.phx2.fedoraproject.org
     ignore_errors: true
     when: not ansible_domain.startswith('stg')
 
-  - name: schedule host downtime
-    action: nagios action=downtime minutes=30 service=host host={{ inventory_hostname_short }}.stg
+  - name: schedule stg host downtime
+    nagios: action=downtime minutes=30 service=host host={{ inventory_hostname_short }}.stg
     delegate_to: noc01.phx2.fedoraproject.org
     ignore_errors: true
     when: ansible_domain.startswith('stg')
 
-  - name: halt the instances - to poweroff
-    action: command /sbin/halt -p
+  - name: halt the vm instances - to poweroff
+    command: /sbin/halt -p
     ignore_errors: true
     # if one of them is down we don't care
 
-
 - name: wait for the whole set to die.
   hosts: myvms_new
+  gather_facts: False
   user: root
 
   tasks:
   - name: wait for them to die
-    local_action: wait_for port=22 delay=30 timeout=300 state=stopped host=${inventory_hostname}
-
+    local_action: wait_for port=22 delay=30 timeout=300 state=stopped host={{ inventory_hostname }}
 
 - name: reboot vhost
-  hosts: $target
+  hosts: "{{ target }}"
+  gather_facts: False
   user: root
 
   tasks:
   - name: tell nagios to shush
-    action: nagios action=downtime minutes=60 service=host host=$inventory_hostname
+    nagios: action=downtime minutes=60 service=host host={{ inventory_hostname }}
     delegate_to: noc01.phx2.fedoraproject.org
     ignore_errors: true
 
-  - name: halt -r the $target
-    action: command /sbin/reboot
+  - name: reboot the virthost
+    command: /sbin/reboot
 
-  - name: wait for $target to come back - up to 6 minutes
-    local_action: wait_for host=$target port=22 delay=120 timeout=420
+  - name: wait for virthost to come back - up to 6 minutes
+    local_action: wait_for host={{ target }} port=22 delay=120 timeout=420
 
   - name: look up vmlist
-    action: virt command=list_vms
+    virt: command=list_vms
     register: newvmlist
 
   - name: sync time
     command: ntpdate -u 66.187.233.4
+
+  - name: serverbeach hosts need a special iptables config
+    command: /root/fix-iptables.sh
+    when: inventory_hostname_short.startswith('serverbeach')
+
+#  - name: get info on guests (postreboot)
+#    virt: command=info
+#    register: vminfo_post
+
