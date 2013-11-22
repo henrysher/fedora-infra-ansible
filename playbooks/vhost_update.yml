@@ -1,7 +1,7 @@
 # requires --extra-vars="target=somevhostname yumcommand=update"
 
 - name: find instances
-  hosts: $target
+  hosts: "{{ target }}"
   accelerate: true
   user: root
 
@@ -11,11 +11,14 @@
     register: vmlist
 
   - name: add them to myvms_new group
-    local_action: add_host hostname=$item groupname=myvms_new
-    with_items: ${vmlist.list_vms}
+    local_action: add_host hostname={{ item }} groupname=myvms_new
+    with_items: vmlist.list_vms
 
-- name: update all run rkhunter if installed
-  hosts: $target;myvms_new
+  - name: add the host to myvms_new group
+    local_action: add_host hostname={{ target }} groupname=myvms_new
+
+- name: update the system
+  hosts: myvms_new
   accelerate: true
   user: root
 
@@ -23,11 +26,17 @@
   - name: expire-caches
     action: command yum clean expire-cache
     
-  - name: yum -y ${yumcommand}
-    action: command yum -y ${yumcommand}
+  - name: yum -y {{ yumcommand }}
+    action: command yum -y {{ yumcommand }}
     async: 7200
     poll: 50
 
+- name: update all run rkhunter if installed
+  hosts: myvms_new
+  accelerate: true
+  user: root
+
+  tasks:
   - name: check for rkhunter
     action: command /usr/bin/test -f /usr/bin/rkhunter
     register: rkhunter
