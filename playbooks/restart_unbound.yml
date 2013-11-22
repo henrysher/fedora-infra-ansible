@@ -1,0 +1,20 @@
+# This playboook restarts unbound on a host
+#
+# requires --extra-vars="target=somevhostname"
+#
+
+- name: find instances
+  hosts: "{{ target }}"
+  accelerate: true
+  gather_facts: False
+  user: root
+
+  tasks:
+  - name: set selinux permissive
+    selinux: policy=targeted state=permissive
+
+  - name: restart unbound
+    service: name=unbound state=restarted
+
+  - name: set selinux back to enforcing
+    selinux: policy=targeted state=enforcing
