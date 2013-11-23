@@ -107,8 +107,9 @@
 
 - name: route config for netapp network
   action: copy src=$files/kojibuilder/route-eth1 dest=/etc/sysconfig/network-scripts/route-eth1
-  notify:
-  - restart netapproute
+
+- name: run netapp route
+  command: /etc/sysconfig/network-scripts/ifup-routes eth1
 
 - name: nfs mount points
   action: mount name=/mnt/fedora_koji src=vtap-fedora-nfs01.storage.phx2.redhat.com:/vol/fedora_koji fstype=nfs opts=ro,hard,bg,intr,noatime,nodev,nosuid passno=0 dump=0 state=mounted
