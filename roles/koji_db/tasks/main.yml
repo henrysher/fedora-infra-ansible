@@ -9,7 +9,7 @@
   postgresql_user: name=koji password=$aarch64kojidatabasepassword
   tags:
   - db
-  only_if: '$is_kojidb'
+  when: is_kojidb == "True"
 #
 # create a koji database if not already created
 #
@@ -17,7 +17,7 @@
   postgresql_db: name=koji owner=koji encoding=UTF-8
   tags:
   - db
-  only_if: '$is_kojidb'
+  when: is_kojidb == "True"
 # 
 # Load the initial schema and create a file to note that it's loaded now. 
 #
@@ -25,5 +25,5 @@
   shell: creates=/var/lib/pgql/koji-schema psql koji koji < /usr/share/doc/koji*/docs/schema.sql
   tags:
   - db
-  only_if: '$is_kojidb'
+  when: is_kojidb == "True"
 

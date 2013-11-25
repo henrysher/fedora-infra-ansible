@@ -16,7 +16,7 @@
   yum: name=koji state=installed
   tags:
   - packages
-  only_if: '$is_kojidb'
+  when: is_kojidb == "True"
 
 - name: initialize postgresql
   command: service postgresql initdb
@@ -31,7 +31,7 @@
   - restart postgresql
   tags:
   - config
-  only_if: '$is_kojidb'
+  when: is_kojidb == "True"
 
 - name: Set postgresql-server to run on boot
   service: name=postgresql enabled=yes
