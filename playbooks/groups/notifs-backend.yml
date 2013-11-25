@@ -1,0 +1,67 @@
+# create a new notifs-backend server
+# NOTE: should be used with --limit most of the time
+# NOTE: make sure there is room/space for this server on the vmhost
+# NOTE: most of these vars come from group_vars/mirrorlist or from hostvars
+
+- name: make notifs-backend server
+  hosts: notifs-backend;notifs-backend-stg
+  user: root
+  gather_facts: False
+
+  vars_files: 
+   - /srv/web/infra/ansible/vars/global.yml
+   - ${private}/vars.yml
+   - ${vars}/${ansible_distribution}.yml
+
+  tasks:
+  - include: $tasks/virt_instance_create.yml
+  - include: $tasks/accelerate_prep.yml
+
+  handlers:
+  - include: $handlers/restart_services.yml
+
+- name: dole out the generic configuration
+  hosts: notifs-backend;notifs-backend-stg
+  user: root
+  gather_facts: True
+  accelerate: True
+
+  vars_files: 
+   - /srv/web/infra/ansible/vars/global.yml
+   - ${private}/vars.yml
+   - ${vars}/${ansible_distribution}.yml
+
+  roles:
+  - /srv/web/infra/ansible/roles/base
+  - /srv/web/infra/ansible/roles/rkhunter
+  - /srv/web/infra/ansible/roles/denyhosts
+  - /srv/web/infra/ansible/roles/nagios_client
+  - /srv/web/infra/ansible/roles/fas_client
+  - /srv/web/infra/ansible/roles/fedmsg_base
+
+  tasks:
+  - include: $tasks/hosts.yml
+  - include: $tasks/yumrepos.yml
+  - include: $tasks/2fa_client.yml
+  - include: $tasks/motd.yml
+  - include: $tasks/sudo.yml
+  - include: $tasks/openvpn_client.yml
+    when: env != "staging"
+
+  handlers:
+  - include: $handlers/restart_services.yml
+
+- name: dole out the service-specific config
+  hosts: notifs-backend;notifs-backend-stg
+  user: root
+  gather_facts: True
+  accelerate: True
+
+  roles:
+  - /srv/web/infra/ansible/roles/fedmsg-hub
+  #- /srv/web/infra/ansible/roles/notifs-backend
+
+  vars_files: 
+   - /srv/web/infra/ansible/vars/global.yml
+   - ${private}/vars.yml
+   - ${vars}/${ansible_distribution}.yml
