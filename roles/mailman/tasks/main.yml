@@ -27,6 +27,9 @@
 - name: allow Apache to remotely connect to Mailman
   seboolean: name=httpd_can_network_connect state=yes persistent=yes
 
+- name: allow Apache to remotely connect to Memcached
+  seboolean: name=httpd_can_network_memcache state=yes persistent=yes
+
 
 #
 # Packages
@@ -42,6 +45,8 @@
   - hyperkitty
   - hyperkitty-selinux
   - postorius
+  - memcached
+  - python-pylibmc
   - yum-plugin-post-transaction-actions
   - mailman3-fedmsg-plugin
   tags:
@@ -226,7 +231,16 @@
 - name: set the postfix conffile
   copy: src=postfix-main.cf dest=/etc/postfix/main.cf
   notify:
-    - restart postfix
+  - restart postfix
 
 - name: create the postfix aliases
   command: mailman3 aliases
+
+# Memcached
+- name: set the memcached sysconfig file
+  copy: src=memcached.sysconfig dest=/etc/sysconfig/memcached
+  notify:
+  - restart memcached
+
+- name: start memcached
+  service: state=started enabled=yes name=memcached
