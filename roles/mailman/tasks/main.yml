@@ -24,8 +24,8 @@
 - name: allow Apache to remotely connect to PostgreSQL
   seboolean: name=httpd_can_network_connect_db state=yes persistent=yes
 
-- name: set the SELinux policy to allow postfix to access the mailman aliases
-  command: semanage fcontext -a -t etc_aliases_t "/var/lib/mailman3?/data/postfix_.*"
+- name: allow Apache to remotely connect to Mailman
+  seboolean: name=httpd_can_network_connect state=yes persistent=yes
 
 
 #
@@ -35,10 +35,12 @@
   yum: pkg=$item state=installed
   with_items:
   - mailman3
+  - mailman3-selinux
   - python-psycopg2
   - python-storm-postgresql
   - kittystore
   - hyperkitty
+  - hyperkitty-selinux
   - postorius
   - yum-plugin-post-transaction-actions
   - mailman3-fedmsg-plugin
