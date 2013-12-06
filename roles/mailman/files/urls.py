@@ -10,16 +10,18 @@ from django.conf import settings
 from django.contrib import admin
 admin.autodiscover()
 
-# Import mailman urls and set urlpatterns if you want to hook
-# mailman_django into an existing django site. 
+# Import hyperkitty urls and set urlpatterns if you want to hook
+# hyperkitty into an existing django site.
 # Otherwise set ROOT_URLCONF in settings.py to
-# `mailman_django.urls`.
-# from mailman_django import urls as mailman_urls
+# `hyperkitty.urls`.
+
+from django.core.urlresolvers import reverse_lazy
+from django.views.generic import RedirectView
 
 urlpatterns = patterns('',
+    url(r'^$', RedirectView.as_view(url=reverse_lazy('hyperkitty.views.index.index'))),
     #url(r'^$', 'postorius.views.list_index'),
     url(r'^admin/', include('postorius.urls')),
-    url(r'^$', 'hyperkitty.views.pages.index'),
     url(r'^archives/', include('hyperkitty.urls')),
     url(r'', include('social_auth.urls')),
 )
