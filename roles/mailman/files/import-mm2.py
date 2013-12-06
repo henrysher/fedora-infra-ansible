@@ -23,8 +23,9 @@ class Importer(object):
     def __init__(self, opts, config):
         self.opts = opts
         self.config = config
-        self.existing_lists = cmdget(
-                ["sudo", "-u", "mailman", "mailman3", "lists", "-q"])
+        self.existing_lists = [ l.strip() for l in
+                cmdget(["sudo", "-u", "mailman",
+                "mailman3", "lists", "-q"]).split("\n") ]
         self.index_path = self._get_index_path()
 
     def _get_index_path(self):
@@ -65,10 +66,17 @@ class Importer(object):
                         (list_is_new or not self.opts.new_only):
                     call(["sudo", "kittystore-import", "-p",
                          self.config["confdir"], "-s", "settings_admin",
-                         "-l", listaddr, "--continue", archivefile])
+                         "-l", listaddr, "--continue", "--no-refresh",
+                         archivefile])
                 if self.index_path:
                     call(["sudo", "chown", "mailman:apache", "-R", self.index_path])
                     call(["sudo", "chmod", "g+w", self.index_path])
+        if self.opts.no_archives:
+            call(["sudo", "kittystore-refresh-cache", "-p",
+                 self.config["confdir"], "-s", "settings_admin"])
+        else:
+            call(["sudo", "kittystore-refresh-cache", "-p",
+                 self.config["confdir"], "-s", "settings_admin", "-f"])
 
 
 
