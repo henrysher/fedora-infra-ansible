@@ -33,3 +33,10 @@
 - name: copy live docs
   copy: src=$item dest=/usr/lib/python2.6/site-packages/fmn/web/docs
   with_fileglob: fedora-sitedocs/*.rst
+
+- name: apply selinux type to static files
+  file: >
+    dest=/usr/share/fmn.web/static
+    setype=httpd_sys_content_t
+    state=directory
+    recurse=yes
