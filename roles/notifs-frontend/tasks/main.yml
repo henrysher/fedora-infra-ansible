@@ -1,0 +1,25 @@
+---
+# Configuration for the Fedora Notifications webapp
+
+- name: install needed packages
+  yum: pkg={{ item }} state=installed
+  with_items:
+  - python-fmn-web
+
+- name: copy fmn app configuration
+  template: >
+    src={{ item }} dest=/etc/fedmsg.d/{{ item }}
+    owner=apache group=apache mode=0600
+  with_items:
+  - fmn.web.py
+  notify:
+  - restart apache
+
+- name: copy fmn httpd config
+  copy: >
+    src={{ item }} dest=/etc/httpd/conf.d/{{ item }}
+    owner=apache group=apache mode=0644
+  with_items:
+  - fmn.web.conf
+  notify:
+  - restart apache
