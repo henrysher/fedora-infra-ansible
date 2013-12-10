@@ -19,10 +19,20 @@
 
 - name: copy fmn httpd config
   copy: >
-    src={{ item }} dest=/etc/httpd/conf.d/{{ item }}
+    src=fmn.web.conf dest=/etc/httpd/conf.d/fmn.web.conf
     owner=apache group=apache mode=0644
-  with_items:
-  - fmn.web.conf
+  notify:
+  - restart apache
+
+- name: copy custom wsgi file
+  copy: src=fmn.web.wsgi dest=/usr/share/fmn/fmn.web.wsgi mode=0644
+  notify:
+  - restart apache
+
+- name: copy app configuration
+  template: >
+    src=fmn.web.cfg dest=/etc/fmn.web.cfg
+    owner=root group=apache mode=0640
   notify:
   - restart apache
 
