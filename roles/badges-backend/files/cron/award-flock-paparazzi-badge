@@ -1,0 +1,224 @@
+#!/usr/bin/env python
+""" Script to award the flock paparazzi badge.
+
+We scrape g+ and flickr for photos tagged Flock and Fedora,
+with the people we find who posted those, we try our best to match them with
+a FAS username.  If we can, then we award them the badge.
+
+Author: Ralph Bean <rbean@redhat.com>
+"""
+
+from __future__ import print_function
+
+import socket
+import time
+import getpass
+import ConfigParser
+
+import requests
+import fedora.client
+import transaction
+import tahrir_api.dbapi
+
+import fedmsg
+import fedmsg.config
+
+fm_config = fedmsg.config.load_config()
+fm_config['cert_prefix'] = 'fedbadges'
+fm_config['name'] = 'relay_inbound'
+fm_config['active'] = True
+fedmsg.init(**fm_config)
+
+import fedbadges.utils
+
+
+# Get config secrets from a file
+config = ConfigParser.ConfigParser()
+config.read(['flock-paparazzi.ini', '/etc/flock-paparazzi.ini'])
+flickr_api_key = config.get('general', 'flickr_api_key')
+g_plus_key = config.get('general', 'g_plus_key')
+userIP = config.get('general', 'userIP')
+fas_username = config.get('general', 'fas_username')
+fas_password = config.get('general', 'fas_password')
+
+# API urls
+flickr_url = 'https://api.flickr.com/services/rest/'
+g_plus_url = 'https://www.googleapis.com/plus/v1/activities'
+
+badge_id = 'flock-paparazzi'
+
+_fas_cache = {}
+
+
+def get_g_plus_persons():
+    token = None
+    while True:
+        params = dict(query="Fedora FLOCK", key=g_plus_key, userIP=userIP)
+
+        if token:
+            params['pageToken'] = token
+
+        response = requests.get(g_plus_url, params=params)
+        body = response.json()
+        token = body['nextPageToken']
+
+        # No more results
+        if not body['items']:
+            break
+
+        # Otherwise, we have a page to process
+        for item in body['items']:
+            for attach in item['object'].get('attachments', []):
+                if attach['objectType'] == 'album':
+                    yield item['actor']['displayName']
+
+        time.sleep(0.5)  # So as to not get rate-limit banned.
+
+
+def flickr_request(**kwargs):
+    response = requests.get(flickr_url, params=dict(
+        api_key=flickr_api_key,
+        format='json',
+        nojsoncallback=1,
+        **kwargs))
+    return response.json()
+
+
+def get_flickr_page(page=1):
+    return flickr_request(
+        method='flickr.photos.search',
+        content_type=1,
+        tags="fedora,flock",
+        tag_mode='all',
+        page=page,
+    )
+
+
+def get_flickr_persons():
+    pages = get_flickr_page()['photos']['pages']
+
+    seen = {}
+    for i in range(1, pages + 1):
+        d = get_flickr_page(i)
+
+        for photo in d['photos']['photo']:
+            user_id = photo['owner']
+            if user_id in seen:
+                continue
+
+            seen[user_id] = {}
+
+            # https://secure.flickr.com/services/api/flickr.people.getInfo.html
+            user = flickr_request(
+                method='flickr.people.getInfo',
+                user_id=user_id,
+            )
+            seen[user_id]['username1'] = user['person']['username']['_content']
+            seen[user_id]['username2'] = user['person']['path_alias']
+            if 'realname' in user['person']:
+                seen[user_id]['realname1'] = \
+                    user['person']['realname']['_content']
+                seen[user_id]['realname2'] = ' '.join([
+                    seen[user_id]['realname1'].split()[0],
+                    seen[user_id]['realname1'].split()[-1],
+                ])
+                if "'" in seen[user_id]['realname1']:
+                    seen[user_id]['username3'] = \
+                        seen[user_id]['realname1'].split("'")[1]
+                if '"' in seen[user_id]['realname1']:
+                    seen[user_id]['username4'] = \
+                        seen[user_id]['realname1'].split('"')[1]
+
+    for user_id, d in seen.items():
+        for key, value in d.items():
+            yield value
+
+
+def make_fas_cache(username, password):
+    global _fas_cache
+    if _fas_cache:
+        return _fas_cache
+
+    print("No previous fas cache found.  Looking to rebuild.")
+
+    try:
+        import fedora.client.fas2
+    except ImportError:
+        print("No python-fedora installed.  Not caching fas.")
+        return {}
+
+    if not username or not password:
+        print("No fas credentials found.  Not caching fas.")
+        return {}
+
+    fasclient = fedora.client.fas2.AccountSystem(
+        username=username,
+        password=password,
+    )
+
+    timeout = socket.getdefaulttimeout()
+    socket.setdefaulttimeout(600)
+    try:
+        print("Downloading FAS cache...")
+        request = fasclient.send_request(
+            '/user/list',
+            req_params={'search': '*'},
+            auth=True,
+        )
+    finally:
+        socket.setdefaulttimeout(timeout)
+
+    print("Caching necessary user data")
+    for user in request['people']:
+        for key in ['username', 'human_name']:
+            if user[key]:
+                _fas_cache[user[key]] = user['username']
+
+    del request
+    del fasclient
+
+    return _fas_cache
+
+
+def get_persons():
+    for person in get_g_plus_persons():
+        yield person
+    for person in get_flickr_persons():
+        yield person
+
+
+def main():
+    # First, initialize the tahrir db connection
+    uri = fm_config['badges_global']['database_uri']
+    tahrir = tahrir_api.dbapi.TahrirDatabase(
+        uri,
+        notification_callback=fedbadges.utils.notification_callback,
+    )
+
+    # Then, build a fas cache.  this takes forever..
+    cache = make_fas_cache(fas_username, fas_password)
+
+    badge = tahrir.get_badge(badge_id)
+    already_has_it = [a.person.nickname for a in badge.assertions]
+
+    # Finally, query the two services and award as we can.
+    for person in get_persons():
+        print("* Considering", person)
+        if person in cache:
+            if cache[person] in already_has_it:
+                print("Skipping %r" % cache[person])
+
+            print("  *", cache[person], "gets the badge")
+            email = cache[person] + "@fedoraproject.org"
+            try:
+                transaction.begin()
+                tahrir.add_assertion(badge_id, email, None)
+                transaction.commit()
+                time.sleep(1)
+            except Exception as e:
+                transaction.abort()
+                print("Failure:", e)
+
+
+if __name__ == '__main__':
+    main()
