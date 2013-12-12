@@ -9,6 +9,15 @@ ircnick = "fedora-notifs"
 base = "https://apps.%s/notifications/" % domain
 
 config = {
+    {% if env == 'staging' %}
+    # Pull in messages from production so we can more thoroughly test in stg.
+    "endpoints": {
+        "loopback-from-production": [
+            "tcp://hub.fedoraproject.org:9940",
+        ],
+    },
+    {% endif %}
+
     # Consumer stuff
     "fmn.consumer.enabled": True,
     "fmn.sqlalchemy.uri": "postgresql://${notifs_db_user}:${notifs_db_password}@db-notifs/notifications",
