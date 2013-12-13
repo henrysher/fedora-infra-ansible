@@ -35,21 +35,22 @@ IPLESS_MACHINES='live.gnome.org
 
 BACKUP_DIR='/fedora_backups/gnome/'
 LOGS_DIR='/fedora_backups/gnome/logs'
+BACKUP_USER='root'
 
 OPTS='-avz -e "ssh -i /fedora_backups/gnome/backup_id.rsa" --bwlimit=2000'
 IPLESS_OPTS='-avz -e "ssh -A -i /fedora_backups/gnome/backup_id.rsa bastion.gnome.org" --bwlimit=2000'
 
 for MACHINE in "$MACHINES"; do
-      rsync $MACHINE:/etc/rsyncd/backup.exclude $BACKUP_DIR/excludes/$MACHINE.exclude
+      rsync $BACKUP_USER@$MACHINE:/etc/rsyncd/backup.exclude $BACKUP_DIR/excludes/$MACHINE.exclude
       cd $BACKUP_DIR/$MACHINE
-      rsync $OPTS --exclude-from=$BACKUP_DIR/excludes/$MACHINE.exclude --log-file=$LOGS_DIR/$MACHINE.log $MACHINE_NAME:/ .
+      rsync $OPTS --exclude-from=$BACKUP_DIR/excludes/$MACHINE.exclude --log-file=$LOGS_DIR/$MACHINE.log $BACKUP_USER@$MACHINE_NAME:/ .
 done
 
 for MACHINE in "$IPLESS_MACHINES"; do
-      rsync $MACHINE:/etc/rsyncd/backup.exclude $BACKUP_DIR/excludes/$MACHINE.exclude
+      rsync $BACKUP_USER@$MACHINE:/etc/rsyncd/backup.exclude $BACKUP_DIR/excludes/$MACHINE.exclude
       cd $BACKUP_DIR/$MACHINE
-      rsync $IPLESS_OPTS --exclude-from=$BACKUP_DIR/excludes/$MACHINE.exclude --log-file=$LOGS_DIR/$MACHINE.log $MACHINE_NAME:/ .
+      rsync $IPLESS_OPTS --exclude-from=$BACKUP_DIR/excludes/$MACHINE.exclude --log-file=$LOGS_DIR/$MACHINE.log $BACKUP_USER@$MACHINE_NAME:/ .
 done
 
 # Dailyreport needs the logs to generate the data we need.
-cd $LOGS_DIR && scp -i /fedora_backups/gnome/backup_id.rsa * combobox.gnome.org:/home/admin/backup-logs
+cd $LOGS_DIR && scp -i /fedora_backups/gnome/backup_id.rsa * $BACKUP_USER@combobox.gnome.org:/home/admin/backup-logs
