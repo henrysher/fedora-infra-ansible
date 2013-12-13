@@ -34,8 +34,8 @@ config = {
     "fmn.irc.timeout": 120,
 
     # GCM - Android notifs
-    "fmn.gcm.post_url": "wat",
-    "fmn.gcm.api_key": "wat",
+    "fmn.gcm.post_url": "{{ notifs_gcm_post_url }}",
+    "fmn.gcm.api_key": "{{ notifs_gcm_api_key }}",
 
     # Confirmation urls:
     "fmn.base_url": base,
