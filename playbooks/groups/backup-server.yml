@@ -29,5 +29,45 @@
   - include: $tasks/mysql_server.yml
   - include: $tasks/rdiff_backup_server.yml
 
+  - name: Create GNOME backup user
+    user: name=gnomebackup state=present home=/fedora_backup/gnome/ createhome=yes shell=/sbin/nologin
+  - name:  Add a Directory for the Excludes list
+    file: dest=/fedora-backup/gnome/excludes owner=gnomebackup group=gnomebackup state=directory
+  - name:  Add a Directory for the Log files
+    file: dest=/fedora-backup/gnome/logs owner=gnomebackup group=gnomebackup state=directory
+  - name: Install GNOME backup key
+    file: src=${private}/gnome_backup_id.rsa path=/fedora_backup/gnome/backup_id.rsa mode=0600
+  - name: Install GNOME backup script
+    file: src=$files/gnome/backup.sh path=/fedora_backup/gnome/backup.sh mode=0700
+  - name: Schedule the GNOME backup script
+    cron: name="Backup" hour=5 job="(cd /fedora_backup/gnome/; ./backup.sh)" user=gnomebackup
+  - name:  Add Directories
+    file: dest=/fedora-backup/gnome/{{ item }} owner=gnomebackup group=gnomebackup state=directory
+    with_items: 
+    - signal.gnome.org
+    - webapps2.gnome.org
+    - clutter.gnome.org
+    - blogs.gnome.org
+    - view.gnome.org
+    - puppet.gnome.org
+    - extensions.gnome.org
+    - chooser.gnome.org
+    - git.gnome.org
+    - webapps.gnome.org
+    - socket.gnome.org
+    - bugzilla-web.gnome.org
+    - progress.gnome.org
+    - clipboard.gnome.org
+    - drawable.gnome.org
+    - vbox.gnome.org
+    - cloud-ssh.gnome.org
+    - bastion.gnome.org
+    - spinner.gnome.org
+    - master.gnome.org
+    - live.gnome.org
+    - combobox.gnome.org
+    - restaurant.gnome.org
+    - expander.gnome.org
+
   handlers:
   - include: $handlers/restart_services.yml
