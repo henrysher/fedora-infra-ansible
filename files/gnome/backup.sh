@@ -40,13 +40,13 @@ OPTS='-avz -e "ssh -i /usr/local/etc/gnome_backup_id.rsa" --bwlimit=2000'
 IPLESS_OPTS='-avz -e "ssh -A -i /usr/local/etc/gnome_backup_id.rsa bastion.gnome.org" --bwlimit=2000'
 
 for MACHINE in $MACHINES; do
-      rsync $BACKUP_USER@$MACHINE:/etc/rsyncd/backup.exclude $BACKUP_DIR/excludes/$MACHINE.exclude
+      rsync $OPTS $BACKUP_USER@$MACHINE:/etc/rsyncd/backup.exclude $BACKUP_DIR/excludes/$MACHINE.exclude
       cd $BACKUP_DIR/$MACHINE
       rsync $OPTS --exclude-from=$BACKUP_DIR/excludes/$MACHINE.exclude --log-file=$LOGS_DIR/$MACHINE.log $BACKUP_USER@$MACHINE_NAME:/ .
 done
 
 for MACHINE in $IPLESS_MACHINES; do
-      rsync $BACKUP_USER@$MACHINE:/etc/rsyncd/backup.exclude $BACKUP_DIR/excludes/$MACHINE.exclude
+      rsync $IPLESS_OPTS $BACKUP_USER@$MACHINE:/etc/rsyncd/backup.exclude $BACKUP_DIR/excludes/$MACHINE.exclude
       cd $BACKUP_DIR/$MACHINE
       rsync $IPLESS_OPTS --exclude-from=$BACKUP_DIR/excludes/$MACHINE.exclude --log-file=$LOGS_DIR/$MACHINE.log $BACKUP_USER@$MACHINE_NAME:/ .
 done
