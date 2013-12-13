@@ -6,26 +6,7 @@
 
 export PATH=$PATH:/bin:/usr/bin:/usr/local/bin
 
-MACHINES='signal.gnome.org
-          webapps2.gnome.org
-          clutter.gnome.org
-          blogs.gnome.org
-          chooser.gnome.org
-          git.gnome.org
-          webapps.gnome.org
-          socket.gnome.org
-          bugzilla-web.gnome.org
-          progress.gnome.org
-          clipboard.gnome.org
-          drawable.gnome.org
-          vbox.gnome.org
-          cloud-ssh.gnome.org
-          bastion.gnome.org
-          spinner.gnome.org
-          master.gnome.org
-          combobox.gnome.org
-          restaurant.gnome.org
-          expander.gnome.org'
+MACHINES='signal.gnome.org webapps2.gnome.org clutter.gnome.org blogs.gnome.org chooser.gnome.org git.gnome.org webapps.gnome.org socket.gnome.org bugzilla-web.gnome.org progress.gnome.org clipboard.gnome.org drawable.gnome.org vbox.gnome.org cloud-ssh.gnome.org bastion.gnome.org spinner.gnome.org master.gnome.org combobox.gnome.org restaurant.gnome.org expander.gnome.org'
 
 IPLESS_MACHINES='live.gnome.org
                  extensions.gnome.org
