@@ -33,11 +33,11 @@ IPLESS_MACHINES='live.gnome.org
                  puppet.gnome.org'
 
 
-BACKUP_DIR='/fedora_backup/gnome/'
-LOGS_DIR='/fedora_backup/gnome/logs'
+BACKUP_DIR='/fedora_backups/gnome/'
+LOGS_DIR='/fedora_backups/gnome/logs'
 
-OPTS='-avz -e "ssh -i /fedora_backup/gnome/backup_id.rsa" --bwlimit=2000'
-IPLESS_OPTS='-avz -e "ssh -A -i /fedora_backup/gnome/backup_id.rsa bastion.gnome.org" --bwlimit=2000'
+OPTS='-avz -e "ssh -i /fedora_backups/gnome/backup_id.rsa" --bwlimit=2000'
+IPLESS_OPTS='-avz -e "ssh -A -i /fedora_backups/gnome/backup_id.rsa bastion.gnome.org" --bwlimit=2000'
 
 for MACHINE in "$MACHINES"; do
       rsync $MACHINE:/etc/rsyncd/backup.exclude $BACKUP_DIR/excludes/$MACHINE.exclude
@@ -52,4 +52,4 @@ for MACHINE in "$IPLESS_MACHINES"; do
 done
 
 # Dailyreport needs the logs to generate the data we need.
-cd $LOGS_DIR && scp -i /fedora_backup/gnome/backup_id.rsa * combobox.gnome.org:/home/admin/backup-logs
+cd $LOGS_DIR && scp -i /fedora_backups/gnome/backup_id.rsa * combobox.gnome.org:/home/admin/backup-logs
