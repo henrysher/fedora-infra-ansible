@@ -15,8 +15,8 @@ BACKUP_DIR='/fedora_backups/gnome/'
 LOGS_DIR='/fedora_backups/gnome/logs'
 BACKUP_USER='root'
 
-OPTS='-avz -e "ssh -i /fedora_backups/gnome/backup_id.rsa" --bwlimit=2000'
-IPLESS_OPTS='-avz -e "ssh -A -i /fedora_backups/gnome/backup_id.rsa bastion.gnome.org" --bwlimit=2000'
+OPTS='-avz -e "ssh -i /usr/local/etc/gnome_backup_id.rsa" --bwlimit=2000'
+IPLESS_OPTS='-avz -e "ssh -A -i /usr/local/etc/gnome_backup_id.rsa bastion.gnome.org" --bwlimit=2000'
 
 for MACHINE in "$MACHINES"; do
       rsync $BACKUP_USER@$MACHINE:/etc/rsyncd/backup.exclude $BACKUP_DIR/excludes/$MACHINE.exclude
