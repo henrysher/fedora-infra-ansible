@@ -38,12 +38,13 @@
   - name: Install GNOME backup key
     file: src=${private}/gnome_backup_id.rsa path=/fedora_backups/gnome/backup_id.rsa mode=0600
   - name: Install GNOME backup script
-    file: src=$files/gnome/backup.sh path=/fedora_backups/gnome/backup.sh mode=0700
+    copy: src=$files/gnome/backup.sh dest=/usr/local/bin/gnome_backup mode=0700 owner=gnomebackup
   - name: Schedule the GNOME backup script
-    cron: name="Backup" hour=5 job="(cd /fedora_backups/gnome/; ./backup.sh)" user=gnomebackup
+    cron: name="Backup" hour=5 job="(cd /fedora_backups/gnome/; /usr/local/bin/gnome_backup)" user=gnomebackup
   - name:  Add Directories
     file: dest=/fedora_backups/gnome/{{ item }} owner=gnomebackup group=gnomebackup state=directory
     with_items: 
+    - logs
     - signal.gnome.org
     - webapps2.gnome.org
     - clutter.gnome.org
