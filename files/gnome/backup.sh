@@ -1,5 +1,14 @@
 #!/bin/bash
 
+if [ -f /var/lock/gnome_backup.lock ];
+then
+	quit "Lockfile exists.. Remove /var/lock/gnome_backup.lock"
+else
+	echo $$ > /var/lock/gnome_backup.lock
+	# Make VERY sure the lock file is made
+	touch /var/lock/gnome_backup.lock
+exit
+
 # backup.sh will run FROM backup03 TO the various GNOME boxes on the set. (there's two set
 # of machines, one being the ones with a public IP and the others being the IP-less ones that
 # will forward their agent through bastion.gnome.org)
@@ -50,3 +59,6 @@ done
 
 # Dailyreport needs the logs to generate the data we need.
 cd $LOGS_DIR && scp -i /fedora_backups/gnome/backup_id.rsa * $BACKUP_USER@combobox.gnome.org:/home/admin/backup-logs
+
+
+rm -f /var/lock/gnome_backup.lock
