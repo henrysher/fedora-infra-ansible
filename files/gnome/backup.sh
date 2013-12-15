@@ -59,7 +59,7 @@ for MACHINE in $IPLESS_MACHINES; do
 done
 
 # Dailyreport needs the logs to generate the data we need.
-cd $LOGS_DIR && scp -i /fedora_backups/gnome/backup_id.rsa * $BACKUP_USER@combobox.gnome.org:/home/admin/backup-logs
+cd $LOGS_DIR && scp -i /usr/local/etc/gnome_backup_id.rsa * $BACKUP_USER@combobox.gnome.org:/home/admin/backup-logs
 
 
 rm -f $LOCKFILE
