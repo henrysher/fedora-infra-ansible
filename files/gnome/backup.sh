@@ -1,13 +1,14 @@
 #!/bin/bash
+LOCKFILE=/fedora_backups/gnome/backup.lock
 
-if [ -f /var/lock/gnome_backup.lock ];
+if [ -f $LOCKFILE ];
 then
-	quit "Lockfile exists.. Remove /var/lock/gnome_backup.lock"
+	quit "Lockfile exists.. Remove $LOCKFILE"
 else
-	echo $$ > /var/lock/gnome_backup.lock
+	echo $$ > $LOCKFILE
 	# Make VERY sure the lock file is made
-	touch /var/lock/gnome_backup.lock
-exit
+	touch $LOCKFILE || exit
+fi
 
 # backup.sh will run FROM backup03 TO the various GNOME boxes on the set. (there's two set
 # of machines, one being the ones with a public IP and the others being the IP-less ones that
@@ -61,4 +62,4 @@ done
 cd $LOGS_DIR && scp -i /fedora_backups/gnome/backup_id.rsa * $BACKUP_USER@combobox.gnome.org:/home/admin/backup-logs
 
 
-rm -f /var/lock/gnome_backup.lock
+rm -f $LOCKFILE
