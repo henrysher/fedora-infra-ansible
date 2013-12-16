@@ -24,7 +24,7 @@ config = {
 
     ## Backend stuff ##
     # Email
-    "fmn.email.mailserver": "bastion.fedoraproject.org:25",
+    "fmn.email.mailserver": "bastion01.phx2.fedoraproject.org:25",
     "fmn.email.from_address": "notifications@" + domain,
 
     # IRC
