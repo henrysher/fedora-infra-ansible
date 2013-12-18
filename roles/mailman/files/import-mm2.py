@@ -66,17 +66,13 @@ class Importer(object):
                         (list_is_new or not self.opts.new_only):
                     call(["sudo", "kittystore-import", "-p",
                          self.config["confdir"], "-s", "settings_admin",
-                         "-l", listaddr, "--continue", "--no-refresh",
+                         "-l", listaddr, "--continue", "--no-sync-mailman",
                          archivefile])
                 if self.index_path:
                     call(["sudo", "chown", "mailman:apache", "-R", self.index_path])
                     call(["sudo", "chmod", "g+w", self.index_path])
-        if self.opts.no_archives:
-            call(["sudo", "kittystore-refresh-cache", "-p",
-                 self.config["confdir"], "-s", "settings_admin"])
-        else:
-            call(["sudo", "kittystore-refresh-cache", "-p",
-                 self.config["confdir"], "-s", "settings_admin", "-f"])
+        call(["sudo", "kittystore-sync-mailman", "-p",
+             self.config["confdir"], "-s", "settings_admin"])
 
 
 

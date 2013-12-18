@@ -18,14 +18,27 @@ def give_rights(dbhost, dbuser, dbpasswd, dbname):
     conn = psycopg2.connect(host=dbhost, user=dbuser, password=dbpasswd,
                             database=dbname)
     cur = conn.cursor()
+    # Database permissions
     dbrightsquery = "GRANT CONNECT,TEMP ON DATABASE %s TO %sapp;" % (dbname, dbname)
     print dbrightsquery
     cur.execute(dbrightsquery)
+    # Table permissions
     cur.execute("""
         SELECT 'GRANT SELECT,INSERT,UPDATE,DELETE,TRUNCATE ON ' || relname || ' TO %sapp;'
         FROM pg_class
         JOIN pg_namespace ON pg_namespace.oid = pg_class.relnamespace
         WHERE nspname = 'public' AND relkind IN ('r', 'v');
+    """ % dbname)
+    queries = [ q[0] for q in cur ]
+    for query in queries:
+        print query
+        cur.execute(query)
+    # Sequence permissions
+    cur.execute("""
+        SELECT 'GRANT USAGE,SELECT,UPDATE ON ' || relname || ' TO %sapp;'
+        FROM pg_class
+        JOIN pg_namespace ON pg_namespace.oid = pg_class.relnamespace
+        WHERE nspname = 'public' AND relkind = 'S';
     """ % dbname)
     queries = [ q[0] for q in cur ]
     for query in queries:
