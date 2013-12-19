@@ -38,6 +38,19 @@ def main():
 
     for username in usernames:
         email = username + "@fedoraproject.org"
+
+        person = tahrir.get_person(person_email=email)
+        if not person:
+            print email, "does not exist.  Creating."
+            try:
+                transaction.begin()
+                tahrir.add_person(email, nickname=username)
+                transaction.commit()
+            except Exception as e:
+                transaction.abort()
+                print "Failure:", e
+                continue
+
         if tahrir.assertion_exists(badge.id, email):
             print email, "already has", badge.id, "skipping."
             continue
