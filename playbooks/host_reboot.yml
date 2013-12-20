@@ -1,32 +1,45 @@
 # requires --extra-vars="target=hostspec"
 
 - name: reboot hosts
-  hosts: $target
+  hosts: "{{ target }}"
+  gather_facts: False
   user: root
   serial: 1
 
   tasks:
-  - name: see if it needs to be rebooted
-    action: command /usr/local/bin/needs-reboot.py
-    register: needsreboot
-
   - name: tell nagios to shush
-    action: nagios action=silence host=${inventory_hostname_short}
+    nagios: action=downtime minutes=60 service=host host={{ inventory_hostname }}
     delegate_to: noc01.phx2.fedoraproject.org
-    when:"'yes' in needsreboot.stdout"
+    ignore_errors: true
 
-  - name: reboot the host
-    action: command /sbin/reboot
-    when:"'yes' in needsreboot.stdout"
+  - name: reboot the virthost
+    command: /sbin/reboot
 
   - name: wait for host to come back - up to 6 minutes
-    local_action: wait_for host=${inventory_hostname} port=22 delay=30 timeout=420
-    when:"'yes' in needsreboot.stdout"
+    local_action: wait_for host={{ target }} port=22 delay=120 timeout=420
 
-  - name: tell nagios to unshush
-    action: nagios action=unsilence host=${inventory_hostname_short}
-    delegate_to: noc01.phx2.fedoraproject.org
-    when:"'yes' in needsreboot.stdout"
+
+  # - name: see if it needs to be rebooted
+  #   action: command /usr/local/bin/needs-reboot.py
+  #   register: needsreboot
+
+  # - name: tell nagios to shush
+  #   action: nagios action=silence host=${inventory_hostname_short}
+  #   delegate_to: noc01.phx2.fedoraproject.org
+  #   when:"'yes' in needsreboot.stdout"
+
+  # - name: reboot the host
+  #   action: command /sbin/reboot
+  #   when:"'yes' in needsreboot.stdout"
+
+  # - name: wait for host to come back - up to 6 minutes
+  #   local_action: wait_for host=${inventory_hostname} port=22 delay=30 timeout=420
+  #   when:"'yes' in needsreboot.stdout"
+
+  # - name: tell nagios to unshush
+  #   action: nagios action=unsilence host=${inventory_hostname_short}
+  #   delegate_to: noc01.phx2.fedoraproject.org
+  #   when:"'yes' in needsreboot.stdout"
 
 
 
