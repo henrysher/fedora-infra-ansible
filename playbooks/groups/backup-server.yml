@@ -31,16 +31,22 @@
 
   - name: Create GNOME backup user
     user: name=gnomebackup state=present home=/fedora_backups/gnome/ createhome=yes shell=/sbin/nologin
+
   - name:  Add a Directory for the Excludes list
     file: dest=/fedora/backups/gnome/excludes owner=gnomebackup group=gnomebackup state=directory
+
   - name:  Add a Directory for the Log files
     file: dest=/fedora_backups/gnome/logs owner=gnomebackup group=gnomebackup state=directory
+
   - name: Install GNOME backup key
     copy: src=${private}/files/gnome/backup_id.rsa dest=/usr/local/etc/gnome_backup_id.rsa mode=0600 owner=gnomebackup
+
   - name: Install GNOME backup script
     copy: src=$files/gnome/backup.sh dest=/usr/local/bin/gnome_backup mode=0700 owner=gnomebackup
+
   - name: Schedule the GNOME backup script
-    cron: name="Backup" hour=5 minute=0 job="(cd /fedora_backups/gnome/; /usr/local/bin/gnome_backup)" user=gnomebackup
+    cron: name="Backup" hour=5 minute=0 job="(cd /fedora_backups/gnome/; /usr/local/bin/lock-wrapper gnomebackup /usr/local/bin/gnome_backup)" user=gnomebackup
+
   - name:  Add Directories
     file: dest=/fedora_backups/gnome/{{ item }} owner=gnomebackup group=gnomebackup state=directory
     with_items: 

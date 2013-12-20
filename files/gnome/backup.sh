@@ -1,15 +1,4 @@
 #!/bin/bash
-LOCKFILE=/fedora_backups/gnome/backup.lock
-
-if [ -f $LOCKFILE ];
-then
-	quit "Lockfile exists.. Remove $LOCKFILE"
-else
-	echo $$ > $LOCKFILE
-	# Make VERY sure the lock file is made
-	touch $LOCKFILE || exit
-fi
-
 # backup.sh will run FROM backup03 TO the various GNOME boxes on the set. (there's two set
 # of machines, one being the ones with a public IP and the others being the IP-less ones that
 # will forward their agent through bastion.gnome.org)
