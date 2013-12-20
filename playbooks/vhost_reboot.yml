@@ -96,6 +96,15 @@
     command: /root/fix-iptables.sh
     when: inventory_hostname_short.startswith('serverbeach')
 
+- name: Fix unbound if necessary
+  # intersection - hosts that are in our dynamic group and also in unbound-dns
+  hosts: "myvms_new:&unbound-dns"
+  accelerate: true
+  user: root
+
+  tasks:
+  - include: $tasks/restart_unbound.yml
+
 #  - name: get info on guests (postreboot)
 #    virt: command=info
 #    register: vminfo_post
