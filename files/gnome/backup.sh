@@ -35,9 +35,9 @@ LOGS_DIR='/fedora_backups/gnome/logs'
 BACKUP_USER='root'
 
 for MACHINE in $MACHINES; do
-      rsync -avz -e "ssh -i /usr/local/etc/gnome_backup_id.rsa" --bwlimit=2000 $BACKUP_USER@$MACHINE:/etc/rsyncd/backup.exclude $BACKUP_DIR/excludes/$MACHINE.exclude
+      rsync -avz -e "ssh -F /usr/local/etc/gnome_ssh_config -i /usr/local/etc/gnome_backup_id.rsa" --bwlimit=2000 $BACKUP_USER@$MACHINE:/etc/rsyncd/backup.exclude $BACKUP_DIR/excludes/$MACHINE.exclude
       cd $BACKUP_DIR/$MACHINE
-      rsync -avz -e "ssh -i /usr/local/etc/gnome_backup_id.rsa" --bwlimit=2000 --exclude-from=$BACKUP_DIR/excludes/$MACHINE.exclude --log-file=$LOGS_DIR/$MACHINE.log $BACKUP_USER@$MACHINE:/ .
+      rsync -avz -e "ssh -F /usr/local/etc/gnome_ssh_config -i /usr/local/etc/gnome_backup_id.rsa" --bwlimit=2000 --exclude-from=$BACKUP_DIR/excludes/$MACHINE.exclude --log-file=$LOGS_DIR/$MACHINE.log $BACKUP_USER@$MACHINE:/ .
 done
 
 
