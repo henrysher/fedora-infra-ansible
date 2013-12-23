@@ -24,12 +24,11 @@ MACHINES='signal.gnome.org
           master.gnome.org
           combobox.gnome.org
           restaurant.gnome.org
-          expander.gnome.org'
-
-IPLESS_MACHINES='live.gnome.org
-                 extensions.gnome.org
-                 view.gnome.org
-                 puppet.gnome.org'
+          expander.gnome.org
+          live.gnome.org
+          extensions.gnome.org
+          view.gnome.org
+          puppet.gnome.org'
 
 BACKUP_DIR='/fedora_backups/gnome/'
 LOGS_DIR='/fedora_backups/gnome/logs'
@@ -41,14 +40,4 @@ for MACHINE in $MACHINES; do
       rsync -avz -e "ssh -i /usr/local/etc/gnome_backup_id.rsa" --bwlimit=2000 --exclude-from=$BACKUP_DIR/excludes/$MACHINE.exclude --log-file=$LOGS_DIR/$MACHINE.log $BACKUP_USER@$MACHINE:/ .
 done
 
-for MACHINE in $IPLESS_MACHINES; do
-      rsync -avz -e "ssh -A -i /usr/local/etc/gnome_backup_id.rsa bastion.gnome.org" --bwlimit=2000 $BACKUP_USER@$MACHINE:/etc/rsyncd/backup.exclude $BACKUP_DIR/excludes/$MACHINE.exclude
-      cd $BACKUP_DIR/$MACHINE
-      rsync -avz -e "ssh -A -i /usr/local/etc/gnome_backup_id.rsa bastion.gnome.org" --bwlimit=2000 --exclude-from=$BACKUP_DIR/excludes/$MACHINE.exclude --log-file=$LOGS_DIR/$MACHINE.log $BACKUP_USER@$MACHINE:/ .
-done
 
-# Dailyreport needs the logs to generate the data we need.
-cd $LOGS_DIR && scp -i /usr/local/etc/gnome_backup_id.rsa * $BACKUP_USER@combobox.gnome.org:/home/admin/backup-logs
-
-
-rm -f $LOCKFILE
