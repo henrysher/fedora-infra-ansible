@@ -32,11 +32,10 @@ MACHINES='signal.gnome.org
 
 BACKUP_DIR='/fedora_backups/gnome/'
 LOGS_DIR='/fedora_backups/gnome/logs'
+SCHEMA='ssh -F /usr/local/etc/gnome_ssh_config %s rdiff-backup --server'
 
 for MACHINE in $MACHINES; do
-      rsync -avz -e "ssh -F /usr/local/etc/gnome_ssh_config" --bwlimit=2000 $MACHINE:/etc/rsyncd/backup.exclude $BACKUP_DIR/excludes/$MACHINE.exclude
+      rsync -avz -e 'ssh -F /usr/local/etc/gnome_ssh_config' --bwlimit=2000 $MACHINE:/etc/rsyncd/backup.exclude $BACKUP_DIR/excludes/$MACHINE.exclude
       cd $BACKUP_DIR/$MACHINE
-      rsync -avz -e "ssh -F /usr/local/etc/gnome_ssh_config" --bwlimit=2000 --exclude-from=$BACKUP_DIR/excludes/$MACHINE.exclude --log-file=$LOGS_DIR/$MACHINE.log $MACHINE:/ .
+      rdiff-backup --force --remote-schema '$SCHEMA' --print-statistics --exclude-device-files --exclude-filelist $BACKUP_DIR/excludes/$MACHINE.exclude $MACHINE:/ . | mail backups@gnome.org
 done
-
-
