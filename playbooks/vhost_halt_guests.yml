@@ -20,7 +20,7 @@
 
 
 - name: find instances
-  hosts: $vhost
+  hosts: "{{ vhost }}"
   user: root
 
   tasks:
@@ -29,8 +29,8 @@
     register: vmlist
 
   - name: add them to myvms_new group
-    local_action: add_host hostname=$item groupname=myvms_new
-    with_items: ${vmlist.list_vms}
+    local_action: add_host hostname={{ item }} groupname=myvms_new
+    with_items: "{{ vmlist.list_vms }}"
 
 
 - name: halt instances
@@ -40,7 +40,7 @@
 
   tasks:
   - name: tell nagios to shush
-    action: nagios action=silence host=${inventory_hostname_short}
+    action: nagios action=silence host={{ inventory_hostname_short }}
     delegate_to: noc01.phx2.fedoraproject.org
 
   - name: echo-y
@@ -49,4 +49,4 @@
     # if one of them is down we don't care
 
   - name: wait for them to die
-    local_action: wait_for port=22 delay=30 timeout=300 state=stopped host=${inventory_hostname}
+    local_action: wait_for port=22 delay=30 timeout=300 state=stopped host={{ inventory_hostname }}

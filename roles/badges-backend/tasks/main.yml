@@ -2,7 +2,7 @@
 # Configuration for the fedbadges consumer
 
 - name: install needed packages
-  yum: pkg=$item state=installed
+  yum: pkg={{ item }} state=installed
   with_items:
   - python-fedbadges
   - python-psycopg2
@@ -12,7 +12,7 @@
 
 - name: copy database configuration
   template: >
-    src=$item dest=/etc/fedmsg.d/$item
+    src={{ item }} dest="/etc/fedmsg.d/{{ item }}"
     owner=fedmsg group=fedmsg mode=0600
   with_items:
   - datanommer.py
@@ -45,7 +45,7 @@
 
 - name: copy over all our badge definitions
   copy: >
-    src=$item
+    src={{ item }}
     dest=/usr/share/badges/rules/
     owner=fedmsg group=fedmsg mode=0644
   with_fileglob:
@@ -71,7 +71,7 @@
 - name: ensure badges cron directories exist
   file: >
     state=directory
-    path=$item
+    path={{ item }}
     mode=755
     owner=root
   when: env != "staging"
@@ -84,8 +84,8 @@
 
 - name: oldschool badge award scripts
   copy: >
-    src=cron/$item
-    dest=/usr/share/badges/cronjobs/$item
+    src="cron/{{ item }}"
+    dest="/usr/share/badges/cronjobs/{{ item }}"
     owner=fedmsg
     mode=744
   when: env != "staging"
@@ -100,8 +100,8 @@
 
 - name: oldschool badge award cronjobs
   copy: >
-    src=cron/$item.cron
-    dest=/etc/cron.d/$item
+    src="cron/{{ item }}.cron"
+    dest="/etc/cron.d/{{ item }}"
     owner=root
     mode=644
   when: env != "staging"
@@ -135,8 +135,8 @@
 
 - name: copy over the badge-admin one-off scripts
   copy: >
-    src=$item
-    dest=/usr/local/bin/$item
+    src={{ item }}
+    dest="/usr/local/bin/{{ item }}"
     owner=root
     group=sysadmin-badges
     mode=750

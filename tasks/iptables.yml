@@ -22,13 +22,13 @@
   - service
 
 - name: iptables
-  action: template src=$item dest=/etc/sysconfig/iptables mode=600 backup=yes
+  action: template src={{ item }} dest=/etc/sysconfig/iptables mode=600 backup=yes
   with_first_found:
-    - $iptables
-    - $files/iptables/iptables.${ansible_fqdn}
-    - $files/iptables/iptables.${host_group}
-    - $files/iptables/iptables.${env}
-    - $files/iptables/iptables
+    - "{{ iptables }}"
+    - "{{ files }}/iptables/iptables.{{ ansible_fqdn }}"
+    - "{{ files }}/iptables/iptables.{{ host_group }}"
+    - "{{ files }}/iptables/iptables.{{ env }}"
+    - "{{ files }}/iptables/iptables"
   notify:
   - restart iptables
   tags:

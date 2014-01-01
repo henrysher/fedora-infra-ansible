@@ -7,11 +7,11 @@
 
   vars_files: 
    - /srv/web/infra/ansible/vars/global.yml
-   - ${private}/vars.yml
+   - "{{ private }}/vars.yml"
 
   tasks:
-  - include: $tasks/persistent_cloud.yml
-  - include: $tasks/growroot_cloud.yml
+  - include: "{{ tasks }}/persistent_cloud.yml"
+  - include: "{{ tasks }}/growroot_cloud.yml"
 
 - name: provision master
   hosts: 209.132.184.153
@@ -22,8 +22,8 @@
 
   vars_files: 
    - /srv/web/infra/ansible/vars/global.yml
-   - ${private}/vars.yml
-   - ${vars}/${ansible_distribution}.yml
+   - "{{ private }}/vars.yml"
+   - "{{ vars }}/{{ ansible_distribution }}.yml"
   vars:
    - resolvconf: resolv.conf/jenkins-cloud
 
@@ -31,7 +31,7 @@
    - /srv/web/infra/ansible/roles/base
 
   tasks:
-  - include: $tasks/cloud_setup_basic.yml
+  - include: "{{ tasks }}/cloud_setup_basic.yml"
 
   - name: make the jenkins path
     action: file state=directory path=/var/lib/jenkins
@@ -40,14 +40,14 @@
     action: mount name=/var/lib/jenkins src='LABEL=jenkins' fstype=ext4 state=mounted
 
   - name: poke firewall holes
-    action: command lokkit $item
+    action: command lokkit {{ item }}
     with_items:
     - --service=ssh
     - --service=https
     - --service=http
 
   - name: install pkgs for jenkins
-    action: yum state=installed pkg=$item
+    action: yum state=installed pkg={{ item }}
     with_items:
     - vim
     - dejavu-s\*
@@ -60,7 +60,7 @@
     - packages
 
   - name: add jenkins proxy config file for apache
-    action: copy src=$files/jenkins/master/jenkins-apache.conf dest=/etc/httpd/conf.d/jenkins-apache.conf owner=root group=root mode=0644
+    action: copy src="{{ files }}/jenkins/master/jenkins-apache.conf" dest=/etc/httpd/conf.d/jenkins-apache.conf owner=root group=root mode=0644
     notify:
     - restart httpd
     tags:
@@ -70,24 +70,24 @@
     action: service name=httpd state=running enabled=true
 
   - name: add jenkins upstream repo 
-    action: copy src=$files/jenkins/master/jenkins.repo dest=/etc/yum.repos.d/jenkins.repo  owner=root group=root
+    action: copy src="{{ files }}/jenkins/master/jenkins.repo" dest=/etc/yum.repos.d/jenkins.repo  owner=root group=root
     tags:
      - config
 
   - name: import jenkins upstream gpg key
-    action: copy src=$files/jenkins/master/jenkins-ci.org.key dest=/etc/pki/rpm-gpg/RPM-GPG-KEY-jenkins-ci.org owner=root group=root
+    action: copy src="{{ files }}/jenkins/master/jenkins-ci.org.key" dest=/etc/pki/rpm-gpg/RPM-GPG-KEY-jenkins-ci.org owner=root group=root
     tags:
      - config
 
   - name: install pkgs for jenkins
-    action: yum state=installed pkg=$item
+    action: yum state=installed pkg={{ item }}
     with_items:
     - jenkins
     tags:
     - packages
 
   - name: set the hostname to jenkins-osversion
-    action: command hostname jenkins-master-${dist_tag}
+    action: command hostname jenkins-master-{{ dist_tag }}
     tags:
     - config
 
@@ -101,19 +101,19 @@
     action: file state=directory path=/var/lib/jenkins/plugins/ owner=jenkins group=jenkins
 
   - name: import jenkins plugins
-    action: copy src=$item owner=jenkins group=jenkins dest=/var/lib/jenkins/plugins/
-    with_fileglob: $files/jenkins/master/plugins/*.hpi
+    action: copy src={{ item }} owner=jenkins group=jenkins dest=/var/lib/jenkins/plugins/
+    with_fileglob: "{{ files }}/jenkins/master/plugins/*.hpi"
     tags:
      - config
 
   - name: import jenkins configuration files
-    action: copy src=$item owner=jenkins group=jenkins dest=/var/lib/jenkins/ backup=yes
-    with_fileglob: $files/jenkins/master/*.xml
+    action: copy src={{ item }} owner=jenkins group=jenkins dest=/var/lib/jenkins/ backup=yes
+    with_fileglob: "{{ files }}/jenkins/master/*.xml"
     tags:
      - config
 
   - name: add jenkins ssh priv key so it can connect to clients
-    action: copy src=$private/files/jenkins/ssh/jenkins_master dest=/var/tmp/jenkins_master_id_rsa mode=600 owner=jenkins group=jenkins
+    action: copy src="{{ private }}/files/jenkins/ssh/jenkins_master" dest=/var/tmp/jenkins_master_id_rsa mode=600 owner=jenkins group=jenkins
     tags:
     - config
 
@@ -126,13 +126,13 @@
     poll: 20
 
   - name: jenkins hotfix big file
-    copy: src=$item dest=/var/lib/jenkins/plugins/openid/WEB-INF/lib/ group=jenkins mode=655
-    with_fileglob: $bigfiles/hotfixes/jenkins/openid/*.jar
+    copy: src={{ item }} dest=/var/lib/jenkins/plugins/openid/WEB-INF/lib/ group=jenkins mode=655
+    with_fileglob: "{{ bigfiles }}/hotfixes/jenkins/openid/*.jar"
     notify: 
       - restart jenkins
 
   handlers:
-  - include: $handlers/restart_services.yml
+  - include: "{{ handlers }}/restart_services.yml"
 
 ###################################################
 # jenkins slaves
@@ -146,14 +146,14 @@
 
   vars_files:
    - /srv/web/infra/ansible/vars/global.yml
-   - ${private}/vars.yml
+   - "{{ private }}/vars.yml"
   vars:
    - keypair: fedora-admin-20130801
    - security_group: default
 
   tasks:
-  - include: $tasks/persistent_cloud.yml
-  - include: $tasks/growroot_cloud.yml
+  - include: "{{ tasks }}/persistent_cloud.yml"
+  - include: "{{ tasks }}/growroot_cloud.yml"
 
 - name: provision workers
   hosts: jenkins-slaves
@@ -164,21 +164,21 @@
 
   vars_files:
    - /srv/web/infra/ansible/vars/global.yml
-   - ${private}/vars.yml
-   - ${vars}/${ansible_distribution}.yml
+   - "{{ private }}/vars.yml"
+   - "{{ vars }}/{{ ansible_distribution }}.yml"
 
   tasks:
-  - include: $tasks/cloud_setup_basic.yml
+  - include: "{{ tasks }}/cloud_setup_basic.yml"
 
   - name: add jenkins repos
-    action: copy src=$item dest=/etc/yum.repos.d/ owner=root group=root
-    with_fileglob: $files/jenkins/slaves/*.repo
+    action: copy src={{ item }} dest=/etc/yum.repos.d/ owner=root group=root
+    with_fileglob: "{{ files }}/jenkins/slaves/*.repo"
     tags:
     - config
     - packages
 
   - name: install pkgs for jenkins
-    action: yum state=installed pkg=$item
+    action: yum state=installed pkg={{ item }}
     with_items:
     - vim
     - java-1.7.0-openjdk
@@ -219,7 +219,7 @@
     - packages
 
   - name: install pkgs for jenkins for fedora systems
-    action: yum state=installed pkg=$item
+    action: yum state=installed pkg={{ item }}
     #when: is_fedora == 'True'
     with_items:
     - python3
@@ -303,7 +303,7 @@
 
   - name: copy android SDK
     when: is_fedora == 'True'
-    action: copy src=$bigfiles/jenkins/android-sdk-with-platform-17.tar.gz dest=/var/android/ owner=jenkins_slave group=jenkins_slave
+    action: copy src="{{ bigfiles }}/jenkins/android-sdk-with-platform-17.tar.gz" dest=/var/android/ owner=jenkins_slave group=jenkins_slave
 
   - name: extract android SDK
     when: is_fedora == 'True'
@@ -314,7 +314,7 @@
     action: file state=absent path=/var/android/android-sdk-with-platform-17.tar.gz
 
   - name: set the hostname to jenkins-osversion
-    action: command hostname jenkins-${dist_tag}
+    action: command hostname jenkins-{{ dist_tag }}
     tags:
     - config
 
@@ -326,21 +326,21 @@
   - name: setup jenkins_slave ssh key
     action: authorized_key user=jenkins_slave key="{{ item }}"
     with_file:
-    - $private/files/jenkins/ssh/jenkins_master.pub
+    - "{{ private }}/files/jenkins/ssh/jenkins_master.pub"
 
   - name: jenkins_slave to mock group
     action: user name=jenkins_slave groups=mock
   
   - name: add .gitconfig for jenkins_slave user
-    action: copy src=$files/jenkins/gitconfig dest=/home/jenkins_slave/.gitconfig owner=jenkins_slave group=jenkins_slave mode=664
+    action: copy src="{{ files }}/jenkins/gitconfig" dest=/home/jenkins_slave/.gitconfig owner=jenkins_slave group=jenkins_slave mode=664
     tags:
      - config
   
   - name: template sshd_config
-    action: copy src=$item dest=/etc/ssh/sshd_config mode=0600 owner=root group=root
+    action: copy src={{ item }} dest=/etc/ssh/sshd_config mode=0600 owner=root group=root
     first_available_file:
-      - $files/jenkins/sshd_config_slave.$ansible_distribution
-      - $files/jenkins/sshd_config_slave
+      - "{{ files }}/jenkins/sshd_config_slave.{{ ansible_distribution }}"
+      - "{{ files }}/jenkins/sshd_config_slave"
     notify:
     - restart sshd
     tags:
@@ -350,5 +350,5 @@
     action: file state=directory path=/mnt/jenkins owner=jenkins_slave group=jenkins_slave
 
   handlers:
-  - include: $handlers/restart_services.yml
+  - include: "{{ handlers }}/restart_services.yml"
 

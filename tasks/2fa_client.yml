@@ -5,30 +5,30 @@
   - packages
 
 - name: /etc/pki/tls/private/totpcgi.pem
-  copy: src=$puppet_private/2fa-certs/keys/${inventory_hostname}.pem dest=/etc/pki/tls/private/totpcgi.pem mode=0400
+  copy: src="{{ puppet_private }}/2fa-certs/keys/{{ inventory_hostname }}.pem" dest=/etc/pki/tls/private/totpcgi.pem mode=0400
   tags:
   - config
 
 - name: /etc/pki/tls/private/totpcgi-ca.cert
-  copy: src=$puppet_private/2fa-certs/keys/ca.crt dest=/etc/pki/tls/private/totpcgi-ca.cert mode=0400
+  copy: src="{{ puppet_private }}/2fa-certs/keys/ca.crt" dest=/etc/pki/tls/private/totpcgi-ca.cert mode=0400
   tags:
   - config
 
 - name: /etc/pam_url.conf - split for staging/phx2/everyone else
-  template: src=$item dest=/etc/pam_url.conf mode=0644
+  template: src={{ item }} dest=/etc/pam_url.conf mode=0644
   with_first_found:
-  - $files/2fa/pam_url.conf.${inventory_hostname}
-  - $files/2fa/pam_url.conf.${ansible_domain}
-  - $files/2fa/pam_url.conf.j2
+  - "{{ files }}/2fa/pam_url.conf.{{ inventory_hostname }}"
+  - "{{ files }}/2fa/pam_url.conf.{{ ansible_domain }}"
+  - "{{ files }}/2fa/pam_url.conf.j2"
   tags:
   - config
 
 - name: /etc/pam.d/sudo
-  copy: src=$item dest=/etc/pam.d/sudo mode=0644
+  copy: src={{ item }} dest=/etc/pam.d/sudo mode=0644
   with_first_found:
-  - $files/2fa/sudo.pam.${inventory_hostname}
-  - $files/2fa/sudo.pam.${ansible_domain}
-  - $files/2fa/sudo.pam
+  - "{{ files }}/2fa/sudo.pam.{{ inventory_hostname }}"
+  - "{{ files }}/2fa/sudo.pam.{{ ansible_domain }}"
+  - "{{ files }}/2fa/sudo.pam"
   tags:
   - config
 

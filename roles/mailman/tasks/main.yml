@@ -35,7 +35,7 @@
 # Packages
 #
 - name: install needed packages
-  yum: pkg=$item state=installed
+  yum: pkg={{ item }} state=installed
   with_items:
   - mailman3
   - mailman3-selinux
@@ -93,11 +93,11 @@
 #
 
 - name: create the configuration directory
-  file: path=${mailman_webui_confdir} state=directory
+  file: path={{ mailman_webui_confdir }} state=directory
 
 - name: install the hyperkitty settings file
   template: src=settings.py.j2
-            dest=${mailman_webui_confdir}/settings.py
+            dest="{{ mailman_webui_confdir }}/settings.py"
             owner=root group=apache mode=0640
   tags:
   - config
@@ -107,14 +107,14 @@
 
 - name: install the hyperkitty settings admin file
   template: src=settings_admin.py.j2
-            dest=${mailman_webui_confdir}/settings_admin.py
+            dest="{{ mailman_webui_confdir }}/settings_admin.py"
             owner=root group=root mode=0600
   tags:
   - config
 
 - name: install the hyperkitty urls file
   copy: src=urls.py
-        dest=${mailman_webui_confdir}/urls.py
+        dest="{{ mailman_webui_confdir }}/urls.py"
         owner=root group=root mode=0644
   tags:
   - config
@@ -124,7 +124,7 @@
 
 - name: install the hyperkitty wsgi file
   copy: src=webui.wsgi
-        dest=${mailman_webui_confdir}/webui.wsgi
+        dest="{{ mailman_webui_confdir }/webui.wsgi"
         owner=root group=root mode=0644
   tags:
   - config
@@ -133,7 +133,7 @@
 
 - name: install the hyperkitty/postorius dummy httpd conf file
   template: src=apache-dummy.conf.j2
-            dest=/etc/httpd/conf.d/$item.conf
+            dest=/etc/httpd/conf.d/{{ item }}.conf
   with_items:
     - hyperkitty
     - postorius
@@ -151,15 +151,15 @@
     - reload apache
 
 - name: copy the manage.py script
-  command: /bin/cp /etc/hyperkitty/sites/default/manage.py ${mailman_webui_confdir}/manage.py
-           creates=${mailman_webui_confdir}/manage.py
+  command: /bin/cp /etc/hyperkitty/sites/default/manage.py "{{ mailman_webui_confdir }}/manage.py"
+           creates="{{ mailman_webui_confdir }}/manage.py"
 
 - name: create the kittystore plain text index dir
-  file: path=${mailman_webui_basedir}/kittystore_search_index
+  file: path="{{ mailman_webui_basedir }}/kittystore_search_index"
         state=directory owner=mailman group=mailman mode=0755
 
 - name: create the hyperkitty static files dir
-  file: path=${mailman_webui_basedir}/static
+  file: path="{{ mailman_webui_basedir }}/static"
         state=directory owner=root group=root mode=0755
 
 - name: install the kittystore cache cronjob
@@ -172,14 +172,14 @@
 #
 - name: copy the mailman-hyperkitty conffile
   template: src=mailman-hyperkitty.cfg.j2
-            dest=${mailman_webui_confdir}/mailman-hyperkitty.cfg
+            dest="{{ mailman_webui_confdir }}/mailman-hyperkitty.cfg"
   tags:
   - config
   notify:
     - restart mailman3
 
 - name: symlink the hyperkitty conffile in mailman directory
-  file: src=${mailman_webui_confdir}/mailman-hyperkitty.cfg
+  file: src="{{ mailman_webui_confdir }}/mailman-hyperkitty.cfg"
         dest=/etc/mailman3.d/hyperkitty.cfg state=link
   tags:
   - config
@@ -196,7 +196,7 @@
             owner=root group=root mode=0644
 
 - name: create the scripts dir
-  file: path=${mailman_webui_basedir}/bin
+  file: path="{{ mailman_webui_basedir }}/bin"
         state=directory owner=root group=root mode=0755
 
 - name: install the migration environment
@@ -205,7 +205,7 @@
             owner=root group=root mode=0644
 
 - name: install the scripts
-  copy: src=${item} dest=${mailman_webui_basedir}/bin/${item}
+  copy: src={{ item }} dest="{{ mailman_webui_basedir }}/bin/{{ item }}"
         owner=root group=root mode=0755
   with_items:
   - yamlget
@@ -224,7 +224,7 @@
   template: src=post-transaction.action.j2
             dest=/etc/yum/post-actions/hyperkitty.action
 - name: run the post-update script
-  command: ${mailman_webui_basedir}/bin/post-update.sh
+  command: "{{ mailman_webui_basedir }}/bin/post-update.sh"
 
 
 # Postfix

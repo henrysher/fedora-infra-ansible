@@ -1,7 +1,7 @@
 ---
 # install apache(httpd)
 - name: install apache
-  yum: name=$item state=installed
+  yum: name={{ item }} state=installed
   with_items:
   - httpd
   - httpd-tools
@@ -20,7 +20,7 @@
   
 # install hash randomization hotfix
 - name: hotfix - copy over new httpd init script 
-  copy: src=$files/hotfix/httpd/httpd.init dest=/etc/init.d/httpd
+  copy: src="{{ files }}/hotfix/httpd/httpd.init" dest=/etc/init.d/httpd
         owner=root group=root mode=0755
   notify:
   - restart apache
@@ -30,7 +30,7 @@
   - apache
 
 - name: hotfix - copy over new httpd sysconfig
-  copy: src=$files/hotfix/httpd/httpd.sysconfig dest=/etc/sysconfig/httpd
+  copy: src="{{ files }}/hotfix/httpd/httpd.sysconfig" dest=/etc/sysconfig/httpd
   notify:
   - restart apache
   tags:
@@ -39,7 +39,7 @@
   - apache
 
 - name: add appserver headers.conf
-  template: src=$files/httpd/headers.conf.j2 dest=/etc/httpd/conf.d/headers.conf
+  template: src="{{ files }}/httpd/headers.conf.j2" dest=/etc/httpd/conf.d/headers.conf
   notify:
   - restart apache
   tags: 
@@ -47,7 +47,7 @@
   - apache
 
 - name: add apache_status location for collectd
-  template: src=$files/httpd/apachestatus.conf dest=/etc/httpd/conf.d/apachestatus.conf
+  template: src="{{ files }}/httpd/apachestatus.conf" dest=/etc/httpd/conf.d/apachestatus.conf
   notify:
   - restart apache
   tags: 

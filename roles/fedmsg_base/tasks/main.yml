@@ -3,7 +3,7 @@
 # This is the base set of files needed for fedmsg
 
 - name: install needed packages
-  yum: pkg=$item state=installed
+  yum: pkg={{ item }} state=installed
   with_items:
   - fedmsg
   tags:
@@ -15,7 +15,7 @@
   - config
 
 - name: setup basic /etc/fedmsg.d/ contents
-  template: src=$item.j2 dest=/etc/fedmsg.d/$item owner=root group=root mode=644
+  template: src="{{ item }}.j2" dest="/etc/fedmsg.d/{{ item }}" owner=root group=root mode=644
   with_items:
   - ssl.py
   - endpoints.py
@@ -36,7 +36,7 @@
 
 - name: install fedmsg ca.cert
   copy: >
-    src=$puppet_private/fedmsg-certs/keys/ca.crt
+    src="{{ puppet_private }}/fedmsg-certs/keys/ca.crt"
     dest=/etc/pki/fedmsg/ca.crt
     owner=root
     group=root
@@ -46,24 +46,24 @@
 
 - name: fedmsg certs
   copy: >
-    src=$private/files/fedmsg-certs/keys/{{item['service']}}-{{ansible_fqdn}}.crt
+    src="{{ private }}/files/fedmsg-certs/keys/{{item['service']}}-{{ansible_fqdn}}.crt"
     dest=/etc/pki/fedmsg/
     mode=644
     owner={{item['owner']}}
     group={{item['group']}}
-  with_items: ${fedmsg_certs}
+  with_items: "{{ fedmsg_certs }}"
   when: fedmsg_certs != []
   tags:
   - config
 
 - name: fedmsg keys
   copy: >
-    src=$private/files/fedmsg-certs/keys/{{item['service']}}-{{ansible_fqdn}}.key
+    src="{{ private }}/files/fedmsg-certs/keys/{{item['service']}}-{{ansible_fqdn}}.key"
     dest=/etc/pki/fedmsg/
     mode=0640
     owner={{item['owner']}}
     group={{item['group']}}
-  with_items: ${fedmsg_certs}
+  with_items: "{{ fedmsg_certs }}"
   when: fedmsg_certs != []
   tags:
   - config

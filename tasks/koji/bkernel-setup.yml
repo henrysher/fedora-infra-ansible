@@ -1,6 +1,6 @@
 ---
 - name: add pkgs for bkernel boxes
-  action: yum state=latest pkg=$item enablerepo=epel-test
+  action: yum state=latest pkg={{ item }} enablerepo=epel-test
   with_items:
     - pesign
     - ccid
@@ -22,11 +22,11 @@
   action: service name=pesign state=started enabled=true
 
 - name: when you awake you will remember nothing
-  action: copy src=$files/kojibuilder/history_off.sh dest=/etc/profile.d/history_off.sh mode=0644
+  action: copy src="{{ files }}/kojibuilder/history_off.sh" dest=/etc/profile.d/history_off.sh mode=0644
 
 - name: mock site-defaults.cfg
-  action: copy src=$files/kojibuilder/builders/bkernel-site-defaults.cfg dest=/etc/mock/site-defaults.cfg mode=0644 owner=root group=mock
+  action: copy src="{{ files }}/kojibuilder/builders/bkernel-site-defaults.cfg" dest=/etc/mock/site-defaults.cfg mode=0644 owner=root group=mock
 
 - name: make sure our bkernel boxes have static ip
-  action: template src=$files/kojibuilder/builders/bkernel-eth0-network dest=/etc/sysconfig/network-scripts/ifcfg-eth0 
+  action: template src="{{ files }}/kojibuilder/builders/bkernel-eth0-network" dest=/etc/sysconfig/network-scripts/ifcfg-eth0 
 

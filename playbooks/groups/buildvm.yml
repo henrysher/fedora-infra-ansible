@@ -11,14 +11,14 @@
 
   vars_files:
    - /srv/web/infra/ansible/vars/global.yml
-   - ${private}/vars.yml
-   - ${vars}/${ansible_distribution}.yml
+   - "{{ private }}/vars.yml"
+   - "{{ vars }}/{{ ansible_distribution }}.yml"
 
   tasks:
-  - include: $tasks/virt_instance_create.yml
+  - include: "{{ tasks }}/virt_instance_create.yml"
 
   handlers:
-  - include: $handlers/restart_services.yml
+  - include: "{{ handlers }}/restart_services.yml"
 
 - name: make koji builder(s)
   hosts: buildvm
@@ -28,19 +28,19 @@
 
   vars_files: 
    - /srv/web/infra/ansible/vars/global.yml
-   - ${private}/vars.yml
-   - ${vars}/${ansible_distribution}.yml
+   - "{{ private }}/vars.yml"
+   - "{{ vars }}/{{ ansible_distribution }}.yml"
 
   roles:
   - /srv/web/infra/ansible/roles/base
 
   tasks:
-  - include: $tasks/hosts.yml
-  - include: $tasks/koji/base_builder.yml
-  - include: $tasks/koji/builder_kernel_config.yml
+  - include: "{{ tasks }}/hosts.yml"
+  - include: "{{ tasks }}/koji/base_builder.yml"
+  - include: "{{ tasks }}/koji/builder_kernel_config.yml"
 
   handlers:
-  - include: $handlers/restart_services.yml
+  - include: "{{ handlers }}/restart_services.yml"
 
   - name: restart kojid
     action: service name=kojid state=restarted

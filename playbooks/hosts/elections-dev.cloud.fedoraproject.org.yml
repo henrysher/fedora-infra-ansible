@@ -5,11 +5,11 @@
 
   vars_files: 
    - /srv/web/infra/ansible/vars/global.yml
-   - ${private}/vars.yml
+   - "{{ private }}/vars.yml"
 
   tasks:
-  - include: $tasks/persistent_cloud.yml
-  - include: $tasks/growroot_cloud.yml
+  - include: "{{ tasks }}/persistent_cloud.yml"
+  - include: "{{ tasks }}/growroot_cloud.yml"
 
 - name: provision instance
   hosts: 209.132.184.162
@@ -18,18 +18,18 @@
 
   vars_files: 
    - /srv/web/infra/ansible/vars/global.yml
-   - ${private}/vars.yml
-   - ${vars}/${ansible_distribution}.yml
+   - "{{ private }}/vars.yml"
+   - "{{ vars }}/{{ ansible_distribution }}.yml"
 
   tasks:
-  - include: $tasks/cloud_setup_basic.yml
+  - include: "{{ tasks }}/cloud_setup_basic.yml"
 
   - name: mount up disk of persistent storage
     action: mount name=/srv/persist src='LABEL=elections' fstype=ext4 state=mounted
 
   # open up ports (22, 80, 443)
   - name: poke holes in the firewall
-    action: command lokkit $item
+    action: command lokkit {{ item }}
     with_items:
     - --service=ssh
     - --service=https
@@ -37,7 +37,7 @@
 
   # packages needed
   - name: add packages for repo
-    action: yum state=present name=$item
+    action: yum state=present name={{ item }}
     with_items:
     - rsync
     - openssh-clients
@@ -53,4 +53,4 @@
     action: service name=httpd state=started
 
   handlers:
-  - include: $handlers/restart_services.yml
+  - include: "{{ handlers }}/restart_services.yml"

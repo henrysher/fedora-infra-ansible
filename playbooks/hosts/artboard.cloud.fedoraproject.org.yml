@@ -5,11 +5,11 @@
 
   vars_files: 
    - /srv/web/infra/ansible/vars/global.yml
-   - ${private}/vars.yml
+   - "{{ private }}/vars.yml"
 
   tasks:
-  - include: $tasks/persistent_cloud.yml
-  - include: $tasks/growroot_cloud.yml
+  - include: "{{ tasks }}/persistent_cloud.yml"
+  - include: "{{ tasks }}/growroot_cloud.yml"
 
 - name: provision instance
   hosts: 209.132.184.143
@@ -18,19 +18,19 @@
 
   vars_files: 
    - /srv/web/infra/ansible/vars/global.yml
-   - ${private}/vars.yml
-   - ${vars}/${ansible_distribution}.yml
+   - "{{ private }}/vars.yml"
+   - "{{ vars }}/{{ ansible_distribution }}.yml"
 
   tasks:
-  - include: $tasks/cloud_setup_basic.yml
-  - include: $tasks/postfix_basic.yml
+  - include: "{{ tasks }}/cloud_setup_basic.yml"
+  - include: "{{ tasks }}/postfix_basic.yml"
 
   - name: mount up disk of persistent storage
     action: mount name=/srv/persist src='LABEL=artboard' fstype=ext4 state=mounted
 
   # open up ports (22, 80, 443)
   - name: poke holes in the firewall
-    action: command lokkit $item
+    action: command lokkit {{ item }}
     with_items:
     - --service=ssh
     - --service=https
@@ -38,7 +38,7 @@
 
   # packages needed
   - name: add packages
-    action: yum state=present name=$item
+    action: yum state=present name={{ item }}
     with_items:
     - rsync
     - openssh-clients
@@ -51,12 +51,12 @@
 
   # packages needed to be gone
   - name: erase packages
-    action: yum state=absent name=$item
+    action: yum state=absent name={{ item }}
     with_items:
     - cronie-anacron
 
   - name: artboard backup thing
-    action: copy src=$files/artboard/artboard-backup dest=/etc/cron.daily/artboard-backup mode=0755
+    action: copy src="{{ files }}/artboard/artboard-backup" dest=/etc/cron.daily/artboard-backup mode=0755
 
   - name: make artboard subdir 
     action: file path=/srv/persist/artboard mode=0755 state=directory
@@ -65,7 +65,7 @@
     action: file state=link src=/srv/persist/artboard path=/var/www/html/artboard
 
   - name: add apache confs
-    action: copy src=$files/artboard/$item dest=/etc/httpd/conf.d/$item  backup=true
+    action: copy src="{{ files }}/artboard/{{ item }}" dest="/etc/httpd/conf.d/{{ item }}"  backup=true
     with_items:
     - artboard.conf
     - redirect.conf
@@ -75,4 +75,4 @@
     action: service name=httpd state=started
 
   handlers:
-  - include: $handlers/restart_services.yml
+  - include: "{{ handlers }}/restart_services.yml"

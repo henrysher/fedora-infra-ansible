@@ -1,13 +1,13 @@
 # optionally can take --extra-vars="hostbase=hostnamebase root_auth_users='user1 user2 user3'"
 - name: set auth keys
-  hosts: $target
+  hosts: "{{ target }}"
   user: root
   gather_facts: False
 
   vars_files: 
    - /srv/web/infra/ansible/vars/global.yml
-   - ${private}/vars.yml
-   - ${vars}/${ansible_distribution}.yml
+   - "{{ private }}/vars.yml"
+   - "{{ vars }}/{{ ansible_distribution }}.yml"
   vars:
    - root_auth_users: ''
 
@@ -15,6 +15,6 @@
    - name: add root keys for sysadmin-main and other allowed users
      action: authorized_key user=root key="{{ item }}"
      with_pipe:
-     - "${auth_keys_from_fas} @sysadmin-main ${root_auth_users}"
+     - "{{ auth_keys_from_fas }} @sysadmin-main {{ root_auth_users }}"
 
 

@@ -5,11 +5,11 @@
 
   vars_files: 
    - /srv/web/infra/ansible/vars/global.yml
-   - ${private}/vars.yml
+   - "{{ private }}/vars.yml"
 
   tasks:
-  - include: $tasks/persistent_cloud.yml
-  - include: $tasks/growroot_cloud.yml
+  - include: "{{ tasks }}/persistent_cloud.yml"
+  - include: "{{ tasks }}/growroot_cloud.yml"
 
 - name: provision instance
   hosts: 209.132.184.146
@@ -18,15 +18,15 @@
 
   vars_files: 
    - /srv/web/infra/ansible/vars/global.yml
-   - ${private}/vars.yml
-   - ${vars}/${ansible_distribution}.yml
+   - "{{ private }}/vars.yml"
+   - "{{ vars }}/{{ ansible_distribution }}.yml"
 
   tasks:
-  - include: $tasks/cloud_setup_basic.yml
+  - include: "{{ tasks }}/cloud_setup_basic.yml"
 
   # packages needed
   - name: add packages for repo
-    action: yum state=present name=$item
+    action: yum state=present name={{ item }}
     with_items:
     - rsync
     - openssh-clients
@@ -41,4 +41,4 @@
     - mount_disk
 
   handlers:
-  - include: $handlers/restart_services.yml
+  - include: "{{ handlers }}/restart_services.yml"

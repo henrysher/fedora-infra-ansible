@@ -5,11 +5,11 @@
 
   vars_files: 
    - /srv/web/infra/ansible/vars/global.yml
-   - ${private}/vars.yml
+   - "{{ private }}/vars.yml"
 
   tasks:
-  - include: $tasks/persistent_cloud.yml
-  - include: $tasks/growroot_cloud.yml
+  - include: "{{ tasks }}/persistent_cloud.yml"
+  - include: "{{ tasks }}/growroot_cloud.yml"
 
 - name: provision instance
   hosts: 209.132.184.147
@@ -21,16 +21,16 @@
 
   vars_files: 
    - /srv/web/infra/ansible/vars/global.yml
-   - ${private}/vars.yml
-   - ${vars}/${ansible_distribution}.yml
+   - "{{ private }}/vars.yml"
+   - "{{ vars }}/{{ ansible_distribution }}.yml"
 
   tasks:
-  - include: $tasks/cloud_setup_basic.yml
-  - include: $tasks/postfix_basic.yml
+  - include: "{{ tasks }}/cloud_setup_basic.yml"
+  - include: "{{ tasks }}/postfix_basic.yml"
 
   # packages needed
   - name: add packages for repo
-    action: yum state=present name=$item
+    action: yum state=present name={{ item }}
     with_items:
     - euca2ools
     - rsync
@@ -38,7 +38,7 @@
     - system-config-firewall-base
 
   - name: install dependencies of fedocal
-    action: yum state=installed pkg=$item
+    action: yum state=installed pkg={{ item }}
     with_items:
     - mod_wsgi
     - mod_ssl
@@ -61,9 +61,9 @@
 
   # open up tcp ports 
   - name: poke holes in the firewall
-    action: command lokkit -p '${item}:tcp'
-    with_items: $tcp_ports
+    action: command lokkit -p '{{ item }}:tcp'
+    with_items: "{{ tcp_ports }}"
 
 
   handlers:
-  - include: $handlers/restart_services.yml
+  - include: "{{ handlers }}/restart_services.yml"

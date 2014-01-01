@@ -10,15 +10,15 @@
 
   vars_files: 
    - /srv/web/infra/ansible/vars/global.yml
-   - ${private}/vars.yml
-   - ${vars}/${ansible_distribution}.yml
+   - "{{ private }}/vars.yml"
+   - "{{ vars }}/{{ ansible_distribution }}.yml"
 
   tasks:
-  - include: $tasks/virt_instance_create.yml
-  - include: $tasks/accelerate_prep.yml
+  - include: "{{ tasks }}/virt_instance_create.yml"
+  - include: "{{ tasks }}/accelerate_prep.yml"
 
   handlers:
-  - include: $handlers/restart_services.yml
+  - include: "{{ handlers }}/restart_services.yml"
 
 - name: dole out the generic configuration
   hosts: notifs-backend;notifs-backend-stg
@@ -28,8 +28,8 @@
 
   vars_files: 
    - /srv/web/infra/ansible/vars/global.yml
-   - ${private}/vars.yml
-   - ${vars}/${ansible_distribution}.yml
+   - "{{ private }}/vars.yml"
+   - "{{ vars }}/{{ ansible_distribution }}.yml"
 
   roles:
   - /srv/web/infra/ansible/roles/base
@@ -40,16 +40,16 @@
   - /srv/web/infra/ansible/roles/fedmsg_base
 
   tasks:
-  - include: $tasks/hosts.yml
-  - include: $tasks/yumrepos.yml
-  - include: $tasks/2fa_client.yml
-  - include: $tasks/motd.yml
-  - include: $tasks/sudo.yml
-  - include: $tasks/openvpn_client.yml
+  - include: "{{ tasks }}/hosts.yml"
+  - include: "{{ tasks }}/yumrepos.yml"
+  - include: "{{ tasks }}/2fa_client.yml"
+  - include: "{{ tasks }}/motd.yml"
+  - include: "{{ tasks }}/sudo.yml"
+  - include: "{{ tasks }}/openvpn_client.yml"
     when: env != "staging"
 
   handlers:
-  - include: $handlers/restart_services.yml
+  - include: "{{ handlers }}/restart_services.yml"
 
 - name: dole out the service-specific config
   hosts: notifs-backend;notifs-backend-stg
@@ -63,5 +63,5 @@
 
   vars_files: 
    - /srv/web/infra/ansible/vars/global.yml
-   - ${private}/vars.yml
-   - ${vars}/${ansible_distribution}.yml
+   - "{{ private }}/vars.yml"
+   - "{{ vars }}/{{ ansible_distribution }}.yml"

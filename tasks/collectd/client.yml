@@ -11,13 +11,13 @@
 
 # install collected.conf
 - name: /etc/collectd.conf
-  template: src=$files/collectd/collectd.conf.j2 dest=/etc/collectd.conf
+  template: src="{{ files }}/collectd/collectd.conf.j2" dest=/etc/collectd.conf
   notify:
   - restart collectd
 
 # install collectd-network config
 - name: /etc/collectd.d/network.conf
-  copy: src=$files/collectd/network-client.conf dest=/etc/collectd.d/network.conf
+  copy: src="{{ files }}/collectd/network-client.conf" dest=/etc/collectd.d/network.conf
   notify:
   - restart collectd
 
@@ -26,13 +26,13 @@
   yum: state=installed name=collectd-apache
   notify:
   - restart collectd
-  when_set: $collectd_apache
+  when_set: {{ collectd_apache }}
 
 - name: /etc/collectd/apache.conf
-  copy: src=$files/collectd/apache.conf dest=/etc/collectd.d/apache.conf
+  copy: src="{{ files }}/collectd/apache.conf" dest=/etc/collectd.d/apache.conf
   notify:
   - restart collectd
-  when_set: $collectd_apache
+  when_set: {{ collectd_apache }}
 
   
 # each of the below should move to a separate task list

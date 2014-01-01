@@ -1,7 +1,7 @@
 ---
 
 - name: put builder-repo on system
-  action: copy src=$files/sign/$item dest=/etc/yum.repos.d/$item
+  action: copy src="{{ files }}/sign/{{ item }}" dest="/etc/yum.repos.d/{{ item }}"
   with_items:
   - builder-rpms.repo
   when: is_rhel == 'True'
@@ -10,7 +10,7 @@
   - packages
 
 - name: install sigul
-  action: yum state=installed name=$item
+  action: yum state=installed name={{ item }}
   with_items:
   - sigul
   - ntp
@@ -20,24 +20,24 @@
   - packages
 
 - name: setup /etc/sigul/bridge.conf file
-  action: template src=$files/sign/bridge.conf.j2 dest=/etc/sigul/bridge.conf owner=root group=sigul mode=640
+  action: template src="{{ files }}/sign/bridge.conf.j2" dest=/etc/sigul/bridge.conf owner=root group=sigul mode=640
   tags:
   - config
 
 - name: setup /etc/sigul/server.conf file
-  action: copy src=$files/sign/server.conf dest=/etc/sigul/server.conf owner=root group=sigul mode=640
+  action: copy src="{{ files }}/sign/server.conf" dest=/etc/sigul/server.conf owner=root group=sigul mode=640
 
 - name: ntp steptickers
-  action: copy src=$files/common/step-tickers dest=/etc/ntp/step-tickers
+  action: copy src="{{ files }}/common/step-tickers" dest=/etc/ntp/step-tickers
 
 - name: ntp.conf
-  action: copy src=$files/common/ntp.conf dest=/etc/ntp.conf
+  action: copy src="{{ files }}/common/ntp.conf" dest=/etc/ntp.conf
 
 - name: enable ntpd
   action: service name=ntpd enabled=true state=started
 
 - name: /etc/hosts
-  action: copy src=$files/hosts/sign-hosts dest=/etc/hosts
+  action: copy src="{{ files }}/hosts/sign-hosts" dest=/etc/hosts
   tags:
   - configs
 

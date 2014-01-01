@@ -5,7 +5,7 @@
   selinux: policy=targeted state=enforcing
 
 - name: install libvirt packages
-  yum: pkg=$item state=installed
+  yum: pkg={{ item }} state=installed
   with_items:
   - qemu-kvm
   - libvirt
@@ -18,7 +18,7 @@
 # This provides us with the ability to use virt-manager from non root accounts. 
 #
 - name: install libvirtd.conf
-  copy: src=$files/virthost/libvirtd.conf dest=/etc/libvirt/libvirtd.conf
+  copy: src="{{ files }}/virthost/libvirtd.conf" dest=/etc/libvirt/libvirtd.conf
   notify:
   - restart libvirtd
   tags:

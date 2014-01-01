@@ -5,11 +5,11 @@
 
   vars_files: 
    - /srv/web/infra/ansible/vars/global.yml
-   - ${private}/vars.yml
+   - "{{ private }}/vars.yml"
 
   tasks:
-  - include: $tasks/persistent_cloud.yml
-  - include: $tasks/growroot_cloud.yml
+  - include: "{{ tasks }}/persistent_cloud.yml"
+  - include: "{{ tasks }}/growroot_cloud.yml"
 
 - name: provision instance
   hosts: 209.132.184.142
@@ -18,16 +18,16 @@
   
   vars_files: 
    - /srv/web/infra/ansible/vars/global.yml
-   - ${private}/vars.yml
-   - ${vars}/${ansible_distribution}.yml
+   - "{{ private }}/vars.yml"
+   - "{{ vars }}/{{ ansible_distribution }}.yml"
 
   # Roles are run first, before tasks, regardless of where you place them here.
   roles:
   - /srv/web/infra/ansible/roles/fedmsg_base
 
   tasks:
-  - include: $tasks/cloud_setup_basic.yml
-  - include: $tasks/iptables.yml
+  - include: "{{ tasks }}/cloud_setup_basic.yml"
+  - include: "{{ tasks }}/iptables.yml"
 
   - name: prepare mount point
     action: file state=directory path=/var/lib/copr/public_html
@@ -39,15 +39,15 @@
   #- name: copy copr.repo
   #  action: copy src=$files/copr/fe/yum/copr.repo dest=/etc/yum.repos.d/copr.repo
 
-  - Set the hostname
+  - name: set the hostname
     shell: hostname copr-be.cloud.fedoraproject.org
 
   - name: copy .forward file
-    action: copy src=$files/copr/forward dest=/root/.forward owner=root group=root
+    action: copy src="{{ files }}/copr/forward" dest=/root/.forward owner=root group=root
 
   # packages needed
   - name: add packages for copr-be
-    action: yum state=present name=$item
+    action: yum state=present name={{ item }}
     with_items:
     - copr-selinux
     - copr-backend
@@ -57,7 +57,7 @@
     
 
   - name: make copr dirs
-    file: state=directory path=$item
+    file: state=directory path={{ item }}
     with_items:
     - /var/lib/copr/jobs
     - /var/lib/copr/public_html/results
@@ -66,44 +66,44 @@
     action: command /usr/bin/umask 0000 chdir=/var/lib/copr/public_html/results
 
   - name: setup dirs there
-    action: file state=directory path=/home/copr/$item owner=copr group=copr mode=0700
+    action: file state=directory path="/home/copr/{{ item }}" owner=copr group=copr mode=0700
     with_items: 
     - cloud
     - .ssh
 
   - name: add copr-buildsys keys to copr user path
-    action: copy src=$item dest=/home/copr/cloud/ owner=copr group=copr mode=0600
-    with_fileglob: $private/files/openstack/copr-copr/*
+    action: copy src={{ item }} dest=/home/copr/cloud/ owner=copr group=copr mode=0600
+    with_fileglob: "{{ private }}/files/openstack/copr-copr/*"
 
   - name: setup privkey for copr user
-    action: copy src=$private/files/copr/buildsys.priv dest=/home/copr/.ssh/id_rsa owner=copr group=copr mode=600
+    action: copy src="{{ private }}/files/copr/buildsys.priv" dest=/home/copr/.ssh/id_rsa owner=copr group=copr mode=600
 
   - name: setup copr user ssh config file
-    action: copy src=$files/copr/ssh_config dest=/home/copr/.ssh/config  owner=copr group=copr mode=600
+    action: copy src="{{ files }}/copr/ssh_config" dest=/home/copr/.ssh/config  owner=copr group=copr mode=600
 
   - name: create empty known_hosts
     action: copy src=/dev/null dest=/home/copr/.ssh/known_hosts owner=copr group=copr mode=600
 
   - name: replace bashrc for copr user
-    action: copy src=$files/copr/copr_bashrc dest=/home/copr/.bashrc owner=copr group=copr mode=600
+    action: copy src="{{ files }}/copr/copr_bashrc" dest=/home/copr/.bashrc owner=copr group=copr mode=600
 
   - name: auth_key so we can login to localhost as the copr user from the copr user
     action: authorized_key user=copr key="{{ item }}"
     with_file:
-    - ${files}/copr/provision/files/buildsys.pub
+    - "{{ files }}/copr/provision/files/buildsys.pub"
 
   - name: copy .boto file
-    action: copy src=$files/copr/boto dest=/home/copr/.boto owner=copr group=copr
+    action: copy src="{{ files }}/copr/boto" dest=/home/copr/.boto owner=copr group=copr
  
   # setup webserver
   - name: add config for copr-repo path
-    action: copy src=$files/copr/lighttpd/lighttpd.conf dest=/etc/lighttpd/lighttpd.conf owner=root group=root mode=0644
+    action: copy src="{{ files }}/copr/lighttpd/lighttpd.conf" dest=/etc/lighttpd/lighttpd.conf owner=root group=root mode=0644
     notify: 
     - restart lighttpd
 
   # mime default to text/plain and enable dirlisting for indexes
   - name: update lighttpd configs
-    action: copy src=$files/copr/lighttpd/$item dest=/etc/lighttpd/conf.d/$item owner=root group=root mode=0644
+    action: copy src="{{ files }}/copr/lighttpd/{{ item }}" dest="/etc/lighttpd/conf.d/{{ item }}" owner=root group=root mode=0644
     with_items:
     - dirlisting.conf
     - mime.conf
@@ -118,7 +118,7 @@
 
   # setup dirs for the ansible execution off of provisioning
   - name: dirs from provision
-    action: file state=directory path=/home/copr/provision/$item owner=copr group=copr
+    action: file state=directory path="/home/copr/provision/{{ item }}" owner=copr group=copr
     with_items:
     - action_plugins
     - library
@@ -128,13 +128,13 @@
     - provision_config
 
   - name: put ansible.cfg for all this into /etc/ansible/ on the system
-    action: copy src=$files/copr/provision/ansible.cfg dest=/etc/ansible/ansible.cfg
+    action: copy src="{{ files }}/copr/provision/ansible.cfg" dest=/etc/ansible/ansible.cfg
     tags:
     - provision_config
 
 
   - name: put some files into the provision subdir
-    action: copy src=$files/copr/provision/$item dest=/home/copr/provision/$item
+    action: copy src="{{ files }}/copr/provision/{{ item }}" dest="/home/copr/provision/{{ item }}"
     with_items:
     - inventory
     - builderpb.yml
@@ -143,20 +143,20 @@
     - provision_config
 
   - name: put files into the files subdir off of provisioning
-    action: copy src=$item dest=/home/copr/provision/files/
-    with_fileglob: $files/copr/provision/files/*
+    action: copy src={{ item }} dest=/home/copr/provision/files/
+    with_fileglob: "{{ files }}/copr/provision/files/*"
     tags:
     - provision_config
 
   # ansible lacks a recurse - so we need this until then
   - name: put files into the files/mock subdir off of provisioning
-    action: copy src=$item dest=/home/copr/provision/files/mock
-    with_fileglob: $files/copr/provision/files/mock/*
+    action: copy src={{ item }} dest=/home/copr/provision/files/mock
+    with_fileglob: "{{ files }}/copr/provision/files/mock/*"
     tags:
     - provision_config
 
   - name: copy copr-be.conf
-    template: src=$files/copr/copr-be.conf dest=/etc/copr/copr-be.conf  mode=640
+    template: src="{{ files }}/copr/copr-be.conf" dest=/etc/copr/copr-be.conf  mode=640
     notify:
     - restart copr-backend
     tags:
@@ -164,7 +164,7 @@
 
   - name: fedmsg certs
     copy: >
-      src=$private/files/fedmsg-certs/keys/copr-copr-be.cloud.fedoraproject.org.crt
+      src="{{ private }}/files/fedmsg-certs/keys/copr-copr-be.cloud.fedoraproject.org.crt"
       dest=/etc/pki/fedmsg/
       mode=644
       owner=root
@@ -172,7 +172,7 @@
 
   - name: fedmsg keys
     copy: >
-      src=$private/files/fedmsg-certs/keys/copr-copr-be.cloud.fedoraproject.org.key
+      src="{{ private }}/files/fedmsg-certs/keys/copr-copr-be.cloud.fedoraproject.org.key"
       dest=/etc/pki/fedmsg/
       mode=0640
       owner=root
@@ -180,11 +180,11 @@
 
   # open up ports (22, 80, 443)
   - name: poke holes in the firewall
-    action: command lokkit $item
+    action: command lokkit {{ item }}
     with_items:
     - --service=ssh
     - --service=https
     - --service=http
 
   handlers:
-  - include: $handlers/restart_services.yml
+  - include: "{{ handlers }}/restart_services.yml"

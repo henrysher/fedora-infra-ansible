@@ -1,6 +1,6 @@
 # requires --extra-vars "{'repos': ['yokan.git', 'yumex.git']}"
 
-- name: Install the fedmsg hook into a number of fedrahosted git repos
+- name: Install the fedmsg hook into a number of fedorahosted git repos
   hosts: hosted03.fedoraproject.org
   user: root
 
@@ -18,32 +18,32 @@
   # the command *if* that creates= file is already present.  Its a hackaround to
   # make this task idempotent.
   - name: make sure the git repos exist in the first place
-    command: /bin/ls ${prefix}${item} creates=${prefix}${item}
-    with_items: ${repos}
+    command: /bin/ls {{ prefix }}{{ item }} creates={{ prefix }}{{ item }}
+    with_items: "{{ repos }}"
 
   - name: ensure there is a post-receive-chained.d/ directory
     file: >
         state=directory
-        path=${prefix}${item}${chained}/
-    with_items: ${repos}
+        path="{{ prefix }}{{ item }}{{ chained }}/"
+    with_items: "{{ repos }}"
 
   - name: move the old post-receive email hook into the chained dir
     command: >
-        /bin/mv ${prefix}${item}/hooks/post-receive ${prefix}${item}${chained}/post-receive-email
-        removes=${prefix}${item}/hooks/post-receive
-        creates=${prefix}${item}${chained}/post-receive-email
-    with_items: ${repos}
+        /bin/mv "{{ prefix }}{{ item }}/hooks/post-receive" "{{ prefix }}{{ item }}{{ chained }}/post-receive-email"
+        removes="{{ prefix }}{{ item }}/hooks/post-receive"
+        creates="{{ prefix }}{{ item }}{{ chained }}/post-receive-email"
+    with_items: "{{ repos }}"
 
   - name: symlink the fedmsg hook into the chained dir
     file: >
-        path=${prefix}${item}${chained}/post-receive-fedmsg
-        src=${fedmsg_hook}
+        path="{{ prefix }}{{ item }}{{ chained }}/post-receive-fedmsg"
+        src={{ fedmsg_hook }}
         state=link
-    with_items: ${repos}
+    with_items: "{{ repos }}"
 
   - name: symlink in the chained hook redirector
     file: >
-        path=${prefix}${item}/hooks/post-receive
-        src=${chained_hook}
+        path="{{ prefix }}{{ item }}/hooks/post-receive"
+        src={{ chained_hook }}
         state=link
-    with_items: ${repos}
+    with_items: "{{ repos }}"

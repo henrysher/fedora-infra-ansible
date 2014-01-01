@@ -1,5 +1,5 @@
 - name: set root passwd
-  action: user name=root password=$builder_rootpw state=present
+  action: user name=root password={{ builder_rootpw }} state=present
 
 - name: add mock user as 425
   action: user name=mock uid=425 state=present home=/var/lib/mock createhome=yes system=yes
@@ -11,7 +11,7 @@
   action: file state=directory path=/var/lib/mock/.ssh mode=700 owner=mock group=mock
 
 - name: add mock ssh keys
-  action: copy src=$files/kojibuilder/mock_auth_keys dest=/var/lib/mock/.ssh/authorized_keys mode=640 owner=mock group=mock
+  action: copy src="{{ files }}/kojibuilder/mock_auth_keys" dest=/var/lib/mock/.ssh/authorized_keys mode=640 owner=mock group=mock
 
 - name: add kojibuilder
   action: user name=kojibuilder groups=mock 
@@ -23,10 +23,10 @@
   action: file state=directory path=/home/mockbuilder/.ssh mode=700 owner=mockbuilder group=mockbuilder
 
 - name: mockbuilder ssh key
-  action: copy src=$files/kojibuilder/ftbfs_auth_keys dest=/home/mockbuilder/.ssh/authorized_keys mode=644 owner=mockbuilder group=mockbuilder
+  action: copy src="{{ files }}/kojibuilder/ftbfs_auth_keys" dest=/home/mockbuilder/.ssh/authorized_keys mode=644 owner=mockbuilder group=mockbuilder
 
 - name: make a bunch of dirs
-  action: file state=directory path=$item
+  action: file state=directory path={{ item }}
   with_items:
     - /pub
     - /mnt/fedora_koji
@@ -35,16 +35,16 @@
     - /var/spool/rsyslog
 
 - name: add builder infra yum repo
-  action: copy src=$files/kojibuilder/builder-infrastructure.repo dest=/etc/yum.repos.d/builder-infrastructure.repo
+  action: copy src="{{ files }}/kojibuilder/builder-infrastructure.repo" dest=/etc/yum.repos.d/builder-infrastructure.repo
 
 - name: clean up packages we do not need
-  action: yum state=removed pkg=$item
+  action: yum state=removed pkg={{ item }}
   with_items:
     - audit
     - 'cronie\*'
 
 - name: add pkgs
-  action: yum  state=installed pkg=$item
+  action: yum  state=installed pkg={{ item }}
   with_items:
     - yum-utils
     - koji-builder
@@ -56,49 +56,49 @@
     - ntpdate
 
 - name: /etc/kojid/kojid.conf
-  action: copy src=$files/kojibuilder/kojid.conf dest=/etc/kojid/kojid.conf
+  action: copy src="{{ files }}/kojibuilder/kojid.conf" dest=/etc/kojid/kojid.conf
   when: not inventory_hostname.startswith(('arm01','arm03'))
   notify:
   - restart kojid
 
 
 - name: arm /etc/kojid/kojid.conf
-  action: copy src=$files/kojibuilder/arm-kojid.conf dest=/etc/kojid/kojid.conf
+  action: copy src="{{ files }}/kojibuilder/arm-kojid.conf" dest=/etc/kojid/kojid.conf
   when: inventory_hostname.startswith(('arm01','arm03'))
   notify:
   - restart kojid
 
 - name: /etc/koji/koji.conf
-  action: copy src=$files/kojibuilder/koji.conf dest=/etc/koji.conf
+  action: copy src="{{ files }}/kojibuilder/koji.conf" dest=/etc/koji.conf
   when: not inventory_hostname.startswith(('arm01','arm03'))
 
 - name: /etc/koji/koji.conf
-  action: copy src=$files/kojibuilder/arm-koji.conf dest=/etc/koji.conf
+  action: copy src="{{ files }}/kojibuilder/arm-koji.conf" dest=/etc/koji.conf
   when: inventory_hostname.startswith(('arm01','arm03'))
 
 - name: copy over koji ca cert
-  action: copy src=$private/files/koji/buildercerts/fedora-ca.cert dest=/etc/kojid/cacert.pem
+  action: copy src="{{ private }}/files/koji/buildercerts/fedora-ca.cert" dest=/etc/kojid/cacert.pem
 
 - name: copy over /etc/security/limits.conf
-  action: copy src=$files/kojibuilder/limits.conf dest=/etc/security/limits.conf
+  action: copy src="{{ files }}/kojibuilder/limits.conf" dest=/etc/security/limits.conf
 
 - name: copy over builder cert to /etc/kojid/kojibuilder.pem
-  action: copy src=$private/files/koji/buildercerts/${inventory_hostname}.pem dest=/etc/kojid/kojibuilder.pem mode=600   
+  action: copy src="{{ private }}/files/koji/buildercerts/{{ inventory_hostname }}.pem" dest=/etc/kojid/kojibuilder.pem mode=600   
 
 - name: chkconfig kojid on and leave it running
   action: service name=kojid enabled=on
 #  action: service name=kojid enabled=on state=started
 
 - name: copy over authorized keys for root
-  action: copy src=$files/kojibuilder/root_auth_keys dest=/root/.ssh/authorized_keys mode=644
+  action: copy src="{{ files }}/kojibuilder/root_auth_keys" dest=/root/.ssh/authorized_keys mode=644
 
 # idmapd and make sure it's set to run
 - name: idmapd.conf
-  action: copy src=$files/kojibuilder/idmapd.conf dest=/etc/idmapd.conf
+  action: copy src="{{ files }}/kojibuilder/idmapd.conf" dest=/etc/idmapd.conf
   tags:
   - configs
 - name: enable nfs-related services and run them
-  action: service name=$item  enabled=true state=started
+  action: service name={{ item }}  enabled=true state=started
   with_items:
   - rpcidmapd
   - rpcbind
@@ -106,7 +106,7 @@
   - nfslock
 
 - name: route config for netapp network
-  action: copy src=$files/kojibuilder/route-eth1 dest=/etc/sysconfig/network-scripts/route-eth1
+  action: copy src="{{ files }}/kojibuilder/route-eth1" dest=/etc/sysconfig/network-scripts/route-eth1
 
 - name: run netapp route
   command: /etc/sysconfig/network-scripts/ifup-routes eth1
@@ -122,7 +122,7 @@
 # mock configs for pungify job
 # TODO: restore this to "copy:", this is a temporary "fix" for https://github.com/ansible/ansible/issues/4377
 - name: put extra special  mock configs in
-  template: src=$files/kojibuilder/builders/$item dest=/etc/mock/$item mode=644
+  template: src="{{ files }}/kojibuilder/builders/{{ item }}" dest="/etc/mock/{{ item }}" mode=644
   with_items:
     - fedora-branched-pungi-armhfp.cfg
     - fedora-branched-pungi-i386.cfg
@@ -132,14 +132,14 @@
     - fedora-rawhide-pungi-armhfp.cfg
 
 - name: mock site-defaults.cfg
-  action: copy src=$files/kojibuilder/builders/site-defaults.cfg dest=/etc/mock/site-defaults.cfg mode=0644 owner=root group=mock
+  action: copy src="{{ files }}/kojibuilder/builders/site-defaults.cfg" dest=/etc/mock/site-defaults.cfg mode=0644 owner=root group=mock
   when: not inventory_hostname.startswith('bkernel')
 
 - name: ntp steptickers
-  action: copy src=$files/common/step-tickers dest=/etc/ntp/step-tickers
+  action: copy src="{{ files }}/common/step-tickers" dest=/etc/ntp/step-tickers
 
 - name: ntp.conf
-  action: copy src=$files/common/ntp.conf dest=/etc/ntp.conf
+  action: copy src="{{ files }}/common/ntp.conf" dest=/etc/ntp.conf
 
 - name: enable ntpd
   action: service name=ntpd enabled=true state=started

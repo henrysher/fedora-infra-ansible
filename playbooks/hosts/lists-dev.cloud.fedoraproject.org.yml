@@ -5,10 +5,10 @@
 
   vars_files: 
    - /srv/web/infra/ansible/vars/global.yml
-   - ${private}/vars.yml
+   - "{{ private }}/vars.yml"
 
   tasks:
-  - include: $tasks/persistent_cloud.yml
+  - include: "{{ tasks }}/persistent_cloud.yml"
 
 - name: provisions basics onto system/setup paths
   hosts: lists-dev.cloud.fedoraproject.org
@@ -17,14 +17,14 @@
 
   vars_files: 
    - /srv/web/infra/ansible/vars/global.yml
-   - ${private}/vars.yml
-   - ${vars}/${ansible_distribution}.yml
+   - "{{ private }}/vars.yml"
+   - "{{ vars }}/{{ ansible_distribution }}.yml"
   vars:
    - mailman_vardir: /srv/persist/mailman
 
   tasks:
-  - include: $tasks/cloud_setup_basic.yml
-  - include: $tasks/postfix_basic.yml
+  - include: "{{ tasks }}/cloud_setup_basic.yml"
+  - include: "{{ tasks }}/postfix_basic.yml"
 
   - name: mount up disk of persistent storage
     action: mount name=/srv/persist src='LABEL=lists-dev' fstype=ext4 state=mounted
@@ -43,7 +43,7 @@
              dest=/etc/yum.repos.d/fedora-hyperkitty.repo mode=0444
 
   - name: install packages
-    yum: state=installed name=$item
+    yum: state=installed name={{ item }}
     with_items:
       - httpd
       - mod_ssl
@@ -72,7 +72,7 @@
     command: /usr/bin/postgresql-setup initdb
              creates=/var/lib/pgsql/data/postgresql.conf
   - name: copy pg_hba.conf
-    copy: src=$files/lists-dev/pg_hba.conf dest=/var/lib/pgsql/data/pg_hba.conf
+    copy: src="{{ files }}/lists-dev/pg_hba.conf" dest=/var/lib/pgsql/data/pg_hba.conf
     notify:
       - restart postgresql
   - name: start postgresql
@@ -80,7 +80,7 @@
 
   # open up ports (22, 80, 443, 25)
   - name: poke holes in the firewall
-    command: lokkit $item
+    command: lokkit {{ item }}
     with_items:
       - --service=ssh
       - --service=https
@@ -89,12 +89,12 @@
 
   # packages needed to be gone
   - name: erase packages
-    action: yum state=absent name=$item
+    action: yum state=absent name={{ item }}
     with_items:
     - cronie-anacron
 
   handlers:
-  - include: $handlers/restart_services.yml
+  - include: "{{ handlers }}/restart_services.yml"
 
 
 
@@ -105,23 +105,23 @@
   sudo_user: postgres
   vars_files: 
    - /srv/web/infra/ansible/vars/global.yml
-   - ${private}/vars.yml
-   - ${vars}/${ansible_distribution}.yml
+   - "{{ private }}/vars.yml"
+   - "{{ vars }}/{{ ansible_distribution }}.yml"
   vars:
    - mailman_vardir: /srv/persist/mailman
 
 
   tasks:
     - name: mailman DB user
-      postgresql_user: name=mailman password=$lists_dev_mm_db_pass
+      postgresql_user: name=mailman password={{ lists_dev_mm_db_pass }}
     - name: hyperkitty DB user
-      postgresql_user: name=hyperkitty password=$lists_dev_hk_db_pass
+      postgresql_user: name=hyperkitty password={{ lists_dev_hk_db_pass }}
     - name: kittystore DB user
-      postgresql_user: name=kittystore password=$lists_dev_ks_db_pass
+      postgresql_user: name=kittystore password={{ lists_dev_ks_db_pass }}
     - name: postorius DB user
-      postgresql_user: name=postorius password=$lists_dev_ps_db_pass
+      postgresql_user: name=postorius password={{ lists_dev_ps_db_pass }}
     - name: databases creation
-      postgresql_db: name=$item owner=$item encoding=UTF-8
+      postgresql_db: name={{ item }} owner={{ item }} encoding=UTF-8
       with_items:
         - mailman
         - hyperkitty
@@ -133,8 +133,8 @@
   gather_facts: no
   vars_files: 
    - /srv/web/infra/ansible/vars/global.yml
-   - ${private}/vars.yml
-   - ${vars}/${ansible_distribution}.yml
+   - "{{ private }}/vars.yml"
+   - "{{ vars }}/{{ ansible_distribution }}.yml"
   vars:
    - mailman_vardir: /srv/persist/mailman
 
@@ -147,12 +147,12 @@
         - restart mailman
 
     - name: set the mailman conffile
-      template: src=$files/lists-dev/mailman.cfg.j2 dest=/etc/mailman.cfg
+      template: src="{{ files }}/lists-dev/mailman.cfg.j2" dest=/etc/mailman.cfg
       notify:
         - restart mailman
 
     - name: install kittystore and hyperkitty
-      yum: state=installed name=$item
+      yum: state=installed name={{ item }}
       with_items:
         - kittystore
         - hyperkitty
@@ -169,13 +169,13 @@
       file: path=/var/log/hyperkitty/hyperkitty.log state=file
             owner=root group=apache mode=664
     - name: hyperkitty logging -- rotation
-      copy: src=$files/lists-dev/hyperkitty.logrotate.conf
+      copy: src="{{ files }}/lists-dev/hyperkitty.logrotate.conf"
             dest=/etc/logrotate.d/hyperkitty
 
     # settings / conf
     - name: install the hyperkitty/postorius settings file
-      template: src=$files/lists-dev/$item.settings_local.py.j2
-                dest=/etc/$item/sites/default/settings_local.py
+      template: src="{{ files }}/lists-dev/{{ item.settings_local.py.j2 }}"
+                dest="/etc/{{ item }}/sites/default/settings_local.py"
                 owner=root group=apache mode=0640
       with_items:
         - hyperkitty
@@ -185,8 +185,8 @@
         - restart mailman
 
     - name: install the hyperkitty/postorius urls file
-      copy: src=$files/lists-dev/$item.urls.py
-            dest=/etc/$item/sites/default/urls.py
+      copy: src="files/lists-dev/{{ item }}.urls.py"
+            dest="/etc/{{ item }}/sites/default/urls.py"
             owner=root group=root mode=0644
       with_items:
         - hyperkitty
@@ -196,8 +196,8 @@
         - restart mailman
 
     - name: install the hyperkitty/postorius httpd conf file
-      copy: src=$files/lists-dev/$item.apache.conf
-            dest=/etc/httpd/conf.d/$item.conf
+      copy: src="{{ files }}/lists-dev/{{ item }}.apache.conf"
+            dest="/etc/httpd/conf.d/{{ item }}.conf"
       with_items:
         - hyperkitty
         - postorius
@@ -205,22 +205,22 @@
         - reload apache
 
     - name: set the hyperkitty conffile in mailman
-      copy: src=$files/lists-dev/hyperkitty.cfg dest=/etc/mailman.d/hyperkitty.cfg
+      copy: src="{{ files }}/lists-dev/hyperkitty.cfg" dest=/etc/mailman.d/hyperkitty.cfg
       notify:
         - restart mailman
 
     - name: set the postfix conffile
-      template: src=$files/lists-dev/postfix-main.cf.j2 dest=/etc/postfix/main.cf
+      template: src="{{ files }}/lists-dev/postfix-main.cf.j2" dest=/etc/postfix/main.cf
       notify:
         - restart postfix
 
     - name: set the mail aliases
-      copy: src=$files/lists-dev/aliases dest=/etc/aliases
+      copy: src="{{ files }}/lists-dev/aliases" dest=/etc/aliases
       notify:
         - reload aliases
 
     - name: easy access to the postgresql databases
-      template: src=$files/lists-dev/pgpass.j2 dest=/root/.pgpass
+      template: src="{{ files }}/lists-dev/pgpass.j2" dest=/root/.pgpass
                 owner=root group=root mode=0600
 
 
@@ -231,17 +231,17 @@
     # so no matter when it is run the right thing happens
 
     - name: run django syncdb
-      command: /usr/bin/django-admin syncdb --pythonpath=/etc/$item/sites/default --settings=settings
+      command: /usr/bin/django-admin syncdb --pythonpath="/etc/{{ item }}/sites/default" --settings=settings
       with_items:
         - hyperkitty
         - postorius
     - name: run django migrate
       command: /usr/bin/django-admin migrate --pythonpath=/etc/hyperkitty/sites/default --settings=settings hyperkitty
     - name: kittystore schema update
-      command: /usr/bin/kittystore-updatedb -s postgres://kittystore:${lists_dev_ks_db_pass}@localhost/kittystore
+      command: /usr/bin/kittystore-updatedb -s postgres://kittystore:{{ lists_dev_ks_db_pass }}@localhost/kittystore
 
     - name: copy the initial user fixture
-      copy: src=$files/lists-dev/postorius.initial-user.json
+      copy: src="{{ files }}/lists-dev/postorius.initial-user.json"
             dest=/etc/postorius/sites/default/initial-user.json
             owner=root group=apache mode=0640
 
@@ -249,11 +249,11 @@
       command: /usr/bin/django-admin loaddata --pythonpath=/etc/postorius/sites/default --settings=settings /etc/postorius/sites/default/initial-user.json
 
     - name: html index
-      copy: src=$files/lists-dev/index.html dest=/var/www/html/index.html
+      copy: src="{{ files }}/lists-dev/index.html" dest=/var/www/html/index.html
 
     # Start services
     - name: start services
-      service: state=started enabled=yes name=$item
+      service: state=started enabled=yes name={{ item }}
       with_items:
         - httpd
         - postgresql
@@ -262,6 +262,6 @@
 
 
   handlers:
-  - include: $handlers/restart_services.yml
+  - include: "{{ handlers }}/restart_services.yml"
   - name: reload aliases
     command: newaliases 

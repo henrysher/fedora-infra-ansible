@@ -5,7 +5,7 @@
 
   tasks:
   - name: add it to the special group
-    local_action: add_host hostname=$target groupname=tmp_just_created
+    local_action: add_host hostname={{ target }} groupname=tmp_just_created
 
 - name: provision instance
   hosts: tmp_just_created
@@ -14,12 +14,12 @@
 
   vars_files: 
    - /srv/web/infra/ansible/vars/global.yml
-   - ${private}/vars.yml
-   - ${vars}/${ansible_distribution}.yml
+   - "{{ private }}/vars.yml"
+   - "{{ vars }}/{{ ansible_distribution }}.yml"
 
   tasks:
-  - include: $tasks/growroot_cloud.yml
-  - include: $tasks/cloud_setup_basic.yml
+  - include: "{{ tasks }}/growroot_cloud.yml"
+  - include: "{{ tasks }}/cloud_setup_basic.yml"
 
   handlers:
-  - include: $handlers/restart_services.yml
+  - include: "{{ handlers }}/restart_services.yml"

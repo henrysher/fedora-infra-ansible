@@ -5,11 +5,11 @@
 
   vars_files: 
    - /srv/web/infra/ansible/vars/global.yml
-   - ${private}/vars.yml
+   - "{{ private }}/vars.yml"
 
   tasks:
-  - include: $tasks/persistent_cloud.yml
-  - include: $tasks/growroot_cloud.yml
+  - include: "{{ tasks }}/persistent_cloud.yml"
+  - include: "{{ tasks }}/growroot_cloud.yml"
 
 - name: provision instance
   hosts: copr-fe-dev.cloud.fedoraproject.org
@@ -18,18 +18,18 @@
 
   vars_files: 
    - /srv/web/infra/ansible/vars/global.yml
-   - ${private}/vars.yml
-   - ${vars}/${ansible_distribution}.yml
+   - "{{ private }}/vars.yml"
+   - "{{ vars }}/{{ ansible_distribution }}.yml"
 
   tasks:
-  - include: $tasks/cloud_setup_basic.yml
-  - include: $tasks/iptables.yml
+  - include: "{{ tasks }}/cloud_setup_basic.yml"
+  - include: "{{ tasks }}/iptables.yml"
 
   - name: copy copr.repo
-    action: copy src=$files/copr/fe/yum/copr.repo dest=/etc/yum.repos.d/copr.repo
+    action: copy src="{{ files }}/copr/fe/yum/copr.repo" dest=/etc/yum.repos.d/copr.repo
 
   - name: install copr-fe pkgs
-    action: yum state=installed pkg=$item
+    action: yum state=installed pkg={{ item }}
     with_items:
     - copr-frontend
     - copr-selinux
@@ -39,19 +39,19 @@
     - packages
 
   - name: copy apache files to conf.d
-    action: copy src=$files/copr/fe/httpd/$item dest=/etc/httpd/conf.d/$item
+    action: copy src="{{ files }}/copr/fe/httpd/{{ item }}" dest="/etc/httpd/conf.d/{{ item }}"
     with_items:
     - coprs.conf
     - welcome.conf
 
   - name: copy pg_hba.conf
-    action: copy src=$files/copr/fe/pg/pg_hba.conf dest=/var/lib/pgsql/data/pg_hba.conf owner=postgres group=postgres mode=0600
+    action: copy src="{{ files }}/copr/fe/pg/pg_hba.conf" dest=/var/lib/pgsql/data/pg_hba.conf owner=postgres group=postgres mode=0600
   
   - name: enable services
-    action: service state=running enabled=yes name=$item
+    action: service state=running enabled=yes name={{ item }}
     with_items:
     - httpd
     - postgresql
 
   handlers:
-  - include: $handlers/restart_services.yml
+  - include: "{{ handlers }}/restart_services.yml"

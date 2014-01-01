@@ -5,14 +5,14 @@
   - packages
 
 - name: /etc/postfix/main.cf
-  action: copy src=$item dest=/etc/postfix/main.cf
+  action: copy src={{ item }} dest=/etc/postfix/main.cf
   with_first_found:
-    - $postfix_maincf
-    - $files/postfix/main.cf.${ansible_fqdn}
-    - $files/postfix/main.cf.${inventory_hostname}
-    - $files/postfix/main.cf.${host_group}
-    - $files/postfix/main.cf.${postfix_group}
-    - $files/postfix/main.cf
+    - "{{ postfix_maincf }}"
+    - "{{ files }}/postfix/main.cf.{{ ansible_fqdn }}"
+    - "{{ files }}/postfix/main.cf.{{ inventory_hostname }}"
+    - "{{ files }}/postfix/main.cf.{{ host_group }}"
+    - "{{ files }}/postfix/main.cf.{{ postfix_group }}"
+    - "{{ files }}/postfix/main.cf"
   notify:
   - restart postfix
   tags:

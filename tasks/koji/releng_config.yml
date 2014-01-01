@@ -1,5 +1,5 @@
 - name: set root passwd
-  action: user name=root password=$builder_rootpw state=present
+  action: user name=root password={{ builder_rootpw }} state=present
 
 - name: add mock user as 425
   action: user name=mock uid=425 state=present home=/var/lib/mock createhome=yes system=yes
@@ -8,7 +8,7 @@
 - name: add mock ssh dir
   action: file state=directory path=/var/lib/mock/.ssh mode=700 owner=mock group=mock
 - name: add mock ssh keys
-  action: copy src=$files/kojibuilder/mock_auth_keys dest=/var/lib/mock/.ssh/authorized_keys mode=644 owner=mock group=mock
+  action: copy src="{{ files }}/kojibuilder/mock_auth_keys" dest=/var/lib/mock/.ssh/authorized_keys mode=644 owner=mock group=mock
 
 - name: add ftpsync group
   action: group name=ftpsync gid=263 system=yes state=present
@@ -17,7 +17,7 @@
   action: user name=ftpsync uid=263 group=ftpsync system=yes home=/var/tmp/ftpsync createhome=yes system=yes state=present
 
 - name: add the ftpsync update-fullfilelist script
-  action: copy src=$files/releng/update-fullfilelist dest=/usr/local/bin/update-fullfilelist owner=ftpsync group=ftpsync mode=555
+  action: copy src="{{ files }}/releng/update-fullfilelist" dest=/usr/local/bin/update-fullfilelist owner=ftpsync group=ftpsync mode=555
 
 - name: add masher group
   action: group name=masher gid=751 system=yes state=present
@@ -28,18 +28,18 @@
 - name: add masher ssh dir
   action: file state=directory path=/home/masher/.ssh mode=700 owner=masher group=masher
 - name: add masher ssh keys
-  action: copy src=$files/releng/mash/masher.$item dest=/home/masher/.ssh/$item mode=600 owner=masher group=masher
+  action: copy src="{{ files }}/releng/mash/masher.{{ item }}" dest="/home/masher/.ssh/{{ item }}" mode=600 owner=masher group=masher
   with_items:
     - id_rsa.pub
     - config
 
 - name: add masher ssh priv key
-  action: copy src=$private/files/mash/masher.id_rsa dest=/home/masher/.ssh/id_rsa mode=600 owner=masher group=masher
+  action: copy src="{{ private }}/files/mash/masher.id_rsa" dest=/home/masher/.ssh/id_rsa mode=600 owner=masher group=masher
 
 - name: add masher koji cert/key
-  action: copy src=$private/files/mash/masher.pem dest=/home/masher/.fedora.cert mode=600 owner=masher group=masher
+  action: copy src="{{ private }}/files/mash/masher.pem dest=/home/masher/.fedora.cert" mode=600 owner=masher group=masher
 - name: add masher koji ca cert
-  action: copy src=$private/files/koji/buildercerts/fedora-ca.cert dest=/home/masher/.fedora-server-ca.cert
+  action: copy src="{{ private }}/files/koji/buildercerts/fedora-ca.cert" dest=/home/masher/.fedora-server-ca.cert
 
 # rawhide group
 - name: rawhide group
@@ -49,7 +49,7 @@
   action: user name=rawhide uid=265 group=rawhide home=/tmp comment="rawhide compose account"
  
 - name: make a bunch of dirs
-  action: file state=directory path=$item
+  action: file state=directory path={{ item }}
   with_items:
     - /pub
     - /pub/fedora
@@ -67,17 +67,17 @@
   action: file src=/mnt/fedora_koji/compose/cache dest=/srv/pungi/cache  state=link
 
 - name: add builder infra yum repo
-  action: copy src=$files/kojibuilder/builder-infrastructure.repo dest=/etc/yum.repos.d/builder-infrastructure.repo
+  action: copy src="{{ files }}/kojibuilder/builder-infrastructure.repo" dest=/etc/yum.repos.d/builder-infrastructure.repo
   tags:
   - configs
 
 - name: add releng yum repo
-  action: copy src=$files/releng/releng.repo dest=/etc/yum.repos.d/releng.repo
+  action: copy src="{{ files }}/releng/releng.repo" dest=/etc/yum.repos.d/releng.repo
   tags:
   - configs
 
 - name: add pkgs
-  action: yum  state=installed pkg=$item
+  action: yum  state=installed pkg={{ item }}
   with_items:
     - yum-utils
     - koji
@@ -93,12 +93,12 @@
     - pykickstart
 
 - name: /etc/koji/koji.conf
-  action: copy src=$files/kojibuilder/koji.conf dest=/etc/koji.conf
+  action: copy src="{{ files }}/kojibuilder/koji.conf" dest=/etc/koji.conf
 
 
 # mock configs
 - name: put extra special  mock configs in
-  action: copy src=$files/releng/$item dest=/etc/mock/$item mode=644
+  action: copy src="{{ files }}/releng/{{ item }}" dest="/etc/mock/{{ item }}" mode=644
   with_items:
     - fedora-branched-compose-armhfp.cfg
     - fedora-rawhide-compose-armhfp.cfg
@@ -109,12 +109,12 @@
 
 # idmapd and make sure it's set to run
 - name: idmapd.conf
-  action: copy src=$files/kojibuilder/idmapd.conf dest=/etc/idmapd.conf
+  action: copy src="{{ files }}/kojibuilder/idmapd.conf" dest=/etc/idmapd.conf
   tags:
   - configs
 
 - name: enable nfs-related services and run them
-  action: service name=$item  enabled=true state=started
+  action: service name={{ item }}  enabled=true state=started
   with_items:
   - rpcidmapd
   - rpcbind
@@ -123,7 +123,7 @@
 
 
 - name: route to netapp network
-  action: copy src=$files/kojibuilder/route-eth1 dest=/etc/sysconfig/network-scripts/route-eth1
+  action: copy src="{{ files }}/kojibuilder/route-eth1" dest=/etc/sysconfig/network-scripts/route-eth1
   notify:
   - restart netapproute
 
@@ -138,26 +138,26 @@
 
 # put cron job in for branched compose
 - name: branched compose cron
-  action: copy src=$files/releng/branched dest=/etc/cron.d/branched
+  action: copy src="{{ files }}/releng/branched" dest=/etc/cron.d/branched
   when: inventory_hostname.startswith('releng01')
 
 # put cron job in for rawhide compose
 - name: rawhide compose cron
-  action: copy src=$files/releng/rawhide dest=/etc/cron.d/rawhide
+  action: copy src="{{ files }}/releng/rawhide" dest=/etc/cron.d/rawhide
   when: inventory_hostname.startswith('releng02')
 
 - name: sudoers defaults
-  action: copy src=$private/files/sudo/releng-sudoers dest=/etc/sudoers mode=0440
+  action: copy src="{{ private }}/files/sudo/releng-sudoers" dest=/etc/sudoers mode=0440
   tags:
   - configs
 - name: sudoers for ftpsync
-  action: copy src=$private/files/sudo/ftpsync-sudo dest=/etc/sudoers.d/ftpsync mode=0440
+  action: copy src="{{ private }}/files/sudo/ftpsync-sudo" dest=/etc/sudoers.d/ftpsync mode=0440
   tags:
   - configs
 
 # fedmsg message buss stuff. 
 - name: fedmsg install
-  action: yum  state=installed pkg=$item
+  action: yum  state=installed pkg={{ item }}
   with_items:
     - fedmsg
     # needed for now, until moksha 0.8.8-4 pulls it in.
@@ -173,7 +173,7 @@
   tags:
   - fedmsg
 - name: fedmsg files
-  action: copy src=$files/releng/fedmsg/$item dest=/etc/fedmsg.d/$item mode=644
+  action: copy src="{{ files }}/releng/fedmsg/{{ item }}" dest="/etc/fedmsg.d/{{ item }}" mode=644
   with_items:
     - ircbot.py
     - ssl.py
@@ -182,32 +182,32 @@
   tags:
   - fedmsg
 - name: fedmsg ca
-  action: copy src=$private/files/fedmsg-certs/keys/$item dest=/etc/pki/fedmsg/$item mode=644
+  action: copy src="{{ private }}/files/fedmsg-certs/keys/{{ item }}" dest="/etc/pki/fedmsg/{{ item }}" mode=644
   with_items:
     - ca.crt
 - name: fedmsg cert
-  action: copy src=$private/files/fedmsg-certs/keys/$item dest=/etc/pki/fedmsg/$item mode=644
+  action: copy src="{{ private }}/files/fedmsg-certs/keys/{{ item }}" dest="/etc/pki/fedmsg/{{ item }}" mode=644
   with_items:
     - bodhi-releng01.phx2.fedoraproject.org.crt
   tags:
   - fedmsg
   when: inventory_hostname.startswith('releng01')
 - name: fedmsg key
-  action: copy src=$private/files/fedmsg-certs/keys/$item dest=/etc/pki/fedmsg/$item mode=640 group=masher
+  action: copy src="{{ private }}/files/fedmsg-certs/keys/{{ item }}" dest="/etc/pki/fedmsg/{{ item }}" mode=640 group=masher
   with_items:
     - bodhi-releng01.phx2.fedoraproject.org.key
   tags:
   - fedmsg
   when: inventory_hostname.startswith('releng01')
 - name: fedmsg cert
-  action: copy src=$private/files/fedmsg-certs/keys/$item dest=/etc/pki/fedmsg/$item mode=644
+  action: copy src="{{ private }}/files/fedmsg-certs/keys/{{ item }}" dest="/etc/pki/fedmsg/{{ item }}" mode=644
   with_items:
     - bodhi-releng02.phx2.fedoraproject.org.crt
   tags:
   - fedmsg
   when: inventory_hostname.startswith('releng02')
 - name: fedmsg key
-  action: copy src=$private/files/fedmsg-certs/keys/$item dest=/etc/pki/fedmsg/$item mode=640 group=masher
+  action: copy src="{{ private }}/files/fedmsg-certs/keys/{{ item }}" dest="/etc/pki/fedmsg/{{ item }}" mode=640 group=masher
   with_items:
     - bodhi-releng02.phx2.fedoraproject.org.key
   tags:

@@ -11,14 +11,14 @@
 
   vars_files: 
    - /srv/web/infra/ansible/vars/global.yml
-   - ${private}/vars.yml
-   - ${vars}/${ansible_distribution}.yml
+   - "{{ private }}/vars.yml"
+   - "{{ vars }}/{{ ansible_distribution }}.yml"
 
   tasks:
-  - include: $tasks/virt_instance_create.yml
+  - include: "{{ tasks }}/virt_instance_create.yml"
 
   handlers:
-  - include: $handlers/restart_services.yml
+  - include: "{{ handlers }}/restart_services.yml"
 
 # Once the instance exists, configure it. 
 
@@ -30,18 +30,18 @@
 
   vars_files:
   - /srv/web/infra/ansible/vars/global.yml
-  - ${private}/vars.yml
-  - ${vars}/${ansible_distribution}.yml
+  - "{{ private }}/vars.yml"
+  - "{{ vars }}/{{ ansible_distribution }}.yml"
 
   roles:
   - /srv/web/infra/ansible/roles/base
   - /srv/web/infra/ansible/roles/nagios_client
 
   tasks:
-  - include: $tasks/koji/releng_config.yml
-  - include: $tasks/hosts.yml
-  - include: $tasks/motd.yml
+  - include: "{{ tasks }}/koji/releng_config.yml"
+  - include: "{{ tasks }}/hosts.yml"
+  - include: "{{ tasks }}/motd.yml"
 
   handlers:
-  - include: $handlers/restart_services.yml
+  - include: "{{ handlers }}/restart_services.yml"
 

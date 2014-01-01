@@ -1,22 +1,21 @@
-DIE DIE DIE
-there is no way this could work so fail
-
-
+#DIE DIE DIE
+# there is no way this could work so fail
+#
 # only works with -e target=
 # requires --extra-vars="target=hostspec"
 
 - name: destroy the cloud instance
-  hosts: $target
+  hosts: "{{ target }}"
   user: root
   gather_facts: false
 
   tasks:
   - name: fail if the host/ip is not up
-    local_action: wait_for host=${inventory_hostname} port=22 delay=0 timeout=10
-    when_string: inventory_hostname not in result.list_vms
+    local_action: wait_for host={{ inventory_hostname }} port=22 delay=0 timeout=10
+    when: inventory_hostname not in result.list_vms
 
   - name: pause for 30s before doing it
-    pause: seconds=30 prompt="Destroying vm now $target, abort if this is wrong"
+    pause: seconds=30 prompt="Destroying vm now {{ target }}, abort if this is wrong"
     
   - name: find the instance id from the builder
     action: command curl -s http://169.254.169.254/latest/meta-data/instance-id

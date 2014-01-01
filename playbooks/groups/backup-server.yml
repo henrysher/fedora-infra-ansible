@@ -11,8 +11,8 @@
 
   vars_files: 
    - /srv/web/infra/ansible/vars/global.yml
-   - ${private}/vars.yml
-   - ${vars}/${ansible_distribution}.yml
+   - "{{ private }}/vars.yml"
+   - "{{ vars }}/{{ ansible_distribution }}.yml"
 
   roles:
   - /srv/web/infra/ansible/roles/base
@@ -22,13 +22,13 @@
   - /srv/web/infra/ansible/roles/fas_client
 
   tasks:
-  - include: $tasks/hosts.yml
-  - include: $tasks/yumrepos.yml
-  - include: $tasks/2fa_client.yml
-  - include: $tasks/motd.yml
-  - include: $tasks/sudo.yml
-  - include: $tasks/mysql_server.yml
-  - include: $tasks/rdiff_backup_server.yml
+  - include: "{{ tasks }}/hosts.yml"
+  - include: "{{ tasks }}/yumrepos.yml"
+  - include: "{{ tasks }}/2fa_client.yml"
+  - include: "{{ tasks }}/motd.yml"
+  - include: "{{ tasks }}/sudo.yml"
+  - include: "{{ tasks }}/mysql_server.yml"
+  - include: "{{ tasks }}/rdiff_backup_server.yml"
 
   - name: Create GNOME backup user
     user: name=gnomebackup state=present home=/fedora_backups/gnome/ createhome=yes shell=/sbin/nologin
@@ -40,10 +40,10 @@
     copy: src=$files/gnome/ssh_config dest=/usr/local/etc/gnome_ssh_config mode=0600 owner=gnomebackup
 
   - name: Install GNOME backup key
-    copy: src=${private}/files/gnome/backup_id.rsa dest=/usr/local/etc/gnome_backup_id.rsa mode=0600 owner=gnomebackup
+    copy: src="{{ private }}/files/gnome/backup_id.rsa" dest=/usr/local/etc/gnome_backup_id.rsa mode=0600 owner=gnomebackup
 
   - name: Install GNOME backup script
-    copy: src=$files/gnome/backup.sh dest=/usr/local/bin/gnome_backup mode=0700 owner=gnomebackup
+    copy: src="{{ files }}/gnome/backup.sh" dest=/usr/local/bin/gnome_backup mode=0700 owner=gnomebackup
 
   - name: Schedule the GNOME backup script
     cron: name="Backup" hour=5 minute=0 job="(cd /fedora_backups/gnome/; /usr/local/bin/lock-wrapper gnomebackup /usr/local/bin/gnome_backup)" user=gnomebackup
@@ -77,4 +77,4 @@
     - expander.gnome.org
 
   handlers:
-  - include: $handlers/restart_services.yml
+  - include: "{{ handlers }}/restart_services.yml"

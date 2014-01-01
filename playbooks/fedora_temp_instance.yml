@@ -8,15 +8,15 @@
 
   vars_files: 
    - /srv/web/infra/ansible/vars/global.yml
-   - ${private}/vars.yml
+   - "{{ private }}/vars.yml"
   vars:
   - keypair: fedora-admin-20130801
-  - image: $f18_qcow_id
+  - image: "{{ f18_qcow_id }}"
   - instance_type: m1.small
   - security_group: default
 
   tasks:
-  - include: $tasks/transient_cloud.yml
+  - include: "{{ tasks }}/transient_cloud.yml"
 
 - name: provision instance
   hosts: tmp_just_created
@@ -25,12 +25,12 @@
 
   vars_files: 
    - /srv/web/infra/ansible/vars/global.yml
-   - ${private}/vars.yml
-   - ${vars}/${ansible_distribution}.yml
+   - "{{ private }}/vars.yml"
+   - "{{ vars }}/{{ ansible_distribution }}.yml"
 
   tasks:
-  - include: $tasks/growroot_cloud.yml
-  - include: $tasks/cloud_setup_basic.yml
+  - include: "{{ tasks }}/growroot_cloud.yml"
+  - include: "{{ tasks }}/cloud_setup_basic.yml"
 
   handlers:
-  - include: $handlers/restart_services.yml
+  - include: "{{ handlers }}/restart_services.yml"
