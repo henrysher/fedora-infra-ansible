@@ -73,7 +73,8 @@
 
   - name: add copr-buildsys keys to copr user path
     action: copy src={{ item }} dest=/home/copr/cloud/ owner=copr group=copr mode=0600
-    with_fileglob: "{{ private }}/files/openstack/copr-copr/*"
+    with_fileglob:
+     - "{{ private }}/files/openstack/copr-copr/*"
 
   - name: setup privkey for copr user
     action: copy src="{{ private }}/files/copr/buildsys.priv" dest=/home/copr/.ssh/id_rsa owner=copr group=copr mode=600
@@ -144,14 +145,16 @@
 
   - name: put files into the files subdir off of provisioning
     action: copy src={{ item }} dest=/home/copr/provision/files/
-    with_fileglob: "{{ files }}/copr/provision/files/*"
+    with_fileglob:
+     - "{{ files }}/copr/provision/files/*"
     tags:
     - provision_config
 
   # ansible lacks a recurse - so we need this until then
   - name: put files into the files/mock subdir off of provisioning
     action: copy src={{ item }} dest=/home/copr/provision/files/mock
-    with_fileglob: "{{ files }}/copr/provision/files/mock/*"
+    with_fileglob:
+     - "{{ files }}/copr/provision/files/mock/*"
     tags:
     - provision_config
 
