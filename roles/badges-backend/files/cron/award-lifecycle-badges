@@ -56,6 +56,7 @@ def get_fas_userlist(fas_credentials):
 
 
 def main():
+    now = datetime.datetime.utcnow()
     year = datetime.timedelta(days=365.5)
     mapping = {
         'egg': year * 1,
@@ -77,7 +78,9 @@ def main():
     for badge_id, delta in mapping.items():
         badge = tahrir.get_badge(badge_id=badge_id)
         for person in results:
-            if now - person.creation > delta:
+            creation = datetime.datetime.strptime(
+                person.creation.split('.')[0], '%Y-%m-%d %H:%M:%S')
+            if now - creation > delta:
                 hit_em_up(badge, person)
 
 
