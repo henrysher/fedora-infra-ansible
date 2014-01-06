@@ -1,16 +1,17 @@
 # create a new koji builder on raw hw
 # NOTE: should be used with --limit most of the time
-# NOTE: most of these vars come from group_vars/buildhw or from hostvars
+# NOTE: most of these vars_path come from group_vars/buildhw or from hostvars
 
 - name: make koji builder(s) on raw hw
   hosts: buildhw;buildppc;buildarm
   user: root
   gather_facts: True
+  accellerate: True
 
   vars_files: 
    - /srv/web/infra/ansible/vars/global.yml
    - "{{ private }}/vars.yml"
-   - "{{ vars }}/{{ ansible_distribution }}.yml"
+   - "{{ vars_path }}/{{ ansible_distribution }}.yml"
 
   roles:
   - /srv/web/infra/ansible/roles/base
@@ -26,17 +27,16 @@
   - name: restart kojid
     action: service name=kojid state=restarted
   
-
-
 - name: make koji builder(s) on raw hw
   hosts: buildhw
   user: root
   gather_facts: True
+  accellerate: True
 
   vars_files: 
    - /srv/web/infra/ansible/vars/global.yml
    - "{{ private }}/vars.yml"
-   - "{{ vars }}/{{ ansible_distribution }}.yml"
+   - "{{ vars_path }}/{{ ansible_distribution }}.yml"
 
   roles:
   - /srv/web/infra/ansible/roles/base
@@ -50,5 +50,3 @@
 
   - name: restart kojid
     action: service name=kojid state=restarted
-  
-
