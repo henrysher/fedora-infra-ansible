@@ -1,0 +1,158 @@
+#!/usr/bin/env python
+
+import __main__
+# This is going to require sqlalchemy 0.8 sooner than later.
+__main__.__requires__ = __requires__ = ["tahrir-api", "sqlalchemy>=0.7"]
+import pkg_resources
+pkg_resources.require(__requires__)
+
+import tempfile
+import time
+import os
+import subprocess
+import shutil
+
+from tahrir_api.dbapi import TahrirDatabase
+import fedbadges.utils
+import transaction
+
+import fedora.client
+import socket
+
+import logging
+log = logging.getLogger()
+logging.basicConfig()
+
+import fedmsg
+import fedmsg.config
+
+fm_config = fedmsg.config.load_config()
+fm_config['cert_prefix'] = 'fedbadges'
+fm_config['name'] = 'relay_inbound'
+fm_config['active'] = True
+fedmsg.init(**fm_config)
+
+
+badge = None
+email_to_username_mapping = {}
+
+_fas_cache = {}
+
+
+def make_email_to_username_map(fas_credentials):
+    fasclient = fedora.client.fas2.AccountSystem(
+        username=fas_credentials['username'],
+        password=fas_credentials['password'],
+    )
+
+    timeout = socket.getdefaulttimeout()
+    socket.setdefaulttimeout(600)
+    try:
+        log.info("Downloading FAS cache")
+        request = fasclient.send_request('/user/list',
+                                         req_params={'search': '*'},
+                                         auth=True)
+    finally:
+        socket.setdefaulttimeout(timeout)
+
+    results = {}
+    for person in request['people']:
+        if person.email:
+            results[person.email] = person.username
+
+    return results
+
+
+def clone_repo(repo):
+    pwd = os.getcwd()
+    command = 'git clone https://github.com/fedora-infra/%s.git %s'
+    try:
+        location = tempfile.mkdtemp()
+        os.chdir(location)
+        os.system(command % (repo, location))
+    finally:
+        os.chdir(pwd)
+    return location
+
+
+def gather_authors(location):
+    pwd = os.getcwd()
+    command = 'git log --raw | grep "^Author: " | sort | uniq -c'
+    try:
+        os.chdir(location)
+        proc = subprocess.Popen([command], shell=True, stdout=subprocess.PIPE)
+        out, err = proc.communicate()
+        lines = out.split('\n')
+        authors = [line.split('<')[-1].split('>')[0] for line in lines]
+    finally:
+        os.chdir(pwd)
+    return authors
+
+def emails_to_fas_accounts(emails):
+    usernames = []
+    for email in emails:
+        if email.endswith('@fedoraproject.org'):
+            username = email[:-1 * len('@fedoraproject.org')]
+            if not username in usernames:
+                usernames.append(username)
+            continue
+
+        # Otherwise, look it up in FAS and append
+        raise WTFError("wtf is going on with fas")
+
+    return usernames
+
+
+def emails_to_fas_accounts(emails):
+    usernames = []
+    for email in emails:
+        if email in email_to_username_mapping:
+            usernames.append(email_to_username_mapping[email])
+    return usernames
+
+
+def main():
+    repos = ['tahrir', 'tahrir-api', 'fedbadges']
+    for repo in repos:
+        print "Trying %r" % repo
+        location = clone_repo(repo)
+        try:
+            emails = gather_authors(location)
+            print "Considering emails %r" % emails
+            usernames = emails_to_fas_accounts(emails)
+            print "Considering users  %r" % usernames
+            award_badges(usernames)
+        finally:
+            shutil.rmtree(location)
+
+
+def award_badges(usernames):
+    for username in usernames:
+        email = username + "@fedoraproject.org"
+        if tahrir.assertion_exists(badge.id, email):
+            print email, "already has", badge.id, "skipping."
+            continue
+
+        time.sleep(1)
+        print "awarding", badge.id, "to", email
+        try:
+            transaction.begin()
+            tahrir.add_assertion(badge.id, email, None)
+            transaction.commit()
+        except Exception as e:
+            transaction.abort()
+            print "Failure:", e
+
+
+if __name__ == '__main__':
+    uri = fm_config['badges_global']['database_uri']
+    tahrir = TahrirDatabase(
+        uri,
+        notification_callback=fedbadges.utils.notification_callback,
+    )
+    badge = tahrir.get_badge(badge_id='badge-off!')
+    if not badge:
+        raise ValueError("badge does not exist")
+    email_to_username_mapping = make_email_to_username_mapping(
+        fm_config['fas_credentials'])
+    main()
