@@ -10,7 +10,7 @@ config = {
     "badges_global": {
 
         # This is a sqlalchemy URI that points to the tahrir DB.
-        "database_uri": "postgresql://${tahrirDBUser}:${tahrirDBPassword}@db-tahrir/tahrir",
+        "database_uri": "postgresql://{{tahrirDBUser}}:{{tahrirDBPassword}}@db-tahrir/tahrir",
 
         # This is a set of data that tells our consumer what Open Badges Issuer
         # should be kept as the issuer of all the badges we create.
@@ -26,7 +26,7 @@ config = {
     # The badges backend (fedmsg-hub) uses this to build a fas cache of ircnicks
     # to fas usernames so it can act appropriately on certain message types.
     "fas_credentials": {
-        "username": "${fedoraDummyUser}",
-        "password": "${fedoraDummyUserPassword}",
+        "username": "{{fedoraDummyUser}}",
+        "password": "{{fedoraDummyUserPassword}}",
     },
 }
