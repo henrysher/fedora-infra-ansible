@@ -1,0 +1,74 @@
+#!/usr/bin/python -tt
+# vim: fileencoding=utf8 foldmethod=marker
+#{{{ License header: MIT
+"""Copyright (c) 2013 Till Maas <opensource@till.name>
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of
+this software and associated documentation files (the "Software"), to deal in
+the Software without restriction, including without limitation the rights to
+use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies
+of the Software, and to permit persons to whom the Software is furnished to do
+so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE."""
+#}}}
+""" :author: Till Maas
+    :contact: opensource@till.name
+    :license: MIT
+"""
+
+import ansible.runner
+
+ALIAS_PATH = '/srv/web/infra/hosts/{hostname}/host_aliases'
+
+if __name__ == "__main__":
+    runner = ansible.runner.Runner(module_name="setup")
+    results = runner.run()
+
+    sshhostkeys = {}
+    for (hostname, result) in results['contacted'].items():
+        facts = result["ansible_facts"]
+        key = "ssh-rsa {0}".format(facts["ansible_ssh_host_key_rsa_public"])
+
+        names = [hostname]
+        ansible_fqdn = facts["ansible_fqdn"]
+        if ansible_fqdn not in names:
+            names.append(ansible_fqdn)
+
+        ansible_hostname = facts["ansible_hostname"]
+        if ansible_hostname not in names:
+            names.append(ansible_hostname)
+
+        try:
+            with open(ALIAS_PATH.format(hostname=hostname),
+                      "rb") as alias_file:
+                aliases = [a.strip() for a in alias_file.readlines()]
+            for alias in aliases:
+                if alias not in names:
+                    names.append(alias)
+        except IOError:
+            pass
+
+        ipv4_addresses = facts["ansible_all_ipv4_addresses"]
+        names.extend(sorted(ipv4_addresses))
+
+        # ignore link local addresses
+        non_link_local = [a for a in facts["ansible_all_ipv6_addresses"] if
+                          not a.startswith("fe80::")]
+        names.extend(sorted(non_link_local))
+
+        sshhostkeys[hostname] = {"key": key,
+                                 "names": ",".join(names)}
+
+    for host in sorted(sshhostkeys.keys()):
+        print "{names} {key} {comment}".format(comment=host,
+                                               **sshhostkeys[host])
