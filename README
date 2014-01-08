@@ -143,10 +143,10 @@ The available images can be found by running::
 
   vars_files:
    - /srv/web/infra/ansible/vars/global.yml
-   - ${private}/vars.yml
+   - "{{ private }}/vars.yml"
 
   tasks:
-  - include: $tasks/persistent_cloud.yml
+  - include: "{{ tasks }}/persistent_cloud.yml"
 
 - name: provision instance
   hosts: $YOUR_HOSTNAME/IP HERE
@@ -155,15 +155,15 @@ The available images can be found by running::
 
   vars_files:
    - /srv/web/infra/ansible/vars/global.yml
-   - ${private}/vars.yml
-   - ${vars}/${ansible_distribution}.yml
+   - "{{ private }}/vars.yml"
+   - /srv/web/infra/ansible/vars//{{ ansible_distribution }}.yml
 
   tasks:
-  - include: $tasks/cloud_setup_basic.yml
+  - include: "{{ tasks }}/cloud_setup_basic.yml
   # fill in other actions/includes/etc here
 
   handlers:
-  - include: $handlers/restart_services.yml
+  - include: "{{ handlers }}/restart_services.yml
 
 
 5. add/commit the above to the git repo and push your changes

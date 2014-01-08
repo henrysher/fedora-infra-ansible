@@ -33,27 +33,27 @@
     file: path={{ rpmdir }}-old state=directory
 
   - name: copy the source rpms to the SRPMS dir
-    copy: src=${item} dest=${repodir}/SRPMS/
+    copy: src={{ item }} dest={{ repodir }}/SRPMS/
     with_fileglob:
      - "{{ rpmdir }}/*.src.rpm"
 
   - name: Run createrepo on the srpm dir
-    command: createrepo --update ${repodir}/SRPMS/
+    command: createrepo --update {{ repodir }}/SRPMS/
 
-  - name: move processed srpms out to ${rpmdir}-old
-    command: /bin/mv ${item} ${rpmdir}-old/
+  - name: move processed srpms out to {{ rpmdir }}-old
+    command: /bin/mv {{ item }} {{ rpmdir }}-old/
     with_fileglob:
      - "{{ rpmdir }}/*.src.rpm"
 
   - name: copy the binary rpms to the x86_64 dir
-    copy: src=${item} dest=${repodir}/x86_64/
+    copy: src={{ item }} dest={{ repodir }}/x86_64/
     with_fileglob:
      - "{{ rpmdir }}/*.rpm"
 
   - name: Run createrepo on the x86_64 dir
-    command: createrepo --update ${repodir}/x86_64/
+    command: createrepo --update {{ repodir }}/x86_64/
 
-  - name: move processed rpms out to ${rpmdir}-old
-    command: /bin/mv ${item} ${rpmdir}-old/
+  - name: move processed rpms out to {{ rpmdir }}-old
+    command: /bin/mv {{ item }} {{ rpmdir }}-old/
     with_fileglob:
      - "{{ rpmdir }}/*.rpm"
