@@ -26,12 +26,7 @@ DATABASES = {
         'NAME': 'askfedora',
         'USER': 'askfedora',                      # Not used with sqlite3.
         'PASSWORD': '{{ askbotDBPassword }}',                  # Not used with sqlite3.
-	{% if env == "staging" %}
-	'HOST' : 'db02.stg',
-	{% else %}
-	'HOST' : 'db-ask',
-	{% endif %}
-                             # Set to empty string for localhost. Not used with sqlite3.
+	'HOST' : 'db-ask',         # Set to empty string for localhost. Not used with sqlite3.
         'PORT': '5432',                      # Set to empty string for default. Not used with sqlite3.
         'TEST_CHARSET': 'utf8',              # Setting the character set and collation to utf-8
         'TEST_COLLATION': 'utf8_general_ci', # is necessary for MySQL tests to work properly.
@@ -249,7 +244,7 @@ CELERY_ALWAYS_EAGER = True
 
 
 
-{% if environment == "staging" %}
+{% if env == "staging" %}
 DOMAIN_NAME = 'ask.stg.fedoraproject.org'
 {% else %}
 DOMAIN_NAME = 'ask.fedoraproject.org'
