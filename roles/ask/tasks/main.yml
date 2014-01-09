@@ -1,0 +1,133 @@
+---
+#
+# Setup askbot for ask.fedoraproject.org site. 
+#
+- name: install needed packages
+  yum: pkg={{ item }} state=installed
+  with_items:
+  - askbot
+  - python-memcached
+  - python-askbot-fedmsg
+  - python-psycopg2
+  - python-django-post_office
+  tags:
+  - packages
+
+- name: install askbot settings.py template
+  template: >
+    src={{ item }} dest="/etc/askbot/sites/ask/config/settings.py"
+    owner=fedmsg group=fedmsg mode=0600
+  with_items:
+  - settings.py
+  tags:
+  - config
+
+- name: Install askbot.conf httpd config
+  copy: >
+    src=askbot.conf dest=/etc/httpd/conf.d/askbot.conf
+    owner=root group=root mode=0644
+  tags:
+  - files
+  notify:
+  - restart httpd
+
+#
+# we add this wsgi to handle ssl issues in stg
+#
+- name: Install askbot.wsgi httpd config
+  copy: >
+    src=askbot.wsgi dest=/usr/sbin/askbot.wsgi
+    owner=root group=root mode=0755
+  tags:
+  - files
+  notify:
+  - restart httpd
+
+- name: Install askbot cron jobs
+  copy: >
+    src={{ item }} dest=/etc/cron.d/{{ item }}
+    owner=root group=root mode=0644
+  with_items: 
+  - cron-ask-send-reminders
+  - cron-post-office-send-mail
+  tags:
+  - files
+
+- name: setup default skin link needed for askbot
+  file: state=link src=/usr/lib/python2.6/site-packages/askbot/skins/default dest=/usr/lib/python2.6/site-packages/askbot/static/default
+
+- name: setup admin skin link needed for askbot
+  file: state=link src=/usr/lib/python2.6/site-packages/askbot/skins/admin dest=/usr/lib/python2.6/site-packages/askbot/static/admin
+
+#
+# ?
+#
+- name: HOTFIX: askbot backends.py
+  copy: >
+    src=backends.py dest=/usr/lib/python2.6/site-packages/post_office/backends.py
+    owner=root group=root mode=0644
+  tags:
+  - files
+  notify:
+  - restart httpd
+
+#
+# Adds fedora openid login button
+#
+- name: HOTFIX: askbot login_providers.py
+  copy: >
+    src=login_providers.py dest=/usr/lib/python2.6/site-packages/askbot/conf/login_providers.py
+    owner=root group=root mode=0644
+  tags:
+  - files
+  notify:
+  - restart httpd
+
+#
+# Adds fedora openid login button
+#
+- name: HOTFIX: askbot util.py
+  copy: >
+    src=util.py dest=/usr/lib/python2.6/site-packages/askbot/deps/django_authopenid/util.py
+    owner=root group=root mode=0644
+  tags:
+  - files
+  notify:
+  - restart httpd
+
+#
+# fedora openid icon for login screen
+#
+- name: HOTFIX: askbot fedora-openid.png
+  copy: >
+    src=fedora-openid.png dest=/usr/lib/python2.6/site-packages/askbot/media/jquery-openid/images/fedora-openid.png
+    owner=root group=root mode=0644
+  tags:
+  - files
+  notify:
+  - restart httpd
+
+#
+# fedora openid icon for login screen
+#
+- name: HOTFIX: askbot fedora-openid.png
+  copy: >
+    src=fedora-openid.png dest=/usr/lib/python2.6/site-packages/askbot/static/default/media/jquery-openid/images/fedora-openid.png
+    owner=root group=root mode=0644
+  tags:
+  - files
+  notify:
+  - restart httpd
+
+#
+# fixes login with facebook.
+#
+
+- name: HOTFIX: askbot sanction-client.py
+  copy: >
+    src=sanction-client.py dest=/usr/lib/python2.6/site-packages/sanction/client.py
+    owner=root group=root mode=0644
+  tags:
+  - files
+  notify:
+  - restart httpd
