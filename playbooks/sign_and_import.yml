@@ -16,8 +16,8 @@
   # repo.  Since we're in freeze right now, we'll default to the testing repo.
   # It would be nice to be able to toggle this from the command line.
   vars:
-  - repodir: /mnt/fedora/app/fi-repo/testing/6
-  #- repodir: /mnt/fedora/app/fi-repo/6
+  #- repodir: /mnt/fedora/app/fi-repo/testing/6
+  - repodir: /mnt/fedora/app/fi-repo/6
 
   tasks:
   - name: Fail if no rpmdir provided
@@ -27,7 +27,7 @@
   # TODO -- I'd also like to fail if there are no *.rpm files in there.
 
   - name: sign all the rpms with our gpg key
-    shell: /bin/rpm --resign "{{ rpmdir }}/*.rpm"
+    shell: /bin/rpm --resign {{ rpmdir }}/*.rpm
 
   - name: make a directory where we store the rpms afterwards
     file: path={{ rpmdir }}-old state=directory
