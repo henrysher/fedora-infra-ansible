@@ -30,7 +30,7 @@ DATABASES = {
 	'HOST' : 'db01',
 	{% else %}
 	'HOST' : 'db-ask',
-	{% end %}
+	{% endif %}
                              # Set to empty string for localhost. Not used with sqlite3.
         'PORT': '5432',                      # Set to empty string for default. Not used with sqlite3.
         'TEST_CHARSET': 'utf8',              # Setting the character set and collation to utf-8
@@ -204,7 +204,7 @@ INSTALLED_APPS = (
 CACHE_BACKEND = 'locmem://'
 {% else %}
 CACHE_BACKEND='memcached://memcached04:11211/'
-{% end %}
+{% endif %}
 #needed for django-keyedcache
 CACHE_TIMEOUT = 6000
 #sets a special timeout for livesettings if you want to make them different
@@ -253,7 +253,7 @@ CELERY_ALWAYS_EAGER = True
 DOMAIN_NAME = 'ask.stg.fedoraproject.org'
 {% else %}
 DOMAIN_NAME = 'ask.fedoraproject.org'
-{% end %}
+{% endif %}
 #https://docs.djangoproject.com/en/1.3/ref/contrib/csrf/
 CSRF_COOKIE_DOMAIN = DOMAIN_NAME
 
