@@ -76,16 +76,3 @@
   file: >
     dest=/usr/share/nuancier/nuancier.wsgi
     setype=httpd_sys_content_t
-
-- name: hotfix python-fedora-flask to include latest flask_fas_openid
-  template: src={{ item.file }}
-            dest="{{ item.location }}/{{ item.file }}"
-            owner=apache group=apache mode=0600
-  when: env != 'staging'
-  with_items:
-  - { file: flask_fas_openid.py, location: /usr/lib/python2.6/site-packages/ }
-  tags:
-  - config
-  - hotfix
-  notify:
-  - restart apache
