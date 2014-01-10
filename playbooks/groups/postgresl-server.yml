@@ -2,10 +2,11 @@
 # NOTE: should be used with --limit most of the time
 # NOTE: most of these vars_path come from group_vars/backup_server or from hostvars
 
-- name: make postgresql-server
-  hosts: dbserver-secondary
+- name: make postgresql-server instance
+  hosts: db-datanommer01.phx2.fedoraproject.org
   user: root
   gather_facts: False
+  accelerate: true
 
   vars_files:
    - /srv/web/infra/ansible/vars/global.yml
@@ -20,10 +21,11 @@
 
 # Once the instance exists, configure it. 
 
-- name: make db server system
-  hosts: dbserver-secondary
+- name: configure postgresql server system
+  hosts: db-datanommer01.phx2.fedoraproject.org
   user: root
   gather_facts: True
+  accelerate: true
 
   vars_files: 
    - /srv/web/infra/ansible/vars/global.yml
@@ -45,20 +47,6 @@
   - include: "{{ tasks }}/motd.yml"
   - include: "{{ tasks }}/sudo.yml"
   - include: "{{ tasks }}/collectd/client.yml"
-
-- name: make koji db
-  hosts: dbserver-secondary
-  gather_facts: no
-  sudo: yes
-  sudo_user: postgres
-
-  vars_files: 
-   - /srv/web/infra/ansible/vars/global.yml
-   - "{{ private }}/vars.yml"
-   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
-
-  roles:
-  - /srv/web/infra/ansible/roles/koji_db
 
 # TODO: add iscsi task
 

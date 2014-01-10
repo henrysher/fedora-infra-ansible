@@ -12,27 +12,6 @@
   tags:
   - packages
 
-- name: install koji package on koji db servers for schema
-  yum: name=koji state=installed
-  tags:
-  - packages
-  when: is_kojidb == "True"
-
-- name: initialize postgresql
-  command: service postgresql initdb
-           creates=/var/lib/pgsql/data/postgresql.conf
-  ignore_errors: true
-  tags:
-  - service
-
-- name: setup postgresql koji config file
-  template: src=pg_hba.conf.j2 dest=/var/lib/pgsql/data/pg_hba.conf mode=600 backup=yes
-  notify:
-  - restart postgresql
-  tags:
-  - config
-  when: is_kojidb == "True"
-
 - name: Set postgresql-server to run on boot
   service: name=postgresql enabled=yes
   ignore_errors: true
