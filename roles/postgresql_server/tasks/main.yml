@@ -32,3 +32,16 @@
   - restart postgresql
   tags:
   - config
+
+- name: Ensure postgres has a place to backup to
+  file: dest=/backups state=directory owner=postgres
+
+- name: Set up some cronjobs to backup databases as configured
+  template: >
+    src=cron-backup-database
+    dest=/etc/cron.d/cron-backup-database-{{ item }}
+  with_items:
+  - "{{ dbs_to_backup }}"
+  when: dbs_to_backup != []
+  tags:
+  - cron
