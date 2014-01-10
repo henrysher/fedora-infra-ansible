@@ -22,9 +22,12 @@
 
 - name: Add our postgres config file.
   copy: >
-    src=pg_hba.conf
-    dest=/var/lib/pgsql/data/pg_hba.conf
+    src={{ item }}
+    dest=/var/lib/pgsql/data/{{ item }}
     owner=postgres
+  with_items:
+  - pg_hba.conf
+  - postgresql.conf
   notify:
   - restart postgresql
   tags:
