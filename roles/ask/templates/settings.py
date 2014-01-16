@@ -116,6 +116,9 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     #'django.middleware.sqlprint.SqlPrintingMiddleware',
 
+    # Enable outgoing fedmsg messages
+    'askbot_fedmsg.NOOPMiddleware',
+
     #below is askbot stuff for this tuple
     'askbot.middleware.anon_user.ConnectToSessionMessagesMiddleware',
     'askbot.middleware.forum_mode.ForumModeMiddleware',
@@ -184,12 +187,13 @@ INSTALLED_APPS = (
     'keyedcache',
     'robots',
     'django_countries',
-    #'djcelery',
+    'djcelery',
     'djkombu',
     'followit',
     'tinymce',
     'group_messaging',
     #'avatar',#experimental use git clone git://github.com/ericflo/django-avatar.git$
+    'post_office',
 )
 
 
