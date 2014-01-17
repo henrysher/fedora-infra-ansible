@@ -218,6 +218,8 @@ CACHES = {
 }
 {% endif %}
 
+CACHE_MIDDLEWARE_ANONYMOUS_ONLY = True
+
 AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
     'askbot.deps.django_authopenid.backends.AuthBackend',
