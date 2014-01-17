@@ -86,11 +86,6 @@ PROJECT_ROOT = os.path.dirname(__file__)
 #STATIC_ROOT = os.path.join(PROJECT_ROOT, 'static')
 STATIC_ROOT = '/var/www/html/askbot/static'
 
-# URL prefix for admin media -- CSS, JavaScript and images. Make sure to use a
-# trailing slash.
-# Examples: "http://foo.com/media/", "/media/".
-ADMIN_MEDIA_PREFIX = STATIC_URL + 'admin/'
-
 # Make up some unique string, and don't share it with anybody.
 SECRET_KEY = '<%= askbotSecretKeyPassword %>'
 
@@ -200,18 +195,23 @@ INSTALLED_APPS = (
 #setup memcached for production use!
 #see http://docs.djangoproject.com/en/1.1/topics/cache/ for details
 {% if env == "staging" %}
-CACHE_BACKEND = 'locmem://'
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'ask-staging'
+    }
+}
 {% else %}
-CACHE_BACKEND='memcached://memcached04:11211/'
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
+        'KEY_PREFIX': 'askfedora',
+        'LOCATION': [
+            'memcached04:11211',
+        ]
+    }
+}
 {% endif %}
-#needed for django-keyedcache
-CACHE_TIMEOUT = 6000
-#sets a special timeout for livesettings if you want to make them different
-LIVESETTINGS_CACHE_TIMEOUT = CACHE_TIMEOUT
-CACHE_PREFIX = 'askbot' #make this unique
-CACHE_MIDDLEWARE_ANONYMOUS_ONLY = True
-#If you use memcache you may want to uncomment the following line to enable memcached based sessions
-#SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
 
 AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
