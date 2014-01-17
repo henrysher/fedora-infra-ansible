@@ -25,6 +25,13 @@
   tasks:
   - include: "{{ tasks }}/cloud_setup_basic.yml"
   - include: "{{ tasks }}/postfix_basic.yml"
+  - include: "{{ tasks }}/hosts.yml"
+  - include: "{{ tasks }}/yumrepos.yml"
+  - include: "{{ tasks }}/collectd/client.yml"
+  - include: "{{ tasks }}/motd.yml"
+  - include: "{{ tasks }}/sudo.yml"
+  - include: "{{ tasks }}/apache.yml"
+  - include: "{{ tasks }}/mod_wsgi.yml"
 
   - name: mount up disk of persistent storage
     action: mount name=/srv/persist src='LABEL=lists-dev' fstype=ext4 state=mounted
@@ -41,33 +48,6 @@
   - name: get the repo file
     get_url: url=http://repos.fedorapeople.org/repos/abompard/hyperkitty/hyperkitty.repo
              dest=/etc/yum.repos.d/hyperkitty.repo mode=0444
-
-  - name: install packages
-    yum: state=installed name={{ item }}
-    with_items:
-    - httpd
-    - mod_ssl
-    - mod_wsgi
-    - mailman
-    - python-psycopg2
-    - python-storm-postgresql
-    - postgresql-server
-    - system-config-firewall-base
-    - rsync
-    - openssh-clients
-    - httpd-tools
-    - cronie-noanacron
-
-  - name: install apache and mod_wsgi
-    yum: name=mod_wsgi state=installed
-    notify:
-    - restart apache
-
-  - name: erase packages
-    action: yum state=absent name={{ item }}
-    with_items:
-    - sendmail
-    - cronie-anacron
 
   # open up ports (22, 80, 443, 25)
   - name: poke holes in the firewall
