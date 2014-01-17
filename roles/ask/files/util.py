@@ -433,26 +433,6 @@ def get_enabled_major_login_providers():
             'icon_media_path': '/jquery-openid/images/twitter.gif',
             'get_user_id_function': lambda data: data['user_id'],
         }
-    def get_identica_user_id(data):
-        consumer = oauth.Consumer(data['consumer_key'], data['consumer_secret'])
-        token = oauth.Token(data['oauth_token'], data['oauth_token_secret'])
-        client = oauth.Client(consumer, token=token)
-        url = 'https://identi.ca/api/account/verify_credentials.json'
-        response, content = client.request(url, 'GET')
-        json = simplejson.loads(content)
-        return json['id']
-    if askbot_settings.IDENTICA_KEY and askbot_settings.IDENTICA_SECRET:
-        data['identi.ca'] = {
-            'name': 'identi.ca',
-            'display_name': 'identi.ca',
-            'type': 'oauth',
-            'request_token_url': 'https://identi.ca/api/oauth/request_token',
-            'access_token_url': 'https://identi.ca/api/oauth/access_token',
-            'authorize_url': 'https://identi.ca/api/oauth/authorize',
-            'authenticate_url': 'https://identi.ca/api/oauth/authorize',
-            'icon_media_path': '/jquery-openid/images/identica.png',
-            'get_user_id_function': get_identica_user_id,
-        }
     def get_linked_in_user_id(data):
         consumer = oauth.Consumer(data['consumer_key'], data['consumer_secret'])
         token = oauth.Token(data['oauth_token'], data['oauth_token_secret'])
@@ -690,9 +670,6 @@ def get_oauth_parameters(provider_name):
     elif provider_name == 'linkedin':
         consumer_key = askbot_settings.LINKEDIN_KEY
         consumer_secret = askbot_settings.LINKEDIN_SECRET
-    elif provider_name == 'identi.ca':
-        consumer_key = askbot_settings.IDENTICA_KEY
-        consumer_secret = askbot_settings.IDENTICA_SECRET
     elif provider_name == 'facebook':
         consumer_key = askbot_settings.FACEBOOK_KEY
         consumer_secret = askbot_settings.FACEBOOK_SECRET
