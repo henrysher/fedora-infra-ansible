@@ -110,6 +110,7 @@ MIDDLEWARE_CLASSES = (
     ## Enable the following middleware if you want to enable
     ## language selection in the site settings.
     #'askbot.middleware.locale.LocaleMiddleware',
+    'django.middleware.locale.LocaleMiddleware',
     #'django.middleware.cache.UpdateCacheMiddleware',
     'django.middleware.common.CommonMiddleware',
     #'django.middleware.cache.FetchFromCacheMiddleware',
@@ -241,7 +242,7 @@ logging.basicConfig(
 #   ASKBOT_URL = 'forum/'
 #
 ASKBOT_URL = '' #no leading slash, default = '' empty string
-ASKBOT_TRANSLATE_URL = True #translate specific URLs
+ASKBOT_TRANSLATE_URL = False #translate specific URLs
 _ = lambda v:v #fake translation function for the login url
 LOGIN_URL = '/%s%s%s' % (ASKBOT_URL,_('account/'),_('signin/'))
 LOGIN_REDIRECT_URL = ASKBOT_URL #adjust, if needed
@@ -334,7 +335,7 @@ GROUP_MESSAGING = {
     'BASE_URL_PARAMS': {'section': 'messages', 'sort': 'inbox'}
 }
 
-ASKBOT_MULTILINGUAL = False
+ASKBOT_MULTILINGUAL = True
 
 ASKBOT_CSS_DEVEL = False
 if 'ASKBOT_CSS_DEVEL' in locals() and ASKBOT_CSS_DEVEL == True:
