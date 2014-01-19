@@ -336,6 +336,14 @@ GROUP_MESSAGING = {
 }
 
 ASKBOT_MULTILINGUAL = True
+LANGUAGES = {
+     'zh-tw': 'Chinese',
+     'en': 'English',
+     'fr': 'French',
+     'el': 'Greek',
+     'ru': 'Russian',
+     'es': 'Spanish',
+}  
 
 ASKBOT_CSS_DEVEL = False
 if 'ASKBOT_CSS_DEVEL' in locals() and ASKBOT_CSS_DEVEL == True:
