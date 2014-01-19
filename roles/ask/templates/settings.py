@@ -198,27 +198,6 @@ INSTALLED_APPS = (
 )
 
 
-#setup memcached for production use!
-#see http://docs.djangoproject.com/en/1.1/topics/cache/ for details
-{% if env == "staging" %}
-CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-        'LOCATION': 'ask-staging'
-    }
-}
-{% else %}
-CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
-        'KEY_PREFIX': 'askfedora',
-        'LOCATION': [
-            'memcached04:11211',
-        ]
-    }
-}
-{% endif %}
-
 CACHE_MIDDLEWARE_ANONYMOUS_ONLY = True
 CACHE_TIMEOUT = 600
 
@@ -255,13 +234,46 @@ ASKBOT_USE_STACKEXCHANGE_URLS = False #mimic url scheme of stackexchange
 BROKER_TRANSPORT = "djkombu.transport.DatabaseTransport"
 CELERY_ALWAYS_EAGER = True
 
-
+#
+# Only enable languages where we have active moderators
+# In staging we have a few more for communities to test with before commiting. 
+# 
+# locmem cache in staging and use memcached04 in production. 
+#
 
 {% if env == "staging" %}
 DOMAIN_NAME = 'ask.stg.fedoraproject.org'
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'ask-staging'
+    }
+}
+LANGUAGES = {
+     'zh-tw': 'Chinese',
+     'en': 'English',
+     'fr': 'French',
+     'el': 'Greek',
+     'ru': 'Russian',
+     'es': 'Spanish',
+}  
 {% else %}
 DOMAIN_NAME = 'ask.fedoraproject.org'
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
+        'KEY_PREFIX': 'askfedora',
+        'LOCATION': [
+            'memcached04:11211',
+        ]
+    }
+}
+LANGUAGES = {
+     'en': 'English',
+     'es': 'Spanish',
+}  
 {% endif %}
+
 #https://docs.djangoproject.com/en/1.3/ref/contrib/csrf/
 CSRF_COOKIE_DOMAIN = DOMAIN_NAME
 
@@ -336,14 +348,6 @@ GROUP_MESSAGING = {
 }
 
 ASKBOT_MULTILINGUAL = True
-LANGUAGES = {
-     'zh-tw': 'Chinese',
-     'en': 'English',
-     'fr': 'French',
-     'el': 'Greek',
-     'ru': 'Russian',
-     'es': 'Spanish',
-}  
 
 ASKBOT_CSS_DEVEL = False
 if 'ASKBOT_CSS_DEVEL' in locals() and ASKBOT_CSS_DEVEL == True:
