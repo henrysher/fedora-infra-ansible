@@ -397,8 +397,8 @@ def get_enabled_major_login_providers():
         'name': 'fasopenid',
         'display_name': 'FAS-OpenID',
         'type': 'openid-direct',
-        'icon_media_path': '/jquery-openid/images/fedora-openid.png',
-        'openid_endpoint': 'http://id.fedoraproject.org/',
+        'icon_media_path': 'https://fedoraproject.org/w/uploads/d/d6/Guidelines-fedora-logo.jpg',
+        'openid_endpoint': 'https://id.fedoraproject.org/',
     }
 
 
