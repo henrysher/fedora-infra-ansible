@@ -249,14 +249,14 @@ CACHES = {
         'LOCATION': 'ask-staging'
     }
 }
-LANGUAGES = {
-     'zh-tw': 'Chinese',
-     'en': 'English',
-     'fr': 'French',
-     'el': 'Greek',
-     'ru': 'Russian',
-     'es': 'Spanish',
-}  
+LANGUAGES = (
+    ('es', gettext('Spanish')),
+    ('en', gettext('English')),
+    ('ru', gettext('Russian')),
+    ('zh-tw', gettext('Chinese')),
+    ('fr', gettext('French')),
+    ('el', gettext('Greek')),
+)
 {% else %}
 DOMAIN_NAME = 'ask.fedoraproject.org'
 CACHES = {
@@ -268,10 +268,10 @@ CACHES = {
         ]
     }
 }
-LANGUAGES = {
-     'en': 'English',
-     'es': 'Spanish',
-}  
+LANGUAGES = (
+    ('es', gettext('Spanish')),
+    ('en', gettext('English')),
+)
 {% endif %}
 
 #https://docs.djangoproject.com/en/1.3/ref/contrib/csrf/
