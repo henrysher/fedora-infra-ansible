@@ -4,6 +4,7 @@ import logging
 import sys
 import askbot
 import site
+import gettext
 
 #this line is added so that we can import pre-packaged askbot dependencies
 ASKBOT_ROOT = os.path.abspath(os.path.dirname(askbot.__file__))
