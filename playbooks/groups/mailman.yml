@@ -3,7 +3,7 @@
 # NOTE: most of these vars_path come from group_vars/mirrorlist or from hostvars
 
 - name: make mailman server
-  hosts: mailman-stg
+  hosts: mailman-stg:mailman
   user: root
   gather_facts: False
   accelerate: True
@@ -21,7 +21,7 @@
   - include: "{{ handlers }}/restart_services.yml"
 
 - name: make the box be real
-  hosts: mailman-stg
+  hosts: mailman-stg:mailman
   user: root
   gather_facts: True
   accelerate: True
@@ -56,7 +56,7 @@
 
 # Database setup
 - name: setup the database
-  hosts: db02.stg.phx2.fedoraproject.org
+  hosts: db02.stg.phx2.fedoraproject.org:db01.phx2.fedoraproject.org
   gather_facts: no
   sudo: yes
   sudo_user: postgres
@@ -87,7 +87,7 @@
 
 # Real MM/HK-specific work
 - name: setup mailman and hyperkitty
-  hosts: mailman-stg
+  hosts: mailman-stg:mailman
   user: root
   gather_facts: True
 
