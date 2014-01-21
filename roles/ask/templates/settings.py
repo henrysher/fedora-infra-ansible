@@ -251,12 +251,14 @@ CACHES = {
 }
 gettext = lambda s: s
 LANGUAGES = (
+    ('pt-BR', gettext('Brazilian Portuguese')),
     ('es', gettext('Spanish')),
     ('en', gettext('English')),
     ('ru', gettext('Russian')),
     ('zh-tw', gettext('Chinese')),
     ('fr', gettext('French')),
     ('el', gettext('Greek')),
+    ('id', gettext('Indonesia')),
 )
 {% else %}
 DOMAIN_NAME = 'ask.fedoraproject.org'
