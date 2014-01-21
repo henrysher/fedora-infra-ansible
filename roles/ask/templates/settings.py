@@ -258,7 +258,7 @@ LANGUAGES = (
     ('zh-tw', gettext('Chinese')),
     ('fr', gettext('French')),
     ('el', gettext('Greek')),
-    ('id', gettext('Indonesia')),
+    ('id', gettext('Indonesian')),
 )
 {% else %}
 DOMAIN_NAME = 'ask.fedoraproject.org'
@@ -275,6 +275,7 @@ gettext = lambda s: s
 LANGUAGES = (
     ('es', gettext('Spanish')),
     ('en', gettext('English')),
+    ('pt-br', gettext('Brazilian Portuguese')),
 )
 {% endif %}
 
