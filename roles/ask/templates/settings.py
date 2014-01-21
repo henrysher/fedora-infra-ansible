@@ -251,7 +251,7 @@ CACHES = {
 }
 gettext = lambda s: s
 LANGUAGES = (
-    ('pt-BR', gettext('Brazilian Portuguese')),
+    ('pt-br', gettext('Brazilian Portuguese')),
     ('es', gettext('Spanish')),
     ('en', gettext('English')),
     ('ru', gettext('Russian')),
