@@ -31,9 +31,10 @@
   tasks:
   - name: growpart /dev/vda1 partition (/) to full size
     action: command growpart /dev/vda 1
-    ignore_errors: true
     register: growpart
+    always_run: true
     changed_when: "growpart.rc != 1"
+    failed_when: growpart.rc == 2
 
   - name: resize the /dev/vda 1 fs
     action: command resize2fs /dev/vda1
