@@ -276,6 +276,8 @@ LANGUAGES = (
     ('es', gettext('Spanish')),
     ('en', gettext('English')),
     ('pt-br', gettext('Brazilian Portuguese')),
+    ('id', gettext('Indonesian')),
+    ('el', gettext('Greek')),
 )
 {% endif %}
 
