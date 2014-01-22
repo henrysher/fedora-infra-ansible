@@ -169,7 +169,7 @@
     - provision_config
 
   - name: copy copr-be.conf
-    template: src="{{ files }}/copr/copr-be.conf" dest=/etc/copr/copr-be.conf  mode=640
+    template: src="{{ files }}/copr/copr-be.conf" dest=/etc/copr/copr-be.conf  owner=root group=copr mode=640
     notify:
     - restart copr-backend
     tags:
@@ -202,7 +202,7 @@
   handlers:
   - include: "{{ handlers }}/restart_services.yml"
   - name: concate ssl certs
-    action: command cat /etc/lighttpd/coprs-be.fedoraproject.org.key /etc/lighttpd/coprs-be.fedoraproject.org.key > /etc/lighttpd/coprs-be.fedoraproject.org.pem
+    action: command cat /etc/lighttpd/coprs-be.fedoraproject.org.key /etc/lighttpd/coprs-be.fedoraproject.org.crt > /etc/lighttpd/coprs-be.fedoraproject.org.pem
     notify:
     - chmod_key
     - restart lighttpd
