@@ -134,7 +134,7 @@ class LogMech(object):
             category = 'CHANGED'
 
         if self.play_info.get('check', False) and self.play_info.get('diff', False):
-            category = 'CHECK DIFF:' + category
+            category = 'CHECK_DIFF:' + category
         elif self.play_info.get('check', False):    
             category = 'CHECK:' + category
 
