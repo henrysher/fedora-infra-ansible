@@ -102,6 +102,16 @@
     notify: 
     - restart lighttpd
 
+  - name: copy httpd ssl certificates
+    action: copy src="{{ puppet_private }}/httpd/{{ item }}" dest="/etc/lighttpd/{{ item }}" owner=root group=root mode=0600
+    with_items:
+    - coprs-be.fedoraproject.org.key
+    - coprs-be.fedoraproject.org.crt
+    notify:
+    - concate ssl certs
+    tags:
+    - config 
+
   # mime default to text/plain and enable dirlisting for indexes
   - name: update lighttpd configs
     action: copy src="{{ files }}/copr/lighttpd/{{ item }}" dest="/etc/lighttpd/conf.d/{{ item }}" owner=root group=root mode=0644
@@ -191,3 +201,10 @@
 
   handlers:
   - include: "{{ handlers }}/restart_services.yml"
+  - name: concate ssl certs
+    action: command cat /etc/lighttpd/coprs-be.fedoraproject.org.key /etc/lighttpd/coprs-be.fedoraproject.org.key > /etc/lighttpd/coprs-be.fedoraproject.org.pem
+    notify:
+    - chmod_key
+    - restart lighttpd
+  - name: chmod_key
+    action: file path=/etc/lighttpd/coprs-be.fedoraproject.org.pem owner=root group=root mode=0600
