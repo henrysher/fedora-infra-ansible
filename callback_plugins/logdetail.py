@@ -133,7 +133,9 @@ class LogMech(object):
         if category == 'OK' and data.get('changed', False):
             category = 'CHANGED'
 
-        if self.play_info.get('check', False):
+        if self.play_info.get('check', False) and self.play_info.get('diff', False):
+            category = 'CHECK DIFF:' + category
+        elif self.play_info.get('check', False):    
             category = 'CHECK:' + category
 
         fd = open(self.logpath_play + '/' + host + '.log', 'a')
@@ -258,6 +260,7 @@ class CallbackModule(object):
                 pb_info['inventory'] = play.playbook.inventory.host_list
                 pb_info['playbook_checksum'] = utils.md5(path)
                 pb_info['check'] = play.playbook.check
+                pb_info['diff'] = play.playbook.diff
                 logmech.play_log(json.dumps(pb_info, indent=4))
 
             self._play_count += 1
@@ -268,6 +271,7 @@ class CallbackModule(object):
             info['transport'] = play.transport
             info['number'] = self._play_count
             info['check'] = play.playbook.check
+            info['diff'] = play.playbook.diff
             logmech.play_info = info
             logmech.play_log(json.dumps(info, indent=4))
 
