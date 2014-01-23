@@ -33,6 +33,12 @@ config = {
         },
     },
 
+    # The notification backend uses this to build a fas cache of ircnicks
+    # to fas usernames so it can act appropriately on certain message types.
+    "fas_credentials": {
+        "username": "{{fedoraDummyUser}}",
+        "password": "{{fedoraDummyUserPassword}}",
+    },
 
     ## Backend stuff ##
     # Email
