@@ -10,6 +10,9 @@ import pkg_resources
 import os
 os.environ['FMN_WEB_CONFIG'] = '/etc/fmn.web.cfg'
 
+import logging
+logging.basicConfig()
+
 # The most import line to make the wsgi working
 from fmn.web.app import app as application
 # Dangerous.. only use when testing.
