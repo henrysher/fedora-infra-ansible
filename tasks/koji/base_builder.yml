@@ -89,8 +89,12 @@
   action: service name=kojid enabled=on
 #  action: service name=kojid enabled=on state=started
 
-- name: copy over authorized keys for root
-  action: copy src="{{ files }}/kojibuilder/root_auth_keys" dest=/root/.ssh/authorized_keys mode=644
+- name: add root ssh key
+  authorized_key: user=root key="{{ item }}"
+  with_file:
+  - "{{ files }}/kojibuilder/root_auth_keys"
+  tags:
+  - config
 
 # idmapd and make sure it's set to run
 - name: idmapd.conf
@@ -100,16 +104,19 @@
 - name: enable nfs-related services and run them
   action: service name={{ item }}  enabled=true state=started
   with_items:
-  - rpcidmapd
-  - rpcbind
   - nfs
-  - nfslock
 
 - name: route config for netapp network
   action: copy src="{{ files }}/kojibuilder/route-eth1" dest=/etc/sysconfig/network-scripts/route-eth1
 
+- name: check for netapp route
+  command: ip route show
+  register: netapproute
+  always_run: yes
+
 - name: run netapp route
   command: /etc/sysconfig/network-scripts/ifup-routes eth1
+  when: netapproute.stdout.find('10.5.88.0') != -1
 
 - name: nfs mount points
   action: mount name=/mnt/fedora_koji src=vtap-fedora-nfs01.storage.phx2.redhat.com:/vol/fedora_koji fstype=nfs opts=ro,hard,bg,intr,noatime,nodev,nosuid passno=0 dump=0 state=mounted

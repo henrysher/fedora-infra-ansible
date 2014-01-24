@@ -1,8 +1,14 @@
 #- name: set kernel params for loopback partitioning
 #  action: command /sbin/grubby --update-kernel=ALL --args=loop.max_part=256 
+#
+- name: check for max_loop
+  command: grep max_loop /etc/grub2.cfg
+  register: max_loop
+  always_run: yes
 
 - name: set kernel params for more loops
   action: command /sbin/grubby --update-kernel=ALL --args=max_loop=64 
+  when: max_loop.stdout.find('max_loop=64') != -1
 
 - name: special pkgs for the x86_64 builders
   yum: state=installed pkg={{ item }}
