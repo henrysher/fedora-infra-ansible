@@ -107,7 +107,7 @@
   copy: src={{ item }} dest=/etc/rsyslog.conf mode=644
   first_available_file:
     - rsyslog/rsyslog.conf.{{ dist_tag }}
-    - rsyslog/rsyslog.conf
+    - rsyslog/rsyslog.conf.default
 
   notify:
   - restart rsyslog
@@ -116,11 +116,9 @@
   - config
 
 - name: add rsyslog config to /etc/rsyslog.d
-  copy: src={{ item }} dest=/etc/rsyslog.d/{{ item }} mode=644
-  with_items:
-   - rsyslog/rsyslog-audit.conf
-   - rsyslog/rsyslog-disablerate.conf
-   - rsyslog/rsyslog-log02.conf
+  copy: src={{ item }} dest=/etc/rsyslog.d/ owner=root group=root mode=0644
+  with_fileglob:
+   - rsyslog/*.conf
   tags:
   - rsyslogd
   - config
