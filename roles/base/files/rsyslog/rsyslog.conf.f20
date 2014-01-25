@@ -1,38 +1,47 @@
-#rsyslog v3 config file
+# rsyslog v5 configuration file
 
-# if you experience problems, check
-# http://www.rsyslog.com/troubleshoot for assistance
+# For more information see /usr/share/doc/rsyslog-*/rsyslog_conf.html
+# If you experience problems, see http://www.rsyslog.com/doc/troubleshoot.html
 
 #### MODULES ####
 
-$ModLoad imuxsock       # provides support for local system logging (e.g. via logger command)
-$ModLoad imjournal      # provides access to the systemd journal
-$ModLoad imklog   	# provides kernel logging support (previously done by rklogd)
-#$ModLoad immark.so	# provides --MARK-- message capability
+# The imjournal module bellow is now used as a message source instead of imuxsock.
+$ModLoad imuxsock # provides support for local system logging (e.g. via logger command)
+$ModLoad imjournal # provides access to the systemd journal
+$ModLoad imklog   # provides kernel logging support (previously done by rklogd)
+#$ModLoad immark  # provides --MARK-- message capability
 
 # Provides UDP syslog reception
-#$ModLoad imudp.so
+#$ModLoad imudp
 #$UDPServerRun 514
 
 # Provides TCP syslog reception
-#$ModLoad imtcp.so  
+#$ModLoad imtcp
 #$InputTCPServerRun 514
 
 
 #### GLOBAL DIRECTIVES ####
 
-# Include all config files in /etc/rsyslog.d/
-$IncludeConfig /etc/rsyslog.d/*.conf
+# Where to place auxiliary files
+$WorkDirectory /var/lib/rsyslog
 
 # Use default timestamp format
 $ActionFileDefaultTemplate RSYSLOG_TraditionalFileFormat
+
+# File syncing capability is disabled by default. This feature is usually not required,
+# not useful and an extreme performance hit
+#$ActionFileEnableSync on
+
+# Include all config files in /etc/rsyslog.d/
+$IncludeConfig /etc/rsyslog.d/*.conf
 
 # Turn off message reception via local log socket;
 # local messages are retrieved through imjournal now.
 $OmitLocalLogging on
 
 # File to store the position in the journal
-$StateFile imjournal.state
+$IMJournalStateFile imjournal.state
+
 
 #### RULES ####
 
@@ -42,7 +51,7 @@ $StateFile imjournal.state
 
 # Log anything (except mail) of level info or higher.
 # Don't log private authentication messages!
-*.info;local6.none;mail.none;authpriv.none;cron.none                /var/log/messages
+*.info;mail.none;authpriv.none;cron.none                /var/log/messages
 
 # The authpriv file has restricted access.
 authpriv.*                                              /var/log/secure
@@ -55,13 +64,14 @@ mail.*                                                  -/var/log/maillog
 cron.*                                                  /var/log/cron
 
 # Everybody gets emergency messages
-*.emerg                                                 *
+*.emerg                                                 :omusrmsg:*
 
 # Save news errors of level crit and higher in a special file.
 uucp,news.crit                                          /var/log/spooler
 
 # Save boot messages also to boot.log
 local7.*                                                /var/log/boot.log
+
 
 # ### begin forwarding rule ###
 # The statement between the begin ... end define a SINGLE forwarding
@@ -71,14 +81,11 @@ local7.*                                                /var/log/boot.log
 #
 # An on-disk queue is created for this action. If the remote host is
 # down, messages are spooled to disk and sent when it is up again.
-$WorkDirectory /var/lib/rsyslog # where to place spool files
-$ActionQueueFileName fwdRule1     # unique name prefix for spool files
-$ActionQueueMaxDiskSpace 512m     # 512M space limit (use as much as possible)
-$ActionQueueSaveOnShutdown on     # save messages to disk on shutdown
-$ActionQueueType LinkedList       # run asynchronously
-$ActionResumeRetryCount -1        # infinite retries if host is down
+#$ActionQueueFileName fwdRule1 # unique name prefix for spool files
+#$ActionQueueMaxDiskSpace 1g   # 1gb space limit (use as much as possible)
+#$ActionQueueSaveOnShutdown on # save messages to disk on shutdown
+#$ActionQueueType LinkedList   # run asynchronously
+#$ActionResumeRetryCount -1    # infinite retries if host is down
 # remote host is: name/ip:port, e.g. 192.168.0.1:514, port optional
 #*.* @@remote-host:514
 # ### end of the forwarding rule ###
-cron.*;kern.*;authpriv.*;local7.*;*.info;local6.none              @@log02:514
-

@@ -106,14 +106,21 @@
 - name: rsyslog.conf
   copy: src={{ item }} dest=/etc/rsyslog.conf mode=644
   first_available_file:
-    - "{{ rsyslogconf }}"
-    - rsyslog/rsyslog.conf.{{ ansible_fqdn }}
-    - rsyslog/rsyslog.conf.{{ host_group }}
-    - rsyslog/rsyslog.conf.{{ datacenter }}
+    - rsyslog/rsyslog.conf.{{ dist_tag }}
     - rsyslog/rsyslog.conf
 
   notify:
   - restart rsyslog
+  tags:
+  - rsyslogd
+  - config
+
+- name: add rsyslog config to /etc/rsyslog.d
+  copy: src={{ item }} dest=/etc/rsyslog.d/{{ item }} mode=644
+  with_items:
+   - rsyslog-audit.conf
+   - rsyslog-disablerate.conf
+   - rsyslog-log02.conf
   tags:
   - rsyslogd
   - config
