@@ -40,7 +40,6 @@
 - name: clean up packages we do not need
   action: yum state=removed pkg={{ item }}
   with_items:
-    - audit
     - 'cronie\*'
 
 - name: add pkgs
@@ -54,13 +53,14 @@
     - kernel-firmware
     - ntp
     - ntpdate
+    - rsyslog
+    - audit
 
 - name: /etc/kojid/kojid.conf
   action: copy src="{{ files }}/kojibuilder/kojid.conf" dest=/etc/kojid/kojid.conf
   when: not inventory_hostname.startswith(('arm01','arm03'))
   notify:
   - restart kojid
-
 
 - name: arm /etc/kojid/kojid.conf
   action: copy src="{{ files }}/kojibuilder/arm-kojid.conf" dest=/etc/kojid/kojid.conf
