@@ -70,3 +70,15 @@
   when: fedmsg_certs != []
   tags:
   - config
+
+# Three tasks for handling our custom selinux module
+- name: ensure a directory exists for our custom selinux module
+  file: dest=/usr/local/share/fedmsg state=directory
+
+- name: copy over our custom selinux module
+  copy: src=selinux/fedmsg.pp dest=/usr/local/share/fedmsg/fedmsg.pp
+  register: selinux_module
+
+- name: install our custom selinux module
+  command: semanage -i /usr/local/share/fedmsg/fedmsg.pp
+  when: selinux_module|changed
