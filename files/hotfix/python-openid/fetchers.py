@@ -250,7 +250,7 @@ class CurlHTTPFetcher(HTTPFetcher):
 
         # Remove the status line from the beginning of the input
         unused_http_status_line = header_file.readline().lower ()
-        if unused_http_status_line.startswith('http/1.1 100 '):
+        while unused_http_status_line.startswith('http/1.1 100 '):
             unused_http_status_line = header_file.readline()
             unused_http_status_line = header_file.readline()
 
