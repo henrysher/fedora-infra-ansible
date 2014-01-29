@@ -6,7 +6,6 @@
   hosts: buildhw;buildppc;buildarm
   user: root
   gather_facts: True
-  accellerate: True
 
   vars_files: 
    - /srv/web/infra/ansible/vars/global.yml
@@ -14,24 +13,20 @@
    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
 
   roles:
-  - /srv/web/infra/ansible/roles/base
+  - base
+  - koji_builder
 
   tasks:
   - include: "{{ tasks }}/yumrepos.yml"
   - include: "{{ tasks }}/hosts.yml"
-  - include: "{{ tasks }}/koji/base_builder.yml"
 
   handlers:
   - include: "{{ handlers }}/restart_services.yml"
 
-  - name: restart kojid
-    action: service name=kojid state=restarted
-  
 - name: make koji builder(s) on raw hw
   hosts: buildhw
   user: root
   gather_facts: True
-  accellerate: True
 
   vars_files: 
    - /srv/web/infra/ansible/vars/global.yml
@@ -39,7 +34,7 @@
    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
 
   roles:
-  - /srv/web/infra/ansible/roles/base
+  - base
 
   tasks:
   - include: "{{ tasks }}/hosts.yml"
@@ -47,6 +42,3 @@
 
   handlers:
   - include: "{{ handlers }}/restart_services.yml"
-
-  - name: restart kojid
-    action: service name=kojid state=restarted

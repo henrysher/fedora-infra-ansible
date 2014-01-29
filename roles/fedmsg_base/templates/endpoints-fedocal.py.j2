@@ -1,0 +1,20 @@
+{% if env == 'staging' %}
+suffix  = 'stg.phx2.fedoraproject.org'
+{% else %}
+suffix = 'phx2.fedoraproject.org'
+{% endif %}
+
+config = dict(
+    endpoints={
+        "fedocal.fedocal01": [
+            "tcp://fedocal01.%s:30%02i" % (suffix, i)
+            for i in range(2)
+        ],
+{% if env != 'staging' %}
+        "fedocal.fedocal02": [
+            "tcp://fedocal02.%s:30%02i" % (suffix, i)
+            for i in range(2)
+        ],
+{% endif %}
+    },
+)

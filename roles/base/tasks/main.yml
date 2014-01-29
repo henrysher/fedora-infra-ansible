@@ -32,7 +32,7 @@
   user: name=root password={{ rootpw }} state=present
   tags:
   - rootpw
-  when: not (inventory_hostname.startswith('build') or inventory_hostname.startswith('releng'))
+  when: not (inventory_hostname.startswith('build') or inventory_hostname.startswith('releng') or inventory_hostname.startswith('arm'))
 
 - name: add ansible root key 
   authorized_key: user=root key="{{ item }}"
@@ -106,12 +106,19 @@
 - name: rsyslog.conf
   copy: src={{ item }} dest=/etc/rsyslog.conf mode=644
   first_available_file:
-    - "{{ rsyslogconf }}"
-    - rsyslog/rsyslog.conf.{{ ansible_fqdn }}
-    - rsyslog/rsyslog.conf.{{ host_group }}
-    - rsyslog/rsyslog.conf.{{ datacenter }}
-    - rsyslog/rsyslog.conf
+    - rsyslog/rsyslog.conf.{{ dist_tag }}
+    - rsyslog/rsyslog.conf.default
 
+  notify:
+  - restart rsyslog
+  tags:
+  - rsyslogd
+  - config
+
+- name: add rsyslog config to /etc/rsyslog.d
+  copy: src={{ item }} dest=/etc/rsyslog.d/ owner=root group=root mode=0644
+  with_fileglob:
+   - rsyslog/*.conf
   notify:
   - restart rsyslog
   tags:
