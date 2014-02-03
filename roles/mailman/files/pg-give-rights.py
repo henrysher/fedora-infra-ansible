@@ -24,7 +24,7 @@ def give_rights(dbhost, dbuser, dbpasswd, dbname):
     cur.execute(dbrightsquery)
     # Table permissions
     cur.execute("""
-        SELECT 'GRANT SELECT,INSERT,UPDATE,DELETE,TRUNCATE ON ' || relname || ' TO %sapp;'
+        SELECT 'GRANT SELECT,INSERT,UPDATE,DELETE,TRUNCATE ON "' || relname || '" TO %sapp;'
         FROM pg_class
         JOIN pg_namespace ON pg_namespace.oid = pg_class.relnamespace
         WHERE nspname = 'public' AND relkind IN ('r', 'v');

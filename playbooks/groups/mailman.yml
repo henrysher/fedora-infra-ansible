@@ -54,7 +54,21 @@
   - include: "{{ handlers }}/restart_services.yml"
 
 
+#
 # Database setup
+#
+
+- name: prepare setting up the database
+  hosts: db02.stg.phx2.fedoraproject.org:db01.phx2.fedoraproject.org
+  gather_facts: no
+  user: root
+
+  tasks:
+  - name: install psycopg2 for the postgresql ansible modules
+    yum: pkg=python-psycopg2 state=installed
+    tags:
+    - packages
+
 - name: setup the database
   hosts: db02.stg.phx2.fedoraproject.org:db01.phx2.fedoraproject.org
   gather_facts: no
@@ -98,7 +112,6 @@
 
   roles:
   - role: mailman
-    mailman_dbserver: db02.stg.phx2.fedoraproject.org
     mailman_postfix_mydestination: "lists.fedoraproject.org, lists.stg.fedoraproject.org"
     mailman_mm_db_pass: "{{ mailman_mm_db_pass }}"
     mailman_hk_admin_db_pass: "{{ mailman_hk_admin_db_pass }}"
