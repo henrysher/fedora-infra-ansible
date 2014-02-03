@@ -259,6 +259,7 @@ LANGUAGES = (
     ('fr', gettext('French')),
     ('el', gettext('Greek')),
     ('id', gettext('Indonesian')),
+    ('hu', gettext('Hungarian')),
 )
 {% else %}
 DOMAIN_NAME = 'ask.fedoraproject.org'
