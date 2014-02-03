@@ -20,6 +20,17 @@
   tags:
   - packages
 
+# https://github.com/openid/python-openid/pull/76
+- name: hotfix - copy over python-openid fixed messages
+  copy: src="{{ files }}/hotfix/python-openid/fetchers.py" dest=/usr/lib/python2.6/site-packages/openid/fetchers.py
+        owner=root group=root mode=0644
+  notify:
+  - restart apache
+  tags:
+  - config
+  - hotfix
+  - python-openid
+
 - name: set sebooleans so ask can talk to the db
   action: seboolean name=httpd_can_network_connect_db
                     state=true
