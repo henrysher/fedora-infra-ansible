@@ -6,7 +6,6 @@ app_hosts = [
     "app03.phx2.fedoraproject.org",
     "app04.phx2.fedoraproject.org",
     "app05.fedoraproject.org",
-    "app06.fedoraproject.org",
     "app07.phx2.fedoraproject.org",
     "app08.fedoraproject.org",
 ]
