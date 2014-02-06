@@ -168,10 +168,20 @@
   - kmod-hfsplus    
   when: is_rhel == 'True'
 
-- name: enable services and start them
+- name: enable services and start them on Fedora systems
   service: name={{ item }}  enabled=true state=started
   with_items:
   - ntpd
   - nfs-lock
   - nfs-idmap
   - nfs-mountd
+  when: ansible_distribution == 'Fedora'
+
+- name: enable services and start them on RHEL systems
+  service: name={{ item }}  enabled=true state=started
+  with_items:
+  - rpcbind
+  - ntpd
+  - nfslock
+  - nfs
+  when: ansible_distribution == 'RedHat'
