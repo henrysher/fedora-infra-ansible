@@ -135,6 +135,39 @@
 - name: ntp.conf
   copy: src="{{ files }}/common/ntp.conf" dest=/etc/ntp.conf
 
+#
+# We want more loop devices on builders to allow more image creates
+#
+
+- name: check for max_loop with grub2
+  command: cat /etc/grub2.cfg
+  register: max_loop
+  always_run: yes
+  changed_when: '1 != 1'
+  when: is_fedora == 'True'
+
+- name: check for max_loop with grub1
+  command: cat /etc/grub.cfg
+  register: max_loop
+  always_run: yes
+  changed_when: '1 != 1'
+  when: is_rhel == 'True'
+
+- name: set kernel params for more loops
+  action: command /sbin/grubby --update-kernel=ALL --args=max_loop=64 
+  when: max_loop.stdout.find("max_loop=64") == -1
+
+#
+# x86_64 builders run pungify, that needs hfs module in order to make
+# The efi/mac images. This module is only needed on rhel. 
+#
+
+- name: special pkgs for the x86_64 builders
+  yum: state=installed pkg={{ item }}
+  with_items:
+  - kmod-hfsplus    
+  when: is_rhel == 'True'
+
 - name: enable services and start them
   service: name={{ item }}  enabled=true state=started
   with_items:
