@@ -83,13 +83,10 @@
     state=directory
     recurse=yes
 
-
-- name: apply selinux type to the glusterfs folder
-  file: >
-    dest=/var/cache/nuancier/pictures
-    setype=httpd_sys_content_t
-    state=directory
-    recurse=yes
+- name: set sebooleans so apache can use glustergs
+  action: seboolean name=httpd_use_fusefs
+                    state=true
+                    persistent=true
 
 - name: apply selinux type to the wsgi file
   file: >
