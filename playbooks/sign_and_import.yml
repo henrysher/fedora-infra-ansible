@@ -1,10 +1,13 @@
 # This playbook takes new rpms specified with a fileglob, signs them, and adds
 # them to the infrastructure repo.
 #
+#  To push to infra-testing:
+# requires --extra-vars="rpmdir='/home/fedora/ralph/rpms/' testing=True"
+#
+#  To push to infra:
 # requires --extra-vars="rpmdir='/home/fedora/ralph/rpms/'"
 
 # TODO -- grab rpms from koji build/task ids beforehand?
-# TODO -- how do make it easy to select the infra-testing repo?
 # TODO -- other arches than x86_64?
 
 - name: batch sign and import a directory full of rpms
@@ -16,8 +19,7 @@
   # repo.  Since we're in freeze right now, we'll default to the testing repo.
   # It would be nice to be able to toggle this from the command line.
   vars:
-  #- repodir: /mnt/fedora/app/fi-repo/testing/6
-  - repodir: /mnt/fedora/app/fi-repo/6
+  - repodir: /mnt/fedora/app/fi-repo/{% if testing %}testing/{% endif %}6
 
   tasks:
   - name: Fail if no rpmdir provided
@@ -32,7 +34,7 @@
   - name: make a directory where we store the rpms afterwards
     file: path={{ rpmdir }}-old state=directory
 
-  - name: copy the source rpms to the SRPMS dir
+  - name: copy the source rpms to the SRPMS dir of {{ repodir }}
     copy: src={{ item }} dest={{ repodir }}/SRPMS/
     with_fileglob:
      - "{{ rpmdir }}/*.src.rpm"
@@ -45,7 +47,7 @@
     with_fileglob:
      - "{{ rpmdir }}/*.src.rpm"
 
-  - name: copy the binary rpms to the x86_64 dir
+  - name: copy the binary rpms to the x86_64 dir of {{ repodir }}
     copy: src={{ item }} dest={{ repodir }}/x86_64/
     with_fileglob:
      - "{{ rpmdir }}/*.rpm"
