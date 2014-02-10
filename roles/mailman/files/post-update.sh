@@ -21,6 +21,9 @@ chmod g+w -R $INDEXDIR
 # Give database rights to the non-admin user
 $BASEDIR/bin/pg-give-rights.py
 
+# SELinux contexts
+restorecon -r "$BASEDIR"
+
 # Reload Apache to flush the python cache
 systemctl reload httpd
 # Restart Mailman3 since kittystore was updated
