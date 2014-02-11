@@ -5,7 +5,7 @@
   tags:
    - jenkins_master
 
-  vars_files: 
+  vars_files:
    - /srv/web/infra/ansible/vars/global.yml
    - "{{ private }}/vars.yml"
 
@@ -20,7 +20,7 @@
   tags:
    - jenkins_master
 
-  vars_files: 
+  vars_files:
    - /srv/web/infra/ansible/vars/global.yml
    - "{{ private }}/vars.yml"
    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
@@ -69,7 +69,7 @@
   - name: enable apache
     action: service name=httpd state=running enabled=true
 
-  - name: add jenkins upstream repo 
+  - name: add jenkins upstream repo
     action: copy src="{{ files }}/jenkins/master/jenkins.repo" dest=/etc/yum.repos.d/jenkins.repo  owner=root group=root
     tags:
      - config
@@ -162,9 +162,6 @@
         - name: xunit
           version: 1.81
           sha: 8749ef1b3861ea6a5166c7a6f443e20dca346f98aa58ab2bb3f3376b6392244e
-        - name: warnings
-          version: 4.28
-          sha: cc2de4391030e15ffeee86269bdf1afc5a377d484690e4b3ad8fe1c1f2dfd18c
         - name: multiple-scms
           version: 0.3
           sha: e79d7e855ffe0ad060d11ae1ce0b39f68e7fa031c6e831f60fe33e5ddb3392ac
@@ -174,12 +171,21 @@
         - name: mailer
           version: 1.8
           sha: fb9c6d471c2fea97fc2ccb64bfac18f77c847e740bcc2d5a4de31c35e851728a
-        - name: warnings
-          version: 4.28
-          sha: cc2de4391030e15ffeee86269bdf1afc5a377d484690e4b3ad8fe1c1f2dfd18c
     notify:
       - restart jenkins
+    tags:
+     - config
 
+  - name: Download additional jenkins plugins (from the maven repo)
+    get_url: url=http://maven.jenkins-ci.org/content/repositories/releases/org/jvnet/hudson/plugins/{{ item.name }}/{{ item.version }}/{{ item.name }}-{{ item.version }}.hpi
+             dest=/var/lib/jenkins/plugins/{{ item.name }}.hpi
+             sha256sum={{ item.sha }}
+    with_items:
+        - name: warnings
+          version: 4.39
+          sha: 7652b7ed8971de932f46323aa8e0ddee2bcf4f14839296481ae79590e09f7606
+    notify:
+      - restart jenkins
     tags:
      - config
 
@@ -281,7 +287,7 @@
     - python-bugzilla
     - python-straight-plugin
     - python-pip
-    - python-virtualenv 
+    - python-virtualenv
     - python-coverage
     - pylint
     - python-argparse
@@ -408,7 +414,7 @@
   - name: setup jenkins_slave user
     action: user name=jenkins_slave state=present createhome=yes system=no
     tags:
-    - jenkinsuser  
+    - jenkinsuser
 
   - name: setup jenkins_slave ssh key
     action: authorized_key user=jenkins_slave key="{{ item }}"
@@ -417,12 +423,12 @@
 
   - name: jenkins_slave to mock group
     action: user name=jenkins_slave groups=mock
-  
+
   - name: add .gitconfig for jenkins_slave user
     action: copy src="{{ files }}/jenkins/gitconfig" dest=/home/jenkins_slave/.gitconfig owner=jenkins_slave group=jenkins_slave mode=664
     tags:
      - config
-  
+
   - name: template sshd_config
     action: copy src={{ item }} dest=/etc/ssh/sshd_config mode=0600 owner=root group=root
     first_available_file:
@@ -432,7 +438,7 @@
     - restart sshd
     tags:
      - config
-  
+
   - name: mkdir dir for jenkins data
     action: file state=directory path=/mnt/jenkins owner=jenkins_slave group=jenkins_slave
 
