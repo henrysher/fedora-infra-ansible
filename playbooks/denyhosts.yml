@@ -26,26 +26,22 @@
 
   vars:
   - test: True
+  - ip: "{{ ip |replace('.', '\\.') }}"
 
   tasks:
   - name: Grep for the IP in the files
     action: command grep {{ ip }} /etc/hosts.deny
-    when: not test
-
-  - name: Escape the '.' in the IP
-    action: command  "IP='{{ ip }}' && echo ${IP//\./\\.}"
-    register: ip
     when: test
 
   - name: Remove IP from /var/lib/denyhosts/*
     action: command sed -si "/^{{ ip }}$/d" /var/lib/denyhosts/*
     notify:
     - restart denyhosts
-    when: test
+    when: not test
 
   - name: Remove IP from /etc/hosts.deny
     action: command sed -si "/^{{ ip }}$/d" /etc/hosts.deny
     notify:
     - restart denyhosts
-    when: test
+    when: not test
 
