@@ -1,45 +1,51 @@
 # requires --extra-vars="target=somevhost ip=10.0.0.1 test={True,False}"
 
-#General overview:
-# host provided via ``target`` argument on the CLI
-# IP provided via ``ip`` argument on the CLI
-# test provided via ``test`` argument on the CLI
+# General overview:
+#  host provided via ``target`` argument on the CLI
+#  IP provided via ``ip`` argument on the CLI
+#  test provided via ``test`` argument on the CLI
+
+# Command:
+#  ansible-playbook .../playbook/denyhosts.yml --extra-vars="target=host ip=10.0.0.1 test=True"
 
 # Log onto $target
 # if test is True:
-#   grep on /etc/hosts.deny for the provided $ip
+#   grep on /etc/hosts.deny for the provided {{ ip }}
 # else:
-#   escape the '.' in the $ip
-#   remove $ip from /var/lib/denyhosts/*
-#   remove $ip from /etc/hosts.deny
+#   escape the '.' in the {{ ip }}
+#   remove {{ ip }} from /var/lib/denyhosts/*
+#   remove {{ ip }} from /etc/hosts.deny
 #   restart denyhosts
 
 # sop: http://infrastructure.fedoraproject.org/infra/docs/denyhosts.txt
 
 - name: Unban an IP from denyhosts
-  hosts: $target
+  hosts: "{{ target }}"
   user: root
   gather_facts: False
 
+  vars:
+  - test: True
+
   tasks:
   - name: Grep for the IP in the files
-    action: command grep $ip /etc/hosts.deny
-    only_if: '$test or not is_set($test)'
+    action: command grep {{ ip }} /etc/hosts.deny
+    when: not test
 
   - name: Escape the '.' in the IP
-    action: command ${$ip//\./\\.}
+    action: command  "IP='{{ ip }}' && echo ${IP//\./\\.}"
     register: ip
-    only_if: '$test or not is_set($test)'
+    when: test
 
   - name: Remove IP from /var/lib/denyhosts/*
-    action: command sed -si "/^$ip$/d" /var/lib/denyhosts/*
+    action: command sed -si "/^{{ ip }}$/d" /var/lib/denyhosts/*
     notify:
     - restart denyhosts
-    only_if: 'is_set($test) and $test == False'
+    when: test
 
   - name: Remove IP from /etc/hosts.deny
-    action: command sed -si "/^$ip$/d" /etc/hosts.deny
+    action: command sed -si "/^{{ ip }}$/d" /etc/hosts.deny
     notify:
     - restart denyhosts
-    only_if: 'is_set($test) and $test == False'
+    when: test
 
