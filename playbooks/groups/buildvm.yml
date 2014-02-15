@@ -32,15 +32,16 @@
    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
 
   roles:
-  - /srv/web/infra/ansible/roles/base
+  - base
+  - koji_builder
 
   tasks:
   - include: "{{ tasks }}/hosts.yml"
-  - include: "{{ tasks }}/koji/base_builder.yml"
+  - include: "{{ tasks }}/yumrepos.yml"
   - include: "{{ tasks }}/koji/builder_kernel_config.yml"
+
+  - name: make sure kojid is running
+    action: service name=kojid state=running
 
   handlers:
   - include: "{{ handlers }}/restart_services.yml"
-
-  - name: restart kojid
-    action: service name=kojid state=restarted

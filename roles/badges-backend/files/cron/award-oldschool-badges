@@ -35,6 +35,35 @@ fedmsg.init(**fm_config)
 import fedbadges.utils
 
 
+def user_in_group(user, group_name):
+    # First, bail out if they're not in the group at all
+    if not any([g.name == group_name for g in user.memberships]):
+        return False
+
+    # Find the group_id of the group we're looking for..
+    group_id = None
+    for g in user.memberships:
+        if g.name == group_name:
+            group_id = g.id
+            break
+
+    if not group_id:
+        return False
+
+    # For that group_id, find the relevant role
+    relevant_role = None
+    for role in user.roles:
+        if role.group_id == group_id:
+            relevant_role = role
+            break
+
+    if not relevant_role:
+        return False
+
+    # They must be actually 'approved' in that group for this to count
+    return relevant_role.role_status == 'approved'
+
+
 def get_fas_groupings(fas_credentials, lookup, **config):
     creds = fas_credentials
 
@@ -56,23 +85,33 @@ def get_fas_groupings(fas_credentials, lookup, **config):
     mega_list = request['people']
 
     results = {}
-    packager_id = None
+    packager_id, ambassadors_id = None, None
     for user in mega_list:
         # This is the main check.
         for group_name, badge_id in lookup.iteritems():
-            if any([group.name == group_name for group in user.memberships]):
+            if user_in_group(user, group_name):
                 results[group_name] = results.get(group_name, []) + [user]
 
-        # This is special.. we're checking for being a packager-sponsor
+        # Beyond the main check, here is a special check that makes sure they
+        # are a sponsor in the packager group.
         if not packager_id:
             for group in user.memberships:
                 if group.name == 'packager':
                     packager_id = group.id
 
+        if not ambassadors_id:
+            for group in user.memberships:
+                if group.name == 'ambassadors':
+                    ambassadors_id = group.id
+
         for role in user.roles:
             if role.group_id == packager_id:
                 if role.role_type == 'sponsor' and role.role_status == 'approved':
                     results['sponsors'] = results.get('sponsors', []) + [user]
+
+            if role.group_id == ambassadors_id:
+                if role.role_type == 'sponsor' and role.role_status == 'approved':
+                    results['ambassadors_sponsors'] = results.get('ambassadors_sponsors', []) + [user]
 
     return results
 
@@ -87,10 +126,13 @@ def main():
         'provenpackager': 'proven-packager',
         'proventesters': 'proven-tester',
         'ambassadors': 'ambassador',
+        'videos': 'videographer',
         'sysadmin-main': 'trust-me,-i-know-what-i-am-doing',
         'sysadmin-badges': 'inside-job',
         'sponsors': 'packager-sponsor',
+        'ambassadors_sponsors': 'ambassadors-sponsor',
         'designteam': 'pixel-ninja',
+        'fi-apprentice': 'no-longer-a-ronin',
     }
 
     # First, some validation that the badge ids actually exist.

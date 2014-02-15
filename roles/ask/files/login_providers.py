@@ -81,10 +81,9 @@ providers = (
     'Vidoop',
     'Verisign',
     'Yahoo',
-    'identi.ca',
 )
 
-need_extra_setup = ('Twitter', 'Facebook', 'LinkedIn', 'identi.ca',)
+need_extra_setup = ('Twitter', 'Facebook', 'LinkedIn', )
 
 for provider in providers:
     kwargs = {

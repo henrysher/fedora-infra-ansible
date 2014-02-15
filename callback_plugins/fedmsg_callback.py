@@ -53,6 +53,10 @@ class CallbackModule(object):
             # figure out where the playbook FILE is
             path = os.path.abspath(play.playbook.filename)
 
+            # Bail out early without publishing if we're in --check mode
+            if play.playbook.check:
+                return
+
             if not self.playbook:
                 fedmsg.publish(
                     modname="ansible", topic="playbook.start",
@@ -68,6 +72,9 @@ class CallbackModule(object):
                 self.playbook = path
 
     def playbook_on_stats(self, stats):
+        if not self.playbook:
+            return
+
         results = dict([(h, stats.summarize(h)) for h in stats.processed])
         fedmsg.publish(
             modname="ansible", topic="playbook.complete",

@@ -4,8 +4,8 @@
   gather_facts: False
 
   vars_files: 
-   - /srv/web/infra/ansible/vars/global.yml
-   - "{{ private }}/vars.yml"
+  - /srv/web/infra/ansible/vars/global.yml
+  - "{{ private }}/vars.yml"
 
   tasks:
   - include: "{{ tasks }}/persistent_cloud.yml"
@@ -16,56 +16,47 @@
   gather_facts: True
 
   vars_files: 
-   - /srv/web/infra/ansible/vars/global.yml
-   - "{{ private }}/vars.yml"
-   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+  - /srv/web/infra/ansible/vars/global.yml
+  - "{{ private }}/vars.yml"
+  - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
   vars:
-   - mailman_vardir: /srv/persist/mailman
+  - mailman_vardir: /srv/persist/mailman
 
   tasks:
   - include: "{{ tasks }}/cloud_setup_basic.yml"
   - include: "{{ tasks }}/postfix_basic.yml"
+  - include: "{{ tasks }}/hosts.yml"
+  - include: "{{ tasks }}/yumrepos.yml"
+  - include: "{{ tasks }}/collectd/client.yml"
+  - include: "{{ tasks }}/motd.yml"
+  - include: "{{ tasks }}/sudo.yml"
+  - include: "{{ tasks }}/apache.yml"
+  - include: "{{ tasks }}/mod_wsgi.yml"
 
   - name: mount up disk of persistent storage
     action: mount name=/srv/persist src='LABEL=lists-dev' fstype=ext4 state=mounted
 
   - name: selinux status
-    selinux: policy=targeted state=permissive
+    selinux: policy=targeted state=enforcing
 
   # /srv/persist
   - name: mount up bind mount for postgres
     action: mount src=/srv/persist/pgsqldb name=/var/lib/pgsql fstype=auto opts=bind state=mounted
   - name: mount up bind mount for mailman
-    action: mount src=/srv/persist/mailman name=/var/lib/mailman fstype=auto opts=bind state=mounted
+    action: mount src=/srv/persist/mailman name=/var/lib/mailman3 fstype=auto opts=bind state=mounted
 
   - name: get the repo file
-    get_url: url=http://repos.fedorapeople.org/repos/abompard/hyperkitty/fedora-hyperkitty.repo
-             dest=/etc/yum.repos.d/fedora-hyperkitty.repo mode=0444
+    get_url: url=http://repos.fedorapeople.org/repos/abompard/hyperkitty/hyperkitty.repo
+             dest=/etc/yum.repos.d/hyperkitty.repo mode=0444
 
-  - name: install packages
-    yum: state=installed name={{ item }}
+  # open up ports (22, 80, 443, 25)
+  - name: poke holes in the firewall
+    command: lokkit {{ item }}
     with_items:
-      - httpd
-      - mod_ssl
-      - mod_wsgi
-      - mailman
-      - python-psycopg2
-      - python-storm-postgresql
-      - postgresql-server
-      - system-config-firewall-base
-      - rsync
-      - openssh-clients
-      - httpd-tools
-      - cronie-noanacron
-
-
-  - name: remove packages
-    yum: state=removed name=sendmail
-
-  - name: install apache and mod_wsgi
-    yum: name=mod_wsgi state=installed
-    notify:
-      - restart apache
+    - --service=ssh
+    - --service=https
+    - --service=http
+    - --service=smtp
 
   # Database
   - name: initialize postgresql
@@ -74,27 +65,14 @@
   - name: copy pg_hba.conf
     copy: src="{{ files }}/lists-dev/pg_hba.conf" dest=/var/lib/pgsql/data/pg_hba.conf
     notify:
-      - restart postgresql
+    - restart postgresql
   - name: start postgresql
     service: state=started name=postgresql
 
-  # open up ports (22, 80, 443, 25)
-  - name: poke holes in the firewall
-    command: lokkit {{ item }}
-    with_items:
-      - --service=ssh
-      - --service=https
-      - --service=http
-      - --service=smtp
-
-  # packages needed to be gone
-  - name: erase packages
-    action: yum state=absent name={{ item }}
-    with_items:
-    - cronie-anacron
-
   handlers:
   - include: "{{ handlers }}/restart_services.yml"
+  - name: restart postgresql
+    service: name=postgresql state=restarted
 
 
 
@@ -104,161 +82,81 @@
   sudo: yes
   sudo_user: postgres
   vars_files: 
-   - /srv/web/infra/ansible/vars/global.yml
-   - "{{ private }}/vars.yml"
-   - "{{ vars_path }}/{{ ansible_distribution }}.yml"
+  - /srv/web/infra/ansible/vars/global.yml
+  - "{{ private }}/vars.yml"
+  - "{{ vars_path }}/{{ ansible_distribution }}.yml"
   vars:
-   - mailman_vardir: /srv/persist/mailman
+  - mailman_vardir: /srv/persist/mailman
 
 
   tasks:
-    - name: mailman DB user
-      postgresql_user: name=mailman password={{ lists_dev_mm_db_pass }}
-    - name: hyperkitty DB user
-      postgresql_user: name=hyperkitty password={{ lists_dev_hk_db_pass }}
-    - name: kittystore DB user
-      postgresql_user: name=kittystore password={{ lists_dev_ks_db_pass }}
-    - name: postorius DB user
-      postgresql_user: name=postorius password={{ lists_dev_ps_db_pass }}
-    - name: databases creation
-      postgresql_db: name={{ item }} owner={{ item }} encoding=UTF-8
-      with_items:
-        - mailman
-        - hyperkitty
-        - kittystore
-        - postorius
+  # mailman auto-updates its schema, there can only be one admin user
+  - name: mailman DB user
+    postgresql_user: name=mailmanadmin password={{ lists_dev_mm_db_pass }}
+  - name: hyperkitty DB admin user
+    postgresql_user: name=hyperkittyadmin password={{ lists_dev_hk_db_pass }}
+  - name: hyperkitty DB user
+    postgresql_user: name=hyperkittyapp password={{ lists_dev_hk_db_pass }}
+  - name: kittystore DB admin user
+    postgresql_user: name=kittystoreadmin password={{ lists_dev_ks_db_pass }}
+  - name: kittystore DB user
+    postgresql_user: name=kittystoreapp password={{ lists_dev_ks_db_pass }}
+  - name: databases creation
+    postgresql_db: name={{ item }} owner="{{ item }}admin" encoding=UTF-8
+    with_items:
+    - mailman
+    - hyperkitty
+    - kittystore
 
 - name: setup mailman and hyperkitty
   hosts: hyperkitty-stg
   gather_facts: no
   vars_files: 
-   - /srv/web/infra/ansible/vars/global.yml
-   - "{{ private }}/vars.yml"
-   - "{{ vars_path }}/{{ ansible_distribution }}.yml"
-  vars:
-   - mailman_vardir: /srv/persist/mailman
+  - /srv/web/infra/ansible/vars/global.yml
+  - "{{ private }}/vars.yml"
+  - "{{ vars_path }}/{{ ansible_distribution }}.yml"
+
+  roles:
+  - role: mailman
+    mailman_dbserver: localhost
+    mailman_postfix_mydestination: lists-dev.cloud.fedoraproject.org
+    mailman_mm_db_pass: "{{ lists_dev_mm_db_pass }}"
+    mailman_hk_admin_db_pass: "{{ lists_dev_hk_db_pass }}"
+    mailman_hk_db_pass: "{{ lists_dev_hk_db_pass }}"
+    mailman_ks_admin_db_pass: "{{ lists_dev_ks_db_pass }}"
+    mailman_ks_db_pass: "{{ lists_dev_ks_db_pass }}"
 
   tasks:
 
-    # Initialize mailman (must be done after settings up the DBs)
-    - name: add mailman to the apache group
-      user: name=mailman groups=apache append=yes
-      notify:
-        - restart mailman
+  - name: install more needed packages
+    yum: pkg={{ item }} state=installed
+    with_items:
+    - tar
+    - mailman # transition from mailman2.1
+    - vim
+    - tmux
+    - patch
+    tags:
+    - packages
 
-    - name: set the mailman conffile
-      template: src="{{ files }}/lists-dev/mailman.cfg.j2" dest=/etc/mailman.cfg
-      notify:
-        - restart mailman
+  #- name: easy access to the postgresql databases
+  #  template: src="{{ files }}/lists-dev/pgpass.j2" dest=/root/.pgpass
+  #            owner=root group=root mode=0600
 
-    - name: install kittystore and hyperkitty
-      yum: state=installed name={{ item }}
-      with_items:
-        - kittystore
-        - hyperkitty
-        - postorius
-
-    # Logging
-    - name: hyperkitty logging -- directory
-      file: path=/var/log/hyperkitty state=directory
-            owner=root group=apache mode=2775
-    - name: hyperkitty logging -- file creation
-      copy: content="" dest=/var/log/hyperkitty/hyperkitty.log
-            force=no
-    - name: hyperkitty logging -- file permissions
-      file: path=/var/log/hyperkitty/hyperkitty.log state=file
-            owner=root group=apache mode=664
-    - name: hyperkitty logging -- rotation
-      copy: src="{{ files }}/lists-dev/hyperkitty.logrotate.conf"
-            dest=/etc/logrotate.d/hyperkitty
-
-    # settings / conf
-    - name: install the hyperkitty/postorius settings file
-      template: src="{{ files }}/lists-dev/{{ item.settings_local.py.j2 }}"
-                dest="/etc/{{ item }}/sites/default/settings_local.py"
-                owner=root group=apache mode=0640
-      with_items:
-        - hyperkitty
-        - postorius
-      notify:
-        - reload apache
-        - restart mailman
-
-    - name: install the hyperkitty/postorius urls file
-      copy: src="files/lists-dev/{{ item }}.urls.py"
-            dest="/etc/{{ item }}/sites/default/urls.py"
-            owner=root group=root mode=0644
-      with_items:
-        - hyperkitty
-        - postorius
-      notify:
-        - reload apache
-        - restart mailman
-
-    - name: install the hyperkitty/postorius httpd conf file
-      copy: src="{{ files }}/lists-dev/{{ item }}.apache.conf"
-            dest="/etc/httpd/conf.d/{{ item }}.conf"
-      with_items:
-        - hyperkitty
-        - postorius
-      notify:
-        - reload apache
-
-    - name: set the hyperkitty conffile in mailman
-      copy: src="{{ files }}/lists-dev/hyperkitty.cfg" dest=/etc/mailman.d/hyperkitty.cfg
-      notify:
-        - restart mailman
-
-    - name: set the postfix conffile
-      template: src="{{ files }}/lists-dev/postfix-main.cf.j2" dest=/etc/postfix/main.cf
-      notify:
-        - restart postfix
-
-    - name: set the mail aliases
-      copy: src="{{ files }}/lists-dev/aliases" dest=/etc/aliases
-      notify:
-        - reload aliases
-
-    - name: easy access to the postgresql databases
-      template: src="{{ files }}/lists-dev/pgpass.j2" dest=/root/.pgpass
-                owner=root group=root mode=0600
+  - name: send root mail to abompard
+    lineinfile: dest=/etc/aliases regexp='^root:' line="root:abompard@fedoraproject.org"
+    notify:
+    - reload aliases
 
 
-    # Sync databases
-    # FIXME the db migrations should happen no matter when the pkgs are updated
-    # so really this should be run once
-    # and then stored in a yum-post-transaction-action on the system(s)
-    # so no matter when it is run the right thing happens
-
-    - name: run django syncdb
-      command: /usr/bin/django-admin syncdb --pythonpath="/etc/{{ item }}/sites/default" --settings=settings
-      with_items:
-        - hyperkitty
-        - postorius
-    - name: run django migrate
-      command: /usr/bin/django-admin migrate --pythonpath=/etc/hyperkitty/sites/default --settings=settings hyperkitty
-    - name: kittystore schema update
-      command: /usr/bin/kittystore-updatedb -s postgres://kittystore:{{ lists_dev_ks_db_pass }}@localhost/kittystore
-
-    - name: copy the initial user fixture
-      copy: src="{{ files }}/lists-dev/postorius.initial-user.json"
-            dest=/etc/postorius/sites/default/initial-user.json
-            owner=root group=apache mode=0640
-
-    - name: load the inital user
-      command: /usr/bin/django-admin loaddata --pythonpath=/etc/postorius/sites/default --settings=settings /etc/postorius/sites/default/initial-user.json
-
-    - name: html index
-      copy: src="{{ files }}/lists-dev/index.html" dest=/var/www/html/index.html
-
-    # Start services
-    - name: start services
-      service: state=started enabled=yes name={{ item }}
-      with_items:
-        - httpd
-        - postgresql
-        - mailman
-        - postfix
+  # Start services
+  - name: start services
+    service: state=started enabled=yes name={{ item }}
+    with_items:
+    - httpd
+    - postgresql
+    - mailman3
+    - postfix
 
 
   handlers:

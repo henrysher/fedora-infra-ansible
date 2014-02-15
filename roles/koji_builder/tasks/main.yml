@@ -1,0 +1,187 @@
+#
+# This is a base koji_builder role. 
+#
+- name: set root passwd
+  user: name=root password={{ builder_rootpw }} state=present
+
+- name: add mock user as 425
+  user: name=mock uid=425 state=present home=/var/lib/mock createhome=yes system=yes
+
+- name: make mock homedir perms
+  file: state=directory path=/var/lib/mock mode=2775 owner=root group=mock
+
+- name: add mock ssh dir
+  file: state=directory path=/var/lib/mock/.ssh mode=700 owner=mock group=mock
+
+- name: add mock ssh keys
+  copy: src=mock_auth_keys dest=/var/lib/mock/.ssh/authorized_keys mode=640 owner=mock group=mock
+
+- name: add kojibuilder
+  user: name=kojibuilder groups=mock 
+
+- name: add mockbuilder
+  user: name=mockbuilder groups=mock
+
+- name: mockbuilder .ssh dir
+  file: state=directory path=/home/mockbuilder/.ssh mode=700 owner=mockbuilder group=mockbuilder
+
+- name: mockbuilder ssh key
+  copy: src=ftbfs_auth_keys dest=/home/mockbuilder/.ssh/authorized_keys mode=644 owner=mockbuilder group=mockbuilder
+
+- name: make a bunch of dirs
+  file: state=directory path={{ item }}
+  with_items:
+    - /pub
+    - /mnt/fedora_koji
+    - /pub/fedora
+    - /pub/epel
+
+- name: add builder infra yum repo
+  copy: src=builder-infrastructure.repo dest=/etc/yum.repos.d/builder-infrastructure.repo
+
+- name: clean up packages we do not need
+  yum: state=removed pkg={{ item }}
+  with_items:
+    - 'cronie\*'
+
+- name: add pkgs
+  yum: state=installed pkg={{ item }}
+  with_items:
+    - yum-utils
+    - koji-builder
+    - strace
+    - mock
+    - nfs-utils
+    - kernel-firmware
+    - ntp
+    - ntpdate
+    - rsyslog
+    - audit
+
+- name: /etc/kojid/kojid.conf
+  copy: src=kojid.conf dest=/etc/kojid/kojid.conf
+  when: not inventory_hostname.startswith(('arm01','arm03'))
+  notify:
+  - restart kojid
+
+- name: arm /etc/kojid/kojid.conf
+  copy: src=arm-kojid.conf dest=/etc/kojid/kojid.conf
+  when: inventory_hostname.startswith(('arm01','arm03'))
+  notify:
+  - restart kojid
+
+- name: /etc/koji/koji.conf
+  copy: src=koji.conf dest=/etc/koji.conf
+  when: not inventory_hostname.startswith(('arm01','arm03'))
+
+- name: /etc/koji/koji.conf
+  copy: src=arm-koji.conf dest=/etc/koji.conf
+  when: inventory_hostname.startswith(('arm01','arm03'))
+
+- name: copy over koji ca cert
+  copy: src="{{ private }}/files/koji/buildercerts/fedora-ca.cert" dest=/etc/kojid/cacert.pem
+
+- name: copy over /etc/security/limits.conf
+  copy: src=limits.conf dest=/etc/security/limits.conf
+
+- name: copy over builder cert to /etc/kojid/kojibuilder.pem
+  copy: src="{{ private }}/files/koji/buildercerts/{{ inventory_hostname }}.pem" dest=/etc/kojid/kojibuilder.pem mode=600   
+
+# idmapd and make sure it's set to run
+- name: idmapd.conf
+  copy: src=idmapd.conf dest=/etc/idmapd.conf
+  tags:
+  - configs
+
+- name: route config for netapp network
+  copy: src=route-eth1 dest=/etc/sysconfig/network-scripts/route-eth1
+
+- name: check for netapp route
+  command: ip route show
+  register: netapproute
+  always_run: yes
+  changed_when: "1 != 1"
+
+- name: run netapp route
+  command: /etc/sysconfig/network-scripts/ifup-routes eth1
+  when: netapproute.stdout.find("10.5.88.0") == -1 and not inventory_hostname.startswith('arm')
+
+- name: nfs mount points
+  mount: name=/mnt/fedora_koji src=vtap-fedora-nfs01.storage.phx2.redhat.com:/vol/fedora_koji fstype=nfs opts=ro,hard,bg,intr,noatime,nodev,nosuid passno=0 dump=0 state=mounted
+  when: inventory_hostname.startswith('build')
+
+- name: make a mnt/koji link
+  file: state=link src=/mnt/fedora_koji/koji dest=/mnt/koji
+  when: inventory_hostname.startswith('build')
+
+# mock configs for pungify job
+- name: put extra special  mock configs in
+  copy: src=builders/{{ item }} dest="/etc/mock/{{ item }}" mode=644
+  with_items:
+    - fedora-branched-pungi-armhfp.cfg
+    - fedora-branched-pungi-i386.cfg
+    - fedora-branched-pungi-x86_64.cfg
+    - fedora-rawhide-pungi-i386.cfg
+    - fedora-rawhide-pungi-x86_64.cfg
+    - fedora-rawhide-pungi-armhfp.cfg
+
+- name: mock site-defaults.cfg
+  copy: src=builders/site-defaults.cfg dest=/etc/mock/site-defaults.cfg mode=0644 owner=root group=mock
+  when: not inventory_hostname.startswith('bkernel')
+
+- name: ntp steptickers
+  copy: src="{{ files }}/common/step-tickers" dest=/etc/ntp/step-tickers
+
+- name: ntp.conf
+  copy: src="{{ files }}/common/ntp.conf" dest=/etc/ntp.conf
+
+#
+# We want more loop devices on builders to allow more image creates
+#
+
+- name: check for max_loop with grub2
+  command: cat /etc/grub2.cfg
+  register: max_loop
+  always_run: yes
+  changed_when: '1 != 1'
+  when: ansible_distribution == 'Fedora' and ansible_architecture == 'x86_64'
+
+- name: check for max_loop with grub1
+  command: cat /etc/grub.conf
+  register: max_loop
+  always_run: yes
+  changed_when: '1 != 1'
+  when: ansible_distribution == 'RedHat' and ansible_architecture == 'x86_64'
+
+- name: set kernel params for more loops
+  action: command /sbin/grubby --update-kernel=ALL --args=max_loop=64 
+  when: max_loop is defined and max_loop.stdout.find("max_loop=64") == -1
+
+#
+# x86_64 builders run pungify, that needs hfs module in order to make
+# The efi/mac images. This module is only needed on rhel. 
+#
+
+- name: special pkgs for the x86_64 builders
+  yum: state=installed pkg={{ item }}
+  with_items:
+  - kmod-hfsplus    
+  when: is_rhel == 'True'
+
+- name: enable services and start them on Fedora systems
+  service: name={{ item }}  enabled=true state=started
+  with_items:
+  - ntpd
+  - nfs-lock
+  - nfs-idmap
+  - nfs-mountd
+  when: ansible_distribution == 'Fedora'
+
+- name: enable services and start them on RHEL systems
+  service: name={{ item }}  enabled=true state=started
+  with_items:
+  - rpcbind
+  - ntpd
+  - nfslock
+  - nfs
+  when: ansible_distribution == 'RedHat'

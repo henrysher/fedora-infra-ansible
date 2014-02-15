@@ -12,8 +12,7 @@ INDEXDIR=$BASEDIR/kittystore_search_index
 
 django-admin collectstatic --clear --noinput --pythonpath $CONFDIR --settings settings
 django-admin assets build --parse-templates --pythonpath $CONFDIR --settings settings
-django-admin syncdb --pythonpath $CONFDIR --settings settings_admin
-django-admin migrate --pythonpath $CONFDIR --settings settings_admin
+django-admin syncdb --pythonpath $CONFDIR --settings settings_admin --noinput --migrate
 django-admin loaddata /etc/postorius/sites/default/initial-user.json --pythonpath $CONFDIR --settings settings_admin
 kittystore-updatedb --pythonpath $CONFDIR --settings settings_admin
 chown mailman:mailman -R $INDEXDIR
@@ -21,6 +20,9 @@ chmod g+w -R $INDEXDIR
 
 # Give database rights to the non-admin user
 $BASEDIR/bin/pg-give-rights.py
+
+# SELinux contexts
+restorecon -r "$BASEDIR"
 
 # Reload Apache to flush the python cache
 systemctl reload httpd

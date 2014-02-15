@@ -5,7 +5,7 @@
   tags:
    - jenkins_master
 
-  vars_files: 
+  vars_files:
    - /srv/web/infra/ansible/vars/global.yml
    - "{{ private }}/vars.yml"
 
@@ -20,7 +20,7 @@
   tags:
    - jenkins_master
 
-  vars_files: 
+  vars_files:
    - /srv/web/infra/ansible/vars/global.yml
    - "{{ private }}/vars.yml"
    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
@@ -28,7 +28,7 @@
    - resolvconf: resolv.conf/jenkins-cloud
 
   roles:
-   - /srv/web/infra/ansible/roles/base
+   - base
 
   tasks:
   - include: "{{ tasks }}/cloud_setup_basic.yml"
@@ -69,7 +69,7 @@
   - name: enable apache
     action: service name=httpd state=running enabled=true
 
-  - name: add jenkins upstream repo 
+  - name: add jenkins upstream repo
     action: copy src="{{ files }}/jenkins/master/jenkins.repo" dest=/etc/yum.repos.d/jenkins.repo  owner=root group=root
     tags:
      - config
@@ -100,10 +100,92 @@
   - name: mkdir dir for jenkins data
     action: file state=directory path=/var/lib/jenkins/plugins/ owner=jenkins group=jenkins
 
-  - name: import jenkins plugins
-    action: copy src={{ item }} owner=jenkins group=jenkins dest=/var/lib/jenkins/plugins/
-    with_fileglob:
-     - "{{ files }}/jenkins/master/plugins/*.hpi"
+  - name: Download jenkins plugins
+    get_url: url=https://updates.jenkins-ci.org/download/plugins/{{ item.name }}/{{ item.version }}/{{ item.name }}.hpi
+             dest=/var/lib/jenkins/plugins/{{ item.name }}.hpi
+             sha256sum={{ item.sha }}
+    with_items:
+        - name: bazaar
+          version: 1.22
+          sha: d7ff0987c96e2a694257ecf897ceee376908c5f94abfd1d5efc32482e4d54141
+        - name: chucknorris
+          version: 0.5
+          sha: bd9df0507008255ad2ed046368d10a4d039a6cbcfefb53c71c1768cc0dcbf65b
+        - name: cobertura
+          version: 1.9.3
+          sha: 3db93d70486b80a904a74ce40b0ac6a7812d1f522f820d0e5d7b538401bc2946
+        - name: cvs
+          version: 2.11
+          sha: 7c917bc824019a81d54472c525e4d724dfb4ae10b59bf64e692a2fc59fcd33cc
+        - name: external-monitor-job
+          version: 1.2
+          sha: 8dd2644271d0138839490342833e9ff7f82772038f673f5ac6220193c587747d
+        - name: git
+          version: 2.0.1
+          sha: 68c7fa6f9e3e1e3991bbba67ca86c2590e425f80a7176171ad7c645d57abe839
+        - name: git-client
+          version: 1.6.1
+          sha: 6b5762e7f423e0c40b068f671a276e83e4093c019164f61959b83d98bc24dedd
+        - name: instant-messaging
+          version: 1.28
+          sha: 0b84561fd72cb80d89c5c57548fe8b7270d448f66361dedd07e227fb1bd44f03
+        - name: ldap
+          version: 1.8
+          sha: 491905ec3675b6a5acf2098722c121732801fd6210e6ff54bc99d213b5b8ee58
+        - name: maven-plugin
+          version: 2.1
+          sha: 1f80592242251bd1c3ca7ba0290905567bba2883fdf828f66a6759d64d1a64bf
+        - name: mercurial
+          version: 1.49
+          sha: c7af29d9af2071aa60fd82efc90d97f52c38b8911160796c1d9c0a89768f36e4
+        - name: openid
+          version: 1.8
+          sha: fed09c7da7762323cf55c3b725493622a4a2460eab8622230497e35914ac9d7e
+        - name: python
+          version: 1.2
+          sha: e3358a945f21b84a8156237b0d621815a7822322e1180ae1e66d10798aaf1f56
+        - name: scm-api
+          version: 0.2
+          sha: cc856d8dc8b951cf9a195baa2bf7bbff0d12368534a6b973e43e2909141eff3f
+        - name: ssh-agent
+          version: 1.4.1
+          sha: ae8227bf219e96a4d76f36dc6d6e652ddd0209e8d9c4cf4483a07858d707ce6e
+        - name: subversion
+          version: 1.54
+          sha: 90c109cbecdf00fbe1a377770d735cf12dcae6f750c00b19b59eaee223a54aa2
+        - name: translation
+          version: 1.11
+          sha: 4d88b8d74ade119cef76827bd385693447fa68fa18fd1bfc8806aff9d931f00e
+        - name: violations
+          version: 0.7.11
+          sha: f8eacb53eb01f83f3702009a41cef89e520a72933671ac1ee9154d88bde2d67a
+        - name: xunit
+          version: 1.81
+          sha: 8749ef1b3861ea6a5166c7a6f443e20dca346f98aa58ab2bb3f3376b6392244e
+        - name: multiple-scms
+          version: 0.3
+          sha: e79d7e855ffe0ad060d11ae1ce0b39f68e7fa031c6e831f60fe33e5ddb3392ac
+        - name: credentials
+          version: 1.9.4
+          sha: 2fedc41d977a166c1addd82cd0cc9b73cffd34b97f7c0756bad7dc198ccd98de
+        - name: mailer
+          version: 1.8
+          sha: fb9c6d471c2fea97fc2ccb64bfac18f77c847e740bcc2d5a4de31c35e851728a
+    notify:
+      - restart jenkins
+    tags:
+     - config
+
+  - name: Download additional jenkins plugins (from the maven repo)
+    get_url: url=http://maven.jenkins-ci.org/content/repositories/releases/org/jvnet/hudson/plugins/{{ item.name }}/{{ item.version }}/{{ item.name }}-{{ item.version }}.hpi
+             dest=/var/lib/jenkins/plugins/{{ item.name }}.hpi
+             sha256sum={{ item.sha }}
+    with_items:
+        - name: warnings
+          version: 4.39
+          sha: 7652b7ed8971de932f46323aa8e0ddee2bcf4f14839296481ae79590e09f7606
+    notify:
+      - restart jenkins
     tags:
      - config
 
@@ -136,7 +218,7 @@
     copy: src={{ item }} dest=/var/lib/jenkins/plugins/openid/WEB-INF/lib/ group=jenkins mode=655
     with_fileglob:
      - "{{ bigfiles }}/hotfixes/jenkins/openid/*.jar"
-    notify: 
+    notify:
       - restart jenkins
 
   handlers:
@@ -205,7 +287,7 @@
     - python-bugzilla
     - python-straight-plugin
     - python-pip
-    - python-virtualenv 
+    - python-virtualenv
     - python-coverage
     - pylint
     - python-argparse
@@ -224,6 +306,7 @@
     - asciidoc           # Required by javapackages-tools
     - xmlto              # Required by javapackages-tools
     - pycairo-devel      # Required by dogtail
+    - pyflakes           # Requested by user rholy (ticket #4175)
     tags:
     - packages
 
@@ -299,6 +382,7 @@
     - lvm2
     - sshpass           # End requires for Cockpit
     - tito              # Requested by msrb for javapackages-tools and xmvn (ticket#4113)
+    - pyflakes          # Requested by user rholy (ticket #4175)
     tags:
     - packages
 
@@ -330,7 +414,7 @@
   - name: setup jenkins_slave user
     action: user name=jenkins_slave state=present createhome=yes system=no
     tags:
-    - jenkinsuser  
+    - jenkinsuser
 
   - name: setup jenkins_slave ssh key
     action: authorized_key user=jenkins_slave key="{{ item }}"
@@ -339,12 +423,12 @@
 
   - name: jenkins_slave to mock group
     action: user name=jenkins_slave groups=mock
-  
+
   - name: add .gitconfig for jenkins_slave user
     action: copy src="{{ files }}/jenkins/gitconfig" dest=/home/jenkins_slave/.gitconfig owner=jenkins_slave group=jenkins_slave mode=664
     tags:
      - config
-  
+
   - name: template sshd_config
     action: copy src={{ item }} dest=/etc/ssh/sshd_config mode=0600 owner=root group=root
     first_available_file:
@@ -354,7 +438,7 @@
     - restart sshd
     tags:
      - config
-  
+
   - name: mkdir dir for jenkins data
     action: file state=directory path=/mnt/jenkins owner=jenkins_slave group=jenkins_slave
 

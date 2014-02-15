@@ -1,0 +1,32 @@
+---
+# common items for the releng-* boxes
+lvm_size: 250000
+mem_size: 4096
+num_cpus: 2
+# for systems that do not match the above - specify the same parameter in
+# the host_vars/$hostname file
+
+tcp_ports: [ 25, 80, 443 ]
+fas_client_groups: sysadmin-tools,sysadmin-main
+
+# These are consumed by a task in roles/fedmsg_base/main.yml
+fedmsg_certs:
+- service: shell
+  owner: root
+  group: sysadmin
+- service: mailman
+  owner: mailman
+  group: mailman
+
+# default virt install command is for a single nic-device
+# define in another group file for more nics (see buildvm)
+virt_install_command: /usr/sbin/virt-install -n {{ inventory_hostname }} -r {{ mem_size }}
+                 --disk bus=virtio,path={{ volgroup }}/{{ inventory_hostname }}
+                 --vcpus={{ num_cpus }}  -l {{ ks_repo }} -x
+                 "ksdevice=eth0 ks={{ ks_url }} ip={{ eth0_ip }} netmask={{ nm }}
+                  gateway={{ gw }} dns={{ dns }} console=tty0 console=ttyS0
+                  hostname={{ inventory_hostname }}"
+                 --network=bridge=br0 --autostart --noautoconsole
+
+# Used by the mailman role
+mailman_dbserver: db01.phx2.fedoraproject.org

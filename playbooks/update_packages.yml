@@ -1,18 +1,23 @@
-# requires --extra-vars="target='host1;host2;group etc' package='python-tahrir'
+# requires --extra-vars="target='host1;host2;group etc' package='python-tahrir'"
 #
 # Alternatively, you could update a group of packages like
-# --extra-vars="package='python-t*'"
-
-# TODO -- how do make it easy to select the infra-testing repo?
+# --extra-vars="target='host1;host2' package='python-t*'"
+#
+# To update from testing, adjust as follow:
+# --extra-vars="target='host1;host2' package='python-t*' testing=True"
 
 - name: push packages out
   hosts: "{{ target }}"
   user: root
 
+  vars:
+    testing: False
+
   tasks:
 
-  - name: expire-caches
-    command: yum clean expire-cache
+  - name: expire-caches {% if testing %}(with infrastructure-testing on){% endif %}
+    command: yum clean expire-cache {% if testing %} --enablerepo=infrastructure-testing {% endif %}
+    always_run: yes
 
-  - name: yum update {{ package }}
-    yum: name={{ package }} state=latest
+  - name: yum update {{ package }} {% if testing %}(with infrastructure-testing on){% endif %}
+    yum: name={{ package }} state=latest {% if testing %}enablerepo=infrastructure-testing{% endif %}

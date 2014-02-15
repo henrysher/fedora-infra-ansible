@@ -10,14 +10,14 @@
   - packages
 
 - name: growpart the second partition (/) to full size
-  action: command growpart /dev/vda 2
-  ignore_errors: true
+  command: growpart /dev/vda 2
   register: growpart
   always_run: true
   changed_when: "growpart.rc != 1"
+  failed_when: growpart.rc == 2
    
 - name: reboot the box
-  action: command /sbin/reboot
+  command: /sbin/reboot
   when: growpart.rc == 0
   ignore_errors: true
 
@@ -26,5 +26,5 @@
   when: growpart.rc == 0
 
 - name: resize the /dev/vda 2 fs
-  action: command resize2fs /dev/vda2
+  command: resize2fs /dev/vda2
   when: growpart.rc == 0

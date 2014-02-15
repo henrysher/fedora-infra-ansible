@@ -110,11 +110,15 @@ MIDDLEWARE_CLASSES = (
     ## Enable the following middleware if you want to enable
     ## language selection in the site settings.
     #'askbot.middleware.locale.LocaleMiddleware',
+    'django.middleware.locale.LocaleMiddleware',
     #'django.middleware.cache.UpdateCacheMiddleware',
     'django.middleware.common.CommonMiddleware',
     #'django.middleware.cache.FetchFromCacheMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     #'django.middleware.sqlprint.SqlPrintingMiddleware',
+
+    # Enable outgoing fedmsg messages
+    'askbot_fedmsg.NOOPMiddleware',
 
     #below is askbot stuff for this tuple
     'askbot.middleware.anon_user.ConnectToSessionMessagesMiddleware',
@@ -184,30 +188,18 @@ INSTALLED_APPS = (
     'keyedcache',
     'robots',
     'django_countries',
-    #'djcelery',
+    'djcelery',
     'djkombu',
     'followit',
     'tinymce',
     'group_messaging',
     #'avatar',#experimental use git clone git://github.com/ericflo/django-avatar.git$
+    'post_office',
 )
 
 
-#setup memcached for production use!
-#see http://docs.djangoproject.com/en/1.1/topics/cache/ for details
-{% if env == "staging" %}
-CACHE_BACKEND = 'locmem://'
-{% else %}
-CACHE_BACKEND='memcached://memcached04:11211/'
-{% endif %}
-#needed for django-keyedcache
-CACHE_TIMEOUT = 6000
-#sets a special timeout for livesettings if you want to make them different
-LIVESETTINGS_CACHE_TIMEOUT = CACHE_TIMEOUT
-CACHE_PREFIX = 'askbot' #make this unique
 CACHE_MIDDLEWARE_ANONYMOUS_ONLY = True
-#If you use memcache you may want to uncomment the following line to enable memcached based sessions
-#SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
+CACHE_TIMEOUT = 600
 
 AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
@@ -229,7 +221,7 @@ logging.basicConfig(
 #   ASKBOT_URL = 'forum/'
 #
 ASKBOT_URL = '' #no leading slash, default = '' empty string
-ASKBOT_TRANSLATE_URL = True #translate specific URLs
+ASKBOT_TRANSLATE_URL = False #translate specific URLs
 _ = lambda v:v #fake translation function for the login url
 LOGIN_URL = '/%s%s%s' % (ASKBOT_URL,_('account/'),_('signin/'))
 LOGIN_REDIRECT_URL = ASKBOT_URL #adjust, if needed
@@ -242,13 +234,56 @@ ASKBOT_USE_STACKEXCHANGE_URLS = False #mimic url scheme of stackexchange
 BROKER_TRANSPORT = "djkombu.transport.DatabaseTransport"
 CELERY_ALWAYS_EAGER = True
 
-
+#
+# Only enable languages where we have active moderators
+# In staging we have a few more for communities to test with before commiting. 
+# 
+# locmem cache in staging and use memcached04 in production. 
+#
 
 {% if env == "staging" %}
 DOMAIN_NAME = 'ask.stg.fedoraproject.org'
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'ask-staging'
+    }
+}
+gettext = lambda s: s
+LANGUAGES = (
+    ('pt-br', gettext('Brazilian Portuguese')),
+    ('es', gettext('Spanish')),
+    ('en', gettext('English')),
+    ('ru', gettext('Russian')),
+    ('zh-cn', gettext('Simplified Chinese')),
+    ('fr', gettext('French')),
+    ('el', gettext('Greek')),
+    ('id', gettext('Indonesian')),
+    ('hu', gettext('Hungarian')),
+)
 {% else %}
 DOMAIN_NAME = 'ask.fedoraproject.org'
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
+        'KEY_PREFIX': 'askfedora',
+        'LOCATION': [
+            'memcached04:11211',
+        ]
+    }
+}
+gettext = lambda s: s
+LANGUAGES = (
+    ('es', gettext('Spanish')),
+    ('en', gettext('English')),
+    ('pt-br', gettext('Brazilian Portuguese')),
+    ('id', gettext('Indonesian')),
+    ('el', gettext('Greek')),
+    ('zh-cn', gettext('Simplified Chinese')),
+    ('hu', gettext('Hungarian')),
+)
 {% endif %}
+
 #https://docs.djangoproject.com/en/1.3/ref/contrib/csrf/
 CSRF_COOKIE_DOMAIN = DOMAIN_NAME
 
@@ -322,7 +357,7 @@ GROUP_MESSAGING = {
     'BASE_URL_PARAMS': {'section': 'messages', 'sort': 'inbox'}
 }
 
-ASKBOT_MULTILINGUAL = False
+ASKBOT_MULTILINGUAL = True
 
 ASKBOT_CSS_DEVEL = False
 if 'ASKBOT_CSS_DEVEL' in locals() and ASKBOT_CSS_DEVEL == True:

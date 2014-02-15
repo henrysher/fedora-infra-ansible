@@ -1,5 +1,5 @@
 - name: make ask
-  hosts: ask-stg
+  hosts: ask-stg:ask
   user: root
   gather_facts: False
   accelerate: True
@@ -17,7 +17,7 @@
   - include: "{{ handlers }}/restart_services.yml"
 
 - name: make the box be real
-  hosts: ask-stg
+  hosts: ask-stg:ask
   user: root
   gather_facts: True
   accelerate: True
@@ -28,12 +28,13 @@
    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
 
   roles:
-  - /srv/web/infra/ansible/roles/base
-  - /srv/web/infra/ansible/roles/rkhunter
-  - /srv/web/infra/ansible/roles/denyhosts
-  - /srv/web/infra/ansible/roles/nagios_client
-  - /srv/web/infra/ansible/roles/fas_client
-  - /srv/web/infra/ansible/roles/ask
+  - base
+  - rkhunter
+  - denyhosts
+  - nagios_client
+  - fas_client
+  - ask
+  - fedmsg_base
 
   tasks:
   - include: "{{ tasks }}/hosts.yml"

@@ -23,7 +23,7 @@
 
   # Roles are run first, before tasks, regardless of where you place them here.
   roles:
-  - /srv/web/infra/ansible/roles/fedmsg_base
+  - fedmsg_base
 
   tasks:
   - include: "{{ tasks }}/cloud_setup_basic.yml"
@@ -54,6 +54,7 @@
     - git
     - screen
     - fail2ban
+    - system-config-firewall-base
     
 
   - name: make copr dirs
@@ -102,6 +103,16 @@
     notify: 
     - restart lighttpd
 
+  - name: copy httpd ssl certificates
+    action: copy src="{{ puppet_private }}/httpd/{{ item }}" dest="/etc/lighttpd/{{ item }}" owner=root group=root mode=0600
+    with_items:
+    - coprs-be.fedoraproject.org.key
+    - coprs-be.fedoraproject.org.crt
+    notify:
+    - concate ssl certs
+    tags:
+    - config 
+
   # mime default to text/plain and enable dirlisting for indexes
   - name: update lighttpd configs
     action: copy src="{{ files }}/copr/lighttpd/{{ item }}" dest="/etc/lighttpd/conf.d/{{ item }}" owner=root group=root mode=0644
@@ -112,10 +123,10 @@
     - restart lighttpd
 
   - name: start webserver
-    action: service state=running enabled=yes name=lighttpd
+    service: state=running enabled=yes name=lighttpd
 
   - name: start fail2ban
-    action: service state=running enabled=yes name=fail2ban
+    service: state=running enabled=yes name=fail2ban
 
   # setup dirs for the ansible execution off of provisioning
   - name: dirs from provision
@@ -159,7 +170,7 @@
     - provision_config
 
   - name: copy copr-be.conf
-    template: src="{{ files }}/copr/copr-be.conf" dest=/etc/copr/copr-be.conf  mode=640
+    template: src="{{ files }}/copr/copr-be.conf" dest=/etc/copr/copr-be.conf  owner=root group=copr mode=640
     notify:
     - restart copr-backend
     tags:
@@ -191,3 +202,14 @@
 
   handlers:
   - include: "{{ handlers }}/restart_services.yml"
+  - name: concate ssl certs
+    action: command cat /etc/lighttpd/coprs-be.fedoraproject.org.key /etc/lighttpd/coprs-be.fedoraproject.org.crt > /etc/lighttpd/coprs-be.fedoraproject.org.pem
+    notify:
+    - chmod_key
+    - restart lighttpd
+  - name: chmod_key
+    action: file path=/etc/lighttpd/coprs-be.fedoraproject.org.pem owner=root group=root mode=0600
+  - name: restart copr-backend
+    service: name=copr-backend state=restarted
+  - name: restart lighttpd
+    service: name=lighttpd state=restarted

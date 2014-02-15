@@ -3,15 +3,15 @@
 # NOTE: most of these vars_path come from group_vars/mirrorlist or from hostvars
 
 - name: make mailman server
-  hosts: mailman-stg
+  hosts: mailman-stg:mailman
   user: root
   gather_facts: False
   accelerate: True
 
   vars_files:
-   - /srv/web/infra/ansible/vars/global.yml
-   - "{{ private }}/vars.yml"
-   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+  - /srv/web/infra/ansible/vars/global.yml
+  - "{{ private }}/vars.yml"
+  - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
 
   tasks:
   - include: "{{ tasks }}/virt_instance_create.yml"
@@ -21,23 +21,23 @@
   - include: "{{ handlers }}/restart_services.yml"
 
 - name: make the box be real
-  hosts: mailman-stg
+  hosts: mailman-stg:mailman
   user: root
   gather_facts: True
   accelerate: True
 
   vars_files:
-   - /srv/web/infra/ansible/vars/global.yml
-   - "{{ private }}/vars.yml"
-   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+  - /srv/web/infra/ansible/vars/global.yml
+  - "{{ private }}/vars.yml"
+  - "/srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml"
 
   roles:
-  - /srv/web/infra/ansible/roles/base
-  - /srv/web/infra/ansible/roles/rkhunter
-  - /srv/web/infra/ansible/roles/denyhosts
-  - /srv/web/infra/ansible/roles/nagios_client
-  - /srv/web/infra/ansible/roles/fas_client
-  - /srv/web/infra/ansible/roles/yum-cron
+  - base
+  - rkhunter
+  - denyhosts
+  - nagios_client
+  - fas_client
+  - yum-cron
 
   tasks:
   # this is how you include other task lists
@@ -54,51 +54,71 @@
   - include: "{{ handlers }}/restart_services.yml"
 
 
+#
 # Database setup
+#
+
+- name: prepare setting up the database
+  hosts: db02.stg.phx2.fedoraproject.org:db01.phx2.fedoraproject.org
+  gather_facts: no
+  user: root
+
+  tasks:
+  - name: install psycopg2 for the postgresql ansible modules
+    yum: pkg=python-psycopg2 state=installed
+    tags:
+    - packages
+
 - name: setup the database
-  hosts: db02.stg.phx2.fedoraproject.org
+  hosts: db02.stg.phx2.fedoraproject.org:db01.phx2.fedoraproject.org
   gather_facts: no
   sudo: yes
   sudo_user: postgres
   vars_files:
-   - /srv/web/infra/ansible/vars/global.yml
-   - "{{ private }}/vars.yml"
-   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+  - /srv/web/infra/ansible/vars/global.yml
+  - "{{ private }}/vars.yml"
+  - "/srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml"
 
   tasks:
-    # mailman auto-updates its schema, there can only be one admin user
-    - name: mailman DB user
-      postgresql_user: name=mailmanadmin password={{ mailman_mm_db_pass }}
-    - name: hyperkitty DB admin user
-      postgresql_user: name=hyperkittyadmin password={{ mailman_hk_admin_db_pass }}
-    - name: hyperkitty DB user
-      postgresql_user: name=hyperkittyapp password={{ mailman_hk_db_pass }}
-    - name: kittystore DB admin user
-      postgresql_user: name=kittystoreadmin password={{ mailman_ks_admin_db_pass }}
-    - name: kittystore DB user
-      postgresql_user: name=kittystoreapp password={{ mailman_ks_db_pass }}
-    - name: databases creation
-      postgresql_db: name={{ item }} owner="{{ item }}admin" encoding=UTF-8
-      with_items:
-        - mailman
-        - hyperkitty
-        - kittystore
+  # mailman auto-updates its schema, there can only be one admin user
+  - name: mailman DB user
+    postgresql_user: name=mailmanadmin password={{ mailman_mm_db_pass }}
+  - name: hyperkitty DB admin user
+    postgresql_user: name=hyperkittyadmin password={{ mailman_hk_admin_db_pass }}
+  - name: hyperkitty DB user
+    postgresql_user: name=hyperkittyapp password={{ mailman_hk_db_pass }}
+  - name: kittystore DB admin user
+    postgresql_user: name=kittystoreadmin password={{ mailman_ks_admin_db_pass }}
+  - name: kittystore DB user
+    postgresql_user: name=kittystoreapp password={{ mailman_ks_db_pass }}
+  - name: databases creation
+    postgresql_db: name={{ item }} owner="{{ item }}admin" encoding=UTF-8
+    with_items:
+    - mailman
+    - hyperkitty
+    - kittystore
 
 
 # Real MM/HK-specific work
 - name: setup mailman and hyperkitty
-  hosts: mailman-stg
+  hosts: mailman-stg:mailman
   user: root
   gather_facts: True
 
   vars_files:
-   - /srv/web/infra/ansible/vars/global.yml
-   - "{{ private }}/vars.yml"
-   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+  - /srv/web/infra/ansible/vars/global.yml
+  - "{{ private }}/vars.yml"
+  - "/srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml"
 
   roles:
-  - /srv/web/infra/ansible/roles/mailman
-  - /srv/web/infra/ansible/roles/fedmsg_base
+  - role: mailman
+    mailman_postfix_mydestination: "lists.fedoraproject.org, lists.stg.fedoraproject.org"
+    mailman_mm_db_pass: "{{ mailman_mm_db_pass }}"
+    mailman_hk_admin_db_pass: "{{ mailman_hk_admin_db_pass }}"
+    mailman_hk_db_pass: "{{ mailman_hk_db_pass }}"
+    mailman_ks_admin_db_pass: "{{ mailman_ks_admin_db_pass }}"
+    mailman_ks_db_pass: "{{ mailman_ks_db_pass }}"
+  - fedmsg_base
 
   tasks:
   - name: install more needed packages

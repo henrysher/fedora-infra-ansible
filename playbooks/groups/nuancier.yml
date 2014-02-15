@@ -32,11 +32,11 @@
    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
 
   roles:
-  - /srv/web/infra/ansible/roles/base
-  - /srv/web/infra/ansible/roles/rkhunter
-  - /srv/web/infra/ansible/roles/denyhosts
-  - /srv/web/infra/ansible/roles/nagios_client
-  - /srv/web/infra/ansible/roles/fas_client
+  - base
+  - rkhunter
+  - denyhosts
+  - nagios_client
+  - fas_client
 
   tasks:
   - include: "{{ tasks }}/hosts.yml"
@@ -64,10 +64,41 @@
    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
 
   roles:
-  - /srv/web/infra/ansible/roles/fedmsg_base
+  - fedmsg_base
 
   handlers:
   - include: "{{ handlers }}/restart_services.yml"
+
+- name: set up gluster
+  hosts: nuancier-stg
+  user: root
+  gather_facts: True
+  accelerate: True
+
+  vars_files: 
+   - /srv/web/infra/ansible/vars/global.yml
+   - "{{ private }}/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  roles:
+  - role: gluster/server
+    name: gluster
+    username: "{{ nuancier_gluster_username }}"
+    password: "{{ nuancier_gluster_password }}"
+    owner: root
+    group: root
+    datadir: /srv/glusterfs/nuancier
+
+  - role: gluster/client
+    name: gluster
+    servers: 
+    - nuancier01.stg.phx2.fedoraproject.org
+    - nuancier02.stg.phx2.fedoraproject.org
+    username: "{{ nuancier_gluster_username }}"
+    password: "{{ nuancier_gluster_password }}"
+    owner: apache
+    group: root
+    mountdir: /var/cache/nuancier
 
 - name: deploy nuancier itself
   hosts: nuancier;nuancier-stg
@@ -81,7 +112,7 @@
    - "{{ vars_path }}/{{ ansible_distribution }}.yml"
 
   roles:
-  - /srv/web/infra/ansible/roles/nuancier
+  - nuancier
 
   handlers:
   - include: "{{ handlers }}/restart_services.yml"

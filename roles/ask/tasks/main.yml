@@ -16,11 +16,38 @@
   - python-django-post_office
   - python-django-compressor
   - django-authopenid
+  - django-celery
   tags:
   - packages
 
+# https://github.com/openid/python-openid/pull/76
+- name: hotfix - copy over python-openid fixed messages
+  copy: src="{{ files }}/hotfix/python-openid/fetchers.py" dest=/usr/lib/python2.6/site-packages/openid/fetchers.py
+        owner=root group=root mode=0644
+  notify:
+  - restart apache
+  tags:
+  - config
+  - hotfix
+  - python-openid
+
 - name: set sebooleans so ask can talk to the db
   action: seboolean name=httpd_can_network_connect_db
+                    state=true
+                    persistent=true
+
+- name: set sebooleans so ask can talk to the memcache
+  action: seboolean name=httpd_can_network_memcache
+                    state=true
+                    persistent=true
+
+- name: set sebooleans so ask can talk to fedmsg
+  action: seboolean name=allow_httpd_sys_script_anon_write
+                    state=true
+                    persistent=true
+
+- name: set sebooleans so ask can talk to fedmsg
+  action: seboolean name=allow_ypbind
                     state=true
                     persistent=true
 
@@ -61,11 +88,18 @@
   with_items: 
   - cron-ask-send-reminders
   - cron-post-office-send-mail
+  - cron-delete-old-emails
+  - cron-delete-unused-tags
   tags:
   - files
 
 - name: log ownership fix
   file: state=touch dest=/var/log/askbot/askfedora.log owner=apache group=apache
+
+- name: run collectstatic
+  command: creates=/var/www/html/askbot/static python /etc/askbot/sites/ask/config/manage.py collectstatic --noinput
+  tags:
+  - config
 
 #- name: setup default skin link needed for askbot
 #  file: state=link src=/usr/lib64/python2.6/site-packages/askbot/skins/default dest=/usr/lib64/python2.6/site-packages/askbot/static/default
@@ -140,6 +174,19 @@
 - name: HOTFIX askbot sanction-client.py
   copy: >
     src=sanction-client.py dest=/usr/lib/python2.6/site-packages/sanction/client.py
+    owner=root group=root mode=0644
+  tags:
+  - files
+  notify:
+  - restart httpd
+
+#
+# fix for feedback
+#
+
+- name: HOTFIX askbot/middleware/cancel.py
+  copy: >
+    src=cancel.py dest=/usr/lib/python2.6/site-packages/askbot/middleware/cancel.py
     owner=root group=root mode=0644
   tags:
   - files

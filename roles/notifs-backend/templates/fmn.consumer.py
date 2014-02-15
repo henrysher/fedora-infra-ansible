@@ -20,7 +20,25 @@ config = {
 
     # Consumer stuff
     "fmn.consumer.enabled": True,
-    "fmn.sqlalchemy.uri": "postgresql://${notifs_db_user}:${notifs_db_password}@db-notifs/notifications",
+    "fmn.sqlalchemy.uri": "postgresql://{{notifs_db_user}}:{{notifs_db_password}}@db-notifs/notifications",
+
+    # Some configuration for the rule processors
+    "fmn.rules.utils.use_pkgdb2": False,
+    "fmn.rules.utils.pkgdb2_api_url": "http://209.132.184.188/api/",
+    "fmn.rules.cache": {
+        "backend": "dogpile.cache.dbm",
+        "expiration_time": 300,
+        "arguments": {
+            "filename": "/var/tmp/fmn-cache.dbm",
+        },
+    },
+
+    # The notification backend uses this to build a fas cache of ircnicks
+    # to fas usernames so it can act appropriately on certain message types.
+    "fas_credentials": {
+        "username": "{{fedoraDummyUser}}",
+        "password": "{{fedoraDummyUserPassword}}",
+    },
 
     ## Backend stuff ##
     # Email
@@ -28,7 +46,7 @@ config = {
     "fmn.email.from_address": "notifications@" + domain,
 
     # IRC
-    "fmn.irc.network": "irc.freenode.net",
+    "fmn.irc.network": "chat.freenode.net",
     "fmn.irc.nickname": ircnick,
     "fmn.irc.port": 6667,
     "fmn.irc.timeout": 120,

@@ -8,7 +8,7 @@
 - name: add mock ssh dir
   action: file state=directory path=/var/lib/mock/.ssh mode=700 owner=mock group=mock
 - name: add mock ssh keys
-  action: copy src="{{ files }}/kojibuilder/mock_auth_keys" dest=/var/lib/mock/.ssh/authorized_keys mode=644 owner=mock group=mock
+  action: copy src="{{ files }}/../roles/koji_builder/files//mock_auth_keys" dest=/var/lib/mock/.ssh/authorized_keys mode=644 owner=mock group=mock
 
 - name: add ftpsync group
   action: group name=ftpsync gid=263 system=yes state=present
@@ -67,7 +67,7 @@
   action: file src=/mnt/fedora_koji/compose/cache dest=/srv/pungi/cache  state=link
 
 - name: add builder infra yum repo
-  action: copy src="{{ files }}/kojibuilder/builder-infrastructure.repo" dest=/etc/yum.repos.d/builder-infrastructure.repo
+  action: copy src="{{ files }}/../roles/koji_builder/files/builder-infrastructure.repo" dest=/etc/yum.repos.d/builder-infrastructure.repo
   tags:
   - configs
 
@@ -93,7 +93,7 @@
     - pykickstart
 
 - name: /etc/koji/koji.conf
-  action: copy src="{{ files }}/kojibuilder/koji.conf" dest=/etc/koji.conf
+  action: copy src="{{ files }}//../roles/koji_builder/files/koji.conf" dest=/etc/koji.conf
 
 
 # mock configs
@@ -109,7 +109,7 @@
 
 # idmapd and make sure it's set to run
 - name: idmapd.conf
-  action: copy src="{{ files }}/kojibuilder/idmapd.conf" dest=/etc/idmapd.conf
+  action: copy src="{{ files }}/../roles/koji_builder/files//idmapd.conf" dest=/etc/idmapd.conf
   tags:
   - configs
 
@@ -123,7 +123,7 @@
 
 
 - name: route to netapp network
-  action: copy src="{{ files }}/kojibuilder/route-eth1" dest=/etc/sysconfig/network-scripts/route-eth1
+  action: copy src="{{ files }}/../roles/koji_builder/files/route-eth1" dest=/etc/sysconfig/network-scripts/route-eth1
   notify:
   - restart netapproute
 

@@ -42,10 +42,6 @@ config = dict(
             "tcp://app05.%s:300%i" % (non_phx_suffix, i)
             for i in range(8)
         ],
-        "bodhi.app06": [
-            "tcp://app06.%s:300%i" % (non_phx_suffix, i)
-            for i in range(8)
-        ],
         "bodhi.app07": [
             "tcp://app07.%s:300%i" % (suffix, i)
             for i in range(8)
