@@ -17,7 +17,6 @@ MACHINES='signal.gnome.org
           progress.gnome.org
           clipboard.gnome.org
           drawable.gnome.org
-          vbox.gnome.org
           cloud-ssh.gnome.org
           bastion.gnome.org
           spinner.gnome.org
