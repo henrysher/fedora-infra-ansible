@@ -16,7 +16,6 @@ MACHINES='signal.gnome.org
           bugzilla-web.gnome.org
           progress.gnome.org
           clipboard.gnome.org
-          drawable.gnome.org
           cloud-ssh.gnome.org
           bastion.gnome.org
           spinner.gnome.org
@@ -29,7 +28,8 @@ MACHINES='signal.gnome.org
           view.gnome.org
           puppet.gnome.org
           accelerator.gnome.org
-          range.gnome.org'
+          range.gnome.org
+          dialog.gnome.org'
 
 BACKUP_DIR='/fedora_backups/gnome/'
 LOGS_DIR='/fedora_backups/gnome/logs'
