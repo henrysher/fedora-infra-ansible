@@ -37,7 +37,6 @@
   - denyhosts
   - nagios_client
   - fas_client
-  - fedmsg_base
 
   tasks:
   - include: "{{ tasks }}/hosts.yml"
@@ -49,6 +48,23 @@
   # putting them on the vpn.
   #- include: "{{ tasks }}/openvpn_client.yml"
   #  when: env != "staging"
+
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"
+
+- name: set up fedmsg basics
+  hosts: summershum;summershum-stg
+  user: root
+  gather_facts: True
+  accelerate: True
+
+  vars_files: 
+   - /srv/web/infra/ansible/vars/global.yml
+   - "{{ private }}/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  roles:
+  - fedmsg_base
 
   handlers:
   - include: "{{ handlers }}/restart_services.yml"
