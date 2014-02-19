@@ -1,0 +1,87 @@
+---
+# tasklist for setting up bodhi
+# This is the base set of files needed for bodhi
+
+- name: install needed packages
+  yum: pkg={{ item }} state=installed
+  with_items:
+  - bodhi-server
+  tags:
+  - packages
+
+- name: setup /etc/bodhi/ directory
+  file: path=/etc/bodhi owner=root group=root mode=0755 state=directory
+  tags:
+  - config
+
+- name: setup basic /etc/bodhi/ contents
+  template: > 
+    src="bodhi-prod.cfg.j2" 
+    dest="/etc/bodhi/bodhi.cfg" 
+    owner=bodhi 
+    group=bodhi 
+    mode=0600
+  notify:
+  - restart httpd
+  tags:
+  - config
+
+- name: setup basic /etc/httpd/conf.d/ bodhi contents
+  copy: >
+    src="bodhi-app.conf"  
+    dest="/etc/httpd/conf.d/bodhi.conf"
+    owner=root
+    group=root
+    mode=0644
+  notify:
+  - restart httpd
+  tags:
+  - config
+
+- name: setup /etc/pki/bodhi directory
+  file: path=/etc/pki/bodhi owner=root group=root mode=0755 state=directory
+  tags:
+  - config
+
+- name: install bodhi.pem file
+  copy: >
+    src="{{ puppet_private }}/bodhi_key_and_cert.pem"
+    dest="/etc/pki/bodhi/bodhi.pem"
+    owner=bodhi
+    group=bodhi
+    mode=0400
+  tags:
+  - config
+
+- name: install bodhi certificates
+  copy: >
+    src="{{ puppet_private }}/fedora-ca.cert"
+    dest="/etc/pki/bodhi/{{ item }}"
+    owner=root
+    group=root
+    mode=0644
+  with_items:
+  - fedora-server-ca.cert
+  - fedora-upload-ca.cert
+  tags:
+  - config
+
+- name: setup /var/log/bodhi directory
+  file: path=/var/log/bodhi owner=bodhi group=bodhi mode=0755 state=directory
+  tags:
+  - config
+
+- name: install /var/tmp/bodhi-bz.cookie file
+  file: >
+    path=/var/tmp/bodhi-bz.cookie 
+    owner=bodhi 
+    group=bodhi 
+    mode=0600 
+    state=file
+  tags:
+  - config
+
+- name: enable httpd_tmp_exec SELinux boolean 
+  seboolean: name=httpd_tmp_exec state=yes persistent=yes
+  tags:
+  - config

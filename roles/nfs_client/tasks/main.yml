@@ -1,0 +1,25 @@
+- name: route config for netapp network
+  copy: src=route-eth1 dest=/etc/sysconfig/network-scripts/route-eth1
+
+- name: check for netapp route
+  command: ip route show
+  register: netapproute
+  always_run: yes
+  changed_when: "1 != 1"
+
+- name: run netapp route
+  command: /etc/sysconfig/network-scripts/ifup-routes eth1
+#  when: netapproute.stdout.find("10.5.88.0") == -1 and not inventory_hostname.startswith('arm')
+
+- name: nfs mount points
+  mount: >
+        name=/mnt/{{ mnt_dir }} 
+        src=vtap-fedora-nfs01.storage.phx2.redhat.com:/vol/{{ nfs_src_dir }} 
+        fstype=nfs 
+        opts=ro,hard,bg,intr,noatime,nodev,nosuid 
+        passno=0 
+        dump=0
+        state=mounted
+
+- name: make a mnt/ link
+  file: state=link src=/mnt/{{ mnt_dir }}/{{ mnt_link }} dest=/mnt/{{ mnt_link }}
