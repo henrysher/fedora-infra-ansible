@@ -158,6 +158,11 @@ serverca_cert = '/etc/pki/bodhi/fedora-server-ca.cert'
 
 [[handlers]]
 
+[[[syslog_out]]]
+class='handlers.SysLogHandler'
+args="('/dev/log', handlers.SysLogHandler.LOG_LOCAL4, socket.SOCK_STREAM)"
+formatter='full_content'
+
 [[[debug_out]]]
 class='TimedRotatingFileHandler'
 args="('/var/log/bodhi/server.log', 'D', 7)"
@@ -180,12 +185,12 @@ formatter='full_content'
 [[[bodhi]]]
 level='DEBUG'
 qualname='bodhi'
-handlers=['debug_out']
+handlers=['syslog_out']
 propagate=0
 
 [[[allinfo]]]
 level='INFO'
-handlers=['debug_out']
+handlers=['syslog_out']
 propagate=0
 
 #[[[access]]]
@@ -196,9 +201,9 @@ propagate=0
 [[[turbomail]]]
 level='INFO'
 qualname='turbomail'
-handlers=['debug_out']
+handlers=['syslog_out']
 
 [[[urllib3]]]
 level='WARN'
 qualname='urllib3'
-handlers=['debug_out']
+handlers=['syslog_out']
