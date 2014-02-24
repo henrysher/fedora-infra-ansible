@@ -67,7 +67,7 @@ config = {
             fmn={
                 "level": "DEBUG",
                 "propagate": False,
-                "handlers": ["console"],
+                "handlers": ["console", "mailer"],
             },
         ),
     ),

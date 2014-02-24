@@ -8,7 +8,7 @@ config = {
     'logging': {
         'loggers': {
             'summershum': {
-                'handlers': ['console'],
+                'handlers': ['console', 'mailer'],
                 'level': 'DEBUG',
                 'propagate': False
             },
