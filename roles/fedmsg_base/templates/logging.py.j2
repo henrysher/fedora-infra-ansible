@@ -15,18 +15,38 @@ config = dict(
                 "formatter": "bare",
                 "level": "DEBUG",
                 "stream": "ext://sys.stdout",
-            }
+            },
+{% if env == 'staging' %}
+            mailer={
+                "class": "logging.handlers.SMTPHandler",
+                # TODO -- potentially change this to a nicer mail formatter.
+                "formatter": "bare",
+                "level": "ERROR",
+                "mailhost": "bastion.fedoraproject.org",
+                "fromaddr": "fedmsg@fedoraproject.org",
+                "toaddrs": ["sysadmin-datanommer-members@fedoraproject.org"],
+                "subject": "fedmsg error",
+            },
+{% endif %}
         ),
         loggers=dict(
             fedmsg={
                 "level": "DEBUG",
                 "propagate": False,
+{% if env == 'staging' %}
+                "handlers": ["console", "mailer"],
+{% else %}
                 "handlers": ["console"],
+{% endif %}
             },
             moksha={
                 "level": "DEBUG",
                 "propagate": False,
+{% if env == 'staging' %}
+                "handlers": ["console", "mailer"],
+{% else %}
                 "handlers": ["console"],
+{% endif %}
             },
         ),
     ),
