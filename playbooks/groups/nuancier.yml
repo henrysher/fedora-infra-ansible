@@ -8,7 +8,7 @@
   user: root
   gather_facts: False
 
-  vars_files: 
+  vars_files:
    - /srv/web/infra/ansible/vars/global.yml
    - "{{ private }}/vars.yml"
    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
@@ -26,7 +26,7 @@
   gather_facts: True
   accelerate: True
 
-  vars_files: 
+  vars_files:
    - /srv/web/infra/ansible/vars/global.yml
    - "{{ private }}/vars.yml"
    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
@@ -58,7 +58,7 @@
   gather_facts: True
   accelerate: True
 
-  vars_files: 
+  vars_files:
    - /srv/web/infra/ansible/vars/global.yml
    - "{{ private }}/vars.yml"
    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
@@ -75,10 +75,30 @@
   gather_facts: True
   accelerate: True
 
-  vars_files: 
+  vars_files:
    - /srv/web/infra/ansible/vars/global.yml
    - "{{ private }}/vars.yml"
    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  roles:
+  - role: gluster/server
+    name: gluster
+    username: "{{ nuancier_gluster_username }}"
+    password: "{{ nuancier_gluster_password }}"
+    owner: root
+    group: root
+    datadir: /srv/glusterfs/nuancier-stg
+
+  - role: gluster/client
+    name: gluster
+    servers:
+    - nuancier01.stg.phx2.fedoraproject.org
+    - nuancier02.stg.phx2.fedoraproject.org
+    username: "{{ nuancier_gluster_username }}"
+    password: "{{ nuancier_gluster_password }}"
+    owner: apache
+    group: root
+    mountdir: /var/cache/nuancier
 
   roles:
   - role: gluster/server
@@ -91,9 +111,7 @@
 
   - role: gluster/client
     name: gluster
-    servers: 
-    - nuancier01.stg.phx2.fedoraproject.org
-    - nuancier02.stg.phx2.fedoraproject.org
+    servers:
     - nuancier01.phx2.fedoraproject.org
     - nuancier02.phx2.fedoraproject.org
     username: "{{ nuancier_gluster_username }}"
