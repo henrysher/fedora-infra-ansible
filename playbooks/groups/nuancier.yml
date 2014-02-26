@@ -69,8 +69,8 @@
   handlers:
   - include: "{{ handlers }}/restart_services.yml"
 
-- name: set up gluster
-  hosts: nuancier;nuancier-stg
+- name: set up gluster on stg
+  hosts: nuancier-stg
   user: root
   gather_facts: True
   accelerate: True
@@ -99,6 +99,17 @@
     owner: apache
     group: root
     mountdir: /var/cache/nuancier
+
+- name: set up gluster on prod
+  hosts: nuancier
+  user: root
+  gather_facts: True
+  accelerate: True
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "{{ private }}/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
 
   roles:
   - role: gluster/server
