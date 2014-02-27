@@ -27,6 +27,9 @@ class ContextInjector(logging.Filter):
     """
 
     def filter(self, record):
+        current_process = ContextInjector.get_current_process()
+        current_hostname = socket.gethostname()
+
         record.host = current_hostname
         record.proc = current_process
         record.pid = current_process.pid
@@ -66,9 +69,6 @@ class ContextInjector(logging.Filter):
         """ We need to be jsonifiable for "fedmsg-config" """
         return {'name': 'ContextInjector'}
 
-
-current_process = ContextInjector.get_current_process()
-current_hostname = socket.gethostname()
 
 hefty_format = """Message
 -------
