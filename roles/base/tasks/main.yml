@@ -125,6 +125,20 @@
   - rsyslogd
   - config
 
+- name: log everything to log02 except on mirrorlist, do not log local4 there.
+  copy: src=rsyslog/rsyslog-log02 dest=/etc/rsyslog.d/rsyslog-log02.conf mode=644
+  when: not inventory_hostname.startswith('mirrorlist')
+  tags:
+  - rsyslogd
+  - config
+
+- name: log everything to log02 except on mirrorlist, do not log local4 there.
+  copy: src=rsyslog/rsyslog-log02-nolocal4 dest=/etc/rsyslog.d/rsyslog-log02.conf mode=644
+  when: inventory_hostname.startswith('mirrorlist')
+  tags:
+  - rsyslogd
+  - config
+   
 - name: /etc/postfix/main.cf
   copy: src={{ item }} dest=/etc/postfix/main.cf
   first_available_file:
