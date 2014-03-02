@@ -6,7 +6,7 @@
 /// Please DO NOT modify manually
 /// Unless you are absolutely sure what you're doing ;-)
 
-{% if environment == "staging" %}                                             
+{% if env == "staging" %}                                             
 $db_host = "db02.stg";
 {% else %}
 $db_host = "db-paste";
