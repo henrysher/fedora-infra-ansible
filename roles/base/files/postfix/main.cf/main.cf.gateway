@@ -1,4 +1,3 @@
-# "false"
 # Global Postfix configuration file. This file lists only a subset
 # of all parameters. For the syntax, and for a complete parameter
 # list, see the postconf(5) manual page (command: "man 5 postconf").
@@ -10,6 +9,8 @@
 #
 # For best results, change no more than 2-3 parameters at a time,
 # and test if Postfix still works after every change.
+
+# Custom rules
 
 # SOFT BOUNCE
 #
@@ -42,6 +43,12 @@ command_directory = /usr/sbin
 #
 daemon_directory = /usr/libexec/postfix
 
+# The data_directory parameter specifies the location of Postfix-writable
+# data files (caches, random numbers). This directory must be owned
+# by the mail_owner account (see below).
+#
+data_directory = /var/lib/postfix
+
 # QUEUE AND PROCESS OWNERSHIP
 #
 # The mail_owner parameter specifies the owner of the Postfix queue
@@ -70,12 +77,17 @@ mail_owner = postfix
 #myhostname = host.domain.tld
 #myhostname = virtual.domain.tld
 
+
+smtp_helo_name = bastion.fedoraproject.org
+
 # The mydomain parameter specifies the local internet domain name.
 # The default is to use $myhostname minus the first component.
 # $mydomain is used as a default value for many other configuration
 # parameters.
 #
 #mydomain = domain.tld
+
+mydomain = fedoraproject.org
 
 # SENDING MAIL
 # 
@@ -93,7 +105,6 @@ mail_owner = postfix
 #myorigin = $myhostname
 #myorigin = $mydomain
 
-mydomain = fedoraproject.org
 myorigin = fedoraproject.org
 
 # RECEIVING MAIL
@@ -111,6 +122,7 @@ myorigin = fedoraproject.org
 #inet_interfaces = all
 #inet_interfaces = $myhostname
 #inet_interfaces = $myhostname, localhost
+
 inet_interfaces = all
 
 # The proxy_interfaces parameter specifies the network interface
@@ -156,7 +168,8 @@ inet_interfaces = all
 #
 # See also below, section "REJECTING MAIL FOR UNKNOWN LOCAL USERS".
 #
-mydestination = $myhostname, localhost.$mydomain, fedora.redhat.com, localhost 
+
+mydestination = $myhostname, localhost.$mydomain, fedora.redhat.com, localhost , $mydomain, stg.fedoraproject.org
 #mydestination = $myhostname, localhost.$mydomain, localhost, $mydomain
 #mydestination = $myhostname, localhost.$mydomain, localhost, $mydomain,
 #	mail.$mydomain, www.$mydomain, ftp.$mydomain
@@ -203,6 +216,7 @@ mydestination = $myhostname, localhost.$mydomain, fedora.redhat.com, localhost
 #local_recipient_maps = unix:passwd.byname $alias_maps
 #local_recipient_maps = proxy:unix:passwd.byname $alias_maps
 #local_recipient_maps =
+local_recipient_maps = $alias_maps hash:/etc/postfix/relay_recipient_maps
 
 # The unknown_local_recipient_reject_code specifies the SMTP server
 # response code when a recipient domain matches $mydestination or
@@ -245,6 +259,7 @@ unknown_local_recipient_reject_code = 550
 #mynetworks_style = subnet
 #mynetworks_style = host
 
+
 # Alternatively, you can specify the mynetworks list by hand, in
 # which case Postfix ignores the mynetworks_style setting.
 #
@@ -260,6 +275,7 @@ unknown_local_recipient_reject_code = 550
 #mynetworks = $config_directory/mynetworks
 #mynetworks = hash:/etc/postfix/network_table
 
+mynetworks = localhost.localdomain, localhost, 127.0.0.1, 10.5.125.0/24, 10.5.126.0/24, 10.5.127.0/24, 192.168.0.0/16, 10.5.124.128/25
 
 # The relay_domains parameter restricts what destinations this system will
 # relay mail to.  See the smtpd_recipient_restrictions description in
@@ -291,7 +307,7 @@ unknown_local_recipient_reject_code = 550
 #
 #relay_domains = $mydestination
 
-
+relay_domains = $mydestination fedora.phx.redhat.com
 
 # INTERNET OR INTRANET
 
@@ -313,7 +329,6 @@ unknown_local_recipient_reject_code = 550
 #relayhost = [mailserver.isp.tld]
 #relayhost = uucphost
 #relayhost = [an.ip.add.ress]
-relayhost =  bastion
 
 
 # REJECTING UNKNOWN RELAY USERS
@@ -353,9 +368,6 @@ relayhost =  bastion
 # address masquerading or other forms of address rewriting including
 # username->Firstname.Lastname mapping.
 
-masquerade_domains = redhat.com
-masquerade_exceptions = root apache
-
 # ADDRESS REDIRECTION (VIRTUAL DOMAIN)
 #
 # The VIRTUAL_README document gives information about the many forms
@@ -387,6 +399,7 @@ masquerade_exceptions = root apache
 #
 #alias_maps = dbm:/etc/aliases
 alias_maps = hash:/etc/aliases
+alias_maps = hash:/etc/aliases, hash:/etc/postfix/package-owner
 #alias_maps = hash:/etc/aliases, nis:mail.aliases
 #alias_maps = netinfo:/aliases
 
@@ -447,7 +460,7 @@ recipient_delimiter = +
 # IF YOU USE THIS TO DELIVER MAIL SYSTEM-WIDE, YOU MUST SET UP AN
 # ALIAS THAT FORWARDS MAIL FOR ROOT TO A REAL USER.
 #
-#mailbox_command = /usr/bin/procmail
+#mailbox_command = /some/where/procmail
 #mailbox_command = /some/where/procmail -a "$EXTENSION"
 
 # The mailbox_transport specifies the optional transport in master.cf
@@ -490,6 +503,9 @@ recipient_delimiter = +
 # To use the old cyrus deliver program you have to set:
 #mailbox_transport = cyrus
 
+
+#mailbox_transport = lmtp:10.5.126.73:2003
+
 # The fallback_transport specifies the optional transport in master.cf
 # to use for recipients that are not found in the UNIX passwd database.
 # This parameter has precedence over the luser_relay parameter.
@@ -507,7 +523,6 @@ recipient_delimiter = +
 #fallback_transport = lmtp:unix:/var/lib/imap/socket/lmtp
 #fallback_transport =
 
-#transport_maps = hash:/etc/postfix/transport
 # The luser_relay parameter specifies an optional destination address
 # for unknown recipients.  By default, mail for unknown@$mydestination,
 # unknown@[$inet_interfaces] or unknown@[$proxy_interfaces] is returned
@@ -546,7 +561,7 @@ recipient_delimiter = +
 #
 # For details, see "man header_checks".
 #
-header_checks = regexp:/etc/postfix/header_checks
+#header_checks = regexp:/etc/postfix/header_checks
 
 # FAST ETRN SERVICE
 #
@@ -616,7 +631,7 @@ debug_peer_level = 2
 #
 debugger_command =
 	 PATH=/bin:/usr/bin:/usr/local/bin:/usr/X11R6/bin
-	 xxgdb $daemon_directory/$process_name $process_id & sleep 5
+	 ddd $daemon_directory/$process_name $process_id & sleep 5
 
 # If you can't use X, use this to capture the call stack when a
 # daemon crashes. The result is in a file in the configuration
@@ -673,14 +688,18 @@ manpage_directory = /usr/share/man
 # sample_directory: The location of the Postfix sample configuration files.
 # This parameter is obsolete as of Postfix 2.1.
 #
-sample_directory = /usr/share/doc/postfix-2.4.5/samples
+sample_directory = /usr/share/doc/postfix-2.5.6/samples
 
 # readme_directory: The location of the Postfix README files.
 #
-readme_directory = /usr/share/doc/postfix-2.4.5/README_FILES
+readme_directory = /usr/share/doc/postfix-2.5.6/README_FILES
+# Enable IPv4, and IPv6 if supported
+inet_protocols = ipv4
 
-# add this to new postfix to get it to add proper message-id and other 
-# headers to outgoing emails via the gateway. 
+# mapping so we know where to go for .redhat.com mail
+
+transport_maps = hash:/etc/postfix/transport
+local_header_rewrite_clients = static:all
 
 
 message_size_limit = 20971520
