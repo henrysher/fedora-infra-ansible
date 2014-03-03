@@ -1,0 +1,68 @@
+---
+# Configuration for the easyfix web page
+
+## Create all the folder used/needed
+- name: Create the easyfix folder
+  action: file state=directory
+               path=/srv/web/easyfix
+               owner=root group=root mode=0755
+
+- name: Create the easyfix configuration folder
+  action: file state=directory
+          path=/etc/fedora-gather-easyfix/
+          owner=root group=root mode=0755
+
+
+## Install packages
+- name: Install needed packages
+  yum: pkg={{ item }} state=installed
+  with_items:
+  - python-fedora
+  - python-jinja2
+  - python-kitchen
+  tags:
+  - packages
+
+
+## Install all files
+- name: Install the easyfix js/css files
+  copy: >
+    src={{ item }} dest=/srv/web/easyfix/{{ item }}
+    owner=root group=root mode=0644
+  with_items:
+  - jquery-1.7.1.min.js
+  - jquery-ui-1.8.17.custom.css
+  - jquery.ui.tabs.js
+  - jquery.ui.widget.js
+  tags:
+  - files
+
+- name: Install the easyfix template
+  copy: >
+    src={{ item }} dest=/etc/fedora-gather-easyfix/template.html
+    owner=root group=root mode=0644
+  with_items:
+  - template.html
+  tags:
+  - files
+
+- name: Install the easyfix script
+  copy: >
+    src={{ item }} dest=/usr/local/bin/gather_easyfix.py
+    owner=root group=root mode=0755
+  with_items:
+  - gather_easyfix.py
+  tags:
+  - files
+
+
+## Install the cron job
+- name: Install the easyfix cronjob
+  copy: >
+    src={{ item }} dest=/etc/cron.d/{{ item }}
+    owner=root group=root mode=0755
+  with_items:
+  - easyfix.cron
+  tags:
+  - files
+
