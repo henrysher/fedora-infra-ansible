@@ -85,3 +85,13 @@
 - name: install our custom selinux module
   command: semodule -i /usr/local/share/fedmsg/fedmsg.pp
   when: selinux_module|changed
+
+# Also, label the ports that we commonly use for fedmsg under mod_wsgi
+# to be http_port_t so selinux lets apache bind there.
+- name: check semanage ports
+  command: semanage port -l
+  register: semanageoutput
+
+- name: set ports so httpd can bind to fedmsg endpoints
+  command: semanage port -a -t http_port_t -p tcp 3000-3100
+  when: semanageoutput.stdout.find("3000-3100") == -1

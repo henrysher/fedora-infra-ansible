@@ -68,14 +68,6 @@
                     state=true
                     persistent=true
 
-- name: check semanage ports
-  command: semanage port -l
-  register: semanageoutput
-
-- name: set ports so httpd can talk to fedmsg endpoints
-  command: semanage port -a -t http_port_t -p tcp 3001-3100
-  when: semanageoutput.stdout.find("3001-3100") == -1
-
 - name: apply selinux type to static files
   file: >
     dest=/usr/lib/python2.6/site-packages/nuancier/static/
