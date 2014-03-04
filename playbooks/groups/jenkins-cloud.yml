@@ -387,23 +387,23 @@
     - packages
 
   - name: drop current android SDK
-    when: is_fedora == 'True'
+    when: is_fedora is defined
     action: file state=absent path=/var/android
 
   - name: mkdir dir for android SDK
-    when: is_fedora == 'True'
+    when: is_fedora is defined
     action: file state=directory path=/var/android owner=jenkins_slave group=jenkins_slave
 
   - name: copy android SDK
-    when: is_fedora == 'True'
+    when: is_fedora is defined
     action: copy src="{{ bigfiles }}/jenkins/android-sdk-with-platform-17.tar.gz" dest=/var/android/ owner=jenkins_slave group=jenkins_slave
 
   - name: extract android SDK
-    when: is_fedora == 'True'
+    when: is_fedora is defined
     command: tar -xvf /var/android/android-sdk-with-platform-17.tar.gz --owner=jenkins_slave --group=jenkins_slave -C /var/android/
 
   - name: delete sdk archive
-    when: is_fedora == 'True'
+    when: is_fedora is defined
     action: file state=absent path=/var/android/android-sdk-with-platform-17.tar.gz
 
   - name: set the hostname to jenkins-osversion
