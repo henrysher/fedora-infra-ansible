@@ -31,14 +31,14 @@ config = {
     },
 
     # Stuff used for caching packagedb relations.
-    "fmn.rules.utils.use_pkgdb2": False,
-    "fmn.rules.utils.pkgdb_url": "https://admin.fedoraproject.org/pkgdb",
-    #"fmn.rules.utils.pkgdb_url": "http://209.132.184.188/api/",
-    "fmn.rules.cache": {
+    "fedbadges.rules.utils.use_pkgdb2": False,
+    "fedbadges.rules.utils.pkgdb_url": "https://admin.fedoraproject.org/pkgdb",
+    #"fedbadges.rules.utils.pkgdb_url": "http://209.132.184.188/api/",
+    "fedbadges.rules.cache": {
         "backend": "dogpile.cache.dbm",
         "expiration_time": 300,
         "arguments": {
-            "filename": "/var/tmp/fmn-cache.dbm",
+            "filename": "/var/tmp/fedbadges-cache.dbm",
         },
     },
 }
