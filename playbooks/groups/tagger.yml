@@ -1,0 +1,82 @@
+# create a new tagger server
+# NOTE: should be used with --limit most of the time
+# NOTE: make sure there is room/space for this server on the vmhost
+# NOTE: most of these vars_path come from group_vars/tagger* or from hostvars
+
+- name: make tagger server
+  hosts: tagger;tagger-stg
+  user: root
+  gather_facts: False
+
+  vars_files: 
+   - /srv/web/infra/ansible/vars/global.yml
+   - "{{ private }}/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  tasks:
+  - include: "{{ tasks }}/virt_instance_create.yml"
+  - include: "{{ tasks }}/accelerate_prep.yml"
+
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"
+
+- name: make the box be real
+  hosts: tagger;tagger-stg
+  user: root
+  gather_facts: True
+  accelerate: True
+
+  vars_files: 
+   - /srv/web/infra/ansible/vars/global.yml
+   - "{{ private }}/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  roles:
+  - base
+  - rkhunter
+  - denyhosts
+  - nagios_client
+  - fas_client
+
+  tasks:
+  - include: "{{ tasks }}/hosts.yml"
+  - include: "{{ tasks }}/yumrepos.yml"
+  - include: "{{ tasks }}/2fa_client.yml"
+  - include: "{{ tasks }}/motd.yml"
+  - include: "{{ tasks }}/sudo.yml"
+  - include: "{{ tasks }}/openvpn_client.yml"
+    when: env != "staging"
+  - include: "{{ tasks }}/apache.yml"
+  - include: "{{ tasks }}/mod_wsgi.yml"
+
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"
+
+#- name: dole out the service specific config
+#  hosts: tagger;tagger-stg
+#  user: root
+#  gather_facts: True
+#  accelerate: True
+#
+#  vars_files: 
+#   - /srv/web/infra/ansible/vars/global.yml
+#   - "{{ private }}/vars.yml"
+#   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+#
+#  roles:
+#  - tagger
+#
+## This comes last because it relies on a group created by the tagger role.
+#- name: setup fedmsg
+#  hosts: tagger;tagger-stg
+#  user: root
+#  gather_facts: True
+#  accelerate: True
+#
+#  vars_files: 
+#   - /srv/web/infra/ansible/vars/global.yml
+#   - "{{ private }}/vars.yml"
+#   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+#
+#  roles:
+#  - fedmsg_base
