@@ -1,0 +1,68 @@
+---
+# Configuration for the tahrir webapp
+
+
+# TODO -- add the cronjob
+
+
+- name: install needed packages
+  yum: pkg={{ item }} state=installed
+  with_items:
+  - fedora-tagger
+  - python-psycopg2
+  - python-memcached
+  - python-sqlalchemy0.8
+  tags:
+  - packages
+
+- name: make the cache directory
+  file: >
+    path=/var/cache/fedoratagger
+    state=directory
+    owner=apache group=apache mode=0755
+  tags:
+  - config
+
+- name: copy tagger app configuration
+  template: >
+    src=fedoratagger.cfg.j2
+    dest=/etc/fedoratagger/fedoratagger.cfg
+    owner=apache
+    group=apache
+    mode=0600
+  tags:
+  - config
+  notify:
+  - restart apache
+
+- name: copy tagger httpd config
+  copy: >
+    src=fedoratagger-app.conf
+    dest=/etc/httpd/conf.d/fedoratagger.conf
+    owner=apache
+    group=apache
+    mode=0644
+  tags:
+  - config
+  notify:
+  - restart apache
+
+- name: ensure selinux lets httpd talk to postgres
+  seboolean: name=httpd_can_network_connect_db persistent=yes state=yes
+
+- name: ensure cronjob log file is writable
+  file: >
+    path=/var/log/fedoratagger.log
+    owner=apache group=apache mode=0755
+  tags:
+  - cron
+  - config
+
+- name: setup the cronjob
+  copy: >
+    src=cron-tagger-update-db
+    dest=/etc/cron.d/cron-tagger-update-db
+  tags:
+  - cron
+  - config
+  when: install_cron
