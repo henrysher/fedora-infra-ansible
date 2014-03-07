@@ -4,6 +4,11 @@ app_hosts = [
     "app01.stg.phx2.fedoraproject.org",
     "app02.stg.phx2.fedoraproject.org",
 ]
+bodhi_hosts = [
+    "app01.stg.phx2.fedoraproject.org",
+    "app02.stg.phx2.fedoraproject.org",
+    "bodhi01.stg.phx2.fedoraproject.org",
+]
 topic_prefix = "org.fedoraproject.stg."
 {% else %}
 suffix = "phx2.fedoraproject.org"
@@ -15,6 +20,18 @@ app_hosts = [
     "app05.fedoraproject.org",
     "app07.phx2.fedoraproject.org",
     "app08.fedoraproject.org",
+]
+# TODO -- think about using the ansible group for this.
+bodhi_hosts = [
+    "app01.phx2.fedoraproject.org",
+    "app02.phx2.fedoraproject.org",
+    "app03.phx2.fedoraproject.org",
+    "app04.phx2.fedoraproject.org",
+    "app05.fedoraproject.org",
+    "app07.phx2.fedoraproject.org",
+    "app08.fedoraproject.org",
+    "bodhi01.phx2.fedoraproject.org",
+    "bodhi02.phx2.fedoraproject.org",
 ]
 topic_prefix = "org.fedoraproject.prod."
 {% endif %}
@@ -38,29 +55,30 @@ config = dict(
         # by our CA may pass validation.
         #
         topic_prefix + "bodhi.update.request.stable": [
-            "bodhi-%s" % app_hosts[i-1]
-            for i in range(1, len(app_hosts) + 1)
+            "bodhi-%s" % bodhi_hosts[i-1]
+            for i in range(1, len(bodhi_hosts) + 1)
         ],
         topic_prefix + "bodhi.update.request.testing": [
-            "bodhi-%s" % app_hosts[i-1]
-            for i in range(1, len(app_hosts) + 1)
+            "bodhi-%s" % bodhi_hosts[i-1]
+            for i in range(1, len(bodhi_hosts) + 1)
         ],
         topic_prefix + "bodhi.update.request.unpush": [
-            "bodhi-%s" % app_hosts[i-1]
-            for i in range(1, len(app_hosts) + 1)
+            "bodhi-%s" % bodhi_hosts[i-1]
+            for i in range(1, len(bodhi_hosts) + 1)
         ],
         topic_prefix + "bodhi.update.comment": [
-            "bodhi-%s" % app_hosts[i-1]
-            for i in range(1, len(app_hosts) + 1)
+            "bodhi-%s" % bodhi_hosts[i-1]
+            for i in range(1, len(bodhi_hosts) + 1)
         ],
         topic_prefix + "bodhi.buildroot_override.tag": [
-            "bodhi-%s" % app_hosts[i-1]
-            for i in range(1, len(app_hosts) + 1)
+            "bodhi-%s" % bodhi_hosts[i-1]
+            for i in range(1, len(bodhi_hosts) + 1)
         ],
         topic_prefix + "bodhi.buildroot_override.untag": [
-            "bodhi-%s" % app_hosts[i-1]
-            for i in range(1, len(app_hosts) + 1)
+            "bodhi-%s" % bodhi_hosts[i-1]
+            for i in range(1, len(bodhi_hosts) + 1)
         ],
+
         topic_prefix + "bodhi.mashtask.mashing": [
             "bodhi-releng04.%s" % suffix,
             "bodhi-relepel01.%s" % suffix,
