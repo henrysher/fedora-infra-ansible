@@ -1,0 +1,55 @@
+---
+# Configuration for the pkgdb2 webapp
+
+- name: clean yum metadata
+  command: yum clean all
+  tags:
+  - packages
+
+- name: install needed packages
+  yum: pkg={{ item }} state=installed
+  with_items:
+  - pkgdb2
+  - python-psycopg2
+  - python-openid-cla
+  - python-openid-teams
+  - python-memcached
+  - libsemanage-python
+  tags:
+  - packages
+
+- name: copy sundry pkgdb configuration
+  template: src={{ item.file }}
+            dest={{ item.location }}/{{ item.dest }}
+            owner=apache group=apache mode=0600
+  with_items:
+  - { file: pkgdb2_admin.cfg, location: /etc/pkgdb2, dest: pkgdb2.cfg }
+  - { file: alembic.ini, location: /etc/pkgdb2, dest: alembic.ini }
+  tags:
+  - config
+  notify:
+  - restart apache
+
+- name: create the database scheme
+  command: /usr/bin/python2 /usr/share/pkgdb2/pkgdb2_createdb.py
+  environment:
+      PKGDB2_CONFIG: /etc/pkgdb2/pkgdb2.cfg
+
+- name: Install all the configuration file of pkgdb2
+  template: src={{ item.file }}
+            dest={{ item.location }}/{{ item.file }}
+            owner=apache group=apache mode=0600
+  with_items:
+  - { file: pkgdb2.cfg, location: /etc/pkgdb2 }
+  - { file: pkgdb2.conf, location: /etc/httpd/conf.d }
+  - { file: pkgdb2.wsgi, location: /var/www/, dest: pkgdb2.wsgi }
+  tags:
+  - config
+  notify:
+  - restart apache
+
+- name: set sebooleans so pkgdb2 can talk to the db
+  action: seboolean name=httpd_can_network_connect_db
+                    state=true
+                    persistent=true
+
