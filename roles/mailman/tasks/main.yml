@@ -63,6 +63,14 @@
   notify:
     - restart mailman3
 
+# for access to the full-text index
+- name: add apache to the mailman group
+  user: name=apache groups=mailman append=yes
+  tags:
+  - config
+  notify:
+    - restart httpd
+
 - name: set the mailman conffile
   template: src=mailman.cfg.j2 dest=/etc/mailman.cfg
   tags:
