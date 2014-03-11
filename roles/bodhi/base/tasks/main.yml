@@ -71,21 +71,15 @@
   tags:
   - config
 
-- name: install /var/tmp/bodhi-bz.cookie file
-  copy: >
-    dest=/var/tmp/bodhi-bz.cookie 
-    owner=bodhi 
-    group=bodhi 
-    mode=0600 
-    content="placeholder"
-    force=no
-  tags:
-  - config
+- name: check the selinux context of the bugzilla cookie
+  command: matchpathcon /var/tmp/bodhi-bz.cookie
+  register: cookiecontext
+  always_run: yes
+  changed_when: "1 != 1"
 
-- name: Make sure bodhi-bz.cookie is httpd_tmp_t for selinux.
-  file: >
-    setype=httpd_tmp_t
-    dest=/var/tmp/bodhi-bz.cookie
+- name: set the SELinux policy for the bugzilla cookie
+  command: semanage fcontext -a -t httpd_tmp_t "/var/tmp/bodhi-bz.cookie"
+  when: cookiecontext.stdout.find('httpd_tmp_t') == -1
   tags:
   - config
 
