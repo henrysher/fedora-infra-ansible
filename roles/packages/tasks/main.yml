@@ -1,0 +1,96 @@
+---
+# Configuration for the fedora-packages webapp
+
+- name: install needed packages
+  yum: pkg={{ item }} state=installed
+  with_items:
+  - fedora-packages
+  - python-psycopg2
+  - python-memcached
+  - python-sqlalchemy0.8
+  - redis
+  tags:
+  - packages
+
+- name: Create some directories
+  file: path={{ item }} state=directory owner=apache group=apache mode=755
+  with_items:
+  - /etc/fedoracommunity
+  - /etc/fedoracommunity/yum_cache.repos.d
+  - /var/cache/fedoracommunity  # the gluster role usually creates this one
+  - /var/log/fedoracommunity
+
+- name: Create some more locked down directories
+  file: path={{ item }} state=directory owner=apache group=apache mode=700
+  with_items:
+  - /etc/pki/fedoracommunity
+
+- name: Copy over the app config
+  template: >
+    src=packages-app.ini.j2
+    dest=/etc/fedoracommunity/production.ini
+    owner=apache group=apache mode=0600
+  notify:
+  - restart httpd
+
+- name: Copy over the httpd config
+  copy: >
+    src=packages-httpd.conf
+    dest=/etc/httpd/conf.d/fedora-packages.conf
+    owner=root group=root
+  notify:
+  - restart httpd
+
+- name: Copy over the yum config
+  copy: >
+    src=packages-yum.conf
+    dest=/etc/fedoracommunity/yum-repo.conf
+    owner=root group=root mode=0644
+  notify:
+  - restart httpd
+
+- name: Copy over certs/public-keys, probably for talking with koji.
+  copy: >
+    src="{{private}}/files/packages/fedora-ca.cert"
+    dest="/etc/pki/fedoracommunity/{{item}}"
+    owner=apache
+    group=apache
+    mode=0644
+  with_items:
+  - fedora-server-ca.cert
+  - fedora-upload-ca.cert
+
+- name: selinux httpd_tmp_exec
+  seboolean: name=httpd_tmp_exec persistent=yes state=yes
+
+- name: set fcontext on /var/cache/fedoracommunity
+  command: semanage fcontext -a -t httpd_sys_content_t /var/cache/fedoracommunity
+
+- name: Create cache structure
+  file: >
+    dest="/var/cache/fedoracommunity/{{item}}"
+    state=directory
+    owner=apache
+    group=apache
+    mode=0755
+  with_items:
+  - packages
+  - rpm_cache
+  - git.fedoraproject.org
+  - packages/icons
+  - packages/xapian
+  - packages/tmp
+
+- name: permanently hotfix the distmappings file
+  copy: >
+    src=distmappings.py
+    dest=/usr/lib/python2.6/site-packages/fedoracommunity/search/distmappings.py
+    owner=root group=root mode=0644
+  notify:
+  - restart httpd
+
+- name: start some helper services
+  service: name="{{item}}" state=started enabled=yes
+  with_items:
+  - redis
+  - fcomm-cache-worker
