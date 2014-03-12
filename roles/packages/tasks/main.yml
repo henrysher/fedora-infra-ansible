@@ -66,6 +66,22 @@
 - name: set fcontext on /var/cache/fedoracommunity
   command: semanage fcontext -a -t httpd_sys_content_t /var/cache/fedoracommunity
 
+
+- name: permanently hotfix the distmappings file
+  copy: >
+    src=distmappings.py
+    dest="{{pythonsitelib}}/fedoracommunity/search/distmappings.py"
+    owner=root group=root mode=0644
+  notify:
+  - restart httpd
+
+- name: start some helper services
+  service: name="{{item}}" state=started enabled=yes
+  with_items:
+  - redis
+  - fcomm-cache-worker
+
+# Here's the indexer stuff
 - name: Create cache structure
   file: >
     dest="/var/cache/fedoracommunity/{{item}}"
@@ -81,22 +97,8 @@
   - packages/xapian
   - packages/xapian/search
   - packages/tmp
+  when: install_packages_indexer
 
-- name: permanently hotfix the distmappings file
-  copy: >
-    src=distmappings.py
-    dest=/usr/lib/python2.6/site-packages/fedoracommunity/search/distmappings.py
-    owner=root group=root mode=0644
-  notify:
-  - restart httpd
-
-- name: start some helper services
-  service: name="{{item}}" state=started enabled=yes
-  with_items:
-  - redis
-  - fcomm-cache-worker
-
-# Here's the indexer stuff
 - name: Copy some scripts for /usr/local
   copy: src="{{item}}" dest="/usr/local/bin/{{item}}" mode=0755
   with_items:
