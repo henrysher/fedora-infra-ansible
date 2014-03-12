@@ -94,3 +94,23 @@
   with_items:
   - redis
   - fcomm-cache-worker
+
+# Here's the indexer stuff
+- name: Copy some scripts for /usr/local
+  copy: src="{{item}}" dest="/usr/local/bin/{{item}}" mode=0755
+  with_items:
+  - sync-yum
+  when: install_packages_indexer
+
+- name: Copy the indexer cronjobs
+  copy: src="{{item}}" dest="/etc/cron.d/{{item}}"
+  with_items:
+  - cron-sync-yum
+  - cron-sync-latest-builds
+  - cron-sync-package-index
+  - cron-flush-pkgs-cache
+  when: install_packages_indexer
+
+- name: Confygure Ye Olde Logge Rotatyr
+  copy: src=cron_fcomm_log_rotate dest=/etc/logrotate.d/cron_fcomm_log_rotate
+  when: install_packages_indexer
