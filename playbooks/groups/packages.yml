@@ -52,6 +52,37 @@
   handlers:
   - include: "{{ handlers }}/restart_services.yml"
 
+- name: set up gluster on prod
+  hosts: packages
+  user: root
+  gather_facts: True
+  accelerate: True
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "{{ private }}/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  roles:
+  - role: gluster/server
+    name: gluster
+    username: "{{ packagesglusterusername }}"
+    password: "{{ packagesglusterpassword }}"
+    owner: root
+    group: root
+    datadir: /srv/glusterfs/packages
+
+  - role: gluster/client
+    name: gluster
+    servers:
+    - packages03.phx2.fedoraproject.org
+    - packages04.phx2.fedoraproject.org
+    username: "{{ packagesglusterusername }}"
+    password: "{{ packagesglusterpassword }}"
+    owner: apache
+    group: root
+    mountdir: /var/cache/fedoracommunity
+
 - name: dole out the service specific config
   hosts: packages;packages-stg
   user: root
