@@ -15,9 +15,14 @@
   #notify:
   #- remount?  no idea...
 
+- name: check if the mountdir directory already exists
+  file: path={{mountdir}} state=directory
+  register: result
+
 - name: mount it up
   mount: >
     src=/etc/glusterfs/glusterfs.{{name}}.vol
     state=mounted 
     fstype=glusterfs
     name={{mountdir}}
+  when: result|changed
