@@ -62,3 +62,10 @@
     async: 20000
     poll: 60
     when: install_packages_indexer
+
+  - name: set fcontext on /var/cache/fedoracommunity
+    command: semanage fcontext -a -t httpd_sys_content_t /var/cache/fedoracommunity
+  
+  - name: Push out that labelling.
+    command: chcon -Rv --type=httpd_sys_content_t /var/cache/fedoracommunity/
+  

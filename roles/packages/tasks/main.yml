@@ -60,13 +60,6 @@
   - fedora-server-ca.cert
   - fedora-upload-ca.cert
 
-- name: selinux httpd_tmp_exec
-  seboolean: name=httpd_tmp_exec persistent=yes state=yes
-
-- name: set fcontext on /var/cache/fedoracommunity
-  command: semanage fcontext -a -t httpd_sys_content_t /var/cache/fedoracommunity
-
-
 - name: permanently hotfix the distmappings file
   copy: >
     src=distmappings.py
@@ -117,3 +110,19 @@
 - name: Confygure Ye Olde Logge Rotatyr
   copy: src=cron_fcomm_log_rotate dest=/etc/logrotate.d/cron_fcomm_log_rotate
   when: install_packages_indexer
+
+
+# Lastly, here's some selinux stuff.
+
+- name: set some selinux booleans
+  seboolean: name={{item}} persistent=yes state=yes
+  with_items:
+  - httpd_tmp_exec
+  - httpd_can_network_memcache
+
+- name: set fcontext on /var/cache/fedoracommunity
+  command: semanage fcontext -a -t httpd_sys_content_t /var/cache/fedoracommunity
+
+- name: Push out that labelling.
+  command: chcon -Rv --type=httpd_sys_content_t /var/cache/fedoracommunity/
+
