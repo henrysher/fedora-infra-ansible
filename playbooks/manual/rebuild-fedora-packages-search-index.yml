@@ -1,0 +1,64 @@
+# Nuke and rebuild the xapian search index for fedora-packages
+#
+# "install_packages_indexer" is a host_var that instructs this to only run on
+# one of the multiple packages nodes.  The cache that this rebuilds is shared
+# between nodes with gluster.
+
+- name: nuke xapian search index
+  hosts: packages;packages-stg
+  user: root
+  gather_facts: False
+
+  vars_files: 
+   - /srv/web/infra/ansible/vars/global.yml
+   - "{{ private }}/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  vars:
+    cache_root: /var/cache/fedoracommunity
+
+  tasks:
+  - name: pause for 30s before nuking xapian search index
+    pause: seconds=30 prompt="Destroying xapian index.  Abort?"
+    when: install_packages_indexer
+
+  - name: Nuke the old xapian search index
+    file: path={{cache_root}}/packages/xapian state=absent
+    when: install_packages_indexer
+
+  - name: Recreate some structure for the search index
+    file: >
+        path={{cache_root}}/{{item}}
+        state=directory
+        owner=apache
+        group=apache
+        mode=0755
+    with_items:
+    - packages
+    - packages/xapian
+    - packages/xapian/search
+    - packages/xapian/versionmap 
+    when: install_packages_indexer
+
+- name: Rebuild that search idex that we just destroyed
+  hosts: packages;packages-stg
+  user: root
+  sudo: apache
+  gather_facts: False
+
+  vars_files: 
+   - /srv/web/infra/ansible/vars/global.yml
+   - "{{ private }}/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  tasks:
+  - name: Pull in the list of packages from pkgdb.  Go get a snack.
+    command: /usr/bin/fcomm-index-packages -p /var/cache/fedoracommunity/packages/tmp -y /etc/fedoracommunity/yum-repo.conf --index-db-dest /var/cache/fedoracommunity/packages/xapian --icons-dest /var/cache/fedoracommunity/packages/icons --tagger-url https://apps.fedoraproject.org/tagger/api/v1/tag/export/ --pkgdb-url https://admin.fedoraproject.org/pkgdb
+    async: 7200
+    poll: 60
+    when: install_packages_indexer
+  - name: Pull in all the latest builds from koji.  Go get another snack.
+    command: /usr/bin/fcomm-index-latest-builds -p /var/cache/fedoracommunity/packages/xapian --koji-url http://koji.fedoraproject.org/kojihub --action init
+    async: 7200
+    poll: 60
+    when: install_packages_indexer
