@@ -1,0 +1,84 @@
+#!/usr/bin/python -tt
+__doc__ = doc = """
+print out the selinux status of hosts
+    by ralph
+    gplv2+
+    derived from vhost-info by skvidal
+""".strip()
+
+
+import pprint
+import sys
+import ansible.runner
+import os
+
+from argparse import ArgumentParser
+
+
+def parse_args(args):
+    parser = ArgumentParser(doc)
+    parser.add_argument('--host', default=[], action='append',
+               help="hosts to act on, defaults to ALL")
+    parser.add_argument('--timeout', default=30, type=int,
+               help='set the wait timeout for func commands')
+    parser.add_argument('--hosts-from-file', default=None, dest="hostfile",
+               help="read list of hosts from this file, if '-' read from stdin")
+    args = parser.parse_args(args)
+
+    if args.hostfile:
+        hosts = []
+        if args.hostfile == '-':
+            hosts = sys.stdin.readlines()
+        else:
+            hosts = open(args.hostfile, 'r').readlines()
+
+        for hn in hosts:
+            hn = hn.strip()
+            if hn.startswith('#'):
+                continue
+            hn = hn.replace('\n', '')
+            args.host.append(hn)
+
+    if not args.host:
+        args.host = ["all"]
+
+    return args, parser
+
+
+args, parser = parse_args(sys.argv[1:])
+hosts ='*'
+if args.host:
+    hosts = ';'.join(args.host)
+
+if os.geteuid() == 0:
+    login = 'root'
+else:
+    login = os.getlogin()
+
+
+results, errors = {}, []
+
+ansible_args = dict(
+    pattern=hosts,
+    module_name='command',
+    module_args='getenforce',
+    forks=25,
+    transport='paramiko',
+    timeout=10,
+    remote_user=login,
+)
+
+ans = ansible.runner.Runner(**ansible_args)
+res = ans.run()
+
+for hn in sorted(res['contacted']):
+    if 'failed' in res['contacted'][hn] and res['contacted'][hn]['failed']:
+        errors.append(hn)
+        continue
+    status = res['contacted'][hn]['stdout']
+    results[status] = results.get(status, []) + [hn]
+
+pprint.pprint(results)
+
+if errors:
+    print "ERRORED:", pprint.pformat(errors)
