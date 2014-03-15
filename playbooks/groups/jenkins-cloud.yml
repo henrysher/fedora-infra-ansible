@@ -430,10 +430,10 @@
      - config
 
   - name: template sshd_config
-    action: copy src="{{ item }}" dest=/etc/ssh/sshd_config mode=0600 owner=root group=root
-    first_available_file:
-      - "/srv/web/infra/ansible/files/jenkins/sshd_config_slave.{{ ansible_distribution }}"
-      - /srv/web/infra/ansible/files/jenkins/sshd_config_slave
+    copy: src="{{ item }}" dest=/etc/ssh/sshd_config mode=0600 owner=root group=root
+    with_first_found:
+    - "{{ files }}/jenkins/sshd_config_slave.{{ ansible_distribution }}"
+    - "{{ files }}/jenkins/sshd_config_slave"
     notify:
     - restart sshd
     tags:
