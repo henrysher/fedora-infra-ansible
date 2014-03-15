@@ -429,11 +429,14 @@
     tags:
      - config
 
+  - name: debug some variables
+    debug: msg="sshd_config debug: {{ inventory_hostname }} files: {{ files }} distro: {{ ansible_distribution }}"
+
   - name: template sshd_config
     action: copy src={{ item }} dest=/etc/ssh/sshd_config mode=0600 owner=root group=root
     first_available_file:
-      - jenkins/sshd_config_slave.{{ ansible_distribution }}
-      - jenkins/sshd_config_slave
+      - "{{ files }}/jenkins/sshd_config_slave.{{ ansible_distribution }}"
+      - "{{ files }}/jenkins/sshd_config_slave"
     notify:
     - restart sshd
     tags:
