@@ -1,0 +1,38 @@
+---
+#
+# This role sets up rsyncd on a server 
+#
+
+- name: install rsync
+  yum: state=installed name=rsync
+  tags:
+  - packages
+
+- name: rsyncd.conf file
+  copy: src={{ item }} dest=/etc/rsyncd.conf mode=644
+  with_first_found:
+    - "{{ rsyncd.conf }}"
+    - rsyncd.conf.{{ ansible_fqdn }}
+    - rsyncd.conf.{{ host_group }}
+    - rsyncd.conf.default
+  notify:
+  - restart xinetd
+  tags:
+  - config
+
+- name: xinetd rsync file
+  copy: src={{ item }} dest=/etc/xinetd.d/rsync mode=644
+  with_first_found:
+    - "{{ rsync }}"
+    - rsync.{{ ansible_fqdn }}
+    - rsync.{{ host_group }}
+    - rsync.default
+  notify:
+  - restart xinetd
+  tags:
+  - config
+
+- name: make sure rsync is enabled in xinetd
+  service: name=rsync state=started
+  tags:
+  - services
