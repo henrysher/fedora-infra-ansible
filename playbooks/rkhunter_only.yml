@@ -1,0 +1,20 @@
+# requires --extra-vars="target='host1;host2;group etc'"
+
+- name: run rkhunter for times when rkhunter didn't seem to run.
+  hosts: "{{ target }}"
+  user: root
+
+  tasks:
+  - name: check for rkhunter
+    command: /usr/bin/test -f /usr/bin/rkhunter
+    register: rkhunter
+    ignore_errors: true
+  
+  - name: run rkhunter --propupd
+    command: /usr/bin/rkhunter --propupd
+    when: rkhunter|success
+
+
+
+
+
