@@ -23,10 +23,11 @@ class Importer(object):
     def __init__(self, opts, config):
         self.opts = opts
         self.config = config
+        self.index_path = self._get_index_path()
         self.existing_lists = [ l.strip() for l in
                 cmdget(["sudo", "-u", "mailman",
                 "mailman3", "lists", "-q"]).split("\n") ]
-        self.index_path = self._get_index_path()
+        self.excluded = opts.exclude.strip().split(",")
 
     def _get_index_path(self):
         sys.path.append(self.config["confdir"])
@@ -41,6 +42,9 @@ class Importer(object):
         all_listnames.sort()
         for index, listname in enumerate(all_listnames):
             listaddr = "%s@%s" % (listname, self.config["domain"])
+            if listname in self.excluded or listaddr in self.excluded:
+                print "Skipping excluded list %s" % listaddr
+                continue
             print listaddr, "(%d/%d)" % (index+1, len(all_listnames))
             confpickle = os.path.join(mm2libdir, 'lists', listname,
                                       'config.pck')
@@ -84,6 +88,8 @@ def main():
                   help="Don't import the archives, only import the list config")
     parser.add_option("-c", "--config", default="/etc/mailman-migration.conf",
                   help="Configuration file (default: %defaults)")
+    parser.add_option("-x", "--exclude", default="",
+                  help="Comma-separated list of lists to exclude")
     opts, args = parser.parse_args()
     if len(args) != 1:
         parser.error("Only one arg: the Mailman 2.1 lib dir to import")
