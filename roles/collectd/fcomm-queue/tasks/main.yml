@@ -1,0 +1,17 @@
+---
+
+- name: install python-retask
+  yum: name=python-retask state=installed
+
+- name: Copy in /usr/local/bin/fcomm-queue-collectd
+  copy: >
+    src=fcomm-queue-collectd.py
+    dest=/usr/local/bin/fcomm-queue-collectd
+    mode=0755
+  notify: restart collectd
+
+- name: Copy in /etc/collectd.d/fcomm-queue.conf
+  copy: >
+    src=fcomm-queue.conf.j2
+    dest=/etc/collectd.d/fcomm-queue-conf
+  notify: restart collectd
