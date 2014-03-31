@@ -28,6 +28,9 @@
   - name: copy copr.repo
     action: copy src="{{ files }}/copr/fe/yum/copr.repo" dest=/etc/yum.repos.d/copr.repo
 
+  - name: set the hostname
+    shell: hostname copr-fe-dev.cloud.fedoraproject.org
+
   - name: install copr-fe pkgs
     action: yum state=installed pkg={{ item }}
     with_items:
@@ -35,8 +38,17 @@
     - copr-selinux
     - postgresql-server
     - bash-completion
+    - fail2ban
+    - mod_ssl
     tags:
     - packages
+
+  - name: install copr configs
+    template: src="{{ files }}/copr/fe/copr.conf" dest=/etc/copr/copr.conf mode=600
+    notify:
+    - restart httpd
+    tags:
+    - config
 
   - name: copy apache files to conf.d
     action: copy src="{{ files }}/copr/fe/httpd/{{ item }}" dest="/etc/httpd/conf.d/{{ item }}"
@@ -46,12 +58,21 @@
 
   - name: copy pg_hba.conf
     action: copy src="{{ files }}/copr/fe/pg/pg_hba.conf" dest=/var/lib/pgsql/data/pg_hba.conf owner=postgres group=postgres mode=0600
+
+  # open up ports (22, 80, 443)
+  - name: poke holes in the firewall
+    action: command lokkit {{ item }}
+    with_items:
+    - --service=ssh
+    - --service=https
+    - --service=http
   
   - name: enable services
     action: service state=running enabled=yes name={{ item }}
     with_items:
     - httpd
     - postgresql
+    - fail2ban
 
   handlers:
   - include: "{{ handlers }}/restart_services.yml"

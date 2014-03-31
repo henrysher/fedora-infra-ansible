@@ -7,6 +7,10 @@
    - /srv/web/infra/ansible/vars/global.yml
    - "{{ private }}/vars.yml"
 
+  # Roles are run first, before tasks, regardless of where you place them here.
+  roles:
+  - fedmsg/base
+
   tasks:
   - include: "{{ tasks }}/persistent_cloud.yml"
   - include: "{{ tasks }}/growroot_cloud.yml"
@@ -28,6 +32,9 @@
 
   - name: copy copr.repo
     action: copy src="{{ files }}/copr/fe/yum/copr.repo" dest=/etc/yum.repos.d/copr.repo
+
+  - name: set the hostname
+    shell: hostname copr-be-dev.cloud.fedoraproject.org
 
   # packages needed
   - name: add packages for copr-be
