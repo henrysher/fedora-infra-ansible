@@ -79,8 +79,8 @@
   - name: reboot the virthost
     command: /sbin/reboot
 
-  - name: wait for virthost to come back - up to 10 minutes
-    local_action: wait_for host={{ target }} port=22 delay=120 timeout=600
+  - name: wait for virthost to come back - up to 15 minutes
+    local_action: wait_for host={{ target }} port=22 delay=120 timeout=900
 
   - name: wait for libvirtd to come back on the virthost
     wait_for: path=/var/run/libvirtd.pid state=present
@@ -98,7 +98,7 @@
 
 - name: Fix unbound if necessary
   # intersection - hosts that are in our dynamic group and also in unbound-dns
-  hosts: "myvms_new:&unbound-dns"
+  hosts: "myvms_new:&unbound"
   accelerate: true
   user: root
 
