@@ -43,13 +43,13 @@
     nagios: action=downtime minutes=30 service=host host={{ inventory_hostname_short }}
     delegate_to: noc01.phx2.fedoraproject.org
     ignore_errors: true
-    when: not inventory_hostname.startswith('stg')
+    when: inventory_hostname.find('.stg.') == -1
 
   - name: schedule stg host downtime
     nagios: action=downtime minutes=30 service=host host={{ inventory_hostname_short }}.stg
     delegate_to: noc01.phx2.fedoraproject.org
     ignore_errors: true
-    when: inventory_hostname.startswith('stg')
+    when: inventory_hostname.find('.stg.') != -1
 
   - name: halt the vm instances - to poweroff
     command: /sbin/halt -p
