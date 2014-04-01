@@ -40,9 +40,6 @@
     with_fileglob:
      - "{{ rpmdir }}/*.src.rpm"
 
-  - name: Run createrepo on the srpm dir
-    command: createrepo --update {{ repodir }}/SRPMS/
-
   - name: move processed srpms out to {{ rpmdir }}-old
     command: /bin/mv {{ item }} {{ rpmdir }}-old/
     when: not testing
@@ -54,11 +51,20 @@
     with_fileglob:
      - "{{ rpmdir }}/*.rpm"
 
-  - name: Run createrepo on the x86_64 dir
-    command: createrepo --update {{ repodir }}/x86_64/
+  - name: copy the binary rpms to the i386 dir of {{ repodir }}
+    copy: src={{ item }} dest={{ repodir }}/i386/
+    with_fileglob:
+     - "{{ rpmdir }}/*.rpm"
 
   - name: move processed rpms out to {{ rpmdir }}-old
     command: /bin/mv {{ item }} {{ rpmdir }}-old/
     when: not testing
     with_fileglob:
      - "{{ rpmdir }}/*.rpm"
+
+  - name: Run createrepo on each repo
+    command: createrepo --update {{ repodir }}/{{ item }}/
+    with_items:
+    - SRPMS
+    - x86_64
+    - i386
