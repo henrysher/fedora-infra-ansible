@@ -40,7 +40,7 @@
     action: copy src="{{ files }}/copr/forward" dest=/root/.forward owner=root group=root
 
   - name: install copr-fe pkgs
-    action: yum state=installed pkg={{ item }}
+    action: yum state=latest pkg={{ item }}
     with_items:
     - copr-frontend
     - copr-selinux
@@ -48,6 +48,7 @@
     - bash-completion
     - fail2ban
     - mod_ssl
+    - system-config-firewall-base
     tags:
     - packages
 
@@ -74,6 +75,24 @@
     - --service=ssh
     - --service=https
     - --service=http
+
+  - name: copy httpd ssl certificates (crt)
+    action: copy src="{{ puppet_private }}/httpd/copr-fe.fedoraproject.org.crt" dest="/etc/pki/tls/certs/" owner=root group=root mode=0600
+    tags:
+    - config
+
+  - name: copy httpd ssl certificates (key)
+    action: copy src="{{ puppet_private }}/httpd/copr-fe.fedoraproject.org.key" dest="/etc/pki/tls/private/" owner=root group=root mode=0600
+    tags:
+    - config
+
+  - lineinfile: dest=/etc/httpd/conf.d/coprs.conf regexp="SSLCertificateFile " insertafter="^#SSLCertificateFile " line="SSLCertificateFile /etc/pki/tls/certs/copr-fe.fedoraproject.org.crt"
+    notify:
+    - restart httpd
+
+  - lineinfile: dest=/etc/httpd/conf.d/coprs.conf regexp="SSLCertificateKeyFile " insertafter="^#SSLCertificateKeyFile " line="SSLCertificateKeyFile /etc/pki/tls/private/copr-fe.fedoraproject.org.key"
+    notify:
+    - restart httpd
  
   - name: enable services
     action: service state=running enabled=yes name={{ item }}
