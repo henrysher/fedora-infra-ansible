@@ -114,6 +114,13 @@
     tags:
     - config 
 
+  - name: copy httpd ssl certificates (CAcert)
+    action: copy src="{{ files }}/copr/DigiCertCA.crt" dest="/etc/lighttpd/" owner=root group=root mode=0600
+    tags:
+    - config
+    notify:
+    - restart lighttpd
+
   # mime default to text/plain and enable dirlisting for indexes
   - name: update lighttpd configs
     action: copy src="{{ files }}/copr/lighttpd/{{ item }}" dest="/etc/lighttpd/conf.d/{{ item }}" owner=root group=root mode=0644
