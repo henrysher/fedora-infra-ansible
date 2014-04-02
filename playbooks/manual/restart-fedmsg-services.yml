@@ -1,0 +1,62 @@
+# Restart fedmsg services
+#
+# The grande list of "what is running and where" is maintained here manually.
+# By running this playbook, you're not actually guaranteed that all services
+# everywhere will be restarted.  As stuff changes over time, this playbook will
+# need to be periodically updated with new things.
+
+- name: restart fedmsg-gateway instances
+  hosts: fedmsg;fedmsg-stg
+  user: root
+  gather_facts: False
+
+  vars_files: 
+   - /srv/web/infra/ansible/vars/global.yml
+   - "{{ private }}/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  tasks:
+  - name: bounce the fedmsg-gateway service
+    service: name=fedmsg-gateway state=restarted
+
+- name: restart fedmsg-relay instances
+  hosts: app01.phx2.fedoraproject.org;app01.stg.phx2.fedoraproject.org;fedmsg;fedmsg-stg
+  user: root
+  gather_facts: False
+
+  vars_files: 
+   - /srv/web/infra/ansible/vars/global.yml
+   - "{{ private }}/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  tasks:
+  - name: bounce the fedmsg-relay service
+    service: name=fedmsg-relay state=restarted
+
+- name: restart fedmsg-irc instances
+  hosts: value;value-stg
+  user: root
+  gather_facts: False
+
+  vars_files: 
+   - /srv/web/infra/ansible/vars/global.yml
+   - "{{ private }}/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  tasks:
+  - name: bounce the fedmsg-irc service
+    service: name=fedmsg-irc state=restarted
+
+- name: restart fedmsg-hub instances
+  hosts: fedmsg-hubs;fedmsg-hubs-stg
+  user: root
+  gather_facts: False
+
+  vars_files: 
+   - /srv/web/infra/ansible/vars/global.yml
+   - "{{ private }}/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  tasks:
+  - name: bounce the fedmsg-hub service
+    service: name=fedmsg-hub state=restarted
