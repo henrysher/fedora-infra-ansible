@@ -57,6 +57,19 @@
     - ntpdate
     - rsyslog
     - audit
+    - oz
+    - imagefactory
+    - imagefactory-plugins-TinMan
+    - imagefactory-plugins-vSphere
+    - imagefactory-plugins-ovfcommon
+    - imagefactory-plugins
+    - imagefactory-plugins-OVA
+    - imagefactory-plugins-EC2
+    - imagefactory-plugins-RHEVM
+    - python-psphere
+    - VMDKstream
+    - pykickstart
+
 
 - name: /etc/kojid/kojid.conf
   copy: src=kojid.conf dest=/etc/kojid/kojid.conf
@@ -77,6 +90,17 @@
 - name: /etc/koji/koji.conf
   copy: src=arm-koji.conf dest=/etc/koji.conf
   when: inventory_hostname.startswith(('arm01','arm03'))
+
+# setup for oz/imagefactory
+- name: make .psphere dir
+  file: state=directory path=/root/.psphere mode=775 owner=root group=root
+
+- name: make .psphere/templates dir
+  file: state=directory path=/root/.psphere/templates mode=775 owner=root group=root
+
+- name: copy over /root/.psphere/config.yaml
+  copy: src={{ private }}/files/koji/config.yaml dest=/root/.psphere/config.yaml
+# done oz/imagefactory
 
 - name: copy over koji ca cert
   copy: src="{{ private }}/files/koji/buildercerts/fedora-ca.cert" dest=/etc/kojid/cacert.pem
