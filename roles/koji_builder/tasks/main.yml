@@ -57,6 +57,10 @@
     - ntpdate
     - rsyslog
     - audit
+
+- name: add oz/imagefctory pkgs on x86 and arm only. 
+  yum: state=installed pkg={{ item }}
+  with_items:
     - oz
     - imagefactory
     - imagefactory-plugins-TinMan
@@ -69,7 +73,7 @@
     - python-psphere
     - VMDKstream
     - pykickstart
-
+  when: ansible_architecture != 'ppc64'
 
 - name: /etc/kojid/kojid.conf
   copy: src=kojid.conf dest=/etc/kojid/kojid.conf
