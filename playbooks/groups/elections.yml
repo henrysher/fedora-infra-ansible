@@ -47,3 +47,21 @@
 
   handlers:
   - include: "{{ handlers }}/restart_services.yml"
+
+ - name: deploy elections itself
+   hosts: elections;elections-stg
+   user: root
+   gather_facts: True
+   accelerate: True
+
+   vars_files:
+    - /srv/web/infra/ansible/vars/global.yml
+    - "{{ private }}/vars.yml"
+    - "{{ vars_path }}/{{ ansible_distribution }}.yml"
+
+   roles:
+   - elections
+
+   handlers:
+   - include: "{{ handlers }}/restart_services.yml"
+
