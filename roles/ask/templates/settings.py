@@ -92,7 +92,7 @@ STATIC_ROOT = '/var/www/html/askbot/static'
 ADMIN_MEDIA_PREFIX = STATIC_URL + 'admin/'
 
 # Make up some unique string, and don't share it with anybody.
-SECRET_KEY = '{% askbotSecretKeyPassword %}'
+SECRET_KEY = '{{ askbotSecretKeyPassword }}'
 
 # List of callables that know how to import templates from various sources.
 TEMPLATE_LOADERS = (
