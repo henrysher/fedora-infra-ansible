@@ -7,8 +7,8 @@ while (chomp($a = qx(ps ax |grep -v 'sh -c ps ax'  |grep /home/copr/provision/bu
   sleep 5;
 }
 
-#print qx(ps ax |grep ' 172.16.3.' |awk '{ print \$32 }');
-@IPs = split('\s+', qx(ps ax |grep ' 172.16.3.' |awk '{ print \$32 }'));
+#print qx(ps ax |grep ' 172.16.3.' |awk '{ print \$33 }');
+@IPs = split('\s+', qx(ps ax |grep ' 172.16.3.' |awk '{ print \$33 }'));
 
 #print "Running instances\n";
 #print join(", ", @IPs), "\n";
