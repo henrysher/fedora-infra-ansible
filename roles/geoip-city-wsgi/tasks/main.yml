@@ -1,0 +1,42 @@
+---
+
+#
+# This is the role for geoip-city-wsgi. 
+#
+
+- name: install geoip-city-wsgi.conf file 
+  copy: >
+        src="geoip-city-wsgi.conf" 
+        dest="/etc/httpd/conf.d/geoip-city-wsgi.conf" 
+        owner=root
+        group=root
+        mode=0644
+  notify:
+  - restart httpd
+  tags:
+  - geoip_config
+  - config
+
+- name: setup /usr/share/geoip-city-wsgi directory
+  file: >
+        path=/usr/share/geoip-city-wsgi 
+        owner=root
+        group=root 
+        mode=0755 
+        state=directory
+  tags:
+  - geoip_config
+  - config
+
+- name: install geoip-city.wsgi file
+  copy: >
+        src="geoip-city.wsgi"
+        dest="/usr/share/geoip-city-wsgi/geoip-city.wsgi"
+        owner=root
+        group=root
+        mode=0775
+  notify:
+  - restart httpd
+  tags:
+  - geoip_config
+  - config
