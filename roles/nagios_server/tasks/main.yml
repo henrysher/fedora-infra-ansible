@@ -1,0 +1,320 @@
+- name: Add nagios group as 420
+  user: name=nagios gid=420 state=present system=yes
+
+- name: Add nagios user as 420
+  user: name=nagios uid=420 state=present home=/var/spool/nagios comment="Nagios Monitoring User" createhome=yes system=yes shell=/bin/bash
+
+#    $nagiosDbUser = 'nagiosuser'
+#    include httpd::base
+#    include httpd::mod_auth_pgsql
+#
+#    # For notify-by-fedmsg
+#    include fedmsg::config
+
+# Add the apache user to the nagios group so that it has permissions
+# to do stuff in /var/spool/nagios/*
+- name: Add apache to nagios group
+  user: name=apache append=yes groups=nagios
+    
+- name: Install nagios packages
+  yum: name={{ item }} state=installed
+  with_items:
+  - php
+  - nagios-plugins-http
+  - nagios-plugins-dns
+  - nagios-plugins-dig
+  - nagios-plugins-ssh
+  - nagios-plugins-nagios
+  - nagios-plugins-nrpe
+  - nagios-plugins-tcp
+  - nagios-plugins-pgsql
+  - nagios-plugins-smtp
+  - nagios.x86_64
+  #'nagios-plugins', # gets this from also being in ::client
+  - python-xmpp
+  - perl-Mail-IMAPClient
+  - nagios-plugins-dummy
+  - nsca
+  - nsca-client
+  - stunnel
+
+- name: Restart and autostart nagios
+  service: name=nagios state=restarted enabled=yes
+
+- name: Restart and autostart nsca
+  service: name=nsca state=restarted enabled=yes
+
+- name: 
+
+    file { '/etc/nagios/nsca.cfg':
+        # Special-case this, because the service block below wants an actual File block.
+        source => "puppet:///nagios/nsca.cfg",
+        owner => root,
+        group => root,
+        mode => 755
+    }
+
+
+    file { '/etc/nagios/':
+        source => 'puppet:///nagios/nagios/',
+        owner => nagios,
+        group => nagios,
+        recurse => true,
+        require => Package['nagios.x86_64'],
+    }
+
+    file { '/etc/nagios/checkcommands.cfg':
+        content => template('nagios/nagios/checkcommands.cfg.erb'),
+        owner => nagios,
+        group => nagios,
+    }
+
+    file { '/etc/httpd/conf.d/nagios.conf':
+        content => template('nagios/nagios-http.conf.erb'),
+        require => [Package['httpd'], Package['mod_auth_pgsql']],
+    }
+
+    file { '/usr/lib/nagios/plugins/eventhandlers/':
+        ensure => directory,
+    }
+
+    file { '/usr/lib/nagios/plugins/restart_httpd':
+        # Not /technically/ a plugin, but ....
+        source => "puppet:///nagios/plugins/restart_httpd",
+        owner => root,
+        group => root,
+        mode => 755
+    }
+
+    file { '/usr/lib/nagios/plugins/restart_rsyslog':
+        # Not /technically/ a plugin, but ....
+        source => "puppet:///nagios/plugins/restart_rsyslog",
+        owner => root,
+        group => root,
+        mode => 755
+    }
+
+    file { '/usr/local/bin/xmppsend':
+        # Once again, not /technically/ a plugin...
+        source => "puppet:///nagios/plugins/xmppsend.py",
+        owner => root,
+        group => root,
+        mode => 755
+    }
+
+    file { '/etc/nagios/private/xmppnagios.ini':
+        # Can this be moved to a .erb?
+        source => 'puppet:///config/secure/xmppnagios.ini',
+        owner => nagios,
+        group => nagios,
+        mode => 660
+    }
+
+    file { '/usr/lib/nagios/plugins/check_email_delivery_epn':
+        source => "puppet:///nagios/plugins/check_email_delivery_epn",
+        owner => root,
+        group => root,
+        mode => 755,
+        require => [Package['nagios-plugins']]
+    }
+
+    file { '/usr/lib/nagios/plugins/check_imap_receive_epn':
+        source => "puppet:///nagios/plugins/check_imap_receive_epn",
+        owner => root,
+        group => root,
+        mode => 755,
+        require => [Package['nagios-plugins']]
+    }
+
+    file { '/usr/lib/nagios/plugins/check_smtp_send_epn':
+        source => "puppet:///nagios/plugins/check_smtp_send_epn",
+        owner => root,
+        group => root,
+        mode => 755,
+        require => [Package['nagios-plugins']]
+    }
+
+    file { '/usr/lib/nagios/plugins/check_dig_ssl':
+        source => "puppet:///nagios/plugins/check_dig_ssl",
+        owner => root,
+        group => root,
+        mode => 755,
+        require => [Package['nagios-plugins']]
+    }
+    file { '/var/log/nagios/':
+        ensure => directory,
+        owner => nagios,
+        group => nagios,
+        mode => 644,
+    }
+
+    file { '/var/log/nagios/spool':
+        ensure => directory,
+        owner => nagios,
+        group => nagios,
+        mode => 644,
+    }
+
+    file { '/var/log/nagios/spool/checkresults':
+        ensure => directory,
+        owner => nagios,
+        group => nagios,
+        mode => 644,
+    }
+
+    file { '/usr/local/bin/check_nagios_notifications.py':
+        mode => 755,
+        owner => root,
+        group => root,
+        source => 'puppet:///nagios/check_nagios_notifications.py'
+    }
+
+    # Nagios defaults that aren't used.
+    file {
+        [
+            '/etc/nagios/passwd',
+            '/etc/nagios/objects'
+        ]:
+             ensure => absent,
+             force => true
+    }
+
+    cron { "check_nagios_notifications":
+        minute => 0,
+        hour => 0,
+        monthday => absent,
+        month => absent,
+        weekday => 1,
+	user => "nagios",
+        command => "/usr/local/bin/check_nagios_notifications.py"
+    }
+}
+
+class nagios::server_external inherits nagios::server {
+    File['/etc/nagios/'] {
+        source => 'puppet:///nagios/nagios-external/',
+    }
+
+    File['/etc/nagios/checkcommands.cfg'] {
+        content => template('nagios/nagios-external/checkcommands.cfg.erb'),
+    }
+
+    file { '/usr/share/nagios/html/side.html':
+        mode => 644,
+        owner => root,
+        group => root,
+        source => 'puppet:///nagios/side.html'
+    }
+
+    file { '/usr/share/nagios/html/config.inc.php':
+        mode => 644,
+        owner => root,
+        group => root,
+        source => 'puppet:///nagios/config.inc.php'
+    }
+
+
+}
+
+class nagios::client inherits nagios {
+    package {
+        [
+            "nagios-plugins",
+            "nagios-plugins-disk",
+            "nagios-plugins-file_age",
+            "nagios-plugins-users",
+            "nagios-plugins-procs",
+            "nagios-plugins-swap",
+            "nagios-plugins-load",
+            "nagios-plugins-ping",
+        ]: ensure => installed,
+    }
+
+    case $architecture {
+        x86_64: { include nagiossymlink }
+        ppc64: { include nagiossymlink }
+    }
+
+    file { "/var/spool/nagios/":
+        ensure => directory,
+        owner => nagios,
+        group => nagios,
+        mode => 750,
+        
+        # An empty dir is an empty dir is an empty dir.
+        # source => "blank/"
+    }
+
+    file { '/usr/lib/nagios/plugins/':
+        source => 'puppet:///nagios/plugins/',
+        mode => 755,
+        owner => root,
+        group => root,
+        recurse => true,
+        require => [Package['nagios-plugins']]
+    }
+
+    # These two need to be done separately from the previous recursive
+    # declaration because of the additional selinux type.
+    file { '/usr/lib/nagios/plugins/check_haproxy_conns.py':
+        source => 'puppet:///nagios/plugins/check_haproxy_conns.py',
+        mode => 755,
+        owner => root,
+        group => root,
+        # Needs to be able to write a query to /var/run/haproxy-stats
+        seltype => 'nagios_unconfined_plugin_exec_t',
+        # This chunk needs to run *after* the recursive bit so selinux types
+        # don't toggle back and forth.
+        require => File['/usr/lib/nagios/plugins/'],
+    }
+    file { '/usr/lib/nagios/plugins/check_supybot_plugin':
+        source => 'puppet:///nagios/plugins/check_supybot_plugin',
+        mode => 755,
+        owner => root,
+        group => root,
+        # Needs to be able to connect to irc
+        seltype => 'nagios_unconfined_plugin_exec_t',
+        # This chunk needs to run *after* the recursive bit so selinux types
+        # don't toggle back and forth.
+        require => File['/usr/lib/nagios/plugins/'],
+    }
+} 
+
+class nagiosPhysical{
+    include ipmitool-package
+    file { '/usr/lib/nagios/plugins/check_ipmi':
+        source => 'puppet:///nagios/plugins/check_ipmi',
+        mode => 755,
+        owner => root,
+        group => root,
+        require => [Package['nagios-plugins'], Package['ipmitool']]
+    }
+}
+
+class nrpe {
+    if ($operatingsystem == "RedHat" and $operatingsystemrelease >= 6) {
+        selinux-policy::custom { 'nrpe': }
+    }
+    
+    package { 'nrpe': ensure => installed }
+    
+    service { 'nrpe':
+        enable => true,
+        ensure => running,
+        subscribe => File['/etc/nagios/nrpe.cfg']
+    }
+    
+    file { '/etc/nagios/nrpe.cfg':
+        source => 'puppet:///nagios/nrpe.cfg',
+        require => Package[nrpe],
+        # notify  => Service[nrpe]
+    }
+}
+
+class nagiossymlink { # Is this a hack? Is it still needed?
+    symlink { '/usr/lib/nagios':
+        replace => false,
+        ensure => '/usr/lib64/nagios/',
+        require => Package['nagios-plugins']
+    }
+}

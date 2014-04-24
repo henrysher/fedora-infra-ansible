@@ -1,0 +1,17 @@
+#!/bin/bash
+
+CODE=$(snmpwalk -v 1 -c public tape01.phx2.fedoraproject.org 1.3.6.1.4.1.674.10893.2.102.2.1 | awk '{print $4}')
+WARNING=4
+
+if [ $CODE -gt $WARNING ]
+then
+    echo "Tape: CRITICAL global status: $CODE"
+    exit 2
+elif [ $CODE -eq $WARNING ]
+then
+    echo "Tape: WARNING global status: $CODE"
+    exit 1
+else
+    echo "Tape: OK global status: $CODE"
+    exit 0
+fi

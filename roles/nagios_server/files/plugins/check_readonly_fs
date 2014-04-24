@@ -1,0 +1,84 @@
+#!/bin/bash
+
+# check_readonlyfs: Check for readonly filesystems
+# Copyright (C) 2010 Davide Madrisan <davide.madrisan@gmail.com>
+
+PROGNAME=`/bin/basename $0`
+PROGPATH=`echo $0 | sed -e 's,[\\/][^\\/][^\\/]*$,,'`
+REVISION=`echo '$Revision: 1 $' | sed -e 's/[^0-9.]//g'`
+
+. $PROGPATH/utils.sh
+
+print_usage() {
+    echo "Usage: $PROGNAME --no-network-fs"
+    echo "Usage: $PROGNAME --help"
+    echo "Usage: $PROGNAME --version"
+}
+
+print_help() {
+    print_revision $PROGNAME $REVISION
+    echo ""
+    print_usage
+    echo ""
+    echo "readonly filesystem checker plugin for Nagios"
+    echo ""
+    support
+}
+
+NETFS=1
+
+# Grab the command line arguments
+
+exitstatus=$STATE_WARNING #default
+
+while test -n "$1"; do
+    case "$1" in
+        --help|-h)
+            print_help
+            exit $STATE_OK
+            ;;
+        --version|-V)
+            print_revision $PROGNAME $REVISION
+            exit $STATE_OK
+            ;;
+        --no-network-fs|-n)
+            NETFS="0"
+            ;;
+        *)
+            echo "Unknown argument: $1"
+            print_usage
+            exit $STATE_UNKNOWN
+            ;;
+    esac
+    shift
+done
+
+[ -r /proc/mounts ] || { echo "cannot read /proc/mounts!"; exit $STATE_UNKNOWN; }
+
+nerr=0
+IFS_SAVE="$IFS"
+
+rofs_list=""
+while read dev mp fs mopt ignore; do
+   [ "$dev" = none ] && continue
+   case $fs in binfmt_misc|devpts|iso9660|proc|selinuxfs|rpc_pipefs|sysfs|tmpfs|usbfs)
+      continue ;;
+   esac
+   case $fs in autofs|nfs|nfs4|smbfs)
+      # skip the network filesystems
+      [ "$NETFS" = 0 ] && continue ;;
+   esac
+
+   IFS=","; set -- $mopt; IFS="$IFS_SAVE"
+   while :; do
+   case "$1" in
+      ro) rofs_list="$rofs_list $mp"; nerr=$(( $nerr + 1 )) ;;
+      "") shift; break ;;
+   esac
+   shift
+   done
+done < <(LC_ALL=C /bin/cat /proc/mounts 2>/dev/null)
+
+[ $nerr -eq 0 ] && { echo OK; exit $STATE_OK; } || echo "$rofs_list: read only fs"
+
+exit $exitstatus

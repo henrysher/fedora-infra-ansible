@@ -1,0 +1,60 @@
+ScriptAlias /nagios/cgi-bin/ /usr/lib64/nagios/cgi-bin/
+
+# noc3
+ScriptAlias /nagios-external/cgi-bin/ /usr/lib64/nagios/cgi-bin/
+
+ScriptAlias	/tac.cgi	/usr/lib64/nagios/cgi-bin/tac.cgi
+
+<Location ~ "/(nagios|nagios-external)/cgi-bin/>
+  Options ExecCGI
+  AuthType Basic
+  AuthName "nagios"
+
+  Auth_PG_host db-fas
+  Auth_PG_port 5432
+  Auth_PG_user fasreadonly
+  Auth_PG_pwd <%= fasReadOnlyPassword %>
+  Auth_PG_database fas2
+  Auth_PG_pwd_table people
+  Auth_PG_uid_field username
+  Auth_PG_pwd_field password
+  Auth_PG_pwd_whereclause " and status='active'"
+
+  require valid-user
+</Location>
+
+Alias /nagios /usr/share/nagios/html/
+
+# This will only affect noc3 because the proxies only forward -external to it.
+Alias /nagios-external /usr/share/nagios/html/
+
+<Directory /usr/share/nagios/html/>
+   Options None
+</Directory>
+
+# For SSL-servers
+#<Directory /usr/lib/nagios/cgi-bin/>
+#   Options ExecCGI
+#   SSLRequireSSL
+#   order deny,allow
+#   deny from all
+#   allow from 127.0.0.1
+#   AuthType Basic
+#   AuthUserFile /etc/nagios/passwd
+#   AuthName "nagios"
+#   require valid-user
+#</Directory>
+#
+#Alias /nagios/ /usr/share/nagios/html/
+#<Directory /usr/share/nagios/html/>
+#   Options None
+#   SSLRequireSSL
+#   order deny,allow
+#   deny from all
+#   allow from 127.0.0.1
+#   AuthType Basic
+#   AuthUserFile /etc/nagios/passwd
+#   AuthName "nagios"
+#   require valid-user
+#</Directory>
+
