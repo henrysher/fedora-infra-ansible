@@ -25,6 +25,7 @@ DEVELOPMENT = True
 
 datagrepper_url = 'https://apps.fedoraproject.org/datagrepper/raw'
 
+from_address = 'admin@fedoraproject.org'
 mail_server = 'bastion.phx2.fedoraproject.org'
 message_template = """{human_name}/{username}:
 
@@ -117,7 +118,7 @@ def send_email(user, last_change):
 
     message = email.Message.Message()
     message.add_header('To', to_address(user))
-    message.add_header('From', 'admin@fedoraproject.org')
+    message.add_header('From', from_address)
     subject = 'Your Koji certificate expires within a week'
     message.add_header('Subject', subject)
 
@@ -130,7 +131,7 @@ def send_email(user, last_change):
 
     server = smtplib.SMTP(mail_server)
     server.sendmail(
-        fromaddress.encode('utf-8'),
+        from_address.encode('utf-8'),
         [to_address(user).encode('utf-8')],
         message.as_string().encode('utf-8'),
     )
