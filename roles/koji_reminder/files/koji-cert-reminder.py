@@ -25,7 +25,7 @@ DEVELOPMENT = True
 
 datagrepper_url = 'https://apps.fedoraproject.org/datagrepper/raw'
 
-mail_server = 'bastion.fedoraproject.org'
+mail_server = 'bastion.phx2.fedoraproject.org'
 message_template = """{human_name}/{username}:
 
 This is an automated email sent to inform you that your Fedora Project Koji
