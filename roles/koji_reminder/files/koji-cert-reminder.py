@@ -20,8 +20,8 @@ import getpass
 import smtplib
 import requests
 
-# This is a flag used to turn of email to the actual users
-DEVELOPMENT = True
+# This is a flag used to turn off email to the actual users
+DEVELOPMENT = False
 
 datagrepper_url = 'https://apps.fedoraproject.org/datagrepper/raw'
 
