@@ -1,0 +1,31 @@
+- name: Install required packages
+  yum: name={{ item }} state=installed
+  with_items:
+  - python-arrow
+  - python-fedora
+  - python-requests
+  - fedmsg
+
+- name: Copy the scripts over
+  copy: >
+    src=koji-cert-reminder.py
+    dest=/usr/local/bin/koji-cert-reminder.py
+    mode=0755
+    owner=root
+    group=root
+
+- name: Copy over the cron definition
+  copy: >
+    src=koji-cert-reminder.cron
+    dest=/etc/cron.d/koji-cert-reminder.cron
+    mode=0644
+    owner=root
+    group=root
+
+- name: Provide some fas credentials to make the query
+  template: >
+    src=fas_credentials.py
+    dest=/etc/fedmsg.d/fas_credentials.py
+    mode=0640
+    owner=fedmsg
+    group=fedmsg
