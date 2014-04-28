@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """ Send emails to Fedora users whose koji certs are about to expire.
 
 We first get a list of Fedora users in the cla_done group.  Then we query
