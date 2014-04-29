@@ -1,0 +1,38 @@
+# requires --extra-vars="target='host1;host2;group etc' package='somepackage'"
+#
+# This playbook searches through the yum history for the latest transaction
+# involving a particular package.  Once it finds it, it will undo that
+# transaction.
+#
+# Note, this playbook is not idempotent.  Say you mistakenly installed httpd on
+# all the virthosts.  If you run this once, it will undo those transactions.  If
+# you run it again, it will undo that previous *undo*.
+
+- name: Find and undo the latest yum transaction involving a $PACKAGE
+  hosts: "{{ target }}"
+  user: root
+
+  tasks:
+  - name: find the ID of the last yum transaction
+    shell: yum history package {{ package }} | sed -n 3p | awk -F "|" '{ print $1 }' | tr -d ' '
+    register: transaction_id
+
+  # If transaction_id.stderr == "", then that means that the $PACKAGE we're
+  # looking for was never installed; it does not appear in the yum history.
+  - debug: var=transaction_id.stdout
+    when: transaction_id.stderr == ""
+
+  - name: get info on that transaction
+    command: yum history info {{ transaction_id.stdout }}
+    register: transaction_info
+    when: transaction_id.stderr == ""
+
+  - debug: var=transaction_info.stdout_lines
+    when: transaction_id.stderr == ""
+
+  #- pause: seconds=30 prompt="Undoing that yum transaction.  Abort if this is wrong."
+  #  when: transaction_id.stderr == ""
+
+  - name: Okay.. undo that transaction now
+    command: yum -y history undo {{ transaction_id.stdout }}
+    when: transaction_id.stderr == ""
