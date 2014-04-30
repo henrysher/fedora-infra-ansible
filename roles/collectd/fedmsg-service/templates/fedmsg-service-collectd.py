@@ -43,7 +43,7 @@ def print_producer(service, producer):
 
 
 if __name__ == '__main__':
-    service, = sys.argv[-1:]
+    service = "{{ process }}"
     fname = '/var/run/fedmsg/monitoring-%s.socket' % service
 
     if not os.path.exists(fname):
