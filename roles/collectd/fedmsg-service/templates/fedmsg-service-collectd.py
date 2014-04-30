@@ -10,7 +10,8 @@ import time
 import zmq
 
 
-hostname = socket.gethostname().split('.')[0]
+#hostname = socket.gethostname().split('.')[0]
+hostname = socket.gethostname()  # Use FQDN, I guess..
 
 
 def print_consumer(service, consumer):
