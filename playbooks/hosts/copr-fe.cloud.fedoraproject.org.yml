@@ -59,6 +59,15 @@
     tags:
     - config
 
+  - name: HOTFIX install a patch to mitigate the Covert Redirect vuln
+    copy: >
+        src="{{ files }}/copr/fe/hotfix/__init__.py"
+        dest=/usr/share/copr/coprs_frontend/coprs/__init__.py
+    notify:
+    - restart httpd
+    tags:
+    - hotfix
+
   - name: copy apache files to conf.d
     action: copy src="{{ files }}/copr/fe/httpd/{{ item }}" dest="/etc/httpd/conf.d/{{ item }}"
     with_items:
