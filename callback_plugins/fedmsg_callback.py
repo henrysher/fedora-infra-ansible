@@ -76,8 +76,6 @@ class CallbackModule(object):
             return
 
         results = dict([(h, stats.summarize(h)) for h in stats.processed])
-        import pprint
-        pprint.pprint(results)
         fedmsg.publish(
             modname="ansible", topic="playbook.complete",
             msg=dict(
