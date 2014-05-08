@@ -34,7 +34,7 @@ def getlogin():
 class CallbackModule(object):
     """ Publish playbook starts and stops to fedmsg. """
 
-    playbook = None
+    playbook_path = None
 
     def __init__(self):
         config = fedmsg.config.load_config()
@@ -57,7 +57,7 @@ class CallbackModule(object):
             if play.playbook.check:
                 return
 
-            if not self.playbook:
+            if not self.playbook_path:
                 fedmsg.publish(
                     modname="ansible", topic="playbook.start",
                     msg=dict(
@@ -69,17 +69,19 @@ class CallbackModule(object):
                         check=play.playbook.check,
                     ),
                 )
-                self.playbook = path
+                self.playbook_path = path
 
     def playbook_on_stats(self, stats):
-        if not self.playbook:
+        if not self.playbook_path:
             return
 
         results = dict([(h, stats.summarize(h)) for h in stats.processed])
+        import pprint
+        pprint.pprint(results)
         fedmsg.publish(
             modname="ansible", topic="playbook.complete",
             msg=dict(
-                playbook=self.playbook,
+                playbook=self.playbook_path,
                 userid=getlogin(),
                 results=results,
             ),
