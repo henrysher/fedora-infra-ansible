@@ -1,0 +1,31 @@
+
+- name: Setup arm-retrace hosts
+  hosts: arm-retrace
+  user: root
+  gather_facts: True
+  tags:
+   - arm-retrace
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "{{ private }}/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  roles:
+  - base
+  - fas_client
+  - rkhunter
+  - denyhosts
+  - nagios_client
+
+  tasks:
+  # this is how you include other task lists
+  - include: "{{ tasks }}/hosts.yml"
+  - include: "{{ tasks }}/2fa_client.yml"
+  - include: "{{ tasks }}/motd.yml"
+  - include: "{{ tasks }}/common_scripts.yml"
+  - include: "{{ tasks }}/sudo.yml"
+  - include: "{{ tasks }}/koji/releng_config.yml"
+
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"
