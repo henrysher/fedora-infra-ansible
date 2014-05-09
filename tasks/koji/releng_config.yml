@@ -60,12 +60,6 @@
     - /mnt/fedora_koji
     - /var/spool/rsyslog
 
-- name: symlink /srv/pungi/spin-kickstarts
-  action: file src=/mnt/fedora_koji/compose/spin-kickstarts dest=/srv/pungi/spin-kickstarts  state=link
-
-- name: symlink /srv/pungi/cache
-  action: file src=/mnt/fedora_koji/compose/cache dest=/srv/pungi/cache  state=link
-
 - name: add builder infra yum repo
   action: copy src="{{ files }}/../roles/koji_builder/files/builder-infrastructure.repo" dest=/etc/yum.repos.d/builder-infrastructure.repo
   tags:
@@ -135,6 +129,12 @@
 
 - name: make a mnt/koji link
   action: file state=link src=/mnt/fedora_koji/koji dest=/mnt/koji
+
+- name: symlink /srv/pungi/spin-kickstarts
+  action: file src=/mnt/fedora_koji/compose/spin-kickstarts dest=/srv/pungi/spin-kickstarts  state=link
+
+- name: symlink /srv/pungi/cache
+  action: file src=/mnt/fedora_koji/compose/cache dest=/srv/pungi/cache  state=link
 
 # put cron job in for branched compose
 - name: branched compose cron
