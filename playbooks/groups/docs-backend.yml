@@ -2,6 +2,7 @@
   hosts: docs-backend
   user: root
   gather_facts: False
+  accelerate: True
 
   vars_files: 
    - /srv/web/infra/ansible/vars/global.yml
@@ -18,6 +19,7 @@
   hosts: docs-backend
   user: root
   gather_facts: True
+  accelerate: True
 
   vars_files: 
    - /srv/web/infra/ansible/vars/global.yml
@@ -32,7 +34,6 @@
   - fas_client
   - collectd/base
   - yum-cron
-  - { role: publican_webhost, kojitag: "el6-docs", publican_brand: "fedora", site_title: "Fedora Documentation", site_host: "http://docs.fedoraproject.org" }
 
   tasks:
   # this is how you include other task lists
@@ -43,6 +44,23 @@
   - include: "{{ tasks }}/sudo.yml"
   # we want httpd for now, to examine the product directly
   - include: "{{ tasks }}/apache.yml"
+
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"
+
+- name: setup publican web
+  hosts: docs-backend
+  user: root
+  gather_facts: True
+  accelerate: True
+
+  vars_files: 
+   - /srv/web/infra/ansible/vars/global.yml
+   - "{{ private }}/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  roles:
+  - { role: publican_webhost, kojitag: "el6-docs", publican_brand: "fedora", site_title: "Fedora Documentation", site_host: "http://docs.fedoraproject.org" }
 
   handlers:
   - include: "{{ handlers }}/restart_services.yml"
