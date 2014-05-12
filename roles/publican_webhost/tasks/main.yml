@@ -1,15 +1,13 @@
 ---
 - name: copy repo definition
-  template: src=koji-tag-package.repo dest="/etc/yum.repos.d/{{ kojitag }}.repo owner=root group=root
+  template: src=koji-tag-package.repo dest="/etc/yum.repos.d/{{ kojitag }}.repo owner=root group=root"
 
 - name: install publican & brand
   yum: name="publican-{{ publican-brand }}-web" state=installed
 
-- name: use fedwatch copr
-  command: wget http://copr.fedoraproject.org/coprs/sochotni/fedwatch/repo/epel-6-i386/sochotni-fedwatch-epel-6-i386.repo -o /etc/yum.repos.d/sochotni-fedwatch.repo creates=/etc/yum.repos.d/sochotni-fedwatch-epel-6.repo 
 
 - name: install fedwatch
-  yum: name=fedwatch state=installed
+  yum: name=fedwatch state=installed enablerepo=epel-testing
 
 # needs updating!
 - name: copy fedwatch.conf
