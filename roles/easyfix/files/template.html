@@ -1,0 +1,262 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+  <head>
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+    <link rel="stylesheet" type="text/css" href="https://fedoraproject.org/static/css/reset.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="https://fedoraproject.org/static/css/text.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="https://fedoraproject.org/static/css/960.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="https://fedoraproject.org/static/css/fedora960.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="https://fedoraproject.org/static/css/fedora960-lang.css" media="screen" />
+    <!-- legacy -->
+    <link rel="shortcut icon" href="https://fedoraproject.org/static/images/favicon.ico" type="image/vnd.microsoft.icon" />
+
+    <link rel="stylesheet" type="text/css" media="print" href="https://fedoraproject.org/static/css/print.css" />
+    <!--[if IE 7]>
+        <link rel="stylesheet" type="text/css" href="https://fedoraproject.org/static/css/ie7.css" media="screen">
+        <style type="text/css">
+            #wrapper
+            {
+                height: 100%;
+                overflow: visible!important;
+            }
+                .downloadsidebar a {
+                backgroundimage: none!important;
+            }
+        </style>
+    <![endif]-->
+    <link rel="stylesheet" type="text/css" href="jquery-ui-1.8.17.custom.css" />
+    <script type="text/javascript" src="jquery-1.7.1.min.js" ></script>
+    <script type="text/javascript" src="jquery.ui.widget.js" ></script>
+    <script type="text/javascript" src="jquery.ui.tabs.js" ></script>
+    <script type="text/javascript">
+    $(function() {
+        $( "#tabs" ).tabs();
+    });
+    </script>
+
+    <title>Fedora Project easyfix</title>
+    </head>
+    <body id="fedoraproject-org" class="lang-en">
+        <!-- header -->
+
+<div id="header">
+    <div class="container_16">
+        <div class="grid_6 prefix_10">
+        </div>
+        <div class="clear"></div>
+        <div class="grid_9" id="site-heading">
+            <h1><a href="/"><span id="logo">Fedora Project</span></a></h1>
+            <h2>Freedom. Friends. Features. First.</h2>
+
+        </div>
+        <div class="grid_1"> <!-- search filler --></div>
+        <div class="grid_6" id="site-heading-rh">
+            <a href="http://redhat.com">A Red Hat-Sponsored Community Project 
+            <img id="rh-community" src="https://fedoraproject.org/static/images/sponsors/redhat-community.png"
+            alt="Red Hat Logo" /></a>
+        </div>
+        <div class="clear"></div>
+    </div>
+</div>
+
+<div id="main-nav">
+    <div class="container_16">
+        <ul id="nav-menu">
+            <li><a href="/en/">Home</a></li>
+            <li><a href="/en/features/">Features &amp; Screenshots</a></li>
+            <li><a href="/en/get-fedora">Download</a></li>
+            <li><a href="/en/join-fedora">Community</a></li>
+
+            <li><a href="/en/using/">Using Fedora</a></li>
+            <li><a href="/en/get-help">Help</a></li>
+            <li><a href="/wiki" id="nav-special">Contributors</a></li>
+        </ul>
+    </div>
+</div>
+
+        <!-- /header -->
+
+        <!-- site-content -->
+        <div id="site-content">
+            <div class="container_16">
+                <div class="grid_16">
+                </div>
+            </div>
+            <div class="clear">
+        </div>
+        <div class="container_16">
+            <div class="grid_12 alpha">
+                <div id="web-quotes">
+                    <p> There are a number of projects within Fedora which are looking
+                    for help. Below are listed tasks which have been evaluated as easy
+                    entrance point for people who are looking to start contributing and
+                    do not know where to start.
+                    </p>
+                    <p>
+                    If you are a project owner, see the <a href="https://fedoraproject.org/wiki/Easyfix">
+                     wiki</a> for more information.
+                    </p>
+                </div>
+                <div id="tabs">
+                    <ul>
+                        <li><a href="#tabs-1">Fedora hosted projects</a></li>
+                        <li><a href="#tabs-2">Bugzilla</a></li>
+                    </ul>
+                    <div class="clear"></div>
+                    <div id="tabs-1">
+                        {% for project in projects %}
+                        {% if project.tickets %}
+                        <div class="main-page-section">
+                            <h2><a name="{{ project.name }}">{{ project.name }}</a></h2>
+                            <p>
+                            To get started contact <a
+                            href="mailto:{{ project.owner }}@fedoraproject.org">
+                                {{ project.owner }}</a>
+                            </p>
+                            {% for ticket in project.tickets%}
+                            <p>
+                            <a href="{{ ticket.url }}"> #{{ ticket.id }}</a>
+                            {{ ticket.title }} <br />
+                            Status : {{ ticket.status }} - Type : {{ ticket.type }} -
+                            Component : {{ ticket.component }}
+                            </p>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                        {% endfor %}
+                        <p> Total: {{ticket_num}} tickets found </p>
+                    </div>
+                    <div id="tabs-2">
+                        <ul>
+                        {% for bug in bzbugs | sort %}
+                            <li>
+                                <a href="http://bugzilla.redhat.com/{{bug.bug_id}}">#{{bug.bug_id}}</a>
+                                (<a href="https://apps.fedoraproject.org/packages/{{bug.component}}">
+                                    {{bug.component}}</a>) - {{bug.short_desc}} <br />
+                                {% if '@' in bug.assigned_to %}
+                                Contact: <a href="mailto:{{bug.assigned_to}}">{{bug.assigned_to.split('@')[0]}}</a>
+                                {% else %}
+                                Contact: {{bug.assigned_to}}
+                                {% endif %}
+                            </li>
+                        {% endfor %}
+                        </ul>
+                        <p> Total: {{bzbugs_num}} bugs found </p>
+                    </div>
+                </div>
+               <div class="clear"></div>
+            </div>
+            <!-- start sidebar -->
+            <div class="grid_4 omega" id="left-sidebar">
+
+                <h4>Project list </h4>
+                <ul class="checkmark-list">
+                    {% for project in projects %}
+                    <li>
+                        <a href="#{{ project.name }}">{{ project.name }}</a>
+                        (<a href="{{ project.url }}" target="_blank">{{ project.site }}</a>)
+                    </li>
+                    {% endfor %}
+                </ul>
+
+            </div>
+            <!-- /start sidebar -->
+            <div class="clear"></div>
+            <p>Last update: {{date}}</p>
+        </div>
+        </div>
+
+        <div id="bottom">
+            <div class="container_12">
+                <div class="grid_2 sitelinks">
+                    <dl>
+                        <dt>Fedora</dt>
+                        <dd><a href="https://fedoraproject.org/en/about-fedora">About Fedora</a></dd>
+                        <dd><a href="http://planet.fedoraproject.org/">Planet Fedora</a></dd>
+
+                        <dd><a href="https://fedoraproject.org/wiki/FWN/LatestIssue">Fedora Weekly News</a></dd>
+                        <dd><a href="http://docs.fedoraproject.org/">Documentation</a></dd>
+                        <dd><a href="https://fedoraproject.org/wiki/">Fedora Wiki</a></dd>
+                        <dd><a href="https://fedoraproject.org/wiki/FedoraEvents">Events</a></dd>
+                    </dl>
+                </div>
+                <div class="grid_2 sitelinks">
+
+                    <dl>
+                        <dt>Download</dt>
+                        <dd><a href="https://fedoraproject.org/en/get-fedora">Get Fedora</a></dd>
+                        <dd><a href="https://fedoraproject.org/en/get-fedora-options">Full Download List</a></dd>
+                    </dl>
+                </div>
+                <div class="grid_2 sitelinks">
+
+                    <dl>
+                        <dt>Support</dt>
+                        <dd><a href="https://fedoraproject.org/en/get-help">Get Help</a></dd>
+                        <dd><a href="irc://irc.freenode.org/#fedora">IRC Help</a></dd>
+                        <dd><a href="https://admin.fedoraproject.org/mailman/listinfo/users">Mailing List Help</a></dd>
+                        <dd><a href="http://www.fedoraforum.org/">Forums</a></dd>
+
+                        <dd><a href="http://docs.fedoraproject.org/">Documentation</a></dd>
+                    </dl>
+                </div>
+                <div class="grid_2 sitelinks">
+                        <dl>
+                            <dt>Join</dt>
+                            <dd><a href="https://fedoraproject.org/en/join-fedora">Join Fedora</a></dd>
+
+                            <dd><a href="https://fedoraproject.org/wiki/SIGs">Fedora SIGs</a></dd>
+                            <dd><a href="https://admin.fedoraproject.org/accounts/">Fedora Account System</a></dd>
+                            <dd><a href="https://admin.fedoraproject.org/community/">Fedora Community</a></dd>
+                        </dl>
+                </div>
+                <div class="grid_2 sitelinks">
+                    <dl>
+
+                        <dt>Subprojects</dt>
+                        <dd><a href="https://fedoraproject.org/wiki/DocsProject">Documentation</a></dd>
+                        <dd><a href="https://fedoraproject.org/wiki/L10N">Translation</a></dd>
+                        <dd><a href="https://fedoraproject.org/wiki/Marketing">Marketing</a></dd>
+                        <dd><a href="https://fedoraproject.org/wiki/Ambassadors">Ambassadors</a></dd>
+                        <dd><a href="https://fedoraproject.org/wiki/Design">Design</a></dd>
+
+                        <dd><a href="https://fedoraproject.org/wiki/Infrastructure">Infrastructure</a></dd>
+                    </dl>
+                </div>
+                <div class="grid_2 sitelinks">
+                    <dl>
+                        <dt> </dt>
+                        <dd><a href="https://fedoraproject.org/wiki/Websites">Websites</a></dd>
+
+                        <dd><a href="https://fedoraproject.org/wiki/I18N">Internationalization</a></dd>
+                        <dd><a href="https://fedoraproject.org/wiki/NewsProject">News</a></dd>
+                        <dd><a href="https://fedoraproject.org/wiki/Distribution/Project">Distribution</a></dd>
+                        <dd><a href="https://fedoraproject.org/wiki/SIGs">Special Interest Groups (SIGs)</a></dd>
+                    </dl>
+                </div>
+                <div class="clear"></div>
+
+                <div id="footer" class="grid_12">
+                    <a href="http://www.redhat.com/"><img class="rh-logo" 
+                        src="https://fedoraproject.org/static/images/sponsors/sidebar/redhat.png" alt="Red Hat Logo" /></a>
+                    <p class="sponsor">Fedora is sponsored by Red Hat.</p>
+                    <p class="sponsor"><a href="http://www.redhat.com/rhel/fedora/">Learn more about the relationship between Red Hat and Fedora &gt;</a></p>
+                    <p class="copy">(C) 2011 Red Hat, Inc. and others.</p>
+                    <ul>
+                        <li class="first"><a href="/en/contact">Contact</a></li>
+
+                        <li><a href="https://fedoraproject.org/sponsors">Sponsors</a></li>
+                        <li><a href="https://fedoraproject.org/wiki/Legal:Main">Legal</a></li>
+                        <li class="last"><a href="https://fedoraproject.org/wiki/Legal:Trademark_guidelines">Trademark Guidelines</a></li>
+                    </ul>
+                    <p class="disclaimer">The Fedora Project is maintained and driven by the community. This is a community maintained site. Red Hat is not responsible for content.</p>
+                </div>
+                <div class="clear"> </div>
+
+            </div>
+        </div>
+
+    </body>
+</html>

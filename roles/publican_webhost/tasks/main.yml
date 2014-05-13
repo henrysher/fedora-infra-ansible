@@ -1,0 +1,35 @@
+---
+- name: copy repo definition
+  template: src=koji-tag-package.repo dest="/etc/yum.repos.d/{{ kojitag }}.repo" owner=root group=root
+
+- name: install publican & brand
+  yum: name="publican-{{ publican_brand }}-web" state=installed
+
+
+- name: install fedwatch
+  yum: name=fedwatch state=installed enablerepo=epel-testing
+
+# needs updating!
+- name: copy fedwatch.conf
+  copy: src=fedwatch.conf dest=/etc/fedwatch.conf mode=0644
+
+# verify + test
+- name: copy fedwatch triggers
+  template: src=20-docs-trigger.sh dest=/etc/fedwatch.d/ owner=root mode=0744
+ 
+- name: turn on fedwatch.service
+  service: name=fedwatch enabled=yes state=started
+
+- name: hourly check for doc updates
+  cron: name="{{ kojitag }}-repo-check" day=* hour=* state=present job="yum -y --disablerepo=\* --enablerepo=el6-docs install \*web-[a-z][a-z]-[A-Z][A-Z]\*.noarch 2>&1 > /tmp/latest_{{ kojitag }}_update.log"
+
+    # needs inspection, web_version maybe?
+    # more templating?
+- name: copy publican website config
+  template: src=publican-website.cfg dest=/etc/publican-website.cfg
+  
+    # verify
+- name: copy empty sqlite db; publican only creates this interactively
+  copy: src=empty_publican_site.db dest=/var/www/html/{{ publican_brand }}.{{ kojitag }}.db
+
+    # do stuff ?    

@@ -9,8 +9,8 @@ import zmq
 try:
     service = sys.argv[1]
     check_consumer = sys.argv[2]
-    exceptions_warning = sys.argv[3]
-    exceptions_critical = sys.argv[4]
+    exceptions_warning = int(sys.argv[3])
+    exceptions_critical = int(sys.argv[4])
     fname = '/var/run/fedmsg/monitoring-%s.socket' % service
     if not os.path.exists(fname):
         print "UNKNOWN - %s does not exist" % fname
@@ -25,7 +25,7 @@ try:
 
     for consumer in msg['consumers']:
         if consumer['name'] == check_consumer:
-            if consumer['exceptions'] > exceptions_critical:         
+            if consumer['exceptions'] > exceptions_critical:
                 print 'CRITICAL: fedmsg consumer %s exceptions value is %i' % (consumer['name'],consumer['exceptions'])
                 sys.exit(2)
             elif consumer['exceptions'] > exceptions_warning:
