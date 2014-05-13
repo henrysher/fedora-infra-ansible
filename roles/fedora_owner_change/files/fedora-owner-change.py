@@ -37,8 +37,8 @@ from email.mime.text import MIMEText
 DATAGREPPER_URL = 'https://apps.fedoraproject.org/datagrepper/raw/'
 DELTA = 7 * 24 * 60 * 60  # 7 days
 TOPIC = 'org.fedoraproject.prod.pkgdb.owner.update'
-EMAIL_TO = ''
-EMAIL_FROM = ''
+EMAIL_TO = 'pingou@pingoured.fr'
+EMAIL_FROM = 'nobody@fedoraproject.org'
 SMTP_SERVER = 'localhost'
 
 # Initial simple logging stuff
