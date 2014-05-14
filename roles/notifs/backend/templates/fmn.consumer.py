@@ -23,7 +23,7 @@ config = {
     "fmn.sqlalchemy.uri": "postgresql://{{notifs_db_user}}:{{notifs_db_password}}@db-notifs/notifications",
 
     # Some configuration for the rule processors
-    "fmn.rules.utils.use_pkgdb2": False,
+    "fmn.rules.utils.use_pkgdb2": True,
     "fmn.rules.utils.pkgdb_url": "https://admin.fedoraproject.org/pkgdb",
     "fmn.rules.cache": {
         "backend": "dogpile.cache.dbm",
