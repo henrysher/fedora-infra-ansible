@@ -29,4 +29,16 @@
 
 - name: NFS mount points (rdu)
   mount: name=/srv/pub src=172.31.1.10:/vol/fedora_ftp/fedora.redhat.com/pub fstype=nfs opts=defaults,ro,noatime,nodev,nosuid,hard,intr,nfsvers=3 state=mounted
-  when: datacenter == 'phx2'
+  when: datacenter == 'rdu'
+
+- name: Copy wildcard cert from puppet private
+  copy: src="{{puppet_private}}/httpd/wildcard-2014.fedoraproject.org.cert" dest=/etc/pki/tls/wildcard-2014.fedoraproject.org.cert owner=root group=root mode=0600
+
+- name: Copy wildcard key from puppet private
+  copy: src="{{puppet_private}}/httpd/wildcard-2014.fedoraproject.org.key" dest=/etc/pki/tls/wildcard-2014.fedoraproject.org.key owner=root group=root mode=0600
+
+- name: Copy intermediate wildcard cert from puppet private
+  copy: src="{{puppet_private}}/httpd/wildcard-2014.fedoraproject.org.intermediate.cert" dest=/etc/pki/tls/wildcard-2014.fedoraproject.org.intermediate.cert owner=root group=root mode=0600
+
+- name: Configure httpd
+  copy: src=httpd/ dest=/etc/httpd/conf.d/
