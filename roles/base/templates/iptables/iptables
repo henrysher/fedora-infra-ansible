@@ -32,19 +32,25 @@
 
 
 # if the host/group defines incoming tcp_ports - allow them
+{% if tcp_ports is defined %}
 {% for port in tcp_ports %}
 -A INPUT -p tcp -m tcp --dport {{ port }} -j ACCEPT
 {% endfor %}
+{% endif %}
 
 # if the host/group defines incoming udp_ports - allow them
+{% if udp_ports is defined %}
 {% for port in udp_ports %}
 -A INPUT -p udp -m udp --dport {{ port }} -j ACCEPT
 {% endfor %}
+{% endif %}
 
 # if there are custom rules - put them in as-is
+{% if custom_rules is defined %}
 {% for rule in custom_rules %}
 {{ rule }}
 {% endfor %}
+{% endif %}
 
 # otherwise kick everything out
 -A INPUT -j REJECT --reject-with icmp-host-prohibited
