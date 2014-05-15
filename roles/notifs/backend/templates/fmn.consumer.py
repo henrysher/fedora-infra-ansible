@@ -24,7 +24,7 @@ config = {
 
     # Some configuration for the rule processors
     "fmn.rules.utils.use_pkgdb2": True,
-    "fmn.rules.utils.pkgdb_url": "https://admin.fedoraproject.org/pkgdb",
+    "fmn.rules.utils.pkgdb_url": "https://admin.fedoraproject.org/pkgdb/api",
     "fmn.rules.cache": {
         "backend": "dogpile.cache.dbm",
         "expiration_time": 300,
