@@ -8,16 +8,11 @@
 - name: Get libsemanage-python
   yum: pkg=libsemanage-python state=installed
 
+- name: Get policycoreutils-python
+  yum: pkg=policycoreutils-python state=installed
+
 - name: Set httpd_use_nfs seboolean
   action: seboolean name=httpd_use_nfs state=yes persistent=yes
-
-- name: ensure /var/log/rsyncd-fedora.log exists
-  file: >
-    dest=/var/log/rsyncd-fedora.log
-    state=touch
-    owner=root group=root mode=0644
-  tags:
-  - config
 
 - name: /var/log/rsyncd-fedora.log file context
   command: semanage fcontext -a -t rsync_log_t /var/log/rsyncd-fedora.log
