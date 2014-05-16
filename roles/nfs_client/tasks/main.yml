@@ -9,7 +9,11 @@
 
 - name: run netapp route if needed in phx2
   command: /etc/sysconfig/network-scripts/ifup-routes eth1
-  when: netapproute.stdout.find("10.5.88.0") == -1 and not inventory_hostname.startswith('arm') and datacenter is phx2
+  when: netapproute.stdout.find("10.5.88.0") == -1 and datacenter == 'phx2'
+
+- name: run netapp route if needed in rdu
+  command: /etc/sysconfig/network-scripts/ifup-routes eth1
+  when: netapproute.stdout.find("172.31.1.0") == -1 and datacenter == 'rdu'
 
 # 
 # Install needed packages
