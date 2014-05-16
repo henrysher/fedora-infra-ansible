@@ -77,6 +77,7 @@ www.secureupload.eu
 secureupload.eu
 share-online.biz
 sharpfile.com
+takebin.com
 turbobit.net
 uppit.com
 uploaded.com
