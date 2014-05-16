@@ -11,9 +11,6 @@
 - name: Set httpd_use_nfs seboolean
   action: seboolean name=httpd_use_nfs state=yes persistent=yes
 
-- name: /srv/pub file contexts
-  command: semanage fcontext -a -t httpd_sys_content_t "/srv/pub(/.*)?"
-
 - name: /var/log/rsyncd-fedora.log file context
   command: semanage fcontext -a -t rsync_log_t "/var/log/rsyncd-fedora.log"
 
@@ -29,6 +26,9 @@
 - name: NFS mount points (phx2)
   mount: name=/srv/pub src=vtap-fedora-nfs01.storage.phx2.redhat.com:/vol/fedora_ftp/fedora.redhat.com/pub fstype=nfs opts=defaults,fsc,ro,noatime,nodev,nosuid,hard,intr,nfsvers=3,nocto,actimeo=600 state=mounted
   when: datacenter == 'phx2'
+
+- name: /srv/pub file contexts
+  command: semanage fcontext -a -t httpd_sys_content_t "/srv/pub(/.*)?"
 
 - name: NFS mount points (rdu)
   mount: name=/srv/pub src=172.31.1.10:/vol/fedora_ftp/fedora.redhat.com/pub fstype=nfs opts=defaults,ro,noatime,nodev,nosuid,hard,intr,nfsvers=3 state=mounted
