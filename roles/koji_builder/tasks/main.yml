@@ -39,11 +39,6 @@
 - name: add builder infra yum repo
   copy: src=builder-infrastructure.repo dest=/etc/yum.repos.d/builder-infrastructure.repo
 
-#- name: clean up packages we do not need
-#  yum: state=removed pkg={{ item }}
-#  with_items:
-#    - 'cronie\*'
-
 - name: add pkgs
   yum: state=installed pkg={{ item }}
   with_items:
@@ -51,7 +46,6 @@
     - koji-builder
     - strace
     - mock
-    - nfs-utils
     - kernel-firmware
     - ntp
     - ntpdate
@@ -121,23 +115,6 @@
   tags:
   - configs
 
-- name: route config for netapp network
-  copy: src=route-eth1 dest=/etc/sysconfig/network-scripts/route-eth1
-
-- name: check for netapp route
-  command: ip route show
-  register: netapproute
-  always_run: yes
-  changed_when: "1 != 1"
-
-- name: run netapp route
-  command: /etc/sysconfig/network-scripts/ifup-routes eth1
-  when: netapproute.stdout.find("10.5.88.0") == -1 and not inventory_hostname.startswith('arm')
-
-- name: nfs mount points
-  mount: name=/mnt/fedora_koji src=vtap-fedora-nfs01.storage.phx2.redhat.com:/vol/fedora_koji fstype=nfs opts=ro,hard,bg,intr,noatime,nodev,nosuid passno=0 dump=0 state=mounted
-  when: inventory_hostname.startswith('build')
-
 - name: make a mnt/koji link
   file: state=link src=/mnt/fedora_koji/koji dest=/mnt/koji
   when: inventory_hostname.startswith('build')
@@ -195,21 +172,3 @@
   with_items:
   - kmod-hfsplus    
   when: is_rhel is defined and ansible_architecture == 'x86_64'
-
-- name: enable services and start them on Fedora systems
-  service: name={{ item }}  enabled=true state=started
-  with_items:
-  - ntpd
-  - nfs-lock
-  - nfs-idmap
-  - nfs-mountd
-  when: ansible_distribution == 'Fedora'
-
-- name: enable services and start them on RHEL systems
-  service: name={{ item }}  enabled=true state=started
-  with_items:
-  - rpcbind
-  - ntpd
-  - nfslock
-  - nfs
-  when: ansible_distribution == 'RedHat'

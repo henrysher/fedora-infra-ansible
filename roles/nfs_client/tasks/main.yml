@@ -1,5 +1,5 @@
 - name: route config for netapp network
-  copy: src=route-eth1 dest=/etc/sysconfig/network-scripts/route-eth1
+  copy: src=route-eth1.{{ datacenter }} dest=/etc/sysconfig/network-scripts/route-eth1
 
 - name: check for netapp route
   command: ip route show
@@ -7,28 +7,53 @@
   always_run: yes
   changed_when: "1 != 1"
 
-- name: run netapp route
+- name: run netapp route if needed in phx2
   command: /etc/sysconfig/network-scripts/ifup-routes eth1
-  when: netapproute.stdout.find("10.5.88.0") == -1 and not inventory_hostname.startswith('arm')
+  when: netapproute.stdout.find("10.5.88.0") == -1 and not inventory_hostname.startswith('arm') and datacenter is phx2
 
-- name: install nfs-utils
-  yum: pkg=nfs-utils state=installed
+# 
+# Install needed packages
+#
+- name: Install needed nfs packages
+  yum: pkg={{ item }} state=installed
+  with_items: 
+  - nfs-utils
+  - rpcbind
 
-- name: install rpcbind
-  yum: pkg=rpcbind state=installed
+- name: enable nfs-related services and run them (fedora)
+  action: service name={{ item }}  enabled=true state=started
+  with_items:
+  - nfs-idmapd
+  - nfs-lock
+  when: ansible_distribution == 'Fedora'
 
-- name: start rpcbind
-  service: name=rpcbind state=started enabled=yes
+- name: enable nfs-related services and run them (rhel)
+  action: service name={{ item }}  enabled=true state=started
+  with_items:
+  - rpcidmapd
+  - rpcbind
+  - nfs
+  - nfslock
+  when: ansible_distribution == 'RedHat'
 
-- name: start nfslock
-  service: name=nfslock state=started enabled=yes
-
-- name: nfs mount points
+- name: nfs mount points (phx2)
   mount: >
-        name=/mnt/{{ mnt_dir }} 
+        name=/{{ mnt_dir }} 
         src=vtap-fedora-nfs01.storage.phx2.redhat.com:/vol/{{ nfs_src_dir }} 
         fstype=nfs 
         opts={{nfs_mount_opts}}
         passno=0 
         dump=0
         state=mounted
+  when: datacenter == 'phx2'
+
+- name: nfs mount points (rdu)
+  mount: >
+        name=/{{ mnt_dir }} 
+        src=172.31.1.10:/vol/{{ nfs_src_dir }} 
+        fstype=nfs 
+        opts={{nfs_mount_opts}}
+        passno=0 
+        dump=0
+        state=mounted
+  when: datacenter == 'rdu'
