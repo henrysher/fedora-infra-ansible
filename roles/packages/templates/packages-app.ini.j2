@@ -22,9 +22,15 @@ fedoracommunity.extensions_dir = {{ pythonsitelib }}/fedoracommunity/plugins/ext
 fedoracommunity.connector.kojihub.baseurl = http://koji.fedoraproject.org/kojihub
 fedoracommunity.connector.bugzilla.baseurl = https://bugzilla.redhat.com/xmlrpc.cgi
 fedoracommunity.connector.bugzilla.cookiefile = /var/cache/fedoracommunity/bugzillacookies
+{% if env == "staging" %}
+fedoracommunity.connector.fas.baseurl = https://admin.stg.fedoraproject.org/accounts/
+fedoracommunity.connector.bodhi.baseurl = https://admin.stg.fedoraproject.org/updates
+fedoracommunity.connector.pkgdb.baseurl = https://admin.stg.fedoraproject.org/pkgdb
+{% else %}
 fedoracommunity.connector.fas.baseurl = https://admin.fedoraproject.org/accounts/
 fedoracommunity.connector.bodhi.baseurl = https://admin.fedoraproject.org/updates
 fedoracommunity.connector.pkgdb.baseurl = https://admin.fedoraproject.org/pkgdb
+{% endif %}
 
 fedoracommunity.rpm_cache = /var/cache/fedoracommunity/rpm_cache/
 
@@ -50,7 +56,11 @@ fedoracommunity.connector.fas.minimal_user_password={{ fcommFasPassword }}
 fedora.clients.check_certs = True
 
 # URL for getting message history
+{% if env == "staging" %}
+datagrepper_url = https://apps.stg.fedoraproject.org/datagrepper/raw
+{% else %}
 datagrepper_url = https://apps.fedoraproject.org/datagrepper/raw
+{% endif %}
 
 ##
 ## Moksha-specific configuration options
