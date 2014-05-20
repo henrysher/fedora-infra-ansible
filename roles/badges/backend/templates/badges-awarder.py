@@ -32,7 +32,11 @@ config = {
 
     # Stuff used for caching packagedb relations.
     "fedbadges.rules.utils.use_pkgdb2": True,
-    "fedbadges.rules.utils.pkgdb_url": "https://admin.fedoraproject.org/pkgdb",
+    {% if env == 'staging' %}
+    "fedbadges.rules.utils.pkgdb_url": "https://admin.stg.fedoraproject.org/pkgdb/api",
+    {% else %}
+    "fedbadges.rules.utils.pkgdb_url": "https://admin.fedoraproject.org/pkgdb/api",
+    {% endif %}
     "fedbadges.rules.cache": {
         "backend": "dogpile.cache.dbm",
         "expiration_time": 300,
