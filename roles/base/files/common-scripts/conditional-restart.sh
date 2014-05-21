@@ -5,7 +5,7 @@
 SERVICE=$1
 PACKAGE=$2
 
-/usr/bin/rpm -q $PACKAGE
+rpm -q $PACKAGE
 
 INSTALLED=$?
 
