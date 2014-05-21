@@ -19,6 +19,7 @@
     - "{{ rsyncd_conf }}"
     - rsyncd.conf.{{ ansible_fqdn }}
     - rsyncd.conf.{{ host_group }}
+    - rsyncd.conf.{{ rsync_group }}
     - rsyncd.conf.default
   notify:
   - restart xinetd
@@ -31,6 +32,7 @@
     - "{{ rsync }}"
     - rsync.{{ ansible_fqdn }}
     - rsync.{{ host_group }}
+    - rsync.{{ rsync_group }}
     - rsync.default
   notify:
   - restart xinetd
@@ -41,3 +43,9 @@
   service: name=xinetd state=started
   tags:
   - services
+
+- name: set sebooleans so rsync can read dirs
+  action: seboolean name=rsync_export_all_ro
+                    state=true
+                    persistent=true
+
