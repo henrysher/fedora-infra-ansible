@@ -26,7 +26,7 @@ try:
     poller = zmq.Poller()
     poller.register(s, zmq.POLLIN)
 
-    timeout = 10000
+    timeout = 20000
 
     events = dict(poller.poll(timeout))
     if s in events and events[s] == zmq.POLLIN:
