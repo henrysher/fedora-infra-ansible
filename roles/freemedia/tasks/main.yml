@@ -1,6 +1,15 @@
 ---
 # Tasklist for setting up freemedia cgi.
 
+- name: install needed php packages
+  yum: pkg={{ item }} state=installed
+  with_items:
+  - php
+  notify:
+  - restart httpd
+  tags:
+  - packages
+
 - name: setup /srv/web/freemedia directory
   file: path=/srv/web/freemedia owner=root group=root mode=0755 state=directory
   tags:
