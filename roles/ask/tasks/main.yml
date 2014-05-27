@@ -93,8 +93,15 @@
   tags:
   - files
 
+- name: check log file
+  command: stat /var/log/askfedora.log
+  register: logstat
+  always_run: yes
+  changed_when: "1 != 1"
+
 - name: log ownership fix
   file: state=touch dest=/var/log/askbot/askfedora.log owner=apache group=apache
+  when: logstat.rc == 1
 
 - name: run collectstatic
   command: creates=/var/www/html/askbot/static python /etc/askbot/sites/ask/config/manage.py collectstatic --noinput

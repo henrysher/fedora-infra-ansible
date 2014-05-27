@@ -61,6 +61,12 @@
 - name: ensure selinux lets httpd talk to postgres
   seboolean: name=httpd_can_network_connect_db persistent=yes state=yes
 
+- name: check log file
+  command: stat /var/log/fedoratagger.log
+  register: logstat
+  always_run: yes
+  changed_when: "1 != 1"
+
 - name: ensure cronjob log file is writable
   file: >
     dest=/var/log/fedoratagger.log
@@ -69,6 +75,7 @@
   tags:
   - cron
   - config
+  when: logstat.rc == 1
 
 - name: setup the cronjob
   copy: >
