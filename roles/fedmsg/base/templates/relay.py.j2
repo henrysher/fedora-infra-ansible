@@ -13,10 +13,7 @@ config = dict(
         # This is the output side of the relay to which all other
         # services can listen.
         "relay_outbound": [
-            # Messages from inside phx2 and the vpn emerge here
-            "tcp://app01.%s:3999" % suffix,
-
-            # Messages from coprs and secondary arch composes emerge here
+            # Messages emerge here
             "tcp://busgateway01.%s:3999" % suffix,
         ],
     },
@@ -27,14 +24,13 @@ config = dict(
     # It is also used by the mediawiki php plugin which, due to the oddities of
     # php, can't maintain a single passive-bind endpoint of it's own.
     relay_inbound=[
-        # Scripts inside phx2 connect here
-        "tcp://app01.%s:3998" % suffix,
+        # Primarily, scripts from inside phx2 connect here.
+        # Furthermore, scripts from outside (coprs, secondary arch koji) connect
+        # here via haproxy.
+        "tcp://busgateway01.%s:9941" % suffix,
 
         # Scripts from the vpn (people03) connect here
-        #"tcp://app01.vpn.fedoraproject.org:3998",
-
-        # Scripts from outside connect here (coprs, secondary arch composes)
-        "tcp://busgateway01.%s:9941" % suffix,
+        "tcp://busgateway01.vpn.fedoraproject.org:3998",
 
         # ...but they have to go through our external proxy first..
         #"tcp://hub.fedoraproject.org:9941",
