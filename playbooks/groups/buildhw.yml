@@ -3,7 +3,7 @@
 # NOTE: most of these vars_path come from group_vars/buildhw or from hostvars
 
 - name: make koji builder(s) on raw hw
-  hosts: buildhw;buildppc;buildarm
+  hosts: buildhw;buildppc;buildarm:bkernel
   user: root
   gather_facts: True
 
@@ -14,8 +14,9 @@
 
   roles:
   - base
-  - { role: nfs_client, when: not inventory_hostname.startswith('arm'), mnt_dir: '/mnt/fedora_koji',  nfs_src_dir: 'fedora_koji' }
+  - { role: nfs_client, when: inventory_hostname.startswith('build') , mnt_dir: '/mnt/fedora_koji',  nfs_src_dir: 'fedora_koji' }
   - koji_builder
+  - { role: bkernel, when: inventory_hostname.startswith('bkernel') }
 
   tasks:
   - include: "{{ tasks }}/yumrepos.yml"
