@@ -14,7 +14,7 @@ done
 
  while [ $? -eq 0 ] ; do
    time="$(date +%s)"
-   for db in {{ databases.join(' ') }} 
+   for db in {{ ' '.join(databases) }}
    do
       echo "PUTVAL $host/pg_conns/pg_conns-$db $time:$(ps auxwww | grep -c $db)"
    done
