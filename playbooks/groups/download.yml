@@ -1,3 +1,22 @@
+- name: make secondary download virt
+  hosts: download-ibiblio
+  user: root
+
+  gather_facts: False
+  accelerate: "{{ accelerated }}"
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "{{ private }}/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  tasks:
+  - include: "{{ tasks }}/virt_instance_create.yml"
+
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"
+
+
 - name: Download servers
   hosts: download
   user: root
@@ -14,6 +33,7 @@
 
   handlers:
   - include: "{{ handlers }}/restart_services.yml"
+
 
 - name: post-initial-steps
   hosts: download
