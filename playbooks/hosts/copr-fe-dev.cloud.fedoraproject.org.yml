@@ -31,6 +31,12 @@
   - name: set the hostname
     shell: hostname copr-fe-dev.cloud.fedoraproject.org
 
+  - name: copy .forward file
+    action: copy src="{{ files }}/copr/forward-dev" dest=/root/.forward owner=root group=root
+
+  - name: deploy /etc/hosts file
+    action: copy src="{{ files }}/copr/hosts" dest=/etc/hosts owner=root group=root mode=644
+
   - name: install copr-fe pkgs
     action: yum state=latest pkg={{ item }}
     with_items:
@@ -94,4 +100,6 @@
     - fail2ban
 
   handlers:
+  - name: restart httpd
+    service: name=httpd state=restarted
   - include: "{{ handlers }}/restart_services.yml"
