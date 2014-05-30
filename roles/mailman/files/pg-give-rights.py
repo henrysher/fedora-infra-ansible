@@ -14,32 +14,34 @@ import yaml
 import psycopg2
 
 
-def give_rights(dbhost, dbuser, dbpasswd, dbname):
+def give_rights(dbhost, dbuser, dbpasswd, dbname, dbreguser=None):
+    if dbreguser is None:
+        dbreguser = dbname + "app"
     conn = psycopg2.connect(host=dbhost, user=dbuser, password=dbpasswd,
                             database=dbname)
     cur = conn.cursor()
     # Database permissions
-    dbrightsquery = "GRANT CONNECT,TEMP ON DATABASE %s TO %sapp;" % (dbname, dbname)
+    dbrightsquery = "GRANT CONNECT,TEMP ON DATABASE %s TO %s;" % (dbname, dbreguser)
     print dbrightsquery
     cur.execute(dbrightsquery)
     # Table permissions
     cur.execute("""
-        SELECT 'GRANT SELECT,INSERT,UPDATE,DELETE,TRUNCATE ON "' || relname || '" TO %sapp;'
+        SELECT 'GRANT SELECT,INSERT,UPDATE,DELETE,TRUNCATE ON "' || relname || '" TO %s;'
         FROM pg_class
         JOIN pg_namespace ON pg_namespace.oid = pg_class.relnamespace
         WHERE nspname = 'public' AND relkind IN ('r', 'v');
-    """ % dbname)
+    """ % dbreguser)
     queries = [ q[0] for q in cur ]
     for query in queries:
         print query
         cur.execute(query)
     # Sequence permissions
     cur.execute("""
-        SELECT 'GRANT USAGE,SELECT,UPDATE ON ' || relname || ' TO %sapp;'
+        SELECT 'GRANT USAGE,SELECT,UPDATE ON ' || relname || ' TO %s;'
         FROM pg_class
         JOIN pg_namespace ON pg_namespace.oid = pg_class.relnamespace
         WHERE nspname = 'public' AND relkind = 'S';
-    """ % dbname)
+    """ % dbreguser)
     queries = [ q[0] for q in cur ]
     for query in queries:
         print query
@@ -78,6 +80,15 @@ def main():
         settings_admin.DATABASES["default"]["USER"],
         settings_admin.DATABASES["default"]["PASSWORD"],
         settings_admin.DATABASES["default"]["NAME"],
+    )
+
+    # HyperKitty unit test database
+    give_rights(
+        settings_admin.DATABASES["default"]["HOST"],
+        settings_admin.DATABASES["default"]["USER"],
+        settings_admin.DATABASES["default"]["PASSWORD"],
+        "test_" + settings_admin.DATABASES["default"]["NAME"],
+        settings_admin.DATABASES["default"]["NAME"] + "app",
     )
 
 
