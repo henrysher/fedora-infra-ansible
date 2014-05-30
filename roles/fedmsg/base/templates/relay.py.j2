@@ -24,6 +24,18 @@ config = dict(
     # It is also used by the mediawiki php plugin which, due to the oddities of
     # php, can't maintain a single passive-bind endpoint of it's own.
     relay_inbound=[
+        {% if 'persistent-cloud' in group_names %}
+
+        # Stuff from the cloud has to go through our external proxy first..
+        #"tcp://hub.fedoraproject.org:9941",
+
+        # ...and normally, we'd like them to go through round-robin, but we're
+        # not getting messages in from proxies across the vpn.  So, only use
+        # proxy01 for now.
+        "tcp://209.132.181.16:9941",
+
+        {% else %}
+
         # Primarily, scripts from inside phx2 connect here.
         # Furthermore, scripts from outside (coprs, secondary arch koji) connect
         # here via haproxy.
@@ -32,12 +44,6 @@ config = dict(
         # Scripts from the vpn (people03) connect here
         "tcp://busgateway01.vpn.fedoraproject.org:3998",
 
-        # ...but they have to go through our external proxy first..
-        #"tcp://hub.fedoraproject.org:9941",
-
-        # ...and normally, we'd like them to go through round-robin, but we're
-        # not getting messages in from proxies across the vpn.  So, only use
-        # proxy01 for now.
-        "tcp://209.132.181.16:9941",
+        {% endif %}
     ],
 )
