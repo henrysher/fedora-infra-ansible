@@ -235,7 +235,7 @@ def main():
                 ticketobj.id = ticket[0]
                 ticketobj.title = ticket[3]['summary']
                 ticketobj.url = 'http://fedorahosted.org/%s/ticket/%s' %(
-                    project, ticket[0])
+                    project.name, ticket[0])
                 ticketobj.status = ticket[3]['status']
                 ticketobj.type = ticket[3]['type']
                 ticketobj.component = ticket[3]['component']
