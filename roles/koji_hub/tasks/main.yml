@@ -26,16 +26,19 @@
   - confs
 
 - name: init koji ca key file
-  file: src={{ puppet_private}}/koji/koji.stg_key.pem dest=/etc/pki/koji/private/
+  file: src={{ puppet_private}}/koji/koji.stg_key.pem dest=/etc/pki/tls/private/
   tags:
   - config
 
 - name: init koji ca cert file
-  file: src={{ puppet_private}}/koji/koji.stg_cert.pem dest=/etc/pki/koji/private/
+  file: src={{ puppet_private}}/koji/koji.stg_cert.pem dest=/etc/pki/tls/certs/
   tags:
   - config
 
-# setup certs needed here for kojiweb/hub
+- name: init kojiweb ca cert file
+  file: src={{ puppet_private}}/koji/kojiweb_cert_key.pem dest=/etc/pki/tls/private/
+  tags:
+  - config
 
 # Todo here
 # httpd ssl.conf changes
@@ -44,8 +47,12 @@
 - name: make mnt/koji directory
   file: state=directory path=/mnt/koji/ owner=root group=root
 
-# selinux config: 
-#   httpd_can_network_connect_db=1 allow_httpd_anon_write=1
+- name: set sebooleans so koji can talk to the db
+  seboolean: name=httpd_can_network_connect_db state=true persistent=true
+
+- name: set sebooleans so koji can anon write
+  seboolean: name=allow_httpd_anon_write state=true persistent=true
+
 #   chcon -R -t public_content_rw_t /mnt/koji/*
 
 - name: Set httpd to run on boot
