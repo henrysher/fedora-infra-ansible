@@ -25,32 +25,13 @@
   - private
   - confs
 
-- name: setup ssl config for koji
-  copy: src={{ item }} dest=/etc/pki/koji/openssl.cnf mode=600
-  first_available_file:
-    - openssl.cnf.{{ ansible_fqdn }}
-    - openssl.cnf.{{ host_group }}
-    - openssl.cnf.{{ dist_tag }}
-  tags:
-  - config
-
-- name: create index.txt
-  file: name=/etc/pki/koji/index.txt
-  tags:
-  - config
-
-- name: init serial file
-  shell: creates=/etc/pki/koji/serial.txt echo 01 > /etc/pki/koji/serial.txt 
-  tags:
-  - config
-
 - name: init koji ca key file
-  shell: creates=/etc/pki/koji/private/koji_ca_cert.key openssl genrsa -out /etc/pki/koji/private/koji_ca_cert.key 2048
+  file: source={{ puppet_private}}/koji/koji.stg_key.pem dest=/etc/pki/koji/private/
   tags:
   - config
 
 - name: init koji ca cert file
-  shell: creates=/etc/pki/koji/koji_ca_cert.crt openssl req -config /etc/pki/koji/openssl.cnf -new -x509 -subj "/C=US/ST=Arizona/L=Phoenix/O=IT/CN=aarch64.koji.fedoraproject.org" -days 3650 -key /etc/pki/koji/private/koji_ca_cert.key -out /etc/pki/koji/koji_ca_cert.crt -extensions v3_ca
+  file: source={{ puppet_private}}/koji/koji.stg_cert.pem dest=/etc/pki/koji/private/
   tags:
   - config
 
@@ -59,7 +40,10 @@
 # Todo here
 # httpd ssl.conf changes
 # koji hub.conf template
-# create skeleton /mnt/koji dirs
+#
+- name: make mnt/koji directory
+  file: state=directory path=/mnt/koji/ owner=root group=root
+
 # selinux config: 
 #   httpd_can_network_connect_db=1 allow_httpd_anon_write=1
 #   chcon -R -t public_content_rw_t /mnt/koji/*
