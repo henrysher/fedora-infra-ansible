@@ -10,6 +10,7 @@
    - "{{ global_pkgs_inst }}"
   tags:
   - packages
+  - base
 
 - name: sshd_config 
   copy: src={{ item }} dest=/etc/ssh/sshd_config mode=600
@@ -27,11 +28,13 @@
   - sshd_config
   - config
   - sshd
+  - base
 
 - name: set root passwd
   user: name=root password={{ rootpw }} state=present
   tags:
   - rootpw
+  - base
   when: not (inventory_hostname.startswith('build') or inventory_hostname.startswith('releng') or inventory_hostname.startswith('arm') or inventory_hostname.startswith('compose') or inventory_hostname.startswith('bkernel'))
 
 - name: add ansible root key 
@@ -40,11 +43,13 @@
   - ansible-pub-key
   tags:
   - config
+  - base
 
 - name: make sure our resolv.conf is the one being used - set RESOLV_MODS=no in /etc/sysconfig/network
   lineinfile: dest=/etc/sysconfig/network create=yes backup=yes state=present line='RESOLV_MODS=no' regexp=^RESOLV_MODS=
   tags:
   - config
+  - base
   
 - name: dist pkgs to remove
   yum: state=removed name={{ item }}
@@ -52,6 +57,7 @@
    - "{{ base_pkgs_erase }}"
   tags:
   - packages
+  - base
 
 - name: dist pkgs to install
   yum: state=installed name={{ item }}
@@ -59,6 +65,7 @@
    - "{{ base_pkgs_inst }}"
   tags:
   - packages
+  - base
 
 - name: dist disabled services
   service: state=stopped enabled=false name={{ item }}
@@ -67,6 +74,7 @@
   tags:
   - service
   - config
+  - base
 
 - name: dist enabled services
   service: state=running enabled=true name={{ item }}
@@ -75,6 +83,7 @@
   tags:
   - service
   - config
+  - base
 
 - name: iptables
   template: src={{ item }} dest=/etc/sysconfig/iptables mode=600 backup=yes
@@ -89,6 +98,7 @@
   tags:
   - iptables
   - config
+  - base
 
 # XXX fixme # a datacenter 'fact' from setup
 - name: /etc/resolv.conf
@@ -102,6 +112,7 @@
   tags:
   - config
   - resolvconf
+  - base
 
 - name: rsyslog.conf
   copy: src={{ item }} dest=/etc/rsyslog.conf mode=644
@@ -114,6 +125,7 @@
   tags:
   - rsyslogd
   - config
+  - base
 
 - name: add rsyslog config to /etc/rsyslog.d
   copy: src={{ item }} dest=/etc/rsyslog.d/ owner=root group=root mode=0644
@@ -124,6 +136,7 @@
   tags:
   - rsyslogd
   - config
+  - base
 
 - name: log everything to log02 except on mirrorlist, do not log local4 there.
   copy: src=rsyslog/rsyslog-log02 dest=/etc/rsyslog.d/rsyslog-log02.conf mode=644
@@ -131,6 +144,7 @@
   tags:
   - rsyslogd
   - config
+  - base
 
 - name: log everything to log02 except on mirrorlist, do not log local4 there.
   copy: src=rsyslog/rsyslog-log02-nolocal4 dest=/etc/rsyslog.d/rsyslog-log02.conf mode=644
@@ -138,6 +152,7 @@
   tags:
   - rsyslogd
   - config
+  - base
    
 - name: /etc/postfix/main.cf
   copy: src={{ item }} dest=/etc/postfix/main.cf
@@ -152,6 +167,7 @@
   tags:
   - postfix
   - config
+  - base
 
 - name: install /etc/postfix/master.cf file
   copy: src={{ item }} dest=/etc/postfix/master.cf mode=0644
@@ -168,11 +184,13 @@
   tags:
   - postfix
   - config
+  - base
 
 - name: enable postfix to start
   service: name=postfix state=running enabled=true
   tags:
   - service
+  - base
 
 - name: install /etc/postfix/transport file
   copy: src="postfix/{{ postfix_transport_filename }}" dest=/etc/postfix/transport
@@ -182,6 +200,7 @@
   - rebuild postfix transport
   tags:
   - postfix
+  - base
   - config
 #
 # This task installs some common scripts to /usr/local/bin
@@ -194,3 +213,4 @@
    - common-scripts/*
   tags:
   - config
+  - base
