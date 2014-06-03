@@ -60,13 +60,18 @@
   - mash.conf
   - rel-eng.conf
   - repo.conf
-  - kojira.conf
   tags:
   - config
   notify: restart httpd
 
-- name: koji ssl config
-  copy: src=koji-ssl.conf dest=/etc/httpd/conf.d/ssl.conf
+- name: koji staging ssl config
+  copy: src=koji-ssl.conf.stg dest=/etc/httpd/conf.d/ssl.conf
+  tags:
+  - config
+  when: env == "staging"
+
+- name: kojira config
+  copy: src=kojira.conf dest=/etc/kojira/kojira.conf
   tags:
   - config
 
