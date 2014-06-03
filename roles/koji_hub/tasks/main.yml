@@ -31,6 +31,12 @@
   - config
   notify: restart httpd
 
+- name: kojiweb config
+  template: src=hub.conf.j2 dest=/etc/koji-hub/hub.conf owner=apache group=apache mode=600
+  tags:
+  - config
+  notify: restart httpd
+
 - name: init koji ca key file
   copy: src={{ puppet_private }}/koji/koji.stg_key.pem dest=/etc/pki/tls/private/koji.stg_key.pem
   tags:
@@ -46,10 +52,24 @@
   tags:
   - config
 
-# Todo here
-# httpd ssl.conf changes
-# koji hub.conf template
-#
+- name: koji web config files
+  file: src={{ item }} path=/etc/httpd/conf.d/{{ item }} owner=root group=root
+  with_items:
+  - kojiweb.conf
+  - kojihub.conf
+  - mash.conf
+  - rel-eng.conf
+  - repo.conf
+  - kojira.conf
+  tags:
+  - config
+  notify: restart httpd
+
+- name: koji ssl config
+  copy: src=koji-ssl.confg dest=/etc/httpd/conf.d/ssl.conf
+  tags:
+  - config
+
 - name: make mnt/koji directory
   file: state=directory path=/mnt/koji/ owner=root group=root
 
@@ -58,8 +78,6 @@
 
 - name: set sebooleans so koji can anon write
   seboolean: name=allow_httpd_anon_write state=true persistent=true
-
-#   chcon -R -t public_content_rw_t /mnt/koji/*
 
 - name: Set httpd to run on boot
   service: name=httpd enabled=yes
