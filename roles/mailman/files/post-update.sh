@@ -24,6 +24,10 @@ $BASEDIR/bin/pg-give-rights.py
 # SELinux contexts
 restorecon -r "$BASEDIR"
 
+# Run unit tests
+django-admin test --pythonpath $CONFDIR --settings settings_test -P hyperkitty
+nose2 kittystore
+
 # Reload Apache to flush the python cache
 systemctl reload httpd
 # Restart Mailman3 since kittystore was updated

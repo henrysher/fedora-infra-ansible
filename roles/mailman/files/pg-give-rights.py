@@ -82,14 +82,5 @@ def main():
         settings_admin.DATABASES["default"]["NAME"],
     )
 
-    # HyperKitty unit test database
-    give_rights(
-        settings_admin.DATABASES["default"]["HOST"],
-        settings_admin.DATABASES["default"]["USER"],
-        settings_admin.DATABASES["default"]["PASSWORD"],
-        "test_" + settings_admin.DATABASES["default"]["NAME"],
-        settings_admin.DATABASES["default"]["NAME"] + "app",
-    )
-
 
 if __name__ == "__main__": main()
