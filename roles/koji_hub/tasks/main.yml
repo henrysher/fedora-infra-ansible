@@ -42,13 +42,43 @@
   tags:
   - config
 
-- name: init koji ca cert file
+- name: install kojiweb_cert_key.pem
+  copy: src={{ puppet_private }}/kojiweb_cert_key.pem dest=/etc/pki/tls/private/kojiweb_cert_key.pem owner=apache mode=600
+  tags:
+  - config
+
+- name: install koji_key.pem
+  copy: src={{ puppet_private }}/koji_key.pem dest=/etc/pki/tls/private/koji_key.pem owner=apache mode=600
+  tags:
+  - config
+
+- name: install koji_cert.pem
+  copy: src={{ puppet_private }}/koji_cert.pem dest=/etc/pki/tls/certs/koji_cert.pem owner=apache mode=600
+  tags:
+  - config
+
+- name: Install koji ssl certs
   copy: src={{ puppet_private }}/koji/koji.stg_cert.pem dest=/etc/pki/tls/certs/koji.stg_cert.pem
   tags:
   - config
 
 - name: init kojiweb ca cert file
   copy: src={{ puppet_private }}/koji/kojiweb_cert_key.pem dest=/etc/pki/tls/private/kojiweb_cert_key.pem
+  tags:
+  - config
+
+- name: instaall fedora-ca.cert in various places
+  copy: src={{ puppet_private }}/fedora-ca.cert dest={{ item }} owner=apache
+  with_items: 
+  - /etc/kojira/extras_cacert.pem
+  - /etc/pki/tls/certs/extras_cacert.pem
+  - /etc/pki/tls/certs/extras_upload_cacert.pem
+  - /etc/pki/tls/certs/upload_cacert.pem
+  tags:
+  - config
+
+- name: install kojira_cert_key
+  copy: src={{ puppet_private }}/kojira_cert_key.pem dest=/etc/kojira/kojira_cert_key.pem owner=apache mode=600
   tags:
   - config
 
