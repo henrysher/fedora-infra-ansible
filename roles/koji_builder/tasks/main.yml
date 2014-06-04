@@ -68,13 +68,19 @@
 
 - name: /etc/kojid/kojid.conf
   copy: src=kojid.conf dest=/etc/kojid/kojid.conf
-  when: not inventory_hostname.startswith(('arm01','arm03'))
+  when: not inventory_hostname.startswith(('arm01','arm03','koji01.stg','buildvm-01.stg'))
   notify:
   - restart kojid
 
 - name: arm /etc/kojid/kojid.conf
   copy: src=arm-kojid.conf dest=/etc/kojid/kojid.conf
   when: inventory_hostname.startswith(('arm01','arm03'))
+  notify:
+  - restart kojid
+
+- name: staging /etc/kojid/kojid.conf
+  copy: src=stg-kojid.conf dest=/etc/kojid/kojid.conf
+  when: inventory_hostname.startswith(('koji01.stg','buildvm-01.stg'))
   notify:
   - restart kojid
 
