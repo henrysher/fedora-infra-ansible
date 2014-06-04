@@ -38,10 +38,21 @@ DATABASES = {
 # Hosts/domain names that are valid for this site; required if DEBUG is False
 # See https://docs.djangoproject.com/en/1.5/ref/settings/#allowed-hosts
 ALLOWED_HOSTS = [".fedoraproject.org", "discuss.arquillian.org", "127.0.0.1"] # 127.0.0.1: HAProxy ping
+# And for BrowserID too, see
+# http://django-browserid.rtfd.org/page/user/settings.html#django.conf.settings.BROWSERID_AUDIENCES
+BROWSERID_AUDIENCES = [
+    "https://lists.fedoraproject.org",
+    "https://lists.stg.fedoraproject.org",
+    "https://lists-dev.cloud.fedoraproject.org",
+]
 
 # We're behind a proxy, use the X-Forwarded-Host header
 # See https://docs.djangoproject.com/en/1.5/ref/settings/#use-x-forwarded-host
 USE_X_FORWARDED_HOST = True
+
+# In the Fedora infra, requests are systematically redirected to HTTPS, so put
+# something always true here:
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_SERVER', 'lists.fedoraproject.org')
 
 # Local time zone for this installation. Choices can be found here:
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
@@ -165,6 +176,7 @@ AUTHENTICATION_BACKENDS = (
     'social_auth.backends.yahoo.YahooBackend',
     #'social_auth.backends.OpenIDBackend',
     'django.contrib.auth.backends.ModelBackend',
+    'django_browserid.auth.BrowserIDBackend',
 )
 
 INSTALLED_APPS = (
@@ -310,6 +322,10 @@ LOGGING = {
         'simple': {
             'format': '%(levelname)s %(message)s'
         },
+    },
+    'root': {
+        'handlers': ['file'],
+        'level': 'INFO',
     },
 }
 
