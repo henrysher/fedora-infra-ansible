@@ -36,6 +36,15 @@
     - /pub/fedora
     - /pub/epel
 
+- name: make a bunch of dirs
+  file: state=directory path={{ item }} owner=apache group=apache
+  with_items:
+    - /mnt/koji/packages
+    - /mnt/koji/repos
+    - /mnt/koji/work
+    - /mnt/koji/scratch
+  when: env == 'staging'
+
 - name: add pkgs
   yum: state=installed pkg={{ item }}
   with_items:
