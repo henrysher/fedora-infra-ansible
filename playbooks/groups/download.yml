@@ -69,27 +69,9 @@
   - include: "{{ tasks }}/apache.yml"
   - include: "{{ tasks }}/openvpn_client.yml" 
     when: datacenter != 'phx2'
-
-  handlers:
-  - include: "{{ handlers }}/restart_services.yml"
-
-- name: secondary download virt special jobs
-  hosts: download-ibiblio
-  user: root
-
-  gather_facts: True
-  accelerate: "{{ accelerated }}"
-
-  vars_files:
-   - /srv/web/infra/ansible/vars/global.yml
-   - "{{ private }}/vars.yml"
-   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
-
-  - include: "{{ handlers }}/restart_services.yml"
-
-  tasks:
   - name: put in hourly cron job for syncing
     action: copy src="{{ files }}/download/cron-hourly-sync.sh"  dest=/etc/cron.hourly/sync-mirror.sh owner=root group=root mode=755
+    when: datacenter == 'ibiblio'
 
   handlers:
   - include: "{{ handlers }}/restart_services.yml"
