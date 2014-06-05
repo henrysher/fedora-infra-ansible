@@ -1,0 +1,25 @@
+- name: ensure packages required for resultsdb are installed
+  action: yum name={{ item }} state=latest
+  with_items:
+    - resultsdb
+    - mod_wsgi
+
+- name: ensure database is created
+  delegate_to: "{{ resultsdb_db_host }}"
+  sudo_user: postgres
+  action: postgresql_db db={{ resultsdb_db_name }}
+
+- name: ensure resultsdb user has access to database
+  delegate_to: "{{ resultsdb_db_host }}"
+  sudo_user: postgres
+  action: postgresql_user db={{ resultsdb_db_name }} user={{ resultsdb_db_user }} password={{ resultsdb_db_password }} role_attr_flags=NOSUPERUSER
+
+- name: generate resultsdb config
+  template: src=settings.py.j2 dest=/etc/resultsdb/settings.py owner=root group=root mode=0644
+  notify:
+    - restart httpd
+
+- name: generate resultsdb apache config
+  template: src=resultsdb.conf.j2 dest=/etc/httpd/conf.d/resultsdb.conf owner=root group=root mode=0644
+  notify:
+    - restart httpd

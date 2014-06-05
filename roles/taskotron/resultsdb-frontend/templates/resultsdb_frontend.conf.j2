@@ -1,0 +1,31 @@
+WSGIDaemonProcess resultsdb_frontend user=apache group=apache threads=5
+WSGIScriptAlias {{ resultsdb_fe_endpoint }} /usr/share/resultsdb_frontend/resultsdb_frontend.wsgi
+WSGISocketPrefix run/wsgi
+
+# this isn't the best way to force SSL but it works for now
+#RewriteEngine On
+#RewriteCond %{HTTPS} !=on
+#RewriteRule ^/resultsdb_frontend/admin/?(.*) https://%{SERVER_NAME}/$1 [R,L]
+
+<Directory /usr/share/resultsdb_frontend>
+    WSGIProcessGroup resultsdb_frontend
+    WSGIApplicationGroup %{GLOBAL}
+    WSGIScriptReloading On
+    <IfModule mod_authz_core.c>
+        # Apache 2.4
+        Require all granted
+    </IfModule>
+    <IfModule !mod_auth_core.c>
+        Order allow,deny
+        Allow from all
+    </IfModule>
+
+</Directory>
+
+#Alias /resultsdb_frontend/static /var/www/resultsdb_frontend/resultsdb_frontend/static
+
+#<Directory /var/www/resultsdb_frontend/resultsdb_frontend/static>
+#Order allow,deny
+#Allow from all
+#</Directory>
+
