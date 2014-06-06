@@ -1,0 +1,24 @@
+#
+# I am guessing that this box will be like other hw boxes.
+#
+
+- name: make koji builder(s) on raw hw
+  hosts: buildhw;buildppc;buildarm:bkernel
+  user: root
+  gather_facts: True
+
+  vars_files: 
+   - /srv/web/infra/ansible/vars/global.yml
+   - "{{ private }}/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  roles:
+  - base
+
+
+  tasks:
+  - include: "{{ tasks }}/yumrepos.yml"
+  - include: "{{ tasks }}/hosts.yml"
+
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"
