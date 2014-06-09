@@ -1,0 +1,24 @@
+
+- name: install fedmsg-irc
+  yum: pkg=fedmsg-irc state=installed
+  tags:
+  - packages
+  - fedmsg/irc
+
+- name: enable on boot and start fedmsg-irc
+  service: name=fedmsg-irc state=started enabled=true
+  tags:
+  - services
+  - fedmsg/irc
+
+- name: setup fedmsg-irc config file
+  template: src=ircbot.py.j2 dest=/etc/fedmsg.d/ircbot.py
+  tags:
+  - config
+  - fedmsg/irc
+
+- name: setup fas credentials config file
+  template: src=fas-credentials.py.j2 dest=/etc/fedmsg.d/fas-credentials.py
+  tags:
+  - config
+  - fedmsg/irc
