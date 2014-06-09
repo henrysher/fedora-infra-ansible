@@ -59,7 +59,12 @@
     - pyliblzma
 
   - name: make sure newest rpm
-    action: yum name=rpm state=latest
+    action: yum name={{ item }} state=latest
+    with_items:
+    - rpm
+    - glib2
+
+  - yum: name=mock  enablerepo=epel-testing state=latest
 
   - name: mockbuilder user   
     action: user name=mockbuilder groups=mock

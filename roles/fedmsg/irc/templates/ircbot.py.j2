@@ -1,0 +1,145 @@
+config = dict(
+    irc=[
+        dict(
+            network='chat.freenode.net',
+            port=6667,
+            make_pretty=True,
+            make_terse=True,
+
+            {% if env == 'staging' %}
+            nickname='fedmsg-stg',
+            {% else %}
+            nickname='fedmsg-bot',
+            {% endif %}
+            channel='fedora-fedmsg',
+
+            # Ignore some of the koji spamminess
+            filters=dict(
+                topic=[
+                    'buildsys.repo.init',
+                    'buildsys.repo.done',
+                    'buildsys.untag',
+                    'buildsys.tag',
+                ],
+                body=[],
+            ),
+        ),
+
+        # Just for the Ask Fedora crew in #fedora-ask
+        dict(
+            network='chat.freenode.net',
+            port=6667,
+            make_pretty=True,
+            make_terse=True,
+
+            {% if env == 'staging' %}
+            nickname='fedmsg-ask-stg',
+            {% else %}
+            nickname='fedmsg-ask',
+            {% endif %}
+            channel='fedora-ask',
+            # Only show AskFedora messages
+            filters=dict(
+                topic=['^((?!askbot).)*$'],
+            ),
+        ),
+
+        # Show only pkgdb retirement msgs and compose msgs to the releng crew.
+        dict(
+            network='chat.freenode.net',
+            port=6667,
+            make_pretty=True,
+            make_terse=True,
+
+            {% if env == 'staging' %}
+            nickname='fedmsg-releng-s',
+            {% else %}
+            nickname='fedmsg-releng',
+            {% endif %}
+            channel='fedora-releng',
+            filters=dict(
+                topic=[
+                    '^((?!(pkgdb\.package\.update\.status|compose|bodhi.updates.)).)*$',
+                ],
+                body=[
+                    "^((?!(u'status': u'Retired'|u'prev_status': u'Retired'|compose|bodhi\.updates\.|\/srv\/git\/releng)).)*$",
+                ],
+            ),
+        ),
+
+        # The proyectofedora crew wants trac messages.
+        dict(
+            network='chat.freenode.net',
+            port=6667,
+            make_pretty=True,
+            make_terse=True,
+
+            {% if env == 'staging' %}
+            nickname='fedmsg-pfi-stg',
+            {% else %}
+            nickname='fedmsg-pfi',
+            {% endif %}
+            channel='#proyecto-fedora',
+            # If the word proyecto appears in any message, forward it.
+            filters=dict(
+                body=['^((?!proyecto).)*$'],
+            ),
+        ),
+
+        # Similarly for #fedora-latam.
+        dict(
+            network='chat.freenode.net',
+            port=6667,
+            make_pretty=True,
+            make_terse=True,
+
+            {% if env == 'staging' %}
+            nickname='fedmsg-latam-stg',
+            {% else %}
+            nickname='fedmsg-latam',
+            {% endif %}
+            channel='#fedora-latam',
+            # If the word fedora-latam appears in any message, forward it.
+            filters=dict(
+                body=['^((?!fedora-latam).)*$'],
+            ),
+        ),
+    ],
+
+    ### Possible colors are ###
+    # "white",
+    # "black",
+    # "blue",
+    # "green",
+    # "red",
+    # "brown",
+    # "purple",
+    # "orange",
+    # "yellow",
+    # "light green",
+    # "teal",
+    # "light cyan",
+    # "light blue",
+    # "pink",
+    # "grey",
+    # "light grey",
+    irc_color_lookup = {
+        "fas": "light blue",
+        "bodhi": "green",
+        "git": "red",
+        "fedoratagger": "brown",
+        "wiki": "purple",
+        "logger": "orange",
+        "pkgdb": "teal",
+        "buildsys": "yellow",
+        "fedoraplanet": "light green",
+        "trac": "pink",
+        "askbot": "light cyan",
+        "fedbadges": "brown",
+        "fedocal": "purple",
+        "copr": "red",
+    },
+
+    # This may be 'notice' or 'msg'
+    irc_method='msg',
+)
