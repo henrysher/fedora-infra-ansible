@@ -11,6 +11,25 @@
   file: path={{ item }} state=directory owner=daemon
   with_items:
   - /var/lib/zodbot
+  - /var/lib/zodbot/conf
+  - /var/lib/zodbot/data
+  - /var/lib/zodbot/logs
+  - /srv/web
+  - /srv/web/meetbot
+  - /srv/web/meetbot/teams
+  when: env != "staging"
+
+- name: creating usrabot log dir
+  file: path={{ item }} state=directory owner=daemon
+  with_items:
+  - /var/lib/ursabot
+  - /var/lib/ursabot/conf
+  - /var/lib/ursabot/data
+  - /var/lib/ursabot/logs
+  - /srv/web
+  - /srv/web/meetbot
+  - /srv/web/meetbot/teams
+  when: env == "staging"
 
 - name: setup meetings_by_team script
   copy: src=meetings_by_team.sh dest=/usr/local/bin/meetings_by_team.sh mode=755
@@ -23,3 +42,6 @@
 
 - name: hotfix - supybot plugin
   copy: src=plugin.py dest=/usr/lib/python2.6/site-packages/supybot/plugins/Fedora/plugin.py mode=755 owner=root
+
+- name: setup meetbot.conf apache config
+  copy: src=meetbot.conf dest=/etc/httpd/conf.d/meetbot.conf mode=644
