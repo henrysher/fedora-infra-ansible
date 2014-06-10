@@ -1,22 +1,9 @@
 
 {% if env == 'staging' %}
 suffix = "stg.phx2.fedoraproject.org"
-app_hosts = [
-    "app01.stg.phx2.fedoraproject.org",
-    "app02.stg.phx2.fedoraproject.org",
-]
 topic_prefix = "org.fedoraproject.stg."
 {% else %}
 suffix = "phx2.fedoraproject.org"
-app_hosts = [
-    "app01.phx2.fedoraproject.org",
-    "app02.phx2.fedoraproject.org",
-    "app03.phx2.fedoraproject.org",
-    "app04.phx2.fedoraproject.org",
-    "app05.fedoraproject.org",
-    "app07.phx2.fedoraproject.org",
-    "app08.fedoraproject.org",
-]
 topic_prefix = "org.fedoraproject.prod."
 {% endif %}
 
@@ -37,13 +24,6 @@ config = dict(
     crl_cache_expiry=86400,  # Daily
 
     certnames=dict(
-    [
-        ("shell.app0%i" % i, "shell-%s" % app_hosts[i-1])
-        for i in range(1, len(app_hosts) + 1)
-    ] + [
-        ("bodhi.app0%i" % i, "bodhi-%s" % app_hosts[i-1])
-        for i in range(1, len(app_hosts) + 1)
-    ] + [
         ("shell.pkgdb0%i" % i, "shell-pkgdb0%i.%s" % (i, suffix))
         for i in range(1, 3)
     ] + [
