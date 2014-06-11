@@ -2,8 +2,8 @@
 # I am guessing that this box will be like other hw boxes.
 #
 
-- name: make koji builder(s) on raw hw
-  hosts: buildhw;buildppc;buildarm:bkernel
+- name: Build an atomic server. 
+  hosts: atomic01.qa.fedoraproject.org
   user: root
   gather_facts: True
 
@@ -14,11 +14,14 @@
 
   roles:
   - base
-
+  - fas_client
 
   tasks:
-  - include: "{{ tasks }}/yumrepos.yml"
   - include: "{{ tasks }}/hosts.yml"
+  - include: "{{ tasks }}/yumrepos.yml"
+  - include: "{{ tasks }}/2fa_client.yml"
+  - include: "{{ tasks }}/motd.yml"
+  - include: "{{ tasks }}/sudo.yml"
 
   handlers:
   - include: "{{ handlers }}/restart_services.yml"
