@@ -69,8 +69,11 @@
   - include: "{{ tasks }}/apache.yml"
   - include: "{{ tasks }}/openvpn_client.yml" 
     when: datacenter != 'phx2'
-  - name: put in hourly cron job for syncing
-    action: copy src="{{ files }}/download/cron-daily-sync.sh"  dest=/etc/cron.daily/sync-mirror.sh owner=root group=root mode=755
+  - name: put in script for syncing
+    action: copy src="{{ files }}/download/sync-up-downloads.sh"  dest=/usr/local/bin/sync-up-downloads owner=root group=root mode=755
+    when: datacenter == 'ibiblio'
+  - name: put in cron job for syncing
+    action: copy src="{{ files }}/download/download-sync.cron"  dest=/etc/cron.d/download-sync owner=root group=root mode=644
     when: datacenter == 'ibiblio'
 
   handlers:
