@@ -31,7 +31,11 @@ config = {
     {% endif %}
     "fmn.rules.cache": {
         "backend": "dogpile.cache.dbm",
-        "expiration_time": 300,
+        # 28800 is 8 hours.. a really long time.
+        # As of this commit:  http://da.gd/oZBe that should be okay, because our
+        # backend should intelligently invalidate its pkgdb2 cache if it
+        # receives a pkgdb2 message.
+        "expiration_time": 28800,
         "arguments": {
             "filename": "/var/tmp/fmn-cache.dbm",
         },
