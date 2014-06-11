@@ -8,14 +8,16 @@
 RSYNC='/usr/bin/rsync'
 RS_OPT="-avSHP  --numeric-ids"
 RS_DEADLY="--delete --delete-excluded --delete-delay --delay-updates"
-ALT_EXCLUDES="--exclude stage/deltaisos/archive --exclude stage/20-Alpha* --exclude stage/20-Beta*"
+ALT_EXCLUDES="--exclude deltaisos/archive"
 EPL_EXCLUDES=""
 FED_EXCLUDES=""
 
 SERVER=dl.fedoraproject.org
 
-# http://dl.fedoraproject.org/pub/alt/
-${RSYNC} ${RS_OPT} ${RS_DEADLY} ${ALT_EXCLUDES} ${SERVER}::fedora-alt/  /srv/pub/alt/ | tail -n2 | logger -p local0.notice -t rsync_updates_alt
+# http://dl.fedoraproject.org/pub/alt/stage/
+${RSYNC} ${RS_OPT} ${RS_DEADLY} ${ALT_EXCLUDES} ${SERVER}::fedora-alt/stage/  /srv/pub/alt/stage/ | tail -n2 | logger -p local0.notice -t rsync_updates_alt_stg
+# http://dl.fedoraproject.org/pub/alt/stage/
+${RSYNC} ${RS_OPT} ${RS_DEADLY} ${ALT_EXCLUDES} ${SERVER}::fedora-alt/bfo/  /srv/pub/alt/bfo/ | tail -n2 | logger -p local0.notice -t rsync_updates_alt_bfo
 # http://dl.fedoraproject.org/pub/epel/
 ${RSYNC} ${RS_OPT} ${RS_DEADLY} ${EPL_EXCLUDES} ${SERVER}::fedora-epel/ /srv/pub/epel/ | tail -n2 | logger -p local0.notice -t rsync_updates_epel
 # http://dl.fedoraproject.org/pub/fedora/
