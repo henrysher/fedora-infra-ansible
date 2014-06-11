@@ -16,7 +16,7 @@ SERVER=dl.fedoraproject.org
 
 # http://dl.fedoraproject.org/pub/alt/stage/
 ${RSYNC} ${RS_OPT} ${RS_DEADLY} ${ALT_EXCLUDES} ${SERVER}::fedora-alt/stage/  /srv/pub/alt/stage/ | tail -n2 | logger -p local0.notice -t rsync_updates_alt_stg
-# http://dl.fedoraproject.org/pub/alt/stage/
+# http://dl.fedoraproject.org/pub/alt/bfo/
 ${RSYNC} ${RS_OPT} ${RS_DEADLY} ${ALT_EXCLUDES} ${SERVER}::fedora-alt/bfo/  /srv/pub/alt/bfo/ | tail -n2 | logger -p local0.notice -t rsync_updates_alt_bfo
 # http://dl.fedoraproject.org/pub/epel/
 ${RSYNC} ${RS_OPT} ${RS_DEADLY} ${EPL_EXCLUDES} ${SERVER}::fedora-epel/ /srv/pub/epel/ | tail -n2 | logger -p local0.notice -t rsync_updates_epel
