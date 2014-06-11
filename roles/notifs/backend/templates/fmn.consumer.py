@@ -45,6 +45,8 @@ config = {
     },
 
     ## Backend stuff ##
+    "fmn.backends": ["email", "irc"],  # android is disabled.
+
     # Email
     "fmn.email.mailserver": "bastion01.phx2.fedoraproject.org:25",
     "fmn.email.from_address": "notifications@" + domain,
@@ -54,6 +56,20 @@ config = {
     "fmn.irc.nickname": ircnick,
     "fmn.irc.port": 6667,
     "fmn.irc.timeout": 120,
+
+    # Colors:
+    "irc_color_lookup": {
+        "fas": "light blue",
+        "bodhi": "green",
+        "git": "red",
+        "tagger": "brown",
+        "wiki": "purple",
+        "logger": "orange",
+        "pkgdb": "teal",
+        "buildsys": "yellow",
+        "planet": "light green",
+        "fmn": "purple",
+    },
 
     # GCM - Android notifs
     "fmn.gcm.post_url": "{{ notifs_gcm_post_url }}",
