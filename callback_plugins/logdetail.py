@@ -92,7 +92,7 @@ class LogMech(object):
         res['task_args'] = task.module_args
         if self.playbook_id == 'ansible-cmd':
             res['task_userid'] = getlogin()
-        for k in ("delegate_to", "environment", "first_available_file",
+        for k in ("delegate_to", "environment", "with_first_found",
                   "local_action", "notified_by", "notify",
                   "register", "sudo", "sudo_user", "tags",
                   "transport", "when"):

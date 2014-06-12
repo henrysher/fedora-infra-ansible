@@ -14,7 +14,7 @@
 
 - name: sshd_config 
   copy: src={{ item }} dest=/etc/ssh/sshd_config mode=600
-  first_available_file:
+  with_first_found:
     - "{{ sshd_config }}"
     - ssh/sshd_config.{{ ansible_fqdn }}
     - ssh/sshd_config.{{ host_group }}
@@ -87,7 +87,7 @@
 
 - name: iptables
   template: src={{ item }} dest=/etc/sysconfig/iptables mode=600 backup=yes
-  first_available_file:
+  with_first_found:
     - "{{  iptables }}"
     - iptables/iptables.{{ ansible_fqdn }}
     - iptables/iptables.{{ host_group }}
@@ -103,7 +103,7 @@
 # XXX fixme # a datacenter 'fact' from setup
 - name: /etc/resolv.conf
   copy: src={{ item }} dest=/etc/resolv.conf
-  first_available_file:
+  with_first_found:
   - "{{ resolvconf }}"
   - resolv.conf/{{ ansible_fqdn }}
   - resolv.conf/{{ host_group }}
@@ -116,7 +116,7 @@
 
 - name: rsyslog.conf
   copy: src={{ item }} dest=/etc/rsyslog.conf mode=644
-  first_available_file:
+  with_first_found:
     - rsyslog/rsyslog.conf.{{ dist_tag }}
     - rsyslog/rsyslog.conf.default
 
@@ -156,7 +156,7 @@
    
 - name: /etc/postfix/main.cf
   copy: src={{ item }} dest=/etc/postfix/main.cf
-  first_available_file:
+  with_first_found:
     - "{{ postfix_maincf }}"
     - "postfix/main.cf/main.cf.{{ ansible_fqdn }}"
     - "postfix/main.cf/main.cf.{{ host_group }}"
