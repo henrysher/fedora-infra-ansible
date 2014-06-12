@@ -5,4 +5,6 @@ config = {
     "datanommer.sqlalchemy.url": "postgresql://{{datanommerDBUser}}:{{datanommerDBPassword}}@db-datanommer/datanommer",
 
     "fmn.backends": ["irc", "email"],  # But "android" is disabled.
+
+    "fmn.web.default_login", "fedora_login",
 }
