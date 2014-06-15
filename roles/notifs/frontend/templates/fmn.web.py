@@ -6,5 +6,5 @@ config = {
 
     "fmn.backends": ["irc", "email"],  # But "android" is disabled.
 
-    "fmn.web.default_login", "fedora_login",
+    "fmn.web.default_login": "fedora_login",
 }
