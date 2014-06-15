@@ -9,7 +9,11 @@ class Auth_FAS extends AuthPlugin {
         $username = strtolower( $username);
         $ch = curl_init();
 
+{% if env == 'staging' %}
+        curl_setopt($ch, CURLOPT_URL, 'https://admin.stg.fedoraproject.org/accounts/json/person_by_username?tg_format=json');
+{% else %}
         curl_setopt($ch, CURLOPT_URL, 'https://admin.fedoraproject.org/accounts/json/person_by_username?tg_format=json');
+{% endif %}
         curl_setopt($ch, CURLOPT_POST, 1);
         curl_setopt($ch, CURLOPT_USERAGENT, "Auth_FAS 0.9");
         curl_setopt($ch, CURLOPT_POSTFIELDS, "username=".urlencode($username)."&user_name=".urlencode($username)."&password=".urlencode($password)."&login=Login");
