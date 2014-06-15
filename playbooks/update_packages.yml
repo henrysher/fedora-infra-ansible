@@ -10,14 +10,11 @@
   hosts: "{{ target }}"
   user: root
 
-  vars:
-    testing: False
-
   tasks:
 
-  - name: clean all metadata {% if testing %}(with infrastructure-testing on){% endif %}
-    command: yum clean all {% if testing %} --enablerepo=infrastructure-testing {% endif %}
+  - name: clean all metadata {% if env == 'staging' %}(with infrastructure-testing on){% endif %}
+    command: yum clean all {% if env == 'staging' %} --enablerepo=infrastructure-testing {% endif %}
     always_run: yes
 
-  - name: yum update {{ package }} {% if testing %}(with infrastructure-testing on){% endif %}
-    yum: name={{ package }} state=latest {% if testing %}enablerepo=infrastructure-testing{% endif %}
+  - name: yum update {{ package }} {% if env == 'staging' %}(with infrastructure-testing on){% endif %}
+    yum: name={{ package }} state=latest {% if env == 'staging' %}enablerepo=infrastructure-testing{% endif %}
