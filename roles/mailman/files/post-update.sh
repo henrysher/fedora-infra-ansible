@@ -25,7 +25,7 @@ $BASEDIR/bin/pg-give-rights.py
 restorecon -r "$BASEDIR"
 
 # Run unit tests
-django-admin test --pythonpath $CONFDIR --settings settings_test -P hyperkitty
+django-admin test --pythonpath $CONFDIR --settings settings_test hyperkitty
 nose2 kittystore
 
 # Reload Apache to flush the python cache
