@@ -1,0 +1,69 @@
+---
+# Configuration for the tahrir webapp
+
+- name: install needed packages
+  yum: pkg={{ item }} state=installed
+  with_items:
+  - github2fedmsg
+  - python-psycopg2
+  - python-memcached
+  - python-sqlalchemy0.8
+  - libsemanage-python
+  tags:
+  - packages
+
+- name: copy github2fedmsg app configuration
+  template: >
+    src={{ item }} dest="/etc/github2fedmsg/{{ item }}"
+    owner=github2fedmsg group=github2fedmsg mode=0600
+  with_items:
+  - github2fedmsg.ini
+  tags:
+  - config
+  notify:
+  - restart apache
+
+ - name: copy github2fedmsg secret oauth creds
+   template: >
+     src=githubsecrets.py
+     dest=/usr/lib/python2.6/site-packages/github2fedmsg/githubsecrets.py
+     mode=0640 owner=apache group=apache
+   tags:
+   - config
+   notify:
+   - restart apache
+
+- name: copy github2fedmsg wsgi script
+  copy: >
+    src={{ item }} dest="/usr/share/github2fedmsg/{{ item }}"
+    owner=apache group=apache mode=0644
+  with_items:
+  - github2fedmsg.wsgi
+  tags:
+  - config
+  notify:
+  - restart apache
+
+- name: copy github2fedmsg httpd config
+  copy: >
+    src={{ item }} dest="/etc/httpd/conf.d/{{ item }}"
+    owner=apache group=apache mode=0644
+  with_items:
+  - github2fedmsg.conf
+  tags:
+  - config
+  notify:
+  - restart apache
+
+- name: hotfix - allow velruse to do stateless openid
+  copy: >
+    src=openid.py
+    dest=/usr/lib/python2.6/site-packages/velruse/providers/openid.py
+    owner=root group=root mode=0644
+  tags:
+  - hotfix
+  notify:
+  - restart apache
+
+- name: ensure selinux lets httpd talk to postgres
+  seboolean: name=httpd_can_network_connect_db persistent=yes state=yes
