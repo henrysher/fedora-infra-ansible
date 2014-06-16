@@ -1,0 +1,73 @@
+# create a new github2fedmsg server
+# NOTE: should be used with --limit most of the time
+# NOTE: make sure there is room/space for this server on the vmhost
+# NOTE: most of these vars_path come from group_vars/github2fedmsg* or from hostvars
+
+- name: make github2fedmsg server
+  hosts: github2fedmsg-stg  # github2fedmsg
+  user: root
+  gather_facts: False
+
+  vars_files: 
+   - /srv/web/infra/ansible/vars/global.yml
+   - "{{ private }}/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  tasks:
+  - include: "{{ tasks }}/virt_instance_create.yml"
+  - include: "{{ tasks }}/accelerate_prep.yml"
+
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"
+
+- name: make the box be real
+  hosts: github2fedmsg-stg  # github2fedmsg
+  user: root
+  gather_facts: True
+  accelerate: "{{ accelerated }}"
+
+  vars_files: 
+   - /srv/web/infra/ansible/vars/global.yml
+   - "{{ private }}/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  roles:
+  - base
+  - rkhunter
+  - denyhosts
+  - nagios_client
+  - fas_client
+  - collectd/base
+  - rsyncd
+  - sudo
+
+  tasks:
+  - include: "{{ tasks }}/hosts.yml"
+  - include: "{{ tasks }}/yumrepos.yml"
+  - include: "{{ tasks }}/2fa_client.yml"
+  - include: "{{ tasks }}/motd.yml"
+  - include: "{{ tasks }}/openvpn_client.yml"
+    when: env != "staging"
+  - include: "{{ tasks }}/apache.yml"
+  - include: "{{ tasks }}/mod_wsgi.yml"
+
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"
+
+- name: deploy service-specific config
+  hosts: github2fedmsg-stg  # github2fedmsg
+  user: root
+  gather_facts: True
+  accelerate: "{{ accelerated }}"
+
+  vars_files: 
+   - /srv/web/infra/ansible/vars/global.yml
+   - "{{ private }}/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"
+
+  roles:
+  #- github2fedmsg  # TODO, we still have to write this role.
+  - fedmsg/base
