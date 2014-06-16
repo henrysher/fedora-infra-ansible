@@ -1,0 +1,20 @@
+{% if env == 'staging' %}
+suffix  = 'stg.phx2.fedoraproject.org'
+{% else %}
+suffix = 'phx2.fedoraproject.org'
+{% endif %}
+
+config = dict(
+    endpoints={
+        "frontend.kerneltest01": [
+            "tcp://kerneltest01.%s:30%02i" % (suffix, i)
+            for i in range(16)
+        ],
+{% if env != 'staging' %}
+        "frontend.kerneltest02": [
+            "tcp://kerneltest02.%s:30%02i" % (suffix, i)
+            for i in range(16)
+        ],
+{% endif %}
+    },
+)
