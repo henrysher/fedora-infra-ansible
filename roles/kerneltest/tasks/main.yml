@@ -1,0 +1,48 @@
+---
+# Configuration for the kerneltest webapp
+
+- name: clean yum metadata
+  command: yum clean all
+  tags:
+  - packages
+
+- name: install needed packages
+  yum: pkg={{ item }} state=installed
+  with_items:
+  - kerneltest
+  - python-psycopg2
+  - python-openid-cla
+  - python-openid-teams
+  - python-memcached
+  - libsemanage-python
+  tags:
+  - packages
+
+- name: Create the folder to store the logs
+  action: file state=directory
+               path=/var/www/logs
+               owner=apache group=apache mode=0755
+
+- name: Install all the configuration file of kerneltest
+  template: src={{ item.file }}
+            dest={{ item.location }}/{{ item.file }}
+            owner=apache group=apache mode=0600
+  with_items:
+  - { file: kerneltest.cfg, location: /etc/kerneltest }
+  - { file: kerneltest.conf, location: /etc/httpd/conf.d }
+  - { file: kerneltest.wsgi, location: /var/www/ }
+  tags:
+  - config
+  notify:
+  - restart apache
+
+- name: create the database scheme
+   when: inventory_hostname.startswith(('kerneltest01.stg', 'kerneltest02'))
+  command: /usr/bin/python2 /usr/share/kerneltest/kerneltest_createdb.py
+  environment:
+      KERNELTEST_CONFIG: /etc/kerneltest/kerneltest.cfg
+
+- name: set sebooleans so fedocal can talk to the db
+  action: seboolean name=httpd_can_network_connect_db
+                    state=true
+                    persistent=true
