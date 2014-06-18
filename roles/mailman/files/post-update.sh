@@ -10,7 +10,7 @@ BASEDIR=`yamlget basedir $CONFFILE`
 CONFDIR=`yamlget confdir $CONFFILE`
 INDEXDIR=$BASEDIR/kittystore_search_index
 
-django-admin collectstatic --clear --noinput --pythonpath $CONFDIR --settings settings
+django-admin collectstatic --clear --noinput --verbosity 0 --pythonpath $CONFDIR --settings settings
 django-admin assets build --parse-templates --pythonpath $CONFDIR --settings settings
 django-admin syncdb --pythonpath $CONFDIR --settings settings_admin --noinput --migrate
 django-admin loaddata /etc/postorius/sites/default/initial-user.json --pythonpath $CONFDIR --settings settings_admin
@@ -19,7 +19,7 @@ chown mailman:mailman -R $INDEXDIR
 chmod g+w -R $INDEXDIR
 
 # Give database rights to the non-admin user
-$BASEDIR/bin/pg-give-rights.py
+$BASEDIR/bin/pg-give-rights.py > /dev/null
 
 # SELinux contexts
 restorecon -r "$BASEDIR"
