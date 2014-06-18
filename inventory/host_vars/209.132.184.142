@@ -10,12 +10,16 @@ root_auth_users:  bkabrda msuchy pingou msuchy sgallagh nb
 description: copr dispatcher and repo server
 volumes: ['-d /dev/vdc vol-00000028']
 
-# These are *usually* consumed by a task in roles/fedmsg/base/tasks/main.yml
-# but since copr-be is an openstack node, it doesn't have a well-defined
-# ansible_fqdn.  This makes the fedmsg/base role a little crazy.  Instead, we
-# copy the certs explicitly in the copr-be playbook.
-#fedmsg_certs:
-#- service: copr-backend
-#  owner: root
-#  group: copr
+tcp_ports: [ 22, 80, 443,
+# These 8 ports are used by fedmsg.  One for each wsgi thread.
+         3000, 3001, 3002, 3003, 3004, 3005, 3006, 3007]
+
+# These are consumed by a task in roles/fedmsg/base/main.yml
+fedmsg_certs:
+- service: shell
+  owner: root
+  group: root
+- service: copr
+  owner: root
+  group: copr
 
