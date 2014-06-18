@@ -187,30 +187,6 @@
     tags:
     - config
 
-  - name: fedmsg certs
-    copy: >
-      src="{{ private }}/files/fedmsg-certs/keys/copr-copr-be.cloud.fedoraproject.org.crt"
-      dest=/etc/pki/fedmsg/
-      mode=644
-      owner=root
-      group=copr
-
-  - name: fedmsg keys
-    copy: >
-      src="{{ private }}/files/fedmsg-certs/keys/copr-copr-be.cloud.fedoraproject.org.key"
-      dest=/etc/pki/fedmsg/
-      mode=0640
-      owner=root
-      group=copr
-
-  # open up ports (22, 80, 443)
-  - name: poke holes in the firewall
-    action: command lokkit {{ item }}
-    with_items:
-    - --service=ssh
-    - --service=https
-    - --service=http
-
   - name: copy delete-forgotten-instances.pl
     action: copy src="{{ files }}/copr/delete-forgotten-instances.pl" dest=/home/copr/delete-forgotten-instances.pl mode=755
 
