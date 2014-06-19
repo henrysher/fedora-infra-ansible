@@ -98,6 +98,9 @@
     with_file:
     - "{{ files }}/copr/provision/files/buildsys.pub"
 
+  - name: copy keystonerc
+    action: template src="{{ files }}/copr/keystonerc" dest=/root/ owner=root group=root mode=600
+
   - name: copy .boto file
     action: copy src="{{ files }}/copr/boto" dest=/home/copr/.boto owner=copr group=copr
  
@@ -157,7 +160,7 @@
 
 
   - name: put some files into the provision subdir
-    action: copy src="{{ files }}/copr/provision/{{ item }}" dest="/home/copr/provision/{{ item }}"
+    action: template src="{{ files }}/copr/provision/{{ item }}" dest="/home/copr/provision/{{ item }}"
     with_items:
     - inventory
     - builderpb.yml
