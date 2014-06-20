@@ -19,22 +19,29 @@ tcp_ports: []
 custom_rules: []
 
 # defaults for virt installs
-ks_url: http://infrastructure.fedoraproject.org/repo/rhel/ks/kvm-rhel-6
-ks_repo: http://infrastructure.fedoraproject.org/repo/rhel/RHEL6-x86_64/
+ks_url: http://infrastructure.fedoraproject.org/repo/rhel/ks/kvm-rhel-7
+ks_repo: http://infrastructure.fedoraproject.org/repo/rhel/RHEL7-x86_64/
 mem_size: 2048
 num_cpus: 2
 lvm_size: 20000
 
 # default virt install command is for a single nic-device
 # define in another group file for more nics (see buildvm)
-virt_install_command: /usr/sbin/virt-install -n {{ inventory_hostname }} -r {{ mem_size }} 
-                 --disk {{ volgroup }}/{{ inventory_hostname }}
-                 --vcpus={{ num_cpus }}  -l {{ ks_repo }} -x 
-                 "ksdevice=eth0 ks={{ ks_url }} ip={{ eth0_ip }} netmask={{ nm }} 
-                  gateway={{ gw }} dns={{ dns }} console=tty0 console=ttyS0
-                  hostname={{ inventory_hostname }}" 
-                 --network=bridge=br0 --autostart --noautoconsole
-
+#virt_install_command: /usr/sbin/virt-install -n {{ inventory_hostname }} -r {{ mem_size }} 
+#                 --disk {{ volgroup }}/{{ inventory_hostname }}
+#                 --vcpus={{ num_cpus }}  -l {{ ks_repo }} -x 
+#                 "ksdevice=eth0 ks={{ ks_url }} ip={{ eth0_ip }} netmask={{ nm }} 
+#                  gateway={{ gw }} dns={{ dns }} console=tty0 console=ttyS0
+#                  hostname={{ inventory_hostname }}" 
+#                 --network=bridge=br0 --autostart --noautoconsole
+virt_install_command: /usr/sbin/virt-install -n {{ inventory_hostname }} -r {{ mem_size }}
+                 --disk bus=virtio,path={{ volgroup }}/{{ inventory_hostname }}
+                 --vcpus={{ num_cpus }}  -l {{ ks_repo }} -x
+                 "ksdevice=eth0 ks={{ ks_url }} console=tty0 console=ttyS0
+                  hostname={{ inventory_hostname }} nameserver={{ dns }}
+                  ip={{ eth0_ip }}::{{ gw }}:{{ nm }}:{{ inventory_hostname }}:eth0:none"
+                 --network=bridge=br0,model=virtio
+                 --autostart --noautoconsole
 
 # By default, nodes get no fedmsg certs.  They need to declare them explicitly.
 fedmsg_certs: []
