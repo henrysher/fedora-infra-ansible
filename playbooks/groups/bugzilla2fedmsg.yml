@@ -1,0 +1,71 @@
+# create a new bugzilla2fedmsg server
+# NOTE: should be used with --limit most of the time
+# NOTE: make sure there is room/space for this server on the vmhost
+# NOTE: most of these vars_path come from group_vars/mirrorlist or from hostvars
+
+- name: make bugzilla2fedmsg server
+  hosts: bugzilla2fedmsg;bugzilla2fedmsg-stg
+  user: root
+  gather_facts: False
+
+  vars_files: 
+   - /srv/web/infra/ansible/vars/global.yml
+   - "{{ private }}/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  tasks:
+  - include: "{{ tasks }}/virt_instance_create.yml"
+  - include: "{{ tasks }}/accelerate_prep.yml"
+
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"
+
+- name: dole out the generic configuration
+  hosts: bugzilla2fedmsg;bugzilla2fedmsg-stg
+  user: root
+  gather_facts: True
+  accelerate: "{{ accelerated }}"
+
+  vars_files: 
+   - /srv/web/infra/ansible/vars/global.yml
+   - "{{ private }}/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  roles:
+  - base
+  - rkhunter
+  - denyhosts
+  - nagios_client
+  - fas_client
+  - sudo
+  #- collectd/base
+  #- fedmsg/base
+
+  tasks:
+  - include: "{{ tasks }}/hosts.yml"
+  - include: "{{ tasks }}/yumrepos.yml"
+  - include: "{{ tasks }}/2fa_client.yml"
+  - include: "{{ tasks }}/motd.yml"
+
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"
+
+#- name: dole out the service-specific config
+#  hosts: bugzilla2fedmsg;bugzilla2fedmsg-stg
+#  user: root
+#  gather_facts: True
+#  accelerate: "{{ accelerated }}"
+#
+#  roles:
+#  - fedmsg/hub
+#  - bugzilla2fedmsg
+#  - role: collectd/fedmsg-service
+#    process: fedmsg-hub
+#
+#  vars_files: 
+#   - /srv/web/infra/ansible/vars/global.yml
+#   - "{{ private }}/vars.yml"
+#   - "{{ vars_path }}/{{ ansible_distribution }}.yml"
+#
+#  handlers:
+#  - include: "{{ handlers }}/restart_services.yml"
