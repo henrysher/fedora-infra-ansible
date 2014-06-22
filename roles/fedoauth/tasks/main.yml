@@ -12,6 +12,8 @@
   - fedoauth
   - fedoauth-template-fedora
   - fedoauth-backend-fedora
+  - fedoauth-provider-openid
+  - fedoauth-provider-persona
   - python-psycopg2
   - libsemanage-python
   tags:
@@ -20,6 +22,15 @@
 - name: copy fedoauth configuration
   template: src=fedoauth.cfg
             dest=/etc/fedoauth/fedoauth.cfg
+            owner=fedoauth group=fedoauth mode=0600
+  tags:
+  - config
+  notify:
+  - restart apache
+
+- name: copy fedoauth logging configuration
+  template: src=fedoauth.log.cfg
+            dest=/etc/fedoauth/fedoauth.log.cfg
             owner=fedoauth group=fedoauth mode=0600
   tags:
   - config
@@ -43,6 +54,11 @@
 
 - name: set sebooleans so fedoauth can talk to the db
   action: seboolean name=httpd_can_network_connect_db
+                    state=true
+                    persistent=true
+
+- name: set sebooleans so fedoauth can send error logs
+  action: seboolean name=httpd_can_network_connect
                     state=true
                     persistent=true
 
