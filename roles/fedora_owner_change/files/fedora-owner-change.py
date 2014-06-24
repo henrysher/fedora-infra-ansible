@@ -36,7 +36,6 @@ from email.mime.text import MIMEText
 
 DATAGREPPER_URL = 'https://apps.fedoraproject.org/datagrepper/raw/'
 DELTA = 7 * 24 * 60 * 60  # 7 days
-TOPIC = 'org.fedoraproject.prod.pkgdb.owner.update'
 EMAIL_TO = 'devel@lists.fedoraproject.org'
 EMAIL_FROM = 'nobody@fedoraproject.org'
 SMTP_SERVER = 'localhost'
@@ -78,6 +77,7 @@ def retrieve_pkgdb_change():
                 'topic': [
                     'org.fedoraproject.prod.pkgdb.owner.update',
                     'org.fedoraproject.prod.pkgdb.package.retire',
+                    'org.fedoraproject.prod.pkgdb.package.update.status',
                 ],
                 'rows_per_page': 100,
                 'page': page,
@@ -143,8 +143,8 @@ def get_category(message):
     if 'owner' in message['package_listing']:
         poc_key = 'owner'
 
-    if 'retirement' in message \
-            and message['retirement'] == 'retired':
+    if 'status' in message and message['status'] == 'Retired'\
+            and 'prev_status' in message:
         output = 'retired'
     elif 'retirement' in message \
             and message['retirement'] == 'unretired':
