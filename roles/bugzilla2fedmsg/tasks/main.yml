@@ -1,0 +1,53 @@
+---
+# Setup a fedmsg-hub
+
+- name: install needed packages
+  yum: pkg={{ item }} state=installed
+  with_items:
+  - python-moksha-hub
+  - python-bugzilla2fedmsg
+  - python-twisted-words
+  tags:
+  - packages
+
+- name: Copy a custom moksha systemd service file
+  copy: >
+     src=moksha-hub.service
+     dest=/usr/lib/systemd/system/fedmsg-hub.service
+  notify:
+  - restart moksha-hub
+
+- name: Copy the configuration for bugzilla2fedmsg over
+  template: >
+    src=bugzilla2fedmsg.ini
+    dest=/etc/bugzilla2fedmsg.ini
+    owner=fedmsg
+    group=fedmsg
+    mode=0640 
+  notify:
+  - restart moksha-hub
+
+- name: Copy in the staging certificates
+  copy: >
+    src="{{ private }}/files/bugzilla2fedmsg/{{ item }}"
+    dest="/etc/pki/fedmsg/{{ item }}"
+  with_items:
+  - fedora.devel.engineering.redhat.com.crt
+  - fedora.devel.engineering.redhat.com.key
+  when: env == 'staging'
+  notify:
+  - restart moksha-hub
+
+- name: Copy in the production certificates
+  copy: >
+    src="{{ private }}/files/bugzilla2fedmsg/{{ item }}"
+    dest="/etc/pki/fedmsg/{{ item }}"
+  with_items:
+  - fuse-fabric-fedoraproject.org.crt 
+  - fuse-fabric-fedoraproject.org.key
+  when: env != 'staging'
+  notify:
+  - restart moksha-hub
+
+- name: moksha-hub service
+  service: name=moksha-hub state=started enabled=yes

@@ -48,22 +48,22 @@
   handlers:
   - include: "{{ handlers }}/restart_services.yml"
 
-#- name: dole out the service-specific config
-#  hosts: bugzilla2fedmsg;bugzilla2fedmsg-stg
-#  user: root
-#  gather_facts: True
-#  accelerate: "{{ accelerated }}"
-#
-#  roles:
-#  - fedmsg/hub
-#  - bugzilla2fedmsg
-#  - role: collectd/fedmsg-service
-#    process: fedmsg-hub
-#
-#  vars_files: 
-#   - /srv/web/infra/ansible/vars/global.yml
-#   - "{{ private }}/vars.yml"
-#   - "{{ vars_path }}/{{ ansible_distribution }}.yml"
-#
-#  handlers:
-#  - include: "{{ handlers }}/restart_services.yml"
+- name: dole out the service-specific config
+  hosts: bugzilla2fedmsg;bugzilla2fedmsg-stg
+  user: root
+  gather_facts: True
+  accelerate: "{{ accelerated }}"
+
+  roles:
+  - bugzilla2fedmsg
+  # This is going to be way different
+  #- role: collectd/fedmsg-service
+  #  process: fedmsg-hub
+
+  vars_files: 
+   - /srv/web/infra/ansible/vars/global.yml
+   - "{{ private }}/vars.yml"
+   - "{{ vars_path }}/{{ ansible_distribution }}.yml"
+
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"
