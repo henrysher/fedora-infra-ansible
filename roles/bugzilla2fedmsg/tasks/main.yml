@@ -38,19 +38,7 @@
   notify:
   - restart moksha-hub
 
-- name: Copy in the staging certificates
-  copy: >
-    src="{{ private }}/files/bugzilla2fedmsg/{{ item }}"
-    dest="/etc/pki/fedmsg/{{ item }}"
-    mode=0640 owner=fedmsg group=fedmsg
-  with_items:
-  - fedora.devel.engineering.redhat.com.crt
-  - fedora.devel.engineering.redhat.com.key
-  when: env == 'staging'
-  notify:
-  - restart moksha-hub
-
-- name: Copy in the production certificates
+- name: Copy in the broker certificates
   copy: >
     src="{{ private }}/files/bugzilla2fedmsg/{{ item }}"
     dest="/etc/pki/fedmsg/{{ item }}"
@@ -58,7 +46,6 @@
   with_items:
   - fuse-fabric-fedoraproject.org.crt 
   - fuse-fabric-fedoraproject.org.key
-  when: env != 'staging'
   notify:
   - restart moksha-hub
 
