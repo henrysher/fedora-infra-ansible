@@ -17,13 +17,16 @@
   notify:
   - restart moksha-hub
 
-- name: Make sure this directory exists.
+- name: Make sure a few directories exist.
   file:
-    dest=/etc/moksha/
+    dest="{{ item }}"
     owner=fedmsg
     group=fedmsg
-    mode=0755
+    mode=0640
     state=directory
+  with_items:
+  - /etc/moksha/
+  - /usr/share/fedmsg/
 
 - name: Copy the configuration for bugzilla2fedmsg over
   template: >
