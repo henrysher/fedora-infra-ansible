@@ -7,18 +7,6 @@
 - name: add the buildmaster user
   user: name=buildmaster
 
-- name: add ports for buildslaves
-  action: command lokkit -p '{{ item }}:tcp'
-  with_items:
-    - "{{ buildslave_port }}"
-  when: $is_rhel
-
-- name: add ports for buildslaves
-  when: is_fedora
-  command: firewall-cmd --permanent {{ item }}
-  with_items:
-    - --add-port={{ buildslave_port }}/tcp
-
 - name: allow httpd tcp connections with selinux
   seboolean: name=httpd_can_network_connect state=true persistent=yes
 
