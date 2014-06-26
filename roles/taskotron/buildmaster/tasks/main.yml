@@ -1,0 +1,40 @@
+- name: ensure packages required for buildmaster are installed
+  action: yum name={{ item }} state=latest
+  with_items:
+    - buildbot
+    - buildbot-master
+
+- name: add the buildmaster user
+  user: name=buildmaster
+
+- name: add ports for buildslaves
+  action: command lokkit -p '{{ item }}:tcp'
+  with_items:
+    - "{{ buildslave_port }}"
+  when: $is_rhel
+
+- name: add ports for buildslaves
+  when: is_fedora
+  command: firewall-cmd --permanent {{ item }}
+  with_items:
+    - --add-port={{ buildslave_port }}/tcp
+
+- name: allow httpd tcp connections with selinux
+  seboolean: name=httpd_can_network_connect state=true persistent=yes
+
+- name: copy httpd config
+  template: src=buildmaster.conf.j2 dest=/etc/httpd/conf.d/buildmaster.conf owner=root group=root
+  notify:
+    - restart httpd
+
+- name: ensure database is created
+  delegate_to: "{{ buildmaster_db_host }}"
+  sudo: true
+  sudo_user: postgres
+  action: postgresql_db db={{ buildmaster_db }}
+
+- name: ensure user has access to database
+  delegate_to: "{{ buildmaster_db_host }}"
+  sudo: true
+  sudo_user: postgres
+  action: postgresql_user db={{ buildmaster_db }} user={{ buildmaster_db_user }} password={{ buildmaster_db_pw }} role_attr_flags=NOSUPERUSER
