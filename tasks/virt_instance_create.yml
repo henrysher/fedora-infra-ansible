@@ -22,8 +22,8 @@
   # this just keeps checking the domstate until it stops running
   shell: while `/usr/bin/virsh domstate {{ inventory_hostname }} | grep -q running` ; do sleep 10; done
   delegate_to: "{{ vmhost }}"
-  async: 1200
-  poll: 10
+  async: 1500
+  poll: 15
   when: inventory_hostname not in result.list_vms
 
 - name: start the vm up
@@ -31,9 +31,11 @@
   delegate_to: "{{ vmhost }}"
   when: inventory_hostname not in result.list_vms
 
+- name: set it to autostart
+  action: virt command=autostart name={{ inventory_hostname }}
+  delegate_to: "{{ vmhost }}"
+  when: inventory_hostname not in result.list_vms
+
 - name: wait for ssh on the vm to start back
   local_action: wait_for delay=10 host={{ inventory_hostname }} port=22 state=started timeout=1200
   when: inventory_hostname not in result.list_vms
-
-
-
