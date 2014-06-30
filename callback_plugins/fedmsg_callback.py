@@ -43,7 +43,14 @@ class CallbackModule(object):
             cert_prefix='shell',
             active=True,
         ))
-        fedmsg.init(**config)
+        # It seems like recursive playbooks call this over and over again and
+        # fedmsg doesn't like to be initialized more than once.  So, here, just
+        # catch that and ignore it.
+        try:
+            fedmsg.init(**config)
+        except ValueError:
+            pass
+
 
     def playbook_on_play_start(self, pattern):
         # This gets called once for each play.. but we just issue a message once
