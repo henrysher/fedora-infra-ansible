@@ -184,7 +184,10 @@ from buildbot.status.web import authz, auth
 authz_cfg=authz.Authz(
     # change any of these to True to enable; see the manual for more
     # options
-    auth=auth.BasicAuth([("{{ buildbot_user }}","{{ buildbot_pw }}")]),
+    {% if deployment_type == 'dev' %}
+    auth=auth.BasicAuth([("{{ dev_buildbot_user }}","{{ dev_buildbot_pw }}")]),
+    {% endif %}
+    #auth=auth.BasicAuth([("{{ buildbot_user }}","{{ buildbot_pw }}")]),
     gracefulShutdown = False,
     forceBuild = 'auth', # use this to test your slave once it is set up
     forceAllBuilds = False,
@@ -230,6 +233,7 @@ c['buildbotURL'] = "http://{{ hostname }}/{{buildmaster_endpoint}}"
 c['db'] = {
     # This specifies what database buildbot uses to store its state.  You can leave
     # this at its default for all but the largest installations.
-    #'db_url' : "sqlite:///state.sqlite",
-    'db_url' : "postgresql://{{ buildmaster_db_user }}:{{ buildmaster_db_pw }}@{{ buildmaster_db_host }}/{{ buildmaster_db }}",
+    {% if deployment_type == 'dev' %}
+    'db_url' : "postgresql://{{ dev_buildmaster_db_user }}:{{ dev_buildmaster_db_pw }}@{{ dev_buildmaster_db_host }}/{{ dev_buildmaster_db_name }}",
+    {% endif %}
 }
