@@ -2,7 +2,7 @@
   command: creates={{ buildmaster_dir }} buildbot create-master -r {{ buildmaster_dir }}
 
 - name: upload master config
-  template: src={{ templates }}/buildmaster/{{ buildmaster_template }} dest={{ buildmaster_dir }}/master.cfg owner={{ master_user }} group={{ master_user }}
+  template: src={{ buildmaster_template }} dest={{ buildmaster_dir }}/master.cfg owner={{ master_user }} group={{ master_user }}
 
 - name: check master config
   command: buildbot checkconfig {{ buildmaster_dir }}
@@ -11,7 +11,7 @@
 #  command: buildbot upgrade-master {{ buildmaster_dir }}
 
 - name: generate buildmaster service file
-  template: src={{ templates }}/buildmaster/buildmaster.service.j2 dest=/lib/systemd/system/buildmaster.service owner=root group=root mode=0744
+  template: src=buildmaster.service.j2 dest=/lib/systemd/system/buildmaster.service owner=root group=root mode=0744
   sudo_user: root
 
 - name: start and enable buildmaster service
