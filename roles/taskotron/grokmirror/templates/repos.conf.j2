@@ -1,0 +1,95 @@
+# You can pull from multiple grok mirrors, just create
+# a separate section for each mirror. The name can be anything.
+[bitbucket.org]
+# The host part of the mirror you're pulling from.
+#site = git://git.kernel.org
+site = https://bitbucket.org/
+#
+# Where the grok manifest is published. The following protocols
+# are supported at this time:
+# http:// or https:// using If-Modified-Since http header
+# file:// (when manifest file is on NFS, for example)
+#manifest = http://git.kernel.org/manifest.js.gz
+manifest = file://{{ grokmirror_basedir }}/manifest.js.gz
+#
+# Where are we going to put the mirror on our disk?
+#toplevel = /var/lib/git/mirror
+toplevel = {{ grokmirror_basedir }}
+#
+# Where do we store our own manifest? Usually in the toplevel.
+#mymanifest = /var/lib/git/mirror/manifest.js.gz
+mymanifest = {{ grokmirror_basedir }}/manifest.local.js.gz
+#
+# Write out projects.list that can be used by gitweb or cgit.
+# Leave blank if you don't want a projects.list.
+#projectslist = /var/lib/git/mirror/projects.list
+projectslist = {{ grokmirror_basedir }}/projects.list
+#
+# When generating projects.list, start at this subpath instead
+# of at the toplevel. Useful when mirroring kernel or when generating
+# multiple gitweb/cgit configurations for the same tree.
+#projectslist_trimtop = /pub/scm/
+#projectslist_trimtop = {{ grokmirror_basedir }}
+#
+# When generating projects.list, also create entries for symlinks.
+# Otherwise we assume they are just legacy and keep them out of
+# web interfaces.
+#projectslist_symlinks = yes
+projectslist_symlinks = no
+#
+# A simple hook to execute whenever a repository is modified.
+# It passes the full path to the git repository modified as the only
+# argument.
+#post_update_hook = /usr/local/bin/make-git-fairies-appear
+post_update_hook =
+#
+# If owner is not specified in the manifest, who should be listed
+# as the default owner in tools like gitweb or cgit?
+#default_owner = Grokmirror User
+default_owner = Grokmirror User
+#
+# Where do we put the logs?
+#log = /var/log/mirror/kernelorg.log
+log = /var/log/grokmirror/bitbucket-gitmirror.log
+#
+# Log level can be "info" or "debug"
+#loglevel = info
+loglevel = info
+#
+# To prevent multiple grok-pull instances from running at the same
+# time, we first obtain an exclusive lock.
+#lock = /var/lock/mirror/kernelorg.lock
+lock = /var/lock/grokmirror/bitbucket.lock
+#
+# Use shell-globbing to list the repositories you would like to mirror.
+# If you want to mirror everything, just say "*". Separate multiple entries
+# with newline plus tab. Examples:
+#
+# mirror everything:
+#include = *
+#
+# mirror just the main kernel sources:
+#include = /pub/scm/linux/kernel/git/torvalds/linux.git
+#          /pub/scm/linux/kernel/git/stable/linux-stable.git
+#          /pub/scm/linux/kernel/git/next/linux-next.git
+#
+# mirror just git:
+#include = /pub/scm/git/*
+#include = /fedoraqa/task-rpmlint
+#          /fedoraqa/task-examplebodhi
+#          /fedoraqa/task-examplelong
+#          /fedoraqa/depcheck-mk-2
+include = {% for repo in grokmirror_repos %}
+          /{{ repo.name }}
+          {% endfor %}
+#include = rpmlint
+#          examplebodhi
+#          examplelong
+#          depcheck
+#
+# https://tflink@bitbucket.org/fedoraqa/task-rpmlint.git
+# This is processed after the include. If you want to exclude some specific
+# entries from an all-inclusive globbing above. E.g., to exclude all linux-2.4
+# git sources:
+#exclude = */linux-2.4*
+exclude =

@@ -1,0 +1,31 @@
+- name: ensure grokmirror packages are installed
+  action: yum name={{ item }} state=latest
+  with_items:
+      - git
+      - python-grokmirror
+
+- name: create grokmirror user
+  user: name={{ grokmirror_user }}
+
+- name: add buildslave cert to grokmirror for cloning
+  authorized_key: user={{ grokmirror_user }} key="{{ buildslave_ssh_pubkey }}"
+
+- name: create grokmirror conf dir
+  file: path=/etc/grokmirror/ state=directory owner=root group=root mode=1755
+
+- name: create grokmirror root directory
+  file: path={{ grokmirror_basedir }} state=directory owner={{ grokmirror_user }} group={{ grokmirror_user }} mode=1755
+
+- name: create log directory for grokmirror
+  file: path=/var/log/grokmirror state=directory owner={{ grokmirror_user }} group={{ grokmirror_user }} mode=1775
+
+- name: create directory for grokmirror locks
+  file: path=/var/lock/grokmirror state=directory owner={{ grokmirror_user }} group={{ grokmirror_user }} mode=1755
+
+- name: clone initial git repos
+  git: repo={{ item.url }} bare=yes dest={{ grokmirror_basedir }}/{{ item.name }} update=no
+  sudo_user: "{{ grokmirror_user }}"
+  with_items: grokmirror_repos
+
+- name: generate grokmirror config
+  template: src=repos.conf.j2 dest=/etc/grokmirror/repos.conf owner={{ grokmirror_user }} group={{ grokmirror_user }} mode=0644
