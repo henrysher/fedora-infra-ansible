@@ -16,7 +16,9 @@ c = BuildmasterConfig = {}
 from buildbot.buildslave import BuildSlave
 c['slaves'] = [
                 {% for buildslave in buildslaves %}
-                BuildSlave("{{ buildslave }}", "{{ buildslave_pw }}"),
+                {% if deployment_type == 'dev' %}
+                BuildSlave("{{ buildslave }}", "{{ dev_buildslave_password }}"),
+                {% endif %}
                 {% endfor %}
               ]
 
@@ -185,7 +187,7 @@ authz_cfg=authz.Authz(
     # change any of these to True to enable; see the manual for more
     # options
     {% if deployment_type == 'dev' %}
-    auth=auth.BasicAuth([("{{ dev_buildbot_user }}","{{ dev_buildbot_pw }}")]),
+    auth=auth.BasicAuth([("{{ dev_buildbot_user }}","{{ dev_buildbot_password }}")]),
     {% endif %}
     #auth=auth.BasicAuth([("{{ buildbot_user }}","{{ buildbot_pw }}")]),
     gracefulShutdown = False,
