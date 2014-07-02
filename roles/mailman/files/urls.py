@@ -3,7 +3,7 @@
 import hyperkitty
 import postorius
 
-from django.conf.urls.defaults import *
+from django.conf.urls import patterns, include, url
 from django.conf import settings
 
 # Uncomment the next two lines to enable the admin:
@@ -24,4 +24,5 @@ urlpatterns = patterns('',
     url(r'^admin/', include('postorius.urls')),
     url(r'^archives/', include('hyperkitty.urls')),
     url(r'', include('social_auth.urls')),
+    url(r'', include('django_browserid.urls')),
 )
