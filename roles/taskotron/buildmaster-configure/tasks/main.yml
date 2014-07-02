@@ -1,10 +1,16 @@
 - name: create master
+  sudo: true
+  sudo_user: "{{ master_user }}"
   command: creates={{ buildmaster_dir }} buildbot create-master -r {{ buildmaster_dir }}
 
 - name: upload master config
+  sudo: true
+  sudo_user: "{{ master_user }}"
   template: src={{ buildmaster_template }} dest={{ buildmaster_dir }}/master.cfg owner={{ master_user }} group={{ master_user }}
 
 - name: check master config
+  sudo: true
+  sudo_user: "{{ master_user }}"
   command: buildbot checkconfig {{ buildmaster_dir }}
 
 #- name: upgrade master
@@ -12,11 +18,11 @@
 
 - name: generate buildmaster service file
   template: src=buildmaster.service.j2 dest=/lib/systemd/system/buildmaster.service owner=root group=root mode=0744
-  sudo_user: root
 
 - name: start and enable buildmaster service
   service: name=buildmaster enabled=yes state=started
-  sudo_user: root
 
 - name: reconfig master
+  sudo: true
+  sudo_user: "{{ master_user }}"
   command: buildbot reconfig {{ buildmaster_dir }}
