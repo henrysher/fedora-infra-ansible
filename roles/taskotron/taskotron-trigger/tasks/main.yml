@@ -1,0 +1,29 @@
+- name: add taskotron copr repo (fedora)
+  copy: src={{ files }}/yumrepos/copr-taskotron.repo dest=/etc/yum.repos.d/fedora-taskotron.repo owner=root group=root mode=0644
+  when: is_fedora
+
+- name: ensure packages required for taskotron-trigger are installed
+  action: yum name={{ item }} state=latest
+  with_items:
+    - fedmsg
+    - fedmsg-hub
+    - taskotron-trigger
+    # needed for cron script
+    - resultsdb_api
+
+- name: generate trigger configuration
+  template: src=trigger.cfg.j2 dest=/etc/taskotron/trigger.cfg owner=root group=root mode=0744
+
+- name: copy fedmsg logging configuration
+  copy: src=logging.py dest=/etc/fedmsg.d/logging.py owner=root group=root mode=0744
+
+- name: install fetch_activity
+  copy: src=fetch_activity.py dest=/root/fetch_activity.py owner=root group=root mode=0644
+
+- name: create a dir for fetch_activity logs
+  file: dest=/root/fetch_activity_logs mode=755 owner=root group=root state=directory
+
+- name: copy fetch_activity cron job
+  template: src=fetch_activity.cron.j2 dest=/etc/cron.d/fetch_activity.cron owner=root group=root mode=0644
+  notify:
+  - restart crond
