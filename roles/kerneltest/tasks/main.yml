@@ -42,7 +42,14 @@
   environment:
       KERNELTEST_CONFIG: /etc/kerneltest/kerneltest.cfg
 
-- name: set sebooleans so fedocal can talk to the db
+- name: set sebooleans so the app can talk to the db
   action: seboolean name=httpd_can_network_connect_db
                     state=true
                     persistent=true
+
+- name: apply selinux type to static files
+    file: >
+      dest=/var/www/logs
+      setype=httpd_sys_content_t
+      state=directory
+      recurse=yes
