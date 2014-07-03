@@ -1,0 +1,17 @@
+# this was designed to be used in dev where there is no global proxy
+# this way, we can get away with a single ip and ssl cert instead of
+# one for taskotron and one for resultsdb. The url scheme also stays
+# closer to stg/prod
+
+- name: ensure packages required for proxying are installedc
+  action: yum name={{ item }} state=latest
+  with_items:
+    - libsemanage-python
+
+- name: allow httpd tcp connections with selinux
+  seboolean: name=httpd_can_network_connect state=true persistent=yes
+
+- name: copy resultsdb proxy httpd config
+  template: src=resultsdb.conf.j2 dest=/etc/httpd/conf.d/resultsdb.conf owner=root group=root
+  notify:
+    - restart httpd
