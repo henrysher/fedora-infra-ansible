@@ -1,0 +1,29 @@
+- name: ensure packages required for fakefedorainfra are installed
+  action: yum name={{ item }} state=latest
+  with_items:
+    - mod_wsgi
+    - fake_fedorainfra
+
+- name: ensure database is created
+  when: deployment_type == 'dev'
+  delegate_to: "{{ buildmaster_db_host }}"
+  sudo: true
+  sudo_user: postgres
+  action: postgresql_db db={{ dev_fakefedorainfra_db_name }}
+
+- name: ensure fakefedorainfra user has access to database
+  when: deployment_type == 'dev'
+  delegate_to: "{{ buildmaster_db_host }}"
+  sudo: true
+  sudo_user: postgres
+  action: postgresql_user db={{ dev_fakefedorainfra_db_name }} user={{ dev_fakefedorainfra_db_user }} password={{ dev_fakefedorainfra_db_password }} role_attr_flags=NOSUPERUSER
+
+- name: generate fakefedorainfra config
+  template: src=settings.py.j2 dest=/etc/fake_fedorainfra/settings.py owner=root group=root mode=0644
+  notify:
+    - restart httpd
+
+- name: generate fakefedorainfra apache config
+  template: src=fake_fedorainfra.conf.j2 dest=/etc/httpd/conf.d/fakefedorainfra.conf owner=root group=root mode=0644
+  notify:
+    - restart httpd
