@@ -18,12 +18,13 @@
   delegate_to: "{{ vmhost }}"
   when: inventory_hostname not in result.list_vms
 
-- name: wait for the install to finish - by watching the domstate
-  # this just keeps checking the domstate until it stops running
-  shell: while `/usr/bin/virsh domstate {{ inventory_hostname }} | grep -q running` ; do sleep 10; done
+- name: wait for the install to finish
+  virt: command=status name={{ inventory_hostname }}
+  register: vmstatus
+  until: vmstatus.status == 'shutdown'
   delegate_to: "{{ vmhost }}"
-  async: 1500
-  poll: 15
+  retries: 150
+  delay: 10
   when: inventory_hostname not in result.list_vms
 
 - name: start the vm up
