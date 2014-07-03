@@ -1,0 +1,23 @@
+- name: ensure ssl related packages are installed
+  action: yum name={{ item }} state=latest
+  with_items:
+      - mod_ssl
+
+- name: copy ssl key
+  copy: src={{ private }}/taskotron/certs/{{ inventory_hostname }}/{{ inventory_hostname }}.key dest=/etc/pki/tls/private/{{ inventory_hostname }}.key
+
+- name: copy ssl cert
+  copy: src={{ private }}/taskotron/certs/{{ inventory_hostname }}/{{ inventory_hostname }}.crt dest=/etc/pki/tls/certs/{{ inventory_hostname }}.crt
+
+- name: generate rhel httpd ssl config
+  template: src=ssl.conf.rhel.j2 dest=/etc/httpd/conf.d/ssl.conf owner=root group=root mode=0644
+  when: is_rhel
+  notify:
+  - restart httpd
+
+- name: generate fedora httpd ssl config
+  template: src=ssl.conf.j2 dest=/etc/httpd/conf.d/ssl.conf owner=root group=root mode=0644
+  when: is_fedora
+  notify:
+  - restart httpd
+
