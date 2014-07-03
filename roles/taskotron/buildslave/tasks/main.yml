@@ -16,16 +16,3 @@
 
 - name: add the buildslave user
   user: name=buildslave
-
-- name: add ports for buildslaves (fedora)
-  command: firewall-cmd --permanent {{ item }}
-  when: is_fedora
-  with_items:
-    - --add-port={{ buildslave_port }}/tcp
-
-- name: add ports for buildslaves (rhel)
-  command: lokkit -p '{{ item }}:tcp'
-  when: is_rhel
-  with_items:
-    - "{{ buildslave_port }}"
-
