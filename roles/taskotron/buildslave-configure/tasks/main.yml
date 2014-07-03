@@ -1,0 +1,30 @@
+- name: create slave
+  command: creates={{ slave_dir }} buildslave create-slave {{ slave_dir }} {{ buildmaster }} buildslave passwd
+
+- name: generate slave config
+  template: src={{ templates }}/buildslave/buildbot.tac.j2 dest={{ slave_dir }}/buildbot.tac mode=0600 owner={{ slave_user }} group={{ slave_user }}
+
+- name: generate slave info
+  template: src={{ templates }}/buildslave/{{ item }}.j2 dest={{ slave_dir }}/info/{{ item }} mode=0644 owner={{ slave_user }} group={{ slave_user }}
+  with_items:
+    - admin
+    - host
+
+- name: create slave ssh directory
+  file: path={{ slave_home }}/.ssh owner={{ slave_user }} group={{ slave_user }} mode=0700 state=directory
+
+- name: install slave ssh private key
+  copy: src={{ private }}/files/{{ buildslave_private_sshkey_file }} dest={{ slave_home }}/.ssh/id_rsa owner={{ slave_user }} group={{ slave_user }} mode=0600
+
+- name: install slave ssh public key
+  copy: src={{ private }}/files/{{ buildslave_public_sshkey_file }} dest={{ slave_home }}/.ssh/id_rsa.pub owner={{ slave_user }} group={{ slave_user }} mode=0644
+
+- name: generate buildslave service file
+  template: src={{ templates }}/buildslave/buildslave.service.j2 dest=/lib/systemd/system/buildslave.service owner=root group=root mode=0744
+  sudo_user: root
+
+- name: start and enable buildslave service
+  service: name=buildslave enabled=yes state=started
+  sudo_user: root
+
+
