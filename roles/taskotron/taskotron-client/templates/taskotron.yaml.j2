@@ -1,0 +1,89 @@
+## Main configuration file for Taskotron
+## The file is in YAML syntax, read more about it at:
+## http://en.wikipedia.org/wiki/Yaml
+## FIXME: add a link to Taskotron docs
+
+## ==== GENERAL section ====
+## There are two major config profiles in Taskotron - development and
+## production.
+## /Development/ profile is used for developing libtaskotron, developing checks
+## based on libtaskotron and local execution of these checks.
+## /Production/ profile is used for deploying Taskotron as a service on a
+## server, periodically executing the checks and reporting results to relevant
+## result consumers.
+## *The default profile is /development/*. If you want to switch to the
+## /production/ profile, uncomment the following line.
+## You can also switch a profile temporarily by using TASKOTRON_PROFILE=name
+## environment variable, it has a higher priority. All other options set in this
+## file still apply of course.
+## [choices: production, development; default: development]
+profile: production
+
+
+## ==== REPORTING section ====
+## This section controls which result reports you want to send after the test
+## execution is complete
+
+## Overall setting whether to send any reports at all. If this is False, no
+## reports will be sent anywhere, regardless of your configuration for
+## individual recipient systems.
+## [default: True for production, False for development]
+reporting_enabled: True
+
+## If True, test results (for selected tests) will be sent as comments to
+## Fedora Update System (Bodhi). This requires that you have Bodhi
+## credentials filled in secrets.conf.
+#report_to_bodhi: True
+
+## Whether to send test results to the configured ResultsDB server.
+report_to_resultsdb: True
+
+
+## ==== RESOURCES section ====
+## This section specifies access details to various external services
+
+## URL of Koji instance used for querying about new builds
+#koji_url: http://koji.fedoraproject.org/kojihub
+koji_url: {{ kojihub_url }}
+
+## URL of repository of all the RPM packages built in Koji
+#pkg_url: http://kojipkgs.fedoraproject.org/packages
+
+## URL of Bodhi instance used for communication about package updates
+bodhi_server: {{ bodhi_server }}
+
+## URL of ResultsDB server API interface, which can store all test results
+resultsdb_server: {{ resultsdb_server }}
+
+## URL of taskotron buildmaster
+taskotron_master: {{ taskotron_master }}
+
+## name of step in buildbot that executes the task
+buildbot_task_step: 'runtask'
+
+## ==== BODHI EMAIL section ====
+## These configuration options affect how Taskotron decideds to send emails
+## through Bodhi in specific situations.
+
+## How long (in minutes) should we wait before allowing consequent test to
+## re-post a 'FAILED' comment into Bodhi once again.
+## By default 3 days (3*24*60 = 4320).
+#bodhi_email_failed_span: 4320
+
+
+## ==== PATHS section ====
+## Location of various pieces of the project.
+
+## The main log file location for Taskotron
+#logfile: /var/log/taskotron/taskotron.log
+
+
+## ==== SECRETS section ====
+## All login credentials and other secrets are here. If you add some secret
+## here, make sure you make this file readable just for the right user accounts.
+
+## FAS (Fedora Accounts System) credentials
+## These credentials are used when reporting results into Bodhi.
+fas_username: '{{ taskotron_fas_user }}'
+fas_password: '{{ taskotron_fas_password}}'
+
