@@ -1,9 +1,3 @@
-import os
-import psutil
-
-pid = os.getpid()
-proc = [p for p in psutil.process_iter() if p.pid == pid][0]
-
 config = dict(
     # Set this to dev if you're hacking on fedmsg or an app locally.
     # Set to stg or prod if running in the Fedora Infrastructure.
@@ -50,5 +44,19 @@ config = dict(
     zmq_tcp_keepalive_idle=60,
     zmq_tcp_keepalive_intvl=5,
 )
+
 # This option adds an IPC socket by which we can monitor hub health.
-config['moksha.monitoring.socket'] = 'ipc:///var/run/fedmsg/monitoring-%s.socket' % proc.name
+try:
+    import os
+    import psutil
+
+    pid = os.getpid()
+    proc = [p for p in psutil.process_iter() if p.pid == pid][0]
+
+    config['moksha.monitoring.socket'] = \
+        'ipc:///var/run/fedmsg/monitoring-%s.socket' % proc.name
+except OSError:
+    # We run into issues when trying to import psutil from mod_wsgi on rhel7
+    # but this feature is of no concern in that context, so just fail quietly.
+    # https://github.com/jmflinuxtx/kerneltest-harness/pull/17#issuecomment-48007837
+    pass
