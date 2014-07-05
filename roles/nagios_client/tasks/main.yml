@@ -16,6 +16,7 @@
   - nagios-plugins-ping
   tags:
   - packages
+  - nagios_client
 
 - name: install local nrpe check scripts that are not packaged
 
@@ -29,6 +30,8 @@
   - check_fedmsg_consumer_exceptions.py
   - check_fedmsg_producers_consumers.py
   - check_supybot_plugin
+  tags:
+  - nagios_client
 
 # create dirs
 # puppet used to make /var/spool/nagios (owned by nagios.nagios) mode 750
@@ -47,6 +50,7 @@
   - restart nrpe
   tags:
   - config
+  - nagios_client
 
 #
 # The actual items files here end in .j2 (they are templates)
@@ -75,6 +79,7 @@
   - restart nrpe
   tags:
   - config
+  - nagios_client
 
 #
 # The actual items files here end in .j2 (they are templates)
@@ -85,6 +90,8 @@
   when: datacenter != 'phx2'
   notify:
   - restart nrpe
+  tags:
+  - nagios_client
 #
 # The actual items files here end in .j2 (they are templates)
 # So when adding or modifying them change the .j2 version in git.
@@ -94,8 +101,11 @@
   when: inventory_hostname.startswith('unbound')
   notify:
   - restart nrpe
+  tags:
+  - nagios_client
 
 - name: nrpe service start
   service: name=nrpe state=running enabled=true
   tags:
   - service
+  - nagios_client
