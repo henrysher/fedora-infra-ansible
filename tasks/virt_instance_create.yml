@@ -1,24 +1,26 @@
-# setup a virt instance using a dizzying array of variables :)
-# FIXME
-# do an action here that aborts if a bunch of vars are not set
+#
+# This task is the thing that creates a vm for later use
+#
 
-- name: get vm list on "{{ vmhost }}"
+- debug: msg="operating on {{vmhost}}"
+
+- name: get vm list
   delegate_to: "{{ vmhost }}"
   virt: command=list_vms
   register: result
   always_run: yes
 
-- name: ensure the lv for the guest is made on {{ vmhost }}
+- name: ensure the lv for the guest is made
   lvol: lv={{ inventory_hostname }} vg={{ volgroup }} size={{ lvm_size }} state=present
   delegate_to: "{{ vmhost }}"
   when: inventory_hostname not in result.list_vms
 
-- name: run the virt-install on "{{ vmhost }}"
+- name: run the virt-install
   shell: "{{ virt_install_command }}"
   delegate_to: "{{ vmhost }}"
   when: inventory_hostname not in result.list_vms
 
-- name: wait for the install to finish on "{{ vmhost }}"
+- name: wait for the install to finish
   virt: command=status name={{ inventory_hostname }}
   register: vmstatus
   until: vmstatus.status == 'shutdown'
@@ -27,12 +29,12 @@
   delay: 10
   when: inventory_hostname not in result.list_vms
 
-- name: start the vm up on "{{ vmhost }}"
+- name: start the vm up
   action: virt state=running name={{ inventory_hostname }}
   delegate_to: "{{ vmhost }}"
   when: inventory_hostname not in result.list_vms
 
-- name: set it to autostart on "{{ vmhost }}"
+- name: set it to autostart
   action: virt command=autostart name={{ inventory_hostname }}
   delegate_to: "{{ vmhost }}"
   when: inventory_hostname not in result.list_vms
