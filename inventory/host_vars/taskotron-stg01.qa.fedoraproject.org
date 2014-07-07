@@ -8,3 +8,36 @@ volgroup: /dev/Guests00
 eth0_ip: 10.5.124.230
 vmhost: virthost-comm01.qa.fedoraproject.org
 datacenter: phx2
+fas_client_groups: sysadmin-qa,sysadmin-main
+
+# default virt install command is for a single nic-device
+# define in another group file for more nics (see buildvm)
+virt_install_command: /usr/sbin/virt-install -n {{ inventory_hostname }} -r {{ mem_size }}
+                 --disk bus=virtio,path={{ volgroup }}/{{ inventory_hostname }}
+                 --vcpus={{ num_cpus }}  -l {{ ks_repo }} -x
+                 "ks={{ ks_url }} ip={{ eth0_ip }} netmask={{ nm }}
+                  gateway={{ gw }} dns={{ dns }} console=tty0 console=ttyS0
+                  hostname={{ inventory_hostname }}"
+                 --network=bridge=br0 --autostart --noautoconsole
+
+public_hostname: taskotron.stg.fedoraproject.org
+fake_fedorainfra_endpoint: fakefedorainfra
+buildmaster: 10.5.124.230
+
+buildslaves:
+    - virt11
+    - virt12
+    - virt13
+    - virt14
+    - virt19
+    - virt20
+    - virt21
+i386_buildslaves:
+    - virt12
+    - virt14
+    - virt19
+x86_64_buildslaves:
+    - virt11
+    - virt13
+    - virt20
+    - virt21
