@@ -2,7 +2,7 @@
 # FIXME
 # do an action here that aborts if a bunch of vars are not set
 
-- name: get vm list on "{{ vmhost }}"
+- name: get vm list on {{ vmhost }}
   delegate_to: "{{ vmhost }}"
   virt: command=list_vms
   register: result
@@ -13,12 +13,12 @@
   delegate_to: "{{ vmhost }}"
   when: inventory_hostname not in result.list_vms
 
-- name: run the virt-install on "{{ vmhost }}"
+- name: run the virt-install on {{ vmhost }}
   shell: "{{ virt_install_command }}"
   delegate_to: "{{ vmhost }}"
   when: inventory_hostname not in result.list_vms
 
-- name: wait for the install to finish on "{{ vmhost }}"
+- name: wait for the install to finish on {{ vmhost }}
   virt: command=status name={{ inventory_hostname }}
   register: vmstatus
   until: vmstatus.status == 'shutdown'
@@ -27,12 +27,12 @@
   delay: 10
   when: inventory_hostname not in result.list_vms
 
-- name: start the vm up on "{{ vmhost }}"
+- name: start the vm up on {{ vmhost }}
   action: virt state=running name={{ inventory_hostname }}
   delegate_to: "{{ vmhost }}"
   when: inventory_hostname not in result.list_vms
 
-- name: set it to autostart on "{{ vmhost }}"
+- name: set it to autostart on {{ vmhost }}
   action: virt command=autostart name={{ inventory_hostname }}
   delegate_to: "{{ vmhost }}"
   when: inventory_hostname not in result.list_vms
