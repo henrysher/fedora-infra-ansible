@@ -19,6 +19,9 @@ c['slaves'] = [
                 {% if deployment_type == 'dev' %}
                 BuildSlave("{{ buildslave }}", "{{ dev_buildslave_password }}"),
                 {% endif %}
+                {% if deployment_type == 'stg' %}
+                BuildSlave("{{ buildslave }}", "{{ stg_buildslave_password }}"),
+                {% endif %}
                 {% endfor %}
               ]
 
@@ -155,7 +158,6 @@ factory.addStep(ShellCommand(command=["runtask", '-i',
 #factory.addStep(ShellCommand(command=["cat", "/var/log/taskotron/taskotron.log"], name="cat_log"))
 
 from buildbot.config import BuilderConfig
-
 c['builders'] = []
 c['builders'].append(
     BuilderConfig(name="x86_64",
@@ -237,5 +239,8 @@ c['db'] = {
     # this at its default for all but the largest installations.
     {% if deployment_type == 'dev' %}
     'db_url' : "postgresql://{{ dev_buildmaster_db_user }}:{{ dev_buildmaster_db_password }}@{{ buildmaster_db_host }}/{{ buildmaster_db_name }}",
+    {% endif %}
+    {% if deployment_type == 'stg' %}
+    'db_url' : "postgresql://{{ stg_buildmaster_db_user }}:{{ stg_buildmaster_db_password }}@{{ buildmaster_db_host }}/{{ buildmaster_db_name }}",
     {% endif %}
 }
