@@ -24,11 +24,11 @@ config = dict(
             "tcp://app02.%s:300%i" % (suffix, i)
             for i in range(8)
         ],
-        "bodhi.releng01": [
-            "tcp://releng01.%s:3000" % suffix
+        "bodhi.branched-composer": [
+            "tcp://branched-composer.%s:3000" % suffix
         ],
-        "bodhi.releng02": [
-            "tcp://releng02.%s:3000" % suffix
+        "bodhi.rawhide-composer": [
+            "tcp://rawhide-composer.%s:3000" % suffix
         ],
         "bodhi.app03": [
             "tcp://app03.%s:300%i" % (suffix, i)
