@@ -18,15 +18,14 @@
     - restart httpd
 
 - name: ensure dev database is created
-  when: deployment_type == 'dev'
   delegate_to: "{{ buildmaster_db_host }}"
   sudo: true
   sudo_user: postgres
-  action: postgresql_db db={{ dev_buildmaster_db_name }}
+  action: postgresql_db db={{ buildmaster_db_name }}
 
 - name: ensure dev user has access to dev database
   when: deployment_type == 'dev'
   delegate_to: "{{ buildmaster_db_host }}"
   sudo: true
   sudo_user: postgres
-  action: postgresql_user db={{ dev_buildmaster_db_name }} user={{ dev_buildmaster_db_user }} password={{ dev_buildmaster_db_password }} role_attr_flags=NOSUPERUSER
+  action: postgresql_user db={{ buildmaster_db_name }} user={{ dev_buildmaster_db_user }} password={{ dev_buildmaster_db_password }} role_attr_flags=NOSUPERUSER
