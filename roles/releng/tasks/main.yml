@@ -99,24 +99,6 @@
   tags:
   - configs
 
-- name: enable nfs-related services and run them (fedora)
-  action: service name={{ item }}  enabled=true state=started
-  with_items:
-  - nfs-idmapd
-  - nfs-lock
-  when: ansible_distribution == 'Fedora'
-
-- name: route to netapp network
-  action: copy src="{{ files }}/../roles/koji_builder/files/route-eth1" dest=/etc/sysconfig/network-scripts/route-eth1
-  notify:
-  - restart netapproute
-
-- name: nfsmount - /pub/fedora
-  action: mount name=/pub/fedora src=vtap-fedora-nfs01.storage.phx2.redhat.com:/vol/fedora_ftp/fedora.redhat.com/pub/fedora fstype=nfs opts=rw,hard,bg,intr,noatime,nodev,nosuid,nfsvers=3 passno=0 dump=0 state=mounted
-
-- name: nfs mount points
-  action: mount name=/mnt/fedora_koji src=vtap-fedora-nfs01.storage.phx2.redhat.com:/vol/fedora_koji fstype=nfs opts=rw,hard,bg,intr,noatime,nodev,nosuid passno=0 dump=0 state=mounted
-
 - name: make a mnt/koji link
   action: file state=link src=/mnt/fedora_koji/koji dest=/mnt/koji
 
