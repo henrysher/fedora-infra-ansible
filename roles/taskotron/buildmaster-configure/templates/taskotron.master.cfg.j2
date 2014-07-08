@@ -22,6 +22,9 @@ c['slaves'] = [
                 {% if deployment_type == 'stg' %}
                 BuildSlave("{{ buildslave }}", "{{ stg_buildslave_password }}"),
                 {% endif %}
+                {% if deployment_type == 'prod' %}
+                BuildSlave("{{ buildslave }}", "{{ prod_buildslave_password }}"),
+                {% endif %}
                 {% endfor %}
               ]
 
@@ -242,5 +245,8 @@ c['db'] = {
     {% endif %}
     {% if deployment_type == 'stg' %}
     'db_url' : "postgresql://{{ stg_buildmaster_db_user }}:{{ stg_buildmaster_db_password }}@{{ buildmaster_db_host }}/{{ buildmaster_db_name }}",
+    {% endif %}
+    {% if deployment_type == 'prod' %}
+    'db_url' : "postgresql://{{ prod_buildmaster_db_user }}:{{ prod_buildmaster_db_password }}@{{ buildmaster_db_host }}/{{ buildmaster_db_name }}",
     {% endif %}
 }
