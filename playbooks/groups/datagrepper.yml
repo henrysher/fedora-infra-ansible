@@ -53,53 +53,54 @@
   handlers:
   - include: "{{ handlers }}/restart_services.yml"
 
-- name: set up gluster server on prod
-  hosts: packages
-  user: root
-  gather_facts: True
-  accelerate: "{{ accelerated }}"
-
-  vars_files:
-   - /srv/web/infra/ansible/vars/global.yml
-   - "{{ private }}/vars.yml"
-   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
-
-  roles:
-  - role: gluster/server
-    name: gluster
-    username: "{{ packagesglusterusername }}"
-    password: "{{ packagesglusterpassword }}"
-    owner: root
-    group: root
-    datadir: /srv/glusterfs/packages
-
-  handlers:
-  - include: "{{ handlers }}/restart_services.yml"
-
-- name: set up gluster client on prod
-  hosts: packages
-  user: root
-  gather_facts: True
-  accelerate: "{{ accelerated }}"
-
-  vars_files:
-   - /srv/web/infra/ansible/vars/global.yml
-   - "{{ private }}/vars.yml"
-   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
-
-  roles:
-  - role: gluster/client
-    name: gluster
-    servers:
-    - packages03.phx2.fedoraproject.org
-    - packages04.phx2.fedoraproject.org
-    username: "{{ packagesglusterusername }}"
-    password: "{{ packagesglusterpassword }}"
-    owner: apache
-    group: apache
-    mountdir: /var/cache/fedoracommunity
-
-  handlers:
-  - include: "{{ handlers }}/restart_services.yml"
-
-
+# The gluster work here can be omitted for now.  It is used by a feature of
+# datagrepper that is partially in place, but not yet functional.
+#
+#- name: set up gluster server on prod
+#  hosts: datagrepper;datagrepper-stg
+#  user: root
+#  gather_facts: True
+#  accelerate: "{{ accelerated }}"
+#
+#  vars_files:
+#   - /srv/web/infra/ansible/vars/global.yml
+#   - "{{ private }}/vars.yml"
+#   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+#
+#  roles:
+#  - role: gluster/server
+#    name: gluster
+#    username: "{{ datagrepperglusterusername }}"
+#    password: "{{ datagrepperglusterpassword }}"
+#    owner: root
+#    group: root
+#    datadir: /srv/glusterfs/datagrepper
+#
+#  handlers:
+#  - include: "{{ handlers }}/restart_services.yml"
+#
+#- name: set up gluster client on prod
+#  hosts: datagrepper;datagrepper-stg
+#  user: root
+#  gather_facts: True
+#  accelerate: "{{ accelerated }}"
+#
+#  vars_files:
+#   - /srv/web/infra/ansible/vars/global.yml
+#   - "{{ private }}/vars.yml"
+#   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+#
+#  roles:
+#  - role: gluster/client
+#    name: gluster
+#    servers:
+#    - datagrepper01.phx2.fedoraproject.org
+#    - datagrepper02.phx2.fedoraproject.org
+#    username: "{{ datagrepperglusterusername }}"
+#    password: "{{ datagrepperglusterpassword }}"
+#    owner: apache
+#    group: apache
+#    mountdir: /var/cache/datagrepper
+#
+#  handlers:
+#  - include: "{{ handlers }}/restart_services.yml"
