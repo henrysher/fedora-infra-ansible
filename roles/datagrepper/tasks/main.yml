@@ -1,0 +1,66 @@
+- name: install datagrepper and required packages
+  yum: pkg={{ item }} state=installed
+  with_items:
+  - datagrepper
+  - python-psycopg2
+  tags:
+  - packages
+  - datagrepper
+
+- name: creating datagrepper config dir
+  file: path=/etc/datagrepper state=directory owner=root more=755
+  tags:
+  - config
+  - datagrepper
+
+- name: setting up datagrepper config from the template
+  template: src=datagrepper.cfg dest=/etc/datagrepper/datagrepper.cfg owner=fedmsg group=fedmsg mode=640
+  tags:
+  - config
+  - datagrepper
+
+- name: setting up credential from the template
+  template: src=datagrepper-fedmsg.py dest=/etc/fedmsg.d/datagrepper.py owner=fedmsg group=fedmsg mode=640
+  tags:
+  - config
+  - datagrepper
+
+- name: installing memcached package for /topics
+  yum: pkg=python-memcached state=installed
+  tags:
+  - packages
+  - datagrepper
+
+- name: setting up httpd config 
+  template: src=datagrepper-app.conf dest=/etc/httpd/conf.d/datagrepper.conf owner=root group=root
+  notify:
+  - restart httpd
+  tags:
+  - config
+  - datagrepper
+
+- name: adding fedmsg-hub binary
+  file: src=fedmsg-hub dest=/usr/bin/fedmsg-hub owner=root group=root mode=755
+  notify:
+  - restart fedmsg-hub
+  tags:
+  - config
+  - datagrepper
+
+- name: ensure selinux lets httpd talk to the database
+  seboolean: name=httpd_can_network_connect_db persistent=yes state=yes
+  tags:
+  - datagrepper
+
+- name: ensure selinux lets httpd talk to the memcache
+  seboolean: name=httpd_can_network_memcache persistent=yes state=yes
+  tags:
+  - datagrepper
+
+- name: adding datagrepper dir in httpd context
+  command: semanage fcontext -a -t httpd_cache_t "/var/cache/datagrepper(/.*)?"
+  tags:
+  - datagrepper
+
+# selinux policy has been intentionally omitted since that is obtained from fedmsg/base
+
