@@ -1,0 +1,26 @@
+---
+# tasklist for setting up CGit
+
+- name: install the needed packages
+  yum: pkg={{item}} state=present
+  with_items:
+  - cgit
+  - lua-md5
+
+# See https://github.com/robyduck/cgit-custom
+- name: add our custom theme
+  file: dest=/usr/share/cgit state=directory owner=root group=root mode=0755
+  file: dest=/usr/share/cgit/images state=directory owner=root group=root mode=0755
+  copy: src={{item}} dest=/usr/share/cgit/{{item}} owner=root group=root mode=0644
+  with_items:
+  - cgit.css
+  - cgit.png
+  - cgit-fedora.css
+  - fedora-layout.css
+  - fedora-style.css
+  - images/favicon.ico
+  - images/html-bg.png
+  - images/t.png
+
+- name: install the libravatar filter
+  copy: src=email-libravatar-korg.lua dest=/usr/libexec/cgit/filters/email-libravatar-korg.lua owner=root group=root mode=0755
