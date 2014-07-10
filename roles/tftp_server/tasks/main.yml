@@ -1,0 +1,31 @@
+---
+- name: install tftp server package
+  yum: state=installed name=tftp-server
+  tags:
+  - packages
+  - tftp_server
+
+- name: install syslinux package
+  yum: state=installed name=syslinux
+  tags:
+  - packages
+  - tftp_server
+
+- name: setup pxelinux.cfg dir
+  file: path=/var/lib/tftpboot/pxelinux.cfg mode=755 state=directory
+  tags:
+  - config
+  - tftp_server
+
+- name: setup pxelinux.cfg default file
+  copy: src=default dest=/var/lib/tftpboot/pxelinux.cfg/default mode=644
+  tags:
+  - config
+  - tftp_server
+
+- name: enable tftp socket service
+  service: state=running enabled=true name=tftp.socket
+  tags:
+  - service
+  - config
+  - tftp_server
