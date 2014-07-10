@@ -1,0 +1,29 @@
+---
+nm: 255.255.255.0
+gw: 10.5.126.254
+dns: 10.5.126.21,10.5.126.22
+
+ks_url: http://infrastructure.fedoraproject.org/repo/rhel/ks/kvm-rhel-6-log
+ks_repo: http://infrastructure.fedoraproject.org/repo/rhel/RHEL6-x86_64/
+volgroup: /dev/vg_virthost
+eth0_ip: 10.5.126.13
+vmhost: virthost18.phx2.fedoraproject.org
+datacenter: phx2
+
+tcp_ports: [80, 443, 514, 6514]
+udp_ports: [80, 443, 514]
+nrpe_procs_warn: 900
+nrpe_procs_crit: 1000
+
+lvm_size: 32768
+mem_size: 16384
+num_cpus: 16
+
+virt_install_command: /usr/sbin/virt-install -n {{ inventory_hostname }} -r {{ mem_size }} 
+                 --disk {{ volgroup }}/{{ inventory_hostname }} --disk {{ volgroup }}/logs-store
+                 --vcpus={{ num_cpus }}  -l {{ ks_repo }} -x 
+                 "ksdevice=eth0 ks={{ ks_url }} ip={{ eth0_ip }} netmask={{ nm }} 
+                  gateway={{ gw }} dns={{ dns }} console=tty0 console=ttyS0
+                  hostname={{ inventory_hostname }}" 
+                 --network=bridge=br0 --autostart --noautoconsole
+
