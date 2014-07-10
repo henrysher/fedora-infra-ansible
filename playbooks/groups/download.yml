@@ -68,7 +68,9 @@
     when: env != "staging"
   - include: "{{ tasks }}/apache.yml"
   - include: "{{ tasks }}/openvpn_client.yml" 
-    when: datacenter != 'phx2'
+    when: datacenter != 'phx2' and ansible_distribution_major_version != '7'
+  - include: "{{ tasks }}/openvpn_client_7.yml" 
+    when: datacenter != 'phx2' and ansible_distribution_major_version == '7'
   - name: put in script for syncing
     action: copy src="{{ files }}/download/sync-up-downloads.sh"  dest=/usr/local/bin/sync-up-downloads owner=root group=root mode=755
     when: datacenter == 'ibiblio'
