@@ -1,0 +1,24 @@
+---
+- name: install dhcp server package
+  yum: state=installed name=dhcp
+  tags:
+  - packages
+  - base
+  - dhcp_server
+
+- name: setup dhcpd.conf
+  copy: src=dhcpd.conf.{{ inventory_hostname }} dest=/etc/dhcp/dhcpd.conf mode=644
+  notify:
+  - restart dhcpd
+  tags:
+  - sshd_config
+  - config
+  - sshd
+  - dhcp_server
+
+- name: enable dhcpd service
+  service: state=running enabled=true name=dhcpd
+  tags:
+  - service
+  - config
+  - dhcp_server
