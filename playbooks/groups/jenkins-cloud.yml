@@ -29,6 +29,7 @@
 
   roles:
    - base
+   - fedmsg/base
 
   tasks:
   - include: "{{ tasks }}/cloud_setup_basic.yml"
@@ -220,6 +221,24 @@
      - "{{ bigfiles }}/hotfixes/jenkins/openid/*.jar"
     notify:
       - restart jenkins
+
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"
+
+- name: setup fedmsg for the master (after jenkins has been installed)
+  hosts: 209.132.184.153
+  user: root
+  gather_facts: True
+  tags:
+   - jenkins_master
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "{{ private }}/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  roles:
+   - fedmsg/base
 
   handlers:
   - include: "{{ handlers }}/restart_services.yml"
