@@ -1,0 +1,36 @@
+#!/bin/bash
+
+# Scans various directories for baddies
+# Fri Jul 22 2011 athmane: modified to scan files older than $DAYS days
+
+LOGFILE="/var/log/clamscan.log"
+MAILTO="{{ clamscan_mailto }}"
+DAYS=7
+FILELIST="/tmp/clamscan_filelist.$$"
+
+rm -f $LOGFILE
+
+# Build file list to scan
+{% for path in clamscan_paths %}
+find {{ path }} -ctime -${DAYS} -type f >> $FILELIST
+{% endfor %}
+
+/bin/nice -5 /usr/bin/clamscan --infected --quiet --file-list=$FILELIST --log=$LOGFILE \
+{% for path in clamscan_excludes|default([]) %}
+--exclude={{ exclude }} \
+{% endfor %}
+2> /dev/null
+
+RESULT=$?
+
+if [ "$RESULT" -eq "1" ]
+then
+    mail -s "Virus found! on $(hostname)" $MAILTO -- < $LOGFILE
+fi
+
+if [ "$RESULT" -eq "2" ]
+then
+    mail -s "Virus scanning error on $(hostname)" $MAILTO -- < $LOGFILE
+fi
+
+rm -f $FILELIST

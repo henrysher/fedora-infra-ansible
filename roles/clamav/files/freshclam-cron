@@ -1,0 +1,17 @@
+#!/bin/sh
+
+### A simple update script for the clamav virus database.
+### This could as well be replaced by a SysV script.
+
+### fix log file if needed
+LOG_FILE="/var/log/clamav/freshclam.log"
+if [ ! -f "$LOG_FILE" ]; then
+    touch "$LOG_FILE"
+    chmod 644 "$LOG_FILE"
+    chown clam.clam "$LOG_FILE"
+fi
+
+/usr/bin/freshclam \
+    --quiet \
+    --datadir="/var/lib/clamav" \
+    --log="$LOG_FILE"
