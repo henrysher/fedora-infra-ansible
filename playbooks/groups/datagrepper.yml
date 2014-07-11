@@ -39,7 +39,6 @@
   - fedmsg/base
   - rsyncd
   - sudo
-  - datagrepper
 
   tasks:
   - include: "{{ tasks }}/yumrepos.yml"
@@ -49,6 +48,23 @@
     when: env != "staging"
   - include: "{{ tasks }}/apache.yml"
   - include: "{{ tasks }}/mod_wsgi.yml"
+
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"
+
+- name: dole out the service-specific config
+  hosts: datagrepper;datagrepper-stg
+  user: root
+  gather_facts: True
+  accelerate: "{{ accelerated }}"
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "{{ private }}/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  roles:
+  - datagrepper
 
   handlers:
   - include: "{{ handlers }}/restart_services.yml"
