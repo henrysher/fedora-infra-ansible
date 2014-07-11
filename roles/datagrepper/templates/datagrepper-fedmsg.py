@@ -8,7 +8,11 @@ config = {
     # expect the amount of data it generates to grow pretty steadily over time
     # and we don't want *read* operations on that database to slow down all our
     # other apps.
-    'datanommer.sqlalchemy.url': 'postgresql://{{ datanommerDBUser }}:{{ datanommerDBPassword }}@db-datanommer/datanommer',
+    {% if environment == "staging" %}
+    'datanommer.sqlalchemy.url': 'postgresql://{{ datanommerDBUser }}:{{ datanommerDBPassword }}@db-datanommer01.stg.phx2.fedoraproject.org/datanommer',
+    {% else %}
+    'datanommer.sqlalchemy.url': 'postgresql://{{ datanommerDBUser }}:{{ datanommerDBPassword }}@db-datanommer01.phx2.fedoraproject.org/datanommer',
+    {% endif %}
     'fedmsg.consumers.datagrepper-runner.enabled': True,
 }
 
