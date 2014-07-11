@@ -76,8 +76,11 @@
   cron: name="check_nagios_notifications" minute=0 hour=0 weekday=1 user=nagios job="/usr/local/bin/check_nagios_notifications.py"
 
 # TODO: Remove this for prod
-- name: Shut postfix up for testing peacefully
-  service: name=postfix state=stopped enabled=no
+- name: Shut services up for testing peacefully
+  service: name={{item}} state=stopped enabled=no
+  with_items:
+  - postfix
+  - rsyslog
 
 - name: Restart and autostart nagios
   service: name=nagios state=restarted enabled=yes
