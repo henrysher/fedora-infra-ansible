@@ -1,0 +1,21 @@
+---
+- name: install memcached server package
+  yum: state=installed name=memcached
+  tags:
+  - packages
+  - memcached
+
+- name: setup memcached sysconfig
+  template: src=memcached dest=/etc/sysconfig/memcached mode=644
+  notify:
+  - restart memcached
+  tags:
+  - config
+  - memcached
+
+- name: enable memcached service
+  service: state=running enabled=true name=memcached
+  tags:
+  - service
+  - config
+  - memcached
