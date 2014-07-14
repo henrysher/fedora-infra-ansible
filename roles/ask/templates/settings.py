@@ -268,7 +268,7 @@ CACHES = {
         'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
         'KEY_PREFIX': 'askfedora',
         'LOCATION': [
-            'memcached04:11211',
+            'memcached02:11211',
         ]
     }
 }
