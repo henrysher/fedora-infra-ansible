@@ -1,0 +1,49 @@
+# provision a new sign server.
+# NOTE: this assumes the boxes are already up and are accessible
+# NOTE: most of these vars_path come from group_vars/sign or from hostvars
+#
+# FURTHER NOTE: some of These machines run day to day with sshd disabled/off. 
+# Access is via management interface only. This playbook does initial setup. 
+# Please check with rel-eng before doing anything here. 
+
+- name: make sign-bridge server vm
+  hosts: sign-bridge
+  user: root
+  gather_facts: False
+  accelerate: "{{ accelerated }}"
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "{{ private }}/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  tasks:
+  - include: "{{ tasks }}/virt_instance_create.yml"
+  - include: "{{ tasks }}/accelerate_prep.yml"
+
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"
+
+- name: configure sign bridge server
+  hosts: sign-bridge
+  user: root
+  gather_facts: true
+
+  vars_files: 
+   - /srv/web/infra/ansible/vars/global.yml
+   - "{{ private }}/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  roles:
+  - base
+  - rkhunter
+  - hosts
+  - fas_client
+  - sudo
+
+  tasks:
+  - include: "{{ tasks }}/motd.yml"
+  - include: "{{ tasks }}/sign_setup.yml"
+
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"
