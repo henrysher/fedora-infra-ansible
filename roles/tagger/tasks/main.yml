@@ -77,10 +77,19 @@
   - config
   when: logstat.rc == 1
 
-- name: setup the cronjob
+- name: setup the update-with-new-packages cronjob
   copy: >
     src=cron-tagger-update-db
     dest=/etc/cron.d/cron-tagger-update-db
+  tags:
+  - cron
+  - config
+  when: install_tagger_cron
+
+- name: setup the remove-old-and-crusty-packages cronjob
+  copy: >
+    src=cron-tagger-remove-retired
+    dest=/etc/cron.d/cron-tagger-remove-retired
   tags:
   - cron
   - config
