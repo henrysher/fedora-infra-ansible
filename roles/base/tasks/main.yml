@@ -131,6 +131,16 @@
   - config
   - base
 
+- name: rsyslog log rotate for rsyslog servers
+  copy: src=rsyslog/merged-rsyslog dest=/etc/logrotate.d/merged-rsyslog mode=644
+  when: inventory_hostname.startswith('log')
+  notify:
+  - restart rsyslog
+  tags:
+  - rsyslogd
+  - config
+  - base
+
 - name: add rsyslog config to /etc/rsyslog.d
   copy: src={{ item }} dest=/etc/rsyslog.d/ owner=root group=root mode=0644
   with_fileglob:
