@@ -1,0 +1,29 @@
+- name: install fedmsg-gateway
+  yum: pkg=fedmsg-gateway state=installed
+  tags:
+  - packages
+  - fedmsg/gateway
+
+- name: enable on boot and start fedmsg-gateway
+  service: name=fedmsg-gateway state=started enabled=true
+  tags:
+  - services
+  - fedmsg/gateway
+  notify:
+  - restart fedmsg-gateway
+
+- name: setup fedmsg-gateway config file
+  copy: src=gateway.py dest=/etc/fedmsg.d/gateway.py
+  tags:
+  - config
+  - fedmsg/gateway
+  notify:
+  - restart fedmsg-gateway
+
+- name: bump fs limits
+  copy: src=limits.conf dest=/etc/security/limits.conf
+  tags:
+  - config
+  - fedmsg/gateway
+  notify:
+  - restart fedmsg-gateway
