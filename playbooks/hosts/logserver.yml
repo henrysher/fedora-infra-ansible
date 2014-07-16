@@ -1,0 +1,48 @@
+- name: make logs server
+  hosts: log01.phx2.fedoraproject.org
+  user: root
+  gather_facts: False
+  accelerate: "{{ accelerated }}"
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "{{ private }}/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  tasks:
+  - include: "{{ tasks }}/virt_instance_create.yml"
+  - include: "{{ tasks }}/accelerate_prep.yml"
+
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"
+
+- name: make the box be real
+  hosts: log01.phx2.fedoraproject.org
+  user: root
+  gather_facts: True
+  accelerate: "{{ accelerated }}"
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "{{ private }}/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  roles:
+  - base
+  - rkhunter
+  - nagios_client
+  - hosts
+  - fas_client
+  - collectd/base
+  - collectd/server
+  - sudo
+
+  tasks:
+  - include: "{{ tasks }}/yumrepos.yml"
+  - include: "{{ tasks }}/apache.yml"
+  - include: "{{ tasks }}/2fa_client.yml"
+  - include: "{{ tasks }}/motd.yml"
+
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"
+  - include: "{{ handlers }}/semanage.yml"

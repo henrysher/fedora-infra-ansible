@@ -20,6 +20,14 @@
   copy: src=network-client.conf dest=/etc/collectd.d/network.conf
   notify:
   - restart collectd
+  when: not inventory_hostname.startswith('log')
+
+# install collectd-network config
+- name: /etc/collectd.d/network.conf
+  copy: src=network-server.conf dest=/etc/collectd.d/network.conf
+  notify:
+  - restart collectd
+  when: inventory_hostname.startswith('log')
 
 # apache - localhost only - pretty much any apache server
 - name: install collectd-apache
