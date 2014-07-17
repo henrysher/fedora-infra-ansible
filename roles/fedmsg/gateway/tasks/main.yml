@@ -4,6 +4,14 @@
   - packages
   - fedmsg/gateway
 
+- name: ensure that nrpe has rights to monitor us
+  file: >
+    dest=/var/run/fedmsg/monitoring-fedmsg-gateway.socket
+    mode=0775
+    owner=fedmsg
+    group=nrpe
+    state=present
+
 - name: enable on boot and start fedmsg-gateway
   service: name=fedmsg-gateway state=started enabled=true
   tags:
