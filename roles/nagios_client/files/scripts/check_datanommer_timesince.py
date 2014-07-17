@@ -25,6 +25,7 @@ def query_timesince(category):
     process = subprocess.Popen(cmd.split(), shell=False,
                                stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout, stderr = process.communicate()
+    prefix, stdout = stdout.split("INFO] ", 1)
     data = json.loads(stdout)
     return float(data[0])
 
