@@ -82,5 +82,11 @@
 - name: Override config.inc.php for the given environment
   template: src=config.inc.php dest=/usr/share/nagios/html/config.inc.php mode=0640 owner=root group=apache
 
-- name: Restart and autostart nagios
-  service: name=nagios state=restarted enabled=yes
+- name: Restart and autostart services
+  service: name={{item}} state=restarted enabled=yes
+  with_items:
+  - httpd
+  - nagios
+  - nrpe
+  - postfix
+  - rsyslog
