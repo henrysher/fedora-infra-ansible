@@ -1,0 +1,654 @@
+#!/usr/bin/python -t
+VERSION = "1.0"
+
+# $Id: process-cvs-requests.py,v 1.25 2010/07/01 04:51:23 tibbs Exp $
+
+# TODO:
+# Extract fedora-review flag setter if possible.
+# Display last linked spec file.
+# Download (and process?) last linked srpm
+
+# Checks to add:
+# Package already exists in pkgdb.
+# fedora-review flag isn't set (especially if it's still set to '?'
+# Catch common misspellings?
+# Any owner contains '@' or other invalid character
+# Maybe verify owners in pkgdb/FAS.
+# SSH into cvs.fedoraproject.org to run pkg2branch.py directly
+#  or just run on cvs.fedoraproject.org
+# Try to do some checking on the ~/.bugzillacookies file and suggest "bugzilla login"
+
+import bugzilla
+import codecs
+import datetime
+import getpass
+import glob
+import operator
+import os
+import re
+import readline
+import sys
+import subprocess
+import tempfile
+import time
+import xmlrpclib
+from configobj import ConfigObj, flatten_errors
+from fedora.client import AuthError, AppError, PackageDB
+from optparse import OptionParser
+from validate import Validator
+
+# Red Hat's bugzilla
+url = 'https://bugzilla.redhat.com/xmlrpc.cgi'
+
+# Users who indicated that they're OK with EPEL branches.  Some request that
+# they be made comaintainers.
+# Taken from http://fedoraproject.org/wiki/EPEL/ContributorStatusNo
+epel_ok = ['abompart', 'athimm', 'corsepiu', 'ecik', 'faucamp', 'konradm',
+        'monnerat', 'mtasaka', 'nim', 'rafalzaq', 'rineau', 'rstrode',
+        'sgrubb', 'shishz', 'terjeros', 'zkota']
+epel_ok_comaint = ['alexlan', 'guidograzioli', 'jwrdegoede', 'kkofler',
+        'mebourne', 'overholt', 'pgordon', 'rishi', 'snirkel']
+
+PAGER = os.environ.get('PAGER') or '/usr/bin/less'
+EDITOR = os.environ.get('EDITOR') or '/usr/bin/vim'
+
+# Override a method in xmlrpclib so it doesn't blow up when getting crap data
+# from Red Hat's bugzilla.
+# Bugfixes seem to have rendered this unnecessary
+#def _decode(data, encoding, is8bit=re.compile("[\x80-\xff]").search):
+#    # decode non-ascii string (if possible)
+#    if unicode and encoding and is8bit(data):
+#        data = unicode(data, encoding, 'replace')
+#    return data
+#xmlrpclib._decode = _decode
+
+def parse_commandline():
+    usage = 'usage: %prog [options]'
+    parser = OptionParser(usage)
+    parser.add_option('--url', dest='url',
+            help='bugzilla URL to query',
+            default=url)
+    parser.add_option('-u', '--user',
+            help='Username for PackageDB connection',
+            dest='user',
+            default=getpass.getuser())
+    parser.add_option('--debug',
+            action='store_true',
+            dest='debug',
+            default=False,
+            help='Turn on some debugging statements')
+
+    (options, args) = parser.parse_args()
+    return options
+
+def parse_pkgdb_config():
+    vldtr = Validator()
+    # configspec to validate types and set defaults
+    configspec = '''
+    [global]
+        pkgdb.url = string(default = 'https://admin.fedoraproject.org/pkgdb')
+        pkgdb.retries = integer(default = 5)
+        pkgdb.knowngroups = list(default = list())
+    '''.splitlines()
+
+    cfg = ConfigObj('/etc/pkgdb-client.cfg', configspec=configspec)
+    user = ConfigObj(os.path.expanduser('~/.fedora/pkgdb-client.cfg'),
+            configspec=configspec)
+    cfg.merge(user)
+    res = cfg.validate(vldtr, preserve_errors=True)
+
+    for entry in flatten_errors(cfg, res):
+        section_list, key, error = entry
+        section_list.append(key)
+        section_string = ','.join(section_list)
+        if error == False:
+            error = 'Missing value or section.'
+        print ','.join(section_list), '=', error
+        sys.exit(1)
+
+    cfg['global']['pkgdb.url'] = os.environ.get('PACKAGEDBURL') or cfg['global']['pkgdb.url']
+    return cfg['global']
+
+def encode_utf8(object, encoding='utf8', errors='replace'):
+    if isinstance(object, basestring):
+        if isinstance(object, str):
+            return unicode(object, encoding, errors)
+        else:
+            return object
+    return u''
+
+def add_package(pkgdb, request):
+    for retry in range(1, config['pkgdb.retries'] + 1):
+        try:
+            pkgdb.add_package(pkg=request['pkg'],
+                    owner=request['owner'],
+                    description=request['description'],
+                    branches=request['branches'],
+                    cc_list=request['cc_list'],
+                    comaintainers=request['comaintainers'])
+        except AuthError, e:
+            if sys.stdin.isatty():
+                if retry >= config['pkgdb.retries']:
+                    break
+                pkgdb.password = getpass.getpass('PackageDB Password: ')
+            else:
+                # Don't retry if we're reading the password from stdin
+                break
+        else:
+            break
+
+def edit_package(pkgdb, request):
+    for retry in range(1, config['pkgdb.retries'] + 1):
+        try:
+            pkgdb.edit_package(pkg=request['pkg'],
+                    owner=request['owner'],
+                    branches=request['newbranches'],
+                    cc_list=request['cc_list'],
+                    comaintainers=request['comaintainers'])
+        except AuthError, e:
+            if retry >= config['pkgdb.retries']:
+                break
+            pkgdb.password = getpass.getpass('PackageDB Password: ')
+        else:
+            break
+
+def run_query(bz):
+    querydata = {}
+    querydata['column_list'] = ['opendate', 'changeddate', 'bug_severity',
+            'alias', 'assigned_to', 'reporter', 'bug_status', 'resolution',
+            'component', 'blockedby', 'dependson', 'short_desc',
+            'status_whiteboard', 'flag_types']
+    querydata['product'] = ['Fedora']
+
+    querydata['field0-0-0'] = 'flagtypes.name'
+    querydata['type0-0-0'] = 'equals'
+    querydata['value0-0-0'] = 'fedora-cvs?'
+
+    bugs = bz.query(querydata)
+    bugs.sort(key=operator.attrgetter('bug_id'))
+
+    ids = map(lambda x: x.bug_id, bugs)
+    comments = bz._proxy.Bug.comments({"ids": ids})
+
+    return [bugs, comments]
+
+def display_bug(bug, comments):
+    '''Show the complete ticket in a pager.'''
+    comment = 0
+    b = []
+    b.append('https://bugzilla.redhat.com/%d' % bug.bug_id)
+    b.append('Bug %d - %s' % (bug.bug_id, bug.short_desc))
+    b.append('Reported by: %s at %s' % (bug.reporter, bug.opendate))
+    b.append('Assigned to: %s' % (bug.assigned_to))
+    for i in comments:
+        b.append('-'*40)
+        #b.append('Comment %d by %s at %s\n' % (comment, i['author'], time.strftime('%F %T',i['time'].timetuple())))
+        #b.append('Comment %d by %s at %04d-%02d-%02d %02d:%02d%02d\n' % (
+        b.append('Comment %d by %s at %s\n' % (
+            comment, i['author'], i['time']))
+        b.append(i['text'])
+        b.append('')
+        comment += 1
+
+    p = subprocess.Popen(PAGER, stdin=subprocess.PIPE)
+    p.communicate('\n'.join(b).encode('utf8'))
+
+
+def edit_string(s):
+    '''Edit the contents of a string in the user's preferred editor.'''
+    (fd, f) = tempfile.mkstemp()
+    fh=os.fdopen(fd, 'w+')
+    fh.write(s)
+    fh.close()
+    p = subprocess.Popen([EDITOR, f]);
+    sts = os.waitpid(p.pid, 0)[1]
+    if not sts:
+        try:
+            fh = open(f, 'r')
+            s = fh.read()
+        finally:
+            fh.close()
+
+    return s
+
+
+def parse_prefixed_lines(s):
+    lastitem = ''
+    items = {}
+    items['Branches'] = ''
+    lines = s.splitlines()
+
+    # Skip until the Request line
+    while 1:
+        if (lines[0].find('New Package CVS Request') == 0
+                or lines[0].find('Package Change Request') == 0):
+            break
+        lines.pop(0)
+
+    # Skip until a line containing a colon
+    while 1:
+        if lines[0].find(':') >= 0:
+            break
+        lines.pop(0)
+
+    # Now parse
+    while 1:
+        if not len(lines):
+            break
+
+        line = lines.pop(0)
+        line.strip()
+        if len(line) == 0:
+            break
+
+        pos = line.find(':')
+
+        # Line-wrapped?
+        if pos < 0:
+            items[lastitem] += " " + line.strip()
+            continue
+
+        lastitem = line[:pos]
+        items[lastitem] = line[pos+1:].strip()
+
+    return items
+
+def clean_request(items):
+    '''Clean up various bits that can be passed in a CVS request.'''
+    request = {}
+
+    if not 'InitialCC' in items:
+        items['InitialCC'] = ''
+    if not 'Owners' in items:
+        items['Owners'] = ''
+    if not 'Short Description' in items:
+        items['Short Description'] = ''
+
+    branches = items['Branches'].strip()
+    branches = re.sub(r',', ' ', branches)
+    branches = re.sub(r'f', 'F', branches)
+    branches = re.sub(r'devel', ' ', branches)
+    branches = re.sub(r'F([1-9][0-9])', r'F-\1', branches)
+    branches = re.sub(r'EL([1-9])', r'EL-\1', branches)
+    branches = re.sub(r'F-14', r'f14', branches)
+    branches = re.sub(r' +', ' ', branches)
+    branches = branches.strip()
+    branches += ' devel'
+    items['Branches'] = branches
+    request['branches'] = branches.split() 
+
+    if 'New Branches' in items:
+        branches = items['New Branches'].strip()
+        branches = re.sub(r',', ' ', branches)
+        branches = re.sub(r'f', 'F', branches)
+        branches = re.sub(r'F([1-9][0-9])', r'F-\1', branches)
+        branches = re.sub(r'F-14', r'f14', branches)
+        branches = re.sub(r' +', ' ', branches)
+        branches = branches.strip()
+        items['New Branches'] = branches
+        request['newbranches'] = branches.split() 
+
+    owners = items['Owners'].strip()
+    owners = re.sub(r',', ' ', owners)
+    if len(owners):
+        request['owner'] = owners.split()[0]
+        request['comaintainers'] = owners.split()[1:]
+
+    request['cc_list'] = items['InitialCC'].split()
+    request['pkg'] = items['Package Name']
+    request['description'] = items['Short Description']
+
+    return request
+
+def new_request_string(items, bug):
+    r = []
+    r.append("Bug URL: http://bugzilla.redhat.com/%d " % bug.bug_id)
+    r.append("Bug summary: " + bug.short_desc)
+    r.append('')
+    r.append("New Package CVS Request")
+    r.append("=======================")
+    r.append("Package Name: " + items['Package Name'])
+    r.append("Short Description: " + items['Short Description'])
+    r.append("Owners: " + items['Owners'])
+    r.append("Branches: " + items['Branches'])
+    r.append("InitialCC: " + items['InitialCC'])
+    r.append('')
+    return '\n'.join(r)
+
+def change_request_string(items, bug):
+    r = []
+    r.append("Bug URL: http://bugzilla.redhat.com/%d" % bug.bug_id)
+    r.append("Bug summary: " + bug.short_desc)
+    r.append('')
+    r.append("Package Change Request")
+    r.append("======================")
+    r.append("Package Name: " + items['Package Name'])
+    r.append("Owners: " + items['Owners'])
+    r.append("New Branches: " + items['New Branches'])
+    r.append("InitialCC: " + items['InitialCC'])
+    r.append('')
+    return '\n'.join(r)
+
+def get_pkgdb_owners(pkgdb, pkg):
+    owners = {}
+    o = ''
+    for i in pkgdb.get_owners(pkg)['packageListings']:
+        branch = i['collection']['branchname']
+        if branch not in branches:
+            continue
+
+        owners[branch] = {}
+        owners[branch]['primary'] = i['owner']
+        owners[branch]['comaint'] = []
+        for j in i['people']:
+            #if 'commit' in j['aclOrder']:
+            if j['aclOrder']['commit'] != None and j['username'] != owners[branch]:
+                owners[branch]['comaint'].append(j['username'])
+
+    for i in sorted(branches, reverse=True):
+        if i in owners:
+            o += "%s: %s" % (i, owners[i]['primary'])
+            if len(owners[i]['comaint']):
+                o += ' - %s' % ','.join(sorted(owners[i]['comaint']))
+            o += '\n'
+
+    return (owners, o)
+
+def process_no_request(bug, allcomments):
+    '''Deal with a ticket where no request was found.'''
+    while 1:
+        os.system('clear')
+        print "No CVS request found in bug %d\nhttp://bugzilla.redhat.com/%d." % (bug.bug_id, bug.bug_id)
+        ok = raw_input('\nWhat do?  (n=Next, s=Show ticket, c=Comment, q=Quit):')
+        if ok == 'c':
+            bug_comment = edit_string('')
+            print bug_comment
+            ok = raw_input("\nPost this comment to the ticket (y/n)?")
+            if ok == 'y':
+                print "Updating bugzilla..."
+                bug.addcomment(bug_comment)
+                ok = raw_input("\nClear the fedora-cvs flag (y/n)?")
+                if ok == 'y':
+                    print "Clearing the flag..."
+                    bug.updateflags({'fedora-cvs':'X', 'nomail':1})
+            break
+        elif ok == 'n':
+            return True
+        elif ok == 'q':
+            return False
+        elif ok == 's':
+            print
+            display_bug(bug, allcomments)
+    return True
+
+def process_new_request(bug, comment, allcomments, firstfound, pkgdb, branches):
+    '''Parse a new package request, try to repair line wrapping, and do some
+    basic validity checks.'''
+    warned = False
+    warnings = []
+    items = parse_prefixed_lines(comment['text'])
+    request = clean_request(items)
+
+    if not firstfound:
+        warnings.append("WARNING: CVS request was not the last comment.")
+        warned = True
+    if not 'Package Name' in items:
+        warnings.append("WARNING: No package name supplied.")
+        warned = True
+    if not 'Owners' in items:
+        warnings.append("WARNING: No owners provided.")
+        warned = True
+    if not 'Short Description' in items:
+        warnings.append("WARNING: No description provided.")
+        warned = True
+    for i in request['branches']:
+        if i not in branches:
+            warnings.append("WARNING: Invalid branch %s requested" % i)
+            warned = True
+
+    short_desc = bug.short_desc
+    m=re.search('Review Request:\s([a-zA-Z0-9_+.-]+)\s+', short_desc, re.I)
+    if not m:
+        warnings.append("WARNING: Couldn't parse package name out of bug summary.")
+        warned = True
+    elif m.group(1) != items['Package Name']:
+        warnings.append("WARNING: Requested package name %s doesn't match bug summary %s" % (items['Package Name'], m.group(1)))
+        warned = True
+
+    req_string = new_request_string(items, bug)
+    bug_comment = 'GIT done (by process-git-requests).\n'
+
+    okprompt = 'Do it (yes=Yes, n=No, e=Edit request, s=Show ticket, c=Comment, q=Quit)?'
+    if warned:
+        prompt = 'Warnings present!\nDo it (a=Accept warnings, n=No, e=Edit request, s=Show ticket, c=Comment, q=Quit)?'
+    else:
+        prompt = okprompt
+
+    # We have to loop until the user accepts the request
+    while 1:
+        # We have to loop until the user enters something that works
+        while 1:
+            os.system('clear')
+            if len(warnings):
+                print '\n'.join(warnings), "\n"
+            print "Currently assigned to: %s" % bug.assigned_to
+            print req_string
+            ok = raw_input(prompt)
+            if ok == 'a':
+                prompt = okprompt
+                warned = False
+            if ok == 'c':
+                bug_comment = edit_string('')
+                print bug_comment
+                ok = raw_input("\nPost this comment to the ticket (y/n)?")
+                if ok == 'y':
+                    print "Updating bugzilla..."
+                    bug.addcomment(bug_comment)
+                ok = raw_input("\nClear the fedora-cvs flag (y/n)?")
+                if ok == 'y':
+                    print "Clearing the flag..."
+                    bug.updateflags({'fedora-cvs':'X', 'nomail':1})
+                return (False, True)
+            elif ok == 'e':
+                req_string = edit_string(req_string)
+                items=parse_prefixed_lines(req_string)
+                request = clean_request(items)
+                req_string = new_request_string(items, bug)
+                break
+            elif ok == 'n':
+                return (False, True)
+            elif ok == 'q':
+                return (False, False)
+            elif ok == 's':
+                print
+                display_bug(bug, allcomments)
+            elif ok == 'yes' and not warned:
+                bug_comment = edit_string(bug_comment)
+                print '\n', bug_comment
+                ok = raw_input('Go ahead (y/n)?')
+                if ok != 'y':
+                    break
+                print 'Calling pkgdb...'
+                try:
+                    add_package(pkgdb, request)
+                except Exception, e:
+                    print "Pkgdb call failed:"
+                    print e
+                    raw_input('\nPress enter to continue to the next ticket.')
+                    return (False, True)
+
+                print 'Updating bugzilla...'
+                # XXX Need to handle errors here
+                bug.updateflags({'fedora-cvs':'+', 'nomail':1})
+                bug.addcomment(bug_comment)
+                return (request['pkg'], True)
+            else:
+                pass
+
+def process_change_request(bug, comment, allcomments, firstfound, pkgdb, branches):
+    '''Parse a change request, try to repair line wrapping, and do some
+    basic validity checks.'''
+    owned = False
+    warned = False
+    warnings = []
+    items = parse_prefixed_lines(comment['text'])
+    request = clean_request(items)
+    print "Looking up owners in pkgdb..."
+    (owners, owner_string) = get_pkgdb_owners(pkgdb, items['Package Name'])
+
+    # Try to enforce EPEL branch rules
+    for i in owners.keys():
+        if request['owner'] == owners[i]['primary'] or request['owner'] in owners[i]['comaint']:
+            owned = True
+    if not owned and items['New Branches'].find('EL') >= 0 and owners['devel']['primary'] in epel_ok:
+        warnings.append("NOTE: new branch owner not owner of other branches,\n  but primary devel owner is OK with EPEL branches.")
+    elif not owned and items['New Branches'].find('EL') >= 0 and owners['devel']['primary'] in epel_ok_comaint:
+        warnings.append("NOTE: new branch owner not owner of other branches,\n but primary devel owner is OK with EPEL branches\n  as long as they comaintain.")
+    elif not owned:
+        warnings.append("WARNING: new branch owner not owner of other branches.")
+        warned = True
+
+    if not firstfound:
+        warnings.append("WARNING: GIT request was not the last comment.")
+        warned = True
+    if not 'Package Name' in items:
+        warnings.append("WARNING: No package name supplied.")
+        warned = True
+    if not 'Owners' in items:
+        warnings.append("WARNING: No owners provided.")
+        warned = True
+    if not 'New Branches' in items:
+        warnings.append("WARNING: No new branches requested.")
+    for i in request['branches']:
+        if i not in branches:
+            warnings.append("WARNING: Invalid branch %s requested" % i)
+            warned = True
+
+    short_desc = bug.short_desc
+    req_string = change_request_string(items, bug)
+    bug_comment = 'GIT done (by process-git-requests).\n'
+
+    okprompt = 'Do it (yes=Yes, n=No, e=Edit request, s=Show ticket, c=Comment, q=Quit)?'
+    if warned:
+        prompt = 'Warnings present!\nDo it (a=Accept warnings, n=No, e=Edit request, s=Show ticket, c=Comment, q=Quit)?'
+    else:
+        prompt = okprompt
+
+    # We have to loop until the user accepts the request
+    while 1:
+        # We have to loop until the user enters something that works
+        while 1:
+            os.system('clear')
+            if len(warnings):
+                print '\n'.join(warnings), "\n"
+            print req_string + "\nCurrent branch owners - comaintainers:\n" + owner_string
+            ok = raw_input(prompt)
+            if ok == 'a':
+                prompt = okprompt
+                warned = False
+            if ok == 'c':
+                bug_comment = edit_string('')
+                print bug_comment
+                ok = raw_input("\nPost this comment to the ticket (y/n)?")
+                if ok == 'y':
+                    print "Updating bugzilla..."
+                    bug.addcomment(bug_comment)
+                ok = raw_input("\nClear the fedora-cvs flag (y/n)?")
+                if ok == 'y':
+                    print "Clearing the flag..."
+                    bug.updateflags({'fedora-cvs':'X', 'nomail':1})
+                return (False, True)
+            elif ok == 'e':
+                req_string = edit_string(req_string)
+                items=parse_prefixed_lines(req_string)
+                request = clean_request(items)
+                req_string = change_request_string(items, bug)
+                break
+            elif ok == 'n':
+                return (False, True)
+            elif ok == 'q':
+                return (False, False)
+            elif ok == 's':
+                print
+                display_bug(bug, allcomments)
+            elif ok == 'yes' and not warned:
+                bug_comment = edit_string(bug_comment)
+                print '\n', bug_comment
+                ok = raw_input('Go ahead (y/n)?')
+                if ok != 'y':
+                    break
+                print 'Calling pkgdb...'
+                try:
+                    edit_package(pkgdb, request)
+                except Exception, e:
+                    print "Pkgdb call failed:"
+                    print e
+                    raw_input('\nPress enter to continue to the next ticket.')
+                    return (False, True)
+
+                print 'Updating bugzilla...'
+                # XXX Need to handle errors here
+                bug.updateflags({'fedora-cvs':'+', 'nomail':1})
+                bug.addcomment(bug_comment)
+                return (request['pkg'], True)
+            else:
+                pass
+
+if __name__ == '__main__':
+    branches = {}
+    processed = []
+    options = parse_commandline()
+    print "Connecting to bugzilla..."
+    bz = bugzilla.Bugzilla(url=options.url)
+    print "Querying bugzilla..."
+    (bugs, comments) = run_query(bz)
+    print "Done; got %d." % len(bugs)
+    if not len(bugs):
+        print "No requests to process!"
+        exit(0)
+
+    print "Connecting to pkgdb..."
+    config = parse_pkgdb_config()
+    pkgdb = PackageDB(config['pkgdb.url'], username=options.user,
+            debug=options.debug)
+    print "Getting valid branches...."
+    for i in pkgdb.get_collection_list(eol=False):
+        branches[i[0]['branchname']] = 1
+    print "Done."
+    print
+
+    # Iterate over bugs
+    for i in bugs:
+        firstfound = True
+        type = ''
+        print "Parsing bug %d - https://bugzilla.redhat.com/%d" % (i.bug_id, i.bug_id)
+        for j in reversed(comments['bugs'][str(i.bug_id)]['comments']):
+            if 'New Package CVS Request' in j['text']:
+                type = 'new'
+                break
+            if 'Package Change Request' in j['text']:
+                type = 'change'
+                break
+            firstfound = False
+        else:
+            if not process_no_request(i, comments['bugs'][str(i.bug_id)]['comments']):
+                break
+
+        if type == 'new':
+            (package, more) = process_new_request(i, j, comments['bugs'][str(i.bug_id)]['comments'], firstfound, pkgdb, branches)
+            if package:
+                processed.append(package)
+            if not more:
+                break
+        elif type == 'change':
+            (package, more) = process_change_request(i, j, comments['bugs'][str(i.bug_id)]['comments'], firstfound, pkgdb, branches)
+            if package:
+                processed.append(package)
+            if not more:
+                break
+
+    if len(processed):
+        print '\nYou must now run this on the git server\nto set up the git repository:'
+        print '/usr/local/bin/pkgdb2branch.py ' + ' '.join(processed)
+
+    sys.exit(0)

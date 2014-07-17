@@ -1,0 +1,147 @@
+---
+# tasklist for setting up Dist Git
+#
+# This is a bit complex, so I'm dividing it into sections.
+
+# -- Common ----------------------------------------------
+# This is very basic stuff that is needed by multiple of the next sections.
+- name: install the needed packages
+  yum: pkg={{item}} state=present
+  with_items:
+  - git
+  - httpd
+  - mod_ssl
+  - python-fedmsg-genacls
+
+- name: set some sysctl options
+  sysctl: name=vm.zone_reclaim_mode value=1 state=present
+  when: env != "staging"
+
+- name: create the packager group
+  group: name=packager gid=415 state=present
+
+- name: install the httpd config directory
+  copy: src=pkgs.fedoraproject.org.conf dest=/etc/httpd/conf.d/pkgs.fedoraproject.org.conf
+  file: dest=/etc/httpd/conf.d/pkgs.fedoraproject.org state=directory
+  notify:
+  - restart httpd
+
+- name: install the mod_ssl configuration
+  copy: src=ssl.conf dest=/etc/httpd/conf.d/ssl.conf
+  notify:
+  - restart httpd
+
+- name: allow httpd to access the files on NFS
+  seboolean: name=httpd_use_nfs state=yes persistent=yes
+
+# -- Dist Git --------------------------------------------
+# This is the Git setup itself: group, root directory, scripts,...
+#
+# Requires: roles/git/hooks
+# Requires: roles/git/make_checkout_seed
+# Requires: roles/git/server
+- name: create the distgit root directory)
+  file: dest=/srv/git state=directory mode=0755
+  file: dest=/srv/git/rpms state=directory mode=2775 group=packager
+
+- name: install the distgit scripts
+  copy: src={{item}} dest=/usr/local/bin/{{item}} owner=root group=root mode=0755
+  with_items:
+    - setup_git_package
+    - mkbranch
+    - pkgdb2-clone
+    - pkgdb2branch.py
+    - process-git-requests
+
+- name: install the Dist Git-related httpd config
+  copy: src=git-smart-http.conf dest=/etc/httpd/conf.d/pkgs.fedoraproject.org/git-smart-http.conf
+  notify:
+  - restart httpd
+
+
+# -- Gitolite --------------------------------------------
+# This is the permission management for package maintainers, using Gitolite.
+#
+# Requires: roles/fedmsg/base
+# Requires: roles/fedmsg/hub
+# Requires: roles/gitolite/base
+# Requires: roles/gitolite/check_fedmsg_hooks
+- name: mount the lookaside path
+  mount: >
+    src=vtap-fedora-nfs01.storage.phx2.redhat.com:/vol/fedora_sourcecache
+    name=/srv/cache/lookaside
+    fstype=nfs
+    opts=rw,hard,bg,intr,noatime,nodev,nosuid,nfsvers=3
+    state=mounted
+  when: env != "staging"
+
+- name: create the /var/log/gitolite directory
+  file: path=/var/log/gitolite owner=root group=packager state=directory mode=2775
+
+- name: create the gen-acls user
+  group: name=gen-acls gid=417 state=present
+  user: name=gen-acls comment="dummy system account for the gen-acls fedmsg job" uid=417 group=gen-acls shell=/bin/bash home=/
+
+- name: create the /etc/gitolite/conf directory
+  file: path=/etc/gitolite/conf owner=gen-acls group=gen-acls state=directory mode=0755
+
+- name: create /etc/gitolite/gitolite.rc
+  copy: src=gitolite.rc dest=/etc/gitolite/gitolite.rc owner=root group=root mode=0755
+
+- name: install the gitolite scripts
+  copy: src={{item}} dest=/usr/local/bin/{{item}} mode=0755
+  with_items:
+    - genacls.pkgdb
+    - genacls.sh
+
+- name: install the fedmsg configuration
+  copy: src=fedmsg-genacls-config.py dest=/etc/fedmsg.d/genacls.py owner=root group=root mode=0644
+
+
+# -- CGit ------------------------------------------------
+# This is the pretty web view of the repositories, using CGit.
+#
+# Requires: roles/cgit/base
+# Requires: roles/cgit/clean_lock_cron
+# Requires: roles/cgit/make_pkgs_list
+- name: install the cgitrc file
+  copy: src=cgitrc dest=/etc/cgitrc
+
+- name: install the CGit-related httpd config
+  copy: src=redirect.conf dest=/etc/httpd/conf.d/pkgs.fedoraproject.org/redirect.conf
+  notify:
+  - restart httpd
+
+
+# -- Lookaside Cache -------------------------------------
+# This is the annex to Dist Git, where we host source tarballs.
+#
+# Requires: clamav
+- name: install the Lookaside Cache httpd configs
+  copy: src={{item}} dest=/etc/httpd/conf.d/pkgs.fedoraproject.org/{{item}}
+  with_items:
+  - lookaside.conf
+  - lookaside-upload.conf
+  notify:
+  - restart httpd
+
+- name: create the Lookaside Cache root directory
+  file: dest=/srv/cache/lookaside/pkgs state=directory
+
+- name: install the certificates
+  copy: src={{private}}/fedora-ca.cert dest=/etc/httpd/conf/cacert.pem
+  copy: src={{private}}/pkgs.fedoraproject.org_key_and_cert.pem dest=/etc/httpd/conf/pkgs.fedoraproject.org_key_and_cert.pem owner=apache mode=0400
+
+- name: install, run, and schedule the updatecrl.sh script
+  copy: src=updatecrl.sh dest=/usr/local/bin/updatecrl.sh owner=root mode=755
+  command: /usr/local/bin/updatecrl.sh creates=/etc/pki/tls/crl.pem
+  cron: >
+    name="updatecrl" cron_file="ansible-updatecrl"
+    minute=0
+    user=root
+    job="/usr/local/bin/updatecrl.sh"
+
+- name: install the upload CGI script
+  copy: src=dist-git-upload.cgi dest=/srv/web/upload.cgi owner=root group=root mode=0755
+  notify:
+  - restart httpd
