@@ -1,0 +1,40 @@
+# This is a *very* simple role.  The config needed for fedmsg-relay to operate
+# correctly is actually included as part of the fedmsg/base role.
+
+- name: install datanommer packages
+  yum: pkg="{{ item }}" state=installed
+  with_items:
+  - python-datanommer-consumer
+  - python-datanommer-models
+  - python-psycopg2
+  - datanommer-commands
+  tags:
+  - packages
+  - datanommer
+
+- name: copy alembic config
+  template: >
+    src=alembic.ini
+    dest=/usr/share/datanommer.models/alembic.ini
+    mode=0640
+  tags:
+  - config
+  - datanommer
+  notify:
+  - restart fedmsg-hub
+
+- name: copy datanommer config itself
+  template: >
+    src="{{ item }}"
+    dest="/etc/fedmsg.d/{{item}}"
+    mode=0640
+    owner=fedmsg
+    group=nrpe
+  with_items:
+  - datanommer.py
+  - fas-credentials.py
+  tags:
+  - config
+  - datanommer
+  notify:
+  - restart fedmsg-hub
