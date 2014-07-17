@@ -10,7 +10,14 @@
   sudo_user: postgres
   action: postgresql_db db={{ fakefedorainfra_db_name }}
 
-- name: ensure fakefedorainfra user has access to database
+- name: ensure stg fakefedorainfra user has access to stg database
+  when: deployment_type == 'stg'
+  delegate_to: "{{ buildmaster_db_host }}"
+  sudo: true
+  sudo_user: postgres
+  action: postgresql_user db={{ fakefedorainfra_db_name }} user={{ stg_fakefedorainfra_db_user }} password={{ stg_fakefedorainfra_db_password }} role_attr_flags=NOSUPERUSER
+
+- name: ensure dev fakefedorainfra user has access to dev database
   when: deployment_type == 'dev'
   delegate_to: "{{ buildmaster_db_host }}"
   sudo: true
