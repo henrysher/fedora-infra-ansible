@@ -10,3 +10,11 @@
 
 - name: fedmsg-hub service
   service: name=fedmsg-hub state=started enabled=yes
+
+- name: enable the websocket server if we should
+  copy: src=websockets.py dest=/etc/fedmsg.d/websockets.py
+  when: enable_websocket_server
+
+- name: disable the websocket server if we should..
+  file: dest=/etc/fedmsg.d/websockets.py state=absent
+  when: not enable_websocket_server
