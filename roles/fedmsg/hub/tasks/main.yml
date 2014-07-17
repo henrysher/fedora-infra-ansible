@@ -8,6 +8,14 @@
   tags:
   - packages
 
+- name: ensure that nrpe has rights to monitor us
+  file: >
+    dest=/var/run/fedmsg/monitoring-fedmsg-hub.socket
+    mode=0775
+    owner=fedmsg
+    group=nrpe
+    state=file
+
 - name: fedmsg-hub service
   service: name=fedmsg-hub state=started enabled=yes
 
@@ -20,3 +28,4 @@
   file: dest=/etc/fedmsg.d/websockets.py state=absent
   when: not enable_websocket_server
   notify: restart fedmsg-hub
+
