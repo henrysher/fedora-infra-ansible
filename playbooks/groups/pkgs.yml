@@ -1,0 +1,56 @@
+- name: make pkgs
+  hosts: pkgs:pkgs-stg
+  user: root
+  gather_facts: False
+
+  vars_files:
+  - /srv/web/infra/ansible/vars/global.yml
+  - "{{ private }}/vars.yml"
+  - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  tasks:
+  - include: "{{ tasks }}/virt_instance_create.yml"
+
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"
+
+- name: make the box be real
+  hosts: pkgs:pkgs-stg
+  user: root
+  gather_facts: True
+  accelerate: "{{ accelerated }}"
+
+  vars_files:
+  - /srv/web/infra/ansible/vars/global.yml
+  - "{{ private }}/vars.yml"
+  - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  roles:
+  - base
+  - rkhunter
+  - denyhosts
+  - nagios_client
+  - fas_client
+  - collectd/base
+  - fedmsg/base
+  - fedmsg/hub
+  - sudo
+  - git/hooks
+  - git/make_checkout_seed
+  - git/server
+  - gitolite/base
+  - gitolite/check_fedmsg_hooks
+  - cgit/base
+  - cgit/clean_lock_cron
+  - cgit/make_pkgs_list
+  - clamav
+  - distgit
+
+  tasks:
+  - include: "{{ tasks }}/yumrepos.yml"
+  - include: "{{ tasks }}/motd.yml"
+  - include: "{{ tasks }}/apache.yml"
+  - include: "{{ tasks }}/drbackupkey.yml"
+
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"
