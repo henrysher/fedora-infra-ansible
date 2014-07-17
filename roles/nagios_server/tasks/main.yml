@@ -37,10 +37,10 @@
 #  service: name=nsca state=restarted enabled=yes
 
 - name: Copy /etc/nagios config
-  copy: src=nagios/ dest=/etc/nagios owner=nagios group=nagios
+  copy: src={{srcdir}}/ dest=/etc/nagios owner=nagios group=nagios
 
 - name: Copy checkcommands.cfg
-  template: src=nagios/checkcommands.cfg dest=/etc/nagios/checkcommands.cfg owner=nagios group=nagios
+  template: src={{srcdir}}/checkcommands.cfg dest=/etc/nagios/checkcommands.cfg owner=nagios group=nagios
 
 - name: Copy httpd config
   template: src=nagios-httpd.conf dest=/etc/httpd/conf.d/nagios.conf
@@ -76,6 +76,9 @@
 - name: Install check_nagios_notifications cron
   cron: name="check_nagios_notifications" minute=0 hour=0 weekday=1 user=nagios job="/usr/local/bin/check_nagios_notifications.py"
 
+- name: Override config.inc.php for the given environment
+  template: src=config.inc.php dest=/usr/share/nagios/html/config.inc.php mode=0640 owner=root group=apache
+
 # TODO: Remove this for prod
 - name: Shut services up for testing peacefully
   service: name={{item}} state=stopped enabled=no
@@ -85,68 +88,3 @@
 
 - name: Restart and autostart nagios
   service: name=nagios state=restarted enabled=yes
-
-#class nagios::server_external inherits nagios::server {
-#    File['/etc/nagios/'] {
-#        source => 'puppet:///nagios/nagios-external/',
-#    }
-#
-#    File['/etc/nagios/checkcommands.cfg'] {
-#        content => template('nagios/nagios-external/checkcommands.cfg.erb'),
-#    }
-#
-#    file { '/usr/share/nagios/html/side.html':
-#        mode => 644,
-#        owner => root,
-#        group => root,
-#        source => 'puppet:///nagios/side.html'
-#    }
-#
-#    file { '/usr/share/nagios/html/config.inc.php':
-#        mode => 644,
-#        owner => root,
-#        group => root,
-#        source => 'puppet:///nagios/config.inc.php'
-#    }
-#
-#
-#}
-
-#class nagiosPhysical{
-#    include ipmitool-package
-#    file { '/usr/lib/nagios/plugins/check_ipmi':
-#        source => 'puppet:///nagios/plugins/check_ipmi',
-#        mode => 755,
-#        owner => root,
-#        group => root,
-#        require => [Package['nagios-plugins'], Package['ipmitool']]
-#    }
-#}
-
-#class nrpe {
-#    if ($operatingsystem == "RedHat" and $operatingsystemrelease >= 6) {
-#        selinux-policy::custom { 'nrpe': }
-#    }
-#    
-#    package { 'nrpe': ensure => installed }
-#    
-#    service { 'nrpe':
-#        enable => true,
-#        ensure => running,
-#        subscribe => File['/etc/nagios/nrpe.cfg']
-#    }
-#    
-#    file { '/etc/nagios/nrpe.cfg':
-#        source => 'puppet:///nagios/nrpe.cfg',
-#        require => Package[nrpe],
-#        # notify  => Service[nrpe]
-#    }
-#}
-
-#class nagiossymlink { # Is this a hack? Is it still needed?
-#    symlink { '/usr/lib/nagios':
-#        replace => false,
-#        ensure => '/usr/lib64/nagios/',
-#        require => Package['nagios-plugins']
-#    }
-#}
