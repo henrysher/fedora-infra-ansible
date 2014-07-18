@@ -42,6 +42,20 @@
   - restart collectd
   when: collectd_apache is defined
 
+
+# Three tasks for handling our custom selinux module
+- name: ensure a directory exists for our custom selinux module
+  file: dest=/usr/share/collectd state=directory
+
+- name: copy over our custom selinux module
+  copy: src=selinux/fi-collectd.pp dest=/usr/share/collectd/fi-collectd.pp
+  register: selinux_module
+
+- name: install our custom selinux module
+  command: semodule -i /usr/share/collectd/fi-collectd.pp
+  when: selinux_module|changed
+
+
   
 # each of the below should move to a separate task list
 # since they are odd-balls and one-offs
