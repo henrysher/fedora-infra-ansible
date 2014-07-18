@@ -7,6 +7,18 @@ config = dict(
     environment="prod",
     {% endif %}
 
+    # These options provide a place for hub processes to write out their last
+    # processed message.  This let's them read it in at startup and figure out
+    # what kind of backlog they have to deal with.
+    status_directory="/var/run/fedmsg/status",
+
+    # This is the URL of a datagrepper instance that we can query for backlog.
+    {% if env == 'staging' %}
+    datagrepper_url="https://apps.stg.fedoraproject.org/datagrepper/raw",
+    {% else %}
+    datagrepper_url="https://apps.fedoraproject.org/datagrepper/raw",
+    {% endif %}
+
     # This used to be set to 1 for safety, but it turns out it was
     # excessive.  It is the number of seconds that fedmsg should sleep
     # after it has initialized, but before it begins to try and send any
