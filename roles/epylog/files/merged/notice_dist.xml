@@ -1,0 +1,87 @@
+<?xml version="1.0"?>
+<!-- 
+
+    CAUTION:
+    It is not advised to edit this file! You may miss any future
+    revisions made to it. Instead, create/edit notice_local.xml and
+    add your rules to it following the same XML layout as presented in
+    this file. All members of notice_local.xml will be added
+    indiscriminately, i.e. you don't have to specify the id of the
+    <notice> in notices.conf: any notices added in notice_local.xml
+    will be enabled in the module automatically.
+
+    $Revision: 1.4.2.5 $
+
+-->
+<notices>
+  <notice id="gconfd">
+    <regex>gconfd.*: Failed to get lock.*Failed to create</regex>
+    <regex>gconfd.*: Error releasing lockfile</regex>
+    <regex>gconfd.*: .* Could not lock temporary file</regex>
+    <regex>gconfd.*: .* another process has the lock</regex>
+    <report>GConf locking errors</report>
+  </notice>
+  
+  <notice id="fatalx">
+    <regex>Fatal X error</regex>
+    <report>Fatal X errors</report>
+  </notice>
+
+  <notice id="floppy">
+    <regex>floppy0:|\(floppy\)</regex>
+    <report>Misc floppy errors</report>
+  </notice>
+
+  <notice id="ypserv">
+    <regex>ypserv.*:\srefused\sconnect\sfrom\s(\S+):\d+\sto\sprocedure\s(\S+)</regex>
+    <report>%s denied for %s</report>
+  </notice>
+  
+  <notice id="linux_boot" critical="yes">
+    <regex>kernel:\sLinux\sversion\s(\S*)</regex>
+    <report>Rebooted with Linux kernel %s</report>
+  </notice>
+  
+  <notice id="cdrom_vfs">
+    <regex>VFS: busy inodes on changed media</regex>
+    <report>dirty CDROM mount</report>
+  </notice>
+  
+  <notice id="cdrom">
+    <regex>kernel: cdrom: This disc doesn</regex>
+    <regex>kernel: .*Make sure there is a disc in the drive.</regex>
+    <report>Misc CDROM errors</report>
+  </notice>
+
+  <notice id="dirty_floppy">
+    <regex>attempt to access beyond end of device</regex>
+    <regex>rw=\d+, want=\d+, limit=\d+</regex>
+    <regex>Directory sread .* failed</regex>
+    <regex>kernel: bread in fat_access failed</regex>
+    <report>Dirty floppy mount [non-indicative]</report>
+  </notice>
+
+  <notice id="nfs_timeout" critical="yes">
+    <regex>nfs: server (\S+) not responding</regex>
+    <regex>nfs: server (\S+) OK</regex>
+    <report>NFS timeouts to server %s</report>
+  </notice>
+  
+  <notice id="insmod">
+    <regex>insmod: Hint: insmod errors</regex>
+    <report>insmod errors</report>
+  </notice>
+
+  <notice id="selinux-denied">
+    <regex>audit\S+:\s+avc:\s+denied\s+\{\s([^\}]+)\s\}.*exe=(\S+).*scontext=(\S+)</regex>
+    <report>SELinux: denied "%s" for "%s" (scontext=%s)</report>
+  </notice>
+
+  <notice id="crond">
+    <regex>CROND\S+: \((\S+)\) CMD \(([^\)]+)\)</regex>
+    <regex>crond\S+: \((\S+)\) CMD \(([^\)]+)\)</regex>
+    <report>Cron: user '%s' (%s)</report>
+  </notice>
+
+</notices>
+

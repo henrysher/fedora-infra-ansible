@@ -1,0 +1,94 @@
+<?xml version="1.0"?>
+<!--
+
+This is where you should put your own notice rules. The format is
+simple:
+  <notice id="uniqueid" [critical="yes"]>
+    <regex>python compliant regex string</regex>
+    <regex>another regex, if more than one string is needed</regex>
+    <report>What should go into the report</report>
+  </notice>
+
+See notice_dist.xml for examples. Any custom notices you add here do
+not need to be added into the notices.conf file, as they will be
+enabled automatically.
+
+-->
+
+<notices>
+ <notice id="oom-killer">
+     <regex>kernel: (\S+) invoked oom-killer.*</regex>
+     <report>%s invoked oom-killer - see unparsed</report>
+ </notice>
+
+ <notice id="kerneltrace" critical="yes">
+     <regex>kernel: Call Trace</regex>
+     <report>kernel call trace - see unparsed for details</report>
+ </notice>
+<!--
+ <notice id="auditd-down" critical="yes">
+     <regex>kernel: type=.*audit\(.*</regex>
+     <report>auditd appears to be down</report>
+ </notice>     
+-->
+
+ <notice id="Rootkit-hunter-warning" critical="yes">
+     <regex>Rootkit Hunter:.*Please inspect this machine, because it may be infected.*</regex>
+     <report>Rootkit Hunter has noticed a potential issue</report>
+ </notice>
+ <notice id="brokenpuppetnodetyaml">
+     <regex>puppet_yamltest: cleaning damaged puppet yaml file:(.*)</regex>
+     <report>Corrupted yaml file %s</report>     
+ </notice>
+  <notice id="nf_conntrack" critical="yes">
+     <regex>kernel: nf_conntrack: table full.*</regex>
+     <report>Connection tracking table full.</report>     
+ </notice>
+
+  <notice id="openvpn_reconnect" critical="yes">
+     <regex>openvpn\[\d+\]: .*:\d+ \[(.*)\] Peer Connection Initiated with .*:\d+</regex>
+     <report>openvpn [re]connect from %s.</report>     
+ </notice>
+
+  <notice id="openvpn_tls_failed" critical="yes">
+     <regex>openvpn\[\d+\]: (.*)/.* TLS Error: TLS handshake failed</regex>
+     <report>openvpn TLS handshake failed: %s</report>     
+ </notice>
+   <notice id="openvpn_tls_failed_time" critical="yes">
+     <regex>openvpn\[\d+\]: (.*)/.* TLS Error: TLS key negotiation failed ot occur within.*</regex>
+     <report>openvpn TLS handshake failed - timeout: %s</report>     
+ </notice>
+  <notice id="openvpn_bad_packet_id" critical="yes">
+     <regex>openvpn\[\d+\]: (.*)/.* Authenticate/Decrypt packet error: bad packet ID.*</regex>
+     <report>openvpn auth/decrypt - bad packet id: %s</report>     
+ </notice>
+
+ <notice id="stunnel_websocket" critical="no">
+    <regex>stunnel:.*websockets accepted connection from (.*):.*</regex>
+    <report>stunnel: websocket connection from %s</report>
+ </notice>
+
+ <notice id="nagios_alerts" critical="yes">
+    <regex>nagios:.*HOST.*ALERT:.*</regex>
+    <report>nagios alerts: </report>
+ </notice>
+
+ <notice id="nagios_pages" critical="yes">
+    <regex>nagios:.*HOST.*NOTIFICATION:.*kevin-emergency.*</regex>
+    <report>nagios pages: </report>
+ </notice>
+  
+<notice id="totp-success">
+    <regex>totp\.cgi.*: Success: user=(\S+),.*host=(\S+),</regex>
+    <report>totpcgi: %s from %s (Success)</report>
+</notice>
+<notice id="totp-failure" critical="yes">
+    <regex>totp\.cgi.*: Failure: user=(\S+),.*host=(\S+),</regex>
+    <report>totpcgi: %s from %s (Failure)</report>
+</notice>
+<notice id="EXT4-error" critical="yes">
+    <regex>kernel:.* EXT4-fs error.*</regex>
+    <report>EXT4 Error/disk failure noticed</report>
+</notice>
+</notices>
+

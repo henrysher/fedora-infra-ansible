@@ -1,0 +1,48 @@
+---
+- name: install epylog package
+  yum: state=installed name=epylog
+  tags:
+  - packages
+  - epylog
+
+- name: create directories needed for epylog
+  file: state=directory owner=root mode=755
+  with_items: 
+  - /var/lib/epylog/merged
+  - /srv/web/epylog
+  - /srv/web/epylog/merged
+
+- name: setup extra epylog modules
+  copy: src={{ item }} dest=/usr/share/epylog/modules/{{ item }}
+  with_items: 
+  - modules/selinux_mod.py
+  - modules/rsyncd_mod.py
+  - modules/sudo_mod.py
+  - modules/common_unparsed_mod.py
+  - modules/logins_mod.py
+  - modules/kojiload_mod.py
+
+- name: epylog cron
+  file: src=epylog-default.cron dest=/etc/cron.d/epylog.cron
+  tags:
+  - config
+  - cron
+
+- name: copy in all the epylog merged files
+  copy: src=merged dest=/etc/epylog/merged
+  tags: 
+  - config
+
+- name: epylog merged cron
+  copy: src=epylog-merged.cron dest=/etc/cron.d/epylog-merged.cron
+  tags:
+  - config
+  - cron
+
+- name: epylog httpd config
+  copy: src=epylog-web.conf dest=/etc/httpd/conf.d/epylog-web.conf
+  notify: 
+  - restart httpd
+  tags:
+  - config
+  - apache
