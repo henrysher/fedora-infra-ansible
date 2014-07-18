@@ -1,16 +1,18 @@
 
-module fi-collectd 1.1;
+module fi-collectd 1.2;
 
 require {
+	type bin_t;
 	type configfs_t;
 	type pstorefs_t;
 	type collectd_t;
 	class capability { setuid dac_read_search sys_ptrace setgid dac_override };
-	class file read;
+	class file { read execute };
 	class dir getattr;
 }
 
 #============= collectd_t ==============
+allow collectd_t bin_t:file execute;
 allow collectd_t configfs_t:dir getattr;
 allow collectd_t pstorefs_t:dir getattr;
 allow collectd_t self:capability { setuid dac_read_search sys_ptrace setgid dac_override };
