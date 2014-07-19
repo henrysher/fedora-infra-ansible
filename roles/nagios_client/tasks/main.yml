@@ -118,6 +118,17 @@
   - restart nrpe
   tags:
   - nagios_client
+#
+# The actual items files here end in .j2 (they are templates)
+# So when adding or modifying them change the .j2 version in git.
+#
+- name: install nrpe merged log check script on log01
+  template: src=check_merged_file_age.cfg.j2 dest=/etc/nrpe.d/check_merged_file_age.cfg
+  when: inventory_hostname.startswith('log0')
+  notify:
+  - restart nrpe
+  tags:
+  - nagios_client
 
 - name: nrpe service start
   service: name=nrpe state=running enabled=true
