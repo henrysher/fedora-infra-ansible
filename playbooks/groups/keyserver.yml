@@ -34,7 +34,7 @@
   roles:
   - base
   - rkhunter
-  - denyhosts
+  - { role: denyhosts, when: ansible_distribution_major_version != '7' }
   - nagios_client
   - hosts
   - fas_client
@@ -46,6 +46,9 @@
   - include: "{{ tasks }}/yumrepos.yml"
   - include: "{{ tasks }}/2fa_client.yml"
   - include: "{{ tasks }}/openvpn_client.yml"
+    when: ansible_distribution_major_version != '7'
+  - include: "{{ tasks }}/openvpn_client_7.yml"
+    when: ansible_distribution_major_version == '7'
   - include: "{{ tasks }}/motd.yml"
   - include: "{{ tasks }}/apache.yml"
 
