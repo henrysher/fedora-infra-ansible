@@ -15,11 +15,29 @@
   hosts: koschei.cloud.fedoraproject.org
   user: root
   gather_facts: True
+  user: fedora
+  sudo: yes
 
-  vars_files: 
+  vars_files:
    - /srv/web/infra/ansible/vars/global.yml
    - "{{ private }}/vars.yml"
    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  tasks:
+  - name: growpart /dev/vda1 partition (/) to full size
+    action: command growpart /dev/vda 1
+    register: growpart
+    always_run: true
+    changed_when: "growpart.rc != 1"
+    failed_when: growpart.rc == 2
+
+  - name: resize the /dev/vda 1 fs
+    action: command resize2fs /dev/vda1
+    when: growpart.rc == 0
+
+  - name: put the mbr back - b/c the resize breaks booting otherwise
+    action: shell cat /usr/share/syslinux/mbr.bin > /dev/vda
+    when: growpart.rc == 0
 
   tasks:
   - include: "{{ tasks }}/cloud_setup_basic.yml"
