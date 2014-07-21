@@ -19,6 +19,7 @@ chown mailman:mailman -R $INDEXDIR
 chmod g+w -R $INDEXDIR
 
 # Give database rights to the non-admin user
+sleep $[ ( $RANDOM % 10 )  + 1 ]s # avoid simultaneous lockups on parallel servers. Yes, this is dirty.
 $BASEDIR/bin/pg-give-rights.py > /dev/null
 
 # SELinux contexts
