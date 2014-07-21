@@ -9,7 +9,6 @@
 
   tasks:
   - include: "{{ tasks }}/persistent_cloud.yml"
-  - include: "{{ tasks }}/growroot_cloud.yml"
 
 - name: provision instance
   hosts: koschei.cloud.fedoraproject.org
@@ -24,21 +23,7 @@
 
   tasks:
 
-  - name: growpart /dev/vda1 partition (/) to full size
-    action: command growpart /dev/vda 1
-    register: growpart
-    always_run: true
-    changed_when: "growpart.rc != 1"
-    failed_when: growpart.rc == 2
-
-  - name: resize the /dev/vda 1 fs
-    action: command resize2fs /dev/vda1
-    when: growpart.rc == 0
-
-  - name: put the mbr back - b/c the resize breaks booting otherwise
-    action: shell cat /usr/share/syslinux/mbr.bin > /dev/vda
-    when: growpart.rc == 0
-
+  - include: "{{ tasks }}/growroot_cloud.yml"
   - include: "{{ tasks }}/cloud_setup_basic.yml"
   - include: "{{ tasks }}/postfix_basic.yml"
 
