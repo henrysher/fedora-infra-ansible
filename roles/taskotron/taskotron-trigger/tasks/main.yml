@@ -9,9 +9,13 @@
 
 - name: generate trigger configuration
   template: src=trigger.cfg.j2 dest=/etc/taskotron/trigger.cfg owner=root group=root mode=0744
+  notify:
+  - restart fedmsg-hub
 
 - name: copy fedmsg logging configuration
   copy: src=logging.py dest=/etc/fedmsg.d/logging.py owner=root group=root mode=0744
+  notify:
+  - restart fedmsg-hub
 
 - name: install fetch_activity
   copy: src=fetch_activity.py dest=/root/fetch_activity.py owner=root group=root mode=0644
