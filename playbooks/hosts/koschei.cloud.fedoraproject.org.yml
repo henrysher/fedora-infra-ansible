@@ -23,6 +23,7 @@
    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
 
   tasks:
+
   - name: growpart /dev/vda1 partition (/) to full size
     action: command growpart /dev/vda 1
     register: growpart
@@ -38,7 +39,6 @@
     action: shell cat /usr/share/syslinux/mbr.bin > /dev/vda
     when: growpart.rc == 0
 
-  tasks:
   - include: "{{ tasks }}/cloud_setup_basic.yml"
   - include: "{{ tasks }}/postfix_basic.yml"
 
