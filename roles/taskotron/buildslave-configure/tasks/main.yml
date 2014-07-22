@@ -26,7 +26,7 @@
   copy: src={{ private }}/files/taskotron/{{ buildslave_public_sshkey_file }} dest={{ slave_home }}/.ssh/id_rsa.pub owner={{ slave_user }} group={{ slave_user }} mode=0644
 
 - name: make sure master is in known_hosts
-  lineinfile: dest=/home/{{ slave_user }}/.ssh/known_hosts regexp='{{ buildmaster }}' line='{{ buildmaster }} {{ buildmaster_pubkey }}' create=yes
+  lineinfile: dest=/home/{{ slave_user }}/.ssh/known_hosts regexp='{{ buildmaster }}' line='{{ buildmaster }} {{ buildmaster_pubkey }}' create=yes owner={{ slave_user }} group={{ slave_user }}
 
 - name: generate buildslave service file
   template: src=buildslave.service.j2 dest=/lib/systemd/system/buildslave.service owner=root group=root mode=0744
