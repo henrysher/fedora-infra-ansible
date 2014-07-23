@@ -2,7 +2,7 @@
 
 $cfg['cgi_config_file']='/etc/nagios/cgi.cfg';  // location of the CGI config file
 
-$cfg['cgi_base_url']='/{{srcdir}}/cgi-bin/';
+$cfg['cgi_base_url']='/{{nagios_srcdir}}/cgi-bin/';
 
 // FILE LOCATION DEFAULTS
 $cfg['main_config_file']='/etc/nagios/nagios.cfg';  // default location of the main Nagios config file
