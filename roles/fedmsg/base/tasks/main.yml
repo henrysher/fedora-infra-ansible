@@ -12,6 +12,16 @@
   tags:
   - packages
 
+# We use setgid here so that the monitoring sockets created by fedmsg services
+# are accessible to the nrpe group.
+- name: create a /var/run/fedmsg dir with setgid for monitoring.
+  file: >
+    dest=/var/run/fedmsg
+    mode=2775  # segid bit!
+    owner=fedmsg
+    group=nrpe
+    state=directory
+
 - name: setup /etc/fedmsg.d directory
   file: path=/etc/fedmsg.d owner=root group=root mode=0755 state=directory
   tags:
