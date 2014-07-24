@@ -59,6 +59,7 @@
    - /srv/web/infra/ansible/vars/global.yml
    - "{{ private }}/vars.yml"
    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+   - /srv/web/infra/ansible/vars/nagios.{{ inventory_hostname_short }}.yml
 
   handlers:
   - include: "{{ handlers }}/restart_services.yml"
@@ -66,6 +67,6 @@
   roles:
   - { role: dhcp_server, when: datacenter == 'phx2' }
   - { role: tftp_server, when: datacenter == 'phx2' }
-  - { role: nagios_server, nagios_srcdir: 'nagios', when: datacenter == 'phx2' }
-  - { role: nagios_server, nagios_srcdir: 'nagios-external', when: datacenter != 'phx2' }
+  - { role: nagios_server, when: datacenter == 'phx2' }
+  - { role: nagios_server, when: datacenter != 'phx2' }
   - fedmsg/base
