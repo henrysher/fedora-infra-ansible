@@ -15,12 +15,14 @@
   - cronie
   tags:
   - packages
+  - fas_client
 
 - name: install nss_db on rhel hosts only
   yum: state=installed name=nss_db
   when: is_rhel is defined and ansible_distribution_major_version == '6'
   tags:
   - packages
+  - fas_client
 
 #
 # setup /etc/nsswitch.conf to use nssdb
@@ -29,6 +31,7 @@
   copy: src=nsswitch.conf  dest=/etc/nsswitch.conf owner=root mode=644
   tags:
   - config
+  - fas_client
 
 #
 # fasClients needs a valid /etc/fas.conf. 
@@ -52,6 +55,7 @@
   - ../templates/fas.conf.j2
   tags:
   - config
+  - fas_client
   notify:
   - run fasclient
 
@@ -68,8 +72,10 @@
   copy: src=fas-client.cron dest=/etc/cron.d/fas-client owner=root mode=644
   tags:
   - config
+  - fas_client
 
 - name: run fas_client only if we just installed
   command: fasClient -if creates=/var/db/shadow.db
   tags:
   - config
+  - fas_client
