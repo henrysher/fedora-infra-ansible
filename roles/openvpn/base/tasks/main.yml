@@ -1,0 +1,24 @@
+---
+# OpenVpn basic configuration
+
+- name: Install needed package
+  yum: pkg={{ item }} state=installed
+  with_items:
+  - openvpn
+  tags:
+  - packages
+
+- name: Install certificate and key
+  file: src={{ item.file }}
+        dest={{ item.location }}/{{ item.dest }}
+        owner=root group=root mode={{ mode }}
+  with_items:
+  - { file: {{ puppet_private }}/vpn/openvpn/keys/ca.crt,
+      dest: /etc/openvpn/ca.crt,
+      mode: 0600 }
+  - { file: {{ puppet_private }}/vpn/openvpn/keys/crl.pem,
+      dest: /etc/openvpn/crl.pem,
+      mode: 0644 }
+  tags:
+  - install
+

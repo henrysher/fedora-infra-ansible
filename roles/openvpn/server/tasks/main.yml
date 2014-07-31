@@ -1,0 +1,41 @@
+---
+# OpenVpn server
+
+- name: Install needed packages
+  yum: pkg={{ item }} state=installed
+  with_items:
+  - openvpn
+  tags:
+  - packages
+
+- name: Create the /etc/openvpn/ccd/ directory
+  file: >
+    dest=/etc/openvpn/ccd/
+    mode=0755
+    owner=root
+    group=root
+    state=directory
+
+- name: Install configuration files
+  file: src={{ item.file }}
+        dest={{ item.location }}/{{ item.dest }}
+        owner=root group=root mode={{ mode }}
+  with_items:
+  - { file: server.conf,
+      dest: /etc/openvpn/openvpn.conf,
+      mode: 0644 }
+  - { file: {{ puppet_private }}/vpn/openvpn/keys/server.crt,
+      dest: /etc/openvpn/server.crt,
+      mode: 0644 }
+  - { file: {{ puppet_private }}/vpn/openvpn/keys/server.key,
+      dest: /etc/openvpn/server.key,
+      mode: 0600 }
+  - { file: {{ puppet_private }}/vpn/openvpn/keys/dh2048.pem,
+      dest: /etc/openvpn/server.key,
+      mode: 0644 }
+  tags:
+  - install
+
+- name: Install the ccd files
+  file: file src={{ files }}/ccd/ dest=/etc/openvpn/ccd/ recurse=true 
+
