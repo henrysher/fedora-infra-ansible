@@ -4,7 +4,7 @@
   with_items:
     - sigul
 
-  # fedora-packager is required for /etc/koji/$arch-config
+# fedora-packager is required for /etc/koji/$arch-config
 - name: install dependencies
   yum: state=installed pkg={{ item }}
   with_items:
@@ -12,3 +12,17 @@
     - fedmsg-hub
     - fedora-packager
     - python-fedmsg-meta-fedora-infrastructure
+
+# sigul config for secondary archs:
+# https://fedoraproject.org/wiki/Sigul_Client_Setup_SOP
+- name: sigul config koji instances
+  ini_file: dest=/etc/sigul/client.conf section=koji option=koji-instances
+            value="arm ppc s390"
+
+- name: sigul config koji config
+  ini_file: dest=/etc/sigul/client.conf section=koji
+            option=koji-config-{{ item }} value="/etc/koji/{{ item }}-config"
+  with_items:
+      - arm
+      - ppc
+      - s390
