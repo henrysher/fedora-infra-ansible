@@ -7,6 +7,7 @@
   - openvpn
   tags:
   - packages
+  - openvpn
 
 - name: Create the /etc/openvpn/ccd/ directory
   file: >
@@ -15,6 +16,8 @@
     owner=root
     group=root
     state=directory
+  tags:
+  - openvpn
 
 - name: Install configuration files
   file: src={{ item.file }}
@@ -35,6 +38,7 @@
       mode: 0644 }
   tags:
   - install
+  - openvpn
   notify:
   - restart openvpn {{ ansible_distribution_version[0] }}
 
@@ -43,6 +47,8 @@
   file: file src={{ files }}/ccd/ dest=/etc/openvpn/ccd/ recurse=true 
   notify:
   - restart openvpn {{ ansible_distribution_version[0] }}
+  tags:
+  - openvpn
 
 
 - name: enable openvpn service for rhel 6 or Fedora
@@ -50,10 +56,12 @@
   when: ansible_distribution_version[0] == 6 or is_fedora is defined
   tags:
   - service
+  - openvpn
 
 - name: enable openvpn service for rhel 7
   service: name=openvpn@openvpn state=running enabled=true
   when: ansible_distribution_version[0] == 7
   tags:
   - service
+  - openvpn
 
