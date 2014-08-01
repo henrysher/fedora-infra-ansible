@@ -44,3 +44,16 @@
   notify:
   - restart openvpn {{ ansible_distribution_version[0] }}
 
+
+- name: enable openvpn service for rhel 6 or Fedora
+  service: name=openvpn state=running enabled=true
+  when: ansible_distribution_version[0] == 6 or is_fedora is defined
+  tags:
+  - service
+
+- name: enable openvpn service for rhel 7
+  service: name=openvpn@openvpn state=running enabled=true
+  when: ansible_distribution_version[0] == 7
+  tags:
+  - service
+
