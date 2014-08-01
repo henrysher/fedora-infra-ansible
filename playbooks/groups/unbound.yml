@@ -36,15 +36,13 @@
   - collectd/base
   - unbound
   - sudo
+  - { role: openvpn/client,
+      when: env != "staging" }
 
   tasks:
   - include: "{{ tasks }}/yumrepos.yml"
   - include: "{{ tasks }}/2fa_client.yml"
   - include: "{{ tasks }}/motd.yml"
-  - include: "{{ tasks }}/openvpn_client.yml"
-    when: ansible_distribution_major_version != '7' 
-  - include: "{{ tasks }}/openvpn_client_7.yml"
-    when: ansible_distribution_major_version == '7' 
 
   handlers:
   - include: "{{ handlers }}/restart_services.yml"

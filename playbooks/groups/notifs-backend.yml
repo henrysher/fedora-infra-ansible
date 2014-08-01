@@ -41,15 +41,15 @@
   - collectd/base
   - fedmsg/base
   - sudo
+  # The proxies don't actually need to talk to these hosts so we won't bother
+  # putting them on the vpn.
+  #- { role: openvpn/client,
+  #    when: env != "staging" }
 
   tasks:
   - include: "{{ tasks }}/yumrepos.yml"
   - include: "{{ tasks }}/2fa_client.yml"
   - include: "{{ tasks }}/motd.yml"
-  # The proxies don't actually need to talk to these hosts so we won't bother
-  # putting them on the vpn.
-  #- include: "{{ tasks }}/openvpn_client.yml"
-  #  when: env != "staging"
 
   handlers:
   - include: "{{ handlers }}/restart_services.yml"
