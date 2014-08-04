@@ -208,6 +208,15 @@ def main():
 
     # Finally, query the two services and award as we can.
     for person in get_persons():
+
+        # Try to gracefully handle non-ascii names if we can
+        try:
+            person = person.encode('utf-8')
+        except Exception:
+            import traceback
+            traceback.print_exc()
+            continue
+
         print("* Considering", person)
         if person in cache:
             if cache[person] in already_has_it:
