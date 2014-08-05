@@ -75,6 +75,7 @@
     - createrepo
     - pykickstart
     - pyliblzma
+    - httpd
 
 - name: /etc/koji/koji.conf
   action: copy src="{{ files }}//../roles/koji_builder/files/koji.conf" dest=/etc/koji.conf
@@ -123,3 +124,16 @@
   action: copy src="{{ private }}/files/sudo/ftpsync-sudo" dest=/etc/sudoers.d/ftpsync mode=0440
   tags:
   - configs
+
+- name: install compose /etc/httpd/conf.d/compose.conf file
+  copy: >
+    src="compose.conf"
+    dest="/etc/httpd/conf.d/compose.conf"
+    owner=root
+    group=root
+    mode=0644
+  notify:
+  - restart httpd
+  tags:
+  - config
+  when: inventory_hostname.startswith('compose-x86-02')
