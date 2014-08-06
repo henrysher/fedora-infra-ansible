@@ -19,5 +19,10 @@
     command: yum clean all {%if testing%} --enablerepo=infrastructure-testing {%endif%}
     always_run: yes
 
-  - name: yum update {{package}} {%if testing%}(with infrastructure-testing on){%endif%}
-    yum: name={{package}} state=latest {%if testing%}enablerepo=infrastructure-testing{%endif%}
+  - name: yum update {{ package }} from main repo
+    yum: name="{{ package }}" state=latest
+    when: not testing
+
+  - name: yum update {{ package }} from testing repo
+    yum: name="{{ package }}" state=latest enablerepo=infrastructure-testing
+    when: testing
