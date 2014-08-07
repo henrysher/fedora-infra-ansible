@@ -55,10 +55,10 @@ badge_id = 'flock-paparazzi'
 _fas_cache = {}
 
 
-def get_g_plus_persons():
+def get_g_plus_persons(query):
     token = None
     while True:
-        params = dict(query="Fedora FLOCK", key=g_plus_key, userIP=userIP)
+        params = dict(query=query, key=g_plus_key, userIP=userIP)
 
         if token:
             params['pageToken'] = token
@@ -89,22 +89,22 @@ def flickr_request(**kwargs):
     return response.json()
 
 
-def get_flickr_page(page=1):
+def get_flickr_page(tags, page=1):
     return flickr_request(
         method='flickr.photos.search',
         content_type=1,
-        tags="fedora,flock",
+        tags=tags,
         tag_mode='all',
         page=page,
     )
 
 
-def get_flickr_persons():
-    pages = get_flickr_page()['photos']['pages']
+def get_flickr_persons(tags):
+    pages = get_flickr_page(tags)['photos']['pages']
 
     seen = {}
     for i in range(1, pages + 1):
-        d = get_flickr_page(i)
+        d = get_flickr_page(tags, i)
 
         for photo in d['photos']['photo']:
             user_id = photo['owner']
@@ -186,9 +186,13 @@ def make_fas_cache(username, password):
 
 
 def get_persons():
-    for person in get_g_plus_persons():
+    for person in get_g_plus_persons('Fedora FLOCK'):
         yield person
-    for person in get_flickr_persons():
+    for person in get_g_plus_persons('flock2fedora'):
+        yield person
+    for person in get_flickr_persons('fedora,flock'):
+        yield person
+    for person in get_flickr_persons('flock2fedora'):
         yield person
 
 
