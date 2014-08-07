@@ -19,6 +19,10 @@ try:
         print "UNKNOWN - %s does not exist" % fname
         sys.exit(3)
 
+    if not os.access(fname, os.W_OK):
+        print "UNKNOWN - cannot write to %s" % fname
+        sys.exit(3)
+
     connect_to = "ipc:///%s" % fname
     ctx = zmq.Context()
     s = ctx.socket(zmq.SUB)
