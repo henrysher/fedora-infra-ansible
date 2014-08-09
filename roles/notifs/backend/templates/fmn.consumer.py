@@ -26,6 +26,7 @@ config = {
     # this commit, all of our fedmsg daemons are running in single-threaded
     # mode.  If we turn it on globally, we should remove this setting.
     "moksha.workers_per_consumer": 3,
+    "moksha.threadpool_size": 10,
 
     # Some configuration for the rule processors
     "fmn.rules.utils.use_pkgdb2": True,
