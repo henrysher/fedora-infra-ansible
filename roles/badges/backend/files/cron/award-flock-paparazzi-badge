@@ -123,10 +123,19 @@ def get_flickr_persons(tags):
             if 'realname' in user['person']:
                 seen[user_id]['realname1'] = \
                     user['person']['realname']['_content']
-                seen[user_id]['realname2'] = ' '.join([
-                    seen[user_id]['realname1'].split()[0],
-                    seen[user_id]['realname1'].split()[-1],
-                ])
+
+                if not seen[user_id]['realname1']:
+                    continue
+
+                try:
+                    seen[user_id]['realname2'] = ' '.join([
+                        seen[user_id]['realname1'].split()[0],
+                        seen[user_id]['realname1'].split()[-1],
+                    ])
+                except Exception:
+                    import traceback
+                    traceback.print_exc()
+
                 if "'" in seen[user_id]['realname1']:
                     seen[user_id]['username3'] = \
                         seen[user_id]['realname1'].split("'")[1]
