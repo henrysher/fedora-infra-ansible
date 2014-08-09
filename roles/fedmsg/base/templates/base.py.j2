@@ -11,7 +11,12 @@ config = dict(
     # These options provide a place for hub processes to write out their last
     # processed message.  This let's them read it in at startup and figure out
     # what kind of backlog they have to deal with.
+    {% if env == 'staging' %}
+    # But we have it turned off in staging.
+    #status_directory="/var/run/fedmsg/status",
+    {% else %}
     status_directory="/var/run/fedmsg/status",
+    {% endif %}
 
     # This is the URL of a datagrepper instance that we can query for backlog.
     {% if env == 'staging' %}
