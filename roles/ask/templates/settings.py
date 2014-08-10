@@ -128,6 +128,9 @@ MIDDLEWARE_CLASSES = (
     #'debug_toolbar.middleware.DebugToolbarMiddleware',
     'askbot.middleware.view_log.ViewLogMiddleware',
     'askbot.middleware.spaceless.SpacelessMiddleware',
+{% if env == "staging" %}
+    'stopforumspam.middleware.StopForumSpamMiddleware',
+{% endif %}
 )
 
 
@@ -195,8 +198,19 @@ INSTALLED_APPS = (
     'group_messaging',
     #'avatar',#experimental use git clone git://github.com/ericflo/django-avatar.git$
     'post_office',
+{% if env == "staging" %}
+    'stopforumspam',
+{% endif %}
 )
 
+{% if env == "staging" %}
+    SFS_ALL_POST_REQUESTS = True
+    SFS_FORCE_ALL_REQUESTS = True
+    SFS_CACHE_EXPIRE = 1
+    SFS_LOG_EXPIRE = 7
+    SFS_HTTP_HEADER = "X-Forwarded-For"
+    SFS_SOURCE_ZIP = "file:///var/cache/askbot/listed_ip_7.zip"
+{% endif %}
 
 CACHE_MIDDLEWARE_ANONYMOUS_ONLY = True
 CACHE_TIMEOUT = 600
