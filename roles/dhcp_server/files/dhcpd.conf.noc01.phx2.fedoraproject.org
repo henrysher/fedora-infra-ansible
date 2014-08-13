@@ -164,8 +164,24 @@ subnet 10.5.124.128 netmask 255.255.255.128 {
     option routers 10.5.124.254;
 
     range 10.5.124.240 10.5.124.249;
-    next-server 10.5.126.41;
-    filename "pxelinux.0";
+
+ class "pxeclients" {
+      match if substring (option vendor-class-identifier, 0, 9) = "PXEClient";
+      next-server 10.5.126.41;
+
+      if option arch = 00:07 {
+        filename "EFI/shim.efi";
+        } else {
+        filename "pxelinux.0";
+      }
+    }
+
+    host retrace03 {
+         hardware ethernet ec:f4:bb:c0:38:a0;
+	 fixed-address 10.5.124.230;
+	 option host-name "retrace03.qa.fedoraproject.org";
+     }
+
 
     host virthost-comm01 {
          hardware ethernet 5c:f3:fc:4d:db:fc;
@@ -1745,11 +1761,4 @@ subnet 10.5.131.0 netmask 255.255.255.0 {
     next-server 10.5.126.41;
     filename "pxelinux.0";
 
-    host retrace03 {
-         hardware ethernet ec:f4:bb:c0:38:a0;
-	 fixed-address 10.5.131.10;
-	 option host-name "retrace03.qa.fedoraproject.org";
-	 next-server 10.5.126.41;
-	 filename "pxelinux.0";
-     }
 }
