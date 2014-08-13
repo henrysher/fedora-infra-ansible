@@ -17,10 +17,10 @@ from buildbot.buildslave import BuildSlave
 c['slaves'] = [
                 {% for buildslave in buildslaves %}
                 {% if deployment_type == 'stg' %}
-                BuildSlave("{{ buildslave }}", "{{ stg_buildslave_password }}"),
+                BuildSlave("{{ buildslave }}", "{{ qadevel_stg_buildslave_password }}"),
                 {% endif %}
                 {% if deployment_type == 'prod' %}
-                BuildSlave("{{ buildslave }}", "{{ prod_buildslave_password }}"),
+                BuildSlave("{{ buildslave }}", "{{ qadevel_prod_buildslave_password }}"),
                 {% endif %}
                 {% endfor %}
               ]
@@ -42,31 +42,31 @@ interval = {{ buildslave_poll_interval }}
 
 c['change_source'] = []
 c['change_source'].append(GitPoller(
-        '{{ grokmirror_user }}@{{ buildmaster }}:/var/lib/git/mirror/fedoraqa/taskotron-trigger/',
+        'https://bitbucket.org/fedoraqa/taskotron-trigger.git',
         workdir='gitpoller-workdir-trigger', branch='develop',
         pollinterval=interval,
         project='trigger'))
 
 c['change_source'].append(GitPoller(
-        '{{ grokmirror_user }}@{{ buildmaster }}:/var/lib/git/mirror/fedoraqa/libtaskotron/',
+        'https://bitbucket.org/fedoraqa/libtaskotron.git',
         workdir='gitpoller-workdir-libtaskotron', branch='develop',
         pollinterval=interval,
         project='libtaskotron'))
 
 c['change_source'].append(GitPoller(
-        '{{ grokmirror_user }}@{{ buildmaster }}:/var/lib/git/mirror/fedoraqa/resultsdb/',
+        'https://bitbucket.org/fedoraqa/resultsdb.git',
         workdir='gitpoller-workdir-resultsdb', branch='develop',
         pollinterval=interval,
         project='resultsdb'))
 
 c['change_source'].append(GitPoller(
-        '{{ grokmirror_user }}@{{ buildmaster }}:/var/lib/git/mirror/fedoraqa/resultsdb_api/',
+        'https://bitbucket.org/fedoraqa/resultsdb_api.git',
         workdir='gitpoller-workdir-resultsdb_api', branch='develop',
         pollinterval=interval,
         project='resultsdb_api'))
 
 c['change_source'].append(GitPoller(
-        '{{ grokmirror_user }}@{{ buildmaster }}:/var/lib/git/mirror/fedoraqa/fake_fedorainfra/',
+        'https://bitbucket.org/fedoraqa/fake_fedorainfra.git',
         workdir='gitpoller-workdir-fake_fedorainfra', branch='develop',
         pollinterval=interval,
         project='fake_fedorainfra'))
@@ -122,7 +122,7 @@ from buildbot.steps.shell import ShellCommand
 
 def create_test_factory(repo_name, func=True):
     factory = BuildFactory()
-    factory.addStep(Git(repourl=Interpolate('{{ grokmirror_user }}@{{ buildmaster }}:/var/lib/git/mirror/fedoraqa/%s/' % repo_name),
+    factory.addStep(Git(repourl=Interpolate('https://bitbucket.org/fedoraqa/%s.git' % repo_name),
                     mode='full', method='clobber'))
     factory.addStep(ShellCommand(command=['virtualenv', '--system-site-packages', 'env']))
     factory.addStep(ShellCommand(command=['bash', '-c', 'source env/bin/activate; pip install -r requirements.txt']))
@@ -178,10 +178,10 @@ authz_cfg=authz.Authz(
     # change any of these to True to enable; see the manual for more
     # options
     {% if deployment_type == 'stg' %}
-    auth=auth.BasicAuth([("{{ stg_buildbot_user }}","{{ stg_buildbot_password }}")]),
+    auth=auth.BasicAuth([("{{ qadevel_stg_buildbot_master_user }}","{{ qadevel_stg_buildbot_master_password }}")]),
     {% endif %}
     {% if deployment_type == 'prod' %}
-    auth=auth.BasicAuth([("{{ prod_buildbot_user }}","{{ prod_buildbot_password }}")]),
+    auth=auth.BasicAuth([("{{ qadevel_prod_buildbot_master_user }}","{{ qadevel_prod_buildbot_master_password }}")]),
     {% endif %}
     gracefulShutdown = False,
     forceBuild = 'auth', # use this to test your slave once it is set up
@@ -293,11 +293,5 @@ c['buildbotURL'] = "http://{{ external_hostname }}/{{buildmaster_endpoint}}/"
 c['db'] = {
     # This specifies what database buildbot uses to store its state.  You can leave
     # this at its default for all but the largest installations.
-    #'db_url' : "sqlite:///state.sqlite",
-    {% if deployment_type == 'stg' %}
-    'db_url' : "postgresql://{{ stg_buildmaster_db_user }}:{{ stg_buildmaster_db_password }}@{{ buildmaster_db_host }}/{{ buildmaster_db_name }}",
-    {% endif %}
-    {% if deployment_type == 'prod' %}
-    'db_url' : "postgresql://{{ prod_buildmaster_db_user }}:{{ prod_buildmaster_db_password }}@{{ buildmaster_db_host }}/{{ buildmaster_db_name }}",
-    {% endif %}
+    'db_url' : "sqlite:///state.sqlite",
 }
