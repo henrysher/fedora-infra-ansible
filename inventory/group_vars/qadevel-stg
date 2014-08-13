@@ -18,3 +18,27 @@ virt_install_command: /usr/sbin/virt-install -n {{ inventory_hostname }} -r {{ m
                   gateway={{ gw }} dns={{ dns }} console=tty0 console=ttyS0
                   hostname={{ inventory_hostname }}"
                  --network=bridge=br0 --autostart --noautoconsole
+
+grokmirror_basedir: /var/lib/git/mirror
+grokmirror_user: grokmirror
+grokmirror_repos:
+  - { name: fedoraqa/taskotron-trigger, url: 'https://bitbucket.org/fedoraqa/taskotron-triger.git'}
+  - { name: fedoraqa/libtaskotron, url: 'https://bitbucket.org/fedoraqa/libtaskotron.git'}
+  - { name: fedoraqa/resultsdb, url: 'https://bitbucket.org/fedoraqa/resultsdb.git'}
+  - { name: fedoraqa/resultsdb_api, url: 'https://bitbucket.org/fedoraqa/resultsdb_api.git'}
+  - { name: fedoraqa/fake_fedorainfra, url: 'https://bitbucket.org/fedoraqa/fake_fedorainfra.git'}
+buildmaster_db_host: db-qa01.qa.fedoraproject.org
+buildmaster_db_name: buildmaster_ci_stg
+buildmaster_template: ci.master.cfg.j2
+buildmaster_endpoint: taskmaster
+buildslave_ssh_pubkey: ''
+buildslave_port: 9989
+cgit_root_title: "Taskotron CI Stg Server Git Mirror"
+buildmaster_dir: /home/buildmaster/master
+buildslave_dir: /home/buildslave/slave
+buildslave_poll_interval: 1800
+master_dir: /home/buildmaster/master
+master_user: buildmaster
+external_hostname: qadevel-stg.qa.fedoraproject.org
+deployment_type: stg
+tcp_ports: [ 80, 443, "{{ buildslave_port }}" ]
