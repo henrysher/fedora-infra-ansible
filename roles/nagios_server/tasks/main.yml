@@ -24,7 +24,6 @@
   - nagios-plugins-smtp
   - nagios.x86_64
   - nagios-plugins
-  #- python-xmpp # TODO: rhel7
   - perl-Mail-IMAPClient
   - nagios-plugins-dummy
   - stunnel
@@ -46,10 +45,6 @@
 
 - name: Copy plugins
   copy: src=plugins/ dest=/usr/lib64/nagios/plugins/ mode=0755 owner=root group=root
-
-# TODO: rhel7
-#- name: Copy xmpp plugin config
-#  file: src={{puppet_private}}/xmppnagios.ini dest=/etc/nagios/private/xmppnagios.ini mode=0660 owner=nagios group=nagios
 
 - name: Create log directory
   file: dest=/var/log/nagios state=directory group=nagios owner=nagios mode=0755
@@ -85,6 +80,19 @@
 
 - name: Override config.inc.php for the given environment
   template: src=config.inc.php dest=/usr/share/nagios/html/config.inc.php mode=0640 owner=root group=apache
+
+
+# Handle selinux annoyances - roughly copied from fedmsg role
+- name: Ensure a directory exists for our custom selinux module
+  file: dest=/usr/local/share/nagios-policy state=directory
+
+- name: Copy over our custom selinux module
+  copy: src=selinux/hostname.pp dest=/usr/local/share/nagios-policy/hostname.pp
+  register: selinux_module
+
+- name: Install our custom selinux module
+  command: semodule -i /usr/local/share/nagios-policy/hostname.pp
+  when: selinux_module|changed
 
 - name: Start and autostart services
   service: name={{item}} state=started enabled=yes
