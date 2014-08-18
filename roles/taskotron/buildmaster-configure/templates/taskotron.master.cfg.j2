@@ -269,15 +269,16 @@ def html_message_formatter(mode, name, build, results, master_status):
         text.append(u'</pre>')
         text.append(u'<br><br>')
         text.append(u'<b>-The Buildbot</b>')
+        taskname = re.search("task=\['(.*)\.yml'\]", t).group(1)
+        test.insert(0, '<h4>Task name: %s</h4>' % taskname)
         return {
             'body': u"\n".join(text),
             'type': 'html'
             }
 
-
 mn = MailNotifier(fromaddr='taskotron@fedoraproject.org',
                   sendToInterestedUsers=False,
-                  subject="%(result)s in %(projectName)s on %(builder)s",
+                  subject="%(projectName)s %(result)s on " + deployment_type + " %(builder)s",
                   mode=('failing', 'exception', 'warnings'),
                   extraRecipients=['qa-taskotron-admin-members@fedoraproject.org'],
                   relayhost="bastion.phx2.fedoraproject.org",
