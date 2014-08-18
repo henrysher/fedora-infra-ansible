@@ -48,6 +48,15 @@
   notify:
   - restart apache
 
+- name: Install the pkgdb <-> bugzilla sync script
+  when: inventory_hostname.startswith('pkgdb02')
+  template: src={{ item.file }}
+            dest={{ item.location }}/{{ item.file }}
+  with_items:
+  - { file: 'pkgdb-sync-bugzilla.cron', location: /etc/cron.d }
+  tags:
+  - config
+
 - name: set sebooleans so pkgdb2 can talk to the db
   action: seboolean name=httpd_can_network_connect_db
                     state=true
