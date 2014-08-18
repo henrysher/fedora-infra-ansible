@@ -159,22 +159,40 @@ factory.addStep(ShellCommand(command=["runtask", '-i',
 # capture the taskotron log
 factory.addStep(ShellCommand(command=["cat", "/var/log/taskotron/taskotron.log"], name="cat_log"))
 
+
+####### RESOURCE LOCKS
+#
+# This is a set of resource locks to make sure that we don't have too many things
+# going on on each slave at one time.
+
+from buildbot import locks
+
+build_lock = locks.SlaveLock("slave_builds",
+                             maxCount = 1)
+
+
+
+####### Builders
+#
+# The builders associate factories with slaves which are capable of executing those factory's tasks
+
 from buildbot.config import BuilderConfig
+
 c['builders'] = []
 c['builders'].append(
     BuilderConfig(name="x86_64",
       slavenames=[{% for buildslave in x86_64_buildslaves %}"{{ buildslave }}",{% endfor %}],
-      factory=factory))
+      factory=factory, locks=[build_lock.access('counting')]))
 
 c['builders'].append(
     BuilderConfig(name="i386",
       slavenames=[{% for buildslave in i386_buildslaves %}"{{ buildslave }}",{% endfor %}],
-      factory=factory))
+      factory=factory, locks=[build_lock.access('counting')]))
 
 c['builders'].append(
     BuilderConfig(name="all",
       slavenames=[{% for buildslave in buildslaves %}"{{ buildslave }}",{% endfor %}],
-      factory=factory))
+      factory=factory, locks=[build_lock.access('counting')]))
 
 ####### STATUS TARGETS
 
