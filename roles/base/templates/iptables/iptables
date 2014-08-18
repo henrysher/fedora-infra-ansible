@@ -30,6 +30,12 @@
 -A INPUT -p tcp -m tcp --dport 5666  -s 209.132.181.35 -j ACCEPT
 -A INPUT -p tcp -m tcp --dport 5666 -s 10.5.126.41 -j ACCEPT
 
+# ban staging from non-staging hosts
+{% if env != 'staging' %}
+{% for host in groups['staging'] %}
+-A INPUT -s {{ hostvars[host]['eth0_ip'] }} -j REJECT --reject-with icmp-host-prohibited
+{% endfor %}
+{% endif %}
 
 # if the host/group defines incoming tcp_ports - allow them
 {% if tcp_ports is defined %}
