@@ -68,3 +68,21 @@
 
   handlers:
    - include: "{{ handlers }}/restart_services.yml"
+
+- name: configure taskotron-ci local slave
+  hosts: qadevel
+  user: root
+  gather_facts: True
+  accelerate: "{{ accelerated }}"
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "{{ private }}/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  roles:
+   - { role: taskotron/buildslave, tags: ['buildslave'] }
+   - { role: taskotron/buildslave-configure, tags: ['buildslaveconfig'] }
+
+  handlers:
+   - include: "{{ handlers }}/restart_services.yml"
