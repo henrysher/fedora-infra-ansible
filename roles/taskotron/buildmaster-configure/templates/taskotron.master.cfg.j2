@@ -252,11 +252,12 @@ def html_message_formatter(mode, name, build, results, master_status):
                 break
 
         name = "%s.%s" % (log.getStep().getName(), log.getName())
+        status, dummy = log.getStep().getResults()
         content = log.getText().splitlines() # Note: can be VERY LARGE
         url = u'%s/steps/%s/logs/%s' % (master_status.getURLForThing(build),
                                        log.getStep().getName(),
                                        log.getName())
-
+        text.append(u'DEBUG: status=%s dummy=%s' % (status, dummy))
         text.append(u'<i>Detailed log of last build step:</i> <a href="%s">%s</a>'
                     % (url, url))
         text.append(u'<br>')
