@@ -231,6 +231,7 @@ c['status'].append(html.WebStatus(http_port=8010, authz=authz_cfg))
 
 from buildbot.status.mail import MailNotifier
 from buildbot.status.builder import Results
+from buildbot.status.results import FAILURE, EXCEPTION, WARNINGS
 
 import cgi
 import re
@@ -244,7 +245,7 @@ def html_message_formatter(mode, name, build, results, master_status):
     """
     result = Results[results]
 
-    limit_lines = 80
+    limit_lines = 40
     text = list()
     text.append(u'<h4>Build status: %s</h4>' % result.upper())
     text.append(u'<table cellspacing="10"><tr>')
@@ -256,41 +257,47 @@ def html_message_formatter(mode, name, build, results, master_status):
                     )
         text.append(u'<tr><td>Build Reason:</td><td>%s</td></tr>' % build.getReason())
         text.append(u'</table>')
-        text.append(u'<br>')
 
         logs = []
         steps = build.getSteps()
         for step in steps:
-            if step.getName() == 'runtask':
-                logs = step.getLogs()
-                break
+            status, dummy = step.getResults()
 
-        # logs within a step are in reverse order. Search back until we find stdio
-        for log in reversed(logs):
-            if log.getName() == 'stdio':
-                break
+            if status not in [FAILURE, EXCEPTION, WARNINGS]:
+                continue
 
-        name = "%s.%s" % (log.getStep().getName(), log.getName())
-        status, dummy = log.getStep().getResults()
-        content = log.getText().splitlines() # Note: can be VERY LARGE
-        url = u'%s/steps/%s/logs/%s' % (master_status.getURLForThing(build),
-                                       log.getStep().getName(),
-                                       log.getName())
-        text.append(u'DEBUG: status=%s dummy=%s' % (status, dummy))
-        text.append(u'<i>Detailed log of last build step:</i> <a href="%s">%s</a>'
-                    % (url, url))
-        text.append(u'<br>')
-        text.append(u'<h4>Last %d lines of "%s"</h4>' % (limit_lines, name))
-        unilist = list()
-        for line in content[len(content)-limit_lines:]:
-            unilist.append(cgi.escape(unicode(line,'utf-8')))
-        text.append(u'<pre>')
-        text.extend(unilist)
-        text.append(u'</pre>')
+            logs = step.getLogs()
+
+            # logs within a step are in reverse order. Search back until we find stdio
+            for log in reversed(logs):
+                if log.getName() == 'stdio':
+                    break
+
+            name = "%s.%s" % (step).getName(), log.getName())
+            status, dummy = log.getStep().getResults()
+            content = log.getText().splitlines() # Note: can be VERY LARGE
+            url = u'%s/steps/%s/logs/%s' % (master_status.getURLForThing(build),
+                                           step.getName(), log.getName())
+
+            text.append(u'<br><br>')
+            text.append(u'<i>Detailed log of the %s build step:</i> <a href="%s">%s</a>'
+                        % (name, url, url))
+            text.append(u'<br>')
+            text.append(u'<h4>Last %d lines of "%s"</h4>' % (limit_lines, name))
+
+            unilist = list()
+            for line in content[len(content)-limit_lines:]:
+                unilist.append(cgi.escape(unicode(line,'utf-8')))
+            text.append(u'<pre>')
+            text.extend(unilist)
+            text.append(u'</pre>')
+
+
         text.append(u'<br><br>')
         text.append(u'<b>-The Buildbot</b>')
         taskname = re.search("task=\['(.*)\.yml'\]", t).group(1)
         test.insert(0, '<h4>Task name: %s</h4>' % taskname)
+
         return {
             'body': u"\n".join(text),
             'type': 'html'
