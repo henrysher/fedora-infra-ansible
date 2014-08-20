@@ -141,7 +141,7 @@ factory = BuildFactory()
 factory.addStep(RemoveDirectory(dir="/var/tmp/taskotron/"))
 
 # clean the log (see T230)
-factory.addStep(ShellCommand(command=["rm", "-f", "/var/log/taskotron/taskotron.log"], name="rm_log"))
+factory.addStep(ShellCommand(command=["rm", "-f", "/var/log/taskotron/taskotron.log"], name="rm_log", descriptionDone=['Clean log']))
 
 # check out the source
 factory.addStep(Git(repourl=Interpolate('{{ grokmirror_user }}@{{ buildmaster }}:/var/lib/git/mirror/fedoraqa/%(prop:taskname)s/'),
@@ -154,10 +154,12 @@ factory.addStep(ShellCommand(command=["runtask", '-i',
                                         '-a', Interpolate('%(prop:arch)s'),
                                         '-j', Interpolate('%(prop:buildername)s/%(prop:buildnumber)s'),
                                         Interpolate('%(prop:taskname)s.yml')],
+                             descriptionDone=[Interpolate('%(prop:taskname)s on %(prop:item)')],
                              name='runtask'))
 
 # capture the taskotron log
-factory.addStep(ShellCommand(command=["cat", "/var/log/taskotron/taskotron.log"], name="cat_log"))
+factory.addStep(ShellCommand(command=["cat", "/var/log/taskotron/taskotron.log"], name="cat_log",
+                            descriptionDone=['Store log']))
 
 
 ####### RESOURCE LOCKS
