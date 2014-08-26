@@ -26,11 +26,13 @@
 - name: setup the freshclam cron job
   copy: src=freshclam-cron dest=/etc/cron.daily/freshclam
 
-- name: setup the periodic clam scan
+- name: setup the periodic clam scan script
   template: >
     src=clamscan.sh.j2
     dest=/usr/local/bin/clamscan.sh
     mode=0755
+
+- name: setup cron job for clam scan
   cron: >
     name="clamscan"
     minute={{ clamscan_minute | default(35) }}
