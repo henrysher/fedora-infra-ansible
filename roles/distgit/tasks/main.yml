@@ -138,9 +138,13 @@
   copy: src={{private}}/fedora-ca.cert dest=/etc/httpd/conf/cacert.pem
   copy: src={{private}}/pkgs.fedoraproject.org_key_and_cert.pem dest=/etc/httpd/conf/pkgs.fedoraproject.org_key_and_cert.pem owner=apache mode=0400
 
-- name: install, run, and schedule the updatecrl.sh script
+- name: install the updatecrl.sh script
   copy: src=updatecrl.sh dest=/usr/local/bin/updatecrl.sh owner=root mode=755
+
+- name: run the updatecrl script
   command: /usr/local/bin/updatecrl.sh creates=/etc/pki/tls/crl.pem
+
+- name: schedule cron job to run the updatectl script
   cron: >
     name="updatecrl" cron_file="ansible-updatecrl"
     minute=0
