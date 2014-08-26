@@ -32,8 +32,6 @@
   - nagios_client
   - fas_client
   - collectd/base
-  - fedmsg/base
-  - fedmsg/hub
   - sudo
   - git/hooks
   - git/make_checkout_seed
@@ -51,6 +49,24 @@
   - include: "{{ tasks }}/motd.yml"
   - include: "{{ tasks }}/apache.yml"
   - include: "{{ tasks }}/drbackupkey.yml"
+
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"
+
+- name: setup fedmsg on pkgs
+  hosts: pkgs-stg
+  user: root
+  gather_facts: True
+  accelerate: "{{ accelerated }}"
+
+  vars_files:
+  - /srv/web/infra/ansible/vars/global.yml
+  - "{{ private }}/vars.yml"
+  - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  roles:
+  - fedmsg/base
+  - fedmsg/hub
 
   handlers:
   - include: "{{ handlers }}/restart_services.yml"
