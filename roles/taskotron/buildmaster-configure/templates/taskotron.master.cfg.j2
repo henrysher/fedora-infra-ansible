@@ -141,7 +141,7 @@ factory = BuildFactory()
 factory.addStep(RemoveDirectory(dir="/var/tmp/taskotron/"))
 
 # clean the log (see T230)
-factory.addStep(ShellCommand(command=["rm", "-f", "/var/log/taskotron/taskotron.log"], name="rm_log"))
+factory.addStep(ShellCommand(command=["rm", "-f", "/var/log/taskotron/taskotron.log"], name="rm_log", descriptionDone=['Clean log']))
 
 # check out the source
 factory.addStep(Git(repourl=Interpolate('{{ grokmirror_user }}@{{ buildmaster }}:/var/lib/git/mirror/fedoraqa/%(prop:taskname)s/'),
@@ -154,28 +154,47 @@ factory.addStep(ShellCommand(command=["runtask", '-i',
                                         '-a', Interpolate('%(prop:arch)s'),
                                         '-j', Interpolate('%(prop:buildername)s/%(prop:buildnumber)s'),
                                         Interpolate('%(prop:taskname)s.yml')],
+                             descriptionDone=[Interpolate('%(prop:taskname)s on %(prop:item)s')],
                              name='runtask'))
 
-# disabling this for now until all the logging changes are pushed
-# print the log (see T230)
-#factory.addStep(ShellCommand(command=["cat", "/var/log/taskotron/taskotron.log"], name="cat_log"))
+# capture the taskotron log
+factory.addStep(ShellCommand(command=["cat", "/var/log/taskotron/taskotron.log"], name="cat_log",
+                            descriptionDone=['Store log']))
+
+
+####### RESOURCE LOCKS
+#
+# This is a set of resource locks to make sure that we don't have too many things
+# going on on each slave at one time.
+
+from buildbot import locks
+
+build_lock = locks.SlaveLock("slave_builds",
+                             maxCount = 1)
+
+
+
+####### Builders
+#
+# The builders associate factories with slaves which are capable of executing those factory's tasks
 
 from buildbot.config import BuilderConfig
+
 c['builders'] = []
 c['builders'].append(
     BuilderConfig(name="x86_64",
       slavenames=[{% for buildslave in x86_64_buildslaves %}"{{ buildslave }}",{% endfor %}],
-      factory=factory))
+      factory=factory, locks=[build_lock.access('counting')]))
 
 c['builders'].append(
     BuilderConfig(name="i386",
       slavenames=[{% for buildslave in i386_buildslaves %}"{{ buildslave }}",{% endfor %}],
-      factory=factory))
+      factory=factory, locks=[build_lock.access('counting')]))
 
 c['builders'].append(
     BuilderConfig(name="all",
       slavenames=[{% for buildslave in buildslaves %}"{{ buildslave }}",{% endfor %}],
-      factory=factory))
+      factory=factory, locks=[build_lock.access('counting')]))
 
 ####### STATUS TARGETS
 
@@ -214,8 +233,10 @@ c['status'].append(html.WebStatus(http_port=8010, authz=authz_cfg))
 
 from buildbot.status.mail import MailNotifier
 from buildbot.status.builder import Results
+from buildbot.status.results import FAILURE, EXCEPTION, WARNINGS
 
 import cgi
+import re
 
 # http://docs.buildbot.net/current/manual/cfg-statustargets.html#mailnotifier
 def html_message_formatter(mode, name, build, results, master_status):
@@ -226,7 +247,7 @@ def html_message_formatter(mode, name, build, results, master_status):
     """
     result = Results[results]
 
-    limit_lines = 80
+    limit_lines = 40
     text = list()
     text.append(u'<h4>Build status: %s</h4>' % result.upper())
     text.append(u'<table cellspacing="10"><tr>')
@@ -238,47 +259,58 @@ def html_message_formatter(mode, name, build, results, master_status):
                     )
         text.append(u'<tr><td>Build Reason:</td><td>%s</td></tr>' % build.getReason())
         text.append(u'</table>')
-        text.append(u'<br>')
 
         logs = []
         steps = build.getSteps()
         for step in steps:
+            status, dummy = step.getResults()
+
+            if status not in [FAILURE, EXCEPTION, WARNINGS]:
+                continue
+
+            logs = step.getLogs()
+
+            # logs within a step are in reverse order. Search back until we find stdio
+            for log in reversed(logs):
+                if log.getName() == 'stdio':
+                    break
+
+            name = "%s.%s" % (log.getStep().getName(), log.getName())
+            status, dummy = log.getStep().getResults()
+            content = log.getText().splitlines() # Note: can be VERY LARGE
+
             if step.getName() == 'runtask':
-                logs = step.getLogs()
-                break
+                taskname = re.search("task=\['(.*)\.yml'\]", content[0]).group(1)
+                text.insert(0, '<h4>Task name: %s</h4>' % taskname)
 
-        # logs within a step are in reverse order. Search back until we find stdio
-        for log in reversed(logs):
-            if log.getName() == 'stdio':
-                break
+            url = u'%s/steps/%s/logs/%s' % (master_status.getURLForThing(build),
+                                           log.getStep().getName(), log.getName())
 
-        name = "%s.%s" % (log.getStep().getName(), log.getName())
-        content = log.getText().splitlines() # Note: can be VERY LARGE
-        url = u'%s/steps/%s/logs/%s' % (master_status.getURLForThing(build),
-                                       log.getStep().getName(),
-                                       log.getName())
+            text.append(u'<br><br>')
+            text.append(u'<i>Detailed log of the %s build step:</i> <a href="%s">%s</a>'
+                        % (name, url, url))
+            text.append(u'<br>')
+            text.append(u'<h4>Last %d lines of "%s"</h4>' % (limit_lines, name))
 
-        text.append(u'<i>Detailed log of last build step:</i> <a href="%s">%s</a>'
-                    % (url, url))
-        text.append(u'<br>')
-        text.append(u'<h4>Last %d lines of "%s"</h4>' % (limit_lines, name))
-        unilist = list()
-        for line in content[len(content)-limit_lines:]:
-            unilist.append(cgi.escape(unicode(line,'utf-8')))
-        text.append(u'<pre>')
-        text.extend(unilist)
-        text.append(u'</pre>')
+            unilist = list()
+            for line in content[len(content)-limit_lines:]:
+                unilist.append(cgi.escape(unicode(line,'utf-8')))
+            text.append(u'<pre>')
+            text.extend(unilist)
+            text.append(u'</pre>')
+
+
         text.append(u'<br><br>')
         text.append(u'<b>-The Buildbot</b>')
+
         return {
             'body': u"\n".join(text),
             'type': 'html'
             }
 
-
 mn = MailNotifier(fromaddr='taskotron@fedoraproject.org',
                   sendToInterestedUsers=False,
-                  subject="%(prop:taskname) %(result)s in %(projectName)s on %(builder)s",
+                  subject="%(projectName)s %(result)s on {{ deployment_type }} %(builder)s",
                   mode=('failing', 'exception', 'warnings'),
                   extraRecipients=['qa-taskotron-admin-members@fedoraproject.org'],
                   relayhost="bastion.phx2.fedoraproject.org",

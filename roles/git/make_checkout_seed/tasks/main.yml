@@ -1,0 +1,15 @@
+---
+# tasklist for setting up the Git checkout seed
+
+- name: create the destination directory
+  file: dest=/srv/git_seed owner=root group=root mode=0755 state=directory
+
+- name: install the script and schedule its execution
+  copy: src=make-git-checkout-seed.sh dest=/usr/local/bin/make-git-checkout-seed.sh mode=0755
+
+- name: install cron job.
+  cron: >
+    name="make-git-checkout-seed" cron_file="ansible-make-git-checkout-seed"
+    minute=0 hour=2
+    user=root
+    job='/usr/local/bin/lock-wrapper make-git-checkout-seed "/usr/local/bin/make-git-checkout-seed.sh | /usr/local/bin/nag-once fassync 1d 2>&1"'

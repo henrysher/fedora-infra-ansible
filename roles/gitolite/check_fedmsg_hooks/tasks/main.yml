@@ -1,0 +1,17 @@
+---
+# tasklist for setting up Gitolite Fedmsg checks
+
+- name: install the needed packages
+  yum: pkg=git state=present
+
+- name: install the script
+  copy: >
+    src=check-perms.py dest=/usr/local/bin/git-check-perms
+    owner=root group=root mode=0755
+
+- name: install the cron job for the script
+  cron: >
+    name="git-check-perms" cron_file="ansible-git-check-perms"
+    minute=10 hour=0 weekday=3
+    user=nobody
+    job="MAILTO={{git_check_perms_mailto | "root"}} PATH=/usr/bin:/usr/local/bin git check-perms {{ git_basepath | "/git"}} --check=fedmsg-hook"

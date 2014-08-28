@@ -1,0 +1,47 @@
+---
+lvm_size: 100000
+mem_size: 4096
+num_cpus: 4
+
+tcp_ports: [80, 443, 9418,
+    # These 16 ports are used by fedmsg.  One for each wsgi thread.
+    3000, 3001, 3002, 3003, 3004, 3005, 3006, 3007,
+    3008, 3009, 3010, 3011, 3012, 3013, 3014, 3015]
+
+fas_client_groups: sysadmin-main,sysadmin-cvs,sysadmin-build,sysadmin-noc
+fas_client_restricted_app: /usr/share/gitolite3/gitolite-shell user
+fas_client_admin_app: /usr/share/gitolite3/gitolite-shell admin
+fas_client_ssh_groups: "@cvs,sysadmin-main,sysadmin-cvs,sysadmin-build,sysadmin-noc"
+
+git_group: packager
+git_port: 9418
+git_server: /usr/libexec/git-core/git-daemon
+git_server_args: --export-all --syslog --inetd --verbose
+git_basepath: /srv/git/rpms
+
+clamscan_mailto: admin@fedoraproject.org
+clamscan_paths:
+- /srv/cache/lookaside/pkgs
+clamscan_excludes:
+- clamav-
+- amavisd-new-2.3.3.tar.gz
+- bro-20080804.tgz
+- mailman-
+- sagator-
+- nicotine
+- fwsnort-1.0.6.tar.gz
+- psad-2.1.7.tar.bz2
+- pymilter-
+- linkchecker-
+
+# These are consumed by a task in roles/fedmsg/base/main.yml
+fedmsg_certs:
+- service: shell
+  owner: root
+  group: sysadmin
+- service: scm
+  owner: root
+  group: packager
+- service: lookaside
+  owner: root
+  group: apache

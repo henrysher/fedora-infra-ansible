@@ -1,0 +1,16 @@
+---
+# tasklist for setting up a git server (git:// access)
+
+- name: install the needed packages
+  yum: pkg={{item}} state=present
+  with_items:
+  - git-daemon
+  - xinetd
+
+- name: install the xinetd config file
+  template: >
+    src="git.j2"
+    dest="/etc/xinetd.d/git"
+    mode=0644
+  notify:
+  - restart xinetd

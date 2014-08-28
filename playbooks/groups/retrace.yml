@@ -1,0 +1,27 @@
+
+- name: Setup retrace hosts
+  hosts: retrace
+  user: root
+  gather_facts: True
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "{{ private }}/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  roles:
+  - base
+  - hosts
+  - fas_client
+  - rkhunter
+  - { role: denyhosts, when: ansible_distribution_major_version != '7' }
+  - nagios_client
+  - sudo
+
+  tasks:
+  - include: "{{ tasks }}/2fa_client.yml"
+  - include: "{{ tasks }}/motd.yml"
+  - include: "{{ tasks }}/common_scripts.yml"
+
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"

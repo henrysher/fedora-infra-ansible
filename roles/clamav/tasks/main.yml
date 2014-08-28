@@ -1,0 +1,49 @@
+---
+# tasklist for setting up a ClamAV scanner
+#
+# The following variables control the scan:
+# - clamscan_mailto
+# - clamscan_paths
+# - clamscan_excludes (optional)
+#
+# The following variables control scheduling of the cron job:
+# - clamscan_minute (optional)
+# - clamscan_hour (optional)
+# - clamscan_day (optional)
+# - clamscan_month (optional)
+# - clamscan_weekday (optional)
+
+- name: install the needed packages
+  yum: pkg={{item}} state=present
+  with_items:
+  - clamav
+  - clamav-data
+  - clamav-update
+  - cronie-anacron
+
+- name: setup the freshclam configuration
+  copy: src=freshclam.conf dest=/etc/freshclam.conf
+
+- name: enable freshclam by fixing the stupid default sysconfig
+  copy: src=freshclam-sysconfig dest=/etc/sysconfig/freshclam
+
+- name: setup the freshclam cron job
+  copy: src=freshclam-cron dest=/etc/cron.daily/freshclam
+
+- name: setup the periodic clam scan script
+  template: >
+    src=clamscan.sh.j2
+    dest=/usr/local/bin/clamscan.sh
+    mode=0755
+
+- name: setup cron job for clam scan
+  cron: >
+    name="clamscan"
+    user=root
+    minute="{{ clamscan_minute | default(35) }}"
+    hour="{{ clamscan_hour | default(4) }}"
+    day="{{ clamscan_day | default(*) }}"
+    month="{{ clamscan_month | default(*) }}"
+    weekday="{{ clamscan_weekday | default(5) }}"
+    job="/usr/local/bin/clamscan.sh"
+    cron_file="ansible-clamscan"

@@ -1,0 +1,298 @@
+# -*- python -*-
+# ex: set syntax=python:
+
+# This is a sample buildmaster config file. It must be installed as
+# 'master.cfg' in your buildmaster's base directory.
+
+# This is the dictionary that the buildmaster pays attention to. We also use
+# a shorter alias to save typing.
+c = BuildmasterConfig = {}
+
+####### BUILDSLAVES
+
+# The 'slaves' list defines the set of recognized buildslaves. Each element is
+# a BuildSlave object, specifying a unique slave name and password.  The same
+# slave name and password must be configured on the slave.
+from buildbot.buildslave import BuildSlave
+c['slaves'] = [
+                {% for buildslave in buildslaves %}
+                {% if deployment_type == 'qadevel-stg' %}
+                BuildSlave("{{ buildslave }}", "{{ qadevel_stg_buildslave_password }}"),
+                {% endif %}
+                {% if deployment_type == 'qadevel-prod' %}
+                BuildSlave("{{ buildslave }}", "{{ qadevel_prod_buildslave_password }}"),
+                {% endif %}
+                {% endfor %}
+              ]
+
+# 'slavePortnum' defines the TCP port to listen on for connections from slaves.
+# This must match the value configured into the buildslaves (with their
+# --master option)
+c['slavePortnum'] = {{ buildslave_port }}
+
+
+####### CHANGESOURCES
+
+# the 'change_source' setting tells the buildmaster how it should find out
+# about source code changes.  Here we point to the buildbot clone of pyflakes.
+
+from buildbot.changes.gitpoller import GitPoller
+
+interval = {{ buildslave_poll_interval }}
+
+c['change_source'] = []
+c['change_source'].append(GitPoller(
+        'https://bitbucket.org/fedoraqa/taskotron-trigger.git',
+        workdir='gitpoller-workdir-trigger', branch='develop',
+        pollinterval=interval,
+        project='trigger'))
+
+c['change_source'].append(GitPoller(
+        'https://bitbucket.org/fedoraqa/libtaskotron.git',
+        workdir='gitpoller-workdir-libtaskotron', branch='develop',
+        pollinterval=interval,
+        project='libtaskotron'))
+
+c['change_source'].append(GitPoller(
+        'https://bitbucket.org/fedoraqa/resultsdb.git',
+        workdir='gitpoller-workdir-resultsdb', branch='develop',
+        pollinterval=interval,
+        project='resultsdb'))
+
+c['change_source'].append(GitPoller(
+        'https://bitbucket.org/fedoraqa/resultsdb_api.git',
+        workdir='gitpoller-workdir-resultsdb_api', branch='develop',
+        pollinterval=interval,
+        project='resultsdb_api'))
+
+c['change_source'].append(GitPoller(
+        'https://bitbucket.org/fedoraqa/fake_fedorainfra.git',
+        workdir='gitpoller-workdir-fake_fedorainfra', branch='develop',
+        pollinterval=interval,
+        project='fake_fedorainfra'))
+
+####### SCHEDULERS
+
+# Configure the Schedulers, which decide how to react to incoming changes.  In this
+# case, just kick off a 'runtests' build
+
+from buildbot.schedulers.basic import SingleBranchScheduler
+from buildbot.schedulers.forcesched import ForceScheduler
+from buildbot.changes import filter
+c['schedulers'] = []
+
+c['schedulers'].append(SingleBranchScheduler(
+                            name="trigger-scheduler",
+                            change_filter=filter.ChangeFilter(project='trigger', branch='develop'),
+                            treeStableTimer=None,
+                            builderNames=["trigger-builder"]))
+
+c['schedulers'].append(SingleBranchScheduler(
+                            name="libtaskotron-scheduler",
+                            change_filter=filter.ChangeFilter(project='libtaskotron', branch='develop'),
+                            treeStableTimer=None,
+                            builderNames=["libtaskotron-builder"]))
+
+c['schedulers'].append(SingleBranchScheduler(
+                            name="resultsdb-scheduler",
+                            change_filter=filter.ChangeFilter(project='resultsdb', branch='develop'),
+                            treeStableTimer=None,
+                            builderNames=["resultsdb-builder"]))
+
+c['schedulers'].append(SingleBranchScheduler(
+                            name="fake_fedorainfra-scheduler",
+                            change_filter=filter.ChangeFilter(project='fake_fedorainfra', branch='develop'),
+                            treeStableTimer=None,
+                            builderNames=["fake_fedorainfra-builder"]))
+
+c['schedulers'].append(ForceScheduler(
+                            name="force",
+                            builderNames=["trigger-builder", "libtaskotron-builder", "resultsdb-builder", "resultsdb_api-builder", "fake_fedorainfra-builder"]))
+
+####### BUILDERS
+
+# The 'builders' list defines the Builders, which tell Buildbot how to perform a build:
+# what steps, and which slaves can execute them.  Note that any particular build will
+# only take place on one slave.
+
+from buildbot.process.factory import BuildFactory
+from buildbot.steps.source.git import Git
+from buildbot.steps.shell import ShellCommand
+from buildbot.process.properties import Interpolate
+
+
+def create_test_factory(repo_name, func=True):
+    factory = BuildFactory()
+    factory.addStep(Git(repourl=Interpolate('https://bitbucket.org/fedoraqa/%s.git' % repo_name),
+                    mode='full', method='clobber'))
+    factory.addStep(ShellCommand(command=['virtualenv', '--system-site-packages', 'env']))
+    factory.addStep(ShellCommand(command=['bash', '-c', 'source env/bin/activate; pip install -r requirements.txt']))
+    factory.addStep(ShellCommand(command=['bash', '-c', 'source env/bin/activate; TEST="true" py.test %s testing/' % '-F' if func else ''], name=repo_name))
+
+    return factory
+
+
+trigger_factory = create_test_factory('taskotron-trigger')
+libtaskotron_factory = create_test_factory('libtaskotron')
+resultsdb_factory = create_test_factory('resultsdb')
+resultsdb_api_factory = create_test_factory('resultsdb_api')
+fake_fedorainfra_factory = create_test_factory('fake_fedorainfra')
+
+
+from buildbot.config import BuilderConfig
+
+c['builders'] = []
+c['builders'].append(
+    BuilderConfig(name="trigger-builder",
+      slavenames=[{% for buildslave in buildslaves %}"{{ buildslave }}",{% endfor %}],
+      factory=trigger_factory))
+c['builders'].append(
+    BuilderConfig(name="libtaskotron-builder",
+      slavenames=[{% for buildslave in buildslaves %}"{{ buildslave }}",{% endfor %}],
+      factory=libtaskotron_factory))
+c['builders'].append(
+    BuilderConfig(name="resultsdb-builder",
+      slavenames=[{% for buildslave in buildslaves %}"{{ buildslave }}",{% endfor %}],
+      factory=resultsdb_factory))
+c['builders'].append(
+    BuilderConfig(name="resultsdb_api-builder",
+      slavenames=[{% for buildslave in buildslaves %}"{{ buildslave }}",{% endfor %}],
+      factory=resultsdb_api_factory))
+c['builders'].append(
+    BuilderConfig(name="fake_fedorainfra-builder",
+      slavenames=[{% for buildslave in buildslaves %}"{{ buildslave }}",{% endfor %}],
+      factory=fake_fedorainfra_factory))
+
+
+####### STATUS TARGETS
+
+# 'status' is a list of Status Targets. The results of each build will be
+# pushed to these targets. buildbot/status/*.py has a variety to choose from,
+# including web pages, email senders, and IRC bots.
+#
+c['status'] = []
+
+from buildbot.status import html
+from buildbot.status.web import authz, auth
+
+authz_cfg=authz.Authz(
+    # change any of these to True to enable; see the manual for more
+    # options
+    {% if deployment_type == 'qadevel-stg' %}
+    auth=auth.BasicAuth([("{{ qadevel_stg_buildbot_master_user }}","{{ qadevel_stg_buildbot_master_password }}")]),
+    {% endif %}
+    {% if deployment_type == 'qadevel-prod' %}
+    auth=auth.BasicAuth([("{{ qadevel_prod_buildbot_master_user }}","{{ qadevel_prod_buildbot_master_password }}")]),
+    {% endif %}
+    gracefulShutdown = False,
+    forceBuild = 'auth', # use this to test your slave once it is set up
+    forceAllBuilds = False,
+    pingBuilder = False,
+    stopBuild = False,
+    stopAllBuilds = False,
+    cancelPendingBuild = False,
+)
+c['status'].append(html.WebStatus(http_port=8080, authz=authz_cfg,
+                                    change_hook_dialects={'base':True}))
+c['status'].append(html.WebStatus(http_port=8010, authz=authz_cfg))
+
+
+from buildbot.status.mail import MailNotifier
+from buildbot.status.builder import Results
+
+import cgi
+
+# http://docs.buildbot.net/current/manual/cfg-statustargets.html#mailnotifier
+def html_message_formatter(mode, name, build, results, master_status):
+    """Provide a customized message to Buildbot's MailNotifier.
+
+    The last 80 lines of the log are provided as well as the changes
+    relevant to the build.  Message content is formatted as html.
+    """
+    result = Results[results]
+
+    limit_lines = 80
+    text = list()
+    text.append(u'<h4>Build status: %s</h4>' % result.upper())
+    text.append(u'<table cellspacing="10"><tr>')
+    text.append(u"<td>Buildslave for this Build:</td><td><b>%s</b></td></tr>" % build.getSlavename())
+    if master_status.getURLForThing(build):
+        text.append(u'<tr><td>Complete logs for all build steps:</td><td><a href="%s">%s</a></td></tr>'
+                    % (master_status.getURLForThing(build),
+                       master_status.getURLForThing(build))
+                    )
+        text.append(u'<tr><td>Build Reason:</td><td>%s</td></tr>' % build.getReason())
+        text.append(u'</table>')
+        text.append(u'<br>')
+
+        logs = []
+        steps = build.getSteps()
+        for step in steps:
+            if step.getName().endswith('test'):
+                logs = step.getLogs()
+                break
+
+        # logs within a step are in reverse order. Search back until we find stdio
+        for log in reversed(logs):
+            if log.getName() == 'stdio':
+                break
+
+        name = "%s.%s" % (log.getStep().getName(), log.getName())
+        content = log.getText().splitlines() # Note: can be VERY LARGE
+        url = u'%s/steps/%s/logs/%s' % (master_status.getURLForThing(build),
+                                       log.getStep().getName(),
+                                       log.getName())
+
+        text.append(u'<i>Detailed log of last build step:</i> <a href="%s">%s</a>'
+                    % (url, url))
+        text.append(u'<br>')
+        text.append(u'<h4>Last %d lines of "%s"</h4>' % (limit_lines, name))
+        unilist = list()
+        for line in content[len(content)-limit_lines:]:
+            unilist.append(cgi.escape(unicode(line,'utf-8')))
+        text.append(u'<pre>')
+        text.extend(unilist)
+        text.append(u'</pre>')
+        text.append(u'<br><br>')
+        text.append(u'<b>-The Buildbot</b>')
+        return {
+            'body': u"\n".join(text),
+            'type': 'html'
+            }
+'''
+mn = MailNotifier(fromaddr='taskotron@fedoraproject.org',
+                  sendToInterestedUsers=False,
+                  subject="%(prop:taskname)s %(result)s in %(projectName)s on %(builder)s",
+                  mode=('failing', 'exception', 'warnings'),
+                  extraRecipients=['qa-taskotron-admin-members@fedoraproject.org'],
+                  relayhost="bastion.phx2.fedoraproject.org",
+                  messageFormatter=html_message_formatter)
+
+
+c['status'].append(mn)
+'''
+
+####### PROJECT IDENTITY
+
+# the 'title' string will appear at the top of this buildbot
+# installation's html.WebStatus home page (linked to the
+# 'titleURL') and is embedded in the title of the waterfall HTML page.
+
+c['title'] = "Taskotron CI"
+c['titleURL'] = "http://{{ external_hostname }}/{{buildmaster_endpoint}}/"
+
+# the 'buildbotURL' string should point to the location where the buildbot's
+# internal web server (usually the html.WebStatus page) is visible. This
+# typically uses the port number set in the Waterfall 'status' entry, but
+# with an externally-visible host name which the buildbot cannot figure out
+# without some help.
+
+c['buildbotURL'] = "http://{{ external_hostname }}/{{buildmaster_endpoint}}/"
+
+####### DB URL
+
+c['db'] = {
+    # This specifies what database buildbot uses to store its state.  You can leave
+    # this at its default for all but the largest installations.
+    'db_url' : "sqlite:///state.sqlite",
+}

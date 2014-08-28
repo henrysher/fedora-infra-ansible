@@ -1,30 +1,34 @@
+# This is a basic playbook
 
-- name: Setup arm-retrace hosts
-  hosts: arm-retrace
+- name: make cloud noc hardware
+  hosts: cloud-noc01.cloud.fedoraproject.org
   user: root
+  accelerate: "{{ accelerated }}"
   gather_facts: True
-  tags:
-   - arm-retrace
 
-  vars_files:
+  vars_files: 
    - /srv/web/infra/ansible/vars/global.yml
    - "{{ private }}/vars.yml"
    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
 
   roles:
   - base
+  - rkhunter
+  - { role: denyhosts, when: ansible_distribution_major_version != '7' }
+  - nagios_client
   - hosts
   - fas_client
-  - rkhunter
-  - denyhosts
-  - nagios_client
+  - collectd/base
   - sudo
+  - dhcp_server
+  - tftp_server
 
   tasks:
-  # this is how you include other task lists
+  - include: "{{ tasks }}/yumrepos.yml"
   - include: "{{ tasks }}/2fa_client.yml"
   - include: "{{ tasks }}/motd.yml"
-  - include: "{{ tasks }}/common_scripts.yml"
 
   handlers:
   - include: "{{ handlers }}/restart_services.yml"
+  - include: "{{ handlers }}/semanage.yml"
+
