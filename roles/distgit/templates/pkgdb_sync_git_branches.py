@@ -46,7 +46,12 @@ config['active'] = True
 config['endpoints']['relay_inbound'] = config['relay_inbound']
 fedmsg.init(name='relay_inbound', cert_prefix='shell', **config)
 
+{% if env == 'staging' %}
+PKGDB_URL = 'https://admin.stg.fedoraproject.org/pkgdb'
+{% else %}
 PKGDB_URL = 'https://admin.fedoraproject.org/pkgdb'
+{% endif %}
+
 GIT_FOLDER = '/srv/git/rpms/'
 MKBRANCH = '/usr/local/bin/mkbranch'
 SETUP_PACKAGE = '/usr/local/bin/setup_git_package'
