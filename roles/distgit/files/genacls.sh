@@ -8,7 +8,7 @@ cd $TEMPDIR
 # Only replace the acls if genacls completes successfully
 if /usr/local/bin/genacls.pkgdb > gitolite.conf ; then
     mv gitolite.conf /etc/gitolite/conf/
-    /usr/bin/gl-compile-conf
+    /usr/bin/gitolite compile
 fi
 cd /
 rm -rf $TEMPDIR
