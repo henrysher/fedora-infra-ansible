@@ -73,16 +73,17 @@ def normalize_branch(collection_cache, branch):
 
 # process_package :: PkgDB -> String -> String -> IO Bool
 def process_package(pkgdb, pkg, src, dest):
+    print "*** Processing package: " + pkg
+
     data = pkgdb.get_package(pkg)
     pkg_list = data['packages']
 
-    maybe_source = filter(lambda y: y['collection']['branchname'] == src,
-                          pkg_list)
-    maybe_dest   = filter(lambda y: y['collection']['branchname'] == dest,
-                          pkg_list)
+    maybe_source = [branch for branch in pkg_list if branch['collection']['branchname'] == src]
+    maybe_dest = [branch for branch in pkg_list if branch['collection']['branchname'] == dest]
+
     if len(maybe_source) == 0:
         print "Source branch `" + src + "' not found. Please "\
-               "branch" + pkg + "manually."
+               "branch " + pkg + " manually."
         return False
 
     if len(maybe_dest) != 0:
@@ -90,10 +91,22 @@ def process_package(pkgdb, pkg, src, dest):
               " Not overwriting branch."
         return False
 
-    acls = filter(lambda y: y['fas_name'] != 'group::provenpackager',
-                  maybe_source[0]['acls'])
-    map(lambda acl: pkgdb.update_acl(pkg, dest, acl['acl'], acl['status'],
-                                     acl['fas_name']), acls)
+    if 'acls' not in maybe_source[0].keys():
+        print "No 'acls' key given to us by pkgdb. Cloning ACLs from a "\
+              "branch that has no ACLs due to retirement/orphan?"
+        return False
+
+    acls = [
+        acl
+        for acl in maybe_source[0]['acls']
+        if acl['fas_name'] != 'group::provenpackager'
+    ]
+
+    for acl in acls:
+        pkgdb.update_acl(pkg, dest, acl['acl'], acl['status'], acl['fas_name'])
+
+    pkgdb.update_package_poc(pkg, dest, maybe_source[0]['point_of_contact'])
+
     return True
 
 # main :: [String] -> IO Unit
@@ -132,9 +145,9 @@ def main(args):
                                      NEW_EPEL_SOURCE_BRANCH,
                                      "epel" + NEW_EPEL_VERSION,
                                      key])
-                    print "[" + key + "] Success"
+                    print "[" + key + "] \033[1m\033[32mSUCCESS\033[0m"
                 else:
-                    print "[" + key + "] Error"
+                    print "[" + key + "] \033[1m\033[31mERROR\033[0m"
         print "Done."
     else:
         src_branchname  = normalize_branch(collection_cache, args[0])
@@ -144,9 +157,9 @@ def main(args):
                   "name, " + src_branchname + " -> " + dest_branchname
         for pkg in args[2:]:
                 if process_package(pkgdb, key, src_branchname, dest_branchname):
-                    print "[" + key + "] Success"
+                    print "[" + key + "] \033[1m\033[32mSUCCESS\033[0m"
                 else:
-                    print "[" + key + "] Error"
+                    print "[" + key + "] \033[1m\033[31mERROR\033[0m"
 
 if __name__ == '__main__':
     main(sys.argv[1:])
