@@ -62,7 +62,7 @@ class MediaWiki(fedora.client.Wiki):
     """ Mediawiki class.
     Handles interaction with the Mediawiki.
     Code stollen from cnucnu:
-    https://fedorapeople.org/gitweb?p=till/public_git/cnucnu.git;a=summary
+    http://fedorapeople.org/gitweb?p=till/public_git/cnucnu.git;a=summary
     """
 
     def __init__(self, base_url='https://fedoraproject.org/w/', *args,
