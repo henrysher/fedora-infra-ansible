@@ -1,0 +1,246 @@
+---
+- name: deploy Open Stack controler
+  hosts: fed-cloud09.cloud.fedoraproject.org
+  user: root
+  sudo: yes
+  gather_facts: True
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - /srv/web/infra/ansible/vars/fedora-cloud.yml
+   - {{ private }}/files/openstack/passwords.yml
+
+  tasks:
+  - name: Set the hostname
+    action: hostname name=fed-cloud09.cloud.fedoraproject.org
+
+  - name: install core pkgs
+    action: yum state=present pkg={{ item }}
+    with_items:
+    - libselinux-python
+    - ntp
+    - wget
+    - scsi-target-utils
+    - lvm2
+    - iptables-services
+    - ansible-openstack-modules
+
+  - name: disable selinux
+    action: selinux policy=targeted state=permissive
+
+  - service: name=tgtd state=started enabled=yes
+
+  - lvg: vg=cinder-volumes pvs=/dev/md127 pesize=32 vg_options=''
+
+  - template: src={{ files }}/hosts dest=/etc/hosts owner=root mode=0644
+
+  # http://docs.openstack.org/trunk/install-guide/install/yum/content/basics-networking.html
+  - service: name=NetworkManager state=stopped enabled=no
+  - service: name=network state=started enabled=yes
+  - service: name=firewalld state=stopped enabled=no
+    ignore_errors: yes
+  - service: name=iptables state=started enabled=yes
+
+  # http://docs.openstack.org/trunk/install-guide/install/yum/content/basics-neutron-networking-controller-node.html
+  - lineinfile: dest=/etc/sysconfig/network-scripts/ifcfg-eth1 regexp="^ONBOOT=" line="ONBOOT=yes"
+  - lineinfile: dest=/etc/sysconfig/network-scripts/ifcfg-eth1 regexp="^NETMASK=" line="NETMASK=255.255.255.0"
+  - lineinfile: dest=/etc/sysconfig/network-scripts/ifcfg-eth1 regexp="^IPADDR=" line="IPADDR={{controller_private_ip}}"
+  - lineinfile: dest=/etc/sysconfig/network-scripts/ifcfg-eth1 regexp="BOOTPROTO=" line="BOOTPROTO=none"
+  - template: src={{files}}/ifcfg-br-ex dest=/etc/sysconfig/network-scripts/ifcfg-br-ex owner=root mode=0644
+  # FIXME notify network service restart
+
+  # http://docs.openstack.org/trunk/install-guide/install/yum/content/basics-ntp.html
+  - service: name=ntpd state=started enabled=yes
+
+  # http://docs.openstack.org/trunk/install-guide/install/yum/content/basics-database-controller.html
+  - name: install mysql packages
+    action: yum state=present pkg={{ item }}
+    with_items:
+    - mariadb-galera-server
+    - MySQL-python
+  - lineinfile: dest=/etc/my.cnf regexp="^bind-address" insertafter="^\[mysqld\]" line="bind-address = {{ controller_public_ip }}"
+  - lineinfile: dest=/etc/my.cnf regexp="^default-storage-engine" insertafter="^\[mysqld\]" line="default-storage-engine = innodb"
+  - lineinfile: dest=/etc/my.cnf regexp="^collation-server" insertafter="^\[mysqld\]" line="collation-server = utf8_general_ci"
+  - lineinfile: dest=/etc/my.cnf regexp="^init-connect" insertafter="^\[mysqld\]" line="init-connect = 'SET NAMES utf8'"
+  - lineinfile: dest=/etc/my.cnf regexp="^character-set-server " insertafter="^\[mysqld\]" line="character-set-server = utf8"
+  - service: name=mysqld state=started enabled=yes
+    # 'localhost' needs to be the last item for idempotency, see
+    # http://ansible.cc/docs/modules.html#mysql-user
+  - name: update mysql root password for localhost before setting .my.cnf
+    mysql_user: name=root host=localhost password={{ DBPASSWORD }}
+  - name: copy .my.cnf file with root password credentials
+    template: src={{ files }}/my.cnf dest=/root/.my.cnf owner=root mode=0600
+  - name: update mysql root password for all root accounts
+    mysql_user: name=root host={{ item }} password={{ DBPASSWORD }}
+    with_items:
+      - "{{ controller_public_ip }}"
+      - 127.0.0.1
+      - ::1
+  - name: copy .my.cnf file with root password credentials
+    template: src={{ files }}/my.cnf dest=/root/.my.cnf owner=root mode=0600
+  - name: delete anonymous MySQL server user for $server_hostname
+    action: mysql_user user="" host="{{ controller_public_ip }}" state="absent"
+  - name: delete anonymous MySQL server user for localhost
+    action: mysql_user user="" state="absent"
+  - name: remove the MySQL test database
+    action: mysql_db db=test state=absent
+
+  # http://openstack.redhat.com/Quickstart
+  - yum: state=present name=http://rdo.fedorapeople.org/rdo-release.rpm
+  - yum: state=present name=http://mirror.pnl.gov/epel/7/x86_64/epel-release-7-0.2.noarch.rpm
+  - yum: state=present name=openstack-utils
+  - yum: state=present name=openstack-selinux
+  - yum: state=present name=openstack-packstack
+  - yum: state=present name=python-glanceclient
+  - yum: name=* state=latest
+
+  - template: src={{ files }}/packstack-controller-answers.txt dest=/root/ owner=root mode=0600
+  - authorized_key: user=root key="ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCjXgd/9oVjok7fhNkVaRVP3w9J/J9kN/gZaOUBe6sAJEsDBTa/Hsl/UvSbyML24zg5C22HQtdL4AHAzPTN08ZUvCLsYqW3kqO6EYfLUwOm2hchow2CI7cuvpuLeKX0C11U6Ckv364Fpp8cYCJPFIz6mnqQoTc+t9jhbvqNro508s2YCm/9wbt8oWBEIpqQj2P666tM3sXmMmkZifn3XojExXC4iyQBcwDxascTr99y/eSxBcNpTDg2BKrJqqa5RGcGh79TURPqGr29aim3Wux2LpQPVBCrVp9Zgde/ixsjL3dIbiErYIeXqyRHwl1j10aWEGpAx8SsD8w4EkIcZykj root@fed-cloud09.cloud.fedoraproject.org"
+  #- command: packstack --answer-file=/root/packstack-controller-answers.txt
+
+
+  # http://docs.openstack.org/trunk/install-guide/install/yum/content/glance-verify.html
+  - get_url: url=http://cdn.download.cirros-cloud.net/0.3.2/cirros-0.3.2-x86_64-disk.img dest=/root/images/cirros-0.3.2-x86_64-disk.img mode=0440
+  - name: Add the cirros-0.3.2-x86_64 image
+    glance_image:
+      login_username: "admin" login_password: "{{ ADMIN_PASS }}" login_tenant_name: "admin"
+      name: cirros-0.3.2-x86_64
+      disk_format: qcow2
+      is_public: True
+      file: /root/images/cirros-0.3.2-x86_64-disk.img
+
+  - name: create non-standard flavor
+    action: shell source /root/keystonerc_admin && nova flavor-list | grep m1.builder || nova flavor-create m1.builder 6 5120 50 3
+
+  #####  download common Images #####
+  - get_url: url=http://download.fedoraproject.org/pub/fedora/linux/updates/20/Images/x86_64/Fedora-x86_64-20-20140407-sda.qcow2 dest=/root/images/Fedora-x86_64-20-20140407-sda.qcow2 mode=0440
+  - get_url: url=http://download.fedoraproject.org/pub/fedora/linux/updates/19/Images/x86_64/Fedora-x86_64-19-20140407-sda.qcow2 dest=/root/images/Fedora-x86_64-19-20140407-sda.qcow2 mode=0440
+  # RHEL6 can be downloaded from https://rhn.redhat.com/rhn/software/channel/downloads/Download.do?cid=16952
+  # RHEL7 can be download from https://access.redhat.com/downloads/content/69/ver=/rhel---7/7.0/x86_64/product-downloads
+  - name: Add the images
+    glance_image:
+      login_username: "admin" login_password: "{{ ADMIN_PASS }}" login_tenant_name: "admin"
+      name: "{{ item.name }}"
+      disk_format: qcow2
+      is_public: True
+      file: "{{ item.file }}"
+    with_items:
+      - name: fedora-cloud-64-20-20140407
+        file: /root/images/Fedora-x86_64-20-20140407-sda.qcow2
+      - name: fedora-cloud-64-19-20140407
+        file: /root/images/Fedora-x86_64-19-20140407-sda.qcow2
+      - name: rhel-guest-image-6.5-20140630.0.x86_64
+        file: /root/images/rhel-guest-image-6.5-20140630.0.x86_64.qcow2
+      - name: rhel-guest-image-7.0-20140618.1.x86_64
+        file: /root/images/rhel-guest-image-7.0-20140618.1.x86_64.qcow2
+
+
+  ##### PROJECTS ######
+  - name: Create tenants
+    keystone_user:
+      login_username: "admin" login_password: "{{ ADMIN_PASS }}" login_tenant_name: "admin"
+      tenant: "{{ item.name }}"
+      tenant_description: "{{ item.desc }}"
+      state: present
+    with_items:
+      - { name: persistent, desc: "persistent instances" }
+      - { name: qa, desc: "" }
+      - { name: transient, desc: 'transient instances' }
+      - { name: infrastructure, desc: "" }
+      - { name: cloudintern, desc: 'project for the cloudintern under mattdm' }
+      - { name: cloudsig, desc: 'Fedora cloud sig folks.' }
+      - { name: copr, desc: 'Copr tenant for the buildsys' }
+      - { name: pythonbots, desc: 'project for python build bot users - twisted, etc' }
+      - { name: scratch, desc: 'scratch and short term instances' }
+
+
+  ##### USERS #####
+  # This is without passwdords. It has to be set either manually or via private.git
+  # If username is  3 or less characters, use email for grep
+  - name: Create users
+    keystone_user:
+      login_username: "admin" login_password: "{{ ADMIN_PASS }}" login_tenant_name: "admin"
+      user: "{{ item.name }}"
+      email: "{{ item.email }}"
+      tenant: "{{ item.tenant }}"
+      state: present
+    with_items:
+      - { name: kevin, email: 'kevin@fedoraproject.org', tenant: infrastructure }
+      - { name: laxathom, email: 'laxathom@fedoraproject.org', tenant: infrastructure }
+      - { name: samkottler, email: 'samkottler@fedoraproject.org', tenant: infrastructure }
+      - { name: puiterwijk, email: 'puiterwijk@fedoraproject.org', tenant: infrastructure }
+      - { name: mattdm, email: 'mattdm@fedoraproject.org', tenant: infrastructure }
+      - { name: tflink, email: 'tflink@fedoraproject.org', tenant: qa }
+      - { name: copr, email: 'admin@fedoraproject.org', tenant: copr }
+      - { name: twisted, email: 'buildbot@twistedmatrix.com', tenant: pythonbots }
+      - { name: ausil, email: 'dennis@ausil.us', tenant: infrastructure }
+      - { name: anthomas, email: 'anthomas@redhat.com', tenant: cloudintern }
+      - { name: jskladan, email: 'jskladan@redhat.com', tenant: qa }
+      - { name: gholms, email: 'gholms@fedoraproject.org', tenant: cloudintern }
+      - { name: cockpit, email: 'walters@redhat.com', tenant: scratch }
+      - { name: nb, email: 'nb@fedoraproject.org', tenant: infrastructure }
+      - { name: pingou, email: 'pingou@pingoured.fr', tenant: infrastructure }
+      - { name: codeblock, email: 'codeblock@elrod.me', tenant: infrastructure }
+      - { name: msuchy, email: 'msuchy@redhat.com', tenant: copr }
+      - { name: red, email: 'red@fedoraproject.org', tenant: infrastructure }
+  #- template: src={{ files }}/keystonerc_msuchy dest=/root/ owner=root mode=0600
+  #- shell: source /root/keystonerc_admin && keystone user-password-update --pass 'XXXX' msuchy
+
+
+  ##### NETWORK ####
+  # http://docs.openstack.org/havana/install-guide/install/apt/content/install-neutron.configure-networks.html
+  - name: Create en external network
+    neutron_network:
+      login_username: "admin" login_password: "{{ ADMIN_PASS }}" login_tenant_name: "admin"
+      name: external
+      router_external: True
+      provider_network_type: flat
+      provider_physical_network: floatnet
+    register: EXTERNAL_ID
+  - name: Create an external subnet
+    neutron_subnet:
+      login_username: "admin" login_password: "{{ ADMIN_PASS }}" login_tenant_name: "admin"
+      name: external-subnet
+      network_name: external-subnet
+      cidr: "{{ public_interface_cidr }}"
+      allocation_pool_start: "{{ public_floating_start }}"
+      allocation_pool_end: "{{ public_floating_end }}"
+      gateway_ip: "{{ public_gateway_ip }}"
+      enable_dhcp: False
+    register: EXTERNAL_SUBNET_ID
+  - shell: source /root/keystonerc_admin && nova floating-ip-create external
+
+  # Copr network
+  - name: Create a router for copr
+    neutron_router:
+      login_username: "admin" login_password: "{{ ADMIN_PASS }}" login_tenant_name: "admin"
+      tenant_name: copr
+      name: ext-to-int
+    register: ROUTER_ID
+  - name: Connect router's gateway to the external network
+    neutron_router_gateway:
+      login_username: "admin" login_password: "{{ ADMIN_PASS }}" login_tenant_name: "admin"
+      tenant_name: copr
+      router_name: {{ ROUTER_ID.id }}
+      network_name: {{ EXTERNAL_ID.id }}
+  - name: Create a private network for copr
+    neutron_network:
+      login_username: "admin" login_password: "{{ ADMIN_PASS }}" login_tenant_name: "admin"
+      tenant_name: copr
+      name: copr-net
+  - name: Create a subnet in the copr-net
+    neutron_subnet:
+      login_username: "admin" login_password: "{{ ADMIN_PASS }}" login_tenant_name: "admin"
+      tenant_name: copr
+      network_name: copr-net
+      name: copr-subnet
+      cidr:  172.24.0.1/24
+      gateway_ip: 172.24.0.1
+    register: COPR_SUBNET_ID
+  - name: Connect router's interface to the copr-subnet
+    neutron_router_interface:
+      login_username: "admin" login_password: "{{ ADMIN_PASS }}" login_tenant_name: "admin"
+      tenant_name: copr
+      router_name: {{ ROUTER_ID.id }}
+      subnet_name: {{ COPR_SUBNET_ID.id }}
+
