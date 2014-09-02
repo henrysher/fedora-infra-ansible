@@ -4,7 +4,11 @@ config = {
     # And this is for the datanommer database
     "datanommer.sqlalchemy.url": "postgresql://{{datanommerDBUser}}:{{datanommerDBPassword}}@db-datanommer/datanommer",
 
-    "fmn.backends": ["irc", "email"],  # But "android" is disabled.
+    {% if env == 'staging' %}
+    "fmn.backends": ["email", "irc", "android"],
+    {% else %}
+    "fmn.backends": ["email", "irc"],  # android is disabled.
+    {% endif %}
 
     "fmn.web.default_login": "fedora_login",
 }
