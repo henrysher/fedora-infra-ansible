@@ -103,7 +103,16 @@
   copy: src=gitolite.rc dest=/etc/gitolite/gitolite.rc owner=root group=root mode=0755
 
 - name: Create the repositories symlink
-  command: ln -s /srv/git/rpms/ /root/repositories
+  command: ln -s /srv/git/rpms/ /srv/git/repositories
+  tags:
+  - config
+  - distgit
+
+- name: Create the gitolite configuration symlink
+  command: ln -s /etc/gitolite/ /srv/git/.gitolite
+  tags:
+  - config
+  - distgit
 
 - name: install the gitolite scripts
   copy: src={{item}} dest=/usr/local/bin/{{item}} mode=0755
