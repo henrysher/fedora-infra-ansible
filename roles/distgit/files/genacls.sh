@@ -12,3 +12,5 @@ if /usr/local/bin/genacls.pkgdb > gitolite.conf ; then
 fi
 cd /
 rm -rf $TEMPDIR
+chown root:packager /etc/gitolite/conf/gitolite.conf-compiled.pm
+chmod g+r /etc/gitolite/conf/gitolite.conf-compiled.pm
