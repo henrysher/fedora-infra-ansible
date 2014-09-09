@@ -101,6 +101,7 @@ def _invoke(program, args):
             output = program.stdout.read()
             e.message = 'Error, "%s" returned %s: %s' % (
                 e.cmd, e.returnCode, output)
+            print e.message
         else:
             e.message = 'Error, "%s" returned %s' % (e.cmd, e.returnCode)
         raise e
