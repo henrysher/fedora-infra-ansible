@@ -119,11 +119,19 @@
   - config
   - distgit
 
-- name: install the gitolite scripts
+- name: install the genacls.sh script
   copy: src={{item}} dest=/usr/local/bin/{{item}} mode=0755
   with_items:
-    - genacls.pkgdb
     - genacls.sh
+
+- name: install the genacls.pkgdb scripts
+  template: src={{item}} dest=/usr/local/bin/{{item}}
+            owner=root group=root mode=0755
+  with_items:
+    - genacls.pkgdb
+  tags:
+  - config
+  - distgit
 
 - name: Add the genacl daily cron job
   copy: src=genacls.cron dest=/etc/cron.d/genacls.cron
