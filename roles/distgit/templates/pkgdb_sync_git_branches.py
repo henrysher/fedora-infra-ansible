@@ -87,10 +87,10 @@ def _invoke(program, args):
         print ' '.join(cmdLine)
 
     if VERBOSE:
-        program = subprocess.Popen(cmdLine, stderr=subprocess.STDOUT)
-    else:
         program = subprocess.Popen(
             cmdLine, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    else:
+        program = subprocess.Popen(cmdLine, stderr=subprocess.STDOUT)
 
     retCode = program.wait()
     if retCode != 0:
