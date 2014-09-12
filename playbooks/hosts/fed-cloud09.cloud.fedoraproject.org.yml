@@ -110,10 +110,10 @@
   - name: Add the cirros-0.3.2-x86_64 image
     glance_image:
       login_username="admin" login_password="{{ ADMIN_PASS }}" login_tenant_name="admin"
-      name: cirros-0.3.2-x86_64
-      disk_format: qcow2
-      is_public: True
-      file: /root/images/cirros-0.3.2-x86_64-disk.img
+      name=cirros-0.3.2-x86_64
+      disk_format=qcow2
+      is_public=True
+      file=/root/images/cirros-0.3.2-x86_64-disk.img
 
   - name: create non-standard flavor
     action: shell source /root/keystonerc_admin && nova flavor-list | grep m1.builder || nova flavor-create m1.builder 6 5120 50 3
@@ -126,10 +126,10 @@
   - name: Add the images
     glance_image:
       login_username="admin" login_password="{{ ADMIN_PASS }}" login_tenant_name="admin"
-      name: "{{ item.name }}"
-      disk_format: qcow2
-      is_public: True
-      file: "{{ item.file }}"
+      name="{{ item.name }}"
+      disk_format=qcow2
+      is_public=True
+      file="{{ item.file }}"
     with_items:
       - name: fedora-cloud-64-20-20140407
         file: /root/images/Fedora-x86_64-20-20140407-sda.qcow2
@@ -145,9 +145,9 @@
   - name: Create tenants
     keystone_user:
       login_username="admin" login_password="{{ ADMIN_PASS }}" login_tenant_name="admin"
-      tenant: "{{ item.name }}"
-      tenant_description: "{{ item.desc }}"
-      state: present
+      tenant="{{ item.name }}"
+      tenant_description="{{ item.desc }}"
+      state=present
     with_items:
       - { name: persistent, desc: "persistent instances" }
       - { name: qa, desc: "" }
@@ -166,10 +166,10 @@
   - name: Create users
     keystone_user:
       login_username="admin" login_password="{{ ADMIN_PASS }}" login_tenant_name="admin"
-      user: "{{ item.name }}"
-      email: "{{ item.email }}"
-      tenant: "{{ item.tenant }}"
-      state: present
+      user="{{ item.name }}"
+      email="{{ item.email }}"
+      tenant="{{ item.tenant }}"
+      state=present
     with_items:
       - { name: kevin, email: 'kevin@fedoraproject.org', tenant: infrastructure }
       - { name: laxathom, email: 'laxathom@fedoraproject.org', tenant: infrastructure }
@@ -199,9 +199,9 @@
     neutron_network:
       login_username="admin" login_password="{{ ADMIN_PASS }}" login_tenant_name="admin"
       name=external
-      router_external: True
-      provider_network_type: flat
-      provider_physical_network: floatnet
+      router_external=True
+      provider_network_type=flat
+      provider_physical_network=floatnet
     register: EXTERNAL_ID
   - name: Create an external subnet
     neutron_subnet:
@@ -209,10 +209,10 @@
       name=external-subnet
       network_name=external-subnet
       cidr="{{ public_interface_cidr }}"
-      allocation_pool_start: "{{ public_floating_start }}"
-      allocation_pool_end: "{{ public_floating_end }}"
+      allocation_pool_start="{{ public_floating_start }}"
+      allocation_pool_end="{{ public_floating_end }}"
       gateway_ip="{{ public_gateway_ip }}"
-      enable_dhcp: False
+      enable_dhcp=False
     register: EXTERNAL_SUBNET_ID
   - shell: source /root/keystonerc_admin && nova floating-ip-create external
 
