@@ -52,7 +52,7 @@
   - lineinfile: dest=/etc/sysconfig/network-scripts/ifcfg-eth1 regexp="^NETMASK=" line="NETMASK=255.255.255.0"
   - lineinfile: dest=/etc/sysconfig/network-scripts/ifcfg-eth1 regexp="^IPADDR=" line="IPADDR={{controller_private_ip}}"
   - lineinfile: dest=/etc/sysconfig/network-scripts/ifcfg-eth1 regexp="BOOTPROTO=" line="BOOTPROTO=none"
-  - template: src={{files}}/ifcfg-br-ex dest=/etc/sysconfig/network-scripts/ifcfg-br-ex owner=root mode=0644
+  - template: src={{files}}/fedora-cloud/ifcfg-br-ex dest=/etc/sysconfig/network-scripts/ifcfg-br-ex owner=root mode=0644
   # FIXME notify network service restart
 
   # http://docs.openstack.org/trunk/install-guide/install/yum/content/basics-ntp.html
@@ -75,7 +75,7 @@
   - name: update mysql root password for localhost before setting .my.cnf
     mysql_user: name=root host=localhost password={{ DBPASSWORD }}
   - name: copy .my.cnf file with root password credentials
-    template: src={{ files }}/my.cnf dest=/root/.my.cnf owner=root mode=0600
+    template: src={{ files }}/fedora-cloud/my.cnf dest=/root/.my.cnf owner=root mode=0600
   - name: update mysql root password for all root accounts
     mysql_user: name=root host={{ item }} password={{ DBPASSWORD }}
     with_items:
@@ -83,7 +83,7 @@
       - 127.0.0.1
       - ::1
   - name: copy .my.cnf file with root password credentials
-    template: src={{ files }}/my.cnf dest=/root/.my.cnf owner=root mode=0600
+    template: src={{ files }}/fedora-cloud/my.cnf dest=/root/.my.cnf owner=root mode=0600
   - name: delete anonymous MySQL server user for $server_hostname
     action: mysql_user user="" host="{{ controller_public_ip }}" state="absent"
   - name: delete anonymous MySQL server user for localhost
@@ -100,7 +100,7 @@
   - yum: state=present name=python-glanceclient
   - yum: name=* state=latest
 
-  - template: src={{ files }}/packstack-controller-answers.txt dest=/root/ owner=root mode=0600
+  - template: src={{ files }}/fedora-cloud/packstack-controller-answers.txt dest=/root/ owner=root mode=0600
   - authorized_key: user=root key="ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCjXgd/9oVjok7fhNkVaRVP3w9J/J9kN/gZaOUBe6sAJEsDBTa/Hsl/UvSbyML24zg5C22HQtdL4AHAzPTN08ZUvCLsYqW3kqO6EYfLUwOm2hchow2CI7cuvpuLeKX0C11U6Ckv364Fpp8cYCJPFIz6mnqQoTc+t9jhbvqNro508s2YCm/9wbt8oWBEIpqQj2P666tM3sXmMmkZifn3XojExXC4iyQBcwDxascTr99y/eSxBcNpTDg2BKrJqqa5RGcGh79TURPqGr29aim3Wux2LpQPVBCrVp9Zgde/ixsjL3dIbiErYIeXqyRHwl1j10aWEGpAx8SsD8w4EkIcZykj root@fed-cloud09.cloud.fedoraproject.org"
   - command: packstack --answer-file=/root/packstack-controller-answers.txt
 
@@ -189,7 +189,7 @@
       - { name: codeblock, email: 'codeblock@elrod.me', tenant: infrastructure }
       - { name: msuchy, email: 'msuchy@redhat.com', tenant: copr }
       - { name: red, email: 'red@fedoraproject.org', tenant: infrastructure }
-  #- template: src={{ files }}/keystonerc_msuchy dest=/root/ owner=root mode=0600
+  #- template: src={{ files }}/fedora-cloud/keystonerc_msuchy dest=/root/ owner=root mode=0600
   #- shell: source /root/keystonerc_admin && keystone user-password-update --pass 'XXXX' msuchy
 
 
