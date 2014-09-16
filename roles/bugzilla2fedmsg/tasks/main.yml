@@ -9,6 +9,7 @@
   - python-twisted-words
   tags:
   - packages
+  - bugzilla2fedmsg
 
 - name: Copy a custom moksha systemd service file
   copy: >
@@ -16,6 +17,8 @@
      dest=/usr/lib/systemd/system/moksha-hub.service
   notify:
   - restart moksha-hub
+  tags:
+  - bugzilla2fedmsg
 
 - name: Make sure a few directories exist.
   file:
@@ -27,6 +30,8 @@
   with_items:
   - /etc/moksha/
   - /usr/share/fedmsg/
+  tags:
+  - bugzilla2fedmsg
 
 - name: Copy the configuration for bugzilla2fedmsg over
   template: >
@@ -37,6 +42,8 @@
     mode=0640 
   notify:
   - restart moksha-hub
+  tags:
+  - bugzilla2fedmsg
 
 - name: Copy in the staging certificates
   copy: >
@@ -49,6 +56,8 @@
   when: env == 'staging'
   notify:
   - restart moksha-hub
+  tags:
+  - bugzilla2fedmsg
 
 - name: Copy in the production certificates
   copy: >
@@ -61,6 +70,10 @@
   when: env != 'staging'
   notify:
   - restart moksha-hub
+  tags:
+  - bugzilla2fedmsg
 
 - name: moksha-hub service
   service: name=moksha-hub state=started enabled=yes
+  tags:
+  - bugzilla2fedmsg
