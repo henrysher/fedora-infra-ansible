@@ -33,10 +33,6 @@
 
 # -- Dist Git --------------------------------------------
 # This is the Git setup itself: group, root directory, scripts,...
-#
-# Requires: roles/git/hooks
-# Requires: roles/git/make_checkout_seed
-# Requires: roles/git/server
 - name: create the distgit root directory)
   file: dest=/srv/git state=directory mode=0755
   file: dest=/srv/git/rpms state=directory mode=2775 group=packager
@@ -73,11 +69,6 @@
 
 # -- Gitolite --------------------------------------------
 # This is the permission management for package maintainers, using Gitolite.
-#
-# Requires: roles/fedmsg/base
-# Requires: roles/fedmsg/hub
-# Requires: roles/gitolite/base
-# Requires: roles/gitolite/check_fedmsg_hooks
 - name: mount the lookaside path
   mount: >
     src=vtap-fedora-nfs01.storage.phx2.redhat.com:/vol/fedora_sourcecache
@@ -147,10 +138,6 @@
 
 # -- CGit ------------------------------------------------
 # This is the pretty web view of the repositories, using CGit.
-#
-# Requires: roles/cgit/base
-# Requires: roles/cgit/clean_lock_cron
-# Requires: roles/cgit/make_pkgs_list
 - name: install the cgitrc file
   copy: src=cgitrc dest=/etc/cgitrc
 
@@ -162,8 +149,6 @@
 
 # -- Lookaside Cache -------------------------------------
 # This is the annex to Dist Git, where we host source tarballs.
-#
-# Requires: clamav
 - name: install the Lookaside Cache httpd configs
   copy: src={{item}} dest=/etc/httpd/conf.d/pkgs.fedoraproject.org/{{item}}
   with_items:
