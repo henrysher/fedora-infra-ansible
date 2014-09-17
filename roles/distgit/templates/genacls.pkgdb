@@ -56,6 +56,13 @@ if __name__ == '__main__':
     print '@fedora-s390 = %s' % ' '.join(S390)
     print '@fedora-ppc = %s' % ' '.join(PPC)
 
+    # Get a list of all the groups
+    groups = requests.get('https://admin.fedoraproject.org/pkgdb/api/groups?format=json').json()
+    for group in groups['groups']:
+        print '@%s = %s' % (group, ' '.join(grp.getgrnam(group)[3]))
+
+    # Give a little space before moving onto the permissions
+    print ''
     # print our default permissions
     print 'repo @all'
     print '    RWC = @admins @fedora-arm @fedora-s390 @fedora-ppc'
@@ -91,8 +98,8 @@ if __name__ == '__main__':
                 owners.sort()
                 for owner in owners:
                     committers.append(owner)
-                if 'provenpackager' in acls[pkg][branch]['commit']['groups']:
-                    committers.append('@provenpackager')
+                for group in acls[pkg][branch]['commit']['groups']:
+                    committers.append('@%s' % group)
                 if branch == 'master':
                     masters.extend(committers)
 
