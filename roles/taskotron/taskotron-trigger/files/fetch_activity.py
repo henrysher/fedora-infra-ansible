@@ -35,7 +35,6 @@ def main(resultsdb_url, frontend_url, timeparam):
     passed_types = {}
     failed = 0
     failed_types = {}
-    failed_links = {}
     together = {}
     for result in results:
         test_case = result["testcase"]["name"]
@@ -45,11 +44,6 @@ def main(resultsdb_url, frontend_url, timeparam):
         else:
             failed += 1
             failed_types[test_case] = failed_types.get(test_case, 0) + 1
-            test_url = urljoin(frontend_url, "results/%d" % result["id"])
-            if test_case not in failed_links:
-                failed_links[test_case] = [test_url]
-            else:
-                failed_links[test_case].append(test_url)
         together[test_case] = together.get(test_case, 0) + 1
 
     output = "libtaskotron results\n====================\n"
@@ -57,21 +51,16 @@ def main(resultsdb_url, frontend_url, timeparam):
     [from_time, to_time] = timeparam.split(",")
     output += "From:         " + from_time + "\n"
     output += "To:           " + to_time + "\n\n"
-    output += "Passed: %d\nFailed: %d\n\n" % (passed, failed)
-    output += "Passed checks:\n--------------\n"
-    for check in passed_types.keys():
-        output += "%s: %d\n" % (check, passed_types[check])
-    output += "\n"
-    output += "Failed checks:\n--------------\n"
-    for check in failed_types.keys():
-        output += "%s: %d\n" % (check, failed_types[check])
-    output += "\n"
+    output += "Executed checks:\n----------------\n"
+    for check in together.keys():
+        output += "%s: %d (%d %% failed)\n" % (check, together[check], int(round((failed_types[check] * 100.0) / together[check])))
+    output += "\nTotal: %d executed, %d failed\n\n" % (passed + failed, failed)
     output += "Links to failed checks:\n-----------------------\n"
-    for i, check in enumerate(failed_links.keys()):
-        if i != 0:
-            output += "\n\n"
-        output += check + ":\n"
-        output += "\n".join(failed_links[check])
+    for failed_check in failed_types.keys():
+        limit = min(failed_types[failed_check], 1000)
+        url = urljoin(frontend_url, "results?outcome=%s&since=%s,%s&testcase_name=%s&limit=%d" %
+                      (",".join(FAILISH), from_time, to_time, failed_check, limit))
+        output += "%s: %s\n" % (failed_check, url)
     return output
 
 
