@@ -107,7 +107,7 @@
   - yum: name=* state=latest
 
   - template: src={{ files }}/fedora-cloud/packstack-controller-answers.txt dest=/root/ owner=root mode=0600
-  - authorized_key: user=root key="ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCjXgd/9oVjok7fhNkVaRVP3w9J/J9kN/gZaOUBe6sAJEsDBTa/Hsl/UvSbyML24zg5C22HQtdL4AHAzPTN08ZUvCLsYqW3kqO6EYfLUwOm2hchow2CI7cuvpuLeKX0C11U6Ckv364Fpp8cYCJPFIz6mnqQoTc+t9jhbvqNro508s2YCm/9wbt8oWBEIpqQj2P666tM3sXmMmkZifn3XojExXC4iyQBcwDxascTr99y/eSxBcNpTDg2BKrJqqa5RGcGh79TURPqGr29aim3Wux2LpQPVBCrVp9Zgde/ixsjL3dIbiErYIeXqyRHwl1j10aWEGpAx8SsD8w4EkIcZykj root@fed-cloud09.cloud.fedoraproject.org"
+  - authorized_key: user=root key="{{ lookup('file', files + '/fedora-cloud/fed09-ssh-key.pub') }}"
   - command: packstack --answer-file=/root/packstack-controller-answers.txt
     when: packstack_sucessfully_finished.exists == False
   - file: path=/etc/packstack_sucessfully_finished state=touch
