@@ -10,6 +10,7 @@
    - /srv/web/infra/ansible/vars/global.yml
    - "{{ private }}/vars.yml"
    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+   - "{{ private }}/files/openstack/passwords.yml"
 
   roles:
   - base
@@ -30,3 +31,24 @@
   - include: "{{ handlers }}/semanage.yml"
 
   - authorized_key: user=root key="{{ lookup('file', files + '/fedora-cloud/fed09-ssh-key.pub') }}"
+
+  # http://docs.openstack.org/icehouse/install-guide/install/yum/content/nova-controller.html
+  - name: install the Compute packages necessary for the controller node.
+    action: yum state=present pkg={{ item }}
+    with_items:
+    - openstack-nova-api
+    - openstack-nova-cert
+    - openstack-nova-conductor
+    - openstack-nova-console
+    - openstack-nova-novncproxy
+    - openstack-nova-scheduler
+    - python-novaclient
+  - name: Set up db connection to controller
+    action: command openstack-config --set /etc/nova/nova.conf database connection mysql://nova:{{NOVA_DBPASS}}@{{controller_private_ip}}/nova
+  - name: Set these configuration keys to configure Compute to use the Qpid message broker
+    action: command openstack-config --set /etc/nova/nova.conf DEFAULT rpc_backend qpid
+  - command: openstack-config --set /etc/nova/nova.conf DEFAULT qpid_hostname {{controller_private_ip}}
+  - command: openstack-config --set /etc/nova/nova.conf DEFAULT my_ip {{controller_private_ip}}
+  - command: openstack-config --set /etc/nova/nova.conf DEFAULT vncserver_listen {{controller_private_ip}}
+  - command: openstack-config --set /etc/nova/nova.conf DEFAULT vncserver_proxyclient_address {{controller_private_ip}}
+
