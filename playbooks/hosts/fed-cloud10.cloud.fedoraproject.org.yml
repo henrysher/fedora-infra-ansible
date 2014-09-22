@@ -26,10 +26,6 @@
   - include: "{{ tasks }}/2fa_client.yml"
   - include: "{{ tasks }}/motd.yml"
 
-  handlers:
-  - include: "{{ handlers }}/restart_services.yml"
-  - include: "{{ handlers }}/semanage.yml"
-
   - authorized_key: user=root key="{{ lookup('file', files + '/fedora-cloud/fed09-ssh-key.pub') }}"
 
   # http://docs.openstack.org/icehouse/install-guide/install/yum/content/nova-controller.html
@@ -52,3 +48,6 @@
   - command: openstack-config --set /etc/nova/nova.conf DEFAULT vncserver_listen {{controller_private_ip}}
   - command: openstack-config --set /etc/nova/nova.conf DEFAULT vncserver_proxyclient_address {{controller_private_ip}}
 
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"
+  - include: "{{ handlers }}/semanage.yml"
