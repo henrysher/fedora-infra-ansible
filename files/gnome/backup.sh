@@ -29,7 +29,8 @@ MACHINES='signal.gnome.org
           puppet.gnome.org
           accelerator.gnome.org
           range.gnome.org
-          pentagon.gimp.org'
+          pentagon.gimp.org
+          account.gnome.org'
 
 BACKUP_DIR='/fedora_backups/gnome/'
 LOGS_DIR='/fedora_backups/gnome/logs'
