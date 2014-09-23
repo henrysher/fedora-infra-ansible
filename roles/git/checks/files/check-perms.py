@@ -10,7 +10,8 @@ import optparse
 from stat import *
 from subprocess import call, PIPE, Popen
 
-ALL_CHECKS = ['bare', 'shared', 'mail-hook', 'fedmsg-hook', 'perms', 'post-update-hook']
+ALL_CHECKS = ['bare', 'shared', 'mail-hook', 'fedmsg-hook', 'perms',
+              'post-update-hook', 'update-hook']
 DEFAULT_CHECKS = ['bare', 'shared', 'perms', 'post-update-hook']
 
 OBJECT_RE = re.compile('[0-9a-z]{40}')
@@ -307,6 +308,66 @@ def check_git_perms(path, fix=False):
             return False
     return True
 
+def check_update_hooks(gitdir, fix=False):
+    """Check our update hooks
+
+    This ensures that the Git repository at `gitdir` is set up with the proper
+    update hooks.
+
+    If it isn't, and if `fix` is True, this actually fixes the problem.
+    """
+    chained_hooks_dir = os.path.join(gitdir, 'hooks', 'update-chained.d')
+    chained_hooks = {'update-gitolite': '/usr/share/gitolite/hooks/common/update',
+                     'update-block-push-origin': '/usr/share/git-core/update-block-push-origin',
+                     }
+
+    if not os.path.isdir(chained_hooks_dir):
+        if fix:
+            os.makedirs(chained_hooks_dir)
+
+        else:
+            raise ValueError('chained hooks not set up')
+
+    for name, goodpath in chained_hooks.items():
+        hook = os.path.join(chained_hooks_dir, name)
+
+        if not os.path.exists(hook):
+            if fix:
+                os.symlink(goodpath, hook)
+
+            else:
+                raise ValueError('%s chained update hook not set up' % name)
+
+        realpath = os.path.realpath(hook)
+        if realpath != goodpath:
+            if fix:
+                os.unlink(hook)
+                os.symlink(goodpath, hook)
+
+            else:
+                raise ValueError('invalid %s chained update hook' % name)
+
+
+    goodpath = '/usr/share/git-core/update-chained'
+    hook = os.path.join(gitdir, 'hooks', 'update')
+
+    if not os.path.exists(hook):
+        if fix:
+            os.symlink(goodpath, hook)
+
+        else:
+            raise ValueError('no update hook set up')
+
+    realpath = os.path.realpath(hook)
+
+    if realpath != goodpath:
+        if fix:
+            os.unlink(hook)
+            os.symlink(goodpath, hook)
+
+        else:
+            raise ValueError('invalid update hook (%s)' % hook)
+
 def main():
     usage = '%prog [options] [gitroot]'
     parser = optparse.OptionParser(usage=usage)
@@ -406,6 +467,14 @@ def main():
             for path in paths:
                 if not check_git_perms(path, fix=opts.fix):
                     problems.append(path)
+
+        if 'update-hook' in checks:
+            try:
+                check_update_hooks(gitdir, fix=opts.fix)
+
+            except Exception as e:
+                error('%s: %s' % (gitdir, e))
+                problems.append(gitdir)
 
     if problems:
         raise SystemExit('%d problems remain unfixed' % len(problems))
