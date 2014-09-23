@@ -29,6 +29,19 @@
 
   - authorized_key: user=root key="{{ lookup('file', files + '/fedora-cloud/fed09-ssh-key.pub') }}"
 
+  - lineinfile: dest=/etc/sysconfig/network-scripts/ifcfg-eth1 regexp="^ONBOOT=" line="ONBOOT=yes"
+    notify:
+      - restart network
+  - lineinfile: dest=/etc/sysconfig/network-scripts/ifcfg-eth1 regexp="^NETMASK=" line="NETMASK=255.255.255.0"
+    notify:
+      - restart network
+  - lineinfile: dest=/etc/sysconfig/network-scripts/ifcfg-eth1 regexp="^IPADDR=" line="IPADDR={{compute_private_ip}}"
+    notify:
+      - restart network
+  - lineinfile: dest=/etc/sysconfig/network-scripts/ifcfg-eth1 regexp="BOOTPROTO=" line="BOOTPROTO=none"
+    notify:
+      - restart network
+
   - yum: state=present name=http://rdo.fedorapeople.org/rdo-release.rpm
 
   # http://docs.openstack.org/icehouse/install-guide/install/yum/content/nova-compute.html
