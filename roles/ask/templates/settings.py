@@ -204,12 +204,12 @@ INSTALLED_APPS = (
 )
 
 {% if env == "staging" %}
-    SFS_ALL_POST_REQUESTS = True
-    SFS_FORCE_ALL_REQUESTS = True
-    SFS_CACHE_EXPIRE = 1
-    SFS_LOG_EXPIRE = 7
-    SFS_HTTP_HEADER = "X-Forwarded-For"
-    SFS_SOURCE_ZIP = "file:///var/cache/askbot/listed_ip_7.zip"
+SFS_ALL_POST_REQUESTS = True
+SFS_FORCE_ALL_REQUESTS = True
+SFS_CACHE_EXPIRE = 1
+SFS_LOG_EXPIRE = 7
+SFS_HTTP_HEADER = "X-Forwarded-For"
+SFS_SOURCE_ZIP = "file:///var/cache/askbot/listed_ip_7.zip"
 {% endif %}
 
 CACHE_MIDDLEWARE_ANONYMOUS_ONLY = True
