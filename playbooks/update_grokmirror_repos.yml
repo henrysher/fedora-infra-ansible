@@ -1,0 +1,13 @@
+# update all mirrors currently served by grokmirror to master:head
+# requires --extra-vars="target=hostspec"
+
+- name: update grokmirror repos
+  hosts: "{{ target }}"
+  sudo: true
+  sudo_user: "{{ grokmirror_user }}"
+
+  tasks:
+     - name: update grokmirror repos
+       command: chdir={{ grokmirror_basedir }}/{{ item.name }} git fetch origin master:master
+       with_items: grokmirror_repos
+
