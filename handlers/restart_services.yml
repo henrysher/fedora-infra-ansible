@@ -65,16 +65,16 @@
 - name: restart ntpd
   action: service name=ntpd state=restarted
 
-- name: restart openvpn
+- name: restart openvpn (Fedora)
+  when: ansible_distribution == "Fedora"
+  action: service name=openvpn@openvpn state=restarted
+
+- name: restart openvpn (RHEL6)
+  when: ansible_distribution == "Red Hat Enterprise Linux" and ansible_distribution_version[0] == 6
   action: service name=openvpn state=restarted
 
-- name: restart openvpn 2
-  action: service name=openvpn state=restarted
-
-- name: restart openvpn 6
-  action: service name=openvpn state=restarted
-
-- name: restart openvpn 7
+- name: restart openvpn (RHEL7)
+  when: ansible_distribution == "Red Hat Enterprise Linux" and ansible_distribution_version[0] == 7
   action: service name=openvpn@openvpn state=restarted
 
 - name: restart postfix
