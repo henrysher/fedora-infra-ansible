@@ -13,6 +13,13 @@
   - packages
   - postgresql
 
+- name: Initialize postgres if necessary
+  command: /usr/bin/postgresql-setup initdb creates=/var/lib/pgsql/data
+  notify:
+  - restart postgresql
+  tags:
+  - postgresql
+
 - name: Set postgresql-server to run on boot
   service: name=postgresql enabled=yes
   ignore_errors: true
@@ -55,11 +62,4 @@
   when: dbs_to_backup != []
   tags:
   - cron
-  - postgresql
-
-- name: Initialize postgres if necessary
-  command: /usr/bin/postgresql-setup initdb creates=/var/lib/pgsql/data
-  notify:
-  - restart postgresql
-  tags:
   - postgresql
