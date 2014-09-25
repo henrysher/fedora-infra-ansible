@@ -11,6 +11,7 @@
   - python-psycopg2
   tags:
   - packages
+  - postgresql
 
 - name: Set postgresql-server to run on boot
   service: name=postgresql enabled=yes
@@ -19,6 +20,7 @@
   - restart postgresql
   tags:
   - service
+  - postgresql
 
 - name: Add our postgres config file.
   copy: >
@@ -32,12 +34,17 @@
   - restart postgresql
   tags:
   - config
+  - postgresql
 
 - name: Ensure postgres has a place to backup to
   file: dest=/backups state=directory owner=postgres
+  tags:
+  - postgresql
 
 - name: Copy over backup scriplet
   copy: src=backup-database dest=/usr/local/bin/backup-database mode=0755
+  tags:
+  - postgresql
 
 - name: Set up some cronjobs to backup databases as configured
   template: >
@@ -48,3 +55,4 @@
   when: dbs_to_backup != []
   tags:
   - cron
+  - postgresql
