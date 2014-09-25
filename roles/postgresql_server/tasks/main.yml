@@ -13,6 +13,11 @@
   - packages
   - postgresql
 
+- name: Set kernel shared memory max to a larger value
+  sysctl: name=kernel.shmmax value=68719476736
+  notify:
+  - restart postgresql
+
 - name: Initialize postgres if necessary
   command: /usr/bin/postgresql-setup initdb creates=/var/lib/pgsql/data
   notify:
