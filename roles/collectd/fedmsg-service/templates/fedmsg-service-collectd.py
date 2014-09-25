@@ -30,6 +30,24 @@ def print_consumer(service, consumer):
         timestamp,
         consumer['exceptions']
     )
+    # These got introduced in a later version of moksha, so not every host has them
+    if 'headcount_in' in consumer:
+        print "PUTVAL %s/%s/gauge-%s interval=5 %i:%i" % (
+            hostname,
+            service,
+            '%s_in' % consumer['name'],
+            timestamp,
+            consumer['headcount_in']
+        )
+
+    if 'headcount_out' in consumer:
+        print "PUTVAL %s/%s/gauge-%s interval=5 %i:%i" % (
+            hostname,
+            service,
+            '%s_out' % consumer['name'],
+            timestamp,
+            consumer['headcount_out']
+        )
 
 
 def print_producer(service, producer):
