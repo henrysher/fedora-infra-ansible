@@ -11,7 +11,7 @@ config = {
     {% if environment == "staging" %}
     'datanommer.sqlalchemy.url': 'postgresql://{{ datanommerDBUser }}:{{ datanommerDBPassword }}@db02.stg.phx2.fedoraproject.org/datanommer',
     {% else %}
-    'datanommer.sqlalchemy.url': 'postgresql://{{ datanommerDBUser }}:{{ datanommerDBPassword }}@db-datanommer01.phx2.fedoraproject.org/datanommer',
+    'datanommer.sqlalchemy.url': 'postgresql://{{ datanommerDBUser }}:{{ datanommerDBPassword }}@db-datanommer02.phx2.fedoraproject.org/datanommer',
     {% endif %}
     'fedmsg.consumers.datagrepper-runner.enabled': True,
 }
