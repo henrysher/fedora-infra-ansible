@@ -226,14 +226,15 @@
   - shell: source /root/keystonerc_admin && nova floating-ip-create external
     when: packstack_sucessfully_finished.stat.exists == False
 
-  # 172.16.0.1/12 -- 172.23.0.1/12 - Free to take
-  # 172.24.0.1/12 - Copr
+  # 172.16.0.1/12 -- 172.21.0.1/12 - Free to take
+  # 172.23.0.1/12 - free (but used by old cloud)
+  # 172.24.0.1/12 - RESERVED it is used internally for OS
   # 172.25.0.1/12 - Cloudintern
   # 172.26.0.1/12 - infrastructure
   # 172.27.0.1/12 - persistent
   # 172.28.0.1/12 - transient
   # 172.29.0.1/12 - scratch
-  # 172.30.0.1/12 - Free to take
+  # 172.30.0.1/12 - copr
   # 172.31.0.1/12 - Free to take
 
   # Cloudintern network
@@ -292,8 +293,8 @@
       tenant_name=copr
       network_name=copr-net
       name=copr-subnet
-      cidr=172.24.0.1/12
-      gateway_ip=172.24.0.1
+      cidr=172.30.0.1/12
+      gateway_ip=172.30.0.1
     register: COPR_SUBNET_ID
   - name: Connect router's interface to the copr-subnet
     neutron_router_interface:
@@ -471,4 +472,4 @@
           port_range_max: "22"
           ethertype: "IPv4"
           protocol: "tcp"
-          remote_ip_prefix: "172.24.0.1/12"
+          remote_ip_prefix: "172.30.0.1/12"
