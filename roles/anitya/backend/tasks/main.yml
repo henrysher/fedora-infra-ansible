@@ -1,0 +1,41 @@
+---
+# Configuration for the anitya webapp
+
+- name: clean yum metadata
+  command: yum clean all
+  tags:
+  - packages
+
+- name: install needed packages
+  yum: pkg={{ item }} state=installed
+  with_items:
+  - anitya
+  - python-psycopg2
+  - libsemanage-python
+  tags:
+  - packages
+
+- name: copy sundry anitya configuration
+  template: src={{ item.file }}
+            dest={{ item.location }}/{{ item.dest }}
+            owner=root group=root mode=0600
+  with_items:
+  - { file: anitya_admin.cfg, location: /etc/anitya, dest: anitya.cfg }
+#  - { file: alembic.ini, location: /etc/anitya, dest: alembic.ini }
+  tags:
+  - config
+
+- name: create the database scheme
+  command: /usr/bin/python2 /usr/share/anitya/anitya_createdb.py
+  environment:
+      ANITYA_WEB_CONFIG: /etc/anitya/anitya.cfg
+
+- name: Install the configuration file of anitya
+  template: src={{ item.file }}
+            dest={{ item.location }}/{{ item.file }}
+            owner=root group=root mode=0600
+  with_items:
+  - { file: anitya.cfg, location: /etc/anitya }
+  tags:
+  - config
+

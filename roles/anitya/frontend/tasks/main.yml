@@ -1,0 +1,37 @@
+---
+# Configuration for the anitya webapp
+
+- name: clean yum metadata
+  command: yum clean all
+  tags:
+  - packages
+
+- name: install needed packages
+  yum: pkg={{ item }} state=installed
+  with_items:
+  - anitya
+  - python-psycopg2
+  - python-memcached
+  - libsemanage-python
+  - httpd
+  tags:
+  - packages
+
+- name: Install all the configuration file of anitya
+  template: src={{ item.file }}
+            dest={{ item.location }}/{{ item.file }}
+            owner=apache group=apache mode=0600
+  with_items:
+  - { file: anitya.cfg, location: /etc/anitya }
+  - { file: anitya.conf, location: /etc/httpd/conf.d }
+  - { file: anitya.wsgi, location: /var/www/, dest: anitya.wsgi }
+  tags:
+  - config
+  notify:
+  - restart apache
+
+- name: set sebooleans so anitya can talk to the db
+  action: seboolean name=httpd_can_network_connect_db
+                    state=true
+                    persistent=true
+
