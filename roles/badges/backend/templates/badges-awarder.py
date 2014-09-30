@@ -2,6 +2,12 @@ config = {
     # We need to tell the fedmsg-hub that it should load our consumer on start.
     "fedmsg.consumers.badges.enabled": True,
 
+    # This sets up four threads to handle incoming messages.  At the time of
+    # this commit, all of our fedmsg daemons are running in single-threaded
+    # mode.  If we turn it on globally, we should remove this setting.
+    "moksha.workers_per_consumer": 4,
+    "moksha.threadpool_size": 10,
+
     # This tells the consumer where to look for its BadgeRule definitions.  It
     # may be a relative or an absolute path on the file system.
     "badges.yaml.directory": "/usr/share/badges/rules",
