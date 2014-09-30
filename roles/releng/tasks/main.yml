@@ -105,6 +105,11 @@
 - name: symlink /srv/pungi
   action: file src=/mnt/fedora_koji/compose dest=/srv/pungi  state=link
 
+- name: add pkgs for nightly compose
+  action: yum  state=installed pkg={{ item }}
+  with_items:
+    - packagedb-cli
+  when: inventory_hostname.startswith('branched-composer') or inventory_hostname.startswith('rawhide-composer')
 
 # put cron job in for branched compose
 - name: branched compose cron
