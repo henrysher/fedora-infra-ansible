@@ -2,6 +2,7 @@
 """ monitor website request times for collectd """
 
 import time
+import socket
 import urllib
 
 
@@ -20,10 +21,11 @@ if __name__ == '__main__':
     interval = int("{{ interval }}")
 
     try:
-        loadtime = get_loadtime(url)
-        timestamp = int(time.time())
-        print "PUTVAL %s/%s/delay-%s interval=%i %i:%i" % (
-            hostname, 'web', site, interval, timestamp, loadtime)
-        time.sleep(interval)
+        while True:
+            loadtime = get_loadtime(url)
+            timestamp = int(time.time())
+            print "PUTVAL %s/%s/delay-%s interval=%i %i:%f" % (
+                hostname, 'web', site, interval, timestamp, loadtime)
+            time.sleep(interval)
     except KeyboardInterrupt:
         pass
