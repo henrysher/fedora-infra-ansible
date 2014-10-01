@@ -8,15 +8,6 @@
   tags:
   - packages
 
-- name: ensure that nrpe has rights to monitor us
-  file: >
-    dest=/var/run/fedmsg/monitoring-fedmsg-hub.socket
-    mode=0775
-    owner=fedmsg
-    group=nrpe
-    state=file
-  ignore_errors: true
-
 - name: fedmsg-hub service
   service: name=fedmsg-hub state=started enabled=yes
 
@@ -30,3 +21,11 @@
   when: not enable_websocket_server
   notify: restart fedmsg-hub
 
+- name: ensure that nrpe has rights to monitor us
+  file: >
+    dest=/var/run/fedmsg/monitoring-fedmsg-hub.socket
+    mode=0775
+    owner=fedmsg
+    group=nrpe
+    state=file
+  ignore_errors: true
