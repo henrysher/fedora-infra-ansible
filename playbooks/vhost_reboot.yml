@@ -96,6 +96,11 @@
     command: /root/fix-iptables.sh
     when: inventory_hostname_short.startswith('serverbeach')
 
+  - name: tell nagios to unshush
+    nagios: action=unsilence service=host host={{ inventory_hostname }}
+    delegate_to: noc01.phx2.fedoraproject.org
+    ignore_errors: true
+
 - name: Fix unbound if necessary
   # intersection - hosts that are in our dynamic group and also in unbound-dns
   hosts: "myvms_new:&unbound"
