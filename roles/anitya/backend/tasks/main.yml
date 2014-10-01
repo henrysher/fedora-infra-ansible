@@ -58,6 +58,13 @@
   - config
   - postgresql
 
+- name: Let postgresql listen to '*'
+  command: sed -i -e "s|#listen_addresses = 'localhost'|listen_addresses = '*'|" /var/lib/pgsql/data/postgresql.conf
+  notify:
+  - restart postgresql
+  tags:
+  - anitya_backend
+
 - name: Set up some cronjobs to backup databases as configured
   template: >
     src=cron-backup-database
