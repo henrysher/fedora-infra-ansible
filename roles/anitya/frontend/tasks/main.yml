@@ -5,6 +5,7 @@
   command: yum clean all
   tags:
   - packages
+  - anitya_frontend
 
 - name: install needed packages
   yum: pkg={{ item }} state=installed
@@ -16,6 +17,7 @@
   - httpd
   tags:
   - packages
+  - anitya_frontend
 
 - name: Install all the configuration file of anitya
   template: src={{ item.file }}
@@ -27,6 +29,7 @@
   - { file: anitya.wsgi, location: /var/www/, dest: anitya.wsgi }
   tags:
   - config
+  - anitya_frontend
   notify:
   - restart apache
 
@@ -34,4 +37,6 @@
   action: seboolean name=httpd_can_network_connect_db
                     state=true
                     persistent=true
+  tags:
+  - anitya_frontend
 
