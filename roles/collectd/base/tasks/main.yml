@@ -4,20 +4,28 @@
 # install pkg
 - name: install collectd
   yum: name=collectd state=installed
+  tags:
+  - collectd
 
 # enable collectd
 - name: enable collectd svc
   service: state=running enabled=true name=collectd
+  tags:
+  - collectd
 
 # install collected.conf
 - name: /etc/collectd.conf
   template: src=collectd.conf.j2 dest=/etc/collectd.conf
+  tags:
+  - collectd
   notify:
   - restart collectd
 
 # install collectd-network config
 - name: /etc/collectd.d/network.conf
   copy: src=network-client.conf dest=/etc/collectd.d/network.conf
+  tags:
+  - collectd
   notify:
   - restart collectd
   when: not inventory_hostname.startswith('log')
@@ -25,6 +33,8 @@
 # install collectd-network config
 - name: /etc/collectd.d/network.conf
   copy: src=network-server.conf dest=/etc/collectd.d/network.conf
+  tags:
+  - collectd
   notify:
   - restart collectd
   when: inventory_hostname.startswith('log')
@@ -32,12 +42,16 @@
 # apache - localhost only - pretty much any apache server
 - name: install collectd-apache
   yum: state=installed name=collectd-apache
+  tags:
+  - collectd
   notify:
   - restart collectd
   when: collectd_apache is defined
 
 - name: /etc/collectd/apache.conf
   copy: src=apache.conf dest=/etc/collectd.d/apache.conf
+  tags:
+  - collectd
   notify:
   - restart collectd
   when: collectd_apache is defined
@@ -46,14 +60,20 @@
 # Three tasks for handling our custom selinux module
 - name: ensure a directory exists for our custom selinux module
   file: dest=/usr/share/collectd state=directory
+  tags:
+  - collectd
 
 - name: copy over our custom selinux module
   copy: src=selinux/fi-collectd.pp dest=/usr/share/collectd/fi-collectd.pp
   register: selinux_module
+  tags:
+  - collectd
 
 - name: install our custom selinux module
   command: semodule -i /usr/share/collectd/fi-collectd.pp
   when: selinux_module|changed
+  tags:
+  - collectd
 
 
   
