@@ -32,6 +32,9 @@ config = {
     # The badges backend (fedmsg-hub) uses this to build a fas cache of ircnicks
     # to fas usernames so it can act appropriately on certain message types.
     "fas_credentials": {
+    {% if env == 'staging' %}
+        "base_url": "https://admin.stg.fedoraproject.org/accounts/",
+    {% endif %}
         "username": "{{fedoraDummyUser}}",
         "password": "{{fedoraDummyUserPassword}}",
     },
