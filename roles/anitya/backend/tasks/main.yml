@@ -45,6 +45,19 @@
   tags:
   - anitya_backend
 
+- name: Add our postgres config file.
+  copy: >
+    src={{ item }}
+    dest=/var/lib/pgsql/data/{{ item }}
+    owner=postgres
+  with_items:
+  - pg_hba.conf
+  notify:
+  - restart postgresql
+  tags:
+  - config
+  - postgresql
+
 - name: Set up some cronjobs to backup databases as configured
   template: >
     src=cron-backup-database
