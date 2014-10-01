@@ -1,7 +1,10 @@
 #!/bin/bash
 
-pause=10
-host=$( hostname -s )
+# These defaults are commented out because selinux doesn't like us running that
+# hostname on rhel7 for some reason.  Anyways, we always pass in the arguments
+# via the collectd configuration information so wth.  -- threebean
+#pause=10
+#host=$( /usr/bin/hostname -s )
 
 while getopts "h:p:s:" c; do
        case $c in
