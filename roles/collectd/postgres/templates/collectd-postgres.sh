@@ -19,7 +19,7 @@ done
    time="$(date +%s)"
    for db in {{ ' '.join(databases) }}
    do
-      echo "PUTVAL $host/pg_conns/pg_conns-$db $time:$(ps auxwww | grep -c $db)"
+      echo "PUTVAL $host/pg_conns/current-$db $time:$(ps auxwww | grep -c $db)"
    done
    sleep $pause
  done
