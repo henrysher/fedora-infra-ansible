@@ -48,12 +48,13 @@
   notify:
   - restart apache
 
-- name: Install the pkgdb <-> bugzilla sync script
+- name: Install the pkgdb cron jobs: sync bugzilla, update pkg info
   when: inventory_hostname.startswith('pkgdb02')
   template: src={{ item.file }}
             dest={{ item.location }}/{{ item.file }}
   with_items:
   - { file: 'pkgdb-sync-bugzilla.cron', location: /etc/cron.d }
+  - { file: 'pkgdb_update_package_info.cron', location: /etc/cron.d }
   tags:
   - config
 
