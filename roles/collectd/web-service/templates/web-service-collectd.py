@@ -26,6 +26,6 @@ if __name__ == '__main__':
             timestamp = int(time.time())
             print "PUTVAL %s/%s/delay-%s interval=%i %i:%f" % (
                 hostname, 'web', site, interval, timestamp, loadtime)
-            time.sleep(interval)
+            time.sleep((interval - (loadtime % interval)) % interval)
     except KeyboardInterrupt:
         pass
