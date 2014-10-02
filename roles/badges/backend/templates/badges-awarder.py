@@ -5,8 +5,8 @@ config = {
     # This sets up four threads to handle incoming messages.  At the time of
     # this commit, all of our fedmsg daemons are running in single-threaded
     # mode.  If we turn it on globally, we should remove this setting.
-    "moksha.workers_per_consumer": 4,
-    "moksha.threadpool_size": 10,
+    "moksha.workers_per_consumer": 8,
+    "moksha.threadpool_size": 20,
 
     # This tells the consumer where to look for its BadgeRule definitions.  It
     # may be a relative or an absolute path on the file system.
