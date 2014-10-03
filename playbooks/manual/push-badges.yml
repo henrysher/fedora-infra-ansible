@@ -1,0 +1,67 @@
+# Push out any new badge stuff.
+#
+# Badge artists and badge developers should be pushing stuff to this repo:
+#
+#   https://git.fedorahosted.org/cgit/badges.git
+#
+# This playbook will take any new content from there and push it out onto our
+# servers.
+
+- name: get the badges repo happening on lockbox
+  hosts: lockbox01.phx2.fedoraproject.org
+  user: root
+  gather_facts: False
+  accelerate: "{{ accelerated }}"
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "{{ private }}/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  vars:
+   tempdir: /var/tmp/badges-tempdir
+   upstream: "https://git.fedorahosted.org/cgit/badges.git"
+
+  tasks:
+  - name: clone the local bare repo
+    git: dest={{tempdir}} repo=/git/badges remote=origin update=yes
+
+  - name: add fedorahosted as a second remote
+    command: git remote add fhosted {{upstream}} chdir={{tempdir}}
+
+  - name: pull down changes from fedorahosted
+    command: git pull fhosted master chdir={{tempdir}}
+
+  - name: push fedorahosted changes back to the lockbox bare repo
+    command: git push origin master chdir={{tempdir}}
+
+  - name: clean up that temporary {{tempdir}} dir
+    file: dest={{tempdir}} state=absent
+
+- name: copy new badge art over to the badges web nodes
+  hosts: badges-web;badges-web-stg
+  user: root
+  gather_facts: False
+  accelerate: "{{ accelerated }}"
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "{{ private }}/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  roles:
+   - badges/frontend
+
+- name: copy any new badges rules over to the badges backend and restart it
+  hosts: badges-backend;badges-backend-stg
+  user: root
+  gather_facts: False
+  accelerate: "{{ accelerated }}"
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "{{ private }}/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  roles:
+   - badges/backend
