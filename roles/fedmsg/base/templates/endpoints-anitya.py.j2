@@ -1,14 +1,13 @@
-suffix = 'fedoraproject.org'
+# This tells our nodes to also pull messages from anitya.
+# Among those nodes is our public gateway which means that it will forward them
+# back out to the public on "our bus".
 
 config = dict(
+    {% if env != 'staging' %}
     endpoints={
-        "anitya.anitya-backend01": [
-            "tcp://anitya-backend01.%s:30%02i" % (suffix, i)
-            for i in range(2)
-        ],
-        "anitya.anitya-frontend01": [
-            "tcp://anitya-frontend01.%s:30%02i" % (suffix, i)
-            for i in range(2)
+        "anitya-public-relay": [
+            "tcp://anitya-frontend01.fedoraproject.org:9941",
         ],
     },
+    {% endif %}
 )
