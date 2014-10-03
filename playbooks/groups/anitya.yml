@@ -65,7 +65,14 @@
   - include: "{{ tasks }}/apache.yml"
 
   roles:
+  - anitya/fedmsg
   - anitya/frontend
+
+  tasks:
+  - name: install fedmsg-relay
+    yum: pkg=fedmsg-relay state=installed
+  - name: and start it
+    service: name=fedmsg-relay state=started
 
   tags:
   - anitya
@@ -85,28 +92,11 @@
    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
 
   roles:
+  - anitya/fedmsg
   - anitya/backend
 
   tags:
   - anitya
-
-  handlers:
-  - include: "{{ handlers }}/restart_services.yml"
-
-# This comes last because it requires usernames from some of the previous plays.
-- name: finish up by setting up fedmsg
-  hosts: anitya
-  user: root
-  gather_facts: True
-  accelerate: "{{ accelerated }}"
-
-  vars_files:
-   - /srv/web/infra/ansible/vars/global.yml
-   - "{{ private }}/vars.yml"
-   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
-
-  roles:
-  - fedmsg/base
 
   handlers:
   - include: "{{ handlers }}/restart_services.yml"
