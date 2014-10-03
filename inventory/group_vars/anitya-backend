@@ -7,13 +7,16 @@ num_cpus: 2
 # for systems that do not match the above - specify the same parameter in
 # the host_vars/$hostname file
 
-# Neeed for rsync from log01 for logs.
-custom_rules: [ '-A INPUT -p tcp -m tcp -s 10.5.126.13 --dport 873 -j ACCEPT', '-A INPUT -p tcp -m tcp -s 192.168.1.59 --dport 873 -j ACCEPT' ]
+custom_rules: [
+    # Need for rsync from log01 for logs.
+    '-A INPUT -p tcp -m tcp -s 10.5.126.13 --dport 873 -j ACCEPT',
+    '-A INPUT -p tcp -m tcp -s 192.168.1.59 --dport 873 -j ACCEPT',
+    # Need so that anitya-backend can talk fedmsg to our relay
+    '-A INPUT -p tcp -m tcp -s 140.211.169.230 --dport 9939 -j ACCEPT',
+ ]
 
-tcp_ports: [
-    # These 16 ports are used by fedmsg.  One for each wsgi thread.
-    3000, 3001, 3002, 3003, 3004, 3005, 3006, 3007,
-    3008, 3009, 3010, 3011, 3012, 3013, 3014, 3015]
+# No other ports open.  no web service running here.
+#tcp_ports: []
 
 fas_client_groups: sysadmin-noc
 
