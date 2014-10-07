@@ -76,10 +76,6 @@ class JobScheduler(BaseBasicScheduler):
         return self.master.db.schedulers.getChangeClassifications(
                 self.objectid)
 
-    @util.deferredLocked('_stable_timers_lock')
-    def gotChange(self, change, important):
-        return self.addBuildsetForChanges(reason=self.reason, changeids=[change.number])
-
 
 c['schedulers'] = []
 c['schedulers'].append(JobScheduler(
@@ -97,6 +93,7 @@ c['schedulers'].append(JobScheduler(
 c['schedulers'].append(JobScheduler(
                             name="jobsched-x86_64",
                             builderNames=['x86_64'],
+                            treeStableTimer=None,
                             change_filter=filter.ChangeFilter(project='rpmcheck',
                                                                 category='x86_64')))
 
@@ -190,7 +187,8 @@ c['builders'] = []
 c['builders'].append(
     BuilderConfig(name="x86_64",
       slavenames=[{% for buildslave in x86_64_buildslaves %}"{{ buildslave }}",{% endfor %}],
-      factory=factory, locks=[build_lock.access('counting')]))
+      factory=factory, locks=[build_lock.access('counting')],
+      mergeRequests=False))
 
 c['builders'].append(
     BuilderConfig(name="i386",
