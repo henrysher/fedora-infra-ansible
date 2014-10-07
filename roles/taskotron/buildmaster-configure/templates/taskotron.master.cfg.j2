@@ -58,6 +58,7 @@ from buildbot.schedulers.basic import SingleBranchScheduler
 from buildbot.schedulers.forcesched import ForceScheduler, StringParameter
 from buildbot.changes import filter
 from buildbot.schedulers.basic import BaseBasicScheduler
+from buildbot import util
 
 class JobScheduler(BaseBasicScheduler):
 
@@ -75,25 +76,24 @@ class JobScheduler(BaseBasicScheduler):
         return self.master.db.schedulers.getChangeClassifications(
                 self.objectid)
 
+
 c['schedulers'] = []
 c['schedulers'].append(JobScheduler(
                             name="jobsched-noarch",
                             builderNames=["all"],
-                            fileIsImportant=None, treeStableTimer=None,
                             change_filter=filter.ChangeFilter(project='rpmcheck',
                                                                 category='noarch')))
 
 c['schedulers'].append(JobScheduler(
                             name="jobsched-i386",
                             builderNames=['i386'],
-                            fileIsImportant=None, treeStableTimer=None,
                             change_filter=filter.ChangeFilter(project='rpmcheck',
                                                                 category='i386')))
 
 c['schedulers'].append(JobScheduler(
                             name="jobsched-x86_64",
                             builderNames=['x86_64'],
-                            fileIsImportant=None, treeStableTimer=None,
+                            treeStableTimer=None,
                             change_filter=filter.ChangeFilter(project='rpmcheck',
                                                                 category='x86_64')))
 
@@ -187,7 +187,8 @@ c['builders'] = []
 c['builders'].append(
     BuilderConfig(name="x86_64",
       slavenames=[{% for buildslave in x86_64_buildslaves %}"{{ buildslave }}",{% endfor %}],
-      factory=factory, locks=[build_lock.access('counting')]))
+      factory=factory, locks=[build_lock.access('counting')],
+      mergeRequests=False))
 
 c['builders'].append(
     BuilderConfig(name="i386",
