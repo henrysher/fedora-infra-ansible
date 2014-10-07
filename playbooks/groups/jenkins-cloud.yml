@@ -198,6 +198,15 @@
     tags:
      - config
 
+  - name: Install custom jenkins plugins (from ansible bigfiles)
+    action: copy src="{{ bigfiles }}/jenkins/{{ item }}.hpi" dest=/var/lib/jenkins/plugins/{{ item }}.hpi
+    with_items:
+    - fedmsg
+    notify:
+      - restart jenkins
+    tags:
+     - config
+
   - name: import jenkins configuration files
     action: copy src={{ item }} owner=jenkins group=jenkins dest=/var/lib/jenkins/ backup=yes
     with_fileglob:
