@@ -75,6 +75,11 @@ class JobScheduler(BaseBasicScheduler):
         return self.master.db.schedulers.getChangeClassifications(
                 self.objectid)
 
+    @util.deferredLocked('_stable_timers_lock')
+    def gotChange(self, change, important):
+        return self.addBuildsetForChanges(reason=self.reason, changeids=[change.number])
+
+
 c['schedulers'] = []
 c['schedulers'].append(JobScheduler(
                             name="jobsched-noarch",
@@ -88,10 +93,9 @@ c['schedulers'].append(JobScheduler(
                             change_filter=filter.ChangeFilter(project='rpmcheck',
                                                                 category='i386')))
 
-c['schedulers'].append(SingleBranchScheduler(
+c['schedulers'].append(JobScheduler(
                             name="jobsched-x86_64",
                             builderNames=['x86_64'],
-                            treeStableTimer=None,
                             change_filter=filter.ChangeFilter(project='rpmcheck',
                                                                 category='x86_64')))
 
