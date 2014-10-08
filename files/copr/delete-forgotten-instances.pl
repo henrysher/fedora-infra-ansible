@@ -2,7 +2,7 @@
 # this scrip query for all running VM and terminate those
 # which are not currently started by some ansible script
 
-while (chomp($a = qx(ps ax |grep -v 'sh -c ps ax'  |grep /home/copr/provision/builderpb.yml | grep -v grep))) {
+while (chomp($a = qx(ps ax |grep -v 'sh -c ps ax'  |grep 'Task: ' | grep -v grep))) {
   # we are starting some VM and could not determine correct list of running VMs
   sleep 5;
 }
