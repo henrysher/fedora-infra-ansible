@@ -81,12 +81,14 @@ c['schedulers'] = []
 c['schedulers'].append(JobScheduler(
                             name="jobsched-noarch",
                             builderNames=["all"],
+                            treeStableTimer=None,
                             change_filter=filter.ChangeFilter(project='rpmcheck',
                                                                 category='noarch')))
 
 c['schedulers'].append(JobScheduler(
                             name="jobsched-i386",
                             builderNames=['i386'],
+                            treeStableTimer=None,
                             change_filter=filter.ChangeFilter(project='rpmcheck',
                                                                 category='i386')))
 
@@ -193,12 +195,14 @@ c['builders'].append(
 c['builders'].append(
     BuilderConfig(name="i386",
       slavenames=[{% for buildslave in i386_buildslaves %}"{{ buildslave }}",{% endfor %}],
-      factory=factory, locks=[build_lock.access('counting')]))
+      factory=factory, locks=[build_lock.access('counting')],
+      mergeRequests=False))
 
 c['builders'].append(
     BuilderConfig(name="all",
       slavenames=[{% for buildslave in buildslaves %}"{{ buildslave }}",{% endfor %}],
-      factory=factory, locks=[build_lock.access('counting')]))
+      factory=factory, locks=[build_lock.access('counting')],
+      mergeRequests=False))
 
 ####### STATUS TARGETS
 
