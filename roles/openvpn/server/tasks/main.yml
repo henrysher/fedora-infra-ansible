@@ -42,30 +42,15 @@
   tags:
   - install
   - openvpn
-  notify:
-  - restart openvpn (Fedora)
-  - restart openvpn (RHEL7)
-  - restart openvpn (RHEL6)
 
 - name: Install the ccd files
   file: file src={{ files }}/ccd/ dest=/etc/openvpn/ccd/ recurse=true 
-  notify:
-  - "restart openvpn {{ ansible_distribution_version[0] }}"
   tags:
-  - openvpn
-
-
-- name: enable openvpn service for rhel 6
-  service: name=openvpn state=running enabled=true
-  when: ansible_distribution_version[0] == 6
-  tags:
-  - service
   - openvpn
 
 - name: enable openvpn service for rhel 7 or Fedora
   service: name=openvpn@openvpn state=running enabled=true
-  when: ansible_distribution_version[0] == 7 or is_fedora is defined
+  when: ( ansible_distribution_version[0] == 7 or is_fedora is defined ) and openvpn_master is defined
   tags:
   - service
   - openvpn
-

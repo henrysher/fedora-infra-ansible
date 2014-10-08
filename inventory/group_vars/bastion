@@ -1,0 +1,27 @@
+---
+# Define resources for this group of hosts here. 
+lvm_size: 20000
+mem_size: 8192
+num_cpus: 4
+
+#
+# allow incoming openvpn and smtp
+#
+tcp_ports: [ 25, 1194 ]
+udp_ports: [ 1194 ]
+
+#
+# drop incoming traffic from less trusted vpn hosts
+#
+custom_rules: [
+    '-A INPUT -s 192.168.100/0/24 -j REJECT --reject-with icmp-host-prohibited',
+]
+#
+# allow a bunch of sysadmin groups here so they can access internal stuff
+#
+fas_client_groups: sysadmin-ask, sysadmin-web, sysadmin-main, sysadmin-cvs, sysadmin-build, sysadmin-noc, sysadmin-releng, sysadmin-dba, sysadmin-hosted, sysadmin-tools, sysadmin-spin , sysadmin-cloud, fi-apprentice, sysadmin-darkserver, sysadmin-badges, sysadmin-troubleshoot, sysadmin-qa, sysadmin-centos, sysadmin-ppc 
+
+#
+# This is a postfix gateway. This will pick up gateway postfix config in base
+#
+postfix_group: gateway
