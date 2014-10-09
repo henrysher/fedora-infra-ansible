@@ -11,6 +11,7 @@
   - policycoreutils-python  # This is in the kickstart now.  Here for old hosts.
   tags:
   - packages
+  - fedmsg/base
 
 # We use setgid here so that the monitoring sockets created by fedmsg services
 # are accessible to the nrpe group.
@@ -21,11 +22,14 @@
     owner=fedmsg
     group=nrpe
     state=directory
+  tags:
+  - fedmsg/base
 
 - name: setup /etc/fedmsg.d directory
   file: path=/etc/fedmsg.d owner=root group=root mode=0755 state=directory
   tags:
   - config
+  - fedmsg/base
 
 # Any files that change need to restart any services that depend on them.  A
 # trick here is that some hosts have an httpd that uses fedmsg, while others do
@@ -63,6 +67,7 @@
   tags:
   - config
   - fedmsgdconfig
+  - fedmsg/base
   notify:
   - restart httpd
   - restart fedmsg-gateway
@@ -74,6 +79,7 @@
   file: path=/etc/pki/fedmsg owner=root group=root mode=0755 state=directory
   tags:
   - config
+  - fedmsg/base
 
 - name: install fedmsg ca.cert
   copy: >
@@ -84,6 +90,7 @@
     mode=0644
   tags:
   - config
+  - fedmsg/base
 
 - name: fedmsg certs
   copy: >
@@ -97,6 +104,7 @@
   when: fedmsg_certs != []
   tags:
   - config
+  - fedmsg/base
 
 - name: fedmsg keys
   copy: >
@@ -110,18 +118,25 @@
   when: fedmsg_certs != []
   tags:
   - config
+  - fedmsg/base
 
 # Three tasks for handling our custom selinux module
 - name: ensure a directory exists for our custom selinux module
   file: dest=/usr/local/share/fedmsg state=directory
+  tags:
+  - fedmsg/base
 
 - name: copy over our custom selinux module
   copy: src=selinux/fedmsg.pp dest=/usr/local/share/fedmsg/fedmsg.pp
   register: selinux_module
+  tags:
+  - fedmsg/base
 
 - name: install our custom selinux module
   command: semodule -i /usr/local/share/fedmsg/fedmsg.pp
   when: selinux_module|changed
+  tags:
+  - fedmsg/base
 
 # Also, label the ports that we commonly use for fedmsg under mod_wsgi
 # to be http_port_t so selinux lets apache bind there.
@@ -130,7 +145,11 @@
   register: semanageoutput
   always_run: yes
   changed_when: "1 != 1"
+  tags:
+  - fedmsg/base
 
 - name: set ports so httpd can bind to fedmsg endpoints
   command: semanage port -a -t http_port_t -p tcp 3000-3100
   when: semanageoutput.stdout.find("3000-3100") == -1
+  tags:
+  - fedmsg/base
