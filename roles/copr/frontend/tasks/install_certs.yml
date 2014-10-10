@@ -1,0 +1,27 @@
+- name: copy httpd ssl certificates (crt)
+  copy: src="{{ puppet_private }}/httpd/copr-fe.fedoraproject.org.crt" dest="/etc/pki/tls/certs/" owner=root group=root mode=0600
+  tags:
+  - config
+
+- name: copy httpd ssl certificates (key)
+  copy: src="{{ puppet_private }}/httpd/copr-fe.fedoraproject.org.key" dest="/etc/pki/tls/private/" owner=root group=root mode=0600
+  tags:
+  - config
+
+- name: copy httpd ssl certificates (CAcert)
+  copy: src="{{ files }}/copr/DigiCertCA.crt" dest="/etc/pki/tls/certs/" owner=root group=root mode=0600
+  tags:
+  - config
+
+- lineinfile: dest=/etc/httpd/conf.d/coprs.conf regexp="SSLCertificateFile " insertafter="^#SSLCertificateFile " line="SSLCertificateFile /etc/pki/tls/certs/copr-fe.fedoraproject.org.crt"
+  notify:
+  - restart httpd
+
+- lineinfile: dest=/etc/httpd/conf.d/coprs.conf regexp="SSLCertificateKeyFile " insertafter="^#SSLCertificateKeyFile " line="SSLCertificateKeyFile /etc/pki/tls/private/copr-fe.fedoraproject.org.key"
+  notify:
+  - restart httpd
+
+- lineinfile: dest=/etc/httpd/conf.d/coprs.conf regexp="SSLCertificateChainFile " insertafter="SSLCertificateKeyFile " line="SSLCertificateChainFile /etc/pki/tls/certs/DigiCertCA.crt"
+  notify:
+  - restart httpd
+

@@ -1,0 +1,11 @@
+- name: concate ssl certs
+  action: shell "cat /etc/lighttpd/copr-be.fedoraproject.org.key /etc/lighttpd/copr-be.fedoraproject.org.crt > /etc/lighttpd/copr-be.fedoraproject.org.pem"
+  notify:
+  - chmod_key
+  - restart lighttpd
+
+- name: chmod_key
+  action: file path=/etc/lighttpd/copr-be.fedoraproject.org.pem owner=root group=root mode=0600
+
+- name: restart copr-backend
+  service: name=copr-backend state=restarted

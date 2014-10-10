@@ -1,0 +1,20 @@
+- name: install postresql
+  action: yum state=present pkg={{ item }}
+  with_items:
+  - "postgresql-server"
+  - "postgresql-contrib"
+
+
+- name: See if postgreSQL is installed
+  stat: path=/var/lib/pgsql/initdb.log
+  register: pgsql_installed
+
+- name: init postgresql
+  shell: "postgresql-setup initdb"
+  when: not pgsql_installed.stat.exists
+
+- name: copy pg_hba.conf
+  copy: src="pg/pg_hba.conf" dest=/var/lib/pgsql/data/pg_hba.conf owner=postgres group=postgres mode=0600
+  tags:
+  - config
+
