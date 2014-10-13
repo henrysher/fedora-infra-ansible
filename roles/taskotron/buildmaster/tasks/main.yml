@@ -5,6 +5,11 @@
     - buildbot-master
     - libsemanage-python
     - python-psycopg2
+
+- name: ensure packages required for buildmaster are installed
+  action: yum name={{ item }} state=latest
+  when: deployment_type == 'qadevel-prod' or deployment_type == 'qadevel-stg'
+  with_items:
     - python-novaclient
 
 - name: add the buildmaster user
