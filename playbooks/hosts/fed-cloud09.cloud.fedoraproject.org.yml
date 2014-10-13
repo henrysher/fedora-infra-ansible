@@ -119,6 +119,25 @@
   - file: path=/etc/packstack_sucessfully_finished state=touch
 
 
+  # configure cider with multi back-end
+  # https://access.redhat.com/documentation/en-US/Red_Hat_Enterprise_Linux_OpenStack_Platform/5/html/Cloud_Administrator_Guide/section_manage-volumes.html
+  - lineinfile: dest=/etc/cinder/cinder.conf regexp="^enabled_backends" insertafter="^#enabled_backends" line="enabled_backends=lvmdriver-1,equallogic-1"
+  # LVM
+  - command: openstack-config --set /etc/cinder/cinder.conf "lvmdriver-1" "volume_group" "cinder-volumes"
+  - command: openstack-config --set /etc/cinder/cinder.conf "lvmdriver-1" "volume_driver" "cinder.volume.drivers.lvm.LVMISCSIDriver"
+  - command: openstack-config --set /etc/cinder/cinder.conf "lvmdriver-1" "volume_backend_name" "LVM_iSCSI"
+  # Dell EqualLogic - http://docs.openstack.org/trunk/config-reference/content/dell-equallogic-driver.html
+  - command: openstack-config --set /etc/cinder/cinder.conf "equallogic-1" "volume_driver" "cinder.volume.drivers.eqlx.DellEQLSanISCSIDriver"
+  - command: openstack-config --set /etc/cinder/cinder.conf "equallogic-1" "san_ip" "{{ IP_EQLX }}"
+  - command: openstack-config --set /etc/cinder/cinder.conf "equallogic-1" "san_login" "{{ SAN_UNAME }}"
+  - name: set password for equallogic-1
+    command: openstack-config --set /etc/cinder/cinder.conf "equallogic-1" "san_password" "{{ SAN_PW }}"
+  - command: openstack-config --set /etc/cinder/cinder.conf "equallogic-1" "eqlx_group_name" "{{ EQLX_GROUP }}"
+  - command: openstack-config --set /etc/cinder/cinder.conf "equallogic-1" "eqlx_pool" "{{ EQLX_POOL }}"
+  - service: name=openstack-cinder-api state=restarted
+  - service: name=openstack-cinder-scheduler state=restarted
+  - service: name=openstack-cinder-volume state=restarted
+
   # http://docs.openstack.org/trunk/install-guide/install/yum/content/glance-verify.html
   - file: path=/root/images state=directory
   - get_url: url=http://cdn.download.cirros-cloud.net/0.3.2/cirros-0.3.2-x86_64-disk.img dest=/root/images/cirros-0.3.2-x86_64-disk.img mode=0440
