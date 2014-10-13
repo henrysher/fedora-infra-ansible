@@ -18,3 +18,22 @@
   tags:
   - config
 
+- name: Ensure postgres has a place to backup to
+  file: dest=/backups state=directory owner=postgres
+  tags:
+  - config
+
+- name: Copy over backup scriplet
+  copy: src="{{ files }}/../roles/postgresql_server/files/backup-database" dest=/usr/local/bin/backup-database mode=0755
+  tags:
+  - config
+
+- name: Set up some cronjobs to backup databases as configured
+  template: >
+    src="{{ files }}/../roles/postgresql_server/files/cron-backup-database
+    dest=/etc/cron.d/cron-backup-database-{{ item }}
+  with_items:
+  - "{{ dbs_to_backup }}"
+  when: dbs_to_backup != []
+  tags:
+  - config
