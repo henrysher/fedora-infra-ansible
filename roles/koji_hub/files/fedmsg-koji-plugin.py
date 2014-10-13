@@ -143,4 +143,20 @@ def send_message(cbtype, *args, **kws):
     # and the secondary hubs off for s390 and ppc.
     body['instance'] = 'primary'
 
+    # Last thing to do before publishing: scrub some problematic fields
+    # These fields are floating points which get json-encoded differently on
+    # rhel and fedora.
+    problem_fields = ['weight', 'start_ts', 'create_ts', 'completion_ts']
+    def scrub(obj):
+        if not isinstance(obj, dict):
+            return
+        for key in obj:
+            if key in problem_fields:
+                del obj[key]
+            if isinstance(obj[key], list):
+                [scrub(item) for item in obj]
+            if isinstance(obj[key], dict):
+                [scrub(obj[key]) for key in obj]
+    scrub(body)
+
     fedmsg.publish(topic=topic, msg=body, modname='buildsys')
