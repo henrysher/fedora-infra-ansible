@@ -31,7 +31,7 @@
 -A INPUT -p tcp -m tcp --dport 5666 -s 10.5.126.41 -j ACCEPT
 
 # ban staging from non-staging hosts
-{% if env != 'staging' %}
+{% if env != 'staging' and inventory_hostname not in groups['staging-friendly'] %}
 {% for host in groups['staging'] %}
 {% if 'eth0_ip' in hostvars[host] %}# {{ host }}
 -A INPUT -s {{ hostvars[host]['eth0_ip'] }} -j REJECT --reject-with icmp-host-prohibited
