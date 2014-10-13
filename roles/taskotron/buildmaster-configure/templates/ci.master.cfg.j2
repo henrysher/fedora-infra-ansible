@@ -14,6 +14,8 @@ c = BuildmasterConfig = {}
 # a BuildSlave object, specifying a unique slave name and password.  The same
 # slave name and password must be configured on the slave.
 from buildbot.buildslave import BuildSlave
+from buildbot.buildslave import openstack
+
 c['slaves'] = [
                 {% for buildslave in buildslaves %}
                 {% if deployment_type == 'qadevel-stg' %}
@@ -24,6 +26,19 @@ c['slaves'] = [
                 {% endif %}
                 {% endfor %}
               ]
+
+c['slaves'].append(
+                    openstack.OpenStackLatentBuildSlave(
+                        "{{ qadevel_stg_buildslave_user }}",
+                        "{{ qadevel_stg_buildslave_password }}",
+                        flavor=1,
+                        image="5345b501-9264-4198-a185-eb5a2282fed0",
+                        os_username="{{ taskotron_openstack_username }}",
+                        os_password="{{ taskotron_openstack_password }}",
+                        os_tenant_name="{{ taskotron_openstack_tenant_name }}",
+                        os_auth_url="https://fed-cloud02.cloud.fedoraproject.org:5001/v2.0"
+                    )
+                  )
 
 # 'slavePortnum' defines the TCP port to listen on for connections from slaves.
 # This must match the value configured into the buildslaves (with their
@@ -109,6 +124,11 @@ c['schedulers'].append(ForceScheduler(
                             name="force",
                             builderNames=["trigger-builder", "libtaskotron-builder", "resultsdb-builder", "resultsdb_api-builder", "fake_fedorainfra-builder"]))
 
+c['schedulers'].append(ForceScheduler(
+                            name="openstack-force",
+                            builderNames=["openstack-builder"]))
+
+
 ####### BUILDERS
 
 # The 'builders' list defines the Builders, which tell Buildbot how to perform a build:
@@ -162,6 +182,11 @@ c['builders'].append(
     BuilderConfig(name="fake_fedorainfra-builder",
       slavenames=[{% for buildslave in buildslaves %}"{{ buildslave }}",{% endfor %}],
       factory=fake_fedorainfra_factory))
+
+c['builders'].append(
+    BuilderConfig(name="openstack-builder",
+      slavenames=["{{ qadevel_stg_buildslave_user }}"],
+      factory=trigger_factory))
 
 
 ####### STATUS TARGETS
