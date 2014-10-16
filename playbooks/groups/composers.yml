@@ -39,8 +39,18 @@
   - collectd/base
   - hosts
   - builder_repo
-  - { role: nfs/client, mnt_dir: '/pub/fedora',  nfs_src_dir: 'fedora_ftp/fedora.redhat.com/pub/fedora' }
-  - { role: nfs/client, mnt_dir: '/mnt/fedora_koji',  nfs_src_dir: 'fedora_koji' }
+  - role: nfs/client
+    mnt_dir: '/pub/fedora'
+    nfs_src_dir: 'fedora_ftp/fedora.redhat.com/pub/fedora'
+    when: datacenter != 'staging'
+  - role: nfs/client
+    mnt_dir: '/mnt/fedora_koji'
+    nfs_src_dir: 'fedora_koji'
+    when: datacenter != 'staging'
+  - role: nfs/client
+    mnt_dir: 'mnt/koji'
+    nfs_src_dir: 'mnt/koji'
+    when: datacenter == 'staging'
   - releng
   - fedmsg/base
 

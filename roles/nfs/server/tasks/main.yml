@@ -1,17 +1,19 @@
-# 
+#
 # Install needed packages
 #
 - name: Install needed nfs server packages
   yum: pkg={{ item }} state=installed
-  with_items: 
+  with_items:
   - nfs-utils
   - rpcbind
+  tags:
+  - nfs/server
 
 - name: setup /etc/exports
   copy: src={{ ansible_fqdn }}-exports dest=/etc/exports
-  tags: 
-  - nfs/server   
   register: exports
+  tags:
+  - nfs/server
 
 - name: enable nfs-related services and run them (fedora)
   action: service name={{ item }}  enabled=true state=started
@@ -19,6 +21,8 @@
   - nfs-idmap
   - nfs-lock
   when: ansible_distribution == 'Fedora'
+  tags:
+  - nfs/server
 
 - name: enable nfs-related services and run them (rhel)
   action: service name={{ item }}  enabled=true state=started
@@ -28,7 +32,11 @@
   - nfs
   - nfslock
   when: ansible_distribution == 'RedHat'
+  tags:
+  - nfs/server
 
 - name: Kick exportfs if /etc/exports changed
   command: /usr/sbin/exportfs -ra
   when: exports.changed
+  tags:
+  - nfs/server
