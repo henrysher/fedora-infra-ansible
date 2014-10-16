@@ -11,6 +11,7 @@
   copy: src={{ ansible_fqdn }}-exports dest=/etc/exports
   tags: 
   - nfs/server   
+  register: exports
 
 - name: enable nfs-related services and run them (fedora)
   action: service name={{ item }}  enabled=true state=started
@@ -27,3 +28,7 @@
   - nfs
   - nfslock
   when: ansible_distribution == 'RedHat'
+
+- name: Kick exportfs if /etc/exports changed
+  command: /usr/sbin/exportfs -ra
+  when: exports.changed
