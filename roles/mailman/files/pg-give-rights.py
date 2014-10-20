@@ -59,7 +59,7 @@ def main():
 
     # KittyStore
     dbspec = re.match("""
-        postgres://
+        postgresql://
         (?P<user>[a-z]+)
         :
         (?P<password>[^@]+)
