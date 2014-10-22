@@ -4,6 +4,21 @@
 # This is the base role for all machines. 
 # Things in here are things we want to do to every machine no matter what. 
 #
+
+# XXX fixme # a datacenter 'fact' from setup
+- name: /etc/resolv.conf
+  copy: src={{ item }} dest=/etc/resolv.conf
+  with_first_found:
+  - "{{ resolvconf }}"
+  - resolv.conf/{{ ansible_fqdn }}
+  - resolv.conf/{{ host_group }}
+  - resolv.conf/{{ datacenter }}
+  - resolv.conf/resolv.conf
+  tags:
+  - config
+  - resolvconf
+  - base
+
 - name: global default packages to install
   yum: state=installed name={{ item }}
   with_items:
@@ -109,20 +124,6 @@
   tags:
   - iptables
   - config
-  - base
-
-# XXX fixme # a datacenter 'fact' from setup
-- name: /etc/resolv.conf
-  copy: src={{ item }} dest=/etc/resolv.conf
-  with_first_found:
-  - "{{ resolvconf }}"
-  - resolv.conf/{{ ansible_fqdn }}
-  - resolv.conf/{{ host_group }}
-  - resolv.conf/{{ datacenter }}
-  - resolv.conf/resolv.conf
-  tags:
-  - config
-  - resolvconf
   - base
 
 - name: rsyslog.conf
