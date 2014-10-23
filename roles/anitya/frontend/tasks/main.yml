@@ -50,6 +50,19 @@
   - config
   - anitya_frontend
 
+- name: Install the configuration file to activate https
+  copy: >
+    src={{ item }} dest=/etc/httpd/conf.d/{{ item }}
+    owner=root group=root mode=0644
+  with_items:
+  - 0_releasemonitoring.conf
+  tags:
+  - files
+  - config
+  - anitya_frontend
+  notify:
+  - restart apache
+
 - name: set sebooleans so anitya can talk to the db
   action: seboolean name={{ item }}
                     state=true
