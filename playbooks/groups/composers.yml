@@ -61,3 +61,20 @@
   handlers:
   - include: "{{ handlers }}/restart_services.yml"
 
+- name: put fasClient on the staging releng systems
+  # Staging only, for debugging please.
+  hosts: composers-stg
+  user: root
+  gather_facts: True
+  accelerate: "{{ accelerated }}"
+
+  vars_files:
+  - /srv/web/infra/ansible/vars/global.yml
+  - "{{ private }}/vars.yml"
+  - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  roles:
+  - fas_client
+
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"
