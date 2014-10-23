@@ -33,6 +33,23 @@
   notify:
   - restart apache
 
+- name: create the folder where we store the ssl cert if not already there
+  action: file state=directory
+               path=/etc/pki/tls/certs/
+               owner=root group=root mode=0644
+
+- name: Install the SSL cert so that we can use https
+    copy: >
+      src={{ item }} dest=/etc/pki/tls/certs/{{ item }}
+      owner=root group=root mode=0600
+    with_items:
+    - {{ private }}/httpd/release-monitoring.org.cert
+    - {{ private }}/httpd/release-monitoring.org.key
+    - {{ private }}/httpd/release-monitoring.org.intermediate.cert
+  tags:
+  - config
+  - anitya_frontend
+
 - name: set sebooleans so anitya can talk to the db
   action: seboolean name={{ item }}
                     state=true
@@ -42,3 +59,4 @@
   - httpd_can_network_connect
   tags:
   - anitya_frontend
+
