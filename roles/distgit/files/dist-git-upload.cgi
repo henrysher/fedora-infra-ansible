@@ -148,7 +148,11 @@ def main():
         print >> sys.stderr, '[username=%s] Processing upload request: NAME=%s FILENAME=%s %sSUM=%s' % (username, name, filename, hash_type.upper(), checksum)
 
     module_dir = os.path.join(CACHE_DIR, name)
-    hash_dir =  os.path.join(module_dir, filename, checksum)
+    hash_dir = os.path.join(module_dir, filename, hash_type, checksum)
+
+    if hash_type == "md5":
+        # Preserve compatibility with the current folder hierarchy for md5
+        hash_dir = os.path.join(module_dir, filename, checksum)
 
     # first test if the module really exists
     git_dir = os.path.join(GITREPO, '%s.git' %  name)
