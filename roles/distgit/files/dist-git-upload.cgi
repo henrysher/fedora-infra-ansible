@@ -24,12 +24,8 @@ try:
 except ImportError:
     from email.MIMEText import MIMEText
 
-try:
-    import hashlib
-    md5_constructor = hashlib.md5
-except ImportError:
-    import md5
-    md5_constructor = md5.new
+import hashlib
+md5_constructor = hashlib.md5
 
 # Reading buffer size
 BUFFER_SIZE = 4096
