@@ -188,6 +188,7 @@ def main():
     tmpfd.close()
     check_md5sum = m.hexdigest()
     if md5sum != check_md5sum:
+        os.unlink(tmpfile)
         send_error("MD5 check failed. Received %s instead of %s." % (check_md5sum, md5sum))
 
     # wow, even the MD5SUM matches. make sure full path is valid now
