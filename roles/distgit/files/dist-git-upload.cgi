@@ -25,7 +25,6 @@ except ImportError:
     from email.MIMEText import MIMEText
 
 import hashlib
-md5_constructor = hashlib.md5
 
 # Reading buffer size
 BUFFER_SIZE = 4096
@@ -60,10 +59,10 @@ def check_auth(username):
         pass
     return authenticated
 
-def send_email(pkg, md5, filename, username):
+def send_email(pkg, checksum, filename, username):
     text = """A file has been added to the lookaside cache for %(pkg)s:
 
-%(md5)s  %(filename)s""" % locals()
+%(checksum)s  %(filename)s""" % locals()
     msg = MIMEText(text)
     try:
         sender_name = pwd.getpwnam(username)[4]
@@ -111,7 +110,7 @@ def main():
 
     form = cgi.FieldStorage()
     name = check_form(form, 'name')
-    md5sum = check_form(form, 'md5sum')
+    checksum = check_form(form, 'md5sum')
 
     action = None
     upload_file = None
@@ -124,7 +123,7 @@ def main():
         action = 'check'
         filename = check_form(form, 'filename')
         filename = os.path.basename(filename)
-        print >> sys.stderr, '[username=%s] Checking file status: NAME=%s FILENAME=%s MD5SUM=%s' % (username, name, filename, md5sum)
+        print >> sys.stderr, '[username=%s] Checking file status: NAME=%s FILENAME=%s %sSUM=%s' % (username, name, filename, "MD5", checksum)
     else:
         action = 'upload'
         if form.has_key('file'):
@@ -134,10 +133,10 @@ def main():
             filename = os.path.basename(upload_file.filename)
         else:
             send_error('Required field "file" is not present.')
-        print >> sys.stderr, '[username=%s] Processing upload request: NAME=%s FILENAME=%s MD5SUM=%s' % (username, name, filename, md5sum)
+        print >> sys.stderr, '[username=%s] Processing upload request: NAME=%s FILENAME=%s %sSUM=%s' % (username, name, filename, "MD5", checksum)
 
     module_dir = os.path.join(CACHE_DIR, name)
-    md5_dir =  os.path.join(module_dir, filename, md5sum)
+    hash_dir =  os.path.join(module_dir, filename, checksum)
 
     # first test if the module really exists
     git_dir = os.path.join(GITREPO, '%s.git' %  name)
@@ -146,7 +145,7 @@ def main():
         send_error('Module "%s" does not exist!' % name)
 
     # try to see if we already have this file...
-    dest_file = os.path.join(md5_dir, filename)
+    dest_file = os.path.join(hash_dir, filename)
     if os.path.exists(dest_file):
         if action == 'check':
             print 'Available'
@@ -166,11 +165,11 @@ def main():
 
     # grab a temporary filename and dump our file in there
     tempfile.tempdir = module_dir
-    tmpfile = tempfile.mkstemp(md5sum)[1]
+    tmpfile = tempfile.mkstemp(checksum)[1]
     tmpfd = open(tmpfile, 'w')
 
     # now read the whole file in
-    m = md5_constructor()
+    m = hashlib.md5()
     filesize = 0
     while True:
         data = upload_file.file.read(BUFFER_SIZE)
@@ -180,24 +179,24 @@ def main():
         m.update(data)
         filesize += len(data)
 
-    # now we're done reading, check the MD5 sum of what we got
+    # now we're done reading, check the checksum of what we got
     tmpfd.close()
-    check_md5sum = m.hexdigest()
-    if md5sum != check_md5sum:
+    check_checksum = m.hexdigest()
+    if checksum != check_checksum:
         os.unlink(tmpfile)
-        send_error("MD5 check failed. Received %s instead of %s." % (check_md5sum, md5sum))
+        send_error("%s check failed. Received %s instead of %s." % ("MD5", check_checksum, checksum))
 
-    # wow, even the MD5SUM matches. make sure full path is valid now
-    if not os.path.isdir(md5_dir):
-        os.makedirs(md5_dir, 02775)
-        print >> sys.stderr, '[username=%s] mkdir %s' % (username, md5_dir)
+    # wow, even the checksum matches. make sure full path is valid now
+    if not os.path.isdir(hash_dir):
+        os.makedirs(hash_dir, 02775)
+        print >> sys.stderr, '[username=%s] mkdir %s' % (username, hash_dir)
 
     os.rename(tmpfile, dest_file)
     os.chmod(dest_file, 0644)
 
     print >> sys.stderr, '[username=%s] Stored %s (%d bytes)' % (username, dest_file, filesize)
-    print 'File %s size %d MD5 %s stored OK' % (filename, filesize, md5sum)
-    send_email(name, md5sum, filename, username)
+    print 'File %s size %d %s %s stored OK' % (filename, filesize, "MD5", checksum)
+    send_email(name, checksum, filename, username)
 
     # Emit a fedmsg message.  Load the config to talk to the fedmsg-relay.
     try:
@@ -207,7 +206,7 @@ def main():
         fedmsg.init(name="relay_inbound", cert_prefix="lookaside", **config)
 
         topic = "lookaside.new"
-        msg = dict(name=name, md5sum=md5sum, filename=filename, agent=username)
+        msg = dict(name=name, md5sum=checksum, filename=filename, agent=username)
         fedmsg.publish(modname="git", topic=topic, msg=msg)
     except Exception as e:
         print "Error with fedmsg", str(e)
