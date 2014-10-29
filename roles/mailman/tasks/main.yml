@@ -7,7 +7,7 @@
 # SELinux
 #
 - name: install semanage
-  yum: pkg=policycoreutils-python state=installed
+  yum: pkg=policycoreutils-python state=present
 
 - name: set the SELinux policy for the configuration directory
   command: semanage fcontext -a -t etc_t "{{ mailman_webui_confdir }}(/.*)?"
@@ -39,13 +39,13 @@
         dest=/etc/yum.repos.d/hyperkitty.repo
 
 - name: install GPG to validate the key
-  yum: state=installed name=gnupg
+  yum: state=present name=gnupg
 
 - name: add the GPG key
   rpm_key: state=present key=https://repos.fedorapeople.org/repos/abompard/abompard.asc
 
 - name: install needed packages
-  yum: pkg={{ item }} state=installed
+  yum: pkg={{ item }} state=present
   with_items:
   - mailman3
   - mailman3-selinux
