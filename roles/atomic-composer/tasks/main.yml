@@ -1,0 +1,62 @@
+---
+# This role sets up the fedmsg-driven atomic ostree composer
+
+- yum: name={{ item }} state=present
+  with_items:
+    - fedmsg-hub
+    - fedmsg-relay
+    - rpm-ostree-toolbox
+    - ostree
+    - fedmsg-atomic-composer
+
+- user: name=rpmostreecompose
+        shell=/bin/bash
+        groups=systemd-journal
+        generate_ssh_key=yes
+  register: user
+
+- authorized_key: user={{ user['name'] }}
+                  key="{{ user['ssh_public_key'] }}"
+
+- file: path=/srv/fedora-atomic/output
+        owner={{ user['name'] }} group={{ user['name'] }} mode=755 state=directory
+
+- file: path=/srv/fedora-atomic/output/{{ item }}/
+        owner={{ user['name'] }} group={{ user['name'] }} mode=755 state=directory
+  with_items: trees
+
+- file: path=/srv/fedora-atomic/{{ item }}/tasks/treecompose
+        owner={{ user['name'] }} group={{ user['name'] }} mode=755 state=directory
+  with_items: trees
+
+- file: path=/srv/inbox/{{ item }}
+        owner={{ user['name'] }} group={{ user['name'] }} mode=755 state=directory
+  with_items: trees
+
+- git: repo=https://git.fedorahosted.org/git/fedora-atomic.git
+       dest=/srv/fedora-atomic/rawhide/fedora-atomic
+       update=no
+
+- git: repo=https://git.fedorahosted.org/git/fedora-atomic.git
+       dest=/srv/fedora-atomic/f21/fedora-atomic
+       version=f21
+       update=no
+
+- service: name=atomic-compose-{{ item }} enabled=yes state=started
+  with_items: trees
+
+- service: name=fedmsg-atomic-composer enabled=yes state=started
+
+- service: name=fedmsg-relay enabled=yes state=started
+
+- command: /usr/bin/ostree init --repo=/srv/fedora-atomic/output/{{ item }}/repo --mode=archive-z2
+  sudo: yes
+  sudo_user: "{{ user['name'] }}"
+  args:
+    creates: /srv/fedora-atomic/output/{{ item }}/repo
+  with_items: trees
+
+- file: src=/srv/fedora-atomic/output/{{ item }}/repo
+        dest=/srv/fedora-atomic/{{ item }}/repo
+        owner={{ user['name'] }} group={{ user['name'] }} state=link
+  with_items: trees
