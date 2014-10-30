@@ -228,11 +228,17 @@
   - pg-give-rights.py
   - post-update.sh
   - import-mm2.py
+  - clean-sessions.sh
 
 - name: copy the initial user fixture
   copy: src=postorius.initial-user.json
         dest=/etc/postorius/sites/default/initial-user.json
         owner=root group=apache mode=0640
+
+- name: install the cronjobs
+  file: dest=/etc/cron.daily/hyperkitty-clean-sessions.sh
+        src="{{ mailman_webui_basedir }}/bin/clean-sessions.sh"
+        state=link
 
 
 # Sync databases
