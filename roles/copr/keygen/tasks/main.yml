@@ -4,9 +4,7 @@
   yum: name="obs-signd" enablerepo="updates-testing" state=present
 
 - name: install copr-keygen
-  yum: name="https://kojipkgs.fedoraproject.org//work/tasks/1551/7741551/copr-keygen-1.58-1.fc20.noarch.rpm" state=present
-  tags:
-  - wget
+  yum: name="copr-keygen" enablerepo="updates-testing" state=present
   notify:
   - restart haveged
 
@@ -19,6 +17,10 @@
 
 - name: put config for signd
   template: src="sign.conf" dest="/etc/sign.conf"
+  notify:
+  - restart obs-signd
+  tags:
+  - config
 
 - name: add Install section for signd systemd unit
   lineinfile: dest="/usr/lib/systemd/system/signd.service" line="[Install]"  state=present
@@ -30,4 +32,3 @@
   - httpd
   - haveged
   - signd
-
