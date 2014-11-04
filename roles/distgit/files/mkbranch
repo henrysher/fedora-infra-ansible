@@ -41,53 +41,53 @@ Usage:
     The /master suffix on branch names is assumed.
 
 Options:
-    -s,--source=<src_branch>	Use <src_branch> as the source branch.
-				Defaults is master
+    -s,--source=<src_branch>    Use <src_branch> as the source branch.
+                Defaults is master
                                 /master suffix on other branches assumed
-    -n,--test			Don't do nothing, only test
+    -n,--test           Don't do nothing, only test
     -i,--ignore                 Ignore erroneous modules
-    -h,--help			This help message
-    -v,--verbose		Increase verbosity
+    -h,--help           This help message
+    -v,--verbose        Increase verbosity
 EOF
 }
 
 # parse the arguments
 while [ -n "$1" ] ; do
     case "$1" in
-	-h | --help )
-	    Usage
-	    exit 0
-	    ;;
+    -h | --help )
+        Usage
+        exit 0
+        ;;
 
-	-v | --verbose )
-	    VERBOSE=$(($VERBOSE + 1))
-	    ;;
+    -v | --verbose )
+        VERBOSE=$(($VERBOSE + 1))
+        ;;
 
-	-i | --ignore )
-	    IGNORE="yes"
-	    ;;
+    -i | --ignore )
+        IGNORE="yes"
+        ;;
 
-	-n | --test )
-	    TEST="yes"
-	    ;;
+    -n | --test )
+        TEST="yes"
+        ;;
 
-	-s | --source )
-	    shift
-	    SRC_BRANCH=$1
-	    ;;
+    -s | --source )
+        shift
+        SRC_BRANCH=$1
+        ;;
 
-	-b | --branch )
-	    shift
-	    BRANCH=$1/master
-	    ;;
+    -b | --branch )
+        shift
+        BRANCH=$1/master
+        ;;
 
-	* )
-	    if [ -z "$BRANCH" ] ; then
-		BRANCH="$1"
-	    else
-		PACKAGES="$PACKAGES $1"
-	    fi
-	    ;;
+    * )
+        if [ -z "$BRANCH" ] ; then
+        BRANCH="$1"
+        else
+        PACKAGES="$PACKAGES $1"
+        fi
+        ;;
     esac
     shift
 done
@@ -104,8 +104,8 @@ NEWP=
 for p in $PACKAGES ; do
     [ $VERBOSE -gt 1 ] && echo "Checking package $p..."
     if [ ! -d $GITROOT/$p.git ] ; then
-	echo "ERROR: Package module $p is invalid" >&2
-	[ "$IGNORE" = "yes" ] && continue || exit -1
+    echo "ERROR: Package module $p is invalid" >&2
+    [ "$IGNORE" = "yes" ] && continue || exit -1
     fi
     if [ -z "$(GIT_DIR=$GITROOT/$p.git git rev-parse -q --verify $SRC_BRANCH)" ] ; then \
         echo "ERROR: Invalid source branch '$SRC_BRANCH' for package $p" >&2; \
@@ -117,8 +117,8 @@ for p in $PACKAGES ; do
     fi
     $(GIT_DIR=$GITROOT/$p.git git rev-parse -q --verify \
       $BRANCH >/dev/null) && \
-	(echo "IGNORING: Package module $p already has a branch $BRANCH" >&2; \
-	[ "$IGNORE" = "yes" ] && continue || exit -1)
+    (echo "IGNORING: Package module $p already has a branch $BRANCH" >&2; \
+    [ "$IGNORE" = "yes" ] && continue || exit -1)
     NEWP="$NEWP $p"
 done
 PACKAGES="$(echo $NEWP)"
@@ -164,16 +164,16 @@ for NAME in $PACKAGES ; do
     #[ $VERBOSE -gt 0 ] && echo "Creating $BRANCH-split tag for $NAME/$SRC_BRANCH..."
     # Is the above needed?
     #cvs -Q rtag -f "$BRANCH-split" $TOPLEVEL/$NAME/$SRC_BRANCH || {
-	#echo "ERROR: Branch split tag for $NAME/$SRC_BRANCH could not be created" >&2
-	#exit -2
+    #echo "ERROR: Branch split tag for $NAME/$SRC_BRANCH could not be created" >&2
+    #exit -2
     #}
     [ $VERBOSE -gt 0 ] && echo "Creating $NAME $BRANCH from $NAME $SRC_BRANCH..."
     $(pushd $GITROOT/$NAME.git >/dev/null && \
     git branch --no-track $BRANCH $SRC_BRANCH && \
     popd >/dev/null) || {
-	echo "ERROR: Branch $NAME $BRANCH could not be created" >&2
+    echo "ERROR: Branch $NAME $BRANCH could not be created" >&2
         popd >/dev/null
-	exit -2
+    exit -2
     }
 done
 
