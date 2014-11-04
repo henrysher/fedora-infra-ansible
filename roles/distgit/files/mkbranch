@@ -41,8 +41,6 @@ Usage:
     The /master suffix on branch names is assumed.
 
 Options:
-    -s,--source=<src_branch>    Use <src_branch> as the source branch.
-                Defaults is master
                                 /master suffix on other branches assumed
     -n,--test           Don't do nothing, only test
     -i,--ignore                 Ignore erroneous modules
@@ -71,10 +69,6 @@ while [ -n "$1" ] ; do
         TEST="yes"
         ;;
 
-    -s | --source )
-        shift
-        SRC_BRANCH=$1
-        ;;
 
     -b | --branch )
         shift
@@ -106,14 +100,6 @@ for p in $PACKAGES ; do
     if [ ! -d $GITROOT/$p.git ] ; then
     echo "ERROR: Package module $p is invalid" >&2
     [ "$IGNORE" = "yes" ] && continue || exit -1
-    fi
-    if [ -z "$(GIT_DIR=$GITROOT/$p.git git rev-parse -q --verify $SRC_BRANCH)" ] ; then \
-        echo "ERROR: Invalid source branch '$SRC_BRANCH' for package $p" >&2; \
-        if [ $SRC_BRANCH == 'master' ]; then
-           [ "$IGNORE" = "yes" ] && continue
-        else
-           SRC_BRANCH=master
-        fi
     fi
     $(GIT_DIR=$GITROOT/$p.git git rev-parse -q --verify \
       $BRANCH >/dev/null) && \
@@ -152,7 +138,7 @@ fi
 # For every module, "create" the branch
 for NAME in $PACKAGES ; do
     echo
-    echo "Creating new module branch '$BRANCH' for '$NAME' from branch '$SRC_BRANCH'..."
+    echo "Creating new module branch '$BRANCH' for '$NAME'..."
 
     # permissions checks for this particular module
     if [ ! -w $GITROOT/$NAME.git/refs/heads/  ] ; then
@@ -167,9 +153,9 @@ for NAME in $PACKAGES ; do
     #echo "ERROR: Branch split tag for $NAME/$SRC_BRANCH could not be created" >&2
     #exit -2
     #}
-    [ $VERBOSE -gt 0 ] && echo "Creating $NAME $BRANCH from $NAME $SRC_BRANCH..."
+    [ $VERBOSE -gt 0 ] && echo "Creating $NAME $BRANCH from $NAME ..."
     $(pushd $GITROOT/$NAME.git >/dev/null && \
-    git branch --no-track $BRANCH $SRC_BRANCH && \
+    git branch --no-track $BRANCH `git rev-list --max-parents=0 master` && \
     popd >/dev/null) || {
     echo "ERROR: Branch $NAME $BRANCH could not be created" >&2
         popd >/dev/null
