@@ -57,13 +57,13 @@
   when: collectd_apache is defined
 
 
-# Three tasks for handling our custom selinux module
+# Three tasks for handling our (two) custom selinux modules.
 - name: ensure a directory exists for our custom selinux module
   file: dest=/usr/share/collectd state=directory
   tags:
   - collectd
 
-- name: copy over our custom selinux module
+- name: copy over our general collectd selinux module
   copy: src=selinux/fi-collectd.pp dest=/usr/share/collectd/fi-collectd.pp
   register: selinux_module
   tags:
@@ -76,9 +76,30 @@
   - collectd
   ignore_errors: True
 
-- name: install our custom selinux module
+- name: install our general collectd selinux module
   command: semodule -i /usr/share/collectd/fi-collectd.pp
   when: selinux_module|changed or selinux_grep|failed
+  tags:
+  - collectd
+
+- name: copy over our pstorefs/collectd selinux module (rhel6 has no pstorefs)
+  copy: src=selinux/fi-pstorefs.pp dest=/usr/share/collectd/fi-pstorefs.pp
+  when: ansible_distribution_major_version != '6'
+  register: selinux_module
+  tags:
+  - collectd
+
+- name: check to see if its even installed yet
+  shell: semodule -l | grep fi-pstorefs
+  when: ansible_distribution_major_version != '6'
+  register: selinux_grep
+  tags:
+  - collectd
+  ignore_errors: True
+
+- name: install our pstorefs/collectd selinux module
+  command: semodule -i /usr/share/collectd/fi-pstorefs.pp
+  when: ansible_distribution_major_version != '6' selinux_module|changed or selinux_grep|failed
   tags:
   - collectd
 
