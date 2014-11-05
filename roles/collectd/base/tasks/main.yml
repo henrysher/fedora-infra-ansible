@@ -69,12 +69,17 @@
   tags:
   - collectd
 
-- name: install our custom selinux module
-  command: semodule -i /usr/share/collectd/fi-collectd.pp
-  when: selinux_module|changed
+- name: check to see if its even installed yet
+  shell: semodule -l | grep fi-collectd
+  register: selinux_grep
   tags:
   - collectd
-  ignore_errors: True
+
+- name: install our custom selinux module
+  command: semodule -i /usr/share/collectd/fi-collectd.pp
+  when: selinux_module|changed or selinux_grep|failed
+  tags:
+  - collectd
 
 
   
