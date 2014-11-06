@@ -19,11 +19,15 @@
   - /etc/fedoracommunity/yum_cache.repos.d
   - /var/cache/fedoracommunity  # the gluster role usually creates this one
   - /var/log/fedoracommunity
+  tags:
+  - packages
 
 - name: Create some more locked down directories
   file: path={{ item }} state=directory owner=apache group=apache mode=700
   with_items:
   - /etc/pki/fedoracommunity
+  tags:
+  - packages
 
 - name: Copy over the app config
   template: >
@@ -32,6 +36,8 @@
     owner=apache group=apache mode=0600
   notify:
   - restart httpd
+  tags:
+  - packages
 
 - name: Copy over the httpd config
   copy: >
@@ -40,6 +46,8 @@
     owner=root group=root mode=644
   notify:
   - restart httpd
+  tags:
+  - packages
 
 - name: Copy over the yum config
   copy: >
@@ -48,6 +56,8 @@
     owner=root group=root mode=0644
   notify:
   - restart httpd
+  tags:
+  - packages
 
 - name: Copy over certs/public-keys, probably for talking with koji.
   copy: >
@@ -59,6 +69,8 @@
   with_items:
   - fedora-server-ca.cert
   - fedora-upload-ca.cert
+  tags:
+  - packages
 
 - name: permanently hotfix the distmappings file
   copy: >
@@ -67,12 +79,16 @@
     owner=root group=root mode=0644
   notify:
   - restart httpd
+  tags:
+  - packages
 
 - name: start some helper services
   service: name="{{item}}" state=started enabled=yes
   with_items:
   - redis
   - fcomm-cache-worker
+  tags:
+  - packages
 
 # Here's the indexer stuff
 - name: Create cache structure
@@ -98,6 +114,8 @@
   - packages/tmp/var
   - packages/tmp/yum-cache
   when: install_packages_indexer
+  tags:
+  - packages
 
 - name: Copy over the default icon
   copy: >
@@ -105,12 +123,16 @@
     dest=/var/cache/fedoracommunity/packages/icons/package_128x128.png
     owner=root mode=644
   when: install_packages_indexer
+  tags:
+  - packages
 
 - name: Copy some scripts for /usr/local
   copy: src="{{item}}" dest="/usr/local/bin/{{item}}" mode=0755
   with_items:
   - sync-yum
   when: install_packages_indexer
+  tags:
+  - packages
 
 - name: Copy the indexer cronjobs
   copy: src="{{item}}" dest="/etc/cron.d/{{item}}"
@@ -120,10 +142,14 @@
   - cron-sync-package-index
   - cron-flush-pkgs-cache
   when: install_packages_indexer
+  tags:
+  - packages
 
 - name: Confygure Ye Olde Logge Rotatyr
   copy: src=cron_fcomm_log_rotate dest=/etc/logrotate.d/cron_fcomm_log_rotate
   when: install_packages_indexer
+  tags:
+  - packages
 
 
 # Lastly, here's some selinux stuff.
@@ -135,3 +161,5 @@
   - httpd_can_network_memcache
   - httpd_can_network_connect
   - httpd_use_fusefs
+  tags:
+  - packages
