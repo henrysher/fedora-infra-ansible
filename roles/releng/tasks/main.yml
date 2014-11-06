@@ -17,7 +17,7 @@
   user: name=ftpsync uid=263 group=ftpsync createhome=yes system=yes state=present
 
 - name: add the ftpsync update-fullfilelist script
-  action: copy src="{{ files }}/releng/update-fullfilelist" dest=/usr/local/bin/update-fullfilelist owner=ftpsync group=ftpsync mode=555
+  action: copy src=update-fullfilelist dest=/usr/local/bin/update-fullfilelist owner=ftpsync group=ftpsync mode=555
 
 - name: add masher group
   action: group name=masher gid=751 system=yes state=present
@@ -28,7 +28,7 @@
 - name: add masher ssh dir
   action: file state=directory path=/home/masher/.ssh mode=700 owner=masher group=masher
 - name: add masher ssh keys
-  action: copy src="{{ files }}/releng/mash/masher.{{ item }}" dest="/home/masher/.ssh/{{ item }}" mode=600 owner=masher group=masher
+  action: copy src="mash/masher.{{ item }}" dest="/home/masher/.ssh/{{ item }}" mode=600 owner=masher group=masher
   with_items:
     - id_rsa.pub
     - config
@@ -83,7 +83,7 @@
 
 # mock configs
 - name: put extra special  mock configs in
-  action: copy src="{{ files }}/releng/{{ item }}" dest="/etc/mock/{{ item }}" mode=644
+  action: copy src="{{ item }}" dest="/etc/mock/{{ item }}" mode=644
   with_items:
     - fedora-branched-compose-armhfp.cfg
     - fedora-rawhide-compose-armhfp.cfg
@@ -113,12 +113,12 @@
 
 # put cron job in for branched compose
 - name: branched compose cron
-  action: copy src="{{ files }}/releng/branched" dest=/etc/cron.d/branched
+  action: copy src="branched" dest=/etc/cron.d/branched
   when: inventory_hostname.startswith('branched-composer')
 
 # put cron job in for rawhide compose
 - name: rawhide compose cron
-  action: copy src="{{ files }}/releng/rawhide" dest=/etc/cron.d/rawhide
+  action: copy src="rawhide" dest=/etc/cron.d/rawhide
   when: inventory_hostname.startswith('rawhide-composer')
 
 - name: sudoers defaults
