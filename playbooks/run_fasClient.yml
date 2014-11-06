@@ -3,6 +3,16 @@
 # We exclude builders, persistent-cloud and jenkins-cloud as they don't have fasclient
 #
 
+- name: run fasClient -a
+  hosts: bastion01.phx2.fedoraproject.org:bastion02.phx2.fedoraproject.org
+  user: root
+  gather_facts: False
+
+  tasks:
+  - name: actually run fasClient -a
+    command: fasClient -a
+    when: inventory_hostname_short.startswith('bastion0')
+
 - name: run fasClient -i
   hosts: all:!builders:!persistent-cloud:!jenkins-cloud:!bkernel:!*composer*
   user: root
@@ -13,12 +23,3 @@
   - name: actually run fasClient -i
     command: fasClient -i
 
-- name: run fasClient -a
-  hosts: bastion01.phx2.fedoraproject.org:bastion02.phx2.fedoraproject.org
-  user: root
-  gather_facts: False
-
-  tasks:
-  - name: actually run fasClient -a
-    command: fasClient -a
-    when: inventory_hostname_short.startswith('bastion0')
