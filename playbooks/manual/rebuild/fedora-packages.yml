@@ -22,6 +22,12 @@
     pause: seconds=30 prompt="Destroying xapian index.  Abort?"
     when: install_packages_indexer
 
+  - name: bring down the services that use it
+    service: name={{item}} state=stopped
+    with_items:
+    - httpd
+    - fcomm-cache-worker
+
   - name: Nuke the old xapian search index
     file: path={{cache_root}}/packages/xapian state=absent
     when: install_packages_indexer
@@ -72,3 +78,9 @@
     async: 20000
     poll: 60
     when: install_packages_indexer
+
+  - name: Restart up the dependant services
+    service: name={{item}} state=stopped
+    with_items:
+    - httpd
+    - fcomm-cache-worker
