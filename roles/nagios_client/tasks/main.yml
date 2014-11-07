@@ -137,3 +137,15 @@
   tags:
   - service
   - nagios_client
+
+- name: Check if the fedmsg group exists
+  shell: /usr/bin/getent group fedmsg | /usr/bin/wc -l | tr -d ' '
+  register: fedmsg_exists
+  tags:
+  - nagios_client
+
+- name: Add nrpe user to the fedmsg group if it exists
+  user: name=nrpe groups=fedmsg append=yes
+  when: fedmsg_exists.stdout == "1"
+  tags:
+  - nagios_client
