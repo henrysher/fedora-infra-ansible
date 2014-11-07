@@ -6,11 +6,11 @@
 # need to be periodically updated with new things.
 
 - name: restart fedmsg-gateway instances
-  hosts: busgateway;busgateway-stg;proxies;proxies-stg
+  hosts: fedmsg-gateways;fedmsg-gateways-stg
   user: root
   gather_facts: False
 
-  vars_files: 
+  vars_files:
    - /srv/web/infra/ansible/vars/global.yml
    - "{{ private }}/vars.yml"
    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
@@ -20,11 +20,11 @@
     service: name=fedmsg-gateway state=restarted
 
 - name: restart fedmsg-relay instances
-  hosts: busgateway;busgateway-stg
+  hosts: fedmsg-relays;fedmsg-relays-stg
   user: root
   gather_facts: False
 
-  vars_files: 
+  vars_files:
    - /srv/web/infra/ansible/vars/global.yml
    - "{{ private }}/vars.yml"
    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
@@ -34,11 +34,11 @@
     service: name=fedmsg-relay state=restarted
 
 - name: restart fedmsg-irc instances
-  hosts: value;value-stg
+  hosts: fedmsg-ircs;fedmsg-ircs-stg
   user: root
   gather_facts: False
 
-  vars_files: 
+  vars_files:
    - /srv/web/infra/ansible/vars/global.yml
    - "{{ private }}/vars.yml"
    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
@@ -52,7 +52,7 @@
   user: root
   gather_facts: False
 
-  vars_files: 
+  vars_files:
    - /srv/web/infra/ansible/vars/global.yml
    - "{{ private }}/vars.yml"
    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
@@ -60,3 +60,17 @@
   tasks:
   - name: bounce the fedmsg-hub service
     service: name=fedmsg-hub state=restarted
+
+- name: restart moksha-hub instances
+  hosts: moksha-hubs;moksha-hubs-stg
+  user: root
+  gather_facts: False
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "{{ private }}/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  tasks:
+  - name: bounce the moksha-hub service
+    service: name=moksha-hub state=restarted
