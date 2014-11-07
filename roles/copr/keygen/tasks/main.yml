@@ -1,4 +1,8 @@
 ---
+- name: install keygen specific packages
+  yum: name="{{ item }}" state=present
+  with_items:
+  - gnupg2
 
 - name: install obs-signd
   yum: name="obs-signd" enablerepo="updates-testing" state=present
@@ -32,3 +36,7 @@
   - httpd
   - haveged
   - signd
+
+- name: setup backup
+  # when: not devel
+  include: "setup_backup.yml"
