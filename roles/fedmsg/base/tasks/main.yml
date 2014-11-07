@@ -183,15 +183,23 @@
 - name: Check if the nrpe user exists
   shell: /usr/bin/getent passwd nrpe | /usr/bin/wc -l | tr -d ' '
   register: nrpe_exists
+  tags:
+  - fedmsg/base
 
 - name: Add nrpe user to the fedmsg group if it exists
   user: name=nrpe groups=fedmsg append=yes
-  when: nrpe_exists.stdout == 1
+  when: nrpe_exists.stdout == "1"
+  tags:
+  - fedmsg/base
 
 - name: Check if the collectd user exists
   shell: /usr/bin/getent passwd collectd | /usr/bin/wc -l | tr -d ' '
   register: collectd_exists
+  tags:
+  - fedmsg/base
 
 - name: Add collectd user to the fedmsg group if it exists
   user: name=collectd groups=fedmsg append=yes
-  when: collectd_exists.stdout == 1
+  when: collectd_exists.stdout == "1"
+  tags:
+  - fedmsg/base
