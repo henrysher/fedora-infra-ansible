@@ -1,5 +1,5 @@
 
-module fi-collectd 1.8;
+module fi-collectd 1.9.1;
 
 require {
     type shell_exec_t;
@@ -11,14 +11,14 @@ require {
 	class sock_file { read write getattr };
 	class unix_stream_socket connectto;
 	class capability { setuid dac_read_search sys_ptrace setgid dac_override };
-	class file { read execute execute_no_trans };
+	class file { read getattr open execute execute_no_trans };
 	class dir getattr;
 }
 
 #============= collectd_t ==============
-allow collectd_t bin_t:file { execute execute_no_trans };
+allow collectd_t bin_t:file { read getattr open execute execute_no_trans };
 allow collectd_t configfs_t:dir getattr;
 allow collectd_t init_t:unix_stream_socket connectto;
 allow collectd_t self:capability { setuid dac_read_search sys_ptrace setgid dac_override };
 allow collectd_t var_run_t:sock_file { read write getattr };
-allow collectd_t shell_exec_t:file execute;
+allow collectd_t shell_exec_t:file { read open execute };
