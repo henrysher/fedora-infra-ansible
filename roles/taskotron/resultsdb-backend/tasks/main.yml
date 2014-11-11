@@ -17,6 +17,7 @@
   delegate_to: "{{ resultsdb_db_host }}"
   sudo_user: postgres
   sudo: true
+  remote_tmp: '/tmp/.ansible/'
   action: postgresql_user db={{ resultsdb_db_name }} user={{ dev_resultsdb_db_user }} password={{ dev_resultsdb_db_password }} role_attr_flags=NOSUPERUSER
 
 - name: ensure stg resultsdb db user has access to stg database
@@ -24,6 +25,7 @@
   delegate_to: "{{ resultsdb_db_host }}"
   sudo_user: postgres
   sudo: true
+  remote_tmp: '/tmp/.ansible/'
   action: postgresql_user db={{ resultsdb_db_name }} user={{ stg_resultsdb_db_user }} password={{ stg_resultsdb_db_password }} role_attr_flags=NOSUPERUSER
 
 - name: ensure prod resultsdb db user has access to prod database
@@ -31,8 +33,8 @@
   delegate_to: "{{ resultsdb_db_host }}"
   sudo_user: postgres
   sudo: true
+  remote_tmp: '/tmp/.ansible/'
   action: postgresql_user db={{ resultsdb_db_name }} user={{ prod_resultsdb_db_user }} password={{ prod_resultsdb_db_password }} role_attr_flags=NOSUPERUSER
-
 
 - name: ensure selinux lets httpd talk to postgres
   seboolean: name=httpd_can_network_connect_db persistent=yes state=yes

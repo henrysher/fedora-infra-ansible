@@ -51,3 +51,14 @@
 
   handlers:
   - include: "{{ handlers }}/restart_services.yml"
+
+
+- name: Start the kojid builder daemon, but only on staging.
+  # Really -- this should never be set for prod.
+  hosts: koji-stg
+  user: root
+  gather_facts: True
+
+  tasks:
+  - name: make sure kojid is running
+    action: service name=kojid state=running

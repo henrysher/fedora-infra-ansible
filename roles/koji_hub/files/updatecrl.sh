@@ -2,7 +2,7 @@
 
 URL=https://admin.fedoraproject.org/ca/crl.pem
 OLD=/etc/pki/tls/crl.pem
-NEW=/tmp/crl.pem
+NEW=/var/tmp/crl.pem
 
 wget $URL -O $NEW
 OLDUPDATE=`openssl crl -in $OLD -noout -lastupdate`

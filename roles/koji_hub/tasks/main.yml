@@ -15,6 +15,7 @@
   - gnupg2
   tags:
   - packages
+  - koji_hub
 
 - name: make koji pki directory
   file: state=directory path=/etc/pki/koji/ owner=root group=root
@@ -25,58 +26,82 @@
   - certs
   - private
   - confs
+  tags:
+  - koji_hub
 
 - name: hub config
   template: src=hub.conf.j2 dest=/etc/koji-hub/hub.conf owner=apache group=apache mode=600
   tags:
   - config
+  - koji_hub
   notify: restart httpd
 
 - name: kojiweb config
   template: src=web.conf.j2 dest=/etc/kojiweb/web.conf owner=apache group=apache mode=600
   tags:
   - config
+  - koji_hub
   notify: restart httpd
 
 - name: enable httpd_can_network_connect SELinux boolean for fedmsg
   seboolean: name=httpd_can_network_connect state=yes persistent=yes
   tags:
   - config
+  - selinux
+  - koji_hub
 
 - name: koji fedmsg plugin
   copy: src=fedmsg-koji-plugin.py dest=/usr/lib/koji-hub-plugins/fedmsg-koji-plugin.py
+  notify:
+  - restart httpd
   tags:
   - config
-
-- name: init koji ca key file
-  copy: src={{ puppet_private }}/koji/koji.stg_key.pem dest=/etc/pki/tls/private/koji.stg_key.pem
-  tags:
-  - config
+  - koji_hub
 
 - name: install kojiweb_cert_key.pem
   copy: src={{ puppet_private }}/koji/kojiweb_cert_key.pem dest=/etc/pki/tls/private/kojiweb_cert_key.pem owner=apache mode=600
+  notify:
+  - restart httpd
   tags:
   - config
+  - koji_hub
+  when: env != 'staging'
 
-- name: install koji_key.pem
-  copy: src={{ puppet_private }}/koji/koji_key.pem dest=/etc/pki/tls/private/koji_key.pem owner=apache mode=600
-  tags:
-  - config
-
-- name: install koji_cert.pem
+- name: install production koji_cert.pem
   copy: src={{ puppet_private }}/koji/koji_cert.pem dest=/etc/pki/tls/certs/koji_cert.pem owner=apache mode=600
+  notify:
+  - restart httpd
   tags:
   - config
+  - koji_hub
+  when: env != 'staging'
 
-- name: Install koji ssl certs
+- name: install production koji_key.pem
+  copy: src={{ puppet_private }}/koji/koji_key.pem dest=/etc/pki/tls/private/koji_key.pem owner=apache mode=600
+  notify:
+  - restart httpd
+  tags:
+  - config
+  - koji_hub
+  when: env != 'staging'
+
+- name: Install staging koji ssl cert
   copy: src={{ puppet_private }}/koji/koji.stg_cert.pem dest=/etc/pki/tls/certs/koji.stg_cert.pem
+  notify:
+  - restart httpd
   tags:
   - config
+  - koji_hub
+  when: env == 'staging'
 
-- name: init kojiweb ca cert file
-  copy: src={{ puppet_private }}/koji/kojiweb_cert_key.pem dest=/etc/pki/tls/private/kojiweb_cert_key.pem
+- name: install staging koji ssl key
+  copy: src={{ puppet_private }}/koji/koji.stg_key.pem dest=/etc/pki/tls/private/koji.stg_key.pem
+  notify:
+  - restart httpd
   tags:
   - config
+  - koji_hub
+  when: env == 'staging'
 
 - name: instaall fedora-ca.cert in various places
   copy: src={{ puppet_private }}/fedora-ca.cert dest={{ item }} owner=apache
@@ -87,16 +112,27 @@
   - /etc/pki/tls/certs/upload_cacert.pem
   tags:
   - config
+  - koji_hub
 
 - name: install kojira_cert_key
   copy: src={{ puppet_private }}/koji/kojira_cert_key.pem dest=/etc/kojira/kojira_cert_key.pem owner=apache mode=600
   tags:
   - config
+  - koji_hub
 
 - name: updatecrl script
   copy: src=updatecrl.sh dest=/usr/local/bin/updatecrl.sh owner=root mode=755
   tags:
   - config
+  - koji_hub
+  - cron
+
+- name: updatecrl cronjob
+  copy: src=updatecrl.cron dest=/etc/cron.d/updatecrl owner=root mode=644
+  tags:
+  - config
+  - cron
+  - koji_hub
 
 - name: koji web config files
   copy: src={{ item }} dest=/etc/httpd/conf.d/{{ item }} owner=root group=root
@@ -108,27 +144,38 @@
   - repo.conf
   tags:
   - config
+  - koji_hub
   notify: restart httpd
 
 - name: koji staging ssl config
   copy: src=koji-ssl.conf.stg dest=/etc/httpd/conf.d/ssl.conf
   tags:
   - config
+  - koji_hub
   when: env == "staging"
 
 - name: kojira config
   copy: src=kojira.conf dest=/etc/kojira/kojira.conf
   tags:
   - config
+  - koji_hub
 
 - name: make mnt/koji directory
   file: state=directory path=/mnt/koji/ owner=root group=root
+  tags:
+  - koji_hub
 
 - name: set sebooleans so koji can talk to the db
   seboolean: name=httpd_can_network_connect_db state=true persistent=true
+  tags:
+  - selinux
+  - koji_hub
 
 - name: set sebooleans so koji can anon write
   seboolean: name=allow_httpd_anon_write state=true persistent=true
+  tags:
+  - selinux
+  - koji_hub
 
 - name: Set httpd to run on boot
   service: name=httpd enabled=yes
@@ -137,3 +184,4 @@
   - restart httpd
   tags:
   - service
+  - koji_hub
