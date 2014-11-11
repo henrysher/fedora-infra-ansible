@@ -8,29 +8,21 @@
 
 - name: ensure dev database is created
   delegate_to: "{{ resultsdb_db_host }}"
-  sudo_user: postgres
-  sudo: true
   action: postgresql_db db={{ resultsdb_db_name }}
 
 - name: ensure dev resultsdb db user has access to dev database
   when: deployment_type == 'dev'
   delegate_to: "{{ resultsdb_db_host }}"
-  sudo_user: postgres
-  sudo: true
   action: postgresql_user db={{ resultsdb_db_name }} user={{ dev_resultsdb_db_user }} password={{ dev_resultsdb_db_password }} role_attr_flags=NOSUPERUSER
 
 - name: ensure stg resultsdb db user has access to stg database
   when: deployment_type == 'stg'
   delegate_to: "{{ resultsdb_db_host }}"
-  sudo_user: postgres
-  sudo: true
   action: postgresql_user db={{ resultsdb_db_name }} user={{ stg_resultsdb_db_user }} password={{ stg_resultsdb_db_password }} role_attr_flags=NOSUPERUSER
 
 - name: ensure prod resultsdb db user has access to prod database
   when: deployment_type == 'prod'
   delegate_to: "{{ resultsdb_db_host }}"
-  sudo_user: postgres
-  sudo: true
   action: postgresql_user db={{ resultsdb_db_name }} user={{ prod_resultsdb_db_user }} password={{ prod_resultsdb_db_password }} role_attr_flags=NOSUPERUSER
 
 
