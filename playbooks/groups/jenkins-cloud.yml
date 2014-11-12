@@ -181,19 +181,19 @@
 #      - restart jenkins
 #    tags:
 #     - config
-
-  - name: Download additional jenkins plugins (from the maven repo)
-    get_url: url=http://maven.jenkins-ci.org/content/repositories/releases/org/jvnet/hudson/plugins/{{ item.name }}/{{ item.version }}/{{ item.name }}-{{ item.version }}.hpi
-             dest=/var/lib/jenkins/plugins/{{ item.name }}.hpi
-             sha256sum={{ item.sha }}
-    with_items:
-        - name: warnings
-          version: '4.39'
-          sha: 7652b7ed8971de932f46323aa8e0ddee2bcf4f14839296481ae79590e09f7606
-    notify:
-      - restart jenkins
-    tags:
-     - config
+#
+#  - name: Download additional jenkins plugins (from the maven repo)
+#    get_url: url=http://maven.jenkins-ci.org/content/repositories/releases/org/jvnet/hudson/plugins/{{ item.name }}/{{ item.version }}/{{ item.name }}-{{ item.version }}.hpi
+#             dest=/var/lib/jenkins/plugins/{{ item.name }}.hpi
+#             sha256sum={{ item.sha }}
+#    with_items:
+#        - name: warnings
+#          version: '4.39'
+#          sha: 7652b7ed8971de932f46323aa8e0ddee2bcf4f14839296481ae79590e09f7606
+#    notify:
+#      - restart jenkins
+#    tags:
+#     - config
 
   - name: Install custom jenkins plugins (from ansible bigfiles)
     action: copy src="{{ bigfiles }}/jenkins/{{ item }}.hpi" dest=/var/lib/jenkins/plugins/{{ item }}.hpi
@@ -223,6 +223,7 @@
     - credentials
     - mailer
     - javadoc
+    - warnings
     notify:
       - restart jenkins
     tags:
