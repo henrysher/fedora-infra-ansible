@@ -7,6 +7,9 @@
   - python-fmn-web
   - python-psycopg2
   - libsemanage-python
+  tags:
+  - notifs
+  - notifs/frontend
 
 - name: copy fmn app configuration
   template: >
@@ -16,17 +19,26 @@
   - fmn.web.py
   notify:
   - restart apache
+  tags:
+  - notifs
+  - notifs/frontend
 
 - name: destroy a bogus config file brought in by python-datanommer-models
   file: dest=/etc/fedmsg.d/datanommer.py state=absent
   notify:
   - restart apache
+  tags:
+  - notifs
+  - notifs/frontend
 
 - name: setup symlink to fedora theme
   file: >
     src=/usr/share/fmn.web/static/bootstrap-3.0.2-fedora
     dest=/usr/share/fmn.web/static/bootstrap
     state=link
+  tags:
+  - notifs
+  - notifs/frontend
 
 - name: copy fmn httpd config
   copy: >
@@ -34,11 +46,17 @@
     owner=apache group=apache mode=0644
   notify:
   - restart apache
+  tags:
+  - notifs
+  - notifs/frontend
 
 - name: copy custom wsgi file
   copy: src=fmn.web.wsgi dest=/usr/share/fmn.web/fmn.web.wsgi mode=0644
   notify:
   - restart apache
+  tags:
+  - notifs
+  - notifs/frontend
 
 - name: copy app configuration
   template: >
@@ -46,15 +64,24 @@
     owner=root group=apache mode=0640
   notify:
   - restart apache
+  tags:
+  - notifs
+  - notifs/frontend
 
 - name: create live docs directory
   file: >
     dest=/usr/lib/python2.6/site-packages/fmn/web/docs/
     state=directory
+  tags:
+  - notifs
+  - notifs/frontend
 
 - name: copy live docs
   copy: src={{ item }} dest=/usr/lib/python2.6/site-packages/fmn/web/docs
   with_fileglob: fedora-sitedocs/*.rst
+  tags:
+  - notifs
+  - notifs/frontend
 
 - name: apply selinux type to static files
   file: >
@@ -62,6 +89,12 @@
     setype=httpd_sys_content_t
     state=directory
     recurse=yes
+  tags:
+  - notifs
+  - notifs/frontend
 
 - name: ensure selinux lets httpd talk to postgres
   seboolean: name=httpd_can_network_connect_db state=yes persistent=yes
+  tags:
+  - notifs
+  - notifs/frontend
