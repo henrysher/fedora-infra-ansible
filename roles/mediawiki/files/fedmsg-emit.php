@@ -131,7 +131,7 @@ function sign_message($message_obj) {
   # signatures match for validation).
   $message = stripcslashes($message);
 
-  wfErrorLog($message . '\n', '/var/tmp/wiki-fedmsg-messages.log' );
+  wfErrorLog($message . "\r\n", '/var/tmp/wiki-fedmsg-messages.log' );
 
   # Step 0) - Find our cert.
   $fqdn = gethostname();
