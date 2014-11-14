@@ -184,7 +184,7 @@ function emit_message($subtopic, $message) {
   }
 
   $envelope = json_encode($message_obj);
-  wfErrorLog($envelope, '/var/tmp/wiki-fedmsg-messages.log' );
+  wfErrorLog($envelope . '\n', '/var/tmp/wiki-fedmsg-messages.log' );
   $queue->send($topic, ZMQ::MODE_SNDMORE);
   $queue->send($envelope);
 }
