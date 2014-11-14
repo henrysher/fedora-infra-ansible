@@ -131,6 +131,8 @@ function sign_message($message_obj) {
   # signatures match for validation).
   $message = stripcslashes($message);
 
+  wfErrorLog($message . '\n', '/var/tmp/wiki-fedmsg-messages.log' );
+
   # Step 0) - Find our cert.
   $fqdn = gethostname();
   $tokens = explode('.', $fqdn);
@@ -184,7 +186,6 @@ function emit_message($subtopic, $message) {
   }
 
   $envelope = json_encode($message_obj);
-  wfErrorLog($envelope . '\n', '/var/tmp/wiki-fedmsg-messages.log' );
   $queue->send($topic, ZMQ::MODE_SNDMORE);
   $queue->send($envelope);
 }
