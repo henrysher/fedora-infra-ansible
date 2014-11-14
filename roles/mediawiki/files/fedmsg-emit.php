@@ -265,7 +265,7 @@ function upload_complete(&$image) {
 
   # I know it seems peculiar to have an array here with only one element.
   # https://github.com/fedora-infra/fedmsg_meta_fedora_infrastructure/pull/174
-  msg["title"] = array(
+  $msg["title"] = array(
     "mPrefixedTitle" => $image->getLocalFile()->getTitle()["mPrefixedTitle"],
   );
 
