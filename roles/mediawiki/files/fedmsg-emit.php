@@ -131,7 +131,8 @@ function sign_message($message_obj) {
   # signatures match for validation).
   $message = stripcslashes($message);
 
-  wfErrorLog($message . "\r\n", '/var/tmp/wiki-fedmsg-messages.log' );
+  # Use this to debug message signature problems.  What a pain...
+  #wfErrorLog($message . "\r\n", '/var/tmp/wiki-fedmsg-messages.log' );
 
   # Step 0) - Find our cert.
   $fqdn = gethostname();
@@ -260,7 +261,12 @@ function upload_complete(&$image) {
     "user_text" => $image->getLocalFile()->user_text,     // the username
     "description" => $image->getLocalFile()->description,
     "url" => $image->getLocalFile()->url,                 // gives the relavive url for direct access of the uploaded media
-    "title" => $image->getLocalFile()->getTitle(),        // gives a title object for the current media
+  );
+
+  # I know it seems peculiar to have an array here with only one element.
+  # https://github.com/fedora-infra/fedmsg_meta_fedora_infrastructure/pull/174
+  msg["title"] = array(
+    "mPrefixedTitle" => $image->getLocalFile()->getTitle()["mPrefixedTitle"],
   );
 
   emit_message($topic, $msg);
