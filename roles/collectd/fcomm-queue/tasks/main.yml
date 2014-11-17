@@ -31,33 +31,33 @@
 
 - name: copy over our fcomm collectd selinux module
   copy: src=selinux/fi-collectd-fcomm.pp dest=/usr/share/collectd/fi-collectd-fcomm.pp
-  register: selinux_module
+  register: ficfcomm_module
   tags:
   - collectd
   - selinux
 
 - name: check to see if its even installed yet
   shell: semodule -l | grep fi-collectd-fcomm | wc -l
-  register: fi_collectd_fcomm_grep
+  register: ficfcomm_grep
   always_run: True
-  changed_when: "'0' in fi_collectd_fcomm_grep.stdout"
+  changed_when: "'0' in ficfcomm_grep.stdout"
   tags:
   - collectd
   - selinux
 
-- debug: var=fi_collectd_fcomm_grep
+- debug: var=ficfcomm_grep
   tags:
   - collectd
   - selinux
 
-- debug: msg="{{fi_collectd_fcomm_grep|changed}}"
+- debug: msg="{{ficfcomm_grep|changed}}"
   tags:
   - collectd
   - selinux
 
 - name: install our fcomm collectd selinux module
   command: semodule -i /usr/share/collectd/fi-collectd-fcomm.pp
-  when: selinux_module|changed or fi_collectd_fcomm_grep|changed
+  when: ficfcomm_module|changed or ficfcomm_grep|changed
   tags:
   - collectd
   - selinux
