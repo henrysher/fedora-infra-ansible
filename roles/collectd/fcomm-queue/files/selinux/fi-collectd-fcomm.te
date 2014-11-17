@@ -1,0 +1,17 @@
+
+module fi-collectd-fcomm 1.0;
+
+require {
+	type bin_t;
+	type collectd_t;
+	type ldconfig_exec_t;
+    type shell_exec_t;
+	class file { read getattr open ioctl execute execute_no_trans };
+    class lnk_file { read };
+}
+
+allow collectd_t bin_t:file ioctl;
+allow collectd_t bin_t:lnk_file read;
+allow collectd_t ldconfig_exec_t:file { read execute open execute_no_trans };
+
+allow collectd_t shell_exec_t:file { getattr execute_no_trans };

@@ -21,3 +21,42 @@
   tags:
   - collectd
   notify: restart collectd
+
+# Three tasks for handling our custom selinux module.
+- name: ensure a directory exists for our custom selinux module
+  file: dest=/usr/share/collectd state=directory
+  tags:
+  - collectd
+  - selinux
+
+- name: copy over our fcomm collectd selinux module
+  copy: src=selinux/fi-collect-fcomm.pp dest=/usr/share/collectd/fi-collect-fcomm.pp
+  register: selinux_module
+  tags:
+  - collectd
+  - selinux
+
+- name: check to see if its even installed yet
+  shell: semodule -l | grep fi-collect-fcomm
+  register: selinux_grep
+  always_run: true
+  changed_when: "1 != 1"
+  tags:
+  - collectd
+  - selinux
+  ignore_errors: True
+
+- name: install our fcomm collectd selinux module
+  command: semodule -i /usr/share/collectd/fi-collect-fcomm.pp
+  when: selinux_module|changed or selinux_grep|failed
+  tags:
+  - collectd
+  - selinux
+
+- name: lastly, set some selinux booleans
+  seboolean: name={{item}} persistent=yes state=yes
+  with_items:
+  - collectd_tcp_network_connect
+  tags:
+  - collectd
+  - selinux
