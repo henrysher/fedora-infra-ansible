@@ -39,24 +39,25 @@
 - name: check to see if its even installed yet
   shell: semodule -l | grep fi-collectd-fcomm
   register: selinux_grep
+  always_run: True
+  changed_when: selinux_grep.rc == 1
   tags:
   - collectd
   - selinux
-  ignore_errors: True
 
 - debug: var=selinux_grep
   tags:
   - collectd
   - selinux
 
-- debug: msg="{{selinux_grep|failed}}"
+- debug: msg="{{selinux_grep|changed}}"
   tags:
   - collectd
   - selinux
 
 - name: install our fcomm collectd selinux module
   command: semodule -i /usr/share/collectd/fi-collectd-fcomm.pp
-  when: selinux_module|changed or selinux_grep|skipped
+  when: selinux_module|changed or selinux_grep|changed
   tags:
   - collectd
   - selinux
