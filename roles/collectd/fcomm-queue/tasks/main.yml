@@ -37,11 +37,10 @@
   - selinux
 
 - name: check to see if its even installed yet
-  shell: semodule -l | grep fi-collectd-fcomm
+  shell: semodule -l | grep fi-collectd-fcomm | wc -l
   register: selinux_grep
   always_run: True
-  changed_when: selinux_grep.rc == 1
-  ignore_errors: True
+  changed_when: 1 in selinux_grep.stdout
   tags:
   - collectd
   - selinux
