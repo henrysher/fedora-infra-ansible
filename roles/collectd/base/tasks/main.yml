@@ -65,47 +65,50 @@
 
 - name: copy over our general collectd selinux module
   copy: src=selinux/fi-collectd.pp dest=/usr/share/collectd/fi-collectd.pp
-  register: selinux_module
+  register: ficgeneral_module
   tags:
   - collectd
 
 - name: check to see if its even installed yet
-  shell: semodule -l | grep fi-collectd
-  register: selinux_grep
+  shell: semodule -l | grep fi-collectd | wc -l
+  register: ficgeneral_grep
   always_run: true
-  changed_when: "1 != 1"
+  changed_when: "'0' in ficgeneral_grep.stdout"
   tags:
   - collectd
-  ignore_errors: True
+  - selinux
 
 - name: install our general collectd selinux module
   command: semodule -i /usr/share/collectd/fi-collectd.pp
-  when: selinux_module|changed or selinux_grep|failed
+  when: ficgeneral_module|changed or ficgeneral_grep|changed
   tags:
   - collectd
+  - selinux
 
 - name: copy over our pstorefs/collectd selinux module (rhel6 has no pstorefs)
   copy: src=selinux/fi-pstorefs.pp dest=/usr/share/collectd/fi-pstorefs.pp
   when: ansible_distribution_major_version != '6'
-  register: selinux_module
+  register: ficpstorefs_module
   tags:
   - collectd
+  - selinux
 
 - name: check to see if its even installed yet
   shell: semodule -l | grep fi-pstorefs
   when: ansible_distribution_major_version != '6'
-  register: selinux_grep
+  register: ficpstorefs_grep
   always_run: true
   changed_when: "1 != 1"
   tags:
   - collectd
-  ignore_errors: True
+  - selinux
 
 - name: install our pstorefs/collectd selinux module
   command: semodule -i /usr/share/collectd/fi-pstorefs.pp
-  when: ansible_distribution_major_version != '6' and (selinux_module|changed or selinux_grep|failed)
+  when: ansible_distribution_major_version != '6' and (ficpstorefs_module|changed or ficpstorefs_grep|changed)
   tags:
   - collectd
+  - selinux
 
 
   
