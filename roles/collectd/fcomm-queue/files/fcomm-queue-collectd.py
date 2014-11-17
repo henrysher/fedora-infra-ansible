@@ -5,7 +5,8 @@ import time
 
 interval = 2
 
-hostname = socket.gethostname().split('.')[0]
+# Use FQDN
+hostname = socket.gethostname()
 
 queue = retask.queue.Queue('fedora-packages')
 queue.connect()
