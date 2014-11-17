@@ -30,14 +30,14 @@
   - selinux
 
 - name: copy over our fcomm collectd selinux module
-  copy: src=selinux/fi-collect-fcomm.pp dest=/usr/share/collectd/fi-collect-fcomm.pp
+  copy: src=selinux/fi-collectd-fcomm.pp dest=/usr/share/collectd/fi-collectd-fcomm.pp
   register: selinux_module
   tags:
   - collectd
   - selinux
 
 - name: check to see if its even installed yet
-  shell: semodule -l | grep fi-collect-fcomm
+  shell: semodule -l | grep fi-collectd-fcomm
   register: selinux_grep
   always_run: true
   changed_when: "1 != 1"
@@ -47,7 +47,7 @@
   ignore_errors: True
 
 - name: install our fcomm collectd selinux module
-  command: semodule -i /usr/share/collectd/fi-collect-fcomm.pp
+  command: semodule -i /usr/share/collectd/fi-collectd-fcomm.pp
   when: selinux_module|changed or selinux_grep|failed
   tags:
   - collectd
