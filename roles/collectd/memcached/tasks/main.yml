@@ -3,6 +3,23 @@
 - name: Copy in the memcached collectd config
   copy: src=memcached.conf dest=/etc/collectd.d/memcached.conf
   tags:
+  - collectd/memcached
   - collectd
   - memcached
   notify: restart collectd
+
+- name: Ensure that semanage is present
+  yum: name=policycoreutils-python state=present
+  tags:
+  - collectd/memcached
+  - collectd
+  - memcached
+  - selinux
+
+- name: lastly, set some selinux booleans
+  seboolean: name=collectd_tcp_network_connect persistent=yes state=yes
+  tags:
+  - collectd/memcached
+  - collectd
+  - memcached
+  - selinux
