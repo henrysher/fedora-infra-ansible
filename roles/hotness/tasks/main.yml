@@ -22,3 +22,28 @@
   tags:
   - config
   - hotness
+
+- name: install hotness.pem koji key and cert
+  copy: >
+    src="{{ puppet_private }}/hotness_key_and_cert.pem"
+    dest="/etc/pki/fedmsg/hotness.pem"
+    owner=fedmsg
+    group=fedmsg
+    mode=0400
+  tags:
+  - config
+  - hotness
+
+- name: install koji ca cert
+  copy: >
+    src="{{ puppet_private }}/fedora-ca.cert"
+    dest="/etc/pki/fedmsg/{{ item }}"
+    owner=root
+    group=root
+    mode=0644
+  with_items:
+  - fedora-server-ca.cert
+  - fedora-upload-ca.cert
+  tags:
+  - config
+  - hotness
