@@ -23,8 +23,8 @@ config = {
     'hotness.bugzilla.enabled': True,
 
     'hotness.bugzilla': {
-        'user': '{{ bugzilla_user }}',
-        'password': '{{ bugzilla_password }}',
+        'user': '{{ upstream_release_bugzilla_user }}',
+        'password': '{{ upstream_release_bugzilla_password }}',
 {% if env == 'staging' %}
         'url': 'https://partner-bugzilla.redhat.com',
         'explanation_url': 'https://stg.fedoraproject.org/wiki/Upstream_release_monitoring',
