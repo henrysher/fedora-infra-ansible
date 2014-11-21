@@ -46,6 +46,8 @@
   action: seboolean name=httpd_can_network_connect_db
                     state=true
                     persistent=true
+  tags:
+  - selinux
 
 - name: apply selinux type to static files
   file: >
@@ -53,8 +55,19 @@
     setype=httpd_sys_content_t
     state=directory
     recurse=yes
+  tags:
+  - selinux
 
 - name: apply selinux type to the wsgi file
   file: >
     dest=/usr/share/fedora-elections/fedora-elections.wsgi
     setype=httpd_sys_content_t
+  tags:
+  - selinux
+
+- name: set sebooleans so apache can talk to memcached0*
+  action: seboolean name=httpd_can_network_memcache
+                    state=true
+                    persistent=true
+  tags:
+  - selinux
