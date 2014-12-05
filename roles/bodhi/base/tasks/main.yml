@@ -8,11 +8,13 @@
   - bodhi-server
   tags:
   - packages
+  - bodhi
 
 - name: setup /etc/bodhi/ directory
   file: path=/etc/bodhi owner=root group=root mode=0755 state=directory
   tags:
   - config
+  - bodhi
 
 - name: setup basic /etc/bodhi/ contents
   template: > 
@@ -25,6 +27,7 @@
   - restart httpd
   tags:
   - config
+  - bodhi
 
 - name: setup basic /etc/httpd/conf.d/ bodhi contents
   copy: >
@@ -37,11 +40,13 @@
   - restart httpd
   tags:
   - config
+  - bodhi
 
 - name: setup /etc/pki/bodhi directory
   file: path=/etc/pki/bodhi owner=root group=root mode=0755 state=directory
   tags:
   - config
+  - bodhi
 
 - name: install bodhi.pem file
   copy: >
@@ -52,6 +57,7 @@
     mode=0400
   tags:
   - config
+  - bodhi
 
 - name: install bodhi certificates
   copy: >
@@ -65,11 +71,13 @@
   - fedora-upload-ca.cert
   tags:
   - config
+  - bodhi
 
 - name: setup /var/log/bodhi directory
   file: path=/var/log/bodhi owner=bodhi group=bodhi mode=0755 state=directory
   tags:
   - config
+  - bodhi
 
 - name: check the selinux context of the bugzilla cookie
   command: matchpathcon /var/tmp/bodhi-bz.cookie
@@ -78,24 +86,34 @@
   changed_when: "1 != 1"
   tags:
   - config
+  - bodhi
+  - selinux
 
 - name: set the SELinux policy for the bugzilla cookie
   command: semanage fcontext -a -t httpd_tmp_t "/var/tmp/bodhi-bz.cookie"
   when: cookiecontext.stdout.find('httpd_tmp_t') == -1
   tags:
   - config
+  - bodhi
+  - selinux
 
 - name: enable httpd_tmp_exec SELinux boolean 
   seboolean: name=httpd_tmp_exec state=yes persistent=yes
   tags:
   - config
+  - bodhi
+  - selinux
 
 - name: enable httpd_can_network_connect_db SELinux boolean 
   seboolean: name=httpd_can_network_connect_db state=yes persistent=yes
   tags:
   - config
+  - bodhi
+  - selinux
 
 - name: enable httpd_can_network_connect SELinux boolean
   seboolean: name=httpd_can_network_connect state=yes persistent=yes
   tags:
   - config
+  - bodhi
+  - selinux
