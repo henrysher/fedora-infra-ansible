@@ -482,7 +482,8 @@ def do_mirrorlist(kwargs):
 	# Strip duplicate "//" from the path
         path = path.replace('//', '/')
 
-        header = "# path = %s " % (path)
+        subheader = "# path = %s " % (path)
+        header = subheader
 
         sdir = path.split('/')
         try:
@@ -503,7 +504,8 @@ def do_mirrorlist(kwargs):
             kwargs['arch'] = u'source'
         repo = repo_redirect.get(kwargs['repo'], kwargs['repo'])
         arch = kwargs['arch']
-        header = "# repo = %s arch = %s " % (repo, arch)
+        subheader = "# repo = %s arch = %s " % (repo, arch)
+        header = subheader
 
         if repo in disabled_repositories:
             return return_error(kwargs, message=header + 'repo disabled')
