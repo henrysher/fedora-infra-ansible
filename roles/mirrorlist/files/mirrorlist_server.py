@@ -662,7 +662,9 @@ def do_mirrorlist(kwargs):
         ip_str = kwargs['IP'].strNormal()
     except:
         ip_str = 'Unknown IP'
-    log_string = "mirrorlist: %s found its best mirror from %s" % (ip_str, where_string)
+    
+    pid = str(os.getpid())
+    log_string = "mirrorlist(%s): %s found its best mirror from %s (%s)" % (pid, ip_str, where_string, header)
     syslogger.info(log_string)
 
     hosts_and_urls = append_path(allhosts, cache, file, pathIsDirectory=pathIsDirectory)
