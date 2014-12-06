@@ -49,7 +49,7 @@
     }
   - { role: nfs/client,
       when: datacenter == "phx2",
-      mnt_dir: '/srv/pub/fedora-secondary', 
+      mnt_dir: '/srv/pub/fedora-secondary',
       nfs_src_dir: '/vol/fedora_ftp/fedora.redhat.com/pub/fedora-secondary'
     }
 
@@ -60,32 +60,27 @@
   handlers:
   - include: "{{ handlers }}/restart_services.yml"
 
-- name: clean yum metadata
+- name: Set up the rest of the box as desired
   hosts: secondary01
   user: root
-  gather_facts: False
-  action: yum clean all
-  tags:
-  - packages
+  gather_facts: True
 
-- name: install needed packages
-  hosts: secondary01
-  user: root
-  gather_facts: False
-  yum: pkg={{ item }} state=present
-  with_items:
-  - nfs-utils
-  - koji
-  tags:
-  - packages
+  - name: clean yum metadata
+    action: yum clean all
+    tags:
+    - packages
 
-- name: set sebooleans so httpd can use nfs
-  hosts: secondary01
-  user: root
-  gather_facts: False
-  action: seboolean name={{ item }}
-                    state=true
-                    persistent=true
-  with_items:
-  - httpd_use_nfs
+  - name: install needed packages
+    yum: pkg={{ item }} state=present
+    with_items:
+    - nfs-utils
+    - koji
+    tags:
+    - packages
 
+  - name: set sebooleans so httpd can use nfs
+    action: seboolean name={{ item }}
+                      state=true
+                      persistent=true
+    with_items:
+    - httpd_use_nfs
