@@ -1,0 +1,91 @@
+# create a new server for secondary arch
+# NOTE: should be used with --limit most of the time
+# NOTE: make sure there is room/space for this server on the vmhost
+# NOTE: most of these vars_path come from group_vars/secondary* or from hostvars
+
+- name: make the servers
+  hosts: secondary01
+  user: root
+  gather_facts: False
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "{{ private }}/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  tasks:
+  - include: "{{ tasks }}/virt_instance_create.yml"
+
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"
+
+- name: make the boxen be real for real
+  hosts: secondary01
+  user: root
+  gather_facts: True
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "{{ private }}/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  roles:
+  - base
+  - rkhunter
+  - { role: denyhosts, when: ansible_distribution_major_version != '7' }
+  - nagios_client
+  - hosts
+  - fas_client
+  - sudo
+  - { role: nfs/client,
+      when: datacenter == "phx2",
+      mnt_dir: '/srv/pub/alt',
+      nfs_src_dir: '/vol/fedora_ftp/fedora.redhat.com/pub/alt'
+    }
+  - { role: nfs/client,
+      when: datacenter == "phx2",
+      mnt_dir: '/srv/pub/archive',
+      nfs_src_dir: '/vol/fedora_ftp/fedora.redhat.com/pub/archive'
+    }
+  - { role: nfs/client,
+      when: datacenter == "phx2",
+      mnt_dir: '/srv/pub/fedora-secondary', 
+      nfs_src_dir: '/vol/fedora_ftp/fedora.redhat.com/pub/fedora-secondary'
+    }
+
+  tasks:
+  - include: "{{ tasks }}/yumrepos.yml"
+  - include: "{{ tasks }}/2fa_client.yml"
+
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"
+
+- name: clean yum metadata
+  hosts: secondary01
+  user: root
+  gather_facts: False
+  command: yum clean all
+  tags:
+  - packages
+
+- name: install needed packages
+  hosts: secondary01
+  user: root
+  gather_facts: False
+  yum: pkg={{ item }} state=present
+  with_items:
+  - nfs-utils
+  - koji
+  tags:
+  - packages
+
+- name: set sebooleans so httpd can use nfs
+  hosts: secondary01
+  user: root
+  gather_facts: False
+  action: seboolean name={{ item }}
+                    state=true
+                    persistent=true
+  with_items:
+  - httpd_use_nfs
+
