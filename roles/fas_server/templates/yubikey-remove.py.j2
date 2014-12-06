@@ -1,0 +1,62 @@
+#!/usr/bin/python -tt
+
+import sys
+
+import psycopg2
+
+
+FAS_HOST = "db-fas"
+YKKSM_HOST = "db-ykksm"
+YKVAL_HOST = "db-ykksm"
+FAS_USER = "fas"
+FAS_PASS = "{{ fasDbPassword }}"
+YKKSM_USER = "ykksmimporter"
+YKKSM_PASS = "{{ ykksmimporterPassword }}"
+YKVAL_USER = "ykval_verifier"
+YKVAL_PASS = "{{ ykval_verifierPassword }}"
+
+fasdb = None
+yk_ksmdb = None
+yk_valdb = None
+
+def usage():
+    usage = '''
+    fas-yubiremove [USERNAME1 [USERNAME2 [...]]]
+
+    Remove existing yubikey for the listed USERNAMEs.
+    '''.strip()
+    print usage
+
+
+def init():
+    global fasdb, yk_ksmdb, yk_valdb
+    fasdb = psycopg2.connect("user='%s' password='%s' host='%s' dbname='fas2'" % (FAS_USER, FAS_PASS, FAS_HOST))
+    yk_ksmdb = psycopg2.connect("user='%s' password='%s' host='%s' dbname='ykksm'" % (YKKSM_USER, YKKSM_PASS, YKKSM_HOST))
+    yk_valdb = psycopg2.connect("user='%s' password='%s' host='%s' dbname='ykval'" % (YKVAL_USER, YKVAL_PASS, YKVAL_HOST))
+
+
+def main():
+    init()
+    # Get username from commandline
+    usernames = sys.argv[1:]
+    # get the yubikey for the user from the fas configs db
+    for username in usernames:
+
+        fas = fasdb.cursor()
+        fas.execute("select value from configs, people where people.id = configs.person_id and username=%s and application = 'yubikey' and attribute = 'prefix'", (username,))
+        prefix = fas.fetchall()[0]
+        # Remove the keys from the yubikey database
+        yk_ksm = yk_ksmdb.cursor()
+        yk_ksm.execute('delete from yubikeys where publicname=%s', (prefix[0],))
+        yk_val = yk_valdb.cursor()
+        yk_val.execute('delete from yubikeys where yk_publicname=%s', (prefix[0],))
+
+        # Remove the key from fas
+        fas.execute("delete from configs where person_id = (select id from people where username=%s) and application = 'yubikey'", (username,))
+
+        yk_valdb.commit()
+        yk_ksmdb.commit()
+        fasdb.commit()
+
+if __name__ == '__main__':
+    sys.exit(main())

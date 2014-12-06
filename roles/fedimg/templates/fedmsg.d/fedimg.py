@@ -17,8 +17,17 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 #
 # Authors:  David Gay <dgay@redhat.com>
+#           Ralph Bean <rbean@redhat.com>
 #
 
 config = dict(
     kojiconsumer=True,
+    {% if env == 'staging' %}
+    # Establish a loop from production back into the staging instance.
+    endpoints = {
+        "production-loopback": [
+            "tcp://hub.fedoraproject.org:9940",
+        ],
+    },
+    {% endif %}
 )
