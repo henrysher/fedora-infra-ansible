@@ -1,0 +1,31 @@
+[main]
+require_pincode = True
+success_string = OK
+{% if env == "staging" %}
+fas_url = https://admin.stg.fedoraproject.org/accounts/
+{% else %}
+fas_url = https://admin.fedoraproject.org/accounts/
+{% endif %}
+
+[secret_backend]
+; For PostgreSQL backend:
+engine = pgsql
+pg_connect_string = user={{ totpcgiDBUser }} password={{ totpcgiDBPassword }} host=db-fas01 dbname=totpcgi
+
+[pincode_backend]
+engine = pgsql
+pg_connect_string = user={{ totpcgiDBUser }} password={{ totpcgiDBPassword }} host=db-fas01 dbname=totpcgi
+
+; For LDAP backend (simple bind auth):
+;engine = ldap
+;ldap_url    = ldaps://ipa.example.com:636/
+;ldap_dn     = uid=$username,cn=users,cn=accounts,dc=example,dc=com
+;ldap_cacert = /etc/pki/tls/certs/ipa-ca.crt
+
+[state_backend]
+;engine = file
+;state_dir = /var/lib/totpcgi
+
+; For PostgreSQL backend:
+engine = pgsql
+pg_connect_string = user={{ totpcgiDBUser }} password={{ totpcgiDBPassword }} host=db-fas01 dbname=totpcgi

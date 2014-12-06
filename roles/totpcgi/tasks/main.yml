@@ -1,0 +1,220 @@
+- name: install needed packages
+  yum: pkg={{ item }} state=present
+  with_items:
+  - mod_auth_psql
+  - totpcgi
+  - totpcgi-selinux
+  - totpcgi-provisioning
+  - python-qrcode
+  - httpd
+  - mod_ssl
+  tags:
+  - packages
+
+- name: add totpcgi user
+  user: name=totpcgi uid=430 state=present home=/var/lib/totpcgi createhome=yes system=yes
+  tags:
+  - config
+
+- name: Install the cgi apache configuration files
+  template: >
+    src={{ item }}.j2 dest=/etc/httpd/conf.d/{{ item }}
+    owner=root group=root mode=0444
+  with_items:
+  - provisioning-httpd.conf
+  tags:
+  - files
+  - config
+  notify:
+  - restart apache
+
+- name: create directories
+  file: path=/etc/{{ item.path }} state=directory owner=root group=totpcgi mode=750
+  with_items:
+  - pki/totpcgi
+  - totpcgi
+  - totpcgi/templates
+  - totpcgi/totp
+
+- name: copy index file over
+  copy: >
+   src=html
+   dest=/etc/totpcgi/templates/html
+   owner=root
+   group=totpcgiprov
+   mode=0750
+  tags:
+  - files
+  - config
+
+- name: copy index file over
+  copy: >
+   src=provisioning.cgi
+   dest=/var/www/totpcgi-provisioning/index.cgi
+   owner=totpcgiprov
+   group=totpcgiprov
+   mode=0550
+  tags:
+  - files
+  - config
+
+- name: copy index file over
+  copy: >
+   src=index.cgi
+   dest=/var/www/totpcgi/index.cgi
+   owner=totpcgiprov
+   group=totpcgiprov
+   mode=0550
+  tags:
+  - files
+  - config
+
+- name: copy totpcgi.conf file over
+  template: >
+   src=totpcgi.conf.j2
+   dest=/etc/totpcgi/totpcgi.conf
+   owner=root
+   group=totpcgiprov
+   mode=0640
+  tags:
+  - files
+  - config
+
+# staging certs
+
+- name: copy server cert file over
+  copy: >
+   src={{ puppet_secure }}/2fa-certs/keys/fas-all.stg.phx2.fedoraproject.org.crt
+   dest=/etc/pki/totpcgi/totpcgi-server.crt
+   owner=root
+   group=totpcgi
+   mode=0640
+  tags:
+  - files
+  - config
+  when: env == "staging"
+
+- name: copy server cert file over
+  copy: >
+   src={{ puppet_secure }}/fa-certs/keys/fas-all.stg.phx2.fedoraproject.org.key
+   dest=/etc/pki/totpcgi/totpcgi-server.key
+   owner=root
+   group=totpcgi
+   mode=0640
+  tags:
+  - files
+  - config
+  when: env == "staging"
+
+- name: copy server cert file over
+  copy: >
+   src=totpcgi-httpd.conf.stg
+   dest=/etc/httpd/conf.d/totpcgi.conf
+   owner=root
+   group=root
+   mode=0444
+  tags:
+  - files
+  - config
+  when: env == "staging"
+
+# prod certs
+
+- name: copy server cert file over
+  copy: >
+   src={{ puppet_secure }}/2fa-certs/keys/fas-all.phx2.fedoraproject.org.crt
+   dest=/etc/pki/totpcgi/totpcgi-server.crt
+   owner=root
+   group=totpcgi
+   mode=0640
+  tags:
+  - files
+  - config
+  when: env == "production"
+
+- name: copy server cert file over
+  copy: >
+   src={{ puppet_secure }}/fa-certs/keys/fas-all.phx2.fedoraproject.org.key
+   dest=/etc/pki/totpcgi/totpcgi-server.key
+   owner=root
+   group=totpcgi
+   mode=0640
+  tags:
+  - files
+  - config
+  when: env == "production"
+
+- name: copy server cert file over
+  copy: >
+   src=totpcgi-httpd.conf
+   dest=/etc/httpd/conf.d/totpcgi.conf
+   owner=root
+   group=root
+   mode=0444
+  tags:
+  - files
+  - config
+  when: env == "production"
+
+# vpn certs
+
+- name: copy server cert file over
+  copy: >
+   src={{ puppet_secure }}/2fa-certs/keys/fas-all.phx2.fedoraproject.org.crt
+   dest=/etc/pki/totpcgi/totpcgi-server.crt
+   owner=root
+   group=totpcgi
+   mode=0640
+  tags:
+  - files
+  - config
+  when: env == "production"
+
+- name: copy server cert file over
+  copy: >
+   src={{ puppet_secure }}/fa-certs/keys/fas-all.phx2.fedoraproject.org.key
+   dest=/etc/pki/totpcgi/totpcgi-server.key
+   owner=root
+   group=totpcgi
+   mode=0640
+  tags:
+  - files
+  - config
+  when: env == "production"
+
+- name: copy server cert file over
+  copy: >
+   src=totpcgi-httpd.conf
+   dest=/etc/httpd/conf.d/totpcgi.conf
+   owner=root
+   group=root
+   mode=0444
+  tags:
+  - files
+  - config
+  when: env == "production"
+#
+# TODO: vpn certs
+#
+
+- name: copy server cert file over
+  copy: >
+   src={{ puppet_private }}/2fa-certs/keys/ca.crt
+   dest=/etc/pki/totpcgi/totpcgi-ca.crt
+   owner=root
+   group=totpcgi
+   mode=0640
+  tags:
+  - files
+  - config
+
+- name: copy server cert file over
+  template: >
+   src=provisioning.conf.j2
+   dest=/etc/totpcgi/provisioning.conf
+   owner=root
+   group=totpcgiprov
+   mode=0640
+  tags:
+  - files
+  - config
