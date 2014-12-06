@@ -1,0 +1,29 @@
+---
+# Configuration for the fedocal webapp
+
+- name: clean yum metadata
+  command: yum clean all
+  tags:
+  - packages
+
+- name: install needed packages
+  yum: pkg={{ item }} state=present
+  with_items:
+  - darkserver
+  - darkserver-importer
+  tags:
+  - packages
+
+- name: Install all the configuration file of darkserver
+  template: src={{ item.file }}
+            dest={{ item.location }}/{{ item.file }}
+            owner=apache group=apache mode=0640
+  with_items:
+  - { file: darkserverweb.conf, location: /etc/darkserver/darkserverweb.conf }
+  - { file: darkjobworker.conf, location: /etc/darkserver/darkjobworker.conf }
+  - { file: email.json, location: /etc/darkserver/email.json }
+  tags:
+  - config
+  notify:
+  - restart apache
+
