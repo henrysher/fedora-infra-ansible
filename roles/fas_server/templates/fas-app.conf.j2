@@ -1,0 +1,29 @@
+Alias /accounts/static /usr/share/fas/static
+Alias /favicon.ico /usr/share/fas/static/favicon.ico
+
+Alias /accounts/fedora-server-ca.cert /usr/share/fas/static/fedora-server-ca.cert
+Alias /accounts/fedora-upload-ca.cert /usr/share/fas/static/fedora-upload-ca.cert
+
+# For serving the crl
+Alias /ca /srv/web/ca
+
+AddType application/x-x509-ca-cert cacert.pem
+AddType application/x-x509-crl crl.pem
+
+WSGISocketPrefix run/wsgi
+
+# TG implements its own signal handler.
+WSGIRestrictSignal Off
+
+# These are the real tunables
+WSGIDaemonProcess fas processes=40 threads=1 maximum-requests=100 user=fas group=fas display-name=fas inactivity-timeout=300 shutdown-timeout=10
+WSGIPythonOptimize 1
+
+WSGIScriptAlias /accounts /usr/sbin/fas.wsgi/accounts
+
+<Location /accounts>
+    WSGIProcessGroup fas
+    Order deny,allow
+    Allow from all
+</Location>
+
