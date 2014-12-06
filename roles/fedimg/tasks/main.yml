@@ -36,3 +36,33 @@
   - restart fedmsg-hub
   tags:
   - fedimg
+
+- name: make pki directory
+  file: dest=/etc/pki/fedimg/ state=directory
+        owner=fedmsg group=fedmsg mode=0500
+  tags:
+  - fedimg
+
+- name: copy keys into pki directory for staging
+  copy: src={{private}}/fedimg/{{item}} dest=/etc/pki/fedimg/{{item}}
+        owner=fedmsg group=fedmsg mode=0100
+  with_items:
+  - fedimg-dev
+  - fedimg-dev.pub
+  notify:
+  - restart fedmsg-hub
+  when: env == "staging"
+  tag:
+  - fedimg
+
+- name: copy keys into pki directory for production
+  copy: src={{private}}/fedimg/{{item}} dest=/etc/pki/fedimg/{{item}}
+        owner=fedmsg group=fedmsg mode=0100
+  with_items:
+  - fedimg-prod
+  - fedimg-prod.pub
+  notify:
+  - restart fedmsg-hub
+  when: env != "staging"
+  tag:
+  - fedimg
