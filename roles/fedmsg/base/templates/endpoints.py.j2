@@ -17,22 +17,16 @@ config = dict(
         # name of it's calling module to determine which endpoint definition
         # to use.  This can be overridden by explicitly providing the name in
         # the initial call to fedmsg.init(...).
-        "bodhi.branched-composer": [
-            "tcp://branched-composer.%s:3000" % suffix,
-            "tcp://branched-composer.%s:3001" % suffix,
-        ],
-        "bodhi.rawhide-composer": [
-            "tcp://rawhide-composer.%s:3000" % suffix,
-            "tcp://rawhide-composer.%s:3001" % suffix,
-        ],
         "bodhi.bodhi01": [
             "tcp://bodhi01.%s:300%i" % (suffix, i)
             for i in range(8)
         ],
+{% if not env == 'staging' %}
         "bodhi.bodhi02": [
             "tcp://bodhi02.%s:300%i" % (suffix, i)
             for i in range(8)
         ],
+{% endif %}
 {% if not env == 'staging' %}
         "bodhi.releng04": [
             "tcp://releng04.%s:3000" % suffix,
@@ -82,11 +76,12 @@ config = dict(
             for i in range(6)
         ],
 
-        # Askbot runs as 6 processes with 1 thread each.
+{% if env != 'staging' %}
         "askbot.ask02": [
             "tcp://ask02.%s:30%02i" % (suffix, i)
             for i in range(6)
         ],
+{% endif %}
 
         # koji is not listed here since it publishes to the fedmsg-relay
     },
