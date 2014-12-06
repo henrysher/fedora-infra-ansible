@@ -1,0 +1,53 @@
+# create a new fas server
+#
+#
+
+- name: make fas server
+  hosts: fas-stg
+  user: root
+  gather_facts: False
+  accelerate: "{{ accelerated }}"
+
+  vars_files: 
+   - /srv/web/infra/ansible/vars/global.yml
+   - "{{ private }}/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  tasks:
+  - include: "{{ tasks }}/virt_instance_create.yml"
+
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"
+
+- name: make the box be real
+  hosts: fas-stg
+  user: root
+  gather_facts: True
+  accelerate: "{{ accelerated }}"
+
+  vars_files: 
+   - /srv/web/infra/ansible/vars/global.yml
+   - "{{ private }}/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  roles:
+  - base
+  - hosts
+  - rkhunter
+  - denyhosts
+  - nagios_client
+  - fas_client
+  - collectd/base
+  - rsyncd
+  - fas_server
+  - sudo
+
+  tasks:
+  - include: "{{ tasks }}/yumrepos.yml"
+  - include: "{{ tasks }}/2fa_client.yml"
+  - include: "{{ tasks }}/motd.yml"
+  - include: "{{ tasks }}/apache.yml"
+  - include: "{{ tasks }}/mod_wsgi.yml"
+
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"
