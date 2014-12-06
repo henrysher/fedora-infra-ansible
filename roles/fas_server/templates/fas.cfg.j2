@@ -1,0 +1,268 @@
+[global]
+
+#
+# Deployment type
+# Determines which color of the header is being used
+# Valid options:
+# - "dev": Development
+# - "stg": Staging
+# - "prod": Production
+#
+{% if env == "staging" %}
+deployment_type = "stg"
+{% else %}
+deployment_type = "prod"
+{% endif %}
+
+# TODO: better namespacing (maybe a [fas] section)
+# admingroup is for humans that can see and do anything
+
+###
+### OpenID Support
+###
+{% if env == "staging" %}
+samadhi.baseurl = 'https://admin.stg.fedoraproject.org/'
+{% else %}
+samadhi.baseurl = 'https://admin.fedoraproject.org/'
+{% endif %}
+openidstore = "/var/tmp/fas/openid"
+
+###
+### GPG Keys for specific operations
+###
+# This is the GPG Key ID used to encrypt the answer to the user's security question.
+# The private key should be known to the admins to verify that the user supplied the correct answer.
+key_securityquestion = 'D1E6AA0A'
+
+###
+### UI
+###
+
+theme = 'fas'
+
+# Personal Info / Form availability
+# Select/deselect items in the form
+show_postal_address = 0
+
+# Language support
+available_languages = ['en', 'en_GB', 'ar', 'ast', 'bg', 'bn', 'bn_IN', 'bs', 'ca', 'cs', 'da', 'de', 'el', 'es', 'eu', 'fa', 'fi', 'fr', 'ga', 'gl', 'he', 'hi', 'hu', 'id', 'is', 'it', 'ja', 'ko', 'lv', 'mai', 'ml', 'mr', 'nb', 'nl', 'pa', 'pl', 'pt_BR', 'pt', 'ru', 'si', 'sk', 'sq', 'sr', 'sv', 'ta', 'te', 'tg', 'tr', 'uk', 'vi', 'zh_CN', 'zh_HK', 'zh_TW']
+
+default_language = 'en'
+
+# Country codes from GEOIP that we don't want to display in
+# country selection boxes
+country_blacklist = ["--", "A1", "A2", "AN", "AS", "AX", "BI", "BL", "BV", "CC", "CU", "CV", "CX", "DM", "FK", "FO", "GF", "GG", "GP", "GS", "GW", "HM", "IO", "IR", "IQ", "JE", "KI", "KP", "MF", "MP", "MS", "MW", "NF", "NR", "NU", "PM", "PN", "RE", "SB", "SD", "SH", "SJ", "SY", "TC", "TF", "TK", "TL", "TV", "UM", "VC", "VG", "WF", "YT"]
+
+# Captcha
+tgcaptcha.key = '<%= fasCaptchaSecret %>'
+tgcaptcha.jpeg_generator = 'vanasco_dowty'
+
+###
+### Administrative settings
+###
+
+# Usernames that are unavailable for fas allocation
+username_blacklist = "abuse,accounts,adm,admin,amanda,apache,askfedora,asterisk,bin,board,bodhi2,canna,census,chair,chairman,cvsdirsec,cvsdocs,cvseclipse,cvsextras,cvsfont,daemon,dbus,decode,desktop,dgilmore,directors,dovecot,dumper,fama,famsco,fax,fedora,fedorarewards,fesco,freemedia,ftbfs,ftp,ftpadm,ftpadmin,ftpsync,games,gdm,gopher,gregdek,halt,hostmaster,ident,info,ingres,jaboutboul,jan,keys,kojiadmin,ldap,legal,logo,lp,mail,mailnull,manager,marketing,masher,masta,mirrormanager,mysql,nagios,named,netdump,news,newsadm,newsadmin,nfsnobody,nobody,noc,notifications,nrpe,nscd,ntp,nut,openvideo,operator,packager,patrick,pcap,pkgdb,pkgsigner,postfix,postgres,postmaster,press,privoxy,pvm,quagga,radiusd,radvd,relnotes,relrod,rel-eng,root,rpc,rpcuser,rpm,rsc,s3-mirror,sales,scholarship,secalert,secondary-signer,security,server-wg,shutdown,smmsp,spevack,squid,sshd,support,sync,system,tickets,toor,updates,usenet,uucp,vcsa,vendors,voting,webalizer,webmaster,wikiadmin,wnn,www,xfs,zabbix"
+
+# admingroup has powers to change anything in the fas UI
+admingroup = 'accounts'
+# systemgroup is for automated systems that can read any info from the FAS db
+systemgroup = 'fas-system'
+# Moderator group provides its members restricted admin power
+# allowed by defined action below.
+# Valid action :
+# modo.allow.update_status, allow approved member to do related action.
+modo.group = 'accounts-moderators'
+modo.allow.update_status = False
+
+# thirdpartygroup is for thirdparties that also need group management
+# via fas, but maintain their own actual account systems
+thirdpartygroup = 'thirdparty'
+
+# Placing a group into privileged_view_group protects the information in it
+# only admins of the group can view the group
+privileged_view_groups = "(^fas-.*)"
+
+# Who should we say is sending email from fas and get email
+# when fas sends a message about something?
+accounts_email = "accounts@fedoraproject.org"
+# Who should be listed as the legal contact for the Contributor Agreement?
+legal_cla_email = "legal-cla-archive@fedoraproject.org"
+# Who should be listed as the webmaster contact for the site?
+webmaster_email = "webmaster@fedoraproject.org"
+
+# All groups and some users get email aliases created for them via a cron
+# job.  This setting is appended to group names when sending email to members
+# of a group.  Be sure to set up a cron job for your site for this to work
+email_host = "fedoraproject.org" # as in, web-members@email_host
+
+# Settings for Contributor Agreements
+# Meta group for anyone who's satisfied the contributor agreement requirement
+cla_done_group = "cla_done"
+# The standard group is what you're placed in when you sign the contributor
+# agreement via fas
+cla_standard_group = "cla_fpca"
+# If you have a contributor agreement that you're getting rid of but want
+# to give people a transition period to sign a new one, you can put the
+# deprecated group in here for now.
+cla_deprecated_groups = ['cla_fedora']
+
+# Groups that automatically grant membership to other groups
+# Format: 'group1:a,b,c|group2:d,e,f'
+auto_approve_groups = 'packager:fedorabugs|qa:fedorabugs|security-team:fedorabugs|qa-beaker-user:qa-automation-shell|docs:fedorabugs|cla_fpca:cla_done|cla_redhat:cla_done|cla_dell:cla_done|cla_ibm:cla_done|cla_intel:cla_done'
+
+# Some server parameters that you may want to tweak
+server.socket_port=8088
+server.thread_pool=50
+server.socket_queue_size=30
+
+# Needed for translations
+### Q for ricky: Should this move to app.cfg?
+session_filter.on = True
+
+# Set to True if you'd like to abort execution if a controller gets an
+# unexpected parameter. False by default
+tg.strict_parameters = True
+
+server.webpath='/accounts'
+base_url_filter.on = True
+base_url_filter.use_x_forwarded_host = False
+{% if env == "staging" %}
+base_url_filter.base_url = "https://admin.stg.fedoraproject.org"
+fas.url = "https://admin.stg.fedoraproject.org/accounts/"
+{% else %}
+base_url_filter.base_url = "https://admin.fedoraproject.org"
+fas.url = "https://admin.fedoraproject.org/accounts/"
+{% endif %}
+# Knobs to tweak for debugging
+
+# Enable the debug output at the end on pages.
+# log_debug_info_filter.on = False
+debug = 'off'
+server.environment="production"
+autoreload.package="fas"
+autoreload.on = False
+server.throw_errors = False
+server.log_to_screen = False
+
+# Make the session cookie only return to the host over an SSL link
+visit.cookie.secure = True
+session_filter.cookie_secure = True
+visit.cookie.httponly = True
+
+###
+### Communicating to other services
+###
+
+# Database
+{% if env == "staging" %}
+sqlalchemy.dburi="postgres://fas:<%= fasDbPassword %>@db-fas.stg/fas2"
+{% else %}
+sqlalchemy.dburi="postgres://fas:<%= fasDbPassword %>@db-fas/fas2"
+{% endif %}
+sqlalchemy.echo=False
+# When using wsgi, we want the pool to be very low (as a separate instance is
+# run in each apache mod_wsgi thread.  So each one is going to have very few
+# concurrent db connections.
+sqlalchemy.pool_size=1
+sqlalchemy.max_overflow=2
+
+# If you're serving standalone (cherrypy), since FAS2 is much busier than
+# other servers due to serving visit and auth via JSON you want higher values
+#sqlalchemy.pool_size=10
+#sqlalchemy.max_overflow=25
+
+memcached_server = "fas01:11211,fas02:11211,fas03:11211"
+
+# Sending of email via TurboMail
+mail.on = True
+mail.smtp.server = 'bastion'
+#mail.testmode = True
+mail.smtp.debug = False
+mail.encoding = 'utf-8'
+mail.transport = 'smtp'
+mail.manager = 'demand'
+
+# Enable yubikeys
+yubi_server_prefix='http://localhost/yk-val/verify?id='
+{% if env == "staging" %}
+ykksm_db="postgres://ykksmimporter:<%= ykksmimporterPassword %>@db-fas01.stg/ykksm"
+ykval_db="postgres://ykval_verifier:<%= ykval_verifierPassword %>@db-fas01.stg/ykval"
+{% else %}
+ykksm_db="postgres://ykksmimporter:<%= ykksmimporterPassword %>@db-ykksm/ykksm"
+ykval_db="postgres://ykval_verifier:<%= ykval_verifierPassword %>@db-ykval/ykval"
+{% endif %}
+
+# Enable or disable generation of SSL certificates for users
+gencert = <%= gen_cert %>
+
+makeexec = "/usr/bin/make"
+openssl_lockdir = "/var/lock/fedora-ca"
+openssl_digest = "md5"
+openssl_expire = 15552000 # 60*60*24*180 = 6 months
+openssl_ca_dir = "/var/lib/fedora-ca"
+openssl_ca_newcerts = "/var/lib/fedora-ca/newcerts"
+openssl_ca_index = "/var/lib/fedora-ca/index.txt"
+openssl_c = "US"
+openssl_st = "North Carolina"
+openssl_l = "Raleigh"
+openssl_o = "Fedora Project"
+openssl_ou = "Fedora User Cert"
+
+# Source of entrophy for salts, tokens, passwords
+# os.urandom will be used if this is false.
+use_openssl_rand_bytes = True
+
+
+# These determine where FAS will read the public keyring from used in all GPG operations
+gpgexec = "/usr/bin/gpg"
+gpghome = "/etc/fas-gpg"
+# Note: gpg_fingerprint and gpg_passphrase are for encrypting password reset mail if the user has
+# a gpg key registered.  It's currently broken
+gpg_fingerprint = "7662 A6D3 4F21 A653 7BD4  BA64 20A0 8C45 4A0E 6255"
+gpg_passphrase = "<%= fasGpgPassphrase %>"
+gpg_keyserver = "hkp://subkeys.pgp.net"
+
+[/fedora-server-ca.cert]
+static_filter.on = True
+static_filter.file = "/etc/pki/fas/fedora-server-ca.cert"
+
+[/fedora-upload-ca.cert]
+static_filter.on = True
+static_filter.file = "/etc/pki/fas/fedora-upload-ca.cert"
+
+# LOGGING
+# Logging configuration generally follows the style of the standard
+# Python logging module configuration. Note that when specifying
+# log format messages, you need to use *() for formatting variables.
+# Deployment independent log configuration is in fas/config/log.cfg
+[logging]
+
+[[loggers]]
+[[[fas]]]
+level='DEBUG'
+qualname='fas'
+handlers=['debug_out']
+
+[[[allinfo]]]
+level='INFO'
+handlers=['debug_out']
+
+#[[[access]]]
+#level='INFO'
+#qualname='turbogears.access'
+#handlers=['access_out']
+#propagate=0
+
+[[[identity]]]
+level='WARN'
+qualname='turbogears.identity'
+handlers=['access_out']
+propagate=0
+
+[[[database]]]
+# Set to INFO to make SQLAlchemy display SQL commands
+level='ERROR'
+qualname='sqlalchemy.engine'
+handlers=['debug_out']
+propagate=0
