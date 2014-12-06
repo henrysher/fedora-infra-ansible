@@ -1,5 +1,8 @@
+# create a new fedimg server
+# NOTE: make sure there is room/space for this server on the vmhost
+
 - name: make fedimg server
-  hosts: fedimg;fedimg-stg
+  hosts: fedimg-stg
   user: root
   gather_facts: False
 
@@ -15,7 +18,7 @@
   - include: "{{ handlers }}/restart_services.yml"
 
 - name: dole out the generic configuration
-  hosts: fedimg;fedimg-stg
+  hosts: fedimg-stg
   user: root
   gather_facts: True
 
@@ -34,6 +37,10 @@
   - collectd/base
   - fedmsg/base
   - sudo
+  # The proxies don't actually need to talk to these hosts so we won't bother
+  # putting them on the vpn.
+  #- { role: openvpn/client,
+  #    when: env != "staging" }
 
   tasks:
   - include: "{{ tasks }}/yumrepos.yml"
@@ -44,20 +51,20 @@
   - include: "{{ handlers }}/restart_services.yml"
 
 - name: dole out the service-specific config
-  hosts: fedimg;fedimg-stg
+  hosts: fedimg-stg
   user: root
   gather_facts: True
 
   roles:
   - fedmsg/hub
-  #- fedimg
-  #- role: collectd/fedmsg-service
-  #  process: fedmsg-hub
+  - fedimg
+  - role: collectd/fedmsg-service
+    process: fedmsg-hub
 
   vars_files: 
    - /srv/web/infra/ansible/vars/global.yml
    - "{{ private }}/vars.yml"
-   - "{{ vars_path }}/{{ ansible_distribution }}.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
 
   handlers:
   - include: "{{ handlers }}/restart_services.yml"

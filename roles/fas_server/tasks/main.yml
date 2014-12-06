@@ -1,0 +1,280 @@
+---
+# Tasks to set up fas_server
+
+- name: install needed packages
+  yum: pkg={{ item }} state=installed
+  with_items:
+  - fas
+  - fas-plugin-yubikey
+  tags:
+  - packages
+
+- name: enable httpd_can_network_connect selinux boolean
+  seboolean: name=httpd_can_network_connect state=yes persistent=yes
+  tags:
+  - config
+
+- name: setup /var/www/.python-eggs directory
+  file: path=/var/www/.python-eggs owner=apache group=apache mode=0700 state=directory
+  tags:
+  - config
+
+- name: setup /etc/fas-gpg directory
+  file: path=/etc/fas-gpg owner=fas group=fas mode=0700 state=directory
+  tags:
+  - config
+
+- name: install /etc/httpd/conf.d/accounts.conf file
+  template: > 
+    src="fas-app.conf.j2" 
+    dest="/etc/httpd/conf.d/accounts.conf" 
+    owner=root 
+    group=root 
+    mode=0644
+  notify:
+  - restart httpd
+  tags:
+  - config
+
+- name: setup /etc/pki/fas directory
+  file: path=/etc/pki/fas owner=fas group=fas mode=0755 state=directory
+  tags:
+  - config
+
+- name: install $pythonsitelib/fas/config/log.cfg 
+  copy: >
+    src="fas-log.cfg"  
+    dest="$pythonsitelib/fas/config/log.cfg"  # $pythonsitelib=?
+    owner=root
+    group=root
+    mode=0644
+  notify:
+  - restart httpd
+  tags:
+  - config
+
+#  $bugzillaUser = "fedora-admin-xmlrpc@redhat.com"
+
+- name: install /etc/fas-gpg/pubring.gpg file
+  copy: >
+    src="{{ puppet_private }}/fas-gpg/pubring.gpg" 
+    dest="/etc/fas-gpg/pubring.gpg"
+    owner=fas
+    group=fas
+    mode=0600
+  tags:
+  - config
+
+- name: install /etc/pki/fas/fedora-server-ca.cert file
+  copy: >
+    src="{{ puppet_private }}/fedora-ca.cert" 
+    dest="/etc/pki/fas/fedora-server-ca.cert"
+    owner=fas
+    group=fas
+    mode=0644
+  tags:
+  - config
+
+- name: install /etc/pki/fas/fedora-upload-ca.cert file
+  copy: >
+    src="{{ puppet_private }}/fedora-ca.cert" 
+    dest="/etc/pki/fas/fedora-upload-ca.cert"
+    owner=fas
+    group=fas
+    mode=0644
+  tags:
+  - config
+
+- name: install /usr/share/fas/static/fedora-server-ca.cert file
+  copy: >
+    src="{{ puppet_private }}/fedora-ca.cert" 
+    dest="/usr/share/fas/static/fedora-server-ca.cert" 
+    owner=root
+    group=root
+    mode=0644
+  tags:
+  - config
+
+- name: install /usr/share/fas/static/fedora-upload-ca.cert file
+  copy: >
+    src="{{ puppet_private }}/fedora-ca.cert" 
+    dest="/usr/share/fas/static/fedora-upload-ca.cert" 
+    owner=root
+    group=root
+    mode=0644
+  tags:
+  - config
+
+- name: install /etc/fas.cfg file
+  template: > 
+    src="fas.cfg.j2" 
+    dest="/etc/fas.cfg" 
+    owner=fas 
+    group=apache 
+    mode=0640
+  notify:
+  - restart httpd
+  tags:
+  - config
+
+- name: install /usr/local/bin/yubikey-remove.py file 
+  template: > 
+    src="yubikey-remove.py.j2" 
+    dest="/usr/local/bin/yubikey-remove.py" 
+    owner=fas 
+    group=fas
+    mode=0750
+  tags:
+  - config
+
+# $gen_cert = "True"
+
+- name: install /etc/fas.cfg file
+  template: >
+    src="fas.cfg.j2"
+    dest="/etc/fas.cfg"
+    owner=fas
+    group=apache
+    mode=0640
+  when: master_fas_node == True
+  notify:
+  - restart httpd
+  tags:
+  - config
+
+- name: setup /var/lock/fedora-ca directory
+  file: path=/var/lock/fedora-ca owner=fas group=fas mode=0700 state=directory setype=var_lock_t
+  when: master_fas_node == True
+  tags:
+  - config
+
+- name: setup /var/lib/fedora-ca directory
+  file: path=/var/lib/fedora-ca owner=fas group=fas mode=0771 state=directory setype=httpd_sys_content_t
+  when: master_fas_node == True
+  tags:
+  - config
+
+- name: install /var/lib/fedora-ca/.rnd file
+  file: path=/var/lib/fedora-ca/.rnd owner=fas group=fas mode=0600 setype=httpd_sys_content_t
+  when: master_fas_node == True
+  tags:     
+  - config
+
+- name: setup /var/lib/fedora-ca/newcerts directory
+  file: path=/var/lib/fedora-ca/newcerts owner=fas group=fas mode=0700 state=directory
+  when: master_fas_node == True
+  tags:     
+  - config
+
+- name: setup /var/lib/fedora-ca/private directory
+  file: path=/var/lib/fedora-ca/private owner=fas group=fas mode=0700 state=directory 
+  when: master_fas_node == True
+  tags:
+  - config
+
+- name: install /var/lib/fedora-ca/private/cakey.pem file
+  copy: >
+    src="{{ puppet_private }}/cakey.pem"
+    dest="/var/lib/fedora-ca/private/cakey.pem"
+    owner=fas
+    group=fas
+    mode=0400
+  when: master_fas_node == True
+  tags:
+  - config
+
+- name: install /var/lib/fedora-ca/Makefile file
+  copy: >
+    src="Makefile.fedora-ca"
+    dest="/var/lib/fedora-ca/Makefile"
+    owner=root
+    group=root
+    mode=0644
+  when: master_fas_node == True
+  tags:
+  - config
+
+- name: install /var/lib/fedora-ca/openssl.cnf file
+  copy: >
+    src="fedora-ca-client-openssl.cnf"
+    dest="/var/lib/fedora-ca/openssl.cnf"
+    owner=root
+    group=root
+    mode=0644
+  when: master_fas_node == True
+  tags:
+  - config
+
+- name: install /var/lib/fedora-ca/certhelper.py file
+  copy: >
+    src="certhelper.py"
+    dest="/var/lib/fedora-ca/certhelper.py"
+    owner=root
+    group=root
+    mode=0755
+  when: master_fas_node == True
+  tags:
+  - config
+
+- name: install /var/lib/fedora-ca/cacert.pem file
+  copy: >
+    src="{{ puppet_private }}/fedora-ca.cert"
+    dest="/var/lib/fedora-ca/cacert.pem"
+    owner=root
+    group=root
+    mode=0644
+  when: master_fas_node == True
+  tags:
+  - config
+
+#For publishing the crl
+- name: setup /srv/web/ca directory
+  file: path=/srv/web/ca owner=apache group=apache mode=0755 state=directory
+  when: master_fas_node == True
+  tags:
+  - config
+
+- name: twice every month, force a new crl to be created
+  cron: >
+    name="gen-crl" 
+    job="cd /var/lib/fedora-ca ; /usr/bin/make gencrl &> /dev/null" 
+    user="fas"
+    minute="0"
+    hour="0"
+    day="1,15"
+  when: master_fas_node == True
+  tags:    
+  - config  
+
+- name: create /srv/web/ca/crl.pem link
+  file: path="/srv/web/ca/crl.pem" state=link src="/var/lib/fedora-ca/crl/crl.pem"
+  when: master_fas_node == True
+  tags:
+  - config
+
+- name: create /srv/web/ca/cacert.pem link
+  file: path="/srv/web/ca/cacert.pem" state=link src="/var/lib/fedora-ca/cacert.pem"
+  when: master_fas_node == True
+  tags: 
+  - config
+
+- name: install /etc/export-bugzilla.cfg file
+  template: >
+    src="export-bugzilla.cgf.j2"
+    dest="/etc/export-bugzilla.cfg"
+    owner=fas
+    group=fas
+    mode=0600
+  when: master_fas_node == True
+  tags:
+  - config
+
+- name: run export-bugzilla program
+  cron: >
+    name="export-bugzilla"
+    job="cd /etc; MAILTO=root; /usr/sbin/export-bugzilla fedorabugs fedora_contrib"
+    user="fas"
+    minute="10"
+  when: master_fas_node == True
+  tags:
+  - config

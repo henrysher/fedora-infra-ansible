@@ -1,0 +1,25 @@
+---
+# Configuration for the notifications consumer
+
+- name: install needed packages
+  yum: pkg={{ item }} state=installed
+  with_items:
+  - koji
+  - fedmsg
+  - python-paramiko
+  - python-libcloud
+  - python-fedimg
+
+- name: copy base configuration
+  template: >
+    src=fedimg.cfg dest=/etc/fedimg.cfg
+    owner=fedmsg group=fedmsg mode=0700
+  notify:
+  - restart fedmsg-hub
+
+- name: copy koji fedmsg consumer
+  template: >
+    src=fedmsg.d/fedimg.py dest=/etc/fedmsg.d/fedimg.py
+    owner=fedmsg group=fedmsg mode=0600
+  notify:
+  - restart fedmsg-hub
