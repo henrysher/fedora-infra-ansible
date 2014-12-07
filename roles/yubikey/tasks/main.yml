@@ -10,48 +10,24 @@
   tags:
   - packages
 
+- name: install /etc/ykksm/ykksm-config.php and /etc/ykval/ykval-config.php
+  template: src={{ item.file }}
+            dest={{ item.dest }}
+            owner=apache group=apache mode=0640
+  with_items:
+  - { file: ykksm-config.php, dest: /etc/ykksm/ykksm-config.php }
+  - { file: ykval-config.php, dest: /etc/ykval/ykval-config.php }
+
+- name: install the apache configuration files
+  copy: src={{ item.file }}
+        dest={{ item.dest}}
+  with_items:
+  - { file: yk-ksm.conf, dest: /etc/httpd/conf.d/yk-ksm.conf }
+  - { file: yk-val.conf, dest: /etc/httpd/conf.d/yk-val.conf }
+  - { file: yk-ksm.conf, dest: /etc/httpd/conf.d/admin.fedoraproject.org/yk-val.conf }
+
 - name: enable httpd_can_network_connect selinux boolean
   seboolean: name=httpd_can_network_connect state=yes persistent=yes
   tags:
   - config
 
-- name: install /etc/ykksm/ykksm-config.php
-  template: >
-    src="ykksm-config.php"
-    dest="/etc/ykksm/ykksm-config.php"
-    owner=root
-    group=apache
-    mode=0640
-
-- name: install /etc/httpd/conf.d/yk-ksm.conf
-  copy: >
-    src=yk-ksm.conf
-    dest=/etc/httpd/conf.d/yk-ksm.conf
-
-- name: install /usr/share/ykksm/ykksm-config.php
-  copy: >
-    src=ykksm-config.php
-    dest=/usr/share/ykksm/ykksm-config.php
-
-- name: install /etc/ykval/ykval-config.php
-  template: >
-    src="ykval-config.php"
-    dest="/etc/ykval/ykval-config.php"
-    owner=root
-    group=apache
-    mode=0640
-
-- name: install /etc/httpd/conf.d/yk-val.conf
-  copy: >
-    src=yk-val.php
-    dest=/etc/httpd/conf.d/yk-val.conf
-
-- name: install /usr/share/ykval/ykval-config.php
-  copy: >
-    src=ykval-config.pyp
-    dest=/usr/share/ykval/ykval-config.php
-
-- name: install /etc/httpd/conf.d/admin.fedoraproject.org/yk-val.conf
-  copy: >
-    src=yk-val.conf
-    dest=/etc/httpd/conf.d/admin.fedoraproject.org/yk-val.conf
