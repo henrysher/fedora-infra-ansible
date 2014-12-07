@@ -1,0 +1,47 @@
+# create a new proxy server
+
+- name: make new proxy server
+  hosts: proxies-stg
+  user: root
+  gather_facts: False
+  accelerate: "{{ accelerated }}"
+
+  vars_files: 
+   - /srv/web/infra/ansible/vars/global.yml
+   - "{{ private }}/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  tasks:
+  - include: "{{ tasks }}/virt_instance_create.yml"
+
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"
+
+- name: make the box be real
+  hosts: fproxies-stg
+  user: root
+  gather_facts: True
+  accelerate: "{{ accelerated }}"
+
+  vars_files: 
+   - /srv/web/infra/ansible/vars/global.yml
+   - "{{ private }}/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  roles:
+  - base
+  - hosts
+  - rkhunter
+  - denyhosts
+  - nagios_client
+  - fas_client
+  - collectd/base
+  - sudo
+
+  tasks:
+  - include: "{{ tasks }}/yumrepos.yml"
+  - include: "{{ tasks }}/2fa_client.yml"
+  - include: "{{ tasks }}/motd.yml"
+
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"
