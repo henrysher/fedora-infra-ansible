@@ -18,10 +18,11 @@
   - { file: ykksm-config.php, dest: /etc/ykksm/ykksm-config.php }
   - { file: ykval-config.php, dest: /etc/ykval/ykval-config.php }
 
-- name: symlink /etc/ykval/ykval-config.php to /usr/share/ykval/ykval-config.php
-  action: file src=/etc/ykval/ykval-config.php
-          dest=/usr/share/ykval/ykval-config.php
-          state=link
+- name: symlink the configuration files to /usr/share/...
+  action: file src={{item.file}} dest={{ item.dest }} state=link
+  with_items:
+  - {file: /etc/ykval/ykval-config.php, dest: /usr/share/ykval/ykval-config.php }
+  - {file: /etc/ykksm/ykksm-config.php, dest: /usr/share/ykksm/ykksm-config.php }
 
 - name: install the apache configuration files
   copy: src={{ item.file }}
