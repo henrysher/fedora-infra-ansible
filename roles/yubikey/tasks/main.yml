@@ -1,0 +1,57 @@
+---
+# Tasks to set up yubikey_verifier
+
+- name: install needed packages
+  yum: pkg={{ item }} state=installed
+  with_items:
+  - yubikey-ksm
+  - yubikey-val
+  - php-pgsql
+  tags:
+  - packages
+
+- name: enable httpd_can_network_connect selinux boolean
+  seboolean: name=httpd_can_network_connect state=yes persistent=yes
+  tags:
+  - config
+
+- name: install /etc/ykksm/ykksm-config.php
+  template: >
+    src="ykksm-config.php.j2"
+    dest="/etc/ykksm/ykksm-config.php"
+    owner=root
+    group=apache
+    mode=0640
+
+- name: install /etc/httpd/conf.d/yk-ksm.conf
+  copy: >
+    src=yk-ksm.conf
+    dest=/etc/httpd/conf.d/yk-ksm.conf
+
+- name: install /usr/share/ykksm/ykksm-config.php
+  copy: >
+    src=ykksm-config.php
+    dest=/usr/share/ykksm/ykksm-config.php
+
+- name: install /etc/ykval/ykval-config.php
+  template: >
+    src="ykval-config.php"
+    dest="/etc/ykval/ykval-config.php"
+    owner=root
+    group=apache
+    mode=0640
+
+- name: install /etc/httpd/conf.d/yk-val.conf
+  copy: >
+    src=yk-val.php
+    dest=/etc/httpd/conf.d/yk-val.conf
+
+- name: install /usr/share/ykval/ykval-config.php
+  copy: >
+    src=ykval-config.pyp
+    dest=/usr/share/ykval/ykval-config.php
+
+- name: install /etc/httpd/conf.d/admin.fedoraproject.org/yk-val.conf
+  copy: >
+    src=yk-val.conf
+    dest=/etc/httpd/conf.d/admin.fedoraproject.org/yk-val.conf

@@ -1,0 +1,54 @@
+<?php                                                             # -*- php -*-
+
+# For the validation interface.
+$baseParams = array ();
+<% if environment == "staging" %>
+$baseParams['__YKVAL_DB_DSN__'] = "pgsql:dbname=ykval;host=db-fas01.stg";
+<% else %>
+$baseParams['__YKVAL_DB_DSN__'] = "pgsql:dbname=ykval;host=db-ykval";
+<% end %>
+$baseParams['__YKVAL_DB_USER__'] = 'ykval_verifier';
+$baseParams['__YKVAL_DB_PW__'] = '<%= ykvalDBPassword %>';
+$baseParams['__YKVAL_DB_OPTIONS__'] = array();
+
+# For the validation server sync
+#$baseParams['__YKVAL_SYNC_POOL__'] = array("http://api2.example.com/wsapi/2.0/sync", 
+#					   "http://api3.example.com/wsapi/2.0/sync", 
+#					   "http://api4.example.com/wsapi/2.0/sync");
+# An array of IP addresses allowed to issue sync requests
+# NOTE: You must use IP addresses here.
+#$baseParams['__YKVAL_ALLOWED_SYNC_POOL__'] = array("1.2.3.4", 
+#						   "2.3.4.5", 
+#						   "3.4.5.6");
+
+# Specify how often the sync daemon awakens
+$baseParams['__YKVAL_SYNC_INTERVAL__'] = 10;
+# Specify how long the sync daemon will wait for response
+$baseParams['__YKVAL_SYNC_RESYNC_TIMEOUT__'] = 30;
+# Specify how old entries in the database should be considered aborted attempts
+$baseParams['__YKVAL_SYNC_OLD_LIMIT__'] = 10;
+
+# These are settings for the validation server.
+$baseParams['__YKVAL_SYNC_FAST_LEVEL__'] = 1;
+$baseParams['__YKVAL_SYNC_SECURE_LEVEL__'] = 40;
+$baseParams['__YKVAL_SYNC_DEFAULT_LEVEL__'] = 60;
+$baseParams['__YKVAL_SYNC_DEFAULT_TIMEOUT__'] = 1;
+
+// otp2ksmurls: Return array of YK-KSM URLs for decrypting OTP for
+// CLIENT.  The URLs must be fully qualified, i.e., contain the OTP
+// itself.
+function otp2ksmurls ($otp, $client) {
+  if ($client == 42) {
+    return array("http://another-ykkms.example.com/wsapi/decrypt?otp=$otp");
+  }
+
+  if (preg_match ("/^dteffujehknh/", $otp)) {
+    return array("http://different-ykkms.example.com/wsapi/decrypt?otp=$otp");
+  }
+
+  return array(
+	       "http://localhost/yk-ksm?otp=$otp",
+	       );
+}
+
+?>
