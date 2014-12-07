@@ -72,15 +72,12 @@
 - name: copy GeoIP.sh
   copy: src=GeoIP.sh dest=/var/named/chroot/GeoIP.sh mode=0755
   notify:
-  - create GeoIP acl
   - restart named
   tags:
   - config
 
 - name: create GeoIP acl
   command: /var/named/chroot/GeoIP.sh
-  args:
-    creates: /var/named/chroot/etc/GeoIP.acl
   notify:
   - restart named
 
@@ -99,7 +96,7 @@
   - config
 
 - name: copy named config
-  template: src=named.conf dest=/var/named/chroot/etc/named.conf mode=0644 owner=root group=root
+  copy: src=named.conf dest=/var/named/chroot/etc/named.conf mode=0644 owner=root group=root
   notify:
   - restart named
   tags:
