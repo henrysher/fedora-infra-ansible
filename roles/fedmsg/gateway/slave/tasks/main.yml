@@ -5,6 +5,7 @@
   yum: pkg={{ item }} state=installed
   with_items:
   - fedmsg-gateway
+  - stunnel
   tags:
   - packages
 
@@ -20,3 +21,27 @@
             owner=root group=root mode=0644
   with_items:
   - { file: fedmsg-gateway-slave.py.j2, dest: /etc/fedmsg.d/fedmsg-gateway-slave.py }
+
+
+# Stunnel specific bits
+
+- name: create directories
+  file: path=/etc/{{ item }} state=directory
+  with_items:
+  - stunnel
+
+- name: install stunnel init file || TODO = convert it to systemD
+  copy: src=stunnel.init
+        dest=/etc/init.d/stunnel/
+        owner=root group=root mode=0755
+
+- name: install stunnel.conf
+  template: src={{ item.file }}
+            dest={{ item.dest }}
+            owner=root group=root mode=0600
+  with_items:
+  - { file: stunnel-conf.j2, dest: /etc/stunnel/stunnel.conf }
+  vars:
+  - service: "websockets"
+  - source_port: 9939
+  - destination_port: 9938
