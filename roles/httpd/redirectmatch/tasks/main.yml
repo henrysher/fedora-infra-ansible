@@ -1,0 +1,21 @@
+# This is a generic role for specifying redirects.  When I ported this over from
+# puppet, I looked first at trying to combine all of our redirects into one
+# perhaps easier to manage master redirects file.  The trouble I hit was that
+# certain redirects need to apply in the context of certain VirtualHost entries
+# while not in others.  Consequently, we use this template to stuff the redirect
+# role only into the {{website}}/ folder for each site.
+
+# This is the only real work we do.
+- name: Copy over httpd redirectmatch file for {{name}}
+  template: >
+    src=redirectmatch.conf
+    dest=/etc/httpd/conf.d/{{website}}/{{name}}-redirectmatch.conf
+    mode=0644
+    owner=root
+    group=root
+  notify:
+  - restart httpd
+  tags:
+  - httpd
+  - httpd/redirect
+  - httpd/redirectmatch
