@@ -1,0 +1,44 @@
+Listen 8444
+<VirtualHost *:8444>
+  LoadModule suexec_module modules/mod_suexec.so
+
+  DocumentRoot /var/www/totpcgi-provisioning
+  ServerName fas01.stg.phx2.fedoraproject.org:8444
+  ErrorLog /var/log/httpd/totpcgi-provisioning-error.log
+  SuexecUserGroup totpcgiprov totpcgiprov
+
+  AddHandler cgi-script .cgi
+  DirectoryIndex index.cgi
+
+  Header set Cache-Control no-cache
+  Header set Expires 0
+
+  #SSLEngine on
+  #SSLCertificateFile /etc/pki/totpcgi/totpcgi-server.crt
+  #SSLCertificateKeyFile /etc/pki/totpcgi/totpcgi-server.key
+  #SSLCACertificateFile /etc/pki/totpcgi/totpcgi-ca.crt
+
+  #CustomLog /var/log/httpd/totpcgi-provisioning-ssl-request-log \
+  #  "%t %h %{SSL_PROTOCOL}x %{SSL_CIPHER}x \"%r\" %b"
+
+  <Directory "/var/www/totpcgi-provisioning">
+    Options ExecCGI
+  </Directory>
+
+  <Location />
+    AuthType Basic
+    AuthName "Fedora totpcgi"
+
+    Auth_PG_host db-fas
+    Auth_PG_port 5432
+    Auth_PG_user fasreadonly
+    Auth_PG_pwd {{ fasReadOnlyPassword }}
+    Auth_PG_database fas2
+    Auth_PG_pwd_table people
+    Auth_PG_uid_field username
+    Auth_PG_pwd_field password
+    Auth_PG_pwd_whereclause " and status='active'"
+
+    Require valid-user
+  </Location>
+</VirtualHost>
