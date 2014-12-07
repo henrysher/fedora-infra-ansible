@@ -1,0 +1,33 @@
+---
+# Tasks to set up haproxy
+
+- name: install needed packages
+  yum: pkg={{ item }} state=installed
+  with_items:
+  - haproxy
+  tags:
+  - packages
+
+- name: install haproxy/cfg in prod
+  copy: src={{ item.file }}
+        dest={{ item.dest }}
+        owner=root group=root mode=0600
+  with_items:
+  - { file: haproxy.cfg, dest: /etc/haproxy/haproxy.cfg }
+  when: env != staging
+
+- name: install haproxy.cfg in stg
+  copy: src={{ item.file }}
+        dest={{ item.dest }}
+        owner=root group=root mode=0600
+  with_items:
+  - { file: haproxy.cfg.stg, dest: /etc/haproxy/haproxy.cfg }
+  when: env == staging
+
+- name: install limits.conf and 503.http
+  copy: src={{ item.file }}
+        dest={{ item.dest }}
+        owner=root group=root mode=0600
+  with_items:
+  - { file: limits.conf, dest: /etc/security/limits.conf }
+  - { file: 503.http, dest: /etc/haproxy/503.http }
