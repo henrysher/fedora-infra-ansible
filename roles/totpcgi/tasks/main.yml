@@ -32,9 +32,17 @@
   file: path=/etc/{{ item }} state=directory owner=root group=totpcgi mode=750
   with_items:
   - pki/totpcgi
-  - totpcgi
-  - totpcgi/templates
   - totpcgi/totp
+
+- name: create template directory for totpcgiprov
+  file: path=/etc/{{ item }} state=directory owner=root group=totpcgiprov mode=750
+  with_items:
+  - totpcgi/templates
+
+- name: create /etc/totpcgi with the proper rights and owners
+  file: path=/etc/{{ item }} state=directory owner=totpcgiprov group=totpcgi mode=750
+  with_items:
+  - totpcgi
 
 - name: copy html files over
   copy: >
@@ -74,7 +82,7 @@
    src=totpcgi.conf.j2
    dest=/etc/totpcgi/totpcgi.conf
    owner=root
-   group=totpcgiprov
+   group=totpcgi
    mode=0640
   tags:
   - files
