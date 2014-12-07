@@ -1,0 +1,18 @@
+---
+nm: 255.255.255.0
+gw: 192.168.122.1
+dns: 66.135.45.92
+
+volgroup: /dev/vg_host
+eth0_ip: 192.168.122.3
+vmhost: serverbeach09.fedoraproject.org
+datacenter: serverbeach
+
+# This uses a different virt-install due to wacky serverbeach network/setup
+virt_install_command: virt-install -n {{ inventory_hostname }} -r {{ mem_size }}
+                 --disk {{ volgroup }}/{{ inventory_hostname }}
+                 --vcpus={{ num_cpus }}  -l {{ ks_repo }} -x
+                 "ksdevice=eth0 ks={{ ks_url }} ip={{ eth0_ip }} netmask={{ nm }}
+                  gateway={{ gw }} dns={{ dns }} console=tty0 console=ttyS0
+                  hostname={{ inventory_hostname }}"
+                 --autostart --noautoconsole
