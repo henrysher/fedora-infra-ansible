@@ -1,0 +1,33 @@
+---
+freezes: false
+datacenter: internetx
+host_backup_targets: ['/srv/web']
+
+nm: 255.255.255.240
+gw: 85.236.55.1
+dns: 8.8.8.8
+
+ks_url: http://infrastructure.fedoraproject.org/repo/rhel/ks/kvm-rhel-7
+ks_repo: http://infrastructure.fedoraproject.org/repo/rhel/RHEL7-x86_64/
+
+vmhost: internetx01.fedoraproject.org
+volgroup: /dev/VolGuests00
+eth0_ip: 85.236.55.7
+postfix_group: vpn
+
+tcp_ports: [80, 443, 9418]
+
+nrpe_procs_warn: 900
+nrpe_procs_crit: 1000
+
+lvm_size: 20000
+mem_size: 8192
+num_cpus: 4
+
+virt_install_command: /usr/sbin/virt-install -n {{ inventory_hostname }} -r {{ mem_size }} 
+                 --disk {{ volgroup }}/{{ inventory_hostname }}
+                 --vcpus={{ num_cpus }}  -l {{ ks_repo }} -x 
+                 "ksdevice=eth0 ks={{ ks_url }} ip={{ eth0_ip }} netmask={{ nm }} 
+                  gateway={{ gw }} dns={{ dns }} console=tty0 console=ttyS0
+                  hostname={{ inventory_hostname }}" 
+                 --network=bridge=br0 --autostart --noautoconsole

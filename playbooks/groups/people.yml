@@ -1,0 +1,81 @@
+# Create a people server
+#
+#
+- name: make the people server
+  hosts: people02.fedoraproject.org
+  user: root
+  gather_facts: False
+  accelerate: "{{ accelerated }}"
+
+
+  vars_files: 
+   - /srv/web/infra/ansible/vars/global.yml
+   - "{{ private }}/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  tasks:
+  - include: "{{ tasks }}/virt_instance_create.yml"
+
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"
+
+- name: make the box be real
+  hosts: people02.fedoraproject.org
+  user: root
+  gather_facts: True
+  accelerate: "{{ accelerated }}"
+
+  vars_files: 
+   - /srv/web/infra/ansible/vars/global.yml
+   - "{{ private }}/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  roles:
+  - base
+  - collectd/base
+  - fas_client
+  - hosts
+  - nagios_client
+  - rkhunter
+  - rsyncd
+  - sudo
+  - { role: denyhosts, when: ansible_distribution_major_version != '7' }
+  - { role: openvpn/client, when: env != "staging" }
+  - { role: collectd/fedmsg-service, process: fedmsg-hub }
+  - git/hooks
+  - git/make_checkout_seed
+  - git/server
+  - gitolite/base
+  - gitolite/check_fedmsg_hooks
+  - cgit/base
+  - cgit/clean_lock_cron
+  - cgit/make_pkgs_list
+  - clamav
+  - distgit
+
+ 
+  tasks:
+  - include: "{{ tasks }}/yumrepos.yml"
+  - include: "{{ tasks }}/2fa_client.yml"
+  - include: "{{ tasks }}/motd.yml"
+  - include: "{{ tasks }}/apache.yml"
+
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"
+ 
+- name: setup fedmsg on people
+  hosts: people02.fedoraproject.org
+  user: root
+  gather_facts: True
+
+  vars_files:
+  - /srv/web/infra/ansible/vars/global.yml
+  - "{{ private }}/vars.yml"
+  - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  roles:
+  - fedmsg/base
+  - fedmsg/hub
+
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"
