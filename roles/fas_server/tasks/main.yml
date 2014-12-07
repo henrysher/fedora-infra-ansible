@@ -187,6 +187,29 @@
   tags:
   - config
 
+- name: install /etc/pki/tls/private/totpcgi-server.key
+  copy: >
+    src="{{ puppet_private }}/2fa-certs/keys/fas-all.stg.phx2.fedoraproject.org.key"
+    dest="/etc/pki/tls/private/totpcgi-server.key"
+    owner=fas
+    group=fas
+    mode=0400
+  when: master_fas_node == True and '.stg.' in inventory_hostname
+  tags:
+  - config
+
+- name: install /etc/pki/tls/private/totpcgi-server.key
+  copy: >
+    src="{{ puppet_private }}/2fa-certs/keys/fas-all.phx2.fedoraproject.org.key"
+    dest="/etc/pki/tls/private/totpcgi-server.key"
+    owner=fas
+    group=fas
+    mode=0400
+  when: master_fas_node == True and not '.stg.' in inventory_hostname
+  tags:
+  - config
+
+
 - name: install /var/lib/fedora-ca/Makefile file
   copy: >
     src="Makefile.fedora-ca"
