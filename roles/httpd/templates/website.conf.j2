@@ -1,0 +1,50 @@
+<VirtualHost {{ ips.map{|ip| ip + ":80"}.join(" ") }}>
+  ServerName {{ name }}
+{% if  not server_aliases.empty? -%}
+  ServerAlias {{ server_aliases.join(" ") }}
+<% end -%>
+  ServerAdmin {{ server_admin }}
+  TraceEnable Off
+
+{% if  gzip -%}
+  SetOutputFilter DEFLATE
+<% end -%>
+
+{% if  sslonly -%}
+  RewriteEngine On
+  RewriteCond %{HTTPS} off
+  RewriteRule (.*) https://%{HTTP_HOST}%{REQUEST_URI} [NE]
+<% else -%>
+  Include "conf.d/{{ name }}/*.conf"
+<% end -%>
+</VirtualHost>
+
+{% if  ssl -%}
+<VirtualHost {{ ips.map{|ip| ip + ":443"}.join(" ") }}>
+  ServerName {{ name }}
+{% if  not server_aliases.empty? -%}
+  ServerAlias {{ server_aliases.join(" ") }}
+<% end -%>
+  ServerAdmin {{ server_admin }}
+
+{% if  gzip -%}
+  SetOutputFilter DEFLATE
+<% end -%>
+
+  SSLEngine on
+  SSLCertificateFile /etc/pki/tls/certs/{{ cert_name }}.cert
+  SSLCertificateKeyFile /etc/pki/tls/private/{{ cert_name }}.key
+{% if  not sSLCertificateChainFile.empty? -%}
+  SSLCertificateChainFile /etc/pki/tls/certs/{{ sSLCertificateChainFile }}
+<% end -%>
+  SSLHonorCipherOrder On
+
+  # https://fedorahosted.org/fedora-infrastructure/ticket/4101#comment:14
+  # If you change the protocols or cipher suites, you should probably update
+  # modules/squid/files/squid.conf-el6 too, to keep it in sync.
+  SSLProtocol -All +TLSv1 +TLSv1.1 +TLSv1.2
+  SSLCipherSuite ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:DHE-DSS-AES128-GCM-SHA256:kEDH+AESGCM:ECDHE-RSA-AES128-SHA256:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA:ECDHE-ECDSA-AES128-SHA:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA:ECDHE-ECDSA-AES256-SHA:DHE-RSA-AES128-SHA256:DHE-RSA-AES128-SHA:DHE-DSS-AES128-SHA256:DHE-RSA-AES256-SHA256:DHE-DSS-AES256-SHA:DHE-RSA-AES256-SHA:!aNULL:!eNULL:!EXPORT:!DES:!RC4:!3DES:!MD5:!PSK
+
+  Include "conf.d/{{ name }}/*.conf"
+</VirtualHost>
+<% end -%>
