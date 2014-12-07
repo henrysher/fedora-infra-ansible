@@ -5,38 +5,8 @@
 # while not in others.  Consequently, we use this template to stuff the redirect
 # role only into the {{website}}/ folder for each site.
 
-# Just do some sanity checking first
-- fail: msg="Bailing out.  'name' must be passed to this role."
-  when: name is not defined
-  tags:
-  - httpd
-  - httpd/redirect
-- fail: msg="Bailing out.  'website' must be passed to this role."
-  when: website is not defined
-  tags:
-  - httpd
-  - httpd/redirect
-- fail: msg="Bailing out.  'target' must be passed to this role."
-  when: target is not defined
-  tags:
-  - httpd
-  - httpd/redirect
-
-# These two should never fail.  We have defaults for them defined in
-# roles/httpd/redirect/vars/main.yml -- They are checked here for completeness.
-- fail: msg="Bailing out.  'path' must be passed to this role."
-  when: path is not defined
-  tags:
-  - httpd
-  - httpd/redirect
-- fail: msg="Bailing out.  'status' must be passed to this role."
-  when: status is not defined
-  tags:
-  - httpd
-  - httpd/redirect
-
 # This is the only real work we do.
-- name: Copy over httpd redirect file.
+- name: Copy over httpd redirect file for {{name}}
   template: >
     src=redirect.conf
     dest=/etc/httpd/conf.d/{{website}}/{{name}}-redirect.conf
