@@ -1,0 +1,70 @@
+# Expected vars
+# - name...
+# - ips: []
+# - server_aliases: []
+# - server_admin: webmaster@fedoraproject.org
+# - ssl: true
+# - sslonly: false
+# - cert_name: ""
+# - SSLCertificateChainFile: ""
+# - gzip: false
+
+- name: Create site directory in httpd/conf.d/{{name}}
+  file: >
+    dest=/etc/httpd/conf.d/{{name}}
+    state=directory
+    owner=root
+    group=root
+    mode=0755
+  notify:
+  - restart httpd
+  tags:
+  - httpd
+  - httpd/website
+
+# TODO - copy in Httpd::Certificate
+
+- name: Copy over primary template for {{name}}
+  template: >
+    src=website.conf
+    dest=/etc/httpd/conf.d/{{name}}.conf
+    owner=root
+    group=root
+    mode=0644
+  notify:
+  - restart httpd
+  tags:
+  - httpd
+  - httpd/redirect
+
+- name: Copy over some subordinate templates for {{name}}
+  template: >
+    src={{item}}.conf
+    dest=/etc/httpd/conf.d/{{name}}/{{item}}.conf
+    owner=root
+    group=root
+    mode=0644
+  with_items:
+  - logs
+  - robots
+  notify:
+  - restart httpd
+  tags:
+  - httpd
+  - httpd/redirect
+
+- name: And lastly, the robots.txt file
+  copy: >
+    src={{item}}
+    dest=/srv/web/robots.txt.{{name}}
+    mode=0644
+    owner=root
+    group=root
+  with_first_found:
+  - robots/robots.txt.{{name}}
+  - robots/robots.txt
+  notify:
+  - restart httpd
+  tags:
+  - httpd
+  - httpd/redirect
