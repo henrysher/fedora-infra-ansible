@@ -118,7 +118,7 @@
 
   - role: httpd/website
     name: mirrors.fedoraproject.org
-    GGserver_aliases: [mirrors.stg.fedoraproject.org]
+    server_aliases: [mirrors.stg.fedoraproject.org]
 
   - role: httpd/website
     name: download.fedoraproject.org
@@ -295,32 +295,48 @@
     sslonly: true
     gzip: true
 
+  # Kinda silly that we have two entries here, one for prod and one for stg.
+  # This is inherited from our puppet setup -- we can collapse them as soon as
+  # is convenient.  -- threebean
   - role: httpd/website
     name: taskotron.fedoraproject.org
-    server_aliases: [taskotron.stg.fedoraproject.org]
+    server_aliases: [taskotron.fedoraproject.org]
     sslonly: true
-    gzip: true
+
+  - role: httpd/website
+    name: taskotron.stg.fedoraproject.org
+    server_aliases: [taskotron.stg.fedoraproject.org]
+    # Set this explicitly to stg here.. as per the original puppet config.
+    SSLCertificateChainFile: wildcard-2014.stg.fedoraproject.org.intermediate.cert
+    sslonly: true
+    when: env == "staging"
 
   - role: httpd/website
     name: lists.fedoraproject.org
     server_aliases: [lists.stg.fedoraproject.org]
     sslonly: true
+    # Set this explicitly to stg here.. as per the original puppet config.
+    SSLCertificateChainFile: wildcard-2014.stg.fedoraproject.org.intermediate.cert
     when: env == "staging"
 
   - role: httpd/website
     name: id.fedoraproject.org
     server_aliases:
     - "*.id.fedoraproject.org"
+    cert_name: wildcard-2014.id.fedoraproject.org
+    SSLCertificateChainFile: wildcard-2014.id.fedoraproject.org.intermediate.cert
 
     when: env == "staging"
   - role: httpd/website
     name: id.stg.fedoraproject.org
     server_aliases:
     - "*.id.stg.fedoraproject.org"
+    SSLCertificateChainFile: wildcard-2014.stg.fedoraproject.org.intermediate.cert
     when: env == "staging"
 
   - role: httpd/website
     name: getfedora.org
+    ips: "{{fpo_ips}}"
     server_aliases: [stg.getfedora.org]
     sslonly: true
     cert_name: getfedora.org
@@ -328,6 +344,7 @@
 
   - role: httpd/website
     name: qa.fedoraproject.org
+    ips: "{{fpo_ips}}"
     server_aliases: [qa.stg.fedoraproject.org]
     sslonly: true
 
