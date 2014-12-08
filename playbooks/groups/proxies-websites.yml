@@ -16,6 +16,50 @@
   - SSLCertificateChainFile: wildcard-2014.fedoraproject.org.intermediate.cert
   # wildcard_cert_name is defined in group_vars
   - cert_name: "{{wildcard_cert_name}}"
+  - fpo_ips:
+    # Staging
+    - "10.5.126.88"
+    # Production
+    - "85.236.55.5"
+    - "[2001:4178:2:1269::fed1]"
+    - "66.35.62.162"
+    - "80.239.156.214"
+    - "152.19.134.142"
+    - "[2610:28:3090:3001:dead:beef:cafe:fed3]"
+    - "140.211.169.196"
+    - "213.175.193.205"
+    - "[2001:2030:0:2::2]"
+    - "10.5.126.52"
+    - "85.236.55.6"
+    - "[2001:4178:2:1269::fed2]"
+    - "66.35.62.166"
+    - "80.239.156.215"
+    - "152.19.134.146"
+    - "[2610:28:3090:3001:dead:beef:cafe:fed4]"
+    - "140.211.169.197"
+    - "213.175.193.206"
+    - "[2001:2030:0:2::3]"
+    - "67.203.2.67"
+    - "[2607:f188::dead:beef:cafe:fed1]"
+    - "192.168.122.2"
+  - wildcard_fpo_ips:
+    # Staging
+    - "10.5.126.89"
+    # Production
+    - "10.5.126.52"
+    - "85.236.55.6"
+    - "[2001:4178:2:1269::fed2]"
+    - "66.35.62.166"
+    - "80.239.156.215"
+    - "152.19.134.146"
+    - "[2610:28:3090:3001:dead:beef:cafe:fed4]"
+    - "140.211.169.197"
+    - "213.175.193.206"
+    - "[2001:2030:0:2::3]"
+    - "67.203.2.67"
+    - "[2607:f188::dead:beef:cafe:fed1]"
+    - "192.168.122.2"
+
 
 
   roles:
@@ -23,8 +67,10 @@
   - role: httpd/website
     name: fedoraproject.org
     server_aliases: [stg.fedoraproject.org]
+    ips: "{{fpo_ips}}"
 
   - role: httpd/website
     name: admin.fedoraproject.org
     server_aliases: [admin.stg.fedoraproject.org]
     sslonly: true
+    ips: "{{wildcard_fpo_ips}}"
