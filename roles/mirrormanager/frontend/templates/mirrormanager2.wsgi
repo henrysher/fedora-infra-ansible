@@ -18,7 +18,7 @@ os.environ['MM2_CONFIG'] = '/etc/mirrormanager/mirrormanager2cfg'
 
 
 ## The most import line to make the wsgi working
-from mirrormanager2 import APP as application
+from mirrormanager2.app import APP as application
 
 ## Turn on the debug mode to get more information in the logs about internal
 ## errors
