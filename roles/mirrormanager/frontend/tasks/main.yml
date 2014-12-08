@@ -1,19 +1,41 @@
 ---
-# tasklist for setting up the mirrormanager app components
+# tasklist for setting up the mirrormanager web application
+
+- name: clean yum metadata
+  command: yum clean all
+  tags:
+  - packages
+
+- name: install needed packages
+  yum: pkg={{ item }} state=present
+  with_items:
+  - mirrormanager
+  - python-psycopg2
+  - python-openid-cla
+  - python-openid-teams
+  - python-memcached
+  - libsemanage-python
+  tags:
+  - packages
+
+- name: install configuration file
+  template: src={{ item.file }} dest={{ item.dest }}
+            owner=apache group=apache mode=0600
+  with_items:
+  - { file: mirrormanager.conf dest: /etc/httpd/conf.d/mirrormanager.conf }
+  - { file: mirrormanager2.cfg dest: /etc/mirrormanager/mirrormanager2.cfg }
+  - { file: mirrormanager2.wsgi dest: /var/www/mirrormanager2.wsgi }
+  notify:
+  - restart httpd
+  tags:
+  - config
+
+- name: create the database scheme
+  command: /usr/bin/python2 /usr/share/mirrormanager2/mirrormanager2_createdb.py
+  environment:
+      MM2_CONFIG: /etc/mirrormanager/mirrormanager2.cfg
 
 - name: set sebooleans so mirrormanager can connect to its db
   action: seboolean name=httpd_can_network_connect_db
                     state=true
                     persistent=true
-
-- name: install /etc/httpd/conf.d/mirrormanager-app.conf
-  copy: >
-    src="mirrormanager-app.conf"
-    dest="/etc/httpd/conf.d/mirrormanager.conf"
-    owner=root
-    group=root
-    mode=0644
-  notify:
-  - restart httpd
-  tags:
-  - config
