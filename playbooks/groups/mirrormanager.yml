@@ -14,7 +14,7 @@
   handlers:
   - include: "{{ handlers }}/restart_services.yml"
 
-- name: make the boxen be real for real
+- name: make the boxe be real for real
   hosts: mm-stg
   user: root
   gather_facts: True
@@ -35,11 +35,58 @@
   - { role: openvpn/client, when: env != "staging" }
   - { role: nfs/client, when: datacenter == "phx2", mnt_dir: '/srv/pub',  nfs_src_dir: 'fedora_ftp/fedora.redhat.com/pub' }
 
-
   tasks:
   - include: "{{ tasks }}/yumrepos.yml"
   - include: "{{ tasks }}/2fa_client.yml"
   - include: "{{ tasks }}/motd.yml"
+
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"
+
+- name: Deploy the backend
+  hosts: mm-backend01.stg.phx2.fedoraproject.org
+  user: root
+  gather_facts: True
+
+  vars_files:
+  -  /srv/web/infra/ansible/vars/global.yml
+  - "{{ private }}/vars.yml"
+  - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  roles:
+  - mirrormanager/backend
+
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"
+
+- name: Deploy the crawler
+  hosts: mm-crawler01.stg.phx2.fedoraproject.org
+  user: root
+  gather_facts: True
+
+  vars_files:
+  -  /srv/web/infra/ansible/vars/global.yml
+  - "{{ private }}/vars.yml"
+  - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  roles:
+  - mirrormanager/crawler
+
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"
+
+- name: Deploy the frontend (web-app)
+  hosts: mm-frontend01.stg.phx2.fedoraproject.org
+  user: root
+  gather_facts: True
+
+  vars_files:
+  -  /srv/web/infra/ansible/vars/global.yml
+  - "{{ private }}/vars.yml"
+  - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  roles:
+  - mirrormanager/frontend
 
   handlers:
   - include: "{{ handlers }}/restart_services.yml"
