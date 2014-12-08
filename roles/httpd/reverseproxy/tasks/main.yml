@@ -7,11 +7,14 @@
 
 - name: Copy in ProxyPassReverse for {{destname}} ({{website}}/{{remotepath}})
   template: >
-    src=reversepassproxy.conf
+    src={{item}}
     dest=/etc/httpd/conf.d/{{website}}/{{destname}}.conf
     owner=root
     group=root
     mode=0644
+  with_first_found:
+  - reversepassproxy.{{destname}}.conf
+  - reversepassproxy.conf
   notify:
   - restart httpd
   tags:
