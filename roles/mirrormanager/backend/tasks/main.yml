@@ -1,0 +1,19 @@
+---
+# Configuration for the mirrormanager backend
+
+- name: clean yum metadata
+  command: yum clean all
+  tags:
+  - packages
+
+- name: install needed packages
+  yum: pkg={{ item }} state=present
+  with_items:
+  - mirrormanager-backend
+  tags:
+  - packages
+
+- name: install the cron job
+  copy: src=backend.cron dest=/etc/cron.d/mm2_backend.cron
+  tags:
+  - config
