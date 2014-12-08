@@ -14,8 +14,6 @@
   vars:
   - ssl: true
   - SSLCertificateChainFile: wildcard-2014.fedoraproject.org.intermediate.cert
-  # wildcard_cert_name is defined in group_vars
-  - cert_name: "{{wildcard_cert_name}}"
   - fpo_ips:
     # Staging
     - "10.5.126.88"
@@ -60,17 +58,78 @@
     - "[2607:f188::dead:beef:cafe:fed1]"
     - "192.168.122.2"
 
+  # This is just a handy default.  If 'ips' is not specified to the
+  # httpd/website role below, then it will use the wildcard list, which most do.
+  - ips: "{{wildcard_fpo_ips}}"
+
+  # This is another handy default.  wildcard_cert_name is defined in group_vars
+  - cert_name: "{{wildcard_cert_name}}"
+
 
 
   roles:
 
   - role: httpd/website
     name: fedoraproject.org
-    server_aliases: [stg.fedoraproject.org]
     ips: "{{fpo_ips}}"
+    server_aliases: [stg.fedoraproject.org]
 
   - role: httpd/website
     name: admin.fedoraproject.org
     server_aliases: [admin.stg.fedoraproject.org]
     sslonly: true
-    ips: "{{wildcard_fpo_ips}}"
+
+  - role: httpd/website
+    name: cloud.fedoraproject.org
+
+  - role: httpd/website
+    name: mirrors.fedoraproject.org
+    server_aliases: [mirrors.stg.fedoraproject.org]
+
+  - role: httpd/website
+    name: download.fedoraproject.org
+    server_aliases:
+    - download01.fedoraproject.org
+    - download02.fedoraproject.org
+    - download03.fedoraproject.org
+    - download04.fedoraproject.org
+    - download05.fedoraproject.org
+    - download06.fedoraproject.org
+    - download07.fedoraproject.org
+    - download08.fedoraproject.org
+    - download09.fedoraproject.org
+    - download10.fedoraproject.org
+    - download.stg.fedoraproject.org
+
+  - role: httpd/website
+    name: translate.fedoraproject.org
+    server_aliases: [translate.stg.fedoraproject.org]
+    sslonly: true
+
+  - role: httpd/website
+    name: spins.fedoraproject.org
+    server_aliases:
+    - spins.stg.fedoraproject.org
+    - spins-test.fedoraproject.org
+
+  - role: httpd/website
+    name: boot.fedoraproject.org
+    server_aliases: [boot.stg.fedoraproject.org]
+
+  - role: httpd/website
+    name: boot.fedoraproject.org
+    server_aliases: [boot.stg.fedoraproject.org]
+
+  - role: httpd/website
+    name: smolts.org
+    ssl: false
+    server_aliases:
+    - smolt.fedoraproject.org
+    - stg.smolts.org
+    - www.smolts.org
+
+  - role: httpd/website
+    name: docs.fedoraproject.org
+    server_aliases:
+    - doc.fedoraproject.org
+    - docs.stg.fedoraproject.org
