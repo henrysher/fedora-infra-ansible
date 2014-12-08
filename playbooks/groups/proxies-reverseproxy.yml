@@ -74,7 +74,6 @@
     website: apps.fedoraproject.org
     destname: gallery
     localpath: /gallery
-    remotepath: /gallery
     proxyurl: http://localhost:10034
 
   - role: httpd/reverseproxy
@@ -95,9 +94,10 @@
 
   - role: httpd/reverseproxy
     website: apps.fedoraproject.org
-    destname: notifications
+    destname: fedora-notifications
     localpath: /notifications
     remotepath: /notifications
+    header_scheme: true
     proxyurl: http://localhost:10036
 
   - role: httpd/reverseproxy
@@ -123,18 +123,18 @@
   - role: httpd/reverseproxy
     website: darkserver.fedoraproject.org
     destname: darkserver
+    remotepath: /darkserver/
     # Talk directly to the app server, not haproxy
     proxyurl: http://darkserver01
 
   - role: httpd/reverseproxy
     website: paste.fedoraproject.org
-    destname: paste
+    destname: sticky-notes
     proxyurl: "{{ varnish_url }}"
 
   - role: httpd/reverseproxy
     website: admin.fedoraproject.org
-    destname: totpcgi
-    remotepath: /totpcgiprovision
+    destname: totpcgiprovision
     localpath: /totpcgiprovision
     proxyurl: http://localhost:10019
 
@@ -162,11 +162,11 @@
   # Fedoauth is odd here -- it has an entry for both stg and prod.
   - role: httpd/reverseproxy
     website: id.stg.fedoraproject.org
-    destname: fas-openid
+    destname: id
     proxyurl: http://localhost:10020
   - role: httpd/reverseproxy
     website: id.fedoraproject.org
-    destname: fas-openid
+    destname: id
     proxyurl: http://localhost:10020
 
   - role: httpd/reverseproxy
@@ -174,11 +174,12 @@
     destname: datagrepper
     remotepath: /datagrepper
     localpath: /datagrepper
+    header_scheme: true
     proxyurl: http://localhost:10028
 
   - role: httpd/reverseproxy
     website: badges.fedoraproject.org
-    destname: tahrir
+    destname: badges
     proxyurl: http://localhost:10032
 
   - role: httpd/reverseproxy
@@ -186,6 +187,7 @@
     destname: fedocal
     remotepath: /calendar
     localpath: /calendar
+    header_scheme: true
     proxyurl: "{{ varnish_url }}"
 
   - role: httpd/reverseproxy
@@ -193,6 +195,7 @@
     destname: kerneltest
     remotepath: /kerneltest
     localpath: /kerneltest
+    header_scheme: true
     proxyurl: "{{ varnish_url }}"
 
   - role: httpd/reverseproxy
@@ -232,17 +235,12 @@
 
   - role: httpd/reverseproxy
     website: mirrors.fedoraproject.org
-    destname: mirrorlist
+    destname: mirrormanager-mirrorlist
     proxyurl: http://localhost:10002
 
   - role: httpd/reverseproxy
     website: download.fedoraproject.org
-    destname: redirector
-    proxyurl: http://localhost:10002
-
-  - role: httpd/reverseproxy
-    website: download.fedoraproject.org
-    destname: redirector
+    destname: mirrormanager-redirector
     proxyurl: http://localhost:10002
 
   - role: httpd/reverseproxy
@@ -278,5 +276,5 @@
 
   - role: httpd/reverseproxy
     website: geoip.fedoraproject.org
-    destname: geoip
+    destname: geoip-city-wsgi-proxy
     proxyurl: http://localhost:10029
