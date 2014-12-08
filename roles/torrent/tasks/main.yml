@@ -1,0 +1,64 @@
+---
+# Configuration for the torrent tracker
+
+- name: clean yum metadata
+  command: yum clean all
+  tags:
+  - packages
+
+- name: install needed packages
+  yum: pkg={{ item }} state=present
+  with_items:
+  - httpd
+  - opentracker-common
+  - opentracker-ipv4
+  - opentracker-ipv6
+  - mktorrent
+  - python-simplejson
+  - bittorrent
+  tags:
+  - packages
+
+- name: Create the stats directories
+  file: path={{ item }}
+  with_items:
+  tags:
+  - config
+
+- name: Create the stats directories
+  file: path={{ item.file }} owner={{ item.owner }}
+        group={{ item.group }} mode={{ item.mode }}
+  with_items:
+  - { file: /srv/torrent/, owner: root, group: root, mode: 0775}
+  - { file: /srv/torrent/www/, owner: root, group: torrent, mode: 2775}
+  - { file: /srv/torrent/www/stats/, owner: opentracker, group: torrent, mode: 2775}
+  - { file: /srv/torrent/www/stats/daily/, owner: opentracker, group: torrent, mode: 2775}
+  - { file: /srv/torrent/www/stats/hourly/, owner: opentracker, group: torrent, mode: 2775}
+  - { file: /srv/torrent/www/stats/raw/, owner: opentracker, group: torrentadmin, mode: 2775}
+  - { file: /srv/torrent/www/stats/raw/evertyhing/, owner: opentracker, group: torrentadmin, mode: 2775}
+  - { file: /srv/torrent/www/stats/raw/torrent/, owner: opentracker, group: torrentadmin, mode: 2775}
+  tags:
+  - config
+
+- name: install the files for the tracker
+  copy: src={{ item.file }} dest={{ item.dest }}
+  with_items:
+  - { file: torrent_generator.conf, dest: /etc/torrent_generator.conf }
+  - { file: spins_generator.conf, dest: /etc/spins_generator.conf }
+  - { file: opentracker-ipv4.conf, dest: /etc/opentracker/opentracker-ipv4.conf }
+  - { file: opentracker-ipv6.conf, dest: /etc/opentracker/opentracker-ipv6.conf }
+  - { file: torrent-httpd.conf, dest: /etc/httpd/conf.d/torrent.conf }
+  - { file: spins-httpd.conf, dest: /etc/httpd/conf.d/spins.conf }
+  - { file: torrent-web-generate.cron, dest: /etc/cron.d/torrent-web-generate }
+  - { file: torrent-hash.cron, dest: /etc/cron.d/torrent-hash.cron }
+  - { file: bittorrent.logrotate, dest: /etc/logrotate.d/bittorrent }
+  - { file: torrent-data.py, dest: /usr/local/bin/torrent-data.py }
+  - { file: torrentjsonstats.py, dest: /usr/local/bin/torrentjsonstats.py }
+  - { file: torrent-hashes.py, dest: /usr/local/bin/torrent-hashes.py }
+  - { file: pull_opentracker_data.sh, dest: /usr/local/bin/pull_opentracker_data.sh }
+  # Directory
+  - { file: torrent-generator, dest: /srv/torrent/torrent-generator }
+  - { file: spins-generator, dest: /srv/torrent/spins-generator/ }
+  - { file: , dest:  }
+  tags:
+  - config
