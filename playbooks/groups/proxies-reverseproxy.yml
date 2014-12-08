@@ -1,0 +1,200 @@
+- name: Set up those ProxyPassReverse statements.  Somebody get me a cup of coffee..
+  hosts: proxies-stg
+  user: root
+  gather_facts: True
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "{{ private }}/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"
+
+  vars:
+  - varnish_url: http://localhost:6081
+
+  roles:
+
+  # TODO
+  # - fedora-web::proxy
+  # - fedora-web::spins::proxy
+  # - fedora-web::start::proxy
+  # - fedora-web::boot::proxy
+  # - fedora-web::mirrors::proxy
+  # - fedora-web::fedoracommunity-org::proxy
+  # - fedora-web::fudcon::proxy
+  # - fedora-web::fedoramagazine::proxy
+  # - fedora-web::getfedora::proxy
+  # - fedora-docs::proxy
+  # 
+  # - domainrewrite stuff
+
+  - role: httpd/reverseproxy
+    website: lists.fedoraproject.org
+    proxyurl: http://localhost:10033
+    destname: mailman3
+
+  - role: httpd/reverseproxy
+    website: taskotron.stg.fedoraproject.org
+    destname: taskotron
+    # Talk directly to the app server, not haproxy
+    proxyurl: http://taskotron-stg01.qa.fedoraproject.org/
+
+  - role: httpd/reverseproxy
+    website: meetbot.fedoraproject.org
+    destname: meetbot
+    localpath: /meetbot
+    # Talk directly to the app server, not haproxy
+    proxyurl: http://value01
+
+  - role: httpd/reverseproxy
+    website: apps.fedoraproject.org
+    destname: gallery
+    localpath: /gallery
+    remotepath: /gallery
+    proxyurl: http://localhost:10034
+
+  - role: httpd/reverseproxy
+    website: apps.fedoraproject.org
+    destname: nuancier
+    localpath: /nuancier
+    remotepath: /nuancier
+    proxyurl: http://localhost:10035
+
+  - role: httpd/reverseproxy
+    website: apps.fedoraproject.org
+    destname: github2fedmsg
+    localpath: /github2fedmsg
+    remotepath: /github2fedmsg
+    proxyurl: http://localhost:10037
+
+  - role: httpd/reverseproxy
+    website: apps.fedoraproject.org
+    destname: notifications
+    localpath: /notifications
+    remotepath: /notifications
+    proxyurl: http://localhost:10036
+
+  - role: httpd/reverseproxy
+    website: apps.fedoraproject.org
+    destname: packages
+    localpath: /packages
+    remotepath: /packages
+    proxyurl: http://localhost:10016
+
+  - role: httpd/reverseproxy
+    website: apps.fedoraproject.org
+    destname: tagger
+    localpath: /tagger
+    remotepath: /tagger
+    proxyurl: http://localhost:10017
+    rewrite: true
+
+  - role: httpd/reverseproxy
+    website: ask.fedoraproject.org
+    destname: askbot
+    proxyurl: "{{ varnish_url }}"
+
+  - role: httpd/reverseproxy
+    website: darkserver.fedoraproject.org
+    destname: darkserver
+    # Talk directly to the app server, not haproxy
+    proxyurl: http://darkserver01
+
+  - role: httpd/reverseproxy
+    website: paste.fedoraproject.org
+    destname: paste
+    proxyurl: "{{ varnish_url }}"
+
+  - role: httpd/reverseproxy
+    website: admin.fedoraproject.org
+    destname: totpcgi
+    remotepath: /totpcgiprovision
+    localpath: /totpcgiprovision
+    proxyurl: http://localhost:10019
+
+  - role: httpd/reverseproxy
+    website: admin.fedoraproject.org
+    destname: fas
+    remotepath: /accounts
+    localpath: /accounts
+    proxyurl: http://localhost:10004
+
+  - role: httpd/reverseproxy
+    website: apps.fedoraproject.org
+    destname: elections
+    remotepath: /voting
+    localpath: /voting
+    proxyurl: http://localhost:10007
+
+  - role: httpd/reverseproxy
+    website: fedoraproject.org
+    destname: fedora-mobile
+    remotepath: /mobile
+    localpath: /mobile
+    proxyurl: http://fedora-infra.github.io
+
+  # Fedoauth is odd here -- it has an entry for both stg and prod.
+  - role: httpd/reverseproxy
+    website: id.stg.fedoraproject.org
+    destname: fas-openid
+    proxyurl: http://localhost:10020
+  - role: httpd/reverseproxy
+    website: id.fedoraproject.org
+    destname: fas-openid
+    proxyurl: http://localhost:10020
+
+  - role: httpd/reverseproxy
+    website: apps.fedoraproject.org
+    destname: datagrepper
+    remotepath: /datagrepper
+    localpath: /datagrepper
+    proxyurl: http://localhost:10028
+
+  - role: httpd/reverseproxy
+    website: badges.fedoraproject.org
+    destname: tahrir
+    proxyurl: http://localhost:10032
+
+  - role: httpd/reverseproxy
+    website: apps.fedoraproject.org
+    destname: fedocal
+    remotepath: /calendar
+    localpath: /calendar
+    proxyurl: "{{ varnish_url }}"
+
+  - role: httpd/reverseproxy
+    website: apps.fedoraproject.org
+    destname: kerneltest
+    remotepath: /kerneltest
+    localpath: /kerneltest
+    proxyurl: "{{ varnish_url }}"
+
+  - role: httpd/reverseproxy
+    website: qa.fedoraproject.org
+    destname: blockerbugs
+    remotepath: /blockerbugs
+    localpath: /blockerbugs
+    proxyurl: "{{ varnish_url }}"
+
+  - role: httpd/reverseproxy
+    website: fedoraproject.org
+    destname: mediawiki
+    remotepath: /w
+    localpath: /wiki
+    proxyurl: "{{ varnish_url }}"
+
+  - role: httpd/reverseproxy
+    website: admin.fedoraproject.org
+    destname: packagedb
+    remotepath: /pkgdb
+    localpath: /pkgdb
+    proxyurl: "{{ varnish_url }}"
+
+  - role: httpd/reverseproxy
+    website: admin.fedoraproject.org
+    destname: packagedb
+    remotepath: /pkgdb
+    localpath: /pkgdb
+    proxyurl: "{{ varnish_url }}"
