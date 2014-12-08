@@ -27,8 +27,30 @@
   # - fedora-web::fedoramagazine::proxy
   # - fedora-web::getfedora::proxy
   # - fedora-docs::proxy
-  # 
+  #
+  # - smolt::proxy
+  #
+  # - packages::proxy::bugz
+  # - haproxy::proxy
+  # - fingerprints::proxy
+  # - gather-easyfix::proxy
+  # - fedmsg::proxy-crl
+  # - review-stats::proxy
+  # - membership-map::proxy
+  #
+  # - httpd::nagios-proxy
+  # - httpd::mailman-proxy
+  # - httpd::status
+  #
+  # - domainnotarget stuff
   # - domainrewrite stuff
+  #
+  # - sysctl ip_conntrack_max bits
+  # - iptables rules for fedmsg inbound
+  # - sebooleans
+  # - semanage_port
+  # - semanagefcontext
+  # - geoipwsgi app itself
 
   - role: httpd/reverseproxy
     website: lists.fedoraproject.org
@@ -194,7 +216,65 @@
 
   - role: httpd/reverseproxy
     website: admin.fedoraproject.org
-    destname: packagedb
-    remotepath: /pkgdb
-    localpath: /pkgdb
-    proxyurl: "{{ varnish_url }}"
+    destname: bodhi
+    remotepath: /updates
+    localpath: /updates
+    proxyurl: http://localhost:10009
+
+  - role: httpd/reverseproxy
+    website: admin.fedoraproject.org
+    destname: mirrormanager
+    remotepath: /mirrormanager
+    localpath: /mirrormanager
+    proxyurl: http://localhost:10008
+
+  - role: httpd/reverseproxy
+    website: mirrors.fedoraproject.org
+    destname: mirrorlist
+    proxyurl: http://localhost:10002
+
+  - role: httpd/reverseproxy
+    website: download.fedoraproject.org
+    destname: redirector
+    proxyurl: http://localhost:10002
+
+  - role: httpd/reverseproxy
+    website: download.fedoraproject.org
+    destname: redirector
+    proxyurl: http://localhost:10002
+
+  - role: httpd/reverseproxy
+    website: admin.fedoraproject.org
+    destname: pager
+    remotepath: /pager
+    localpath: /pager
+    # Talk directly to the app server, not haproxy
+    proxyurl: http://sundries01
+
+  - role: httpd/reverseproxy
+    website: admin.fedoraproject.org
+    destname: awstats
+    remotepath: /awstats
+    localpath: /awstats
+    # Talk directly to the app server, not haproxy
+    proxyurl: http://log01
+
+  - role: httpd/reverseproxy
+    website: admin.fedoraproject.org
+    destname: epylog
+    remotepath: /epylog
+    localpath: /epylog
+    # Talk directly to the app server, not haproxy
+    proxyurl: http://log01
+
+  - role: httpd/reverseproxy
+    website: fedoraproject.org
+    destname: freemedia
+    remotepath: /freemedia
+    localpath: /freemedia
+    proxyurl: http://localhost:10011
+
+  - role: httpd/reverseproxy
+    website: geoip.fedoraproject.org
+    destname: geoip
+    proxyurl: http://localhost:10029
