@@ -1,0 +1,36 @@
+- name: Set up those proxy certificates.  Good gravy..
+  hosts: proxies-stg
+  user: root
+  gather_facts: True
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "{{ private }}/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"
+
+  roles:
+
+  - role: httpd/mod_ssl
+    
+  - role: httpd/certificate
+    name: wildcard-2014.fedoraproject.org
+    SSLCertificateChainFile: wildcard-2014.fedoraproject.org.intermediate.cert
+
+  - role: httpd/certificate
+    name: wildcard-2014.id.fedoraproject.org
+    SSLCertificateChainFile: wildcard-2014.id.fedoraproject.org.intermediate.cert
+
+  - role: httpd/certificate
+    name: wildcard-2014.stg.fedoraproject.org
+    SSLCertificateChainFile: wildcard-2014.stg.fedoraproject.org.intermediate.cert
+
+  - role: httpd/certificate
+    name: fedoramagazine.org
+    SSLCertificateChainFile: fedoramagazine.org.intermediate.cert
+
+  - role: httpd/certificate
+    name: getfedora.org
+    SSLCertificateChainFile: getfedora.org.intermediate.cert

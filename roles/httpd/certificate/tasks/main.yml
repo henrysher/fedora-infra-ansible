@@ -1,0 +1,51 @@
+# Expected vars
+# - name...
+# - SSLCertificateChainFile:
+# - cert:
+# - key:
+
+- name: Copy over SSLCertificateChainFile if defined
+  copy: >
+    src={{private}}/httpd/{{SSLCertificateChainFile}}
+    dest=/etc/pki/tls/certs/{{SSLCertificateChainFile}}
+    owner=root
+    group=root
+    mode=0644
+  when: SSLCertificateChainFile is defined
+  notify:
+  - restart httpd
+  tags:
+  - httpd
+  - httpd/certificate
+
+- name: Copy {{name}}.cert
+  copy: >
+    src={{item}}
+    dest=/etc/pki/tls/certs/{{item}}
+    owner=root
+    group=root
+    mode=0644
+  with_first_found:
+  - {{private}}/httpd/{{name}}.cert
+  - {{cert}}
+  notify:
+  - restart httpd
+  tags:
+  - httpd
+  - httpd/certificate
+
+- name: Copy {{name}}.key
+  copy: >
+    src={{item}}
+    dest=/etc/pki/tls/private/{{item}}
+    owner=root
+    group=root
+    mode=0600
+  with_first_found:
+  - {{private}}/httpd/{{name}}.key
+  - {{key}}
+  notify:
+  - restart httpd
+  tags:
+  - httpd
+  - httpd/certificate
