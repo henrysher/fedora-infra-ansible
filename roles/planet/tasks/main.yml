@@ -1,0 +1,46 @@
+---
+# tasks to setup a planet server
+#
+
+- name: add planet group
+  group: name=planet-user gid=104 system=yes state=present
+  tags:
+    - planet_server
+
+- name: add planet user
+  user: name=planet-user uid=104 gid=104 home=/srv/planet comment="People Planet Eater" createhome=yes system=yes shell=/bin/bash
+  tags:
+    - planet_server
+    
+- name: add apache to planet group
+  user: name=apache append=yes groups=planet-user
+  tags:
+    - planet_server
+    
+
+- name: install the planet packages
+  yum:  pkg={{item}} state=present
+  with_items:
+    - venus
+  tags:
+    - planet_server
+
+- name: copy the planet cron job
+  copy: src=planet-cron dest=/etc/cron.d/planet-cron
+  tags:
+    - planet_server
+
+- name: copy the planet http config file
+  copy: src=planet-httpd.conf dest=/etc/httpd/conf.d/planet.conf
+  tags:
+    - planet_server
+
+- name: copy the run planet-config script
+  copy: src=pull-run-planet-config.sh dest=/usr/local/bin/pull-run-planet-config.sh
+  tags:
+    - planet_server
+
+- name: copy the run-planet script
+  copy: src=run-planet.sh dest=srv/planet/config/run-planet
+  tags:
+    - planet_server
