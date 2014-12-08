@@ -1,0 +1,29 @@
+---
+# Tasks to set up varnish
+
+- name: install needed packages
+  yum: pkg={{ item }} state=installed
+  with_items:
+  - varnish
+  tags:
+  - packages
+
+- name: install varnish /etc/sysconfig/varnish
+  copy: src={{ item.file }} dest={{ item.dest }}
+        owner=root group=root
+  with_items:
+  - { file: varnish, dest: /etc/sysconfig/varnish }
+
+- name: install /etc/varnish/default.vcl - stg
+  copy: src={{ item.file }} dest=/etc/varnish/default.vcl
+        owner=root group=root
+  with_items:
+  - proxy.vcl.stg
+  when: env == 'staging'
+
+- name: install /etc/varnish/default.vcl - prod
+  copy: src={{ item.file }} dest=/etc/varnish/default.vcl
+        owner=root group=root
+  with_items:
+  - proxy.vcl
+  when: env != 'staging'
