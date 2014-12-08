@@ -1,0 +1,26 @@
+---
+# Configuration for MirrorManager's crawler
+
+- name: clean yum metadata
+  command: yum clean all
+  tags:
+  - packages
+
+- name: install needed packages
+  yum: pkg={{ item }} state=present
+  with_items:
+  - mirrormanager-crawler
+  tags:
+  - packages
+
+- name: install MM configuration file
+  template: src={{ roles }}/mirrormanager/templates/mirrormanager.cfg
+            dest=/etc/mirrormanager/mirrormanager.cfg
+            mode=600
+  tags:
+  - config
+
+- name: install the cron job
+  copy: src=crawler.cron dest=/etc/cron.d/mm2_crawler.cron
+  tags:
+  - config
