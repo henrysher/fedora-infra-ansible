@@ -1,0 +1,200 @@
+#!/usr/bin/python -tt
+# generate html and rss output files based on ini of torrents.
+# (c) 2007 Seth Vidal - skvidal @ fedoraproject.org
+
+# read in .ini files in a dir
+# take each section from them and assemble an html file and an rss feed of the
+# data contained w/i
+
+# ini files should be:
+# [.torrent file path]
+# description="my description of the torrent"
+# group="Name of group it belongs to"
+# releasedate=2007-10-06
+# size=629M
+# map=http://url/to/map.png
+# group is optional. if not listed group == description
+
+import ConfigParser
+import sys
+import glob
+import time
+
+timeformat = "%Y-%m-%d"
+rssformat = "%a, %d %b %Y %H:%M:%S"
+globconf = '/etc/spins_generator.conf'
+if len(sys.argv) > 1:
+    globconf = sys.argv[1]
+groups = {}
+
+mapicon = 'http://mmcgrath.fedorapeople.org/map.png'
+nomaptext = '&nbsp;'
+
+def outputtime(etime):
+    return time.strftime(timeformat, time.localtime(etime))
+
+def rsstime(etime):
+    return time.strftime(rssformat, time.localtime(etime))
+    
+def do_html_output(config, groups):
+    myout = open(config.htmlout, 'w')
+    head =  open('%s' % config.htmlheader).read()
+    foot =  open('%s' % config.htmlfooter).read()
+    
+    myout.write(head)
+    
+    for group in groups:
+        msg = """
+        <tr>
+          <td colspan="5" class="torrent">%s</td>
+        </tr>
+        """ % group.name
+        myout.write(msg)
+
+        t = group.torrents
+        t.sort()
+        t.reverse()
+        for torrent in t:
+            msg = """
+          <tr>
+          <td><a href="%s/%s">%s</a></td>
+          <td>%s</td>
+          <td>%s</td>
+          <td>%s</td>
+          <td>%s</td>
+         </tr>         
+            """ % (config.torrent_url, torrent.torrent, torrent.torrent, torrent.description, torrent.size, torrent.map, outputtime(torrent.releasedate))
+            myout.write(msg)
+        
+    myout.write(foot)
+    myout.close()
+    
+def do_rss_output(config, groups):
+
+    myout = open(config.rssout, 'w')
+    head =  open('%s' % config.rssheader).read()
+    foot =  open('%s' % config.rssfooter).read()
+    
+    myout.write(head)
+    
+    for group in groups:
+        for torrent in group.torrents:
+            msg = """<item>
+            <title>%s</title>
+            <link>%s/%s</link>
+            <pubDate>%s</pubDate>
+           </item>"""  % (torrent.description, config.torrent_url, torrent.torrent, rsstime(torrent.releasedate))
+            myout.write(msg)
+    myout.write(foot)
+    myout.close()
+    
+    
+class Group(object):
+    def __init__(self, name, date):
+        self.name = name
+        self.releasedate = date
+        self.torrents = []
+    
+    def __cmp__(self, other):
+        if other.releasedate > self.releasedate:
+            return -1
+        if self.releasedate > other.releasedate:
+            return 1
+        
+        return 0
+        
+
+class Torrent(object):
+    def __init__(self):
+        self.torrent = None
+        self.group = None
+        self.releasedate = '1969-01-01'
+        self.size = None
+        self.description = None
+        self.map = None
+
+    def __cmp__(self, other):
+        if other.releasedate > self.releasedate:
+            return -1
+        if self.releasedate > other.releasedate:
+            return 1
+        
+        return 0
+
+
+class Config(object):
+    def __init__(self, cpobj):
+        if not cpobj.has_section('main'):
+            print >> sys.stderr, "no main section in config, exiting"
+            sys.exit(1)
+        try:
+            self.inidir = cpobj.get('main', 'inidir')
+            self.torrent_url = cpobj.get('main', 'torrent_url')
+            self.htmlheader = cpobj.get('main', 'htmlheader')
+            self.htmlfooter = cpobj.get('main', 'htmlfooter')
+            self.rssheader = cpobj.get('main', 'rssheader')
+            self.rssfooter = cpobj.get('main', 'rssfooter')
+            self.htmlout =  cpobj.get('main', 'htmlout')
+            self.rssout = cpobj.get('main', 'rssout')
+        except ConfigParser.NoOptionError, e:
+            print >> sys.stderr, "Config file missing required option: %s" % e
+            sys.exit(1)
+            
+def main():
+
+    conf = ConfigParser.ConfigParser()
+    conf.read(globconf)
+    config = Config(conf)
+    
+    fs = glob.glob(config.inidir + '/*.ini')
+    for fn in fs:
+        c = ConfigParser.ConfigParser()
+        c.read(fn)
+        for s in c.sections():
+            if 'releasedate' not in c.options(s) or 'description' not in c.options(s):
+                print >> sys.stderr,  "bad torrent config for %s" % s
+                continue
+            if c.has_option(s,'group'):
+                g = c.get(s, 'group')
+            else:
+                g = c.get(s, 'description')
+            
+            thisdate = time.mktime(time.strptime(c.get(s, 'releasedate'), timeformat))
+            if groups.has_key(g):
+                thisgroup = groups[g]
+                if thisgroup.releasedate < thisdate:
+                    thisgroup.releasedate = thisdate
+            else:
+                thisgroup = Group(g, thisdate)
+                groups[thisgroup.name] = thisgroup
+           
+            this = Torrent()
+            this.torrent = s
+            this.group = g
+            this.releasedate = thisdate
+            if c.has_option(s, 'size'):
+                this.size = c.get(s, 'size')
+            else:
+                this.size = 'Unknown'
+                
+            this.description = c.get(s, 'description')
+            this.map = nomaptext
+            if c.has_option(s, 'map'):
+                maploc = c.get(s, 'map')
+                this.map = '<a href="%s"><img alt="map" src="%s" /></a>' % (maploc, mapicon)
+            else:
+                this.map = nomaptext
+            
+            thisgroup.torrents.append(this)
+    
+    sortgroups = groups.values()
+    sortgroups.sort()
+    sortgroups.reverse()
+    
+    do_html_output(config, sortgroups)
+    do_rss_output(config, sortgroups)
+    
+        
+if __name__ == "__main__":
+    main()
+    
