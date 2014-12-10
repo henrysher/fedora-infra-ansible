@@ -160,6 +160,7 @@ function sign_message($message_obj) {
   # Step 3) - Stuff it back in the message and return
   $message_obj['signature'] = $signature;
   $message_obj['certificate'] = $cert;
+  $message_obj['crypto'] = 'x509';
 
   return $message_obj;
 }
