@@ -24,6 +24,7 @@
   file: state=directory path=/etc/systemd/system/memcached.service.d mode=0755 owner=root group=root
   tags:
   - memcached
+  when: ansible_distribution == 'RedHat' and ansible_distribution_major_version == '7'
 
 - name: make systemd override config
   copy: src=memcached-systemdoverride.conf dest=/etc/systemd/system/memcached.service.d/
@@ -31,3 +32,4 @@
   - memcached
   notify:
   - reload systemd
+  when: ansible_distribution == 'RedHat' and ansible_distribution_major_version == '7'
