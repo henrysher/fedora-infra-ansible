@@ -16,7 +16,23 @@
   user: name=apache append=yes groups=planet-user
   tags:
     - planet_server
-    
+
+- name: ad planet config directory
+  file: path=/etc/planet state=directory owner=root group=root mode=0775
+  tags:
+    - planet_server
+
+- name: base planet config files
+  copy: src=fpbuilder.conf dest=/etc/planet/fpbuilder.conf mode=0644 owner=root group=root
+  tags:
+    - planet_server
+  
+- name: create planet directory
+  file: path={{ item }} state=directory owner=planet-user group=web mode=0775
+  with_item:
+    - /srv/planet
+    - /srv/planet/site
+    - /srv/planet/config
 
 - name: install the planet packages
   yum:  pkg={{item}} state=present
@@ -44,3 +60,28 @@
   copy: src=run-planet.sh dest=srv/planet/config/run-planet
   tags:
     - planet_server
+
+##
+## This is the area where we put in each sub-planets congfigs
+##
+- name: create sub-planet for {{ argv }}
+  file: path={{ item }} state=directory owner=planet-user group=web mode=0775
+  with_item:
+    - /srv/planet/site/people/
+    - /srv/planet/site/people/css
+    - /srv/planet/site/people/images
+    - /srv/planet/site/people/images/heads
+    - /srv/planet/config/people
+    - /srv/planet/config/people/templates
+  tags:
+    - planet_people    
+
+- name: copy base people config file
+  copy: src=people_base_config dest=/etc/planet/people_base_config
+  tags:
+    - planet_people
+ 
+- name: copy over trees to site
+  copy: src=sub-planets/people/site/css dest=/srv/planet/site/people/css
+  tags:
+    - planet_people
