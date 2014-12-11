@@ -219,6 +219,10 @@ function article_save(
 
   if ( is_object($revision) ) {
     $url = $title->getFullURL('diff=prev&oldid=' . $revision->getId());
+    # And replace the revision with the simplest dict we can.
+    $revision = array(
+      "mTextId" => $revision.getId(),
+    );
   } else {
     $url = $title->getFullURL();
   }
