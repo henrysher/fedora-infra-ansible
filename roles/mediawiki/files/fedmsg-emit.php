@@ -119,6 +119,9 @@ $wgHooks['UploadComplete'][] = 'upload_complete';
 function sign_message($message_obj) {
   global $config;
 
+  # Stuff a little note in there about how we're signing this
+  $message_obj['crypto'] = 'x509';
+
   # This is required so that the string we sign is identical in python and in
   # php.  Ordereddict is used there; ksort here.
   deep_ksort($message_obj);
@@ -160,7 +163,6 @@ function sign_message($message_obj) {
   # Step 3) - Stuff it back in the message and return
   $message_obj['signature'] = $signature;
   $message_obj['certificate'] = $cert;
-  $message_obj['crypto'] = 'x509';
 
   return $message_obj;
 }
