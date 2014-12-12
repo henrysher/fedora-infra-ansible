@@ -11,6 +11,7 @@
   - redis
   tags:
   - packages
+  - packages/web
 
 - name: Create some directories
   file: path={{ item }} state=directory owner=apache group=apache mode=755
@@ -21,6 +22,7 @@
   - /var/log/fedoracommunity
   tags:
   - packages
+  - packages/web
 
 - name: Create some more locked down directories
   file: path={{ item }} state=directory owner=apache group=apache mode=700
@@ -28,6 +30,7 @@
   - /etc/pki/fedoracommunity
   tags:
   - packages
+  - packages/web
 
 - name: Copy over the app config
   template: >
@@ -39,6 +42,7 @@
   - restart fcomm-cache-worker
   tags:
   - packages
+  - packages/web
 
 - name: Copy over the httpd config
   copy: >
@@ -49,6 +53,7 @@
   - restart httpd
   tags:
   - packages
+  - packages/web
 
 - name: Copy over the yum config
   copy: >
@@ -60,6 +65,7 @@
   - restart fcomm-cache-worker
   tags:
   - packages
+  - packages/web
 
 - name: Copy over certs/public-keys, probably for talking with koji.
   copy: >
@@ -73,6 +79,7 @@
   - fedora-upload-ca.cert
   tags:
   - packages
+  - packages/web
 
 - name: permanently hotfix the distmappings file
   copy: >
@@ -84,6 +91,7 @@
   - restart fcomm-cache-worker
   tags:
   - packages
+  - packages/web
 
 - name: start some helper services
   service: name="{{item}}" state=started enabled=yes
@@ -92,6 +100,7 @@
   - fcomm-cache-worker
   tags:
   - packages
+  - packages/web
 
 # Here's the indexer stuff
 - name: Create cache structure
@@ -119,6 +128,7 @@
   when: install_packages_indexer
   tags:
   - packages
+  - packages/web
 
 - name: Copy over the default icon
   copy: >
@@ -128,6 +138,7 @@
   when: install_packages_indexer
   tags:
   - packages
+  - packages/web
   - icon
 
 - name: Copy some scripts for /usr/local
@@ -137,6 +148,7 @@
   when: install_packages_indexer
   tags:
   - packages
+  - packages/web
 
 - name: Copy the indexer cronjobs
   copy: src="{{item}}" dest="/etc/cron.d/{{item}}"
@@ -148,12 +160,14 @@
   when: install_packages_indexer
   tags:
   - packages
+  - packages/web
 
 - name: Confygure Ye Olde Logge Rotatyr
   copy: src=cron_fcomm_log_rotate dest=/etc/logrotate.d/cron_fcomm_log_rotate
   when: install_packages_indexer
   tags:
   - packages
+  - packages/web
 
 
 # Lastly, here's some selinux stuff.
@@ -167,4 +181,5 @@
   - httpd_use_fusefs
   tags:
   - packages
+  - packages/web
   - selinux
