@@ -1,0 +1,35 @@
+RewriteEngine On
+
+# TODO: Are these still necessary?
+RewriteRule ^/CodecBuddy http://fedoraproject.org/wiki/CodecBuddy [NC]
+RewriteRule ^/soc.*$ http://fedoraproject.org/wiki/SummerOfCode [R=301,L]
+
+# Legal redirects
+RewriteRule ^/([^/]+/)?legal/licenses/export https://fedoraproject.org/wiki/Legal:Export [R=301,L]
+RewriteRule ^/([^/]+/)?legal/licenses https://fedoraproject.org/wiki/Legal:Licenses/LicenseAgreement [R=301,L]
+RewriteRule ^/([^/]+/)?legal/trademarks http://fedoraproject.org/wiki/Legal:Trademark_guidelines [R=301,L]
+RewriteRule ^/([^/]+/)?legal https://fedoraproject.org/wiki/Legal:Main [R=301,L]
+
+# Drop distributed web referrer hits
+RewriteCond %{HTTP_REFERER} ^http://.*/feed/index\.php\?pid2=.*&sid2=.*&mb2=.*&partnerid2=.*&redir=.*&multi=.*&aff_id=.*$
+RewriteCond %{HTTP_REFERER} ^http://playdot.net/.*$
+RewriteRule .* - [F]
+
+# Drop connections from .ru site thats spawning thousands of connections at a time. 
+RewriteCond %{REMOTE_ADDR} ^95\.24\.237\.122$
+RewriteRule .* - [F]
+
+# With f20 we dropped this options link
+RewriteRule  ^(/.*)?/get-fedora-options.*$ $1/get-fedora [R=302]
+
+# Comment this when there is a prerelease available
+#RewriteRule  ^(/.*)?/get-prerelease.*$ $1/get-fedora [R=302]
+#RewriteRule  ^(/.*)?/get-spin-prerelease.*$ $1/get-fedora [R=302]
+
+RewriteEngine On
+RewriteCond %{HTTPS} off
+RewriteRule ^/([^/]+/)?(keys|verify)$ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
+
+
+RewriteCond %{HTTP_REFERER} .*fedorproject.*
+RewriteRule .* http://mmcgrath.fedorapeople.org/spam.html [R=301,L]

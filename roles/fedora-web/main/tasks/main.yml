@@ -1,0 +1,71 @@
+
+# TODO -- still port this cronjob
+#    cron { "sync-fedora-web":
+#        # TODO: Make add some locking to this.
+#        command => "/usr/bin/rsync --delete -a --no-owner --no-group bapp02::fedoraproject.org/ /srv/web/fedoraproject.org/",
+#        user    => "root",
+#        minute  => 25,
+#    }
+
+- name: Copy some config files for {{website}}
+  copy: >
+    src={{item}} dest=/etc/httpd/conf.d/{{website}}/{{item}}
+    owner=root group=root mode=0644
+  with_items:
+  - fedora-web.conf
+  - languages.conf
+  - cache.conf
+  - persona.conf
+  - expires.conf
+  - deflate.conf
+  notify:
+  - restart httpd
+  tags:
+  - fedora-web
+  - fedora-web/main
+
+- name: And one template (for {{website}})
+  template: >
+    src={{item}} dest=/etc/httpd/conf.d/{{website}}/{{item}}
+    owner=root group=root mode=0644
+  with_items:
+  - sponsors.conf
+  notify:
+  - restart httpd
+  tags:
+  - fedora-web
+  - fedora-web/main
+
+- name: And, copy over a template for browserid
+  template: >
+    src=browserid.fedoraproject.org dest=/srv/web/browserid.fedoraproject.org
+    owner=root group=root mode=0644
+  notify:
+  - restart httpd
+  tags:
+  - fedora-web
+  - fedora-web/main
+
+# TODO -- turn these into redirects in playbooks/groups/proxies-redirect.yml
+- name: Copy over some miscellaneous redirects (for stg)
+  copy: >
+    src=redirects.conf.stg dest=/etc/httpd/conf.d/{{website}}/redirects.conf
+    owner=root group=root mode=0644
+  when: env == "staging"
+  notify:
+  - restart httpd
+  tags:
+  - fedora-web
+  - fedora-web/main
+
+# TODO -- turn these into redirects in playbooks/groups/proxies-redirect.yml
+- name: Copy over some miscellaneous redirects (for prod) 
+  copy: >
+    src=redirects.conf.prod dest=/etc/httpd/conf.d/{{website}}/redirects.conf
+    owner=root group=root mode=0644
+  when: env != "staging"
+  notify:
+  - restart httpd
+  tags:
+  - fedora-web
+  - fedora-web/main
