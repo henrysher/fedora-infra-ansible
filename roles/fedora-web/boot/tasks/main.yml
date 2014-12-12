@@ -1,0 +1,18 @@
+- name: Copy in the sync-boot cronjob
+  copy: src=cron-sync-boot dest=/etc/cron.d/sync-boot
+  tags:
+  - fedora-web
+  - fedora-web/boot
+
+- name: Copy some config files for {{website}}
+  copy: >
+    src={{item}} dest=/etc/httpd/conf.d/{{website}}/{{item}}
+    owner=root group=root mode=0644
+  with_items:
+  - boot.conf
+  - languages.conf
+  notify:
+  - restart httpd
+  tags:
+  - fedora-web
+  - fedora-web/boot
