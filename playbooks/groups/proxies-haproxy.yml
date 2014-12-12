@@ -1,0 +1,18 @@
+- name: Set up all the haproxy stuff.
+  hosts: proxies-stg
+  user: root
+  gather_facts: True
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "{{ private }}/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"
+
+  roles:
+
+  - role: haproxy/rewrite
+    website: admin.fedoraproject.org
+    path: /haproxy
