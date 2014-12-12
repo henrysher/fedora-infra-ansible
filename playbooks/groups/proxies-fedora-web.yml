@@ -1,0 +1,33 @@
+- name: Set up all that fedora-web goodness.  What a wonder!
+  hosts: proxies-stg
+  user: root
+  gather_facts: True
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "{{ private }}/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"
+
+  roles:
+
+  - role: fedora-web/main
+    website: fedoraproject.org
+  - role: fedora-web/spins
+    website: spins.fedoraproject.org
+  - role: fedora-web/start
+    website: start.fedoraproject.org
+  - role: fedora-web/boot
+    website: boot.fedoraproject.org
+  - role: fedora-web/mirrors
+    website: mirrors.fedoraproject.org
+  - role: fedora-web/community
+    website: fedoracommunity.org
+  - role: fedora-web/fudcon
+    website: fudcon.fedoraproject.org
+  - role: fedora-web/magazine
+    website: fedoramagazine.org
+  - role: fedora-web/getfedora
+    website: getfedora.org
