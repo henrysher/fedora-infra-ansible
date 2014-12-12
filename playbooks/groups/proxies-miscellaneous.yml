@@ -1,0 +1,20 @@
+- name: Set up all the other proxy stuff -- miscellaneous
+  hosts: proxies-stg
+  user: root
+  gather_facts: True
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "{{ private }}/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"
+
+  roles:
+
+  - role: httpd/mime-type
+    website: fedoraproject.org
+    mimetype: image/vnd.microsoft.icon
+    extensions:
+    - .ico
