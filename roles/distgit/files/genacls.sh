@@ -1,7 +1,6 @@
 #!/bin/sh
 
 TEMPDIR=`mktemp -d -p /var/tmp genacls.XXXXX`
-export GL_RC=/etc/gitolite/gitolite.rc
 export GL_BINDIR=/usr/bin
 
 cd $TEMPDIR
