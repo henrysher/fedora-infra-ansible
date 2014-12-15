@@ -1,0 +1,23 @@
+---
+# tasklist for setting up the mirrorlist app components
+# create mirrormanager user
+- name: install packages for mirrorlist
+  yum: pkg={{ item }} state=present
+  with_items:
+  - mirrormanager-mirrorlist
+  tags:
+  - packages
+
+# install mirrorlist-server.conf apache config
+- name: mirrorlist-server apache conf
+  template: src=mirrorlist-server.conf dest=/etc/httpd/conf.d/mirrorlist-server.conf
+  notify:
+  - restart apache
+  tags:
+  - config
+
+# selinux policy - mirrormanager - put in place - for the sockfile
+
+- name: enable httpd
+  service: name=httpd state=started enabled=yes
+
