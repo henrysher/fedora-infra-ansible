@@ -32,6 +32,9 @@
     local_action: add_host hostname={{ item }} groupname=myvms_new
     with_items: vmlist.list_vms
 
+# Call out to another playbook.  Disable any proxies that may live here
+- include: update-proxy-dns.yml status=disable target={{myvms_new}}:&proxies
+
 - name: halt instances
   hosts: myvms_new
   user: root
@@ -100,6 +103,9 @@
     nagios: action=unsilence service=host host={{ inventory_hostname }}
     delegate_to: noc01.phx2.fedoraproject.org
     ignore_errors: true
+
+# Call out to that dns playbook.  Put proxies back in now that they're back
+- include: update-proxy-dns.yml status=enable target={{myvms_new}}:&proxies
 
 - name: Fix unbound if necessary
   # intersection - hosts that are in our dynamic group and also in unbound-dns
