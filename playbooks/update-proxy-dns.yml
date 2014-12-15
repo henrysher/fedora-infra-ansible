@@ -1,0 +1,55 @@
+# Must be called with --extra-vars.  requires:
+#   - target  -- which proxies to change
+#   - status  -- what to do. must be either 'enable' or 'disable'
+#   - userstring -- the git commit userstring for the dns repo
+
+- name: Either take a proxy out of dns or put it back in
+  hosts: "{{ target }}"
+  user: root
+  serial: 1
+  vars_files: 
+   - /srv/web/infra/ansible/vars/global.yml
+   - "{{ private }}/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  vars:
+  - gitdir: /var/tmp/dns-checkout
+  - userstring: "Ansible update-proxy-dns.yml <root@fedoraproject.org>"
+
+  tasks:
+  - name: Clone the dns repo into /var/tmp/
+    local_action: git repo=/git/dns/ dest={{gitdir}}
+
+  - name: Run zone-template to {{status}} {{target}}
+    local_action: command {{gitdir}}/zone-template {{gitdir}}/fedoraproject.org.cfg {{status}} {{ansible_default_ipv4.address}} chdir={{gitdir}}
+
+  - name: Commit once
+    local_action: command git commit -a -m '{{status}} {{inventory_hostname}}' --author '{{userstring}}' chdir={{gitdir}}
+
+  - name: Do domains
+    local_action: command {{gitdir}}/do-domains chdir={{gitdir}}
+
+  - name: Commit second time
+    local_action: command git commit -a -m 'done build' --author '{{userstring}}' chdir={{gitdir}}
+
+  - name: Push our changes back
+    local_action: command git push chdir={{gitdir}}
+  
+  - name: Destroy our temporary clone of /git/dns/ at {{gitdir}}
+    local_action: file dest={{gitdir}} state=absent
+
+- name: Run update-dns on the nameservers
+  hosts: dns
+  user: root
+  vars_files: 
+   - /srv/web/infra/ansible/vars/global.yml
+   - "{{ private }}/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  tasks:
+
+  - name: Run update-dns
+    command: /usr/local/bin/update-dns
+
+  - name: Wait for dns to percolate (5 minutes)
+    pause: minutes=5
