@@ -13,30 +13,33 @@
    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
 
   vars:
-  - gitdir: /var/tmp/dns-checkout
   - userstring: "Ansible update-proxy-dns.yml <root@fedoraproject.org>"
 
   tasks:
-  - name: Clone the dns repo into /var/tmp/
-    local_action: git repo=/git/dns/ dest={{gitdir}}
+  - name: Make up a tempdir..
+    local_action: command mktemp -p /var/tmp -d dns-checkout.XXXXXXXX
+    register: tmp
 
-  - name: Run zone-template to {{status}} {{target}}
-    local_action: command {{gitdir}}/zone-template {{gitdir}}/fedoraproject.org.cfg {{status}} {{ansible_default_ipv4.address}} chdir={{gitdir}}
+  - name: Clone the dns repo into /var/tmp/dns-checkout.....
+    local_action: git repo=/git/dns/ dest={{tmp.stdout}}
+
+  - name: Run zone-template
+    local_action: command {{tmp.stdout}}/zone-template {{tmp.stdout}}/fedoraproject.org.cfg {{status}} {{ansible_default_ipv4.address}} chdir={{tmp.stdout}}
 
   - name: Commit once
-    local_action: command git commit -a -m '{{status}} {{inventory_hostname}}' --author '{{userstring}}' chdir={{gitdir}}
+    local_action: command git commit -a -m '{{status}} {{inventory_hostname}}' --author '{{userstring}}' chdir={{tmp.stdout}}
 
   - name: Do domains
-    local_action: command {{gitdir}}/do-domains chdir={{gitdir}}
+    local_action: command {{tmp.stdout}}/do-domains chdir={{tmp.stdout}}
 
   - name: Commit second time
-    local_action: command git commit -a -m 'done build' --author '{{userstring}}' chdir={{gitdir}}
+    local_action: command git commit -a -m 'done build' --author '{{userstring}}' chdir={{tmp.stdout}}
 
   - name: Push our changes back
-    local_action: command git push chdir={{gitdir}}
+    local_action: command git push chdir={{tmp.stdout}}
   
-  - name: Destroy our temporary clone of /git/dns/ at {{gitdir}}
-    local_action: file dest={{gitdir}} state=absent
+  - name: Destroy our temporary clone of /git/dns/ in /var/tmp/dns-checkout....
+    local_action: file dest={{tmp.stdout}} state=absent
 
 - name: Run update-dns on the nameservers
   hosts: dns
