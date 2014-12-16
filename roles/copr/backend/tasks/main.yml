@@ -136,6 +136,8 @@
   copy: src="delete-forgotten-instances.cron" dest=/etc/cron.daily/delete-forgotten-instances owner=root group=root mode=755
   when: not devel
 
-- name: add  sign machine address into the  sign.conf
-  lineinfile: "dest=/etc/sign.conf regexp='^server' line='server: {{ signer_host }}'"
+- name: install script to kill VMs in error state
+  copy: src="instant-instance-killer.sh" dest="/root/"
 
+- cron: name="kill VMs in error state" minute="*/15"  job="/root/instant-instance-killer.sh"
+  when: not devel
