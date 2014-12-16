@@ -56,7 +56,7 @@ else:
                 emails.append(email_list[user])
             elif user.startswith('group::'):
                 user = user.replace('group::', '')
-                if user in group_mail:
+                if user in group_mail and group_mail[user]:
                     emails.append(group_mail[user])
                 else:
                     print >> sys.stderr, 'Strange user `%s`, not in '\
