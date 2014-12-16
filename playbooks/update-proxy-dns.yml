@@ -1,10 +1,10 @@
 # Must be called with --extra-vars.  requires:
-#   - target  -- which proxies to change
+#   - proxies  -- which proxies to change
 #   - status  -- what to do. must be either 'enable' or 'disable'
 #   - userstring -- the git commit userstring for the dns repo
 
 - name: Either take a proxy out of dns or put it back in
-  hosts: "{{ target }}"
+  hosts: "{{ proxies }}"
   user: root
   serial: 1
   vars_files: 
@@ -44,6 +44,7 @@
 - name: Run update-dns on the nameservers
   hosts: dns
   user: root
+  gather_facts: False
   vars_files: 
    - /srv/web/infra/ansible/vars/global.yml
    - "{{ private }}/vars.yml"
