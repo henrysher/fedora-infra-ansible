@@ -1,5 +1,5 @@
 
-module fi-collectd 1.9.4;
+module fi-collectd 1.10.0;
 
 require {
     type shell_exec_t;
@@ -13,9 +13,12 @@ require {
     type sendmail_exec_t;
     type tmp_t;
     type var_run_t;
+    type anon_inodefs_t;
+    type initrc_t;
+
     class capability { kill setuid dac_read_search sys_ptrace setgid dac_override };
     class dir { getattr read };
-    class file { execute read getattr execute_no_trans ioctl open };
+    class file { execute read write getattr execute_no_trans ioctl open };
     class lnk_file read;
     class sock_file { read write getattr };
     class unix_stream_socket connectto;
@@ -34,3 +37,5 @@ allow collectd_t sendmail_exec_t:file { read getattr open execute execute_no_tra
 allow collectd_t shell_exec_t:file { read open execute };
 allow collectd_t tmp_t:dir read;
 allow collectd_t var_run_t:sock_file { read write getattr };
+allow collectd_t anon_inodefs_t:file { write read };
+allow collectd_t initrc_t:unix_stream_socket connectto;
