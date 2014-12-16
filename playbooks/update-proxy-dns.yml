@@ -41,19 +41,10 @@
   - name: Destroy our temporary clone of /git/dns/ in /var/tmp/dns-checkout....
     local_action: file dest={{tmp.stdout}} state=absent
 
-- name: Run update-dns on the nameservers
-  hosts: dns
-  user: root
-  gather_facts: False
-  vars_files: 
-   - /srv/web/infra/ansible/vars/global.yml
-   - "{{ private }}/vars.yml"
-   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
-
-  tasks:
-
-  - name: Run update-dns
+  - name: Run update-dns on each nameserver
     command: /usr/local/bin/update-dns
+    delegate_to: "{{item}}"
+    with_items: groups.dns
 
   - name: Wait for dns to percolate (5 minutes)
     pause: minutes=5
