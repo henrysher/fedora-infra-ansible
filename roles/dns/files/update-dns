@@ -2,18 +2,21 @@
 dnsgit='https://infrastructure.fedoraproject.org/infra/dns.git'
 destdir='/var/named/master/'
 
-if [ -d $destdir ];
+if [ ! -d $destdir ];
 then
-  cd $destdir
-  git pull -X theirs
-else
   git clone $dnsgit $destdir
 fi
-cd $tmpdir
 
-# change context so the chroot can cope
-chown -R named.named $destdir
-chcon -u system_u $destdir/* $destdir/*/*
-# reload named
-/sbin/service named start >>/dev/null 2>&1
-/sbin/service named reload >>/dev/null 2>&1
+cd $destdir
+git fetch origin
+
+if [ "`git diff origin/master master`" != "" ];
+then
+  git pull -X theirs
+  # change context so the chroot can cope
+  chown -R named.named $destdir
+  chcon -u system_u $destdir/* $destdir/*/*
+  # reload named
+  /sbin/service named start >>/dev/null 2>&1
+  /sbin/service named reload >>/dev/null 2>&1
+fi
