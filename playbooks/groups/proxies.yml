@@ -39,6 +39,8 @@
   - include: "{{ tasks }}/yumrepos.yml"
   - include: "{{ tasks }}/2fa_client.yml"
   - include: "{{ tasks }}/motd.yml"
+  - include: "{{ tasks }}/apache.yml"
+  - include: "{{ tasks }}/mod_wsgi.yml"
 
   handlers:
   - include: "{{ handlers }}/restart_services.yml"
@@ -51,18 +53,17 @@
   # - review-stats::build (bapp0*)
   # - membership-map::build (bapp0*)
   #
-  # - iptables rules for fedmsg inbound
-  # - sebooleans
-  # - semanage_port
-  # - semanagefcontext
   # - geoipwsgi app itself
+  #
+  ## TBD
+  # - sysctl ip_conntrack_max bits  - do we still need this on rhel7?
+  # - semanage ports.. we're likely going to need one for every app.
+  # - sebooleans.. let's try running first, see what gets blocked, and then
+  #                selectively enable where semanage port fails
   #
   ## Not going to do
   # - smolt::proxy -- note going to do this.  smolt is dead.  long live smolt.
   # - domainnotarget stuff - only smolt used this
-  #
-  ## TBD
-  # - sysctl ip_conntrack_max bits  - do we still need this on rhel7?
   #
 
 # After setting up the "basics" of the proxy hosts above, here below we break
@@ -77,3 +78,32 @@
 - include: proxies-fedora-web.yml
 - include: proxies-haproxy.yml
 - include: proxies-miscellaneous.yml
+
+#- name: Some after the after stuff for proxies.
+#  hosts: proxies-stg
+#  user: root
+#  gather_facts: False
+#
+#  vars_files:
+#   - /srv/web/infra/ansible/vars/global.yml
+#   - "{{ private }}/vars.yml"
+#   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+#
+#  tasks:
+#
+#  ## TODO - we should audit each one of these sebooleans to make sure they're
+#  ## really necessary.  The proxies are more forward-facing than other machines
+#  ## so we should take a little more care..
+#  ## Really, before we are generally allowing httpd to do stuff carte blanche,
+#  ## we should lock things down with 'semanage port' first.  See
+#  ## roles/fedmsg/base/ for an example.
+#  #
+#  #- name: Set some sebooleans
+#  #  seboolean: name={{item}} state=true persistent=true
+#  #  with_items:
+#  #  - httpd_can_network_connect_db
+#  #  - httpd_can_network_relay
+#  #  - httpd_can_network_connect
+#  #  - allow_ypbind
+#  #  tags:
+#  #  - selinux

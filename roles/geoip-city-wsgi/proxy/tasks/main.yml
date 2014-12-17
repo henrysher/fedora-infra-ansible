@@ -1,0 +1,25 @@
+- name: Copy in the proxy conf
+  template: >
+    src=geoip-city-wsgi-proxy.conf
+    dest=/etc/httpd/conf.d/{{website}}/geoip-city-wsgi-proxy.conf
+    owner=root group=root mode=0644
+  notify:
+  - restart httpd
+  tags:
+  - geoip-city-wsgi
+  - geoip-city-wsgi/proxy
+
+- name: Make a dir for our fancy about page.  So chic!
+  file: dest=/srv/web/geoip state=directory mode=0644 owner=root group=root
+  tags:
+  - geoip-city-wsgi
+  - geoip-city-wsgi/proxy
+
+- name: "Copy in the fancy about page stuff.  It's like wsgi with geoip aioli"
+  copy: src={{item}} dest=/srv/web/geoip/{{item}} mode=0644 owner=root group=root
+  with_items:
+  - index.html
+  - globe.png
+  tags:
+  - geoip-city-wsgi
+  - geoip-city-wsgi/proxy
