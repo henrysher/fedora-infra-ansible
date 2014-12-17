@@ -20,3 +20,30 @@ fedmsg_certs:
 - service: fedbadges
   owner: root
   group: fedmsg
+
+
+# For the MOTD
+csi_security_category: Low
+csi_primary_contact: Badges admins - sysadmin-badges-members@fedoraproject.org
+csi_purpose: Run fedmsg-hub with the fedbadges plugin to award badges (+ some crons)
+csi_relationship: |
+    fedbadges integrates many different services..
+
+    * The fedbadges fedmsg-hub plugin relies on:
+      * the fedmsg bus, to deliver messages
+      * pkgdb, for queries about who owns what packages
+      * fas, to lookup what irc nick corresponds to what fas user.
+      * db-datanommer for the fedmsg history
+      * db01, for storing badge awards
+
+    * badges-web01 will be expecting to display badges entered into the tahrir
+      db on db01.  So, if badges stop showing up there, the problem is likely
+      here.
+
+    * Locally, of note there exists:
+      * a git repo of badge rules and images to be synced here by ansible
+        to /usr/share/badges/  
+      * a local file cache in /var/tmp/fedbadges-cache.dbm (not memcached, atm)
+      * Furthermore, there are a ton of cronjobs for awarding badges in
+        /usr/share/badges/cronjobs/ that depends on all sorts of third parties
+        (flickr, google+, libravatar, etc..).

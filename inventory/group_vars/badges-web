@@ -25,3 +25,28 @@ fedmsg_certs:
 - service: tahrir
   owner: root
   group: tahrir
+
+
+# For the MOTD
+csi_security_category: Low
+csi_primary_contact: Badges admins - sysadmin-badges-members@fedoraproject.org
+csi_purpose: Run the 'tahrir' mod_wsgi app to display badges.fedoraproject.org
+csi_relationship: |
+    The apache/mod_wsgi app is the only thing really running here
+
+    * This host relies on:
+      * db01 for its database of badge awards (and users, etc..)
+      * a collection of .pngs in /usr/share/badges/pngs put there by ansible
+      * memcached!
+
+    * Conversely, a few things rely on this site:
+      * We have a mediawiki plugin that hits a JSON endpoint to display badges.
+        It should be resilient, but issues in the badges app may cascade into
+        mediawiki issues in the event of faults.
+      * fedora-mobile (the android app) queries the JSON api here.
+      * zodbot has a .badges <username> command that queries the JSON api here.
+      * openbadges.org may call back to this app to verify that badge assertions
+        are really certified by us (this will happen anytime someone exports
+        their fedora badges to the mozilla universe via the tahrir web
+        interface, but may also happen later in the future to ensure we did not
+        revoke such and such badge).
