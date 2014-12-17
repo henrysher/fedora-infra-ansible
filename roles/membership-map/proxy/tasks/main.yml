@@ -1,0 +1,25 @@
+- name: Ensure dir for content exists
+  file: dest=/srv/web/membership-map owner=root group=root mode=0755 state=directory
+  tags:
+  - membership-map
+  - membership-map/proxy
+
+- name: Put the proxy config in place
+  template: >
+    src=membership-map.conf
+    dest=/etc/httpd/conf.d/{{website}}/membership-map.conf
+    owner=root group=root mode=0644
+  notify:
+  - restart httpd
+  tags:
+  - membership-map
+  - membership-map/proxy
+
+- name: Install the sync-membership-map cronjob to pull content from builder
+  copy: >
+    src=sync-membership-map.cron dest=/etc/cron.d/sync-membership-map.cron
+    owner=root group=root mode=0644
+  tags:
+  - cron
+  - membership-map
+  - membership-map/proxy
