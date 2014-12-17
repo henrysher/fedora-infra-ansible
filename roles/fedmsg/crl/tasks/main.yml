@@ -1,0 +1,44 @@
+# fedmsg has a relatively static CRL (certificate revocation list) that  
+# needs to be publicly accessible.  We pull it here from the private     
+# repo and throw it into fedoraproject.org/fedmsg/crl.pem                
+# See http://infrastructure.fedoraproject.org/infra/docs/fedmsg-certs.txt
+
+- name: Ensure dir for content exists
+  file: dest=/srv/web/fedmsg owner=root group=root mode=0755 state=directory
+  tags:
+  - fedmsg
+  - fedmsg/crl
+  - fedmsg/proxy
+
+- name: Copy over our crl from the private repo
+  copy: >
+    src={{private}}/fedmsg-certs/keys/crl.pem dest=/srv/web/fedmsg/crl.pem
+    owner=root group=root mode=0644
+  tags:
+  - fedmsg
+  - fedmsg/crl
+  - fedmsg/proxy
+
+# Also expose the ca cert.  Everybody gets this and can read it.  Public!
+# End users (fedmsg-notify) need it to be able to validate our outbound  
+# messages.                                                              
+- name: Copy over our crl from the private repo
+  copy: >
+    src={{private}}/fedmsg-certs/keys/crl.pem dest=/srv/web/fedmsg/crl.pem
+    owner=root group=root mode=0644
+  tags:
+  - fedmsg
+  - fedmsg/crl
+  - fedmsg/proxy
+
+- name: Put the proxy config in place
+  template: >
+    src=fedmsg.conf
+    dest=/etc/httpd/conf.d/{{website}}/fedmsg.conf
+    owner=root group=root mode=0644
+  notify:
+  - restart httpd
+  tags:
+  - fedmsg
+  - fedmsg/crl
+  - fedmsg/proxy

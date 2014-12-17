@@ -1,0 +1,25 @@
+- name: Ensure dir for content exists
+  file: dest=/srv/web/gather-easyfix owner=root group=root mode=0755 state=directory
+  tags:
+  - easyfix
+  - easyfix/proxy
+
+- name: Put the proxy config in place
+  template: >
+    src=gather-easyfix.conf
+    dest=/etc/httpd/conf.d/{{website}}/gather-easyfix.conf
+    owner=root group=root mode=0644
+  notify:
+  - restart httpd
+  tags:
+  - easyfix
+  - easyfix/proxy
+
+- name: Install the sync-easyfix cronjob to pull content from gatherer
+  copy: >
+    src=sync-easyfix.cron dest=/etc/cron.d/sync-easyfix.cron
+    owner=root group=root mode=0644
+  tags:
+  - cron
+  - easyfix
+  - easyfix/proxy
