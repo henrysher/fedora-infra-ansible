@@ -1,0 +1,25 @@
+- name: Ensure dir for content exists
+  file: dest=/srv/web/review-stats owner=root group=root mode=0755 state=directory
+  tags:
+  - review-stats
+  - review-stats/proxy
+
+- name: Put the proxy config in place
+  template: >
+    src=review-stats.conf
+    dest=/etc/httpd/conf.d/{{website}}/review-stats.conf
+    owner=root group=root mode=0644
+  notify:
+  - restart httpd
+  tags:
+  - review-stats
+  - review-stats/proxy
+
+- name: Install the sync-review-stats cronjob to pull content from builder
+  copy: >
+    src=sync-review-stats.cron dest=/etc/cron.d/sync-review-stats.cron
+    owner=root group=root mode=0644
+  tags:
+  - cron
+  - review-stats
+  - review-stats/proxy
