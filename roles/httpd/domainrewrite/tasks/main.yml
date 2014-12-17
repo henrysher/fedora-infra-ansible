@@ -1,0 +1,22 @@
+# Expected vars
+# - website...
+# - destname..
+# - path..
+# - target..
+# - status..
+
+- name: Copy in domain rewrite for {{destname}} ({{website}}{{path}})
+  template: >
+    src={{item}}
+    dest=/etc/httpd/conf.d/{{website}}/{{destname}}-rewrite.conf
+    owner=root
+    group=root
+    mode=0644
+  with_first_found:
+  - "{{roles}}/httpd/domainrewrite/templates/domainrewrite.{{destname}}.conf"
+  - "{{roles}}/httpd/domainrewrite/templates/domainrewrite.conf"
+  notify:
+  - restart httpd
+  tags:
+  - httpd
+  - httpd/domainrewrite
