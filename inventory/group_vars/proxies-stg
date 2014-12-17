@@ -1,15 +1,57 @@
 ---
-# Define resources for this group of hosts here. 
+# Define resources for this group of hosts here.
 lvm_size: 30000
 mem_size: 8192
 num_cpus: 2
 
+tcp_ports: [
+    # For apache, generally.
+    80,
+    443,
+
+    # This is for rsyncd, wide open to the world.
+    # TODO - We should lock this down into custom rules so that only certain
+    # hosts can rsync stuff here, right?
+    873,
+
+    # This is for the varnish cache, oddly, sitting open to the world.
+    # TODO - We should close this and just have users go through the apache
+    # reverseproxy like they should be doing anyways.
+    6081,
+
+    # This is for the haproxy HTML stats page
+    # TODO -- there's no need for this to be wide open to the world.  With this
+    # in place, you can visit https://apps.fedoraproject.org:8080 and get the
+    # haproxy stats page.  We should close this and just have admins go through
+    # the apache reverseproxy at https://admin.fedoraproject.org/haproxy/proxy1
+    8080,
+
+    # For fedmsg websocket server over stunnel
+    9939,
+    # For fedmsg raw zeromq socket (outbound)
+    9940,
+    # 9941 is closed generally, is for the inbound fedmsg and is covered in
+    # custom_rules
+ ]
 custom_rules: [
     # Need for rsync from log01 for logs.
     '-A INPUT -p tcp -m tcp -s 10.5.126.13 --dport 873 -j ACCEPT',
     '-A INPUT -p tcp -m tcp -s 192.168.1.59 --dport 873 -j ACCEPT',
- ]
 
-tcp_ports: [ 80, 443 ]
+    # Allow koschei.cloud to talk to the inbound fedmsg relay.
+    '-A INPUT -p tcp -m tcp --dport 9941 -s 209.132.184.151 -j ACCEPT',
+    # Allow jenkins.cloud to talk to the inbound fedmsg relay.
+    '-A INPUT -p tcp -m tcp --dport 9941 -s 209.132.184.153 -j ACCEPT',
+    # Allow copr-be.cloud to talk to the inbound fedmsg relay.
+    '-A INPUT -p tcp -m tcp --dport 9941 -s 209.132.184.131 -j ACCEPT',
+    # Also, ppc-composer.qa.fedoraproject.org (secondary arch)
+    '-A INPUT -p tcp -m tcp --dport 9941 -s 209.132.181.33 -j ACCEPT',
+    # Also, ppc-hub.qa.fedoraproject.org (secondary arch koji)
+    '-A INPUT -p tcp -m tcp --dport 9941 -s 209.132.181.21 -j ACCEPT',
+    # Also, s390-hub01.qa.fedoraproject.org (secondary arch)
+    '-A INPUT -p tcp -m tcp --dport 9941 -s 209.132.181.18 -j ACCEPT',
+    # Also, arm-hub01.qa.fedoraproject.org (secondary arch)
+    '-A INPUT -p tcp -m tcp --dport 9941 -s 209.132.181.31 -j ACCEPT',
+ ]
 
 fas_client_groups: sysadmin-noc
