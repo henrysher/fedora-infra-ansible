@@ -1,0 +1,53 @@
+- name: Set up some domain rewrites.
+  hosts: proxies-stg
+  user: root
+  gather_facts: True
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "{{ private }}/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"
+
+  roles:
+
+  - role: httpd/domainrewrite
+    destname: admin
+    website: admin.fedoraproject.org
+    target: https://apps.fedoraproject.org/
+
+  - role: httpd/domainrewrite
+    destname: 00-admin
+    website: admin.fedoraproject.org
+    path: ^/favicon.ico$
+    status: 301
+    target: http://fedoraproject.org/static/images/favicon.ico
+
+  - role: httpd/domainrewrite
+    destname: 00-docs
+    website: docs.fedoraproject.org
+    path: ^/favicon.ico$
+    status: 301
+    target: http://fedoraproject.org/static/images/favicon.ico
+
+  - role: httpd/domainrewrite
+    destname: 00-start
+    website: start.fedoraproject.org
+    path: ^/favicon.ico$
+    status: 301
+    target: http://fedoraproject.org/static/images/favicon.ico
+
+  - role: httpd/domainrewrite
+    destname: translate
+    website: translate.fedoraproject.org
+    # TODO - At some point, this will switch to fedora.zanata.org
+    target: https://fedora.transifex.net/
+
+  - role: httpd/domainrewrite
+    destname: 00-translate-icon
+    website: translate.fedoraproject.org
+    path: ^/favicon.ico$
+    status: 301
+    target: http://fedoraproject.org/static/images/favicon.ico
