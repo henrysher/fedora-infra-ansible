@@ -19,5 +19,3 @@ os.environ['ANITYA_WEB_CONFIG'] = '/etc/anitya/anitya.cfg'
 
 ## The most import line to make the wsgi working
 from anitya.app import APP as application
-application.debug = True
-
