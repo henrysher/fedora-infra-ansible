@@ -45,13 +45,20 @@
     - vim
     - dejavu-s\*
     - fontconfig
-    - java-1.8.0-openjdk
     - httpd
     - openssh-clients
     - git
     - nrpe
     tags:
     - packages
+
+  - name: install java-1.8.0 except on rhel7 for jenkins
+    action: yum state=present pkg={{ item }}
+    with_items:
+    - java-1.8.0-openjdk
+    tags:
+    - packages
+    when: ansible_distribution_major_version != '7'
 
   - name: add jenkins proxy config file for apache
     action: copy src="{{ files }}/jenkins/master/jenkins-apache.conf"
