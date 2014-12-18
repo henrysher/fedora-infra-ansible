@@ -1,0 +1,42 @@
+- name: Copy in the main httpd.conf file for proxy nodes
+  copy: >
+    src=httpd.conf dest=/etc/httpd/conf/httpd.conf
+    owner=root group=root mode=0644
+  notify:
+  - restart httpd
+  tags:
+  - httpd
+  - httpd/proxy
+
+- name: Make sure certain files are gone
+  file: dest=/etc/httpd/conf.d/{{item}} state=absent
+  with_items:
+  - welcome.conf
+  tags:
+  - httpd
+  - httpd/proxy
+
+- name: Copy over some basic configs into /etc/httpd/conf.d/
+  template: >
+    src={{item}} dest=/etc/httpd/conf.d/{{item}}
+    owner=root group=root mode=0644
+  with_items:
+  - forwarded.conf
+  - 00-namevirtualhost.conf
+  - 01-keepalives.conf
+  - headers.conf
+  notify:
+  - restart httpd
+  tags:
+  - httpd
+  - httpd/proxy
+
+- name: And, copy in /etc/sysconfig/httpd
+  copy: >
+    src=sysconfig-httpd dest=/etc/sysconfig/httpd
+    owner=root group=root mode=0644
+  notify:
+  - restart httpd
+  tags:
+  - httpd
+  - httpd/proxy

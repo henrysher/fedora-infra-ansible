@@ -62,7 +62,21 @@
   ## Not going to do
   # - smolt::proxy -- note going to do this.  smolt is dead.  long live smolt.
   # - domainnotarget stuff - only smolt used this
-  #
+
+
+- name: Set up the proxy basics
+  hosts: proxies-stg
+  user: root
+  gather_facts: False
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "{{ private }}/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  roles:
+  - httpd/proxy
+
 
 # After setting up the "basics" of the proxy hosts above, here below we break
 # out the proxy-specific configuration into a couple different sub-playbooks.
