@@ -188,10 +188,10 @@
 
 # vpn certs
 
-- name: copy server cert file over
+- name: copy VPN server cert file over
   copy: >
-   src={{ puppet_private }}/2fa-certs/keys/fas-all.phx2.fedoraproject.org.crt
-   dest=/etc/pki/totpcgi/totpcgi-server.crt
+   src={{ puppet_private }}/2fa-certs/keys/fas-all.vpn.fedoraproject.org.crt
+   dest=/etc/pki/totpcgi/totpcgi-server-vpn.crt
    owner=root
    group=totpcgi
    mode=0640
@@ -200,10 +200,10 @@
   - config
   when: env == "production"
 
-- name: copy server cert file over
+- name: copy VPN server cert file over
   copy: >
-   src={{ puppet_private }}/2fa-certs/keys/fas-all.phx2.fedoraproject.org.key
-   dest=/etc/pki/totpcgi/totpcgi-server.key
+   src={{ puppet_private }}/2fa-certs/keys/fas-all.vpn.fedoraproject.org.key
+   dest=/etc/pki/totpcgi/totpcgi-server-vpn.key
    owner=root
    group=totpcgi
    mode=0640
@@ -212,10 +212,10 @@
   - config
   when: env == "production"
 
-- name: copy server cert file over
+- name: copy VPN server cert file over
   copy: >
-   src=totpcgi-httpd.conf
-   dest=/etc/httpd/conf.d/totpcgi.conf
+   src=totpcgi-httpd.conf.vpn
+   dest=/etc/httpd/conf.d/totpcgi-vpn.conf
    owner=root
    group=root
    mode=0444
@@ -223,9 +223,6 @@
   - files
   - config
   when: env == "production"
-#
-# TODO: vpn certs
-#
 
 - name: copy ca cert over
   copy: >
