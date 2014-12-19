@@ -52,6 +52,9 @@ def search_logs(opts, logfiles):
         timestamp = os.path.basename(os.path.dirname(fn))
         for line in open(fn):
             things = line.split('\t')
+            if len(things) < 5:
+                msg += "(logview error - unhandled line): %r\n" % line
+                continue
             if things[2] in opts.search_terms or 'ANY' in opts.search_terms:
                 slurp = json.loads(things[4])
                 if opts.profile:
