@@ -1,0 +1,13 @@
+- name: Install the fedora-releng-dash package
+  yum: name=fedora-releng-dash state=present
+  tags:
+  - releng-dash
+
+- name: Copy in http config for the releng dashboard
+  copy: >
+    src={{item}} dest=/etc/httpd/conf.d/{{website}}/{{item}}
+    owner=root group=root mode=0644
+  notify:
+  - restart httpd
+  tags:
+  - releng-dash
