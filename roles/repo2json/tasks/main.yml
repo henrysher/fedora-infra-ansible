@@ -1,0 +1,32 @@
+---
+# Configuration for the fedocal webapp
+
+- name: clean yum metadata
+  command: yum clean all
+  tags:
+  - packages
+  - repo2json
+
+- name: Install necessary packages
+  yum: pkg={{ item }} state=present
+  with_items:
+  - python-sqlalchemy0.7
+  - pyliblzma
+  tags:
+  - packages
+  - repo2json
+
+- name: Ensure that the output dir exists
+  file: dest=/srv/web/repojson owner=root group=root mode=0755 state=directory
+  tags:
+  - repo2json
+
+- name: Install the rhel_to_json script and cron
+  copy: src={{ item.file }} dest={{ item.dest }}
+        owner=root group=root mode={{ item.mode }}
+  with_items:
+  - { file: rhel_to_json.py, dest: /usr/bin/local/rhel_to_json.py, mode: 755 }
+  - { file: repo2json.cron, dest: /etc/cron.d/repo2json.cron, mode: 644 }
+  tags:
+  - cron
+  - repo2json
