@@ -1,9 +1,3 @@
-define apps-fp-o::proxy(
-    $website,
-    $path
-) {
-    include httpd::base
-
 - name: Install that apps-fp-o rpm package
   yum: name=apps-fp-o state=present
   tags:
@@ -34,15 +28,3 @@ define apps-fp-o::proxy(
   - restart httpd
   tags:
   - apps-fp-o
-
-    # run commands on file change
-    exec { "/usr/bin/apps-fp-o-yaml2html.py > /srv/web/apps-fp-o/apps-yaml.html":
-        subscribe => File["/usr/share/apps-fp-o/apps.yaml"],
-        refreshonly => true
-    }
-    exec { "/usr/bin/apps-fp-o-yaml2json.py > /srv/web/apps-fp-o/js/data.js":
-        subscribe => File["/usr/share/apps-fp-o/apps.yaml"],
-        refreshonly => true
-    }
-
-}
