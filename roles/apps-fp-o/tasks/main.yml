@@ -1,0 +1,48 @@
+define apps-fp-o::proxy(
+    $website,
+    $path
+) {
+    include httpd::base
+
+- name: Install that apps-fp-o rpm package
+  yum: name=apps-fp-o state=present
+  tags:
+  - apps-fp-o
+
+- name: Copy in the proxy config
+  template: >
+    src=apps.fp.o.conf dest=/etc/httpd/conf.d/{{website}}/apps.fp.o.conf
+    owner=root group=root mode=0644
+  notify:
+  - restart httpd
+  tags:
+  - apps-fp-o
+
+- name: Copy in some global assets used around our apps
+  synchronize: >
+    src=global/ dest=/srv/web/apps-fp-o/global/
+  tags:
+  - apps-fp-o
+
+- name: Copy in our app data yaml
+  template: >
+    src=apps.yaml dest=/usr/share/apps-fp-o/apps.yaml
+    owner=root group=root mode=0644
+  notify:
+  - rebuild apps-fp-o html
+  - rebuild apps-fp-o json
+  - restart httpd
+  tags:
+  - apps-fp-o
+
+    # run commands on file change
+    exec { "/usr/bin/apps-fp-o-yaml2html.py > /srv/web/apps-fp-o/apps-yaml.html":
+        subscribe => File["/usr/share/apps-fp-o/apps.yaml"],
+        refreshonly => true
+    }
+    exec { "/usr/bin/apps-fp-o-yaml2json.py > /srv/web/apps-fp-o/js/data.js":
+        subscribe => File["/usr/share/apps-fp-o/apps.yaml"],
+        refreshonly => true
+    }
+
+}
