@@ -1,6 +1,6 @@
 #!/bin/bash
 
-if [[ "$1" == "org.fedoraproject.prod.buildsys.repo.done" && "$3" == "{{ kojitag }}" ]];then
+if [[ "$1" == "org.fedoraproject.prod.buildsys.repo.done" && "$2" == "{{ kojitag }}" ]];then
     # Let us know when the repo finishes rebuilding, so that we can install *all*
     # documents (based on a slightly fragile match)
     echo "Repo_done::start topic=$1; name=$2; instance=$3 " >> /tmp/fedwatch_{{ kojitag }}.log
