@@ -23,8 +23,8 @@ elif [[ "$1" == "org.fedoraproject.prod.buildsys.untag" ]]; then
             # garbage collector in Koji
             echo "* Skipping the removal of $2-$3-$4, because of garbage collection *" >> /tmp/fedwatch{{ kojitag }}.log
         else
-            echo "* Calling on yum to remove $2-$3-$4 *" >> /tmp/fedwatch{{ kojitag }}.log
-            yum -y remove $2-$3-$4 2>&1 >> /tmp/fedwatch{{ kojitag }}.log
+            echo "* Calling on yum to remove $3-$4 *" >> /tmp/fedwatch{{ kojitag }}.log
+            yum -y remove $3-$4 2>&1 >> /tmp/fedwatch{{ kojitag }}.log
         fi
     else
         echo "* Skipping removal of $2-$3-$4, because it doesn't appear to be a docs package *" >> /tmp/fedwatch{{ kojitag }}.log
