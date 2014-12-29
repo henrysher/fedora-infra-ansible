@@ -129,7 +129,7 @@ MIDDLEWARE_CLASSES = (
     'askbot.middleware.view_log.ViewLogMiddleware',
     'askbot.middleware.spaceless.SpacelessMiddleware',
 {% if env == "staging" %}
-    'stopforumspam.middleware.StopForumSpamMiddleware',
+#    'stopforumspam.middleware.StopForumSpamMiddleware',
 {% endif %}
 )
 
@@ -199,7 +199,7 @@ INSTALLED_APPS = (
     #'avatar',#experimental use git clone git://github.com/ericflo/django-avatar.git$
     'post_office',
 {% if env == "staging" %}
-    'stopforumspam',
+#    'stopforumspam',
 {% endif %}
 )
 
