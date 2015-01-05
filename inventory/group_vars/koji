@@ -1,0 +1,36 @@
+---
+# Define resources for this group of hosts here. 
+lvm_size: 30000
+mem_size: 16384
+num_cpus: 16
+
+# for systems that do not match the above - specify the same parameter in
+# the host_vars/$hostname file
+tcp_ports: [ 80, 443, 111, 2049,
+    # These 8 ports are used by fedmsg.  One for each wsgi thread.
+    3000, 3001, 3002, 3003, 3004, 3005, 3006, 3007]
+
+udp_ports: [ 111, 2049 ]
+
+fas_client_groups: sysadmin-releng
+
+# These are consumed by a task in roles/fedmsg/base/main.yml
+fedmsg_certs:
+- service: shell
+  owner: root
+  group: sysadmin
+- service: koji
+  owner: root
+  group: apache
+
+nfs_mount_opts: "rw,hard,bg,intr,noatime,nodev,nosuid"
+
+virt_install_command: virt-install -n {{ inventory_hostname }} -r {{ mem_size }}
+                 --disk bus=virtio,path={{ volgroup }}/{{ inventory_hostname }}
+                 --vcpus={{ num_cpus }}  -l {{ ks_repo }} -x
+                 "ksdevice=eth0 ks={{ ks_url }} console=tty0 console=ttyS0
+                  hostname={{ inventory_hostname }} nameserver={{ dns }}
+                  ip={{ eth0_ip }}::{{ gw }}:{{ nm }}:{{ inventory_hostname }}:eth0:none
+                  ip={{ eth1_ip }}:::{{ nm }}:{{ inventory_hostname }}-nfs:eth1:none"
+                 --network=bridge=br0,model=virtio --network=bridge=br1,model=virtio
+                 --autostart --noautoconsole
