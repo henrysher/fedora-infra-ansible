@@ -1,10 +1,25 @@
+- name: make releng systems
+  hosts: compose-x86-01.phx2.fedoraproject.org
+  user: root
+  gather_facts: False
 
-- name: Setup arm-releng hosts
-  hosts: arm-releng
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "{{ private }}/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  tasks:
+  - include: "{{ tasks }}/virt_instance_create.yml"
+
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"
+
+- name: Setup releng compose hosts
+  hosts: releng-compose
   user: root
   gather_facts: True
   tags:
-   - arm-releng
+   - releng-compose
 
   vars_files:
    - /srv/web/infra/ansible/vars/global.yml
