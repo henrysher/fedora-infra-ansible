@@ -47,3 +47,17 @@
   - { file: 503.http, dest: /etc/haproxy/503.http }
   tags:
   - haproxy
+
+- name: Install libsemanage-python so we can manage selinux with python...
+  yum: name=libsemanage-python state=installed
+  tags:
+  - haproxy
+  - selinux
+
+- name: Turn on certain selinux booleans so haproxy can bind to ports
+  seboolean: name={{ item }} state=true persistent=true
+  with_items:
+  - haproxy_connect_any
+  tags:
+  - haproxy
+  - selinux
