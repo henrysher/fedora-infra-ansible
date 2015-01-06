@@ -50,12 +50,6 @@
     destname: mailman3
 
   - role: httpd/reverseproxy
-    website: taskotron.stg.fedoraproject.org
-    destname: taskotron
-    # Talk directly to the app server, not haproxy
-    proxyurl: http://taskotron-stg01.qa.fedoraproject.org
-
-  - role: httpd/reverseproxy
     website: meetbot.fedoraproject.org
     destname: meetbot
     remotepath: /meetbot/
@@ -302,6 +296,52 @@
     remotepath: /collectd
     # Talk directly to the app server, not haproxy
     proxyurl: http://log01
+
+  ### Three entries for taskotron for production
+  - role: httpd/reverseproxy
+    website: taskotron.fedoraproject.org
+    destname: taskotron
+    # Talk directly to the app server, not haproxy
+    proxyurl: http://taskotron01.vpn.fedoraproject.org
+
+  - role: httpd/reverseproxy
+    website: taskotron.fedoraproject.org
+    destname: taskotron-resultsdb
+    localpath: /resultsdb
+    remotepath: /resultsdb
+    # Talk directly to the app server, not haproxy
+    proxyurl: http://taskotron01.vpn.fedoraproject.org
+
+  - role: httpd/reverseproxy
+    website: taskotron.fedoraproject.org
+    destname: taskotron-resultsdbapi
+    localpath: /resultsdb_api
+    remotepath: /resultsdb_api
+    # Talk directly to the app server, not haproxy
+    proxyurl: http://taskotron01.vpn.fedoraproject.org
+
+  ### And three entries for taskotron for staging
+  - role: httpd/reverseproxy
+    website: taskotron.stg.fedoraproject.org
+    destname: taskotron
+    # Talk directly to the app server, not haproxy
+    proxyurl: http://taskotron-stg01.qa.fedoraproject.org
+
+  - role: httpd/reverseproxy
+    website: taskotron.stg.fedoraproject.org
+    destname: taskotron-resultsdb
+    localpath: /resultsdb
+    remotepath: /resultsdb
+    # Talk directly to the app server, not haproxy
+    proxyurl: http://taskotron-stg01.qa.fedoraproject.org
+
+  - role: httpd/reverseproxy
+    website: taskotron.stg.fedoraproject.org
+    destname: taskotron-resultsdbapi
+    localpath: /resultsdb_api
+    remotepath: /resultsdb_api
+    # Talk directly to the app server, not haproxy
+    proxyurl: http://taskotron-stg01.qa.fedoraproject.org
 
   # This one gets its own role (instead of httpd/reverseproxy) so that it can
   # copy in some silly static resources (globe.png, index.html)
