@@ -37,6 +37,9 @@
   - name: clean up that temporary {{tempdir}} dir
     file: dest={{tempdir}} state=absent
 
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"
+
 - name: copy new badge art over to the badges web nodes
   hosts: badges-web;badges-web-stg
   user: root
@@ -50,6 +53,9 @@
   roles:
    - badges/frontend
 
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"
+
 - name: copy any new badges rules over to the badges backend and restart it
   hosts: badges-backend;badges-backend-stg
   user: root
@@ -62,3 +68,6 @@
 
   roles:
    - badges/backend
+
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"
