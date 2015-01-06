@@ -7,6 +7,7 @@
   - haproxy
   tags:
   - packages
+  - haproxy
 
 - name: install haproxy/cfg in prod
   copy: src={{ item.file }}
@@ -15,6 +16,8 @@
   with_items:
   - { file: haproxy.cfg, dest: /etc/haproxy/haproxy.cfg }
   when: env != staging
+  tags:
+  - haproxy
 
 - name: install haproxy.cfg in stg
   copy: src={{ item.file }}
@@ -23,6 +26,8 @@
   with_items:
   - { file: haproxy.cfg.stg, dest: /etc/haproxy/haproxy.cfg }
   when: env == staging
+  tags:
+  - haproxy
 
 - name: install limits.conf and 503.http
   copy: src={{ item.file }}
@@ -31,3 +36,5 @@
   with_items:
   - { file: limits.conf, dest: /etc/security/limits.conf }
   - { file: 503.http, dest: /etc/haproxy/503.http }
+  tags:
+  - haproxy
