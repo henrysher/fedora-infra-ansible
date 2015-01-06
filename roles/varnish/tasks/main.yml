@@ -6,6 +6,7 @@
   with_items:
   - varnish
   tags:
+  - varnish
   - packages
 
 - name: install varnish /etc/sysconfig/varnish
@@ -15,6 +16,8 @@
   - { file: varnish, dest: /etc/sysconfig/varnish }
   notify:
   - restart varnish
+  tags:
+  - varnish
 
 - name: install /etc/varnish/default.vcl - stg
   copy: src={{ item }} dest=/etc/varnish/default.vcl
@@ -24,6 +27,8 @@
   when: env == 'staging'
   notify:
   - restart varnish
+  tags:
+  - varnish
 
 - name: install /etc/varnish/default.vcl - prod
   copy: src={{ item }} dest=/etc/varnish/default.vcl
@@ -33,3 +38,5 @@
   when: env != 'staging'
   notify:
   - restart varnish
+  tags:
+  - varnish
