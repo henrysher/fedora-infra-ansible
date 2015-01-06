@@ -13,6 +13,8 @@
         owner=root group=root
   with_items:
   - { file: varnish, dest: /etc/sysconfig/varnish }
+  notify:
+  - restart varnish
 
 - name: install /etc/varnish/default.vcl - stg
   copy: src={{ item }} dest=/etc/varnish/default.vcl
@@ -20,6 +22,8 @@
   with_items:
   - proxy.vcl.stg
   when: env == 'staging'
+  notify:
+  - restart varnish
 
 - name: install /etc/varnish/default.vcl - prod
   copy: src={{ item }} dest=/etc/varnish/default.vcl
@@ -27,3 +31,5 @@
   with_items:
   - proxy.vcl
   when: env != 'staging'
+  notify:
+  - restart varnish
