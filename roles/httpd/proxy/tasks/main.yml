@@ -40,3 +40,13 @@
   tags:
   - httpd
   - httpd/proxy
+
+- name: Turn on certain selinux booleans we need for our proxy layer
+  seboolean: name={{ item }} state=true persistent=true
+  with_items:
+  # We need this for httpd to be able to reverseproxy to other machines.
+  - httpd_can_network_connect
+  tags:
+  - httpd
+  - httpd/proxy
+  - selinux
