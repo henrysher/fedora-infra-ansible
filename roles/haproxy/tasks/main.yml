@@ -61,3 +61,34 @@
   tags:
   - haproxy
   - selinux
+
+# These following four tasks are used for copying over our custom selinux
+# module.
+- name: ensure a directory exists for our custom selinux module
+  file: dest=/usr/share/haproxy state=directory
+  tags:
+  - haproxy
+  - selinux
+
+- name: copy over our general haproxy selinux module
+  copy: src=selinux/fi-haproxy.pp dest=/usr/share/haproxy/fi-haproxy.pp
+  register: fi_haproxy_module
+  tags:
+  - haproxy
+  - selinux
+
+- name: check to see if its even installed yet
+  shell: semodule -l | grep fi-haproxy | wc -l
+  register: fi_haproxy_grep
+  always_run: true
+  changed_when: "'0' in fi_haproxy_grep.stdout"
+  tags:
+  - haproxy
+  - selinux
+
+- name: install our general haproxy selinux module
+  command: semodule -i /usr/share/haproxy/fi-haproxy.pp
+  when: fi_haproxy_module|changed or fi_haproxy_grep|changed
+  tags:
+  - haproxy
+  - selinux
