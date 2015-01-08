@@ -12,6 +12,19 @@ config = {
 
     "fmn.web.default_login": "fedora_login",
 
+    {% if env == 'staging' %}
+    "fas_credentials": {
+        "username": "{{fedoraDummyUser}}",
+        "password": "{{fedoraDummyUserPassword}}",
+        "base_url": "https://admin.stg.fedoraproject.org/accounts",
+    },
+    {% else %}
+    "fas_credentials": {
+        "username": "{{fedoraDummyUser}}",
+        "password": "{{fedoraDummyUserPassword}}",
+    },
+    {% endif %}
+
     # Some configuration for the rule processors
     "fmn.rules.utils.use_pkgdb2": True,
     {% if env == 'staging' %}
