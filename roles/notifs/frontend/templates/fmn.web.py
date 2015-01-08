@@ -11,4 +11,19 @@ config = {
     {% endif %}
 
     "fmn.web.default_login": "fedora_login",
+
+    # Some configuration for the rule processors
+    "fmn.rules.utils.use_pkgdb2": True,
+    {% if env == 'staging' %}
+    "fmn.rules.utils.pkgdb_url": "https://admin.stg.fedoraproject.org/pkgdb/api",
+    {% else %}
+    "fmn.rules.utils.pkgdb_url": "https://admin.fedoraproject.org/pkgdb/api",
+    {% endif %}
+    "fmn.rules.cache": {
+        "backend": "dogpile.cache.dbm",
+        "expiration_time": 3600,  # 3600 is 1 hour
+        "arguments": {
+            "filename": "/var/tmp/fmn-cache.dbm",
+        },
+    },
 }
