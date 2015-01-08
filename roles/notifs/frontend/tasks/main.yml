@@ -92,9 +92,14 @@
   tags:
   - notifs
   - notifs/frontend
+  - selinux
 
-- name: ensure selinux lets httpd talk to postgres
-  seboolean: name=httpd_can_network_connect_db state=yes persistent=yes
+- name: ensure selinux lets httpd talk to postgres and memcached
+  seboolean: name={{item}} state=yes persistent=yes
+  with_items:
+  - httpd_can_network_db
+  - httpd_can_network_memcache
   tags:
   - notifs
   - notifs/frontend
+  - selinux

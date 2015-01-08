@@ -33,10 +33,10 @@ config = {
     "fmn.rules.utils.pkgdb_url": "https://admin.fedoraproject.org/pkgdb/api",
     {% endif %}
     "fmn.rules.cache": {
-        "backend": "dogpile.cache.dbm",
+        "backend": "dogpile.cache.memcached",
         "expiration_time": 3600,  # 3600 is 1 hour
         "arguments": {
-            "filename": "/var/tmp/fmn-cache.dbm",
+            "url": "memcached02:11211",
         },
     },
 }
