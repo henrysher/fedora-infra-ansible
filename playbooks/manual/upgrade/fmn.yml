@@ -7,6 +7,8 @@
    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
   vars:
     testing: False
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"
 
   tasks:
   - name: clean all metadata {%if testing%}(with infrastructure-testing on){%endif%}
@@ -26,6 +28,8 @@
    - /srv/web/infra/ansible/vars/global.yml
    - "/srv/private/ansible/vars.yml"
    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"
 
   pre_tasks:
   - name: tell nagios to shush w.r.t. the frontend
@@ -46,6 +50,8 @@
    - /srv/web/infra/ansible/vars/global.yml
    - "/srv/private/ansible/vars.yml"
    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"
 
   pre_tasks:
   - name: tell nagios to shush w.r.t. the backend
@@ -79,6 +85,8 @@
    - /srv/web/infra/ansible/vars/global.yml
    - "/srv/private/ansible/vars.yml"
    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"
 
   tasks:
   - service: name="httpd" state=started
