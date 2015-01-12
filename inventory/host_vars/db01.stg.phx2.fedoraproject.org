@@ -1,0 +1,46 @@
+---
+nm: 255.255.255.0
+gw: 10.5.126.254
+dns: 10.5.126.21
+eth0_ip: 10.5.126.204
+ks_url: http://10.5.126.23/repo/rhel/ks/kvm-rhel-7
+ks_repo: http://10.5.126.23/repo/rhel/RHEL7-x86_64/
+volgroup: /dev/vg_virthost16
+vmhost: virthost16.phx2.fedoraproject.org
+datacenter: phx2
+
+# This is a generic list, monitored by collectd
+databases:
+- askfedora
+- blockerbugs
+- bodhi
+- elections
+- fedocal
+- fedoratagger
+- kerneltest
+- kittystore
+- mailman
+- mirrormanager
+- notifications
+- nuancier_lite
+- pkgdb2
+- summershum
+- tahrir
+
+# These are normally group variables, but in this case db servers are often different
+lvm_size: 300000
+mem_size: 16384
+num_cpus: 4
+fas_client_groups: sysadmin-dba,sysadmin-noc
+
+#
+# We should narrow this down at some point
+#
+custom_rules: [ '-A INPUT -p tcp -m tcp --dport 5432 -j ACCEPT' ]
+
+#
+# db01 handles lots of apps, could have many procs if they are busy.
+# 
+nrpe_procs_warn: 800
+nrpe_procs_crit: 900
+shared_buffers: "1GB"
