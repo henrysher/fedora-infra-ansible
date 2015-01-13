@@ -138,7 +138,8 @@ class LogMech(object):
         elif self.play_info.get('check', False):    
             category = 'CHECK:' + category
 
-        fd = open(self.logpath_play + '/' + host + '.log', 'a')
+        sanitize_host = host.replace(' ', '_').replace('>', '-')
+        fd = open(self.logpath_play + '/' + sanitize_host + '.log', 'a')
         now = time.strftime(TIME_FORMAT, time.localtime())
         fd.write(MSG_FORMAT % dict(now=now, name=name, count=count, category=category, data=json.dumps(data)))
         fd.close()
