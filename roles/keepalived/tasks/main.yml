@@ -1,0 +1,27 @@
+#
+# role for keepalived
+# This role needs several variables defined:
+#
+# keepalived_interface - interface to listen on
+# keepalived_priority - priority of this host
+# keepalived_ipaddress - virtual ip address on master host
+#
+
+- name: Install keepalived package
+  yum: state=present name=keepalived
+  tags:
+  - packages
+  - keepalived
+
+- name: Install keepalived template
+  template: src=keepalived.conf.j2 dest=/etc/keepalived.conf
+  tags:
+  - config
+  - keepalived
+  notify:
+  - restart keepalived
+
+- name: Make sure keepalived is set to start and is running
+  service: state=running enabled=true name=keepalived
+  - service
+  - keepalived

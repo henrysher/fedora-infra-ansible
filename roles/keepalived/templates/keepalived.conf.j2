@@ -1,0 +1,22 @@
+global_defs {
+   notification_email {
+       admin@fedoraproject.org
+   }
+   notification_email_from keepalived
+   smtp_server 10.5.126.12
+   smtp_connect_timeout 30
+}
+
+vrrp_instance VI_1 {
+  # initial state
+  state BACKUP
+  interface {{ keepalived_interface }}
+  # arbitary unique number 0..255
+  # used to differentiate multiple instances of vrrpd
+  virtual_router_id 17
+  # for electing MASTER, highest priority wins.
+  # to be MASTER, make 50 more than other machines.
+  priority {{ keepalived_priority }}
+  virtual_ipaddress {
+     {{ keepalived_ipaddress }}
+}
