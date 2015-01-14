@@ -25,8 +25,8 @@ config = {
     # This sets up four threads to handle incoming messages.  At the time of
     # this commit, all of our fedmsg daemons are running in single-threaded
     # mode.  If we turn it on globally, we should remove this setting.
-    "moksha.workers_per_consumer": 4,
-    "moksha.threadpool_size": 10,
+    "moksha.workers_per_consumer": 6,
+    "moksha.threadpool_size": 20,
 
     # Some configuration for the rule processors
     "fmn.rules.utils.use_pkgdb2": True,
