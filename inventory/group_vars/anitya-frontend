@@ -1,5 +1,5 @@
 ---
-# Define resources for this group of hosts here. 
+# Define resources for this group of hosts here.
 lvm_size: 20000
 mem_size: 2048
 num_cpus: 2
@@ -28,3 +28,30 @@ fedmsg_certs:
 - service: anitya
   owner: root
   group: apache
+
+
+# For the MOTD
+csi_security_category: Low
+csi_primary_contact: Fedora admins - admin@fedoraproject.org
+csi_purpose: Run the 'anitya' mod_wsgi app for release-monitoring.org
+csi_relationship: |
+    There are a few things running here:
+
+    - The apache/mod_wsgi app for release-monitoring.org
+    - A fedmsg-relay instance for anitya's local fedmsg bus
+
+    - This host relies on:
+      - A postgres db server running on anitya-backend01
+      - Lots of external third-party services.  The anitya webapp can scrape
+        pypi, rubygems.org, sourceforge and many others on command.
+
+    - Things that rely on this host:
+      - The Fedora Infrastructure bus subscribes to the anitya bus published
+        here by the local fedmsg-relay daemon at
+        tcp://release-monitoring.org:9940
+      - the-new-hotness is a fedmsg-hub plugin running in FI on hotness01.  It
+        listens for anitya messages from here and performs actions on koji and
+        bugzilla.
+      - anitya-backend01 expects to publish fedmsg messages via
+        anitya-frontend01's fedmsg-relay daemon.  Access should be restricted by
+        firewall.

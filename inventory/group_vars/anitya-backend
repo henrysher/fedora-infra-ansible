@@ -1,5 +1,5 @@
 ---
-# Define resources for this group of hosts here. 
+# Define resources for this group of hosts here.
 lvm_size: 20000
 mem_size: 8192
 num_cpus: 2
@@ -26,3 +26,24 @@ fedmsg_certs:
 - service: anitya
   owner: root
   group: fedmsg
+
+
+# For the MOTD
+csi_security_category: Low
+csi_primary_contact: Fedora admins - admin@fedoraproject.org
+csi_purpose: Run the 'anitya' backend cronjobs and database server
+csi_relationship: |
+    There are a few things running here:
+
+    - A number of cronjobs that scrape upstreams for new releases
+    - A postgres database server to be used by those crons and by
+      anitya-frontend01
+
+    - This host relies on:
+      - The fedmsg-relay daemon running on anitya-frontend01.
+      - Lots of external third-party services.  The cronjobs make all kinds of
+        requests out to the Internet that can fail in various ways.
+
+    - Things that rely on this host:
+      - The webapps running on anitya-frontend01 relies on the postgres db
+        server running on this node.
