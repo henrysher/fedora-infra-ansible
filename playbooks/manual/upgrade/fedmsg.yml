@@ -1,0 +1,65 @@
+- name: push packages out
+  hosts:
+  - fedmsg-hubs
+  - fedmsg-hubs-stg
+
+  - fedmsg-relays
+  - fedmsg-relays-stg
+
+  - fedmsg-ircs
+  - fedmsg-ircs-stg
+
+  - fedmsg-gateways
+  - fedmsg-gateways-stg
+
+  - moksha-hubs
+  - moksha-hubs-stg
+
+  - notifs-web
+  - notifs-web-stg
+
+  - datagrepper
+  - datagrepper-stg
+
+  user: root
+  vars_files: 
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+  vars:
+    testing: False
+    packages:
+    - fedmsg
+    - python-fedmsg-meta-fedora-infrastructure
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"
+
+  tasks:
+  - name: clean all metadata {%if testing%}(with infrastructure-testing on){%endif%}
+    command: yum clean all {%if testing%} --enablerepo=infrastructure-testing {%endif%}
+    always_run: yes
+  - name: yum update fedmsg packages from the main repo
+    yum: name={{item}} state=latest
+    when: not testing
+    with_items: "{{packages}}"
+  - name: yum update fedmsg packages from testing repo
+    yum: name={{item}} state=latest enablerepo=infrastructure-testing
+    when: testing
+    with_items: "{{packages}}"
+
+# Restart all the backend daemons
+- include: ../restart-fedmsg-services.yml
+
+# Also restart the frontend web services
+- name: bounce apache
+  hosts: notifs-web;notifs-web-stg;datagrepper;datagrepper-stg
+  user: root
+  vars_files: 
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"
+
+  tasks:
+  - service: name="httpd" state=restarted
