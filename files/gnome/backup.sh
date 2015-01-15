@@ -12,7 +12,6 @@ MACHINES='signal.gnome.org
           chooser.gnome.org
           git.gnome.org
           webapps.gnome.org
-          socket.gnome.org
           bugzilla-web.gnome.org
           progress.gnome.org
           clipboard.gnome.org
@@ -30,7 +29,9 @@ MACHINES='signal.gnome.org
           accelerator.gnome.org
           range.gnome.org
           pentagon.gimp.org
-          account.gnome.org'
+          account.gnome.org
+          bugzilla-new.gnome.org
+          socket.gnome.org'
 
 BACKUP_DIR='/fedora_backups/gnome/'
 LOGS_DIR='/fedora_backups/gnome/logs'
