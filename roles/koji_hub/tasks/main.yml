@@ -10,6 +10,7 @@
   - koji-web
   - koji-utils
   - koji-theme-fedora
+  - kojira
   - mod_ssl
   - mod_wsgi
   - git
@@ -201,3 +202,40 @@
   tags:
   - service
   - koji_hub
+
+- name: Make sure kojira is set to not run on boot (controlled by keepalived)
+  service: name=kojira enabled=no
+  tags:
+  - service
+  - koji_hub
+
+- name: install cert for oscar (garbage collector) user
+  copy: src={{ puppet_private }}/koji/gc/oscar_key_and_cert.pem dest=/etc/koji-gc/client.crt
+  tags:
+  - koji_hub
+
+- name: install serverca cert for oscar (garbage collector) user
+  copy: src={{ puppet_private }}/fedora-ca.cert dest=/etc/koji-gc/serverca.crt
+  tags:
+  - koji_hub
+
+- name: install clientca cert for oscar (garbage collector) user
+  copy: src={{ puppet_private }}/fedora-ca.cert dest=/etc/koji-gc/clientca.crt
+  tags:
+  - koji_hub
+
+- name: install koji-gc.conf
+  file: src=koji-gc.conf dest=/etc/koji-gc/koji-gc.conf
+  tags:
+  - koji_hub
+
+- name: install cron jobs to be used by keepalived later
+  copy: src={{ item }} dest=/usr/local/etc/{{ item }}
+  with_items:
+  - koji-directory-cleanup
+  - koji-gc
+  - koji-prunesigs
+  tags:
+  - files
+  - koji_hub
+

@@ -21,6 +21,15 @@
   notify:
   - restart keepalived
 
+- name: Install keepalived failover script for host (or default)
+  copy: src={{ item }} dest=/usr/local/bin/keepalived-notify.sh mode=755
+  with_first_found:
+    - keepalived-notify.sh.{{ ansible_fqdn }}
+    - keepalived-notify.sh
+  tags:
+  - config
+  - keepalived
+
 - name: Make sure keepalived is set to start and is running
   service: state=running enabled=true name=keepalived
   tags:
