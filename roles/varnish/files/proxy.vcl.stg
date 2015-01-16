@@ -118,6 +118,12 @@ backend paste {
     .port = "10027";
 }
 
+backend mirrormanager2 {
+    .host = "localhost";
+    .port = "10039";
+}
+
+
 #acl purge {
 #    "192.168.1.3";
 #    "192.168.1.4";
@@ -170,6 +176,9 @@ sub vcl_recv {
     }
     if (req.url ~ "^/mirrormanager/") {
         set req.backend_hint = mirrormanager;
+    }
+    if (req.url ~ "^/mirrormanager2/") {
+        set req.backend_hint = mirrormanager2;
     }
     if (req.url ~ "^/updates/") {
         set req.backend_hint = bodhi;

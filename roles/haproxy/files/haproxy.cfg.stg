@@ -169,6 +169,11 @@ listen  kerneltest 0.0.0.0:10038
     server  kerneltest01 kerneltest01:80 check inter 10s rise 1 fall 2
     option httpchk GET /kerneltest
 
+listen  mirrormanager2 0.0.0.0:10039
+    balance hdr(appserver)
+    server  mm-frontend01 mm-frontend01:80 check inter 60s rise 2 fall 3
+    option  httpchk GET /mirrormanager2
+
 # Apache doesn't handle the initial connection here like the other proxy
 # entries.  This proxy also doesn't use the http mode like the others.
 # stunnel should be sitting on port 9939 (public) and redirecting
