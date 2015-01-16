@@ -9,7 +9,7 @@ global_defs {
 
 vrrp_instance VI_1 {
   # initial state
-  state BACKUP
+  state MASTER
   interface {{ keepalived_interface }}
   # arbitary unique number 0..255
   # used to differentiate multiple instances of vrrpd
@@ -17,7 +17,14 @@ vrrp_instance VI_1 {
   # for electing MASTER, highest priority wins.
   # to be MASTER, make 50 more than other machines.
   priority {{ keepalived_priority }}
+  #
+  # On master/backup changes, add/remove cron jobs and kojira
+  #
   notify /usr/local/bin/keepalived-notify.sh
+  #
+  # On stop/shutdown, do the same things as moving to MASTER
+  #
+  notify_stop "/usr/local/bin/keepalived-notify.sh type VI_1 MASTER PRI"
   virtual_ipaddress {
      {{ keepalived_ipaddress }}
   }
