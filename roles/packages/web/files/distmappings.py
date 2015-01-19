@@ -9,10 +9,6 @@ tags = ({'name': 'Rawhide', 'tag': 'f22'},
         {'name': 'Fedora 20', 'tag': 'f20'},
         {'name': 'Fedora 20 Testing', 'tag': 'f20-updates-testing'},
 
-        {'name': 'Fedora 19', 'tag': 'f19-updates'},
-        {'name': 'Fedora 19', 'tag': 'f19'},
-        {'name': 'Fedora 19 Testing', 'tag': 'f19-updates-testing'},
-
         {'name': 'EPEL 7', 'tag': 'epel7'},
         {'name': 'EPEL 7 Testing', 'tag': 'epel7-testing'},
 
