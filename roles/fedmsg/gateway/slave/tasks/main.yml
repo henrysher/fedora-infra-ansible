@@ -8,12 +8,19 @@
   - stunnel
   tags:
   - packages
+  - fedmsg/gateway
+  - fedmsg/gateway/slave
 
 - name: Drop endpoints.py and gateway.py from fedmsg
   file: name={{ item }} state=absent
   with_items:
   - /etc/fedmsg.d/endpoints.py
   - /etc/fedmsg.d/gateway.py
+  tags:
+  - fedmsgdconfig
+  - fedmsg
+  - fedmsg/gateway
+  - fedmsg/gateway/slave
 
 - name: install /etc/fedmsg.d/fedmsg-gateway-slave.py
   template: src={{ item.file }}
@@ -21,6 +28,11 @@
             owner=root group=root mode=0644
   with_items:
   - { file: fedmsg-gateway-slave.py.j2, dest: /etc/fedmsg.d/fedmsg-gateway-slave.py }
+  tags:
+  - fedmsgdconfig
+  - fedmsg
+  - fedmsg/gateway
+  - fedmsg/gateway/slave
 
 
 # Stunnel specific bits
@@ -29,11 +41,17 @@
   file: path=/etc/{{ item }} state=directory
   with_items:
   - stunnel
+  tags:
+  - fedmsg/gateway
+  - fedmsg/gateway/slave
 
 - name: install stunnel init file || TODO = convert it to systemD
   copy: src=stunnel.init
         dest=/etc/init.d/stunnel/
         owner=root group=root mode=0755
+  tags:
+  - fedmsg/gateway
+  - fedmsg/gateway/slave
 
 - name: install stunnel.conf
   template: src={{ item.file }}
@@ -45,3 +63,6 @@
   - service: "websockets"
   - source_port: 9939
   - destination_port: 9938
+  tags:
+  - fedmsg/gateway
+  - fedmsg/gateway/slave
