@@ -187,7 +187,7 @@ def main():
 
     for el in PATHS:
 
-        output = {}
+        output = {'packages': {}, 'arches': []}
 
         dbfiles = find_primary_sqlite(PATHS[el])
 
@@ -208,14 +208,18 @@ def main():
             cnt = 0
             new = 0
             for pkg in session.query(Package).all():
-                if pkg.basename in output:
-                    if pkg.arch not in output[pkg.basename]['arch']:
-                        output[pkg.basename]['arch'].append(pkg.arch)
+                if pkg.basename in output['packages']:
+                    if pkg.arch not in output['packages'][
+                            pkg.basename]['arch']:
+                        output['packages'][pkg.basename]['arch'].append(
+                            pkg.arch)
+                    if pkg.arch not in output['arches']:
+                        output['arches'].append(pkg.arch)
                     # TODO: checks if the evr is more recent or not
                     # (and update if it is)
                 else:
                     new += 1
-                    output[pkg.basename] = {
+                    output['packages'][pkg.basename] = {
                         'arch': [pkg.arch],
                         'epoch': pkg.epoch,
                         'version': pkg.version,
@@ -225,7 +229,8 @@ def main():
             print '%s packages in %s' % (cnt, cur_fold)
             print '%s packages were new packages' % (new)
 
-        print '\n%s packages retrieved in %s' % (len(output), el)
+        print '\n%s packages retrieved in %s' % (len(output['packages']), el)
+        print '%s arches for in %s' % (len(output['arches']), el)
         outputfile = 'pkg_%s.json' % el
         with open(outputfile, 'w') as stream:
             stream.write(json.dumps(output))
