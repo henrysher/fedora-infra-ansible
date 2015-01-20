@@ -36,15 +36,12 @@ config = {
     "fmn.rules.utils.pkgdb_url": "https://admin.fedoraproject.org/pkgdb/api",
     {% endif %}
     "fmn.rules.cache": {
-        "backend": "dogpile.cache.dbm",
+        "backend": "dogpile.cache.memory",
         # 28800 is 8 hours.. a really long time.
         # As of this commit:  http://da.gd/oZBe that should be okay, because our
         # backend should intelligently invalidate its pkgdb2 cache if it
         # receives a pkgdb2 message.
         "expiration_time": 28800,
-        "arguments": {
-            "filename": "/var/tmp/fmn-cache.dbm",
-        },
     },
 
     # The notification backend uses this to build a fas cache of ircnicks
