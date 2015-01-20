@@ -53,7 +53,9 @@ def main(resultsdb_url, frontend_url, timeparam):
     output += "To:           " + to_time + "\n\n"
     output += "Executed checks:\n----------------\n"
     for check in together.keys():
-        output += "%s: %d (%d %% failed)\n" % (check, together[check], int(round((failed_types[check] * 100.0) / together[check])))
+        failed_count = failed_types.get(check, 0)
+        failed_percent = int(round((failed_count * 100.0) / together[check]))
+        output += "%s: %d (%d %% failed)\n" % (check, together[check], failed_percent)
     output += "\nTotal: %d executed, %d failed\n\n" % (passed + failed, failed)
     output += "Links to failed checks:\n-----------------------\n"
     for failed_check in failed_types.keys():
