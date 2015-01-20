@@ -43,7 +43,7 @@ config = {
         # receives a pkgdb2 message.
         "expiration_time": 28800,
         "arguments": {
-            "filename": "/var/tmp/fmn-cache.dbm",
+            "filename": "/dev/shm/fmn-cache.dbm",
         },
     },
 
