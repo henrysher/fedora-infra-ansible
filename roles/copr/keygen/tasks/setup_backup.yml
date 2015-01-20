@@ -1,12 +1,11 @@
 - name: ensure /backup dir
   file: path=/backup state=directory
 
-#- name: copy pubkey for backup encryption
-#  copy: src="{{ private }}/files/copr/keygen/backup_key.asc" dest="/root/backup_key.asc"
-#
-#- name: import pubkey for backup encryption
-#  shell: "gpg2 --import /root/backup_key.asc || true"
-#
-#- name: copy backup script
-#  copy: src="backup_keyring.sh" dest="/etc/cron.daily/backup_keyring.sh" owner=root group=root mode=755
+- name: copy pubkey for backup encryption
+  copy: src="{{ private }}/files/copr/keygen/backup_key.asc" dest="/root/backup_key.asc"
 
+- name: import pubkey for backup encryption
+  shell: "gpg2 --import /root/backup_key.asc || true"
+
+- name: copy backup script
+  copy: src="backup_keyring.sh" dest="/etc/cron.hourly/backup_keyring.sh" owner=root group=root mode=755
