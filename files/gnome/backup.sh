@@ -17,7 +17,6 @@ MACHINES='signal.gnome.org
           clipboard.gnome.org
           cloud-ssh.gnome.org
           bastion.gnome.org
-          spinner.gnome.org
           master.gnome.org
           combobox.gnome.org
           restaurant.gnome.org
