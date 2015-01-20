@@ -119,7 +119,7 @@ config = dict(
             {% endif %}
             channel='#fedora-design',
             filters=dict(
-                body=['^((?!fedora-badges).)*$'],
+                body=['^((?!(fedora-badges|design-team|fedoradesign)).)*$'],
             ),
         ),
 
