@@ -288,8 +288,10 @@ def html_message_formatter(mode, name, build, results, master_status):
             content = log.getText().splitlines() # Note: can be VERY LARGE
 
             if step.getName() == 'runtask':
-                taskname = re.search("task=\['(.*)\.yml'\]", ''.join(content[0:3])).group(1)
-                text.insert(0, '<h4>Task name: %s</h4>' % taskname.upper())
+                found = re.search("task=\['(.*)\.yml'\]", ''.join(content[0:5]))
+                if found:
+                    taskname = found.group(1)
+                    text.insert(0, '<h4>Task name: %s</h4>' % taskname.upper())
 
             url = u'%s/steps/%s/logs/%s' % (master_status.getURLForThing(build),
                                            log.getStep().getName(), log.getName())
