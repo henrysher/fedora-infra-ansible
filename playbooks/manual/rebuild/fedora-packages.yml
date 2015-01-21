@@ -22,6 +22,11 @@
     pause: seconds=30 prompt="Destroying xapian index.  Abort?"
     when: install_packages_indexer
 
+  - name: tell nagios to shush for these hosts
+    nagios: action=downtime minutes=300 service=host host={{ inventory_hostname }}
+    delegate_to: noc01.phx2.fedoraproject.org
+    ignore_errors: true
+
   - name: bring down the services that use it
     service: name={{item}} state=stopped
     with_items:
@@ -84,3 +89,8 @@
     with_items:
     - httpd
     - fcomm-cache-worker
+
+  - name: tell nagios to start bothering us again
+    nagios: action=unsilence service=host host={{ inventory_hostname }}
+    delegate_to: noc01.phx2.fedoraproject.org
+    ignore_errors: true
