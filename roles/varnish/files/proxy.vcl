@@ -157,49 +157,97 @@ sub vcl_recv {
     }
     if (req.url ~ "^/w/") {
         set req.backend_hint = wiki;
-    }
-    if (req.url ~ "^/pkgdb/appicon/show/") {
-        set req.backend_hint = pkgdb;
-        unset req.http.cookie;
+        if (req.url ~ "^/w/skins/") {
+            unset req.http.cookie;
+            set req.url = regsub(req.url, "\?.*", "");
+        }
     }
     if (req.url ~ "^/mirrorlist/") {
         set req.backend_hint = mirrorlists;
     }
     if (req.url ~ "^/pkgdb") {
         set req.backend_hint = pkgdb;
+        if (req.url ~ "^/pkgdb/static/") {
+            unset req.http.cookie;
+            set req.url = regsub(req.url, "\?.*", "");
+        }
     }
     if (req.url ~ "^/accounts/") {
         set req.backend_hint = fas.backend();
+        if (req.url ~ "^/accounts/static/") {
+            unset req.http.cookie;
+            set req.url = regsub(req.url, "\?.*", "");
+        }
     }
     if (req.url ~ "^/voting/") {
         set req.backend_hint = voting;
+        if (req.url ~ "^/voting/static/") {
+            unset req.http.cookie;
+            set req.url = regsub(req.url, "\?.*", "");
+        }
     }
     if (req.url ~ "^/mirrormanager/") {
         set req.backend_hint = mirrormanager;
+        if (req.url ~ "^/mirrormanager/static/") {
+            unset req.http.cookie;
+            set req.url = regsub(req.url, "\?.*", "");
+        }
     }
     if (req.url ~ "^/mirrormanager2/") {
         set req.backend_hint = mirrormanager2;
     }
     if (req.url ~ "^/updates/") {
         set req.backend_hint = bodhi;
+        if (req.url ~ "^/updates/static/") {
+            unset req.http.cookie;
+            set req.url = regsub(req.url, "\?.*", "");
+        }
     }
     if (req.url ~ "^/freemedia/") {
         set req.backend_hint = freemedia;
     }
     if (req.url ~ "^/packages/") {
         set req.backend_hint = packages;
+        if (req.url ~ "^/packages/_res/") {
+            unset req.http.cookie;
+            set req.url = regsub(req.url, "\?.*", "");
+        }
+        if (req.url ~ "^/packages/css/") {
+            unset req.http.cookie;
+            set req.url = regsub(req.url, "\?.*", "");
+        }
     }
     if (req.url ~ "^/tagger/") {
         set req.backend_hint = tagger;
+        if (req.url ~ "^/tagger/ui/static/") {
+            unset req.http.cookie;
+            set req.url = regsub(req.url, "\?.*", "");
+        }
     }
     if (req.url ~ "^/calendar") {
         set req.backend_hint = fedocal;
+        if (req.url ~ "^/calendar/static/") {
+            unset req.http.cookie;
+            set req.url = regsub(req.url, "\?.*", "");
+        }
     }
     if (req.url ~ "^/kerneltest") {
         set req.backend_hint = kerneltest;
+        if (req.url ~ "^/kerneltest/static/") {
+            unset req.http.cookie;
+            set req.url = regsub(req.url, "\?.*", "");
+        }
     }
     if (req.http.X-Forwarded-Server ~ "^paste.fedoraproject.org") {
         set req.backend_hint = paste;
+        if (req.url ~ "^/skins/") {
+            unset req.http.cookie;
+            set req.url = regsub(req.url, "\?.*", "");
+        }
+        if (req.url ~ "^/addons/") {
+            unset req.http.cookie;
+            set req.url = regsub(req.url, "\?.*", "");
+        }
     }
     if (req.http.X-Forwarded-Server ~ "^ask.fedoraproject.org") {
         set req.backend_hint = askbot;
@@ -211,6 +259,10 @@ sub vcl_recv {
     if (req.http.X-Forwarded-Server ~ "^qa.fedoraproject.org") {
         if (req.url ~ "^/blockerbugs") {
              set req.backend_hint = blockerbugs;
+            if (req.url ~ "^/blockerbugs/static/") {
+                unset req.http.cookie;
+                set req.url = regsub(req.url, "\?.*", "");
+            }
         }
     }
 
