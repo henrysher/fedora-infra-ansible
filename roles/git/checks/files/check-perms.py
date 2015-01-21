@@ -317,7 +317,7 @@ def check_update_hooks(gitdir, fix=False):
     If it isn't, and if `fix` is True, this actually fixes the problem.
     """
     chained_hooks_dir = os.path.join(gitdir, 'hooks', 'update-chained.d')
-    chained_hooks = {'update-gitolite': '/usr/share/gitolite/hooks/common/update',
+    chained_hooks = {'update-gitolite': '/etc/gitolite/hooks/common/update',
                      'update-block-push-origin': '/usr/share/git-core/update-block-push-origin',
                      }
 
