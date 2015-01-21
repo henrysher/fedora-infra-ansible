@@ -9,16 +9,6 @@ tcp_ports: [
     80,
     443,
 
-    # This is for rsyncd, wide open to the world.
-    # TODO - We should lock this down into custom rules so that only certain
-    # hosts can rsync stuff here, right?
-    873,
-
-    # This is for the varnish cache, oddly, sitting open to the world.
-    # TODO - We should close this and just have users go through the apache
-    # reverseproxy like they should be doing anyways.
-    6081,
-
     # This is for the haproxy HTML stats page
     # TODO -- there's no need for this to be wide open to the world.  With this
     # in place, you can visit https://apps.fedoraproject.org:8080 and get the
@@ -37,6 +27,11 @@ custom_rules: [
     # Need for rsync from log01 for logs.
     '-A INPUT -p tcp -m tcp -s 10.5.126.13 --dport 873 -j ACCEPT',
     '-A INPUT -p tcp -m tcp -s 192.168.1.59 --dport 873 -j ACCEPT',
+    '-A INPUT -p tcp -m tcp -s 209.132.181.102 --dport 873 -j ACCEPT',
+
+    # only allow varnish from localhost
+    '-A INPUT -p tcp -m tcp -s 127.0.0.1 --dport 6081 -j ACCEPT',
+    '-A INPUT -p tcp -m tcp -s 127.0.0.1 --dport 6082 -j ACCEPT',
 
     # Allow koschei.cloud to talk to the inbound fedmsg relay.
     '-A INPUT -p tcp -m tcp --dport 9941 -s 209.132.184.151 -j ACCEPT',
