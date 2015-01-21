@@ -133,6 +133,17 @@
   tags:
   - nagios_client
 
+- name: install nrpe checks for proxies
+  template: src={{ item }}.j2 dest=/etc/nrpe.d/{{ item }}
+  with_items:
+  - check_happroxy_conns.cfg 
+  - check_varnish_proc.cfg
+  when: inventory_hostname.startswith('proxy')
+  notify:
+  - restart nrpe
+  tags:
+  - nagios_client
+
 - name: nrpe service start
   service: name=nrpe state=running enabled=true
   tags:
