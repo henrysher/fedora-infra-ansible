@@ -27,7 +27,7 @@ config = {
     # mode.  If we turn it on globally, we should remove this setting.
     "moksha.workers_per_consumer": 4,
     "moksha.threadpool_size": 12,
-    "fmn.processes": 4
+    "fmn.processes": 4,
 
     # Some configuration for the rule processors
     "fmn.rules.utils.use_pkgdb2": True,
