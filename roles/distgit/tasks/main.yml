@@ -162,8 +162,9 @@
   copy: src=fedmsg-genacls-config.py dest=/etc/fedmsg.d/genacls.py owner=root group=root mode=0644
 
 - name: List the users having a shell access
-  file: dest=/etc/gitolite/admins, owner=gen-acls, group=packager, mode=660, state=file
-  with_lines:
+  lineinfile: dest=/etc/gitolite/admins, owner=gen-acls, group=packager,
+              mode=660, state=present, line={{ item.line }}
+  with_items:
   - /srv/web/infra/ansible/scripts/users-from-fas @sysadmin-main {{ root_auth_users }}
   tags:
   - config
