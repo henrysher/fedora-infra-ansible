@@ -1,0 +1,21 @@
+SECRET_KEY = '{{ blockerbugs_secret_key }}'
+SQLALCHEMY_DATABASE_URI = 'postgresql+psycopg2://{{ blockerbugs_app }}:{{ blockerbugs_appPassword }}@db-blockerbugs/blockerbugs'
+FAS_ADMIN_GROUP = "qa-admin"
+FAS_USER = "{{ blockerbugs_fas_user }}@fedoraproject.org"
+FAS_PASSWORD = "{{ blockerbugs_fas_password }}"
+{% if env == "staging" %}
+FAS_FLASK_COOKIE_REQUIRES_HTTPS = False
+FAS_CHECK_CERT = False
+PRODUCTION = False
+BUGZILLA_URL = 'https://partner-bugzilla.redhat.com/'
+{% else %}
+BUGZILLA_URL = 'https://bugzilla.redhat.com/'
+{% endif %}
+BUGZILLA_XMLRPC = BUGZILLA_URL + 'xmlrpc.cgi'
+KOJI_URL = "http://koji.fedoraproject.org/"
+FILE_LOGGING = False
+SYSLOG_LOGGING = True
+STREAM_LOGGING = False
+
+# to fix login issue for folks who are part of many FAS groups
+PREFERRED_URL_SCHEME='https'

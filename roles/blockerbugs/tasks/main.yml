@@ -1,0 +1,52 @@
+---
+- name: install needed packages for blockerbugs
+  yum: state=present name={{ item }} enablerepo=epel-testing
+  with_items:
+  - python-psycopg2
+  - python-kitchen
+  - python-alembic
+  - python-flask-wtf
+  - python-flask
+  - python-sqlalchemy
+  - python-fedora-flask
+  - python-wtforms
+  - python-fedora
+  - pytest
+  - python-lxml
+  - python-flask-sqlalchemy
+  - python-bugzilla
+  - blockerbugs
+  tags:
+  - packages
+  - blockerbugs
+
+- name: setup blockerbugs apache conf
+  copy: src=blockerbugs.conf dest=/etc/httpd/conf.d/blockerbugs.conf mode=644
+  notify:
+  - restart httpd
+  tags:
+  - config
+  - httpd
+  - blockerbugs
+
+- name: setup blockerbugs app settings file
+  template: src=blockerbugs-settings.py.j2 dest=/etc/blockerbugs/settings.py mode=644
+  notify:
+  - restart httpd
+  tags:
+  - config
+  - httpd
+  - blockerbugs
+
+- name: set sebooleans so blockerbugs can talk to the db
+  seboolean: name=httpd_can_network_connect_db state=true persistent=true
+  tags:
+  - config
+  - blockerbugs
+
+- name: setup blockerbugs cron (master node only)
+  copy: src=blockerbugs.cron dest=/etc/cron.d/blockerbugs
+  when: master_blockerbugs_node
+  tags:
+  - config
+  - blockerbugs
