@@ -160,15 +160,23 @@
 
 - name: install the fedmsg configuration
   copy: src=fedmsg-genacls-config.py dest=/etc/fedmsg.d/genacls.py owner=root group=root mode=0644
-
-- name: List the users having a shell access
-  lineinfile: dest=/etc/gitolite/admins, owner=gen-acls, group=packager,
-              mode=660, state=present, line={{ item.line }}
-  with_items:
-  - /srv/web/infra/ansible/scripts/users-from-fas @sysadmin-main {{ root_auth_users }}
   tags:
   - config
-  ignore_errors: true
+  - distgit
+
+- name: Get admin users
+  command: "/srv/web/infra/ansible/scripts/users-from-fas @sysadmin-main {{ root_auth_users }}"
+  register: admin_user_list
+  tags:
+  - config
+  - distgit
+
+- name: Save the list the users having a shell access
+  template: src=gitolite_admins dest=/etc/gitolite/admins,
+            owner=gen-acls, group=packager, mode=660
+  tags:
+  - config
+  - distgit
 
 
 # -- CGit ------------------------------------------------
