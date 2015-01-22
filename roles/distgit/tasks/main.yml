@@ -102,6 +102,10 @@
   file: path=/etc/gitolite/logs owner=gen-acls group=packager
         state=directory mode=0775
 
+- name: create the /etc/gitolite/local/VREF directory
+  file: path=/etc/gitolite/local/VREF owner=gen-acls group=packager
+        state=directory mode=0775
+
 - name: create /etc/gitolite/gitolite.rc
   copy: src=gitolite.rc dest=/etc/gitolite/gitolite.rc owner=root group=root mode=0755
 
@@ -122,6 +126,13 @@
 - name: Create the gitolite configuration symlink
   command: ln -s /etc/gitolite/ /srv/git/.gitolite
            creates=/srv/git/.gitolite
+  tags:
+  - config
+  - distgit
+
+- name: Create the update-block-push-origin symlink
+  command: ln -s /usr/share/git-core/update-block-push-origin /etc/gitolite/local/VREF/update-block-push-origin
+           creates=/etc/gitolite/local/VREF/update-block-push-origin
   tags:
   - config
   - distgit
