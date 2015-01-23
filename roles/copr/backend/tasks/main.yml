@@ -141,3 +141,10 @@
 
 - cron: name="kill VMs in error state" minute="*/15"  job="/root/instant-instance-killer.sh"
   when: not devel
+
+- name: install nrpe checks for proxies
+  template: src=copr_backend_nrpe.cfg dest=/etc/nrpe.d/copr_backend_nrpe.cfg
+  notify:
+  - restart nrpe
+  tags:
+  - nagios_client
