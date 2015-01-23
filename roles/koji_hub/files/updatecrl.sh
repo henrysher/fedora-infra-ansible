@@ -2,7 +2,7 @@
 
 URL=https://admin.fedoraproject.org/ca/crl.pem
 OLD=/etc/pki/tls/crl.pem
-NEW=/var/tmp/crl.pem
+NEW=`mktemp`
 
 wget $URL -O $NEW
 OLDUPDATE=`openssl crl -in $OLD -noout -lastupdate`
@@ -15,3 +15,4 @@ if [ "$OLDUPDATE" != "$NEWUPDATE" ]; then
     echo "updated to $NEWUPDATE"
 fi
 
+rm -f $NEW
