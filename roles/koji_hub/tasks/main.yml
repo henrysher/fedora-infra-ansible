@@ -51,6 +51,13 @@
   - selinux
   - koji_hub
 
+- name: enable httpd_use_nfs SELinux boolean for fedmsg
+  seboolean: name=httpd_use_nfs state=yes persistent=yes
+  tags:
+  - config
+  - selinux
+  - koji_hub
+
 - name: koji fedmsg plugin
   copy: src=fedmsg-koji-plugin.py dest=/usr/lib/koji-hub-plugins/fedmsg-koji-plugin.py
   notify:
@@ -178,7 +185,7 @@
   - koji_hub
 
 - name: make mnt/koji directory
-  file: state=directory path=/mnt/koji/ owner=root group=root
+  file: state=link src=/mnt/fedora_koji/koji dest=/mnt/koji/ owner=root group=root
   tags:
   - koji_hub
 
