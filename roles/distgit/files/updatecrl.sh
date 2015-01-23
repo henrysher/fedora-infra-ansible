@@ -16,4 +16,6 @@ if [ -f $OLD ]; then
     fi
 else;
     wget -q $URL -O  $OLD
+    /usr/sbin/restorecon $OLD
+    /usr/bin/systemctl reload httpd
 fi
