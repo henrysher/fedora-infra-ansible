@@ -58,7 +58,11 @@ if __name__ == '__main__':
     print '@fedora-ppc = %s' % ' '.join(PPC)
 
     # Get a list of all the groups
+{% if env == 'staging' %}
+    groups = requests.get('https://admin.stg.fedoraproject.org/pkgdb/api/groups?format=json').json()
+{% else %}
     groups = requests.get('https://admin.fedoraproject.org/pkgdb/api/groups?format=json').json()
+{% endif %}
     for group in groups['groups']:
         print '@%s = %s' % (group, ' '.join(grp.getgrnam(group)[3]))
 
