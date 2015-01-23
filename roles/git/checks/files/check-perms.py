@@ -308,65 +308,32 @@ def check_git_perms(path, fix=False):
             return False
     return True
 
-def check_update_hooks(gitdir, fix=False):
+def check_gitolite_update_hook(gitdir, fix=False):
     """Check our update hooks
 
     This ensures that the Git repository at `gitdir` is set up with the proper
-    update hooks.
+    update hook for Gitolite.
 
     If it isn't, and if `fix` is True, this actually fixes the problem.
     """
-    chained_hooks_dir = os.path.join(gitdir, 'hooks', 'update-chained.d')
-    chained_hooks = {'update-gitolite': '/etc/gitolite/hooks/common/update',
-                     'update-block-push-origin': '/usr/share/git-core/update-block-push-origin',
-                     }
+    gitolite_hook = '/etc/gitolite/hooks/common/update'
+    update_hook = os.path.join(gitdir, 'hooks', 'update')
 
-    if not os.path.isdir(chained_hooks_dir):
+    if not os.path.exists(update_hook):
         if fix:
-            os.makedirs(chained_hooks_dir)
+            os.symlink(gitolite_hook, update_hook)
+            return
 
-        else:
-            raise ValueError('chained hooks not set up')
+        raise ValueError('No update hook set up')
 
-    for name, goodpath in chained_hooks.items():
-        hook = os.path.join(chained_hooks_dir, name)
-
-        if not os.path.exists(hook):
-            if fix:
-                os.symlink(goodpath, hook)
-
-            else:
-                raise ValueError('%s chained update hook not set up' % name)
-
-        realpath = os.path.realpath(hook)
-        if realpath != goodpath:
-            if fix:
-                os.unlink(hook)
-                os.symlink(goodpath, hook)
-
-            else:
-                raise ValueError('invalid %s chained update hook' % name)
-
-
-    goodpath = '/usr/share/git-core/update-chained'
-    hook = os.path.join(gitdir, 'hooks', 'update')
-
-    if not os.path.exists(hook):
+    if os.path.realpath(update_hook) != gitolite_hook:
         if fix:
-            os.symlink(goodpath, hook)
+            os.unlink(update_hook)
+            os.symlink(gitolite_hook, update_hook)
+            return
 
-        else:
-            raise ValueError('no update hook set up')
+        raise ValueError('Update hook does not point to the Gitolie one')
 
-    realpath = os.path.realpath(hook)
-
-    if realpath != goodpath:
-        if fix:
-            os.unlink(hook)
-            os.symlink(goodpath, hook)
-
-        else:
-            raise ValueError('invalid update hook (%s)' % hook)
 
 def main():
     usage = '%prog [options] [gitroot]'
@@ -470,7 +437,7 @@ def main():
 
         if 'update-hook' in checks:
             try:
-                check_update_hooks(gitdir, fix=opts.fix)
+                check_gitolite_update_hook(gitdir, fix=opts.fix)
 
             except Exception as e:
                 error('%s: %s' % (gitdir, e))
