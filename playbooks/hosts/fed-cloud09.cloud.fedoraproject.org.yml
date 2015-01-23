@@ -126,17 +126,17 @@
   # https://access.redhat.com/documentation/en-US/Red_Hat_Enterprise_Linux_OpenStack_Platform/5/html/Cloud_Administrator_Guide/section_manage-volumes.html
   - lineinfile: dest=/etc/cinder/cinder.conf regexp="^enabled_backends" insertafter="^#enabled_backends" line="enabled_backends=equallogic-1,lvmdriver-1"
   # LVM
-  - command: openstack-config --set /etc/cinder/cinder.conf "lvmdriver-1" "volume_group" "cinder-volumes"
-  - command: openstack-config --set /etc/cinder/cinder.conf "lvmdriver-1" "volume_driver" "cinder.volume.drivers.lvm.LVMISCSIDriver"
-  - command: openstack-config --set /etc/cinder/cinder.conf "lvmdriver-1" "volume_backend_name" "LVM_iSCSI"
+  - ini_file: dest=/etc/cinder/cinder.conf section="lvmdriver-1" option="volume_group" value="cinder-volumes"
+  - ini_file: dest=/etc/cinder/cinder.conf section="lvmdriver-1" option="volume_driver" value="cinder.volume.drivers.lvm.LVMISCSIDriver"
+  - ini_file: dest=/etc/cinder/cinder.conf section="lvmdriver-1" option="volume_backend_name" value="LVM_iSCSI"
   # Dell EqualLogic - http://docs.openstack.org/trunk/config-reference/content/dell-equallogic-driver.html
-  - command: openstack-config --set /etc/cinder/cinder.conf "equallogic-1" "volume_driver" "cinder.volume.drivers.eqlx.DellEQLSanISCSIDriver"
-  - command: openstack-config --set /etc/cinder/cinder.conf "equallogic-1" "san_ip" "{{ IP_EQLX }}"
-  - command: openstack-config --set /etc/cinder/cinder.conf "equallogic-1" "san_login" "{{ SAN_UNAME }}"
+  - ini_file: dest=/etc/cinder/cinder.conf section="equallogic-1" option="volume_driver" value="cinder.volume.drivers.eqlx.DellEQLSanISCSIDriver"
+  - ini_file: dest=/etc/cinder/cinder.conf section="equallogic-1" option="san_ip" value="{{ IP_EQLX }}"
+  - ini_file: dest=/etc/cinder/cinder.conf section="equallogic-1" option="san_login" value="{{ SAN_UNAME }}"
   - name: set password for equallogic-1
-    command: openstack-config --set /etc/cinder/cinder.conf "equallogic-1" "san_password" "{{ SAN_PW }}"
-  - command: openstack-config --set /etc/cinder/cinder.conf "equallogic-1" "eqlx_group_name" "{{ EQLX_GROUP }}"
-  - command: openstack-config --set /etc/cinder/cinder.conf "equallogic-1" "eqlx_pool" "{{ EQLX_POOL }}"
+    ini_file: dest=/etc/cinder/cinder.conf section="equallogic-1" option="san_password" value="{{ SAN_PW }}"
+  - ini_file: dest=/etc/cinder/cinder.conf section="equallogic-1" option="eqlx_group_name" value="{{ EQLX_GROUP }}"
+  - ini_file: dest=/etc/cinder/cinder.conf section="equallogic-1" option="eqlx_pool" value="{{ EQLX_POOL }}"
   - service: name=openstack-cinder-api state=restarted
   - service: name=openstack-cinder-scheduler state=restarted
   - service: name=openstack-cinder-volume state=restarted
