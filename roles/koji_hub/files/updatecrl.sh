@@ -9,8 +9,8 @@ OLDUPDATE=`openssl crl -in $OLD -noout -lastupdate`
 NEWUPDATE=`openssl crl -in $NEW -noout -lastupdate`
 
 if [ "$OLDUPDATE" != "$NEWUPDATE" ]; then
-    mv $NEW $OLD
-    restorecon $OLD
+    cp -f $NEW $OLD
+    /sbin/restorecon $OLD
     /etc/init.d/httpd graceful
     echo "updated to $NEWUPDATE"
 fi
