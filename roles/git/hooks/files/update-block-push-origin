@@ -4,7 +4,12 @@
 # https://fedorahosted.org/rel-eng/ticket/4071
 
 refname="${1}"
-sha1_old="${2}"
-sha1_new="${3}"
 
-echo "${refname}" | grep -qE '^refs/heads/origin/' && exit 1 || exit 0
+echo "${refname}" | grep -qE '^refs/heads/origin/'
+
+if [ $? == 0 ]; then
+    echo "Can't push a branch named $refname"
+    exit 1
+fi
+
+exit 0
