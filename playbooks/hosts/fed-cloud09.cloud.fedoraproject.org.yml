@@ -10,10 +10,24 @@
    - /srv/web/infra/ansible/vars/fedora-cloud.yml
    - /srv/private/ansible/files/openstack/passwords.yml
 
+  roles:
+  - rkhunter
+  - nagios_client
+  - hosts
+  - fas_client
+  - sudo
+
   tasks:
   - include: "{{ tasks }}/cloud_setup_basic.yml"
     vars:
       root_auth_users: msuchy
+  - include: "{{ tasks }}/motd.yml"
+  - include: "{{ tasks }}/2fa_client.yml"
+
+  - name: set root passwd
+    user: name=root password={{ cloud_rootpw }} state=present
+    tags:
+    - rootpw
 
   - name: Set the hostname
     action: hostname name=fed-cloud09.cloud.fedoraproject.org
