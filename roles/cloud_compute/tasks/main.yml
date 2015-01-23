@@ -26,27 +26,27 @@
   - python-novaclient
   - openstack-utils
 - name: Set up db connection to controller
-  action: command openstack-config --set /etc/nova/nova.conf database connection mysql://nova:{{NOVA_DBPASS}}@{{controller_private_ip}}/nova
-- command: openstack-config --set /etc/nova/nova.conf DEFAULT auth_strategy keystone
-- command: openstack-config --set /etc/nova/nova.conf keystone_authtoken auth_uri http://{{controller_private_ip}}:5000
-- command: openstack-config --set /etc/nova/nova.conf keystone_authtoken auth_host {{controller_private_ip}}
-- command: openstack-config --set /etc/nova/nova.conf keystone_authtoken auth_protocol http
-- command: openstack-config --set /etc/nova/nova.conf keystone_authtoken auth_port 35357
-- command: openstack-config --set /etc/nova/nova.conf keystone_authtoken admin_user nova
-- command: openstack-config --set /etc/nova/nova.conf keystone_authtoken admin_tenant_name service
+  action: ini_file: dest=/etc/nova/nova.conf section=database option=connection value=mysql://nova:{{NOVA_DBPASS}}@{{controller_private_ip}}/nova
+- ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=auth_strategy value=keystone
+- ini_file: dest=/etc/nova/nova.conf section=keystone_authtoken option=auth_uri value=http://{{controller_private_ip}}:5000
+- ini_file: dest=/etc/nova/nova.conf section=keystone_authtoken option=auth_host value={{controller_private_ip}}
+- ini_file: dest=/etc/nova/nova.conf section=keystone_authtoken option=auth_protocol value=http
+- ini_file: dest=/etc/nova/nova.conf section=keystone_authtoken option=auth_port value=35357
+- ini_file: dest=/etc/nova/nova.conf section=keystone_authtoken option=admin_user value=nova
+- ini_file: dest=/etc/nova/nova.conf section=keystone_authtoken option=admin_tenant_name value=service
 - name: set admin_password
-  command: openstack-config --set /etc/nova/nova.conf keystone_authtoken admin_password {{NOVA_PASS}}
+  ini_file: dest=/etc/nova/nova.conf section=keystone_authtoken option=admin_password value={{NOVA_PASS}}
 
-- command: openstack-config --set /etc/nova/nova.conf DEFAULT rpc_backend qpid
-- command: openstack-config --set /etc/nova/nova.conf DEFAULT qpid_hostname {{controller_private_ip}}
+- ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=rpc_backend value=qpid
+- ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=qpid_hostname value={{controller_private_ip}}
 
-- command: openstack-config --set /etc/nova/nova.conf DEFAULT my_ip {{compute_private_ip}}
-- command: openstack-config --set /etc/nova/nova.conf DEFAULT vnc_enabled True
-- command: openstack-config --set /etc/nova/nova.conf DEFAULT vncserver_listen 0.0.0.0
-- command: openstack-config --set /etc/nova/nova.conf DEFAULT vncserver_proxyclient_address {{compute_private_ip}}
-- command: openstack-config --set /etc/nova/nova.conf DEFAULT novncproxy_base_url http://{{controller_private_ip}}:6080/vnc_auto.html
+- ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=my_ip value={{compute_private_ip}}
+- ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=vnc_enabled value=True
+- ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=vncserver_listen value=0.0.0.0
+- ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=vncserver_proxyclient_address value={{compute_private_ip}}
+- ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=novncproxy_base_url value=http://{{controller_private_ip}}:6080/vnc_auto.html
 
-- command: openstack-config --set /etc/nova/nova.conf DEFAULT glance_host {{controller_private_ip}}
+- ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=glance_host value={{controller_private_ip}}
 
 - service: name=libvirtd state=started enabled=yes
 - service: name=messagebus state=started
@@ -62,48 +62,48 @@
   - openstack-neutron-ml2
   - openstack-neutron-openvswitch
 
-- command: openstack-config --set /etc/neutron/neutron.conf DEFAULT auth_strategy keystone
-- command: openstack-config --set /etc/neutron/neutron.conf keystone_authtoken auth_uri http://{{controller_private_ip}}:5000
-- command: openstack-config --set /etc/neutron/neutron.conf keystone_authtoken auth_host {{controller_private_ip}}
-- command: openstack-config --set /etc/neutron/neutron.conf keystone_authtoken auth_protocol http
-- command: openstack-config --set /etc/neutron/neutron.conf keystone_authtoken auth_port 35357
-- command: openstack-config --set /etc/neutron/neutron.conf keystone_authtoken admin_user neutron
-- command: openstack-config --set /etc/neutron/neutron.conf keystone_authtoken admin_tenant_name service
+- ini_file: dest=/etc/neutron/neutron.conf section=DEFAULT option=auth_strategy value=keystone
+- ini_file: dest=/etc/neutron/neutron.conf section=keystone_authtoken option=auth_uri value=http://{{controller_private_ip}}:5000
+- ini_file: dest=/etc/neutron/neutron.conf section=keystone_authtoken option=auth_host value={{controller_private_ip}}
+- ini_file: dest=/etc/neutron/neutron.conf section=keystone_authtoken option=auth_protocol value=http
+- ini_file: dest=/etc/neutron/neutron.conf section=keystone_authtoken option=auth_port value=35357
+- ini_file: dest=/etc/neutron/neutron.conf section=keystone_authtoken option=admin_user value=neutron
+- ini_file: dest=/etc/neutron/neutron.conf section=keystone_authtoken option=admin_tenant_name value=service
 - name: set admin_password
-  command: openstack-config --set /etc/neutron/neutron.conf keystone_authtoken admin_password {{NEUTRON_PASS}}
+  ini_file: dest=/etc/neutron/neutron.conf section=keystone_authtoken option=admin_password value={{NEUTRON_PASS}}
 
-- command: openstack-config --set /etc/neutron/neutron.conf DEFAULT rpc_backend neutron.openstack.common.rpc.impl_qpid
-- command: openstack-config --set /etc/neutron/neutron.conf DEFAULT qpid_hostname {{controller_private_ip}}
+- ini_file: dest=/etc/neutron/neutron.conf section=DEFAULT option=rpc_backend value=neutron.openstack.common.rpc.impl_qpid
+- ini_file: dest=/etc/neutron/neutron.conf section=DEFAULT option=qpid_hostname value={{controller_private_ip}}
 
 # uncomment if you want to debug compute instance
-#- command: openstack-config --set /etc/neutron/neutron.conf DEFAULT verbose True
-- command: openstack-config --set /etc/neutron/neutron.conf DEFAULT core_plugin ml2
-- command: openstack-config --set /etc/neutron/neutron.conf DEFAULT service_plugins router
+#- ini_file: dest=/etc/neutron/neutron.conf section=DEFAULT option=verbose value=True
+- ini_file: dest=/etc/neutron/neutron.conf section=DEFAULT option=core_plugin value=ml2
+- ini_file: dest=/etc/neutron/neutron.conf section=DEFAULT option=service_plugins value=router
 
-- command: openstack-config --set /etc/neutron/plugins/ml2/ml2_conf.ini ml2 type_drivers local,flat,gre
-- command: openstack-config --set /etc/neutron/plugins/ml2/ml2_conf.ini ml2 tenant_network_types gre
-- command: openstack-config --set /etc/neutron/plugins/ml2/ml2_conf.ini ml2 mechanism_drivers openvswitch
-- command: openstack-config --set /etc/neutron/plugins/ml2/ml2_conf.ini ml2_type_gre tunnel_id_ranges 1:1000
-- command: openstack-config --set /etc/neutron/plugins/ml2/ml2_conf.ini ovs local_ip {{compute_private_ip}}
-- command: openstack-config --set /etc/neutron/plugins/ml2/ml2_conf.ini ovs tunnel_type gre
-- command: openstack-config --set /etc/neutron/plugins/ml2/ml2_conf.ini ovs enable_tunneling True
-- command: openstack-config --set /etc/neutron/plugins/ml2/ml2_conf.ini securitygroup firewall_driver neutron.agent.linux.iptables_firewall.OVSHybridIptablesFirewallDriver
-- command: openstack-config --set /etc/neutron/plugins/ml2/ml2_conf.ini securitygroup enable_security_group True
+- ini_file: dest=/etc/neutron/plugins/ml2/ml2_conf.ini section=ml2 option=type_drivers value=local,flat,gre
+- ini_file: dest=/etc/neutron/plugins/ml2/ml2_conf.ini section=ml2 option=tenant_network_types value=gre
+- ini_file: dest=/etc/neutron/plugins/ml2/ml2_conf.ini section=ml2 option=mechanism_drivers value=openvswitch
+- ini_file: dest=/etc/neutron/plugins/ml2/ml2_conf.ini section=ml2_type_gre option=tunnel_id_ranges value=1:1000
+- ini_file: dest=/etc/neutron/plugins/ml2/ml2_conf.ini section=ovs option=local_ip value={{compute_private_ip}}
+- ini_file: dest=/etc/neutron/plugins/ml2/ml2_conf.ini section=ovs option=tunnel_type value=gre
+- ini_file: dest=/etc/neutron/plugins/ml2/ml2_conf.ini section=ovs option=enable_tunneling value=True
+- ini_file: dest=/etc/neutron/plugins/ml2/ml2_conf.ini section=securitygroup option=firewall_driver value=neutron.agent.linux.iptables_firewall.OVSHybridIptablesFirewallDriver
+- ini_file: dest=/etc/neutron/plugins/ml2/ml2_conf.ini section=securitygroup option=enable_security_group value=True
 
 - service: name=openvswitch state=started enabled=yes
 - command: ovs-vsctl --may-exist add-br br-int
 
-- command: openstack-config --set /etc/nova/nova.conf DEFAULT network_api_class nova.network.neutronv2.api.API
-- command: openstack-config --set /etc/nova/nova.conf DEFAULT neutron_url http://{{controller_private_ip}}:9696
-- command: openstack-config --set /etc/nova/nova.conf DEFAULT neutron_auth_strategy keystone
-- command: openstack-config --set /etc/nova/nova.conf DEFAULT neutron_admin_tenant_name service
-- command: openstack-config --set /etc/nova/nova.conf DEFAULT neutron_admin_username neutron
+- ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=network_api_class value=nova.network.neutronv2.api.API
+- ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=neutron_url value=http://{{controller_private_ip}}:9696
+- ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=neutron_auth_strategy value=keystone
+- ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=neutron_admin_tenant_name value=service
+- ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=neutron_admin_username value=neutron
 - name: set neutron_admin_password
-  command: openstack-config --set /etc/nova/nova.conf DEFAULT neutron_admin_password {{NEUTRON_PASS}}
-- command: openstack-config --set /etc/nova/nova.conf DEFAULT neutron_admin_auth_url http://{{controller_private_ip}}:35357/v2.0
-- command: openstack-config --set /etc/nova/nova.conf DEFAULT linuxnet_interface_driver nova.network.linux_net.LinuxOVSInterfaceDriver
-- command: openstack-config --set /etc/nova/nova.conf DEFAULT firewall_driver nova.virt.firewall.NoopFirewallDriver
-- command: openstack-config --set /etc/nova/nova.conf DEFAULT security_group_api neutron
+  ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=neutron_admin_password value={{NEUTRON_PASS}}
+- ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=neutron_admin_auth_url value=http://{{controller_private_ip}}:35357/v2.0
+- ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=linuxnet_interface_driver value=nova.network.linux_net.LinuxOVSInterfaceDriver
+- ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=firewall_driver value=nova.virt.firewall.NoopFirewallDriver
+- ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=security_group_api value=neutron
 
 - file: src=/etc/neutron/plugins/ml2/ml2_conf.ini dest=/etc/neutron/plugin.ini state=link
 
