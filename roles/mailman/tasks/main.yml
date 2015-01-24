@@ -245,8 +245,12 @@
 - name: install the post-transaction trigger
   template: src=post-transaction.action.j2
             dest=/etc/yum/post-actions/hyperkitty.action
+#
+# Only run this on mailman01 for now. 
+# 
 - name: run the post-update script
   command: "{{ mailman_webui_basedir }}/bin/post-update.sh"
+  when: not inventory_hostname.startswith('mailman01')
 
 
 # Postfix
