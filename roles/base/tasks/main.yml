@@ -242,6 +242,29 @@
   - postfix
   - base
   - config
+
+- name: install ntp.conf
+  copy: src=ntp/ntp.conf dest=/etc/ntp.conf
+  tags:
+  - ntp
+  - config
+  - base
+
+- name: install ntp step-tickers
+  copy: src=ntp/step-tickers dest=/etc/ntp/step-tickers
+  tags:
+  - ntp
+  - config
+  - base
+
+- name: Start ntpd (if the machine is not virtual)
+  when: ansible_virtualization_role != 'guest'
+  service: name=ntpd state=running enabled=true
+  tags:
+  - ntp
+  - service
+  - base
+
 #
 # This task installs some common scripts to /usr/local/bin
 # scripts are under roles/base/files/common-scripts
