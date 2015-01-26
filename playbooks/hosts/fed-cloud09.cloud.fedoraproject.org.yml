@@ -174,9 +174,9 @@
       file=/root/images/cirros-0.3.2-x86_64-disk.img
 
   - name: create non-standard flavor
-    action: shell source /root/keystonerc_admin && nova flavor-list | grep m1.builder || nova flavor-create m1.builder 6 5120 50 3
-    register: command_result
-    changed_when: "'ID' in command_result.stdout"
+    nova_flavor:
+      login_username="admin" login_password="{{ ADMIN_PASS }}" login_tenant_name="admin"
+      name="m1.builder" id="6" ram="5120" disk="50" vcpus="2"
 
   #####  download common Images #####
   - get_url: url=http://download.fedoraproject.org/pub/fedora/linux/updates/20/Images/x86_64/Fedora-x86_64-20-20140407-sda.qcow2 dest=/root/images/Fedora-x86_64-20-20140407-sda.qcow2 mode=0440
