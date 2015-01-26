@@ -6,6 +6,9 @@
   yum: pkg={{ item }} state=present enablerepo=epel-testing
   with_items:
   - askbot
+  tags:
+  - ask
+  - packages
 
 - name: install needed packages
   yum: pkg={{ item }} state=present
@@ -18,6 +21,7 @@
   - django-authopenid
   - django-celery
   tags:
+  - ask
   - packages
 
 # https://github.com/openid/python-openid/pull/76
@@ -27,6 +31,7 @@
   notify:
   - restart apache
   tags:
+  - ask
   - config
   - hotfix
   - python-openid
@@ -35,21 +40,33 @@
   action: seboolean name=httpd_can_network_connect_db
                     state=true
                     persistent=true
+  tags:
+  - ask
+  - selinux
 
 - name: set sebooleans so ask can talk to the memcache
   action: seboolean name=httpd_can_network_memcache
                     state=true
                     persistent=true
+  tags:
+  - ask
+  - selinux
 
 - name: set sebooleans so ask can talk to fedmsg
   action: seboolean name=allow_httpd_sys_script_anon_write
                     state=true
                     persistent=true
+  tags:
+  - ask
+  - selinux
 
 - name: set sebooleans so ask can talk to fedmsg
   action: seboolean name=allow_ypbind
                     state=true
                     persistent=true
+  tags:
+  - ask
+  - selinux
 
 - name: install askbot settings.py template
   template: >
@@ -58,6 +75,7 @@
   with_items:
   - settings.py
   tags:
+  - ask
   - config
 
 - name: Install askbot.conf httpd config
@@ -65,6 +83,7 @@
     src=askbot.conf dest=/etc/httpd/conf.d/askbot.conf
     owner=root group=root mode=0644
   tags:
+  - ask
   - files
   notify:
   - restart httpd
@@ -77,6 +96,7 @@
     src=askbot.wsgi dest=/usr/sbin/askbot.wsgi
     owner=root group=root mode=0755
   tags:
+  - ask
   - files
   notify:
   - restart httpd
@@ -91,21 +111,28 @@
   - cron-delete-old-emails
   - cron-delete-unused-tags
   tags:
+  - ask
   - files
+  - cron
 
 - name: check log file
   command: stat /var/log/askbot/askfedora.log
   register: logstat
   always_run: yes
   changed_when: "1 != 1"
+  tags:
+  - ask
 
 - name: log ownership fix
   file: state=touch dest=/var/log/askbot/askfedora.log owner=apache group=apache
   when: logstat.rc == 1
+  tags:
+  - ask
 
 - name: run collectstatic
   command: creates=/var/www/html/askbot/static python /etc/askbot/sites/ask/config/manage.py collectstatic --noinput
   tags:
+  - ask
   - config
 
 #- name: setup default skin link needed for askbot
@@ -122,7 +149,9 @@
     src=backends.py dest=/usr/lib/python2.6/site-packages/post_office/backends.py
     owner=root group=root mode=0644
   tags:
+  - ask
   - files
+  - hotfix
   notify:
   - restart httpd
 
@@ -134,7 +163,9 @@
     src=login_providers.py dest=/usr/lib/python2.6/site-packages/askbot/conf/login_providers.py
     owner=root group=root mode=0644
   tags:
+  - ask
   - files
+  - hotfix
   notify:
   - restart httpd
 
@@ -146,7 +177,9 @@
     src=util.py dest=/usr/lib/python2.6/site-packages/askbot/deps/django_authopenid/util.py
     owner=root group=root mode=0644
   tags:
+  - ask
   - files
+  - hotfix
   notify:
   - restart httpd
 
@@ -158,7 +191,9 @@
     src=fedora-openid.png dest=/var/www/html/askbot/static/default/media/jquery-openid/images/fedora-openid.png
     owner=root group=root mode=0644
   tags:
+  - ask
   - files
+  - hotfix
   notify:
   - restart httpd
 
@@ -170,7 +205,9 @@
     src=ask_favicon.ico dest=/var/lib/askbot/upfiles/ask/ask_favicon.ico
     owner=root group=root mode=0644
   tags:
+  - ask
   - files
+  - hotfix
 
 #
 # fixes login with facebook.
@@ -181,7 +218,9 @@
     src=sanction-client.py dest=/usr/lib/python2.6/site-packages/sanction/client.py
     owner=root group=root mode=0644
   tags:
+  - ask
   - files
+  - hotfix
   notify:
   - restart httpd
 
@@ -194,6 +233,8 @@
     src=cancel.py dest=/usr/lib/python2.6/site-packages/askbot/middleware/cancel.py
     owner=root group=root mode=0644
   tags:
+  - ask
   - files
+  - hotfix
   notify:
   - restart httpd
