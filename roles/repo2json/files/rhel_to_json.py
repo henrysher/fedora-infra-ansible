@@ -82,7 +82,6 @@ PATHS = {
         '/mnt/fedora/app/fi-repo/rhel/rhel-ppc64-server-optional-6',
         '/mnt/fedora/app/fi-repo/rhel/rhel-ppc64-server-optional-fastrack-6',
         '/mnt/fedora/app/fi-repo/rhel/rhel-x86_64-server-6',
-        '/mnt/fedora/app/fi-repo/rhel/rhel-x86_64-server-6-ost-preview',
         '/mnt/fedora/app/fi-repo/rhel/rhel-x86_64-server-6-rhevh',
         '/mnt/fedora/app/fi-repo/rhel/rhel-x86_64-server-6-rhevm-3',
         '/mnt/fedora/app/fi-repo/rhel/rhel-x86_64-server-6-rhs-rhsc-2.0',
