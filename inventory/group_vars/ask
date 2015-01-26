@@ -1,5 +1,5 @@
 ---
-# Define resources for this group of hosts here. 
+# Define resources for this group of hosts here.
 lvm_size: 20000
 mem_size: 2048
 num_cpus: 2
@@ -21,3 +21,21 @@ fedmsg_certs:
 - service: askbot
   owner: root
   group: apache
+
+
+# For the MOTD
+csi_security_category: Low
+csi_primary_contact: Fedora admins - admin@fedoraproject.org
+csi_purpose: Run the django webapp for ask.fedoraproject.org
+csi_relationship: |
+    This depends on:
+
+    - The database server on db01.
+    - memcached (specifically memcached02), but only in production.  In staging,
+      a local-memory backend is used instead.
+
+    Gotchas:
+
+    - The packages for celery are installed, but we do not actually run or
+      depend on the celery daemon.
+    - There are *lots* of hotfixes in effect on this machine.
