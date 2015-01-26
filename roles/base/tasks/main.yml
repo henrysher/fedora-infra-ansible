@@ -1,8 +1,8 @@
 ---
 
 #
-# This is the base role for all machines. 
-# Things in here are things we want to do to every machine no matter what. 
+# This is the base role for all machines.
+# Things in here are things we want to do to every machine no matter what.
 #
 
 # XXX fixme # a datacenter 'fact' from setup
@@ -31,7 +31,7 @@
   command: hostnamectl set-hostname {{ inventory_hostname }}
   when: ( ansible_nodename != inventory_hostname ) and ansible_distribution_major_version == '7'
 
-- name: sshd_config 
+- name: sshd_config
   copy: src={{ item }} dest=/etc/ssh/sshd_config mode=600
   with_first_found:
     - "{{ sshd_config }}"
@@ -56,7 +56,7 @@
   - base
   when: not (inventory_hostname.startswith('build') or inventory_hostname.startswith('releng') or inventory_hostname.startswith('arm') or inventory_hostname.startswith('compose') or inventory_hostname.startswith('bkernel') or inventory_hostname.startswith('koji') or inventory_hostname.startswith('rawhide') or inventory_hostname.startswith('branched'))
 
-- name: add ansible root key 
+- name: add ansible root key
   authorized_key: user=root key="{{ item }}"
   with_file:
   - ansible-pub-key
@@ -69,10 +69,10 @@
   tags:
   - config
   - base
-  
+
 - name: dist pkgs to remove
   yum: state=absent name={{ item }}
-  with_items: 
+  with_items:
    - "{{ base_pkgs_erase }}"
   tags:
   - packages
@@ -175,7 +175,7 @@
   tags:
   - rsyslogd
   - config
- 
+
 - name: log everything to log01 except on mirrorlist, do not log local4 there.
   copy: src=rsyslog/rsyslog-log01 dest=/etc/rsyslog.d/rsyslog-log01.conf mode=644
   when: not inventory_hostname.startswith('mirrorlist')
@@ -192,7 +192,7 @@
   - config
   - base
    - base
-   
+
 - name: /etc/postfix/main.cf
   copy: src={{ item }} dest=/etc/postfix/main.cf
   with_first_found:
