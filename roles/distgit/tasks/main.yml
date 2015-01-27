@@ -37,6 +37,24 @@
 - name: create the distgit root directory (/srv/git)
   file: dest=/srv/git state=directory mode=0755
 
+- name: check the selinux context of the distgit root directory
+  command: matchpathcon /srv/git
+  register: distgitcontext
+  always_run: yes
+  changed_when: false
+  tags:
+  - config
+  - distgit
+  - selinux
+
+- name: set the SELinux policy for the distgit root directory
+  command: semanage fcontext -a -t httpd_git_content_t "/srv/git(/.*)?"
+  when: distgitcontext.stdout.find('httpd_git_content_t') == -1
+  tags:
+  - config
+  - distgit
+  - selinux
+
 - name: create the distgit root directory (/srv/git/rpms)
   file: dest=/srv/git/rpms state=directory mode=2775 group=packager
 
@@ -207,6 +225,24 @@
   file: dest=/srv/cache/lookaside/pkgs state=directory
         owner=apache group=apache
 
+- name: check the selinux context of the Lookaside Cache root directory
+  command: matchpathcon /srv/cache
+  register: lcachecontext
+  always_run: yes
+  changed_when: false
+  tags:
+  - config
+  - lookaside
+  - selinux
+
+- name: set the SELinux policy for the Lookaside Cache root directory
+  command: semanage fcontext -a -t httpd_git_content_t "/srv/cache(/.*)?"
+  when: lcachecontext.stdout.find('httpd_git_content_t') == -1
+  tags:
+  - config
+  - lookaside
+  - selinux
+
 - name: install the fedora-ca.cert
   copy: src={{private}}/files/fedora-ca.cert dest=/etc/httpd/conf/cacert.pem
 
@@ -233,3 +269,21 @@
   copy: src=dist-git-upload.cgi dest=/srv/web/upload.cgi owner=root group=root mode=0755
   notify:
   - restart httpd
+
+- name: check the selinux context of the upload CGI script
+  command: matchpathcon /srv/web/upload.cgi
+  register: upcgicontext
+  always_run: yes
+  changed_when: false
+  tags:
+  - config
+  - lookaside
+  - selinux
+
+- name: set the SELinux policy for the upload CGI script
+  command: semanage fcontext -a -t httpd_git_script_exec_t "/srv/web/upload.cgi"
+  when: upcgicontext.stdout.find('httpd_git_script_exec_t') == -1
+  tags:
+  - config
+  - lookaside
+  - selinux
