@@ -11,6 +11,9 @@
     user=root
     job="/usr/local/bin/lock-wrapper make-cgit-pkgs-list '/usr/local/bin/make-cgit-pkgs-list.sh | /usr/local/bin/nag-once fassync 1d 2>&1'"
 
+- name: ensure the repo list file exists
+  file: path=/srv/git/pkgs-git-repos-list state=touch owner=apache group=apache mode=0644
+
 - name: check the selinux context of the repo list
   command: matchpathcon /srv/git/pkgs-git-repos-list
   register: gitlistcontext
