@@ -1,7 +1,7 @@
 ---
 # tasklist for setting up the CGit file list
 
-- name: install the script and schedule its execution
+- name: install the script
   copy: src=make-cgit-pkgs-list.sh dest=/usr/local/bin/make-cgit-pkgs-list.sh mode=0755
 
 - name: install the cron job
@@ -10,3 +10,21 @@
     minute=*/10
     user=root
     job="/usr/local/bin/lock-wrapper make-cgit-pkgs-list '/usr/local/bin/make-cgit-pkgs-list.sh | /usr/local/bin/nag-once fassync 1d 2>&1'"
+
+- name: check the selinux context of the repo list
+  command: matchpathcon /srv/git/pkgs-git-repos-list
+  register: gitlistcontext
+  always_run: yes
+  changed_when: false
+  tags:
+  - config
+  - cgit
+  - selinux
+
+- name: set the SELinux policy for the repo list
+  command: semanage fcontext -a -t httpd_git_content_t "/srv/git/pkgs-git-repos-list"
+  when: gitlistcontext.stdout.find('httpd_git_content_t') == -1
+  tags:
+  - config
+  - cgit
+  - selinux
