@@ -1,6 +1,10 @@
 ---
 # tasklist for setting up the mirrorlist app components
 # create mirrormanager user
+# create mirrormanager user
+- name: add mirrormanager user - uid {{ mirrormanager_uid }}
+  user: name=mirrormanager uid={{ mirrormanager_uid }} state=present home=/home/mirrormanager createhome=yes
+
 - name: install packages for mirrorlist
   yum: pkg={{ item }} state=present enablerepo=epel-testing
   with_items:
@@ -15,6 +19,12 @@
   - restart apache
   tags:
   - config
+
+# mirrormanager user ssh key(s)
+- name: add authorized_keys for mirrormanager
+  authorized_key: key="{{ item }}" user=mirrormanager state=present
+  with_file:
+  - mm-authorized_key
 
 # selinux policy - mirrormanager - put in place - for the sockfile
 
