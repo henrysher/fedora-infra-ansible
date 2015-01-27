@@ -4,6 +4,8 @@
 # create mirrormanager user
 - name: add mirrormanager user - uid {{ mirrormanager_uid }}
   user: name=mirrormanager uid={{ mirrormanager_uid }} state=present home=/var/lib/mirrormanager createhome=yes
+  tags:
+  - mirrorlist2
 
 - name: install packages for mirrorlist
   yum: pkg={{ item }} state=present enablerepo=epel-testing
@@ -11,6 +13,7 @@
   - mirrormanager2-mirrorlist
   tags:
   - packages
+  - mirrorlist2
 
 # install mirrorlist-server.conf apache config
 - name: mirrorlist-server apache conf
@@ -19,15 +22,12 @@
   - restart apache
   tags:
   - config
+  - mirrorlist2
 
 # mirrormanager user ssh key(s)
 - name: add authorized_keys for mirrormanager
   authorized_key: key="{{ item }}" user=mirrormanager state=present
   with_file:
   - mm-authorized_key
-
-# selinux policy - mirrormanager - put in place - for the sockfile
-
-- name: enable httpd
-  service: name=httpd state=started enabled=yes
-
+  tags:
+  - mirrorlist2
