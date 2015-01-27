@@ -17,5 +17,5 @@ if [ -f $OLD ]; then
 else
     wget -q $URL -O  $OLD
     /usr/sbin/restorecon $OLD
-    /usr/bin/systemctl reload httpd
+    /usr/bin/systemctl is-active httpd && /usr/bin/systemctl reload httpd
 fi
