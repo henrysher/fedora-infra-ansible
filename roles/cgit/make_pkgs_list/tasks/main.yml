@@ -1,6 +1,12 @@
 ---
 # tasklist for setting up the CGit file list
 
+- name: create the git root directory (/srv/git)
+  file: dest=/srv/git state=directory mode=0755
+
+- name: ensure the repo list file exists
+  file: path=/srv/git/pkgs-git-repos-list state=touch owner=apache group=apache mode=0644
+
 - name: install the script
   copy: src=make-cgit-pkgs-list.sh dest=/usr/local/bin/make-cgit-pkgs-list.sh mode=0755
 
@@ -10,9 +16,6 @@
     minute=*/10
     user=root
     job="/usr/local/bin/lock-wrapper make-cgit-pkgs-list '/usr/local/bin/make-cgit-pkgs-list.sh | /usr/local/bin/nag-once fassync 1d 2>&1'"
-
-- name: ensure the repo list file exists
-  file: path=/srv/git/pkgs-git-repos-list state=touch owner=apache group=apache mode=0644
 
 - name: check the selinux context of the repo list
   command: matchpathcon /srv/git/pkgs-git-repos-list
