@@ -262,7 +262,16 @@
   copy: src={{private}}/files/fedora-ca.cert dest=/etc/httpd/conf/cacert.pem
 
 - name: install the pkgs cert
-  copy: src={{private}}/files/pkgs.fedoraproject.org_key_and_cert.pem dest=/etc/httpd/conf/pkgs.fedoraproject.org_key_and_cert.pem owner=apache mode=0400
+  copy: src={{private}}/files/pkgs.fedoraproject.org_key_and_cert.pem
+        dest=/etc/httpd/conf/pkgs.fedoraproject.org_key_and_cert.pem
+        owner=apache mode=0400
+  when: env != "staging"
+
+- name: install the pkgs.stg cert
+  copy: src={{private}}/files/pkgs.stg.fedoraproject.org_key_and_cert.pem
+        dest=/etc/httpd/conf/pkgs.fedoraproject.org_key_and_cert.pem
+        owner=apache mode=0400
+  when: env != "staging"
 
 - name: install the updatecrl.sh script
   copy: src=updatecrl.sh dest=/usr/local/bin/updatecrl.sh owner=root mode=755
