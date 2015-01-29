@@ -23,7 +23,8 @@
 # This will move a /etc/sudoers.d/ file in place 
 #
 - name: setup /etc/sudoers.d/sudoer file for client use
-  action: copy src={{ item }} dest=/etc/sudoers.d/ owner=root group=root mode=0600
+  action: copy src={{ item }} dest=/etc/sudoers.d/{{ item |replace('.', '_') }}
+          owner=root group=root mode=0600
   with_first_found:
   - files:
     - "{{ sudoers }}"
