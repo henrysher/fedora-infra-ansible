@@ -6,7 +6,7 @@
     - python-psycopg2
     - libsemanage-python
 
-- name: ensure dev database is created
+- name: ensure database is created
   delegate_to: "{{ resultsdb_db_host }}"
   sudo_user: postgres
   sudo: true
@@ -32,6 +32,13 @@
   sudo_user: postgres
   sudo: true
   action: postgresql_user db={{ resultsdb_db_name }} user={{ prod_resultsdb_db_user }} password={{ prod_resultsdb_db_password }} role_attr_flags=NOSUPERUSER
+
+- name: ensure local resultsdb db user has access to prod database
+  when: deployment_type == 'local'
+  delegate_to: "{{ resultsdb_db_host }}"
+  sudo_user: postgres
+  sudo: true
+  action: postgresql_user db={{ resultsdb_db_name }} user={{ local_resultsdb_db_user }} password={{ local_resultsdb_db_password }} role_attr_flags=NOSUPERUSER
 
 - name: ensure selinux lets httpd talk to postgres
   seboolean: name=httpd_can_network_connect_db persistent=yes state=yes
