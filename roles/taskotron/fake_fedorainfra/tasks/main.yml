@@ -24,6 +24,13 @@
   sudo_user: postgres
   action: postgresql_user db={{ fakefedorainfra_db_name }} user={{ dev_fakefedorainfra_db_user }} password={{ dev_fakefedorainfra_db_password }} role_attr_flags=NOSUPERUSER
 
+- name: ensure local fakefedorainfra user has access to local database
+  when: deployment_type == 'local'
+  delegate_to: "{{ buildmaster_db_host }}"
+  sudo: true
+  sudo_user: postgres
+  action: postgresql_user db={{ fakefedorainfra_db_name }} user={{ local_fakefedorainfra_db_user }} password={{ local_fakefedorainfra_db_password }} role_attr_flags=NOSUPERUSER
+
 - name: generate fakefedorainfra config
   template: src=settings.py.j2 dest=/etc/fake_fedorainfra/settings.py owner=root group=root mode=0644
   notify:

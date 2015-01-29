@@ -25,6 +25,9 @@ c['slaves'] = [
                 {% if deployment_type == 'prod' %}
                 BuildSlave("{{ buildslave }}", "{{ prod_buildslave_password }}"),
                 {% endif %}
+                {% if deployment_type == 'local' %}
+                BuildSlave("{{ buildslave }}", "{{ local_buildslave_password }}"),
+                {% endif %}
                 {% endfor %}
               ]
 
@@ -228,6 +231,9 @@ authz_cfg=authz.Authz(
     {% if deployment_type == 'prod' %}
     auth=auth.BasicAuth([("{{ prod_buildbot_user }}","{{ prod_buildbot_password }}")]),
     {% endif %}
+    {% if deployment_type == 'local' %}
+    auth=auth.BasicAuth([("{{ local_buildbot_user }}","{{ local_buildbot_password }}")]),
+    {% endif %}
     gracefulShutdown = False,
     forceBuild = 'auth', # use this to test your slave once it is set up
     forceAllBuilds = False,
@@ -352,4 +358,8 @@ c['db'] = {
     {% if deployment_type == 'prod' %}
     'db_url' : "postgresql://{{ prod_buildmaster_db_user }}:{{ prod_buildmaster_db_password }}@{{ buildmaster_db_host }}/{{ buildmaster_db_name }}",
     {% endif %}
+    {% if deployment_type == 'local' %}
+    'db_url' : "postgresql://{{ local_buildmaster_db_user }}:{{ local_buildmaster_db_password }}@127.0.0.1/{{ buildmaster_db_name }}",
+    {% endif %}
+
 }

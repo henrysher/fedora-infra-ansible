@@ -50,3 +50,11 @@
   sudo: true
   sudo_user: postgres
   action: postgresql_user db={{ buildmaster_db_name }} user={{ prod_buildmaster_db_user }} password={{ prod_buildmaster_db_password }} role_attr_flags=NOSUPERUSER
+
+- name: ensure local db user has access to local database
+  when: deployment_type == 'local'
+  delegate_to: "{{ buildmaster_db_host }}"
+  sudo: true
+  sudo_user: postgres
+  action: postgresql_user db={{ buildmaster_db_name }} user={{ local_buildmaster_db_user }} password={{ local_buildmaster_db_password }} role_attr_flags=NOSUPERUSER
+
