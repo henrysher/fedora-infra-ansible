@@ -77,6 +77,12 @@ config = {
         'target_tag': 'rawhide',
     },
 
+    'hotness.anitya': {
+        'url': 'https://release-monitoring.org',
+        'username': '{{ fedoraDummyUser }}',
+        'password': '{{ fedoraDummyUserPassword }}',
+    },
+
 {% if env == 'staging' %}
     'hotness.pkgdb_url': 'https://admin.stg.fedoraproject.org/pkgdb/api',
 {% else %}
