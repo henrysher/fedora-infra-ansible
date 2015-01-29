@@ -43,6 +43,33 @@
   tags:
   - mirrorlist2
 
-- name: /var/run/mirrormanager/mirrorlist_server.sock file context
-  command: semanage fcontext -a -t httpd_var_run_t /var/run/mirrormanager/mirrorlist_server.sock
 
+# Three tasks for handling our (two) custom selinux modules.
+- name: ensure a directory exists for our custom selinux module
+  file: dest=/usr/share/mirrorlist2 state=directory
+  tags:
+  - mirrorlist2
+  - selinux
+
+- name: copy over our general mirrorlist2 selinux module
+  copy: src=selinux/mirrorlist2.pp dest=/usr/share/mirrorlist2/mirrorlist2.pp
+  register: ficgeneral_module
+  tags:
+  - mirrorlist2
+  - selinux
+
+- name: check to see if its even installed yet
+  shell: semodule -l | grep mirrorlist2 | wc -l
+  register: ficgeneral_grep
+  always_run: true
+  changed_when: "'0' in ficgeneral_grep.stdout"
+  tags:
+  - mirrorlist2
+  - selinux
+
+- name: install our general mirrorlist2 selinux module
+  command: semodule -i /usr/share/mirrorlist2/mirrorlist2.pp
+  when: ficgeneral_module|changed or ficgeneral_grep|changed
+  tags:
+  - mirrorlist2
+  - selinux
