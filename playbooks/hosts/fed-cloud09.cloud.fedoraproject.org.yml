@@ -82,13 +82,16 @@
   - service: name=ntpd state=started enabled=yes
 
   # http://docs.openstack.org/icehouse/install-guide/install/yum/content/basics-packages.html
-  - yum: state=present name=https://repos.fedorapeople.org/repos/openstack/openstack-icehouse/rdo-release-icehouse-4.noarch.rpm
-  - yum: state=present name=http://dl.fedoraproject.org/pub/epel/7/x86_64/e/epel-release-7-5.noarch.rpm
-  - yum: state=present name=openstack-utils
-  - yum: state=present name=openstack-selinux
-  - yum: state=present name=openstack-packstack
-  - yum: state=present name=python-glanceclient
-  - yum: state=present name=rabbitmq-server
+  - name: install basic openstack packages
+  - action: yum state=present name={{ item }}
+    with_items:
+    - https://repos.fedorapeople.org/repos/openstack/openstack-icehouse/rdo-release-icehouse-4.noarch.rpm
+    - http://dl.fedoraproject.org/pub/epel/7/x86_64/e/epel-release-7-5.noarch.rpm
+    - openstack-utils
+    - openstack-selinux
+    - openstack-packstack
+    - python-glanceclient
+    - rabbitmq-server
   - yum: name=* state=latest
 
   - name: add ssl cert
