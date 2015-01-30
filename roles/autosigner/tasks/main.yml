@@ -3,6 +3,9 @@
   yum: state=latest pkg={{ item }}
   with_items:
     - sigul
+  tags:
+    - autosigner
+    - packages
 
 # fedora-packager is required for /etc/koji/$arch-config
 - name: install dependencies
@@ -12,12 +15,18 @@
     - fedmsg-hub
     - fedora-packager
     - python-fedmsg-meta-fedora-infrastructure
+  tags:
+    - autosigner
+    - packages
 
 # sigul config for secondary archs:
 # https://fedoraproject.org/wiki/Sigul_Client_Setup_SOP
 - name: sigul config koji instances
   ini_file: dest=/etc/sigul/client.conf section=koji option=koji-instances
             value="arm ppc s390"
+  tags:
+      - autosigner
+      - config
 
 - name: sigul config koji config
   ini_file: dest=/etc/sigul/client.conf section=koji
@@ -26,6 +35,12 @@
       - arm
       - ppc
       - s390
+  tags:
+      - autosigner
+      - config
 
 - name: fedmsg endpoints config
   copy: src=endpoints.py dest=/etc/fedmsg.d/endpoints.py
+      - autosigner
+      - config
+      - fedmsgdconfig
