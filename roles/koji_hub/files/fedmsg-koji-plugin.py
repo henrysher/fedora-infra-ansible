@@ -148,6 +148,12 @@ def send_message(cbtype, *args, **kws):
     # and the secondary hubs off for s390 and ppc.
     body['instance'] = 'primary'
 
+    # Don't publish these uninformative rpm.sign messages if there's no actual
+    # sigkey present.  Koji apparently adds a dummy sig value when rpms are
+    # first imported and there's no need to spam the world about that.
+    if topic == 'rpm.sign' and body.get('info', {}).get('sigkey') == '':
+        return
+
     # Last thing to do before publishing: scrub some problematic fields
     # These fields are floating points which get json-encoded differently on
     # rhel and fedora.
