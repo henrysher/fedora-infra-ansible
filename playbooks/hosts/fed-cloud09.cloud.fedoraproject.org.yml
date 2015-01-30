@@ -133,6 +133,7 @@
   - name: remove the MySQL test database
     action: mysql_db db=test state=absent
 
+  # WORKAROUNDS - already reported to OpenStack team
   - lineinfile:
       dest=/usr/lib/python2.7/site-packages/packstack/plugins/dashboard_500.py
       regexp="            host_resources\.append\(*ssl_key, 'ssl_ps_server.key'\)*"
@@ -147,6 +148,31 @@
       dest=/usr/share/openstack-puppet/modules/rabbitmq/templates/rabbitmq.config.erb
       regexp="cacertfile"
       line="    {ssl_options, [{cacertfile,\"<%= @ssl_cert %>\"},"
+      backup=yes
+  - lineinfile:
+      dest=/usr/share/openstack-puppet/modules/neutron/manifests/init.pp
+      regexp="rabbit_use_ssl              = false"
+      line="  $rabbit_use_ssl              = true,"
+      backup=yes
+  - lineinfile:
+      dest=/usr/share/openstack-puppet/modules/nova/manifests/init.pp
+      regexp="rabbit_use_ssl           = false"
+      line="  $rabbit_use_ssl              = true,"
+      backup=yes
+  - lineinfile:
+      dest=/usr/share/openstack-puppet/modules/cinder/manifests/init.pp
+      regexp="rabbit_use_ssl              = false"
+      line="  $rabbit_use_ssl              = true,"
+      backup=yes
+  - lineinfile:
+      dest=/usr/share/openstack-puppet/modules/glance/manifests/notify/rabbitmq.pp
+      regexp="rabbit_use_ssl               = false"
+      line="  $rabbit_use_ssl               = true,"
+      backup=yes
+  - lineinfile:
+      dest=/usr/share/openstack-puppet/modules/ceilometer/manifests/init.pp
+      regexp="rabbit_use_ssl      = false"
+      line="  $rabbit_use_ssl      = true,"
       backup=yes
   - lineinfile:
       dest=/usr/lib/python2.7/site-packages/packstack/puppet/templates/mongodb.pp
@@ -167,7 +193,11 @@
   #### FIXME 
   - lineinfile: dest=/etc/rabbitmq/rabbitmq-env.conf regexp="^RABBITMQ_NODE_PORT=" state="absent"
   - service: name=rabbitmq-server state=started
- 
+
+  # WORKAROUND again
+  - ini_file: dest=/etc/keystone/keystone.conf section="DEFAULT" option="rabbit_use_ssl" value="true"
+  - service: name=rabbitmq-server state=restarted
+
   # configure cider with multi back-end
   # https://access.redhat.com/documentation/en-US/Red_Hat_Enterprise_Linux_OpenStack_Platform/5/html/Cloud_Administrator_Guide/section_manage-volumes.html
   - lineinfile: dest=/etc/cinder/cinder.conf regexp="^enabled_backends" insertafter="^#enabled_backends" line="enabled_backends=equallogic-1,lvmdriver-1"
