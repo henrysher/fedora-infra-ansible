@@ -197,6 +197,29 @@
   # WORKAROUND again
   - ini_file: dest=/etc/keystone/keystone.conf section="DEFAULT" option="rabbit_use_ssl" value="true"
   - service: name=rabbitmq-server state=restarted
+  - ini_file: dest=/etc/nova/nova.conf section="DEFAULT" option="rabbit_use_ssl" value="true"
+  - ini_file: dest=/etc/cinder/cinder.conf section="DEFAULT" option="rabbit_use_ssl" value="true"
+  - ini_file: dest=/etc/ceilometer/ceilometer.conf section="DEFAULT" option="rabbit_use_ssl" value="true"
+  - service: name={{item} state=restarted
+    with_items:
+    - openstack-ceilometer-alarm-evaluator
+    - openstack-ceilometer-alarm-notifier
+    - openstack-ceilometer-api
+    - openstack-ceilometer-central
+    - openstack-ceilometer-collector
+    - openstack-ceilometer-compute
+    - openstack-ceilometer-notification
+    - openstack-cinder-api
+    - openstack-cinder-backup
+    - openstack-cinder-scheduler
+    - openstack-cinder-volume
+    - openstack-nova-api
+    - openstack-nova-cert
+    - openstack-nova-compute
+    - openstack-nova-conductor
+    - openstack-nova-consoleauth
+    - openstack-nova-novncproxy
+    - openstack-nova-scheduler
 
   # configure cider with multi back-end
   # https://access.redhat.com/documentation/en-US/Red_Hat_Enterprise_Linux_OpenStack_Platform/5/html/Cloud_Administrator_Guide/section_manage-volumes.html
