@@ -41,5 +41,20 @@
 - name: setup meetbot.conf apache config
   copy: src=meetbot.conf dest=/etc/httpd/conf.d/meetbot.conf mode=644
 
+- name: check the selinux context of the /srv/web/meetbot dir
+  command: matchpathcon /srv/web/meetbot
+  register: context
+  always_run: yes
+  changed_when: "1 != 1"
+  tags:
+  - config
+  - selinux
+  - meetbot
+
 - name: /srv/web/meetbot file contexts
   command: semanage fcontext -a -t httpd_sys_content_t "/srv/web/meetbot(/.*)?"
+  when: context.stdout.find('httpd_sys_content_t') == -1
+  tags:
+  - config
+  - selinux
+  - meetbot
