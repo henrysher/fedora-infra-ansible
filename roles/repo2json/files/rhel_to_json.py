@@ -184,12 +184,15 @@ def main():
             new = 0
             for pkg in session.query(Package).all():
                 if pkg.basename in output['packages']:
+                    # Update the list of arches the package has
                     if pkg.arch not in output['packages'][
                             pkg.basename]['arch']:
                         output['packages'][pkg.basename]['arch'].append(
                             pkg.arch)
+                    # Adjust the gobal list of all arches in the RHEL
                     if pkg.arch not in output['arches']:
                         output['arches'].append(pkg.arch)
+                    # Update the list of channels the package is in
                     if channel not in output['packages'][
                             pkg.basename]['channel']:
                         output['packages'][pkg.basename]['channel'].append(
