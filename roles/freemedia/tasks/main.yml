@@ -67,5 +67,18 @@
   tags:
   - config
 
+- name: check the selinux context freemedia
+  command: matchpathcon /srv/web/freemedia
+  register: freemediacontext
+  always_run: yes
+  changed_when: "1 != 1"
+  tags:
+  - config
+  - selinux
+
 - name: /srv/web/freemedia file contexts
   command: semanage fcontext -a -t httpd_sys_content_t "/srv/web/freemedia(/.*)?"
+  when: freemediacontext.stdout.find('httpd_sys_content_t') == -1
+  tags:
+  - config
+  - selinux
