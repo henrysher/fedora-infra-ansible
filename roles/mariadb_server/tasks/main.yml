@@ -1,0 +1,32 @@
+---
+
+- name: ensure packages required for mariadb are installed
+  action: yum name={{ item }} state=latest
+  with_items:
+    - mariadb-server
+    - MySQL-python
+
+- name: copy my.cnf
+  copy: src={{ item }} dest=/etc/my.cnf owner=root group=root mode=0644
+  with_first_found:
+    - "{{ mariadb_config }}"
+    - my.cnf.{{ ansible_fqdn }}
+    - my.cnf.{{ host_group }}
+    - my.cnf.{{ dist_tag }}
+    - my.cnf.{{ ansible_distribution }}
+    - my.cnf.{{ ansible_distribution_version }}
+    - my.cnf.default
+  notify:
+    - restart mariadb
+
+- name: enable and start mariadb database
+  service: name=mariadb enabled=yes state=started
+
+- name: set mariaddb root user password
+  no_log: True
+  mysql_user: name=root password={{ mariadb_root_password }}
+
+- name: create .my.cnf file for future logins
+  template: src=dotmy.cnf.j2 dest=/root/.my.cnf owner=root group=root mode=0700
+
+
