@@ -20,8 +20,21 @@
 - name: Set httpd_use_nfs seboolean
   action: seboolean name=httpd_use_nfs state=yes persistent=yes
 
+- name: check the selinux context rsyncd log
+  command: matchpathcon /var/log/rsyncd-fedora.log
+  register: rsyncdlog
+  always_run: yes
+  changed_when: "1 != 1"
+  tags:
+  - config
+  - selinux
+
 - name: /var/log/rsyncd-fedora.log file context
   command: semanage fcontext -a -t rsync_log_t /var/log/rsyncd-fedora.log
+  when: rsyncdlog.stdout.find('rsync_log_t') == -1
+  tags:
+  - config
+  - selinux
 
 - name: /etc/motd_fedora
   copy: src=motd_fedora dest=/etc/motd_fedora
@@ -29,8 +42,21 @@
 - name: Configure logrotate for /var/log/rsyncd-fedora.log
   copy: src=logrotate-rsync-fedora dest=/etc/logrotate.d/rsync-fedora
 
+- name: check the selinux context pubdir
+  command: matchpathcon /srv/pub
+  register: pubdir
+  always_run: yes
+  changed_when: "1 != 1"
+  tags:
+  - config
+  - selinux
+
 - name: /srv/pub file contexts
   command: semanage fcontext -a -t httpd_sys_content_t "/srv/pub(/.*)?"
+  when: pubdir.stdout.find('httpd_sys_content_t') == -1
+  tags:
+  - config
+  - selinux
 
 - name: Copy wildcard cert from puppet private
   copy: src="{{puppet_private}}/httpd/wildcard-2014.fedoraproject.org.cert" dest=/etc/pki/tls/certs/wildcard-2014.fedoraproject.org.cert owner=root group=root mode=0644
