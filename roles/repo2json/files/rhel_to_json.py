@@ -161,6 +161,7 @@ def main():
 
     for el in PATHS:
 
+        channel = os.path.basename(el)
         output = {'packages': {}, 'arches': []}
 
         dbfiles = find_primary_sqlite(PATHS[el])
@@ -189,6 +190,11 @@ def main():
                             pkg.arch)
                     if pkg.arch not in output['arches']:
                         output['arches'].append(pkg.arch)
+                    if channel not in output['packages'][
+                            pkg.basename]['channel']:
+                        output['packages'][pkg.basename]['channel'].append(
+                            channel)
+
                     # TODO: checks if the evr is more recent or not
                     # (and update if it is)
                 else:
@@ -198,6 +204,7 @@ def main():
                         'epoch': pkg.epoch,
                         'version': pkg.version,
                         'release': pkg.release,
+                        'channel': [channel]
                     }
                 cnt += 1
             print '%s packages in %s' % (cnt, cur_fold)
