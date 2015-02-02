@@ -67,8 +67,18 @@
   tags:
   - datagrepper
 
+- name: check the selinux context of cache dir
+  command: matchpathcon /var/cache/datagrepper
+  register: cachedir
+  always_run: yes
+  changed_when: "1 != 1"
+  tags:
+  - config
+  - selinux
+
 - name: adding datagrepper dir in httpd context
   command: semanage fcontext -a -t httpd_cache_t "/var/cache/datagrepper(/.*)?"
+  when: cachedir.stdout.find('httpd_sys_content_t') == -1
   tags:
   - datagrepper
 
