@@ -18,6 +18,9 @@
   - fas_client
   - sudo
 
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"
+
   tasks:
   - include: "{{ tasks }}/cloud_setup_basic.yml"
     vars:
@@ -64,6 +67,16 @@
   - service: name=firewalld state=stopped enabled=no
     ignore_errors: yes
   - service: name=iptables state=started enabled=yes
+
+  - name: ensure iptables is configured to allow rabbitmq traffic (port 5672/tcp)
+    lineinfile:
+      dest=/etc/sysconfig/iptables
+      state=present
+      regexp="^.*INPUT.*172\.24\.0\.10/24.*tcp.*5672.*ACCEPT" 
+      insertbefore="^.*INPUT.*RELATED,ESTABLISHED.*ACCEPT"
+      line="-A INPUT -s 172.24.0.10/24 -p tcp -m multiport --dports 5672 -m comment --comment "added by fedora-infra ansible" -j ACCEPT" 
+      backup=yes
+    notify: restart iptables
 
   # http://docs.openstack.org/trunk/install-guide/install/yum/content/basics-neutron-networking-controller-node.html
   - command: ifdown br-tun
