@@ -106,11 +106,11 @@
     with_items:
     - mariadb-galera-server
     - MySQL-python
-  - lineinfile: dest=/etc/my.cnf regexp="^bind-address" insertafter="^\[mysqld\]" line="bind-address = {{ controller_public_ip }}"
-  - lineinfile: dest=/etc/my.cnf regexp="^default-storage-engine" insertafter="^\[mysqld\]" line="default-storage-engine = innodb"
-  - lineinfile: dest=/etc/my.cnf regexp="^collation-server" insertafter="^\[mysqld\]" line="collation-server = utf8_general_ci"
-  - lineinfile: dest=/etc/my.cnf regexp="^init-connect" insertafter="^\[mysqld\]" line="init-connect = 'SET NAMES utf8'"
-  - lineinfile: dest=/etc/my.cnf regexp="^character-set-server " insertafter="^\[mysqld\]" line="character-set-server = utf8"
+  - ini_file: dest=/etc/my.cnf section="mysqld" option="bind-address" value="{{ controller_public_ip }}"
+  - ini_file: dest=/etc/my.cnf section="mysqld" option="default-storage-engine" value="innodb"
+  - ini_file: dest=/etc/my.cnf section="mysqld" option="collation-server" value="utf8_general_ci"
+  - ini_file: dest=/etc/my.cnf section="mysqld" option="init-connect" value="'SET NAMES utf8'"
+  - ini_file: dest=/etc/my.cnf section="mysqld" option="character-set-server" value="utf8"
   - service: name=mariadb state=started enabled=yes
     # 'localhost' needs to be the last item for idempotency, see
     # http://ansible.cc/docs/modules.html#mysql-user
