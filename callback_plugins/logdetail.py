@@ -141,7 +141,7 @@ class LogMech(object):
         sanitize_host = host.replace(' ', '_').replace('>', '-')
         fd = open(self.logpath_play + '/' + sanitize_host + '.log', 'a')
         now = time.strftime(TIME_FORMAT, time.localtime())
-        fd.write(MSG_FORMAT % dict(now=now, name=name, count=count, category=category, data=json.dumps(data)))
+        fd.write(MSG_FORMAT % dict(now=now, name=name.strip(), count=count, category=category, data=json.dumps(data)))
         fd.close()
 
 
