@@ -1,0 +1,47 @@
+
+- name: install squid server packages
+  yum: name={{ item }} state=present
+  with_items:
+  - squid
+  - httpd
+  - mod_ssl
+  tags:
+  - packages
+  - squid
+
+- name: make nfs mount directories
+  file: state=directory path={{ item }} owner=root group=root mode=755
+  with_items:
+  - /mnt/fedora_koji
+  - /mnt/fedora_app
+  - /mnt/fedora_app/app
+  tags:
+  - squid
+
+- name: set seboolean for squid server
+  seboolean: name=httpd_can_network_connect state=true persistent=true
+  tags:
+  - squid
+
+- name: install squid config files
+  copy: src={{ item }} dest=/etc/squid/{{ item }} owner=root group=root mode=644
+  with_items:
+  - squid.conf
+  - cachemgr.conf
+  notify:
+  - restart squid
+
+- name: install apache config files for squid
+  copy: src={{ item }} dest=/etc/httpd/conf.d/{{ item }} owner=root group=root mode=644
+  with_items:
+  - squid-apache.conf
+  - kojipkgs.conf
+  - infrastructure.conf
+  notify:
+  - restart httpd
+
+- name: set squid to start on boot
+  service: name=squid enabled=true state=running
+  tags:
+  - services
+  - squid

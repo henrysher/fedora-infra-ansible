@@ -1,0 +1,49 @@
+- name: make the servers
+  hosts: kojipkgs
+  user: root
+  gather_facts: False
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  tasks:
+  - include: "{{ tasks }}/virt_instance_create.yml"
+
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"
+
+- name: make the boxen be real for real
+  hosts: kojipkgs
+  user: root
+  gather_facts: True
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  roles:
+  - base
+  - rkhunter
+  - nagios_client
+  - hosts
+  - fas_client
+  - sudo
+  - collectd/base
+  - kojipkgs
+  - role: nfs/client
+    mnt_dir: '/mnt/fedora_app/app'
+    nfs_src_dir: 'fedora_app/app'
+  - role: nfs/client
+    mnt_dir: '/mnt/fedora_koji'
+    nfs_src_dir: 'fedora_koji'
+
+  tasks:
+  - include: "{{ tasks }}/yumrepos.yml"
+  - include: "{{ tasks }}/2fa_client.yml"
+  - include: "{{ tasks }}/motd.yml"
+
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"

@@ -1,0 +1,43 @@
+---
+# Define resources for this group of hosts here.
+lvm_size: 150000
+mem_size: 65536
+num_cpus: 8
+
+custom_rules: [
+    # Need for rsync from log01 for logs.
+    '-A INPUT -p tcp -m tcp -s 10.5.126.13 --dport 873 -j ACCEPT',
+    '-A INPUT -p tcp -m tcp -s 192.168.1.59 --dport 873 -j ACCEPT',
+ ]
+
+tcp_ports: [80, 443, 8080]
+
+fas_client_groups: sysadmin-build,sysadmin-noc
+
+# For the MOTD
+csi_security_category: Medium
+csi_primary_contact: Fedora admins - admin@fedoraproject.org
+csi_purpose: Cache packages from koji for builders and others
+csi_relationship: |
+    There are a few things running here:
+
+    - apache web server and squid caching proxy. 
+
+    - This host relies on:
+      - koji nfs storage
+      - koji itself
+
+    - Things that rely on this host:
+      - all koji builders/buildsystem
+      - external users downloading packages from koji. 
+
+# Need a eth0/eth1 install here. 
+virt_install_command: virt-install -n {{ inventory_hostname }} -r {{ mem_size }}
+                 --disk bus=virtio,path={{ volgroup }}/{{ inventory_hostname }}
+                 --vcpus={{ num_cpus }}  -l {{ ks_repo }} -x
+                 "ksdevice=eth0 ks={{ ks_url }} console=tty0 console=ttyS0
+                  hostname={{ inventory_hostname }} nameserver={{ dns }}
+                  ip={{ eth0_ip }}::{{ gw }}:{{ nm }}:{{ inventory_hostname }}:eth0:none
+                  ip={{ eth1_ip }}:::{{ nm }}:{{ inventory_hostname }}-nfs:eth1:none"
+                 --network=bridge=br0,model=virtio --network=bridge=br1,model=virtio
+                 --autostart --noautoconsole
