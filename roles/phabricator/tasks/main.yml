@@ -28,7 +28,8 @@
   user: name={{ phabricator_daemon_user }}
 
 - name: create vcs user
-  user: name={{ phabricator_vcs_user }} password={{ phabricator_vcs_password  }} }}
+  user: name={{ phabricator_vcs_user }} password={{ phabricator_vcs_password }}
+  when: enable_phabricator_git
 
 - name: add vcs user to sudoers to write as daemon user with restrictions for git
   lineinfile: "dest=/etc/sudoers state=present line='{{ phabricator_vcs_user }} ALL=({{ phabricator_daemon_user }}) SETENV: NOPASSWD: /usr/bin/git-upload-pack, /usr/bin/git-receive-pack'"
