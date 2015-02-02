@@ -1,0 +1,97 @@
+- name: ensure packages required for phabricator are installed (fedora)
+  action: yum name={{ item }} state=latest
+  with_items:
+    - git
+    - httpd
+    - mod_ssl
+    - php
+    - php-cli
+    - php-mysql
+    - php-process
+    - php-devel
+    - php-gd
+    - php-mbstring
+    - libphutil
+    - arcanist
+    - phabricator
+
+- name: create mariadb database
+  mysql_db: login_host={{ mariadb_host }} name={{ phabricator_db_name }}
+
+- name: create mariadb user for phabricator
+  mysql_user: host={{ mariadb_host }} name={{ mariadb_user }} password={{ mariadb_password }} priv={{ phabricator_db_name }}.*:ALL state=present
+
+- name: create phabricator daemon user
+  user: name={{ phabricator_daemon_user }}
+
+- name: create vcs user
+  user: name={{ phabricator_vcs_user }} password={{ phabricator_vcs_password  }} }}
+
+- name: add vcs user to sudoers to write as daemon user with restrictions for git
+  lineinfile: "dest=/etc/sudoers state=present line='{{ phabricator_vcs_user }} ALL=({{ phabricator_daemon_user }}) SETENV: NOPASSWD: /usr/bin/git-upload-pack, /usr/bin/git-receive-pack'"
+
+- name: remove tty requirement for sudo by git user
+  lineinfile: "dest=/etc/sudoers state=present line='Defaults:{{phabricator_vcs_user }} !requiretty'"
+
+- name: update php.ini
+  copy: src=php.ini dest=/etc/php.d/php.ini owner=root group=root mode=0644
+  notify:
+  - restart httpd
+
+- name: update apc.ini
+  copy: src=apc.ini dest=/etc/php.d/apc.ini owner=root group=root mode=0644
+  when: is_rhel
+  notify:
+  - restart httpd
+
+- name: create git repo root for phabricator
+  file: path={{ phabricator_repodir }} state=directory owner={{ phabricator_daemon_user }} group={{ phabricator_daemon_user }} mode=1755
+
+- name: create file directory for phabricator
+  file: path={{ phabricator_filedir }} state=directory owner=apache group=apache mode=1755
+
+- name: create log directory for phabricator
+  file: path=/var/log/phabricator state=directory owner={{ phabricator_daemon_user }} group=apache mode=1775
+
+- name: generate phabricator config
+  template: src={{ phabricator_config_filename }}.conf.php.j2 dest={{ phabroot }}/phabricator/conf/{{ phabricator_config_filename }}.conf.php owner=apache group=apache mode=0644
+
+- name: generate phabricator environment
+  template: src=ENVIRONMENT.j2 dest={{ phabroot }}/phabricator/conf/local/ENVIRONMENT owner=apache group=apache mode=0644
+
+- name: copy phabricator configuration settings
+  template: src=local.json.j2 dest={{ phabroot }}/phabricator/conf/local/local.json owner=apache group=apache mode=0644
+
+- name: generate chatbot config
+  template: src=chatbot-config.json.j2 dest={{ phabroot }}/phabricator/resources/chatbot/config.json owner=apache group=apache mode=0644
+
+- name: upgrade phabricator storage
+  command: chdir={{ phabroot }}/phabricator bin/storage upgrade --force
+
+- name: generate phabricator git hook
+  template: src=phabricator-ssh-hook.sh.j2 dest=/etc/phabricator-ssh-hook.sh owner=root group=root mode=0755
+
+- name: generate phabricator ssh config for vcs
+  template: src=phabricator-sshd.conf.j2 dest=/etc/ssh/phabricator-sshd.conf owner=root group=root mode=0600
+
+- name: generate phabricator ssh service file
+  template: src=phabricator-sshd.service.j2 dest=/lib/systemd/system/phabricator-sshd.service owner=root group=root mode=0644
+
+- name: start and enable phabricator sshd service
+  service: name=phabricator-sshd enabled=yes state=started
+
+- name: generate phabricator phd service file
+  template: src=phd.service.j2 dest=/lib/systemd/system/phd.service owner=root group=root mode=0644
+
+- name: create directory for phd pids
+  file: path=/var/run/phabricator state=directory owner={{ phabricator_daemon_user }} group={{ phabricator_daemon_user }} mode=1755
+
+- name: start and enable phabricator phd service
+  service: name=phd enabled=yes state=started
+
+- name: copy phabricator httpd config
+  template: src=phabricator.conf.j2 dest=/etc/httpd/conf.d/phabricator.conf owner=root group=root mode=0644
+  notify:
+  - restart httpd
+
+
