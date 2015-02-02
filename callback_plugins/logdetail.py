@@ -138,10 +138,15 @@ class LogMech(object):
         elif self.play_info.get('check', False):    
             category = 'CHECK:' + category
 
+        # Sometimes this is None.. othertimes it's fine.  Othertimes it has
+        # trailing whitespace that kills logview.  Strip that, when possible.
+        if name:
+            name = name.strip()
+
         sanitize_host = host.replace(' ', '_').replace('>', '-')
         fd = open(self.logpath_play + '/' + sanitize_host + '.log', 'a')
         now = time.strftime(TIME_FORMAT, time.localtime())
-        fd.write(MSG_FORMAT % dict(now=now, name=name.strip(), count=count, category=category, data=json.dumps(data)))
+        fd.write(MSG_FORMAT % dict(now=now, name=name, count=count, category=category, data=json.dumps(data)))
         fd.close()
 
 
