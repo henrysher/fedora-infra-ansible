@@ -29,8 +29,19 @@
   - hotfix
   - apache
 
-- name: hotfix - copy over new httpd sysconfig
+- name: hotfix - copy over new httpd sysconfig (el6)
   copy: src="{{ files }}/hotfix/httpd/httpd.sysconfig" dest=/etc/sysconfig/httpd
+  when: ansible_distribution_major_version == '6'
+  notify:
+  - restart apache
+  tags:
+  - config
+  - hotfix
+  - apache
+
+- name: hotfix - copy over new httpd sysconfig (el7)
+  copy: src="{{ files }}/hotfix/httpd/httpd.sysconfig" dest=/etc/sysconfig/httpd
+  when: ansible_distribution_major_version == '7'
   notify:
   - restart apache
   tags:
