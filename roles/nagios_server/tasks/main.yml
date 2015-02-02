@@ -38,16 +38,11 @@
   - nagios_server
 
 - name: Copy /etc/nagios config
-  copy: src={{nagios_srcdir}}/ dest=/etc/nagios owner=nagios group=nagios
+  synchronize: src={{nagios_srcdir}}/ dest=/etc/nagios/
   tags:
   - nagios-config
   - nagios_server
   notify: restart nagios
-
-- name: Copy checkcommands.cfg
-  template: src={{nagios_srcdir}}/checkcommands.cfg dest=/etc/nagios/checkcommands.cfg owner=nagios group=nagios
-  tags:
-  - nagios_server
 
 - name: Copy httpd config
   template: src=nagios-httpd.conf dest=/etc/httpd/conf.d/nagios.conf
