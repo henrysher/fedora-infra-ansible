@@ -55,8 +55,13 @@ def search_logs(opts, logfiles):
             if len(things) < 5:
                 msg += "(logview error - unhandled line): %r\n" % line
                 continue
-            if things[2] in opts.search_terms or 'ANY' in opts.search_terms:
-                slurp = json.loads(things[4])
+
+            # See callback_plugins/logdetail.py for how these lines get created.
+            #MSG_FORMAT="%(now)s\t%(count)s\t%(category)s\t%(name)s\t%(data)s\n"
+            task_ts, count, category, name, data = things
+
+            if category in opts.search_terms or 'ANY' in opts.search_terms:
+                slurp = json.loads(data)
                 if opts.profile:
                     st = slurp.get('task_start', 0)
                     end = slurp.get('task_end', 0)
@@ -65,7 +70,9 @@ def search_logs(opts, logfiles):
                     else:
                         dur = None
                     
-                msg += '%s\t%s\t%s\t%s\t%s\t%s'  % (timestamp, hostname, things[0], things[1], things[2], things[3])
+                msg += '%s\t%s\t%s\t%s\t%s\t%s'  % (
+                    timestamp, hostname, task_ts, count, category, name)
+
                 if not opts.verbose:
                     if type(slurp) == dict:
                         for term in ['task_userid', 'cmd']:
