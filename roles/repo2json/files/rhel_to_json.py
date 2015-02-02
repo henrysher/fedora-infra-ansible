@@ -161,13 +161,13 @@ def main():
 
     for el in PATHS:
 
-        channel = os.path.basename(el)
         output = {'packages': {}, 'arches': []}
 
         dbfiles = find_primary_sqlite(PATHS[el])
 
         for dbfile_xz in dbfiles:
             cur_fold = os.path.join(*dbfile_xz.rsplit(os.sep, 2)[:-2])
+            channel = os.path.basename(cur_fold)
             print '-', cur_fold
             dbfile = os.path.join(working_dir, 'primary_db_%s.sqlite' % el)
             decompress_primary_db(dbfile_xz, dbfile)
