@@ -1,11 +1,6 @@
 ---
 # Configuration for the pkgdb2 webapp
 
-- name: clean yum metadata
-  command: yum clean all
-  tags:
-  - packages
-
 - name: install needed packages
   yum: pkg={{ item }} state=present
   with_items:
@@ -40,6 +35,7 @@
 
 - name: create the database scheme
   command: /usr/bin/python2 /usr/share/pkgdb2/pkgdb2_createdb.py
+  changed_when: "1 != 1"
   environment:
       PKGDB2_CONFIG: /etc/pkgdb2/pkgdb2.cfg
 
@@ -68,6 +64,7 @@
 
 - name: update the base_url in update_package_info
   command: sed -i -e 's|https://dl.fedoraproject.org|http://dl.phx2.fedoraproject.org|' /usr/bin/update_package_info.py
+  changed_when: "1 != 1"
   tags:
   - config
 
