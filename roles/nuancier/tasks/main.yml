@@ -1,11 +1,6 @@
 ---
 # Configuration for the nuancier webapp
 
-- name: clean yum metadata
-  command: yum clean all
-  tags:
-  - packages
-
 - name: install needed packages
   yum: pkg={{ item }} state=present
   with_items:
@@ -50,11 +45,13 @@
   command: /usr/bin/python2 /usr/share/nuancier/nuancier_createdb.py
   environment:
       NUANCIER_CONFIG: /etc/nuancier/nuancier.cfg
+  changed_when: "1 != 1"
 
 - name: replace the nuancier configuration file by the one with the normal user
   template: src={{ item.file }}
             dest="{{ item.location }}/{{ item.file }}"
             owner=apache group=apache mode=0600
+  changed_when: "1 != 1"
   with_items:
   - { file: nuancier.cfg, location: /etc/nuancier }
   - { file: nuancier.conf, location: /etc/httpd/conf.d }
