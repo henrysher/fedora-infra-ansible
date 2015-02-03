@@ -38,10 +38,12 @@
   ini_file: dest=/etc/nova/nova.conf section=keystone_authtoken option=admin_password value={{NOVA_PASS}}
 
 - ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=rpc_backend value=rabbit
-- ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=rabbit_hostname value={{controller_private_ip}}
+- ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=rabbit_host value={{controller_private_ip}}
+- ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=rabbit_hosts value={{controller_private_ip}}:5672
 - ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=rabbit_userid value=amqp_user
 - ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=rabbit_password value={{ CONFIG_AMQP_AUTH_PASSWORD }}
 - ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=rabbit_port value=5672
+- ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=rabbit_use_ssl value=False
 
 - ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=my_ip value={{compute_private_ip}}
 - ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=vnc_enabled value=True
@@ -76,10 +78,11 @@
   ini_file: dest=/etc/neutron/neutron.conf section=keystone_authtoken option=admin_password value={{NEUTRON_PASS}}
 
 - ini_file: dest=/etc/neutron/neutron.conf section=DEFAULT option=rpc_backend value=neutron.openstack.common.rpc.impl_qpid
-- ini_file: dest=/etc/neutron/neutron.conf section=DEFAULT option=rabbit_hostname value={{controller_private_ip}}
-- ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=rabbit_userid value=amqp_user
-- ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=rabbit_password value={{ CONFIG_AMQP_AUTH_PASSWORD }}
-- ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=rabbit_port value=5672
+- ini_file: dest=/etc/neutron/neutron.conf section=DEFAULT option=rabbit_host value={{controller_private_ip}}
+- ini_file: dest=/etc/neutron/neutron.conf section=DEFAULT option=rabbit_hosts value={{controller_private_ip}}:5672
+- ini_file: dest=/etc/neutron/neutron.conf section=DEFAULT option=rabbit_userid value=amqp_user
+- ini_file: dest=/etc/neutron/neutron.conf section=DEFAULT option=rabbit_password value={{ CONFIG_AMQP_AUTH_PASSWORD }}
+- ini_file: dest=/etc/neutron/neutron.conf section=DEFAULT option=rabbit_port value=5672
 
 # uncomment if you want to debug compute instance
 #- ini_file: dest=/etc/neutron/neutron.conf section=DEFAULT option=verbose value=True
