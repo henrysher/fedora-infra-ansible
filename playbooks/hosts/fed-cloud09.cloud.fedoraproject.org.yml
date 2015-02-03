@@ -72,10 +72,12 @@
     lineinfile:
       dest=/etc/sysconfig/iptables
       state=present
-      regexp="^.*INPUT.*172\.24\.0\.10/24.*tcp.*5672.*ACCEPT" 
+      regexp="^.*INPUT.*172\.24\.0\.10/24.*tcp.*{{ item }}.*ACCEPT"
       insertbefore="^.*INPUT.*RELATED,ESTABLISHED.*ACCEPT"
-      line="-A INPUT -s 172.24.0.10/24 -p tcp -m multiport --dports 5672 -m comment --comment \"added by fedora-infra ansible\" -j ACCEPT" 
+      line="-A INPUT -s 172.24.0.10/24 -p tcp -m multiport --dports {{ item }} -m comment --comment \"added by fedora-infra ansible\" -j ACCEPT" 
       backup=yes
+    with_items:
+    - 5672
     notify: restart iptables
 
   # http://docs.openstack.org/trunk/install-guide/install/yum/content/basics-neutron-networking-controller-node.html
