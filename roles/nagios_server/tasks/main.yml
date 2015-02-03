@@ -44,6 +44,13 @@
   - nagios_server
   notify: restart nagios
 
+- name: copy over nagios/checkcommands.cfg template
+  template: src={{nagios_srcdir}}/checkcommands.cfg dest=/etc/nagios/checkcommands.cfg
+  tags:
+  - nagios-config
+  - nagios_server
+  notify: restart nagios
+  
 - name: Copy httpd config
   template: src=nagios-httpd.conf dest=/etc/httpd/conf.d/nagios.conf
   tags:
@@ -55,7 +62,7 @@
   - nagios_server
 
 - name: Copy plugins
-  copy: src=plugins/ dest=/usr/lib64/nagios/plugins/ mode=0755 owner=root group=root
+  synchronize: src=plugins/ dest=/usr/lib64/nagios/plugins/ mode=0755 owner=root group=root
   tags:
   - nagios_server
 
