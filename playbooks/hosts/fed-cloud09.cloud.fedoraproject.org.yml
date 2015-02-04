@@ -300,12 +300,12 @@
   - shell: source /root/keystonerc_admin && keystone endpoint-list | grep {{SERVICE_ID.stdout}} | awk '{print $2}'
     register: ENDPOINT_ID
   - shell: source /root/keystonerc_admin && keystone endpoint-list |grep {{SERVICE_ID.stdout}} |grep -v {{ controller_private_ip }} && (keystone endpoint-delete {{ENDPOINT_ID.stdout}} && keystone endpoint-create --region 'RegionOne' --service {{SERVICE_ID.stdout}} --publicurl 'http://{{controller_public_ip}}:8774/v3'  --adminurl 'http://{{controller_private_ip}}:8774/v3' --internalurl 'http://{{controller_private_ip}}:8774/v3' ) || true
-  # swift
-  - shell: source /root/keystonerc_admin && keystone service-list | grep 'swift ' | awk '{print $2}'
-    register: SERVICE_ID
-  - shell: source /root/keystonerc_admin && keystone endpoint-list | grep {{SERVICE_ID.stdout}} | awk '{print $2}'
-    register: ENDPOINT_ID
-  - shell: source /root/keystonerc_admin && keystone endpoint-list |grep {{SERVICE_ID.stdout}} |grep -v {{ controller_private_ip }} && (keystone endpoint-delete {{ENDPOINT_ID.stdout}} && keystone endpoint-create --region 'RegionOne' --service {{SERVICE_ID.stdout}} --publicurl 'http://{{controller_public_ip}}:8080/v1/AUTH_%(tenant_id)s'  --adminurl 'http://{{controller_private_ip}}:8080' --internalurl 'http://{{controller_private_ip}}:8080/v1/AUTH_%(tenant_id)s' ) || true
+  # swift - it actually only listen on public port!
+  #- shell: source /root/keystonerc_admin && keystone service-list | grep 'swift ' | awk '{print $2}'
+  #  register: SERVICE_ID
+  #- shell: source /root/keystonerc_admin && keystone endpoint-list | grep {{SERVICE_ID.stdout}} | awk '{print $2}'
+  #  register: ENDPOINT_ID
+  #- shell: source /root/keystonerc_admin && keystone endpoint-list |grep {{SERVICE_ID.stdout}} |grep -v {{ controller_private_ip }} && (keystone endpoint-delete {{ENDPOINT_ID.stdout}} && keystone endpoint-create --region 'RegionOne' --service {{SERVICE_ID.stdout}} --publicurl 'http://{{controller_public_ip}}:8080/v1/AUTH_%(tenant_id)s'  --adminurl 'http://{{controller_private_ip}}:8080' --internalurl 'http://{{controller_private_ip}}:8080/v1/AUTH_%(tenant_id)s' ) || true
   # swift_s3
   - shell: source /root/keystonerc_admin && keystone service-list | grep 'swift_s3' | awk '{print $2}'
     register: SERVICE_ID
