@@ -41,6 +41,26 @@
   notify:
   - restart httpd
 
+- name: Copy squid ssl cert from puppet private
+  copy: > 
+    src="{{puppet_private}}/httpd/wildcard-2014.squid.cert" 
+    dest=/etc/pki/tls/certs/wildcard-2014.squid.cert 
+    owner=root group=root mode=0644
+  tags:
+  - squid
+  notify:
+  - restart httpd
+
+- name: Copy squid ssl key from puppet private
+  copy: >
+    src="{{puppet_private}}/httpd/wildcard-2014.fedoraproject.org.key" 
+    dest=/etc/pki/tls/private/wildcard-2014.fedoraproject.org.key
+    owner=root group=root mode=0600
+  tags:
+  - squid
+  notify:
+  - restart httpd
+
 - name: set squid to start on boot
   service: name=squid enabled=true state=running
   tags:
