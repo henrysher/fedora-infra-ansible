@@ -250,13 +250,13 @@
     register: SERVICE_ID
   - shell: source /root/keystonerc_admin && keystone endpoint-list | grep {{SERVICE_ID.stdout}} | awk '{print $2}'
     register: ENDPOINT_ID
-  - shell: source /root/keystonerc_admin && keystone endpoint-list |grep {{SERVICE_ID.stdout}} |grep -v {{ controller_private_ip }} && (keystone endpoint-delete {{ENDPOINT_ID.stdout}} && keystone endpoint-create --region 'RegionOne' --service {{SERVICE_ID.stdout}} --publicurl 'http://{{controller_public_ip}}:8777'  --adminurl 'http://{{controller_private_ip}}:8777' --internalurl 'http://{{controller_private_ip}}:8777' )
+  - shell: source /root/keystonerc_admin && keystone endpoint-list |grep {{SERVICE_ID.stdout}} |grep -v {{ controller_private_ip }} && (keystone endpoint-delete {{ENDPOINT_ID.stdout}} && keystone endpoint-create --region 'RegionOne' --service {{SERVICE_ID.stdout}} --publicurl 'http://{{controller_public_ip}}:8777'  --adminurl 'http://{{controller_private_ip}}:8777' --internalurl 'http://{{controller_private_ip}}:8777' ) || true
   # cinder
   - shell: source /root/keystonerc_admin && keystone service-list | grep 'cinder ' | awk '{print $2}'
     register: SERVICE_ID
   - shell: source /root/keystonerc_admin && keystone endpoint-list | grep {{SERVICE_ID.stdout}} | awk '{print $2}'
     register: ENDPOINT_ID
-  - shell: source /root/keystonerc_admin && keystone endpoint-list |grep {{SERVICE_ID.stdout}} |grep -v {{ controller_private_ip }} && (keystone endpoint-delete {{ENDPOINT_ID.stdout}} && keystone endpoint-create --region 'RegionOne' --service {{SERVICE_ID.stdout}} --publicurl 'http://{{controller_public_ip}}/v1/%(tenant_id)s'  --adminurl 'http://{{controller_private_ip}}/v1/%(tenant_id)s' --internalurl 'http://{{controller_private_ip}}/v1/%(tenant_id)s' )
+  - shell: source /root/keystonerc_admin && keystone endpoint-list |grep {{SERVICE_ID.stdout}} |grep -v {{ controller_private_ip }} && (keystone endpoint-delete {{ENDPOINT_ID.stdout}} && keystone endpoint-create --region 'RegionOne' --service {{SERVICE_ID.stdout}} --publicurl 'http://{{controller_public_ip}}/v1/%(tenant_id)s'  --adminurl 'http://{{controller_private_ip}}/v1/%(tenant_id)s' --internalurl 'http://{{controller_private_ip}}/v1/%(tenant_id)s' ) || true
 
   # configure cider with multi back-end
   # https://access.redhat.com/documentation/en-US/Red_Hat_Enterprise_Linux_OpenStack_Platform/5/html/Cloud_Administrator_Guide/section_manage-volumes.html
