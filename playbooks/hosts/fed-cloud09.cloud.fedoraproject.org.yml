@@ -245,10 +245,13 @@
   #  - openstack-nova-scheduler
 
   # flip endpoints internalurl to internal IP
+  #- shell: source /root/keystonerc_admin && keystone endpoint-list | awk '{print $2}'
+  #  register: ENDPOINT_ID
+  #- shell: source /root/keystonerc_admin && keystone endpoint-list |grep 1cd097ab63754d8fab2e87754ebb132f |grep -v {{ controller_private_ip }} && (keystone endpoint-delete 1cd097ab63754d8fab2e87754ebb132f && 
   - keystone_service:
-      name=nova
-      type=compute
-      description="Openstack Compute Service"
+      name=ceilometer
+      type=metering
+      description="Openstack Metering Service"
       publicurl="http://{{ controller_public_ip }}:8777"
       internalurl="http://{{ controller_private_ip }}:8777"
       adminurl="http://{{ controller_private_ip }}:8777"
