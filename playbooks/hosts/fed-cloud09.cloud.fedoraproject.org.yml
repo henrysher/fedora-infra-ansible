@@ -269,12 +269,12 @@
   - shell: source /root/keystonerc_admin && keystone endpoint-list | grep {{SERVICE_ID.stdout}} | awk '{print $2}'
     register: ENDPOINT_ID
   - shell: source /root/keystonerc_admin && keystone endpoint-list |grep {{SERVICE_ID.stdout}} |grep -v {{ controller_private_ip }} && (keystone endpoint-delete {{ENDPOINT_ID.stdout}} && keystone endpoint-create --region 'RegionOne' --service {{SERVICE_ID.stdout}} --publicurl 'http://{{controller_public_ip}}:9292'  --adminurl 'http://{{controller_private_ip}}:9292' --internalurl 'http://{{controller_private_ip}}:9292' ) || true
-  # keystone
+  # keystone --- !!!!! we need to use ADMIN_TOKEN here
   - shell: source /root/keystonerc_admin && keystone service-list | grep 'keystone' | awk '{print $2}'
     register: SERVICE_ID
   - shell: source /root/keystonerc_admin && keystone endpoint-list | grep {{SERVICE_ID.stdout}} | awk '{print $2}'
     register: ENDPOINT_ID
-  - shell: source /root/keystonerc_admin && keystone endpoint-list |grep {{SERVICE_ID.stdout}} |grep -v {{ controller_private_ip }} && (keystone endpoint-delete {{ENDPOINT_ID.stdout}} && keystone endpoint-create --region 'RegionOne' --service {{SERVICE_ID.stdout}} --publicurl 'http://{{controller_public_ip}}:5000/v2.0'  --adminurl 'http://{{controller_private_ip}}:5000/v2.0' --internalurl 'http://{{controller_private_ip}}:5000/v2.0' ) || true
+  - shell: source /root/keystonerc_admin && keystone endpoint-list |grep {{SERVICE_ID.stdout}} |grep -v {{ controller_private_ip }} && (keystone endpoint-delete {{ENDPOINT_ID.stdout}} && keystone --os-token '{{ADMIN_TOKEN}}' --os-endpoint 'http://{{controller_private_ip}}:35357/v2.0' endpoint-create --region 'RegionOne' --service {{SERVICE_ID.stdout}} --publicurl 'http://{{controller_public_ip}}:5000/v2.0'  --adminurl 'http://{{controller_private_ip}}:35357/v2.0' --internalurl 'http://{{controller_private_ip}}:5000/v2.0' ) || true
   # neutron
   - shell: source /root/keystonerc_admin && keystone service-list | grep 'neutron' | awk '{print $2}'
     register: SERVICE_ID
