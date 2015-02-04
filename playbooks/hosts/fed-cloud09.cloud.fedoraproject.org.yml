@@ -244,6 +244,16 @@
   #  - openstack-nova-novncproxy
   #  - openstack-nova-scheduler
 
+  # flip endpoints internalurl to internal IP
+  - keystone_service:
+      name=nova
+      type=compute
+      description="Openstack Compute Service"
+      publicurl="http://{{ controller_public_ip }}:8777"
+      internalurl="http://{{ controller_private_ip }}:8777"
+      adminurl="http://{{ controller_private_ip }}:8777"
+      region="RegionOne"
+
   # configure cider with multi back-end
   # https://access.redhat.com/documentation/en-US/Red_Hat_Enterprise_Linux_OpenStack_Platform/5/html/Cloud_Administrator_Guide/section_manage-volumes.html
   - lineinfile: dest=/etc/cinder/cinder.conf regexp="^enabled_backends" insertafter="^#enabled_backends" line="enabled_backends=equallogic-1,lvmdriver-1"
