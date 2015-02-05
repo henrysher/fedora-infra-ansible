@@ -8,7 +8,7 @@
   - libsemanage-python
   tags:
   - packages
-  - squid
+  - kojipkgs
 
 - name: make nfs mount directories
   file: state=directory path={{ item }} owner=root group=root mode=755
@@ -17,12 +17,12 @@
   - /mnt/fedora_app
   - /mnt/fedora_app/app
   tags:
-  - squid
+  - kojipkgs
 
 - name: set seboolean for squid server
   seboolean: name=httpd_can_network_connect state=true persistent=true
   tags:
-  - squid
+  - kojipkgs
 
 - name: install squid config files
   copy: src={{ item }} dest=/etc/squid/{{ item }} owner=root group=root mode=644
@@ -31,15 +31,32 @@
   - cachemgr.conf
   notify:
   - restart squid
+  tags:
+  - kojipkgs
 
 - name: install apache config files for squid
   copy: src={{ item }} dest=/etc/httpd/conf.d/{{ item }} owner=root group=root mode=644
   with_items:
-  - squid-apache.conf
   - kojipkgs.conf
   - infrastructure.conf
   notify:
   - restart httpd
+  tags:
+  - kojipkgs
+
+- name: make sure httpd ssl.conf is not around (conflicts with squid)
+  file: dest=/etc/httpd/conf.d/ssl.conf state=absent
+  notify:
+  - restart httpd
+  tags:
+  - kojipkgs
+  
+- name: make sure httpd listens on port 8080
+  lineinfile: dest=/etc/httpd/conf/httpd.conf state=present regex="^Listen 80" line="Listen 8080"
+  notify:
+  - restart httpd
+  tags:
+  - kojipkgs
 
 - name: Copy squid ssl cert from puppet private
   copy: > 
@@ -47,7 +64,7 @@
     dest=/etc/pki/tls/certs/wildcard-2014.squid.cert 
     owner=root group=root mode=0644
   tags:
-  - squid
+  - kojipkgs
   notify:
   - restart httpd
 
@@ -57,7 +74,7 @@
     dest=/etc/pki/tls/private/wildcard-2014.fedoraproject.org.key
     owner=root group=root mode=0600
   tags:
-  - squid
+  - kojipkgs
   notify:
   - restart httpd
 
@@ -65,4 +82,4 @@
   service: name=squid enabled=true state=running
   tags:
   - services
-  - squid
+  - kojipkgs
