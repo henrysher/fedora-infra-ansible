@@ -149,10 +149,12 @@ def main():
 
     module_dir = os.path.join(CACHE_DIR, name)
     hash_dir = os.path.join(module_dir, filename, hash_type, checksum)
+    msgpath = os.path.join(name, module_dir, filename, hash_type, checksum, filename)
 
     if hash_type == "md5":
         # Preserve compatibility with the current folder hierarchy for md5
         hash_dir = os.path.join(module_dir, filename, checksum)
+        msgpath = os.path.join(name, module_dir, filename, checksum, filename)
 
     # first test if the module really exists
     git_dir = os.path.join(GITREPO, '%s.git' %  name)
@@ -222,7 +224,8 @@ def main():
         fedmsg.init(name="relay_inbound", cert_prefix="lookaside", **config)
 
         topic = "lookaside.new"
-        msg = dict(name=name, md5sum=checksum, filename=filename, agent=username)
+        msg = dict(name=name, md5sum=checksum, filename=filename,
+                   agent=username, path=msgpath)
         fedmsg.publish(modname="git", topic=topic, msg=msg)
     except Exception as e:
         print "Error with fedmsg", str(e)
