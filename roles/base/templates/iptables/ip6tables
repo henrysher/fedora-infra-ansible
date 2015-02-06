@@ -1,0 +1,52 @@
+# {{ ansible_managed }}
+*filter
+:INPUT ACCEPT [0:0]
+:FORWARD ACCEPT [0:0]
+:OUTPUT ACCEPT [0:0]
+
+loopback allowed
+-A INPUT -i lo -j ACCEPT
+
+# Accept ping and traceroute (needs icmp)
+-A INPUT -p ipv6-icmp -j ACCEPT
+
+# Established connections allowed
+-A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
+
+# Established connections allowed
+-A INPUT -m state --state RELATED,ESTABLISHED -j ACCEPT
+-A OUTPUT -m state --state RELATED,ESTABLISHED -j ACCEPT
+
+# allow ssh - always
+-A INPUT -m conntrack --ctstate NEW -m tcp -p tcp --dport 22 -j ACCEPT
+
+# for nrpe - allow it from nocs
+-A INPUT -p tcp -m tcp --dport 5666 -s 192.168.1.10 -j ACCEPT
+-A INPUT -p tcp -m tcp --dport 5666  -s 209.132.181.35 -j ACCEPT
+-A INPUT -p tcp -m tcp --dport 5666 -s 10.5.126.41 -j ACCEPT
+
+# if the host/group defines incoming tcp_ports - allow them
+{% if tcp_ports is defined %}
+{% for port in tcp_ports %}
+-A INPUT -p tcp -m tcp --dport {{ port }} -j ACCEPT
+{% endfor %}
+{% endif %}
+
+# if the host/group defines incoming udp_ports - allow them
+{% if udp_ports is defined %}
+{% for port in udp_ports %}
+-A INPUT -p udp -m udp --dport {{ port }} -j ACCEPT
+{% endfor %}
+{% endif %}
+
+# if there are custom rules - put them in as-is
+{% if custom_rules is defined %}
+{% for rule in custom_rules %}
+{{ rule }}
+{% endfor %}
+{% endif %}
+
+# otherwise kick everything out
+-A INPUT -j REJECT --reject-with icmp6-adm-prohibited
+-A FORWARD -j REJECT --reject-with icmp6-adm-prohibited
+COMMIT

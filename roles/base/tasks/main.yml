@@ -127,6 +127,29 @@
   - service
   - base
 
+- name: ip6tables
+  template: src={{ item }} dest=/etc/sysconfig/ip6tables mode=600 backup=yes
+  with_first_found:
+   - ../templates/iptables/ip6tables.{{ datacenter }}
+   - ../templates/iptables/ip6tables.{{ ansible_fqdn }}
+   - ../templates/iptables/ip6tables.{{ host_group }}
+   - ../templates/iptables/ip6tables.{{ env }}
+   - ../templates/iptables/ip6tables
+  notify:
+  - restart ip6tables
+  - hup libvirtd
+  tags:
+  - ip6tables
+  - config
+  - base
+
+- name: ip6tables service enabled
+  service: name=ip6tables state=started enabled=true
+  tags:
+  - ip6tables
+  - service
+  - base
+
 - name: rsyslog.conf
   copy: src={{ item }} dest=/etc/rsyslog.conf mode=644
   with_first_found:
