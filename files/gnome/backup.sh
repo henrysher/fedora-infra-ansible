@@ -12,7 +12,6 @@ MACHINES='signal.gnome.org
           chooser.gnome.org
           git.gnome.org
           webapps.gnome.org
-          bugzilla-web.gnome.org
           progress.gnome.org
           clipboard.gnome.org
           cloud-ssh.gnome.org
