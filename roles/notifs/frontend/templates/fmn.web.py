@@ -36,7 +36,7 @@ config = {
         "backend": "dogpile.cache.memcached",
         "expiration_time": 3600,  # 3600 is 1 hour
         "arguments": {
-            "url": "memcached02:11211",
+            "url": "memcached01:11211",
         },
     },
 }
