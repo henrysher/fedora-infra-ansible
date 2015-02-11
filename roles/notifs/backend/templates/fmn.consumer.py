@@ -33,7 +33,7 @@ config = {
     {% if env == 'staging' %}
     "fmn.rules.utils.pkgdb_url": "https://admin.stg.fedoraproject.org/pkgdb/api",
     {% else %}
-    "fmn.rules.utils.pkgdb_url": "https://admin.fedoraproject.org/pkgdb/api",
+    "fmn.rules.utils.pkgdb_url": "http://pkgdb01.phx2.fedoraproject.org/pkgdb/api",
     {% endif %}
     "fmn.rules.cache": {
         "backend": "dogpile.cache.dbm",
