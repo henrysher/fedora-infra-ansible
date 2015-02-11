@@ -75,7 +75,7 @@ config = {
     "fmn.email.from_address": "notifications@" + domain,
 
     # IRC
-    "fmn.irc.network": "chat.freenode.net",
+    "fmn.irc.network": "irc.freenode.net",
     "fmn.irc.nickname": ircnick,
     "fmn.irc.port": 6667,
     "fmn.irc.timeout": 120,
