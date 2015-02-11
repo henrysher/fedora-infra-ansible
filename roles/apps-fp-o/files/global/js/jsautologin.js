@@ -2,20 +2,20 @@
  * Copyright (c) 2014, Patrick Uiterwijk <puiterwijk@redhat.com>
  * All rights reserved.
  *
- * This file is part of JSOpenID.
+ * This file is part of JSAutoLogin.
  *
- * JSOpenID is free software: you can redistribute it and/or modify
+ * JSAutoLogin is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * JSOpenID is distributed in the hope that it will be useful,
+ * JSAutoLogin is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with JSOpenID.  If not, see <http://www.gnu.org/licenses/>.
+ * along with JSAutoLogin.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 function respondToLogin(targetOrigin, success, data)
@@ -25,7 +25,7 @@ function respondToLogin(targetOrigin, success, data)
     if(window.parent != null)
     {
         // If we don't have this element in the parent window, this is not an auth iframe
-        if(window.parent.document.getElementById('jsopenid_ifrm') != null)
+        if(window.parent.document.getElementById('jsautologin_ifrm') != null)
         {
             window.parent.postMessage({"success": success,
                                        "data": data},
@@ -39,7 +39,7 @@ function tryBackgroundLogin(login_url, callback_success, callback_failed)
     if(window.parent != null)
     {
         // Check if we are called recursively (from within a login attempt)
-        if(window.parent.document.getElementById('jsopenid_ifrm') != null)
+        if(window.parent.document.getElementById('jsautologin_ifrm') != null)
         {
             return;
         }
@@ -47,7 +47,7 @@ function tryBackgroundLogin(login_url, callback_success, callback_failed)
 
     // Create the iframe we are going to use
     ifrm = document.createElement('iframe');
-    ifrm.id = 'jsopenid_ifrm';
+    ifrm.id = 'jsautologin_ifrm';
     ifrm.src = login_url;
     ifrm.style.width = 0;
     ifrm.style.height = 0;
