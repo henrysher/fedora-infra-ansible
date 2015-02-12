@@ -22,6 +22,18 @@ config = {
     "fmn.consumer.enabled": True,
     "fmn.sqlalchemy.uri": "postgresql://{{notifs_db_user}}:{{notifs_db_password}}@db-notifs/notifications",
 
+    # Auto create accounts for new packagers.
+    "fmn.autocreate": True,
+
+    # Just drop these topics without considering any preferences.  They are noise that just clog us up.
+    "fmn.junk_suffixes": [
+        '.buildsys.package.list.state.change',
+        '.buildsys.tag',
+        '.buildsys.untag',
+        '.buildsys.repo.init',
+        '.buildsys.repo.done',
+    ],
+
     # This sets up four threads to handle incoming messages.  At the time of
     # this commit, all of our fedmsg daemons are running in single-threaded
     # mode.  If we turn it on globally, we should remove this setting.
