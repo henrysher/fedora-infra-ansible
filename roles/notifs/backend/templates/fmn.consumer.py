@@ -57,6 +57,7 @@ config = {
         '.buildsys.untag',
         '.buildsys.repo.init',
         '.buildsys.repo.done',
+        '.buildsys.rpm.sign',
     ],
 
     # This sets up four threads to handle incoming messages.  At the time of
