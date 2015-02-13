@@ -14,12 +14,13 @@
 - name: generate taskotron.yaml config file
   template: src=taskotron.yaml.j2 dest=/etc/taskotron/taskotron.yaml owner=root group=root mode=0644
 
-- name: upload yumrepoinfo.conf
-  copy: src=yumrepoinfo.conf dest=/etc/taskotron/yumrepoinfo.conf owner=root group=root mode=0644
+# getting rid of this because it leads to out-of-date config setups
+# should be deleted soon
+#- name: upload yumrepoinfo.conf
+#  copy: src=yumrepoinfo.conf dest=/etc/taskotron/yumrepoinfo.conf owner=root group=root mode=0644
 
-# disabled for now since we're uploading the config file
-#- name: set baseurl of yumrepoinfo.conf
-#  replace: dest=/etc/taskotron/yumrepoinfo.conf regexp='baseurl = http://download\.fedoraproject\.org/.*' replace='baseurl = http://infrastructure.fedoraproject.org/pub/fedora/linux'
+- name: set baseurl of yumrepoinfo.conf
+  replace: dest=/etc/taskotron/yumrepoinfo.conf regexp='baseurl = http://download\.fedoraproject\.org/.*' replace='baseurl = http://infrastructure.fedoraproject.org/pub/fedora/linux'
 
 # disabled for now until interaction with hosts role is figured out
 #- name: update /etc/hosts so that koji downloads work
