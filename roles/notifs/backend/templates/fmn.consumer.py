@@ -52,7 +52,7 @@ config = {
 
     # Just drop these topics without considering any preferences.  They are noise that just clog us up.
     "fmn.junk_suffixes": [
-        '.buildsys.package.list.state.change',
+        '.buildsys.package.list.change',
         '.buildsys.tag',
         '.buildsys.untag',
         '.buildsys.repo.init',
