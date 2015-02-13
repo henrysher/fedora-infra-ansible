@@ -19,3 +19,28 @@ fedmsg_certs:
 - service: bugzilla2fedmsg
   owner: root
   group: fedmsg
+
+# For the MOTD
+csi_security_category: Low
+csi_primary_contact: Fedmsg admins - sysadmin-datanommer-members@fedoraproject.org
+csi_purpose: Run the bugzilla2fedmsg bridge to forward RH messages onto fedmsg
+csi_relationship: |
+    A 'moksha-hub' daemon is the only thing really running here.  (Don't confuse
+    that with the 'fedmsg-hub' running on most of our other backend machines.)
+
+    The bugzilla2fedmsg package provides a plugin to the moksha-hub that
+    connects out over the STOMP protocol to a 'fabric' of JBOSS FUSE brokers
+    living in the Red Hat DMZ.  We authenticate with a cert/key pair that is
+    kept in /etc/pki/fedmsg/.  Those brokers should push bugzilla events over
+    STOMP to our moksha-hub daemon.  When a message arrives, we query bugzilla
+    about the change to get some 'more interesting' data to stuff in our
+    payload, then we sign the message using a fedmsg cert and fire it off to the
+    rest of our bus.
+
+    This service has no database, no memcached usage.  It depends on those STOMP
+    brokers and being able to query bugzilla.rh.com.
+
+    STOMP config:   /etc/moksha/production.ini
+    fedmsg config:  /etc/fedmsg.d/
+    certs:          /etc/pki/fedmsg
+    code:           /usr/lib/python2.7/site-packages/bugzilla2fedmsg.py
