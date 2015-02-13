@@ -21,6 +21,8 @@
   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
   vars:
   - mailman_vardir: /srv/persist/mailman
+   - tcp_ports: [22, 25, 80, 443]
+   - udp_ports: []
 
   roles:
   - sudo
@@ -49,15 +51,6 @@
   - name: get the repo file
     get_url: url=https://repos.fedorapeople.org/repos/abompard/hyperkitty/hyperkitty.repo
              dest=/etc/yum.repos.d/hyperkitty.repo mode=0444
-
-  # open up ports (22, 80, 443, 25)
-  - name: poke holes in the firewall
-    command: lokkit {{ item }}
-    with_items:
-    - --service=ssh
-    - --service=https
-    - --service=http
-    - --service=smtp
 
   # Database
   - name: initialize postgresql
