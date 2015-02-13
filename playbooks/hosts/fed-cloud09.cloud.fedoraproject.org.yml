@@ -110,10 +110,10 @@
   - service: name=ntpd state=started enabled=yes
 
   # http://docs.openstack.org/icehouse/install-guide/install/yum/content/basics-packages.html
+  - action: yum state=present name=https://repos.fedorapeople.org/repos/openstack/openstack-icehouse/rdo-release-icehouse-4.noarch.rpm
   - name: install basic openstack packages
     action: yum state=present name={{ item }}
     with_items:
-    - https://repos.fedorapeople.org/repos/openstack/openstack-icehouse/rdo-release-icehouse-4.noarch.rpm
     - http://dl.fedoraproject.org/pub/epel/7/x86_64/e/epel-release-7-5.noarch.rpm
     - openstack-utils
     - openstack-selinux
@@ -125,9 +125,11 @@
 
   - name: add ssl cert
     copy: src={{ private }}/files/openstack/fed-cloud09.pem dest=/etc/pki/tls/certs/fed-cloud09.pem mode=600 owner=rabbitmq group=root
-
   - name: add ssl key
     copy: src={{ private }}/files/openstack/fed-cloud09.key dest=/etc/pki/tls/private/fed-cloud09.key mode=600 owner=rabbitmq group=root
+  - name: add cert to ca-bundle.crt so plain curl works
+    copy: src={{ private }}/files/openstack/fed-cloud09.pem dest=/etc/pki/ca-trust/source/anchors/ mode=600 owner=root group=root
+  - command: /usr/bin/update-ca-trust
 
   # http://docs.openstack.org/trunk/install-guide/install/yum/content/basics-database-controller.html
   - name: install mysql packages

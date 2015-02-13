@@ -52,11 +52,12 @@ config = {
 
     # Just drop these topics without considering any preferences.  They are noise that just clog us up.
     "fmn.junk_suffixes": [
-        '.buildsys.package.list.state.change',
+        '.buildsys.package.list.change',
         '.buildsys.tag',
         '.buildsys.untag',
         '.buildsys.repo.init',
         '.buildsys.repo.done',
+        '.buildsys.rpm.sign',
     ],
 
     # This sets up four threads to handle incoming messages.  At the time of

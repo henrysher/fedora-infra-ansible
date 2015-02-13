@@ -21,6 +21,8 @@
   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
   vars:
   - mailman_vardir: /srv/persist/mailman
+  - tcp_ports: [22, 25, 80, 443]
+  - udp_ports: []
 
   roles:
   - sudo
@@ -50,24 +52,24 @@
     get_url: url=https://repos.fedorapeople.org/repos/abompard/hyperkitty/hyperkitty.repo
              dest=/etc/yum.repos.d/hyperkitty.repo mode=0444
 
-  # open up ports (22, 80, 443, 25)
-  - name: poke holes in the firewall
-    command: lokkit {{ item }}
-    with_items:
-    - --service=ssh
-    - --service=https
-    - --service=http
-    - --service=smtp
-
   # Database
+  - name: install postgresql server packages
+    yum: name={{ item }}  state=present
+    with_items:
+    - postgresql-server
+    - postgresql-contrib
+    - python-psycopg2
+
   - name: initialize postgresql
     command: /usr/bin/postgresql-setup initdb
              creates=/var/lib/pgsql/data/postgresql.conf
+
   - name: copy pg_hba.conf
     copy: src="{{ files }}/lists-dev/pg_hba.conf" dest=/var/lib/pgsql/data/pg_hba.conf
           owner=postgres group=postgres
     notify:
     - restart postgresql
+
   - name: start postgresql
     service: state=started name=postgresql
 
