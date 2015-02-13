@@ -53,14 +53,23 @@
              dest=/etc/yum.repos.d/hyperkitty.repo mode=0444
 
   # Database
+  - name: install postgresql server packages
+    yum: name={{ item }}  state=present
+    with_items:
+    - postgresql-server
+    - postgresql-contrib
+    - python-psycopg2
+
   - name: initialize postgresql
     command: /usr/bin/postgresql-setup initdb
              creates=/var/lib/pgsql/data/postgresql.conf
+
   - name: copy pg_hba.conf
     copy: src="{{ files }}/lists-dev/pg_hba.conf" dest=/var/lib/pgsql/data/pg_hba.conf
           owner=postgres group=postgres
     notify:
     - restart postgresql
+
   - name: start postgresql
     service: state=started name=postgresql
 
