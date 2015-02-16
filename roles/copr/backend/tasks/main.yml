@@ -145,3 +145,11 @@
 
 - name: setup monitoring
   include: "monitoring.yml"
+
+- name: get owner for results dir
+  stat: path=/var/lib/copr/public_html
+  register: copr_results_dir_st
+
+- name: change owner for results dir if it isn't copr
+  shell: "chown -R copr:copr /var/lib/copr/public_html"
+  when: copr_results_dir_st.stat.pw_name != copr
