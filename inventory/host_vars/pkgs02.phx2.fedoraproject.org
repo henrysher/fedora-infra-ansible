@@ -1,5 +1,6 @@
 ---
 eth0_ip: 10.5.125.45
+eth1_ip: 10.5.127.69
 nm: 255.255.255.0
 gw: 10.5.125.254
 dns: 10.5.126.21
@@ -11,3 +12,14 @@ datacenter: phx2
 
 mem_size: 16384
 num_cpus: 8
+
+# Need a eth0/eth1 install here. 
+virt_install_command: virt-install -n {{ inventory_hostname }} -r {{ mem_size }}
+                 --disk bus=virtio,path={{ volgroup }}/{{ inventory_hostname }}
+                 --vcpus={{ num_cpus }}  -l {{ ks_repo }} -x
+                 "ksdevice=eth0 ks={{ ks_url }} console=tty0 console=ttyS0
+                  hostname={{ inventory_hostname }} nameserver={{ dns }}
+                  ip={{ eth0_ip }}::{{ gw }}:{{ nm }}:{{ inventory_hostname }}:eth0:none
+                  ip={{ eth1_ip }}:::{{ nm }}:{{ inventory_hostname }}-nfs:eth1:none"
+                 --network=bridge=br0,model=virtio --network=bridge=br1,model=virtio
+                 --autostart --noautoconsole
