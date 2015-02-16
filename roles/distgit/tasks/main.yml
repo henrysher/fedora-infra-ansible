@@ -180,6 +180,7 @@
   register: admin_user_list
   run_once: True
   always_run: True
+  changed_when: "1 != 1"
   delegate_to: localhost
   tags:
   - config
@@ -197,8 +198,12 @@
   with_items:
     - {name: /etc/gitolite/hooks, mode: 770, state: directory}
     - {name: /etc/gitolite/hooks/common, mode: 770, state: directory}
-    - {name: /etc/gitolite/hooks/common/update, mode: 755, state: touch}
 
+- name: Fix permissions on the Gitolite stuff (touch update if it does not exist)
+  copy: content="" dest=/etc/gitolite/hooks/common/update force=no owner=root group=packager mode=0755
+  tags:
+  - distgit
+  - config
 
 # -- CGit ------------------------------------------------
 # This is the pretty web view of the repositories, using CGit.
