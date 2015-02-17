@@ -260,7 +260,7 @@
     register: SERVICE_ID
   - shell: source /root/keystonerc_admin && keystone endpoint-list | grep {{SERVICE_ID.stdout}} | awk '{print $2}'
     register: ENDPOINT_ID
-  - shell: source /root/keystonerc_admin && keystone endpoint-list |grep {{SERVICE_ID.stdout}} |grep -v {{ controller_private_ip }} && (keystone endpoint-delete {{ENDPOINT_ID.stdout}} && keystone endpoint-create --region 'RegionOne' --service {{SERVICE_ID.stdout}} --publicurl 'http://{{controller_public_ip}}/v1/%(tenant_id)s'  --adminurl 'http://{{controller_private_ip}}/v1/%(tenant_id)s' --internalurl 'http://{{controller_private_ip}}/v1/%(tenant_id)s' ) || true
+  - shell: source /root/keystonerc_admin && keystone endpoint-list |grep {{SERVICE_ID.stdout}} |grep -v {{ controller_private_ip }} && (keystone endpoint-delete {{ENDPOINT_ID.stdout}} && keystone endpoint-create --region 'RegionOne' --service {{SERVICE_ID.stdout}} --publicurl 'http://{{controller_public_ip}}:8776/v1/%(tenant_id)s'  --adminurl 'http://{{controller_private_ip}}:8776/v1/%(tenant_id)s' --internalurl 'http://{{controller_private_ip}}:8776/v1/%(tenant_id)s' ) || true
   # cinderv2
   - shell: source /root/keystonerc_admin && keystone service-list | grep 'cinderv2' | awk '{print $2}'
     register: SERVICE_ID
