@@ -3,20 +3,12 @@ import socket
 hostname = socket.gethostname().split('.', 1)[0]
 
 description_template = """Latest upstream release: %(latest_upstream)s
-
 Current version/release in %(repo_name)s: %(repo_version)s-%(repo_release)s
-
 URL: %(url)s
 
+Please consult the package updates policy before you issue an update to a stable branch: https://fedoraproject.org/wiki/Updates_Policy
 
-Please consult the package updates policy before you
-issue an update to a stable branch:
-https://fedoraproject.org/wiki/Updates_Policy
-
-
-More information about the service that created this bug can be found at:
-
-%(explanation_url)s
+More information about the service that created this bug can be found at: %(explanation_url)s
 """
 
 config = {
