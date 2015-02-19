@@ -224,7 +224,7 @@ def main():
         fedmsg.init(name="relay_inbound", cert_prefix="lookaside", **config)
 
         topic = "lookaside.new"
-        msg = dict(name=name, md5sum=checksum, filename=filename,
+        msg = dict(name=name, md5sum=checksum, filename=filename.split('/')[-1],
                    agent=username, path=msgpath)
         fedmsg.publish(modname="git", topic=topic, msg=msg)
     except Exception as e:
