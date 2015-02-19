@@ -156,6 +156,10 @@ def main():
         hash_dir = os.path.join(module_dir, filename, checksum)
         msgpath = os.path.join(name, module_dir, filename, checksum, filename)
 
+    unwanted_prefix = '/srv/cache/lookaside/pkgs/'
+    if msgpath.startswith(unwanted_prefix):
+        msgpath = msgpath[len(unwanted_prefix):]
+
     # first test if the module really exists
     git_dir = os.path.join(GITREPO, '%s.git' %  name)
     if not os.path.isdir(git_dir):
