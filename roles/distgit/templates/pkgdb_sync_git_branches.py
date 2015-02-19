@@ -189,6 +189,7 @@ def branch_package(pkgname, branches):
     if not os.path.exists(
             os.path.join(GIT_FOLDER, '%s.git' % pkgname)):
         _invoke(SETUP_PACKAGE, [pkgname])
+        branches.remove('master')  # SETUP_PACKAGE creates master
 
     # Create all the required branches for the package
     # Use the translated branch name until pkgdb falls inline
