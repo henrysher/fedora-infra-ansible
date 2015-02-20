@@ -101,6 +101,9 @@
 - ini_file: dest=/etc/neutron/plugins/ml2/ml2_conf.ini section=securitygroup option=firewall_driver value=neutron.agent.linux.iptables_firewall.OVSHybridIptablesFirewallDriver
 - ini_file: dest=/etc/neutron/plugins/ml2/ml2_conf.ini section=securitygroup option=enable_security_group value=True
 
+# WORKAROUND https://ask.openstack.org/en/question/28734/instance-failed-to-spawn-you-must-call-aug-init-first-to-initialize-augeas/
+- ini_file: dest=/usr/lib/systemd/system/neutron-openvswitch-agent.service section=Service option=ExecStart value="/usr/bin/neutron-openvswitch-agent --config-file /usr/share/neutron/neutron-dist.conf --config-file /etc/neutron/neutron.conf --config-file /etc/neutron/plugin.ini --log-file /var/log/neutron/openvswitch-agent.log"
+
 - service: name=openvswitch state=started enabled=yes
 - command: ovs-vsctl --may-exist add-br br-int
 
