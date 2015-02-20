@@ -59,7 +59,7 @@ config = dict(
             channel='fedora-releng',
             filters=dict(
                 topic=[
-                    '^((?!(pkgdb\.package\.update\.status|compose|bodhi.updates.|trac.git.receive)).)*$',
+                    '^((?!(pkgdb\.package\.update\.status|compose.branched.complete|compose.branched.start|compose.rawhide.complete|compose.rawhide.start|bodhi.updates.|trac.git.receive)).)*$',
                 ],
                 body=[
                     "^((?!(u'status': u'Retired'|u'prev_status': u'Retired'|compose|bodhi\.updates\.|\/srv\/git\/releng)).)*$",
