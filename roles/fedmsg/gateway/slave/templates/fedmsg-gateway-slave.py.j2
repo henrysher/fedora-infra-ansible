@@ -15,3 +15,20 @@ config = {
     }
 
 }
+
+# This option adds an IPC socket by which we can monitor hub health.
+try:
+    import os
+    import psutil
+
+    pid = os.getpid()
+    proc = [p for p in psutil.process_iter() if p.pid == pid][0]
+
+    config['moksha.monitoring.socket'] = \
+        'ipc:///var/run/fedmsg/monitoring-%s.socket' % proc.name
+    config['moksha.monitoring.socket.mode'] = '770'
+except (OSError, ImportError):
+    # We run into issues when trying to import psutil from mod_wsgi on rhel7
+    # but this feature is of no concern in that context, so just fail quietly.
+    # https://github.com/jmflinuxtx/kerneltest-harness/pull/17#issuecomment-48007837
+    pass

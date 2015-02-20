@@ -56,12 +56,6 @@ GIT_FOLDER = '/srv/git/rpms/'
 MKBRANCH = '/usr/local/bin/mkbranch'
 SETUP_PACKAGE = '/usr/local/bin/setup_git_package'
 
-BRANCHES_FROM = {
-    'epel7': 'f19',
-    'olpc2': 'f7',
-    'olpc3': 'f11',
-    'master': None,
-}
 VERBOSE = False
 
 
@@ -114,23 +108,16 @@ def _create_branch(pkgname, branch):
     :arg branch: Name of the branch to create
 
     '''
-
-    if branch in BRANCHES_FROM:
-        branch_from = BRANCHES_FROM[branch]
-    else:
-        branch_from = 'master'
-
-    # Fall back to branching from master.
-    frombranchpath = os.path.join(
-        GIT_FOLDER, '%s.git' % pkgname, 'refs/heads', branch_from)
-    if not os.path.exists(frombranchpath):
-        branch_from = 'master'
+    if branch == 'master':
+        print 'ERROR: Proudly refusing to create master branch. Invalid repo?'
+        print 'INFO: Please check %s repo' % pkgname
+        return
 
     branchpath = os.path.join(
         GIT_FOLDER, '%s.git' % pkgname, 'refs/heads', branch)
     if not os.path.exists(branchpath):
         try:
-            _invoke(MKBRANCH, ['-s', branch_from, branch, pkgname])
+            _invoke(MKBRANCH, [branch, pkgname])
         except ProcessError, e:
             if e.returnCode == 255:
                 # This is a warning, not an error
@@ -202,6 +189,7 @@ def branch_package(pkgname, branches):
     if not os.path.exists(
             os.path.join(GIT_FOLDER, '%s.git' % pkgname)):
         _invoke(SETUP_PACKAGE, [pkgname])
+        branches.remove('master')  # SETUP_PACKAGE creates master
 
     # Create all the required branches for the package
     # Use the translated branch name until pkgdb falls inline

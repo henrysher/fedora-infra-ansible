@@ -2,6 +2,8 @@
 # Configure another compute node for Fedora Cloud
 
 - authorized_key: user=root key="{{ lookup('file', files + '/fedora-cloud/fed09-ssh-key.pub') }}"
+- template: src={{ files }}/fedora-cloud/hosts dest=/etc/hosts owner=root mode=0644
+- lineinfile: dest=/etc/hosts  line="{{ controller_private_ip }}      fed-cloud09.cloud.fedoraproject.org"
 
 - lineinfile: dest=/etc/sysconfig/network-scripts/ifcfg-eth1 regexp="^ONBOOT=" line="ONBOOT=yes"
   notify:
@@ -33,11 +35,11 @@
 - ini_file: dest=/etc/nova/nova.conf section=keystone_authtoken option=auth_protocol value=http
 - ini_file: dest=/etc/nova/nova.conf section=keystone_authtoken option=auth_port value=35357
 - ini_file: dest=/etc/nova/nova.conf section=keystone_authtoken option=admin_user value=nova
-- ini_file: dest=/etc/nova/nova.conf section=keystone_authtoken option=admin_tenant_name value=service
+- ini_file: dest=/etc/nova/nova.conf section=keystone_authtoken option=admin_tenant_name value=services
 - name: set admin_password
   ini_file: dest=/etc/nova/nova.conf section=keystone_authtoken option=admin_password value={{NOVA_PASS}}
 
-- ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=rpc_backend value=rabbit
+- ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=rpc_backend value=nova.openstack.common.rpc.impl_kombu
 - ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=rabbit_host value={{controller_private_ip}}
 - ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=rabbit_hosts value={{controller_private_ip}}:5672
 - ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=rabbit_userid value=amqp_user
@@ -73,11 +75,11 @@
 - ini_file: dest=/etc/neutron/neutron.conf section=keystone_authtoken option=auth_protocol value=http
 - ini_file: dest=/etc/neutron/neutron.conf section=keystone_authtoken option=auth_port value=35357
 - ini_file: dest=/etc/neutron/neutron.conf section=keystone_authtoken option=admin_user value=neutron
-- ini_file: dest=/etc/neutron/neutron.conf section=keystone_authtoken option=admin_tenant_name value=service
+- ini_file: dest=/etc/neutron/neutron.conf section=keystone_authtoken option=admin_tenant_name value=services
 - name: set admin_password
   ini_file: dest=/etc/neutron/neutron.conf section=keystone_authtoken option=admin_password value={{NEUTRON_PASS}}
 
-- ini_file: dest=/etc/neutron/neutron.conf section=DEFAULT option=rpc_backend value=neutron.openstack.common.rpc.impl_qpid
+- ini_file: dest=/etc/neutron/neutron.conf section=DEFAULT option=rpc_backend value=neutron.openstack.common.rpc.impl_kombu
 - ini_file: dest=/etc/neutron/neutron.conf section=DEFAULT option=rabbit_host value={{controller_private_ip}}
 - ini_file: dest=/etc/neutron/neutron.conf section=DEFAULT option=rabbit_hosts value={{controller_private_ip}}:5672
 - ini_file: dest=/etc/neutron/neutron.conf section=DEFAULT option=rabbit_userid value=amqp_user
@@ -86,18 +88,21 @@
 
 # uncomment if you want to debug compute instance
 #- ini_file: dest=/etc/neutron/neutron.conf section=DEFAULT option=verbose value=True
-- ini_file: dest=/etc/neutron/neutron.conf section=DEFAULT option=core_plugin value=ml2
-- ini_file: dest=/etc/neutron/neutron.conf section=DEFAULT option=service_plugins value=router
+- ini_file: dest=/etc/neutron/neutron.conf section=DEFAULT option=core_plugin value=neutron.plugins.ml2.plugin.Ml2Plugin
+- ini_file: dest=/etc/neutron/neutron.conf section=DEFAULT option=service_plugins value=neutron.services.l3_router.l3_router_plugin.L3RouterPlugin
 
 - ini_file: dest=/etc/neutron/plugins/ml2/ml2_conf.ini section=ml2 option=type_drivers value=local,flat,gre
 - ini_file: dest=/etc/neutron/plugins/ml2/ml2_conf.ini section=ml2 option=tenant_network_types value=gre
 - ini_file: dest=/etc/neutron/plugins/ml2/ml2_conf.ini section=ml2 option=mechanism_drivers value=openvswitch
 - ini_file: dest=/etc/neutron/plugins/ml2/ml2_conf.ini section=ml2_type_gre option=tunnel_id_ranges value=1:1000
 - ini_file: dest=/etc/neutron/plugins/ml2/ml2_conf.ini section=ovs option=local_ip value={{compute_private_ip}}
-- ini_file: dest=/etc/neutron/plugins/ml2/ml2_conf.ini section=ovs option=tunnel_type value=gre
+- ini_file: dest=/etc/neutron/plugins/ml2/ml2_conf.ini section=ovs option=tunnel_types value=gre
 - ini_file: dest=/etc/neutron/plugins/ml2/ml2_conf.ini section=ovs option=enable_tunneling value=True
 - ini_file: dest=/etc/neutron/plugins/ml2/ml2_conf.ini section=securitygroup option=firewall_driver value=neutron.agent.linux.iptables_firewall.OVSHybridIptablesFirewallDriver
 - ini_file: dest=/etc/neutron/plugins/ml2/ml2_conf.ini section=securitygroup option=enable_security_group value=True
+
+# WORKAROUND https://ask.openstack.org/en/question/28734/instance-failed-to-spawn-you-must-call-aug-init-first-to-initialize-augeas/
+- ini_file: dest=/usr/lib/systemd/system/neutron-openvswitch-agent.service section=Service option=ExecStart value="/usr/bin/neutron-openvswitch-agent --config-file /usr/share/neutron/neutron-dist.conf --config-file /etc/neutron/neutron.conf --config-file /etc/neutron/plugin.ini --log-file /var/log/neutron/openvswitch-agent.log"
 
 - service: name=openvswitch state=started enabled=yes
 - command: ovs-vsctl --may-exist add-br br-int
@@ -105,7 +110,7 @@
 - ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=network_api_class value=nova.network.neutronv2.api.API
 - ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=neutron_url value=http://{{controller_private_ip}}:9696
 - ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=neutron_auth_strategy value=keystone
-- ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=neutron_admin_tenant_name value=service
+- ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=neutron_admin_tenant_name value=services
 - ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=neutron_admin_username value=neutron
 - name: set neutron_admin_password
   ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=neutron_admin_password value={{NEUTRON_PASS}}

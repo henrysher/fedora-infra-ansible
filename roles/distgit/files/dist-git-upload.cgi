@@ -156,6 +156,10 @@ def main():
         hash_dir = os.path.join(module_dir, filename, checksum)
         msgpath = os.path.join(name, module_dir, filename, checksum, filename)
 
+    unwanted_prefix = '/srv/cache/lookaside/pkgs/'
+    if msgpath.startswith(unwanted_prefix):
+        msgpath = msgpath[len(unwanted_prefix):]
+
     # first test if the module really exists
     git_dir = os.path.join(GITREPO, '%s.git' %  name)
     if not os.path.isdir(git_dir):
@@ -224,7 +228,7 @@ def main():
         fedmsg.init(name="relay_inbound", cert_prefix="lookaside", **config)
 
         topic = "lookaside.new"
-        msg = dict(name=name, md5sum=checksum, filename=filename,
+        msg = dict(name=name, md5sum=checksum, filename=filename.split('/')[-1],
                    agent=username, path=msgpath)
         fedmsg.publish(modname="git", topic=topic, msg=msg)
     except Exception as e:

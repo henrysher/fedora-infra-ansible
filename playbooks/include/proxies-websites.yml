@@ -1,5 +1,5 @@
 - name: Set up those proxy websites.  My, my..
-  hosts: proxies-stg:proxy03.fedoraproject.org:proxy04.fedoraproject.org:proxy06.fedoraproject.org:proxy08.fedoraproject.org:proxy09.fedoraproject.org:proxy10.phx2.fedoraproject.org
+  hosts: proxies-stg:proxies:!proxy02.fedoraproject.org:!proxy07.fedoraproject.org
   user: root
   gather_facts: True
 
@@ -25,6 +25,7 @@
     - "[2610:28:3090:3001:dead:beef:cafe:fed3]"
     - "213.175.193.205"
     - "[2001:2030:0:2::2]"
+    - "10.5.126.51"
     - "10.5.126.52"
     - "85.236.55.6"
     - "[2001:4178:2:1269::fed2]"
@@ -41,6 +42,7 @@
     - "10.5.126.88"
 
     # Production
+    - "10.5.126.51"
     - "10.5.126.52"
     - "85.236.55.6"
     - "[2001:4178:2:1269::fed2]"
@@ -205,14 +207,6 @@
   - role: httpd/website
     name: bugz.fedoraproject.org
     server_aliases: [bugz.stg.fedoraproject.org]
-    ips: "{{wildcard_fpo_ips}}"
-    cert_name: "{{wildcard_cert_name}}"
-
-  - role: httpd/website
-    name: fas.fedoraproject.org
-    server_aliases:
-    - fas.stg.fedoraproject.org
-    - accounts.fedoraproject.org
     ips: "{{wildcard_fpo_ips}}"
     cert_name: "{{wildcard_cert_name}}"
 
@@ -413,6 +407,7 @@
     name: id.fedoraproject.org
     server_aliases:
     - "*.id.fedoraproject.org"
+    sslonly: true
     ips: "{{wildcard_fpo_ips}}"
     cert_name: wildcard-2014.id.fedoraproject.org
     SSLCertificateChainFile: wildcard-2014.id.fedoraproject.org.intermediate.cert

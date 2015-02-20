@@ -12,14 +12,14 @@ More information about the service that created this bug can be found at: %(expl
 """
 
 config = {
-    {% if env == 'staging' %}
-    # Establish a loop from prod anitya back into the staging hotness.
-    'endpoints': {
-        'anitya-public-relay': [
-            'tcp://release-monitoring.org:9940',
-        ],
-    },
-    {% endif %}
+    #{% if env == 'staging' %}
+    ## Establish a loop from prod anitya back into the staging hotness.
+    #'endpoints': {
+    #    'anitya-public-relay': [
+    #        'tcp://release-monitoring.org:9940',
+    #    ],
+    #},
+    #{% endif %}
 
     'hotness.bugzilla.enabled': True,
 
