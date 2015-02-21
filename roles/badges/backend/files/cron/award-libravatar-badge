@@ -42,7 +42,18 @@ def main():
         openid = "http://%s.id.fedoraproject.org/" % person.nickname
         hash = hashlib.sha256(openid.encode('utf-8')).hexdigest()
         url = "https://seccdn.libravatar.org/avatar/%s?d=404" % hash
-        response = requests.get(url)
+
+        response = None
+        for i in range(10):
+            print 'Try', i, 'on', url
+            try:
+                response = requests.get(url)
+                break
+            except requests.exceptions.SSLError as e:
+                print " * failed, trying again", str(e)
+
+        if response is None:
+            raise
 
         if response.status_code == 200:
             print person.nickname, "totally gets the mugshot badge."
