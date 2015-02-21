@@ -130,7 +130,9 @@ config = {
         "pkgdb": "teal",
         "buildsys": "yellow",
         "planet": "light green",
-        "fmn": "purple",
+        "anitya": "light cyan",
+        "fmn": "light blue",
+        "hotness": "light green",
     },
 
     # GCM - Android notifs
