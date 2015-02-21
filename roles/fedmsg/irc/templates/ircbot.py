@@ -175,6 +175,9 @@ config = dict(
         "fedbadges": "brown",
         "fedocal": "purple",
         "copr": "red",
+        "anitya": "light cyan",
+        "fmn": "light blue",
+        "hotness": "light green",
     },
 
     # This may be 'notice' or 'msg'
