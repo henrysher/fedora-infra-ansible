@@ -50,6 +50,9 @@ config = {
     {% if env != 'staging' %}
     # Auto create accounts for new packagers.
     "fmn.autocreate": True,
+    {% else %}
+    # Don't auto create accounts for new packagers in staging.
+    "fmn.autocreate": False,
     {% endif %}
 
     # Just drop these topics without considering any preferences.  They are noise that just clog us up.
