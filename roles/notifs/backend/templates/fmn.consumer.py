@@ -47,8 +47,10 @@ config = {
     "fmn.consumer.enabled": True,
     "fmn.sqlalchemy.uri": "postgresql://{{notifs_db_user}}:{{notifs_db_password}}@db-notifs/notifications",
 
+    {% if env != 'staging' %}
     # Auto create accounts for new packagers.
     "fmn.autocreate": True,
+    {% endif %}
 
     # Just drop these topics without considering any preferences.  They are noise that just clog us up.
     "fmn.junk_suffixes": [
