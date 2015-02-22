@@ -63,6 +63,7 @@ config = {
         '.buildsys.repo.init',
         '.buildsys.repo.done',
         '.buildsys.rpm.sign',
+        '.git.receive',
     ],
 
     # This sets up four threads to handle incoming messages.  At the time of
