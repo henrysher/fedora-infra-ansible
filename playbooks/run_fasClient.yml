@@ -3,7 +3,7 @@
 # We exclude builders, persistent-cloud and jenkins-cloud as they don't have fasclient
 #
 
-- name: run fasClient -a
+- name: run fasClient -a to make email aliases on bastion
   hosts: bastion01.phx2.fedoraproject.org:bastion02.phx2.fedoraproject.org
   user: root
   gather_facts: False
@@ -13,8 +13,17 @@
     command: fasClient -a
     when: inventory_hostname_short.startswith('bastion0')
 
-- name: run fasClient -i
-  hosts: all:!builders:!persistent-cloud:!jenkins-cloud:!bkernel:!*composer*
+- name: run fasClient on people and hosted and pkgs first as these are the ones most people want updated
+  hosts: people03.fedoraproject.org:pkgs02.phx2.fedoraproject.org:hosted03.fedoraproject.org
+  user: root
+  gather_facts: False
+
+  tasks:
+  - name: actually run fasClient -i
+    command: fasClient -i
+
+- name: run fasClient -i on the rest of hosts which only affects sysadmins
+  hosts: all:!builders:!persistent-cloud:!jenkins-cloud:!bkernel:!*composer*:!people*:!pkgs02*:!hosted03*
   user: root
   serial: 50
   gather_facts: False
