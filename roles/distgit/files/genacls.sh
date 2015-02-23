@@ -1,5 +1,7 @@
 #!/bin/sh
 
+python /usr/local/bin/pkgdb_sync_git_branches.py
+
 TEMPDIR=`mktemp -d -p /var/tmp genacls.XXXXX`
 export GL_BINDIR=/usr/bin
 
@@ -8,7 +10,6 @@ cd $TEMPDIR
 if /usr/local/bin/genacls.pkgdb > gitolite.conf ; then
     mv gitolite.conf /etc/gitolite/conf/
     chown gen-acls:gen-acls -R /etc/gitolite/conf/
-    python /usr/local/bin/pkgdb_sync_git_branches.py
     HOME=/srv/git /usr/bin/gitolite compile
 fi
 cd /
