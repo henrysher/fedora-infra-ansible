@@ -40,8 +40,15 @@
 - name: setup copr user ssh config file
   copy: src="ssh_config" dest=/home/copr/.ssh/config  owner=copr group=copr mode=600
 
+- name: check known_hosts file
+  command: stat /home/copr/.ssh/known_hosts
+  register: hostsstat
+  always_run: yes
+  changed_when: "1 != 1"
+
 - name: create empty known_hosts
   file: state=touch dest=/home/copr/.ssh/known_hosts owner=copr group=copr mode=600
+  when: hostsstat.rc == 1
 
 - name: replace bashrc for copr user
   copy: src="copr_bashrc" dest=/home/copr/.bashrc owner=copr group=copr mode=600
