@@ -83,7 +83,7 @@ config = {
 
     "hotness.cache": {
         "backend": "dogpile.cache.dbm",
-        "expiration_time": 300,
+        "expiration_time": 290,
         "arguments": {
             "filename": "/var/tmp/the-new-hotness-cache.dbm",
         },
