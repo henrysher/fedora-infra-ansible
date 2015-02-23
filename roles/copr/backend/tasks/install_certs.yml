@@ -3,8 +3,9 @@
   with_items:
   - copr-be.fedoraproject.org.key
   - copr-be.fedoraproject.org.crt
+  - copr-be.fedoraproject.org.pem
   notify:
-  - concate ssl certs
+  - restart lighttpd
   tags:
   - config
 
@@ -13,10 +14,4 @@
   tags:
   - config
   notify:
-  - restart lighttpd
-
-- name: concatenate ssl certs for lighttpd
-  action: shell "cat /etc/lighttpd/copr-be.fedoraproject.org.key /etc/lighttpd/copr-be.fedoraproject.org.crt > /etc/lighttpd/copr-be.fedoraproject.org.pem"
-  notify:
-  - chmod_key
   - restart lighttpd
