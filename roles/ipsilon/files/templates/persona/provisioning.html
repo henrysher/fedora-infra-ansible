@@ -1,0 +1,59 @@
+{% extends "layout.html" %}
+{% block toptext %}
+This page is used internally
+{% endblock %}
+{% block main %}
+<script type="text/javascript" src="https://login.persona.org/provisioning_api.js"></script>
+<script type="text/javascript">
+    var xmlhttp = new XMLHttpRequest()
+
+    var loggedin = {{ loggedin|lower }};
+
+    xmlhttp.onreadystatechange = function()
+    {
+        if(xmlhttp.readyState == 4)
+        {
+            if(xmlhttp.status == 200)
+            {
+                navigator.id.registerCertificate(xmlhttp.responseText);
+            }
+            else if((xmlhttp.status == 401) || (xmlhttp.status == 403))
+            {
+                navigator.id.raiseProvisioningFailure('Error in provisioning!');
+            }
+            else
+            {
+                alert("Response code: " + xmlhttp.status);
+                alert("Response text: " + xmlhttp.responseText);
+            }
+        }
+    }
+
+    function generateServerSide(email, publicKey, certDuration, callback)
+    {
+        xmlhttp.open("POST", "Sign/", true);
+        xmlhttp.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+        xmlhttp.send("email=" + encodeURIComponent(email)
+                     + "&publicKey=" + encodeURIComponent(publicKey)
+                     + "&certDuration=" + encodeURIComponent(certDuration));
+    }
+
+    function startProvisioning()
+    {
+        navigator.id.beginProvisioning(function(email, certDuration)
+        {
+            if(loggedin)
+            {
+                navigator.id.genKeyPair(function(publicKey)
+                {
+                    generateServerSide(email, publicKey, certDuration);
+                });
+            } else {
+                navigator.id.raiseProvisioningFailure('user is not authenticated');
+            }
+        });
+    }
+
+    startProvisioning();
+</script>
+{% endblock %}

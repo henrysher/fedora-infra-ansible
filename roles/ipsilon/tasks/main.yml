@@ -1,0 +1,56 @@
+---
+# Configuration for the ipsilon webapp
+
+- name: clean yum metadata
+  command: yum clean all
+  tags:
+  - packages
+
+- name: install needed packages
+  yum: pkg={{ item }} state=present
+  with_items:
+  - ipsilon
+  - ipsilon-authfas
+  - ipsilon-openid
+  - ipsilon-persona
+  - python-psycopg2
+  - libsemanage-python
+  tags:
+  - packages
+
+- name: copy ipsilon templates
+  copy: src=templates
+        dest=/usr/share/ipsilon/templates-fedora
+        owner=ipsilon group=ipsilon mode=0666 
+
+- name: copy ipsilon configuration
+  template: src={{ item }}.cfg
+            dest=/etc/ipsilon/{{ item }}.cfg
+            owner=ipsilon group=ipsilon mode=0600
+  with_items:
+  - ipsilon
+  - configuration
+  tags:
+  - config
+  notify:
+  - restart apache
+
+- name: copy persona private key
+  copy: src={{ private }}/files/ipsilon/persona.key dest=/etc/ipsilon/persona.key
+        owner=ipsilon group=ipsilon mode=0600
+  when: env != "staging"
+
+- name: copy persona STG private key
+  copy: src={{ private }}/files/ipsilon/persona.stg.key dest=/etc/ipsilon/persona.stg.key
+        owner=ipsilon group=ipsilon mode=0600
+  when: env == "staging"
+
+- name: set sebooleans so ipsilon can talk to the db
+  action: seboolean name=httpd_can_network_connect_db
+                    state=true
+                    persistent=true
+
+- name: apply selinux type to the wsgi file
+  file: >
+    dest=/usr/sbin/ipsilon
+    setype=httpd_sys_content_t
