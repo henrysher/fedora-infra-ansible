@@ -190,6 +190,15 @@ def branch_package(pkgname, branches):
             os.path.join(GIT_FOLDER, '%s.git' % pkgname)):
         _invoke(SETUP_PACKAGE, [pkgname])
         branches.remove('master')  # SETUP_PACKAGE creates master
+        fedmsg.publish(
+            topic='branch',
+            modname='git',
+            msg=dict(
+                agent='pkgdb',
+                name=pkgname,
+                branch='master',
+            ),
+        )
 
     # Create all the required branches for the package
     # Use the translated branch name until pkgdb falls inline
