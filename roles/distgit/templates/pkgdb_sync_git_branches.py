@@ -128,7 +128,7 @@ def _create_branch(pkgname, branch):
                 topic='branch',
                 modname='git',
                 msg=dict(
-                    agent=os.getlogin(),
+                    agent='pkgdb',
                     name=pkgname,
                     branch=branch,
                 ),
