@@ -158,3 +158,6 @@
 - name: change owner for results dir if it isn't copr
   shell: "chown -R copr:copr /var/lib/copr/public_html"
   when: copr_results_dir_st.stat.pw_name != "copr"
+
+- name: set acl for logstash to access httpd logs
+  acl: name=/var/log/lighttpd entity=logstash etype=user permissions=rx state=present
