@@ -23,6 +23,11 @@
         dest=/usr/share/ipsilon/templates-fedora
         owner=ipsilon group=ipsilon mode=0666 
 
+- name: copy ipsilon ui assets
+  copy: src=ui-fedora
+        dest=/usr/share/ipsilon/ui/fedora
+        owner=ipsilon group=ipsilon mode=0666 
+
 - name: copy ipsilon configuration
   template: src={{ item }}.cfg
             dest=/etc/ipsilon/{{ item }}.cfg
@@ -34,6 +39,10 @@
   - config
   notify:
   - restart apache
+
+- name: copy ipsilon wsgi
+  copy: src=ipsilon.wsgi
+        dest=/etc/httpd/conf.d/ipsilon.wsgi
 
 - name: copy persona private key
   copy: src={{ private }}/files/ipsilon/persona.key dest=/etc/ipsilon/persona.key
