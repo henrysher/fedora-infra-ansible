@@ -1,0 +1,36 @@
+{% extends "layout.html" %}
+{% block toptext %}
+{{trustroot}} is asking to authenticate via OpenID using FedOAuth
+{% endblock %}
+{% block main %}
+    Review the authorization details
+    <div>
+        <form method="post" action="{{action}}" enctype="application/x-www-form-urlencoded">
+            <input type="hidden" name="ipsilon_transaction_id" id="ipsilon_transaction_id" value="{{ ipsilon_transaction_id }}" />
+            <p class="form_item">
+                <table class="details">
+                    {% for entry in authz_details|dictsort %}
+                        <tr>
+                            <td>{{entry[0]}}</td>
+                            <td>{{entry[1]}}</td>
+                        </tr>
+                    {% endfor %}
+
+                    <tr>
+                        <td>Remember approval for</td>
+                        <td><select name="remember_for_days">
+                                <option value="0">never</option>
+                                <option value="3">3 days</option>
+                                <option value="7">7 days</option>
+                            </select>
+                        </td>
+                    </tr>
+                </table>
+            </p>
+            <p class="form_item">
+                <input type="submit" name="decided_deny" value="Reject">
+                <input type="submit" name="decided_allow" value="Allow">
+            </p>
+        </form>
+    </div>
+{% endblock %}
