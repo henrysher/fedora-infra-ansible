@@ -143,7 +143,6 @@ from buildbot.steps.shell import ShellCommand
 from buildbot.process.properties import Property, Interpolate
 from buildbot.steps.slave import RemoveDirectory
 from buildbot.steps.transfer import DirectoryUpload, FileUpload
-from buildbot.steps.master import MasterShellCommand
 
 factory = BuildFactory()
 
@@ -173,16 +172,15 @@ factory.addStep(ShellCommand(command=["runtask", '-i',
 
 
 {% if deployment_type == 'dev' %}
-# create artifacts task_output directory
-factory.addStep(MasterShellCommand(command=['mkdir', '-p', '{{ public_artifacts_dir }}/%(prop:uuid)s/task_output']))
-
 # copy artifacts to master
 factory.addStep(DirectoryUpload(slavesrc=Interpolate('/var/lib/taskotron/artifacts/%(prop:uuid)s/'),
-                                masterdest=Interpolate('{{ public_artifacts_dir }}/%(prop:uuid)s/task_output')))
+                                masterdest=Interpolate('{{ public_artifacts_dir }}/%(prop:uuid)s/task_output'),
+                                mode=0775))
 
 # copy taskotron log to master
 factory.addStep(FileUpload(slavesrc="/var/log/taskotron/taskotron.log",
-                           masterdest=Interpolate('{{ public_artifacts_dir }}/%(prop:uuid)s/taskotron.log')))
+                           masterdest=Interpolate('{{ public_artifacts_dir }}/%(prop:uuid)s/taskotron.log'),
+                           mode=0755))
 {% else %}
 # capture the taskotron log
 factory.addStep(ShellCommand(command=["cat", "/var/log/taskotron/taskotron.log"], name="cat_log",
