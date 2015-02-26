@@ -23,6 +23,19 @@
   notify:
     - restart httpd
 
+- name: copy artifacts httpd config
+  when: deployment_type == 'dev'
+  template: src=artifacts.conf.j2 dest=/etc/httpd/conf.d/artifacts.conf owner=root group=root
+  notify:
+    - restart httpd
+
+- name: create artifacts directory
+  when: deployment_type == 'dev'
+  file: path={{ item }} state=directory owner=buildmaster group=buildmaster mode=0775 setype=httpd_sys_content_t
+  with_items:
+  - /srv/taskotron
+  - /srv/taskotron/artifacts
+
 - name: ensure buildmaster database is created
   when: buildmaster_db_host != 'localhost'
   delegate_to: "{{ buildmaster_db_host }}"
