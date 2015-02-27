@@ -187,7 +187,7 @@ def branch_package(pkgname, branches):
 
     # Create the devel branch if necessary
     if not os.path.exists(
-            os.path.join(GIT_FOLDER, '%s.git' % pkgname)):
+            os.path.join(GIT_FOLDER, '%s.git/refs/heads/master' % pkgname)):
         _invoke(SETUP_PACKAGE, [pkgname])
         if 'master' in branches:
             branches.remove('master')  # SETUP_PACKAGE creates master
