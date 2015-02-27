@@ -65,10 +65,14 @@
   tasks:
   - name: Stop the notification backend
     service: name="fedmsg-hub" state=stopped
+
   - name: Upgrade the database
     command: /usr/bin/alembic upgrade head
     args:
       chdir: /usr/share/fmn.lib/
+    async: 20000
+    poll: 60
+
   - name: And... start the backend again
     service: name="fedmsg-hub" state=started
 
