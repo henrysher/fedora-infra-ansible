@@ -68,9 +68,15 @@ fi
 
 # Sanity checks before we start doing damage
 [ $VERBOSE -gt 1 ] && echo "Checking package $PACKAGE..."
-if [ -d $GITROOT/$PACKAGE.git ] ; then
+if [ -f $GITROOT/$PACKAGE.git/refs/heads/master ] ; then
     echo "ERROR: Package module $PACKAGE already exists!" >&2
     exit -1
+fi
+
+# A cleanup in case gitolite came by this repo
+if [ -f $GITROOT/$PACKAGE.git/hooks/update ] ; then
+    echo "Gitolite already initialized this repo. Will remove its hooks"
+    rm -f $GITROOT/$PACKAGE.git/hooks/update
 fi
 
 # "global" permissions check
@@ -85,7 +91,7 @@ fi
 TMPDIR=$(mktemp -d /tmp/tmpXXXXXX)
 
 # First create the master repo
-mkdir $GITROOT/$PACKAGE.git
+mkdir -p $GITROOT/$PACKAGE.git
 pushd $GITROOT/$PACKAGE.git >/dev/null
 git init -q --shared --bare
 echo "$PACKAGE" > description # This is used to figure out who to send mail to.
