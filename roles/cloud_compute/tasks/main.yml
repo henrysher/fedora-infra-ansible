@@ -27,7 +27,7 @@
   - python-novaclient
   - openstack-utils
 - name: add ssl cert for keystone
-  copy: src={{ private }}/files/openstack/fed-cloud09.pem dest=/etc/pki/tls/certs/fed-cloud09-keystone.pem mode=600 owner=root group=root
+  copy: src={{ private }}/files/openstack/fed-cloud09.pem dest=/etc/pki/tls/certs/fed-cloud09-keystone.pem mode=644 owner=root group=root
 
 - name: Set up db connection to controller
   ini_file: dest=/etc/nova/nova.conf section=database option=connection value=mysql://nova:{{NOVA_DBPASS}}@{{controller_private_ip}}/nova
@@ -36,6 +36,8 @@
 - ini_file: dest=/etc/nova/nova.conf section=keystone_authtoken option=auth_host value={{controller_private_ip}}
 - ini_file: dest=/etc/nova/nova.conf section=keystone_authtoken option=auth_protocol value=https
 - ini_file: dest=/etc/nova/nova.conf section=keystone_authtoken option=auth_port value=35357
+- ini_file: dest=/etc/nova/nova.conf section=keystone_authtoken option=cafile value=/etc/pki/tls/certs/fed-cloud09-keystone.pem
+
 - ini_file: dest=/etc/nova/nova.conf section=keystone_authtoken option=admin_user value=nova
 - ini_file: dest=/etc/nova/nova.conf section=keystone_authtoken option=admin_tenant_name value=services
 - name: set admin_password
@@ -76,6 +78,7 @@
 - ini_file: dest=/etc/neutron/neutron.conf section=keystone_authtoken option=auth_host value={{controller_private_ip}}
 - ini_file: dest=/etc/neutron/neutron.conf section=keystone_authtoken option=auth_protocol value=https
 - ini_file: dest=/etc/neutron/neutron.conf section=keystone_authtoken option=auth_port value=35357
+- ini_file: dest=/etc/neutron/neutron.conf section=keystone_authtoken option=cafile value=/etc/pki/tls/certs/fed-cloud09-keystone.pem
 - ini_file: dest=/etc/neutron/neutron.conf section=keystone_authtoken option=admin_user value=neutron
 - ini_file: dest=/etc/neutron/neutron.conf section=keystone_authtoken option=admin_tenant_name value=services
 - name: set admin_password
@@ -125,5 +128,5 @@
 
 - file: src=/etc/neutron/plugins/ml2/ml2_conf.ini dest=/etc/neutron/plugin.ini state=link
 
-- service: name=neutron-openvswitch-agent state=started enabled=yes
-- service: name=openstack-nova-compute state=started enabled=yes
+- service: name=neutron-openvswitch-agent state=restarted enabled=yes
+- service: name=openstack-nova-compute state=restarted enabled=yes
