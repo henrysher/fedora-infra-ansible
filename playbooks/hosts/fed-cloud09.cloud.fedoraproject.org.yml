@@ -123,6 +123,7 @@
     - python-glanceclient
     - rabbitmq-server
     - ansible-openstack-modules
+    - openstack-keystone
   - yum: name=* state=latest
 
   - name: add ssl cert
@@ -132,6 +133,12 @@
   - name: add cert to ca-bundle.crt so plain curl works
     copy: src={{ private }}/files/openstack/fed-cloud09.pem dest=/etc/pki/ca-trust/source/anchors/ mode=600 owner=root group=root
   - command: /usr/bin/update-ca-trust
+
+  - name: add ssl cert for keystone
+    copy: src={{ private }}/files/openstack/fed-cloud09.pem dest=/etc/pki/tls/certs/fed-cloud09-keystone.pem mode=600 owner=keystone group=root
+  - name: add ssl key for keystone
+    copy: src={{ private }}/files/openstack/fed-cloud09.key dest=/etc/pki/tls/private/fed-cloud09-keystone.key mode=600 owner=keystone group=root
+
 
   # http://docs.openstack.org/trunk/install-guide/install/yum/content/basics-database-controller.html
   - name: install mysql packages
@@ -279,7 +286,13 @@
     register: SERVICE_ID
   - shell: source /root/keystonerc_admin && keystone endpoint-list | grep {{SERVICE_ID.stdout}} | awk '{print $2}'
     register: ENDPOINT_ID
-  - shell: source /root/keystonerc_admin && keystone endpoint-list |grep {{SERVICE_ID.stdout}} |grep -v fed-cloud09.cloud.fedoraproject.org && (keystone endpoint-delete {{ENDPOINT_ID.stdout}} && keystone --os-token '{{ADMIN_TOKEN}}' --os-endpoint 'http://fed-cloud09.cloud.fedoraproject.org:35357/v2.0' endpoint-create --region 'RegionOne' --service {{SERVICE_ID.stdout}} --publicurl 'http://fed-cloud09.cloud.fedoraproject.org:5000/v2.0'  --adminurl 'http://fed-cloud09.cloud.fedoraproject.org:35357/v2.0' --internalurl 'http://fed-cloud09.cloud.fedoraproject.org:5000/v2.0' ) || true
+  - ini_file: dest=/etc/keystone/keystone.conf section=ssl option=certfile value=/etc/pki/tls/certs/fed-cloud09-keystone.pem
+  - ini_file: dest=/etc/keystone/keystone.conf section=ssl option=keyfile value=/etc/pki/tls/private/fed-cloud09-keystone.key
+  - shell: source /root/keystonerc_admin && keystone endpoint-list |grep {{SERVICE_ID.stdout}} |grep -v fed-cloud09.cloud.fedoraproject.org && (keystone endpoint-delete {{ENDPOINT_ID.stdout}} && keystone --os-token '{{ADMIN_TOKEN}}' --os-endpoint 'http://fed-cloud09.cloud.fedoraproject.org:35357/v2.0' endpoint-create --region 'RegionOne' --service {{SERVICE_ID.stdout}} --publicurl 'https://fed-cloud09.cloud.fedoraproject.org:5000/v2.0'  --adminurl 'https://fed-cloud09.cloud.fedoraproject.org:35357/v2.0' --internalurl 'https://fed-cloud09.cloud.fedoraproject.org:5000/v2.0' ) || true
+  - ini_file: dest=/etc/keystone/keystone.conf section=ssl option=enable value=True
+  - service: name=openstack-keystone state=restarted
+  - lineinfile: dest=/root/keystonerc_admin regexp="^export OS_AUTH_URL" line="export OS_AUTH_URL=https://fed-cloud09.cloud.fedoraproject.org:5000/v2.0/"
+  - lineinfile: dest=/root/keystonerc_admin line="export OS_CACERT=/etc/pki/tls/certs/fed-cloud09-keystone.pem"
   # neutron
   - shell: source /root/keystonerc_admin && keystone service-list | grep 'neutron' | awk '{print $2}'
     register: SERVICE_ID
