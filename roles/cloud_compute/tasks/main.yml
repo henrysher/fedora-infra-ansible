@@ -26,6 +26,9 @@
   - openstack-nova-compute
   - python-novaclient
   - openstack-utils
+- name: add ssl cert for keystone
+  copy: src={{ private }}/files/openstack/fed-cloud09.pem dest=/etc/pki/tls/certs/fed-cloud09-keystone.pem mode=600 owner=root group=root
+
 - name: Set up db connection to controller
   ini_file: dest=/etc/nova/nova.conf section=database option=connection value=mysql://nova:{{NOVA_DBPASS}}@{{controller_private_ip}}/nova
 - ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=auth_strategy value=keystone
