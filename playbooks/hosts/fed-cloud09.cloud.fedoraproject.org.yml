@@ -330,6 +330,60 @@
     register: ENDPOINT_ID
   - shell: source /root/keystonerc_admin && keystone endpoint-list |grep {{SERVICE_ID.stdout}} |grep -v fed-cloud09.cloud.fedoraproject.org && (keystone endpoint-delete {{ENDPOINT_ID.stdout}} && keystone endpoint-create --region 'RegionOne' --service {{SERVICE_ID.stdout}} --publicurl 'http://fed-cloud09.cloud.fedoraproject.org:8080'  --adminurl 'http://fed-cloud09.cloud.fedoraproject.org:8080' --internalurl 'http://fed-cloud09.cloud.fedoraproject.org:8080' ) || true
 
+  # set SSL for services
+  - ini_file: dest=/etc/nova/nova.conf section=keystone_authtoken option=auth_uri value=https://fed-cloud09.cloud.fedoraproject.org:5000
+  - ini_file: dest=/etc/nova/nova.conf section=keystone_authtoken option=auth_protocol value=https
+  - ini_file: dest=/etc/nova/nova.conf section=keystone_authtoken option=cafile value=/etc/pki/tls/certs/fed-cloud09-keystone.pem
+  - ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=neutron_admin_auth_url value=https://fed-cloud09.cloud.fedoraproject.org:35357/v2.0
+  - ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=neutron_url value=https://fed-cloud09.cloud.fedoraproject.org:9696
+
+  - ini_file: dest=/etc/glance/glance-api.conf section=keystone_authtoken option=auth_uri value=https://fed-cloud09.cloud.fedoraproject.org:5000
+  - ini_file: dest=/etc/glance/glance-api.conf section=keystone_authtoken option=auth_protocol value=https
+  - ini_file: dest=/etc/glance/glance-api.conf section=keystone_authtoken option=cafile value=/etc/pki/tls/certs/fed-cloud09-keystone.pem
+
+  - ini_file: dest=/etc/glance/glance-registry.conf section=keystone_authtoken option=auth_uri value=https://fed-cloud09.cloud.fedoraproject.org:5000
+  - ini_file: dest=/etc/glance/glance-registry.conf section=keystone_authtoken option=auth_protocol value=https
+  - ini_file: dest=/etc/glance/glance-registry.conf section=keystone_authtoken option=cafile value=/etc/pki/tls/certs/fed-cloud09-keystone.pem
+
+  - ini_file: dest=/etc/glance/glance-cache.conf section=DEFAULT option=auth_url value=https://fed-cloud09.cloud.fedoraproject.org:5000/v2.0
+
+  - ini_file: dest=/etc/cinder/cinder.conf section=keystone_authtoken option=auth_uri value=https://fed-cloud09.cloud.fedoraproject.org:5000
+  - ini_file: dest=/etc/cinder/cinder.conf section=keystone_authtoken option=auth_protocol value=https
+  - ini_file: dest=/etc/cinder/cinder.conf section=keystone_authtoken option=cafile value=/etc/pki/tls/certs/fed-cloud09-keystone.pem
+  - ini_file: dest=/etc/cinder/cinder.conf section=DEFAULT option=backup_swift_url value=https://fed-cloud09.cloud.fedoraproject.org:8080/v1/AUTH_
+  - ini_file: dest=/etc/cinder/api-paste.conf section="filter:authtoken" option=auth_uri value=https://fed-cloud09.cloud.fedoraproject.org:5000
+  - ini_file: dest=/etc/cinder/api-paste.conf section="filter:authtoken" option=auth_protocol value=https
+  - ini_file: dest=/etc/cinder/api-paste.conf section="filter:authtoken" option=service_protocol value=https
+  - ini_file: dest=/etc/cinder/api-paste.conf section="filter:authtoken" option=cafile value=/etc/pki/tls/certs/fed-cloud09-keystone.pem
+
+  - ini_file: dest=/etc/neutron/neutron.conf section=keystone_authtoken option=auth_uri value=https://fed-cloud09.cloud.fedoraproject.org:5000
+  - ini_file: dest=/etc/neutron/neutron.conf section=keystone_authtoken option=auth_protocol value=https
+  - ini_file: dest=/etc/neutron/neutron.conf section=keystone_authtoken option=cafile value=/etc/pki/tls/certs/fed-cloud09-keystone.pem
+  - ini_file: dest=/etc/neutron/neutron.conf section=DEFAULT option=nova_url value=https://fed-cloud09.cloud.fedoraproject.org:8774/v2
+  - ini_file: dest=/etc/neutron/neutron.conf section=DEFAULT option=nova_admin_auth_url value=https://fed-cloud09.cloud.fedoraproject.org:35357/v2.0
+  - ini_file: dest=/etc/neutron/neutron.conf section=DEFAULT option=use_ssl value=True
+
+  - ini_file: dest=/etc/neutron/api-paste.conf section="filter:authtoken" option=auth_uri value=https://fed-cloud09.cloud.fedoraproject.org:5000
+  - ini_file: dest=/etc/neutron/api-paste.conf section="filter:authtoken" option=auth_protocol value=https
+  - ini_file: dest=/etc/neutron/api-paste.conf section="filter:authtoken" option=cafile value=/etc/pki/tls/certs/fed-cloud09-keystone.pem
+
+  - ini_file: dest=/etc/neutron/metadata_agent.ini section="filter:authtoken" option=auth_url value=https://fed-cloud09.cloud.fedoraproject.org:35357/v2.0
+
+  - ini_file: dest=/etc/swift/proxy-server.conf section="filter:authtoken" option=auth_uri value=https://fed-cloud09.cloud.fedoraproject.org:5000
+  - ini_file: dest=/etc/swift/proxy-server.conf section="filter:authtoken" option=auth_protocol value=https
+  - ini_file: dest=/etc/swift/proxy-server.conf section="filter:authtoken" option=cafile value=/etc/pki/tls/certs/fed-cloud09-keystone.pem
+
+  - ini_file: dest=/etc/ceilometer/ceilometer.conf section=keystone_authtoken option=auth_uri value=https://fed-cloud09.cloud.fedoraproject.org:5000
+  - ini_file: dest=/etc/ceilometer/ceilometer.conf section=keystone_authtoken option=auth_protocol value=https
+  - ini_file: dest=/etc/ceilometer/ceilometer.conf section=keystone_authtoken option=cafile value=/etc/pki/tls/certs/fed-cloud09-keystone.pem
+  - ini_file: dest=/etc/ceilometer/ceilometer.conf section=keystone_authtoken option=os_auth_url value=https://fed-cloud09.cloud.fedoraproject.org:35357/v2.0
+
+  - shell: openstack-service restart
+
+  - lineinfile: dest=/etc/openstack-dashboard/local_settings regexp="^OPENSTACK_KEYSTONE_URL " line="OPENSTACK_KEYSTONE_URL = 'https://{controller_public_ip}}:5000/v2.0'"
+  - service: name=httpd state=restarted 
+
+
   # configure cider with multi back-end
   # https://access.redhat.com/documentation/en-US/Red_Hat_Enterprise_Linux_OpenStack_Platform/5/html/Cloud_Administrator_Guide/section_manage-volumes.html
   - lineinfile: dest=/etc/cinder/cinder.conf regexp="^enabled_backends" insertafter="^#enabled_backends" line="enabled_backends=equallogic-1,lvmdriver-1"
