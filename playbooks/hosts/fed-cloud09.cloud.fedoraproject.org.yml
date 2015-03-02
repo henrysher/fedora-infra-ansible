@@ -330,6 +330,8 @@
     register: ENDPOINT_ID
   - shell: source /root/keystonerc_admin && keystone endpoint-list |grep {{SERVICE_ID.stdout}} |grep -v fed-cloud09.cloud.fedoraproject.org && (keystone endpoint-delete {{ENDPOINT_ID.stdout}} && keystone endpoint-create --region 'RegionOne' --service {{SERVICE_ID.stdout}} --publicurl 'http://fed-cloud09.cloud.fedoraproject.org:8080'  --adminurl 'http://fed-cloud09.cloud.fedoraproject.org:8080' --internalurl 'http://fed-cloud09.cloud.fedoraproject.org:8080' ) || true
 
+  - ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=novncproxy_base_url value=https://fed-cloud09.cloud.fedoraproject.org:6080/vnc_auto.html
+
   # set SSL for services
   - ini_file: dest=/etc/nova/nova.conf section=keystone_authtoken option=auth_uri value=https://fed-cloud09.cloud.fedoraproject.org:5000
   - ini_file: dest=/etc/nova/nova.conf section=keystone_authtoken option=auth_protocol value=https
