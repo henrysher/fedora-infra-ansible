@@ -464,6 +464,7 @@
   - name: Create tenants
     keystone_user:
       login_user="admin" login_password="{{ ADMIN_PASS }}" login_tenant_name="admin"
+      endpoint="https://{{controller_hostname}}:35357/v2.0"
       tenant="{{ item.name }}"
       tenant_description="{{ item.desc }}"
       state=present
@@ -483,6 +484,7 @@
   - name: Create users
     keystone_user:
       login_user="admin" login_password="{{ ADMIN_PASS }}" login_tenant_name="admin"
+      endpoint="https://{{controller_hostname}}:35357/v2.0"
       user="{{ item.name }}"
       email="{{ item.email }}"
       tenant="{{ item.tenant }}"
@@ -517,6 +519,7 @@
   - name: Create en external network
     neutron_network:
       login_username="admin" login_password="{{ ADMIN_PASS }}" login_tenant_name="admin"
+      auth_url="https://{{controller_hostname}}:35357/v2.0"
       name=external
       router_external=True
       provider_network_type=flat
@@ -525,6 +528,7 @@
   - name: Create an external subnet
     neutron_subnet:
       login_username="admin" login_password="{{ ADMIN_PASS }}" login_tenant_name="admin"
+      auth_url="https://{{controller_hostname}}:35357/v2.0"
       name=external-subnet
       network_name=external
       cidr="{{ public_interface_cidr }}"
@@ -551,22 +555,26 @@
   - name: Create a router for Cloudintern
     neutron_router:
       login_username="admin" login_password="{{ ADMIN_PASS }}" login_tenant_name="admin"
+      auth_url="https://{{controller_hostname}}:35357/v2.0"
       tenant_name=cloudintern
       name=ext-to-cloudintern
     register: ROUTER_ID
   - name: Connect router's gateway to the external network
     neutron_router_gateway:
       login_username="admin" login_password="{{ ADMIN_PASS }}" login_tenant_name="admin"
+      auth_url="https://{{controller_hostname}}:35357/v2.0"
       router_name="ext-to-cloudintern"
       network_name="external"
   - name: Create a private network for cloudintern
     neutron_network:
       login_username="admin" login_password="{{ ADMIN_PASS }}" login_tenant_name="admin"
+      auth_url="https://{{controller_hostname}}:35357/v2.0"
       tenant_name=cloudintern
       name=cloudintern-net
   - name: Create a subnet in the cloudintern-net
     neutron_subnet:
       login_username="admin" login_password="{{ ADMIN_PASS }}" login_tenant_name="admin"
+      auth_url="https://{{controller_hostname}}:35357/v2.0"
       tenant_name=cloudintern
       network_name=cloudintern-net
       name=cloudintern-subnet
@@ -577,6 +585,7 @@
   - name: Connect router's interface to the cloudintern-subnet
     neutron_router_interface:
       login_username="admin" login_password="{{ ADMIN_PASS }}" login_tenant_name="admin"
+      auth_url="https://{{controller_hostname}}:35357/v2.0"
       tenant_name=cloudintern
       router_name="ext-to-cloudintern"
       subnet_name="cloudintern-subnet"
@@ -585,22 +594,26 @@
   - name: Create a router for copr
     neutron_router:
       login_username="admin" login_password="{{ ADMIN_PASS }}" login_tenant_name="admin"
+      auth_url="https://{{controller_hostname}}:35357/v2.0"
       tenant_name=copr
       name=ext-to-copr
     register: ROUTER_ID
   - name: Connect router's gateway to the external network
     neutron_router_gateway:
       login_username="admin" login_password="{{ ADMIN_PASS }}" login_tenant_name="admin"
+      auth_url="https://{{controller_hostname}}:35357/v2.0"
       router_name="ext-to-copr"
       network_name="external"
   - name: Create a private network for copr
     neutron_network:
       login_username="admin" login_password="{{ ADMIN_PASS }}" login_tenant_name="admin"
+      auth_url="https://{{controller_hostname}}:35357/v2.0"
       tenant_name=copr
       name=copr-net
   - name: Create a subnet in the copr-net
     neutron_subnet:
       login_username="admin" login_password="{{ ADMIN_PASS }}" login_tenant_name="admin"
+      auth_url="https://{{controller_hostname}}:35357/v2.0"
       tenant_name=copr
       network_name=copr-net
       name=copr-subnet
@@ -611,6 +624,7 @@
   - name: Connect router's interface to the copr-subnet
     neutron_router_interface:
       login_username="admin" login_password="{{ ADMIN_PASS }}" login_tenant_name="admin"
+      auth_url="https://{{controller_hostname}}:35357/v2.0"
       tenant_name=copr
       router_name="ext-to-copr"
       subnet_name="copr-subnet"
@@ -619,22 +633,26 @@
   - name: Create a router for infrastructure
     neutron_router:
       login_username="admin" login_password="{{ ADMIN_PASS }}" login_tenant_name="admin"
+      auth_url="https://{{controller_hostname}}:35357/v2.0"
       tenant_name=infrastructure
       name=ext-to-infrastructure
     register: ROUTER_ID
   - name: Connect router's gateway to the external network
     neutron_router_gateway:
       login_username="admin" login_password="{{ ADMIN_PASS }}" login_tenant_name="admin"
+      auth_url="https://{{controller_hostname}}:35357/v2.0"
       router_name="ext-to-infrastructure"
       network_name="external"
   - name: Create a private network for infrastructure
     neutron_network:
       login_username="admin" login_password="{{ ADMIN_PASS }}" login_tenant_name="admin"
+      auth_url="https://{{controller_hostname}}:35357/v2.0"
       tenant_name=infrastructure
       name=infrastructure-net
   - name: Create a subnet in the infrastructure-net
     neutron_subnet:
       login_username="admin" login_password="{{ ADMIN_PASS }}" login_tenant_name="admin"
+      auth_url="https://{{controller_hostname}}:35357/v2.0"
       tenant_name=infrastructure
       network_name=infrastructure-net
       name=infrastructure-subnet
@@ -645,6 +663,7 @@
   - name: Connect router's interface to the infrastructure-subnet
     neutron_router_interface:
       login_username="admin" login_password="{{ ADMIN_PASS }}" login_tenant_name="admin"
+      auth_url="https://{{controller_hostname}}:35357/v2.0"
       tenant_name=infrastructure
       router_name="ext-to-infrastructure"
       subnet_name="infrastructure-subnet"
@@ -653,22 +672,26 @@
   - name: Create a router for persistent
     neutron_router:
       login_username="admin" login_password="{{ ADMIN_PASS }}" login_tenant_name="admin"
+      auth_url="https://{{controller_hostname}}:35357/v2.0"
       tenant_name=persistent
       name=ext-to-persistent
     register: ROUTER_ID
   - name: Connect router's gateway to the external network
     neutron_router_gateway:
       login_username="admin" login_password="{{ ADMIN_PASS }}" login_tenant_name="admin"
+      auth_url="https://{{controller_hostname}}:35357/v2.0"
       router_name="ext-to-persistent"
       network_name="external"
   - name: Create a private network for persistent
     neutron_network:
       login_username="admin" login_password="{{ ADMIN_PASS }}" login_tenant_name="admin"
+      auth_url="https://{{controller_hostname}}:35357/v2.0"
       tenant_name=persistent
       name=persistent-net
   - name: Create a subnet in the persistent-net
     neutron_subnet:
       login_username="admin" login_password="{{ ADMIN_PASS }}" login_tenant_name="admin"
+      auth_url="https://{{controller_hostname}}:35357/v2.0"
       tenant_name=persistent
       network_name=persistent-net
       name=persistent-subnet
@@ -679,6 +702,7 @@
   - name: Connect router's interface to the persistent-subnet
     neutron_router_interface:
       login_username="admin" login_password="{{ ADMIN_PASS }}" login_tenant_name="admin"
+      auth_url="https://{{controller_hostname}}:35357/v2.0"
       tenant_name=persistent
       router_name="ext-to-persistent"
       subnet_name="persistent-subnet"
@@ -687,22 +711,26 @@
   - name: Create a router for transient
     neutron_router:
       login_username="admin" login_password="{{ ADMIN_PASS }}" login_tenant_name="admin"
+      auth_url="https://{{controller_hostname}}:35357/v2.0"
       tenant_name=transient
       name=ext-to-transient
     register: ROUTER_ID
   - name: Connect router's gateway to the external network
     neutron_router_gateway:
       login_username="admin" login_password="{{ ADMIN_PASS }}" login_tenant_name="admin"
+      auth_url="https://{{controller_hostname}}:35357/v2.0"
       router_name="ext-to-transient"
       network_name="external"
   - name: Create a private network for transient
     neutron_network:
       login_username="admin" login_password="{{ ADMIN_PASS }}" login_tenant_name="admin"
+      auth_url="https://{{controller_hostname}}:35357/v2.0"
       tenant_name=transient
       name=transient-net
   - name: Create a subnet in the transient-net
     neutron_subnet:
       login_username="admin" login_password="{{ ADMIN_PASS }}" login_tenant_name="admin"
+      auth_url="https://{{controller_hostname}}:35357/v2.0"
       tenant_name=transient
       network_name=transient-net
       name=transient-subnet
@@ -713,6 +741,7 @@
   - name: Connect router's interface to the transient-subnet
     neutron_router_interface:
       login_username="admin" login_password="{{ ADMIN_PASS }}" login_tenant_name="admin"
+      auth_url="https://{{controller_hostname}}:35357/v2.0"
       tenant_name=transient
       router_name="ext-to-transient"
       subnet_name="transient-subnet"
@@ -721,22 +750,26 @@
   - name: Create a router for scratch
     neutron_router:
       login_username="admin" login_password="{{ ADMIN_PASS }}" login_tenant_name="admin"
+      auth_url="https://{{controller_hostname}}:35357/v2.0"
       tenant_name=scratch
       name=ext-to-scratch
     register: ROUTER_ID
   - name: Connect router's gateway to the external network
     neutron_router_gateway:
       login_username="admin" login_password="{{ ADMIN_PASS }}" login_tenant_name="admin"
+      auth_url="https://{{controller_hostname}}:35357/v2.0"
       router_name="ext-to-scratch"
       network_name="external"
   - name: Create a private network for scratch
     neutron_network:
       login_username="admin" login_password="{{ ADMIN_PASS }}" login_tenant_name="admin"
+      auth_url="https://{{controller_hostname}}:35357/v2.0"
       tenant_name=scratch
       name=scratch-net
   - name: Create a subnet in the scratch-net
     neutron_subnet:
       login_username="admin" login_password="{{ ADMIN_PASS }}" login_tenant_name="admin"
+      auth_url="https://{{controller_hostname}}:35357/v2.0"
       tenant_name=scratch
       network_name=scratch-net
       name=scratch-subnet
@@ -747,6 +780,7 @@
   - name: Connect router's interface to the scratch-subnet
     neutron_router_interface:
       login_username="admin" login_password="{{ ADMIN_PASS }}" login_tenant_name="admin"
+      auth_url="https://{{controller_hostname}}:35357/v2.0"
       tenant_name=scratch
       router_name="ext-to-scratch"
       subnet_name="scratch-subnet"
@@ -758,9 +792,8 @@
 # ##############
   - name: Copr - Create 'ssh-anywhere' security group
     neutron_sec_group:
-      login_username: "admin"
-      login_password: "{{ ADMIN_PASS }}"
-      login_tenant_name: "admin"
+      login_username: "admin" login_password: "{{ ADMIN_PASS }}" login_tenant_name: "admin"
+      auth_url="https://{{controller_hostname}}:35357/v2.0"
       state: "present"
       name: 'ssh-anywhere'
       description: "allow ssh from anywhere"
@@ -775,9 +808,8 @@
 
   - name: Copr - Create 'ssh-internal' security group
     neutron_sec_group:
-      login_username: "admin"
-      login_password: "{{ ADMIN_PASS }}"
-      login_tenant_name: "admin"
+      login_username: "admin" login_password: "{{ ADMIN_PASS }}" login_tenant_name: "admin"
+      auth_url="https://{{controller_hostname}}:35357/v2.0"
       state: "present"
       name: 'ssh-internal'
       description: "allow ssh from copr-network"
