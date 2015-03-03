@@ -124,6 +124,7 @@
     - rabbitmq-server
     - ansible-openstack-modules
     - openstack-keystone
+    - openstack-neutron
   - yum: name=* state=latest
 
   - name: add ssl cert
@@ -138,6 +139,10 @@
     copy: src={{ private }}/files/openstack/fed-cloud09.pem dest=/etc/pki/tls/certs/fed-cloud09-keystone.pem mode=644 owner=keystone group=root
   - name: add ssl key for keystone
     copy: src={{ private }}/files/openstack/fed-cloud09.key dest=/etc/pki/tls/private/fed-cloud09-keystone.key mode=600 owner=keystone group=root
+  - name: add ssl cert for neutron
+    copy: src={{ private }}/files/openstack/fed-cloud09.pem dest=/etc/pki/tls/certs/fed-cloud09-neutron.pem mode=600 owner=neutron group=root
+  - name: add ssl key for neutron
+    copy: src={{ private }}/files/openstack/fed-cloud09.key dest=/etc/pki/tls/private/fed-cloud09-neutron.key mode=600 owner=neutron group=root
 
 
   # http://docs.openstack.org/trunk/install-guide/install/yum/content/basics-database-controller.html
@@ -370,9 +375,9 @@
   - ini_file: dest=/etc/neutron/neutron.conf section=DEFAULT option=nova_url value=https://{{ controller_hostname }}:8774/v2
   - ini_file: dest=/etc/neutron/neutron.conf section=DEFAULT option=nova_admin_auth_url value=https://{{ controller_hostname }}:35357/v2.0
   - ini_file: dest=/etc/neutron/neutron.conf section=DEFAULT option=use_ssl value=True
-  - ini_file: dest=/etc/neutron/neutron.conf section=DEFAULT option=ssl_cert_file value=/etc/pki/tls/certs/fed-cloud09-keystone.pem
-  - ini_file: dest=/etc/neutron/neutron.conf section=DEFAULT option=ssl_key_file value=/etc/pki/tls/private/fed-cloud09-keystone.key
-  - ini_file: dest=/etc/neutron/neutron.conf section=DEFAULT option=ssl_ca_file value=/etc/pki/tls/certs/fed-cloud09-keystone.pem
+  - ini_file: dest=/etc/neutron/neutron.conf section=DEFAULT option=ssl_cert_file value=/etc/pki/tls/certs/fed-cloud09-neutron.pem
+  - ini_file: dest=/etc/neutron/neutron.conf section=DEFAULT option=ssl_key_file value=/etc/pki/tls/private/fed-cloud09-neutron.key
+  - ini_file: dest=/etc/neutron/neutron.conf section=DEFAULT option=ssl_ca_file value=/etc/pki/tls/certs/fed-cloud09-neutron.pem
 
   - ini_file: dest=/etc/neutron/api-paste.conf section="filter:authtoken" option=auth_uri value=https://{{ controller_hostname }}:5000
   - ini_file: dest=/etc/neutron/api-paste.conf section="filter:authtoken" option=auth_protocol value=https
