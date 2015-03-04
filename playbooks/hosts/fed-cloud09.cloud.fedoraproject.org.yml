@@ -125,6 +125,7 @@
     - ansible-openstack-modules
     - openstack-keystone
     - openstack-neutron
+    - haproxy
   - yum: name=* state=latest
 
   - name: add ssl cert
@@ -378,6 +379,7 @@
   - ini_file: dest=/etc/neutron/neutron.conf section=DEFAULT option=ssl_cert_file value=/etc/pki/tls/certs/fed-cloud09-neutron.pem
   - ini_file: dest=/etc/neutron/neutron.conf section=DEFAULT option=ssl_key_file value=/etc/pki/tls/private/fed-cloud09-neutron.key
   - ini_file: dest=/etc/neutron/neutron.conf section=DEFAULT option=ssl_ca_file value=/etc/pki/tls/certs/fed-cloud09-neutron.pem
+  - ini_file: dest=/etc/neutron/neutron.conf section=DEFAULT option=bind_port value=8696
 
   - ini_file: dest=/etc/neutron/api-paste.conf section="filter:authtoken" option=auth_uri value=https://{{ controller_hostname }}:5000
   - ini_file: dest=/etc/neutron/api-paste.conf section="filter:authtoken" option=auth_protocol value=https
@@ -396,6 +398,12 @@
   - ini_file: dest=/etc/ceilometer/ceilometer.conf section=keystone_authtoken option=auth_host value={{ controller_hostname }}
   - ini_file: dest=/etc/ceilometer/ceilometer.conf section=keystone_authtoken option=cafile value=/etc/pki/tls/certs/fed-cloud09-keystone.pem
   - ini_file: dest=/etc/ceilometer/ceilometer.conf section=service_credentials option=os_auth_url value=https://{{ controller_hostname }}:35357/v2.0
+
+  # enable stunell to neutron
+  - shell: cat /etc/pki/tls/certs/fed-cloud09-keystone.pem /etc/pki/tls/private/fed-cloud09.key > /etc/haproxy/fed-cloud09.combined
+  - file: path=/etc/haproxy/fed-cloud09.combined user=haproxy mode=644 
+  - copy: src={{ files }}/files/fedora-cloud/haproxy.cfg dest=/etc/haproxy/haproxy.cfg mode=644 owner=root group=root
+  - service: name=haproxy state=started enabled=yes
 
   - shell: openstack-service restart
 
