@@ -274,13 +274,13 @@
     register: SERVICE_ID
   - shell: source /root/keystonerc_admin && keystone endpoint-list | grep {{SERVICE_ID.stdout}} | awk '{print $2}'
     register: ENDPOINT_ID
-  - shell: source /root/keystonerc_admin && keystone endpoint-list |grep {{SERVICE_ID.stdout}} |grep -v {{ controller_hostname }} && (keystone endpoint-delete {{ENDPOINT_ID.stdout}} && keystone endpoint-create --region 'RegionOne' --service {{SERVICE_ID.stdout}} --publicurl 'http://{{ controller_hostname }}:8776/v1/%(tenant_id)s'  --adminurl 'http://{{ controller_hostname }}:8776/v1/%(tenant_id)s' --internalurl 'http://{{ controller_hostname }}:8776/v1/%(tenant_id)s' ) || true
+  - shell: source /root/keystonerc_admin && keystone endpoint-list |grep {{SERVICE_ID.stdout}} |grep -v {{ controller_hostname }} && (keystone endpoint-delete {{ENDPOINT_ID.stdout}} && keystone endpoint-create --region 'RegionOne' --service {{SERVICE_ID.stdout}} --publicurl 'https://{{ controller_hostname }}:8776/v1/%(tenant_id)s'  --adminurl 'https://{{ controller_hostname }}:8776/v1/%(tenant_id)s' --internalurl 'https://{{ controller_hostname }}:8776/v1/%(tenant_id)s' ) || true
   # cinderv2
   - shell: source /root/keystonerc_admin && keystone service-list | grep 'cinderv2' | awk '{print $2}'
     register: SERVICE_ID
   - shell: source /root/keystonerc_admin && keystone endpoint-list | grep {{SERVICE_ID.stdout}} | awk '{print $2}'
     register: ENDPOINT_ID
-  - shell: source /root/keystonerc_admin && keystone endpoint-list |grep {{SERVICE_ID.stdout}} |grep -v {{ controller_hostname }} && (keystone endpoint-delete {{ENDPOINT_ID.stdout}} && keystone endpoint-create --region 'RegionOne' --service {{SERVICE_ID.stdout}} --publicurl 'http://{{ controller_hostname }}:8776/v2/%(tenant_id)s'  --adminurl 'http://{{ controller_hostname }}:8776/v2/%(tenant_id)s' --internalurl 'http://{{ controller_hostname }}:8776/v2/%(tenant_id)s' ) || true
+  - shell: source /root/keystonerc_admin && keystone endpoint-list |grep {{SERVICE_ID.stdout}} |grep -v {{ controller_hostname }} && (keystone endpoint-delete {{ENDPOINT_ID.stdout}} && keystone endpoint-create --region 'RegionOne' --service {{SERVICE_ID.stdout}} --publicurl 'https://{{ controller_hostname }}:8776/v2/%(tenant_id)s'  --adminurl 'https://{{ controller_hostname }}:8776/v2/%(tenant_id)s' --internalurl 'https://{{ controller_hostname }}:8776/v2/%(tenant_id)s' ) || true
   # glance
   - shell: source /root/keystonerc_admin && keystone service-list | grep 'glance' | awk '{print $2}'
     register: SERVICE_ID
@@ -364,6 +364,7 @@
   - ini_file: dest=/etc/cinder/cinder.conf section=keystone_authtoken option=auth_protocol value=https
   - ini_file: dest=/etc/cinder/cinder.conf section=keystone_authtoken option=cafile value=/etc/pki/tls/certs/fed-cloud09-keystone.pem
   - ini_file: dest=/etc/cinder/cinder.conf section=DEFAULT option=backup_swift_url value=https://{{ controller_hostname }}:8080/v1/AUTH_
+  - ini_file: dest=/etc/cinder/cinder.conf section=DEFAULT option=osapi_volume_listen_port value=6776
   - ini_file: dest=/etc/cinder/api-paste.conf section="filter:authtoken" option=auth_uri value=https://{{ controller_hostname }}:5000
   - ini_file: dest=/etc/cinder/api-paste.conf section="filter:authtoken" option=auth_protocol value=https
   - ini_file: dest=/etc/cinder/api-paste.conf section="filter:authtoken" option=service_protocol value=https
