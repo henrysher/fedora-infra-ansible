@@ -322,9 +322,10 @@ $wgSkipSkins = array("chick", "cologneblue", "monobook", "myskin", "nostalgia", 
 
 $wgSVGConverter = 'rsvg';
 
-#We use apache, but apparently it's the same difference
+# This series of settings is used for reverse proxies
 $wgUseSquid = true;
-$wgSquidServers = array(
+# The SquidNoPurge setting is used to determine reverse proxies
+$wgSquidServersNoPurge = array(
 {% if environment == "staging" %}
     # proxy01.stg
     "10.5.126.88",
@@ -368,7 +369,32 @@ $wgSquidServers = array(
     "192.168.1.17",
 {% endif %}
 );
-$wgSquidServersNoPurge = array('127.0.0.1');
+# This setting is used to send PURGE requests to varnish on reverse proxies upon page changes
+$wgSquidServers = array(
+{% if environment == "staging" %}
+    # proxy01.stg
+    "10.5.126.88:6081",
+{% else %}
+    # proxy01
+    "10.5.126.52:6081",
+    # proxy02
+    "192.168.1.12:6081",
+    # proxy03
+    "192.168.1.7:6081",
+    # proxy04
+    "192.168.1.14:6081",
+    # proxy06
+    "192.168.1.63:6081",
+    # proxy07
+    "192.168.1.52:6081",
+    # proxy08
+    "192.168.1.78:6081",
+    # proxy09
+    "192.168.1.15:6081",
+    # proxy10
+    "10.5.126.51:6081",
+{% endif %}
+);
 $wgSquidMaxage = 432000;
 
 # Don't add rel="nofollow" 
