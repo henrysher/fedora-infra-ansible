@@ -34,9 +34,13 @@ custom_rules: [
     '-A INPUT -p tcp -m tcp -s 192.168.1.59 --dport 873 -j ACCEPT',
     '-A INPUT -p tcp -m tcp -s 209.132.181.102 --dport 873 -j ACCEPT',
 
-    # only allow varnish from localhost
+    # allow varnish from localhost
     '-A INPUT -p tcp -m tcp -s 127.0.0.1 --dport 6081 -j ACCEPT',
     '-A INPUT -p tcp -m tcp -s 127.0.0.1 --dport 6082 -j ACCEPT',
+
+    # also allow varnish from internal for purge requests
+    '-A INPUT -p tcp -m tcp -s 192.168.1.0/24 --dport 6081 -j ACCEPT',
+    '-A INPUT -p tcp -m tcp -s 10.5.126.0/24 --dport 6081 -j ACCEPT',
 
     # Allow koschei.cloud to talk to the inbound fedmsg relay.
     '-A INPUT -p tcp -m tcp --dport 9941 -s 209.132.184.151 -j ACCEPT',
