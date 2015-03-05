@@ -17,6 +17,10 @@
   notify:
     - restart network
 
+- name: add cert to ca-bundle.crt so plain curl works
+  copy: src={{ private }}/files/openstack/fed-cloud09.pem dest=/etc/pki/ca-trust/source/anchors/ mode=600 owner=root group=root
+- command: /usr/bin/update-ca-trust
+
 - yum: state=present name=https://repos.fedorapeople.org/repos/openstack/openstack-icehouse/rdo-release-icehouse-4.noarch.rpm
 
 # http://docs.openstack.org/icehouse/install-guide/install/yum/content/nova-compute.html
