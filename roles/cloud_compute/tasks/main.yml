@@ -32,8 +32,8 @@
 - name: Set up db connection to controller
   ini_file: dest=/etc/nova/nova.conf section=database option=connection value=mysql://nova:{{NOVA_DBPASS}}@{{controller_private_ip}}/nova
 - ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=auth_strategy value=keystone
-- ini_file: dest=/etc/nova/nova.conf section=keystone_authtoken option=auth_uri value=https://{{controller_private_ip}}:5000
-- ini_file: dest=/etc/nova/nova.conf section=keystone_authtoken option=auth_host value={{controller_private_ip}}
+- ini_file: dest=/etc/nova/nova.conf section=keystone_authtoken option=auth_uri value=https://{{controller_hostname}}:5000
+- ini_file: dest=/etc/nova/nova.conf section=keystone_authtoken option=auth_host value={{controller_hostname}}
 - ini_file: dest=/etc/nova/nova.conf section=keystone_authtoken option=auth_protocol value=https
 - ini_file: dest=/etc/nova/nova.conf section=keystone_authtoken option=auth_port value=35357
 - ini_file: dest=/etc/nova/nova.conf section=keystone_authtoken option=cafile value=/etc/pki/tls/certs/fed-cloud09-keystone.pem
@@ -55,9 +55,9 @@
 - ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=vnc_enabled value=True
 - ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=vncserver_listen value=0.0.0.0
 - ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=vncserver_proxyclient_address value={{compute_private_ip}}
-- ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=novncproxy_base_url value=http://{{controller_private_ip}}:6080/vnc_auto.html
+- ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=novncproxy_base_url value=http://{{controller_hostname}}:6080/vnc_auto.html
 
-- ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=glance_host value={{controller_private_ip}}
+- ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=glance_host value={{controller_hostname}}
 
 - service: name=libvirtd state=started enabled=yes
 - service: name=messagebus state=started
@@ -74,8 +74,8 @@
   - openstack-neutron-openvswitch
 
 - ini_file: dest=/etc/neutron/neutron.conf section=DEFAULT option=auth_strategy value=keystone
-- ini_file: dest=/etc/neutron/neutron.conf section=keystone_authtoken option=auth_uri value=https://{{controller_private_ip}}:5000
-- ini_file: dest=/etc/neutron/neutron.conf section=keystone_authtoken option=auth_host value={{controller_private_ip}}
+- ini_file: dest=/etc/neutron/neutron.conf section=keystone_authtoken option=auth_uri value=https://{{controller_hostname}}:5000
+- ini_file: dest=/etc/neutron/neutron.conf section=keystone_authtoken option=auth_host value={{controller_hostname}}
 - ini_file: dest=/etc/neutron/neutron.conf section=keystone_authtoken option=auth_protocol value=https
 - ini_file: dest=/etc/neutron/neutron.conf section=keystone_authtoken option=auth_port value=35357
 - ini_file: dest=/etc/neutron/neutron.conf section=keystone_authtoken option=cafile value=/etc/pki/tls/certs/fed-cloud09-keystone.pem
@@ -115,13 +115,13 @@
 - command: ovs-vsctl --may-exist add-br br-int
 
 - ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=network_api_class value=nova.network.neutronv2.api.API
-- ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=neutron_url value=http://{{controller_private_ip}}:9696
+- ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=neutron_url value=https://{{controller_hostname}}:9696
 - ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=neutron_auth_strategy value=keystone
 - ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=neutron_admin_tenant_name value=services
 - ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=neutron_admin_username value=neutron
 - name: set neutron_admin_password
   ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=neutron_admin_password value={{NEUTRON_PASS}}
-- ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=neutron_admin_auth_url value=https://{{controller_private_ip}}:35357/v2.0
+- ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=neutron_admin_auth_url value=https://{{controller_hostname}}:35357/v2.0
 - ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=linuxnet_interface_driver value=nova.network.linux_net.LinuxOVSInterfaceDriver
 - ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=firewall_driver value=nova.virt.firewall.NoopFirewallDriver
 - ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=security_group_api value=neutron
