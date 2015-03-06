@@ -32,9 +32,12 @@ __requires__ = ['SQLAlchemy >= 0.7', 'jinja2 >= 2.4']
 import pkg_resources
 
 import argparse
+import datetime
+import time
 import sys
 import os
 import itertools
+import json
 import xmlrpclib
 import codecs
 import smtplib
@@ -70,17 +73,23 @@ NOTIFYEMAIL = pkgdb2.APP.config.get('PKGDB2_BUGZILLA_NOTIFY_EMAIL')
 PKGDBSERVER = pkgdb2.APP.config.get('SITE_URL')
 DRY_RUN = pkgdb2.APP.config.get('PKGDB2_BUGZILLA_DRY_RUN', False)
 
+EMAIL_FROM = 'accounts@fedoraproject.org'
+DATA_CACHE = '/var/tmp/pkgdb_sync_bz.json'
+
 # When querying for current info, take segments of 1000 packages a time
 BZ_PKG_SEGMENT = 1000
+
 
 class DataChangedError(Exception):
     '''Raised when data we are manipulating changes while we're modifying it.'''
     pass
 
+
 def segment(iterable, chunk, fill=None):
     '''Collect data into `chunk` sized block'''
     args = [iter(iterable)] * chunk
     return itertools.izip_longest(*args, fillvalue=fill)
+
 
 class ProductCache(dict):
     def __init__(self, bz, acls):
@@ -284,7 +293,7 @@ class Bugzilla(object):
                     raise
 
 
-def send_email(fromAddress, toAddress, subject, message):
+def send_email(fromAddress, toAddress, subject, message, ccAddress=None):
     '''Send an email if there's an error.
 
     This will be replaced by sending messages to a log later.
@@ -293,10 +302,68 @@ def send_email(fromAddress, toAddress, subject, message):
     msg.add_header('To', ','.join(toAddress))
     msg.add_header('From', fromAddress)
     msg.add_header('Subject', subject)
+    if ccAddress is not None:
+        msg.add_header('Cc', ','.join(ccAddress))
     msg.set_payload(message)
     smtp = smtplib.SMTP('bastion')
     smtp.sendmail(fromAddress, toAddress, msg.as_string())
     smtp.quit()
+
+
+def notify_users(errors):
+    ''' Browse the list of errors and when we can retrieve the email
+    address, use it to notify the user about the issue.
+    '''
+    tmpl_email = pkgdb2.APP.config.get('PKGDB_SYNC_BUGZILLA_EMAIL', None)
+    if not tmpl_email:
+        print 'No template email configured in the configuration file, '\
+            'no notification sent to the users'
+        return
+
+    data = {}
+    if os.path.exists(DATA_CACHE):
+        try:
+            with open(DATA_CACHE) as stream:
+                data = json.load(stream)
+        except Exception as err:
+            print 'Could not read the json file at %s: \nError:  %s' % (
+                DATA_CACHE, err)
+
+    new_data = {}
+    for error in errors:
+        notify_user = False
+        if 'The name ' in error and ' is not a valid username' in error:
+            user_email = error.split(' is not a valid username')[0].split(
+                'The name ')[1].strip()
+            now = datetime.datetime.utcnow()
+
+            # See if we already know about this user
+            if user_email in data and data[user_email]['last_update']:
+                last_update = datetime.datetime.fromtimestamp(
+                    int(data[user_email]['last_update']))
+                # Only notify users once per hour
+                if (now - last_update).seconds >= 3600:
+                    notify_user = True
+                else:
+                    new_data[user_email] = data[user_email]
+            elif not data or user_email not in data:
+                notify_user = True
+
+            if notify_user:
+                send_email(
+                    EMAIL_FROM,
+                    [user_email],
+                    subject='Please fix your bugzilla.redhat.com account',
+                    message=tmpl_email,
+                    ccAddress=NOTIFYEMAIL,
+                )
+
+                new_data[user_email] = {
+                    'last_update': time.mktime(now.timetuple())
+                }
+
+    with open(DATA_CACHE, 'w') as stream:
+        json.dump(new_data, stream)
 
 
 if __name__ == '__main__':
@@ -328,7 +395,7 @@ if __name__ == '__main__':
     for product in acls.keys():
         if product not in ('Fedora', 'Fedora EPEL'):
             continue
-        for pkg in acls[product]:
+        for pkg in sorted(acls[product]):
             if DRY_RUN:
                 print pkg
             pkgInfo = acls[product][pkg]
@@ -355,12 +422,16 @@ if __name__ == '__main__':
             except xmlrpclib.Error, e:
                 # An error occurred in the xmlrpc call.  Shouldn't happen but
                 # we better see what it is
-                errors.append(str(e.args))
+                errors.append('%s -- %s' % (pkg, e.args[-1]))
 
     # Send notification of errors
     if errors:
-        #print '[DEBUG]', '\n'.join(errors)
-        send_email('accounts@fedoraproject.org',
+        if DRY_RUN:
+            print '[DEBUG]', '\n'.join(errors)
+        else:
+            notify_users(errors)
+            send_email(
+                EMAIL_FROM,
                 NOTIFYEMAIL,
                 'Errors while syncing bugzilla with the PackageDB',
 '''
