@@ -545,7 +545,10 @@
       - { name: red, email: 'red@fedoraproject.org', tenant: infrastructure, password: "{{red_password}}" }
   #- template: src={{ files }}/fedora-cloud/keystonerc_msuchy dest=/root/ owner=root mode=0600
   #- shell: source /root/keystonerc_admin && keystone user-password-update --pass 'XXXX' msuchy
-  - shell: source /root/keystonerc_admin && F=$(mktemp) && {{ lookup('pipe', '/srv/web/infra/ansible/scripts/auth-keys-from-fas msuchy') }}> "$F" && nova --os-username msuchy --os-password {{msuchy_password}} --os-tenant-name copr keypair-list | ( grep msuchy || nova --os-username msuchy --os-password {{msuchy_password}} --os-tenant-name copr keypair-add --pub_key "$F" msuchy ); rm -f "$F"
+  - nova_keypair: state=present login_username=msuchy
+      login_password="{{msuchy_password}}" login_tenant_name=copr name=msuchy
+      public_key={{ lookup('pipe', '/srv/web/infra/ansible/scripts/auth-keys-from-fas msuchy') }}
+  #- shell: source /root/keystonerc_admin && F=$(mktemp) && {{ lookup('pipe', '/srv/web/infra/ansible/scripts/auth-keys-from-fas msuchy') }}> "$F" && nova --os-username msuchy --os-password {{msuchy_password}} --os-tenant-name copr keypair-list | ( grep msuchy || nova --os-username msuchy --os-password {{msuchy_password}} --os-tenant-name copr keypair-add --pub_key "$F" msuchy ); rm -f "$F"
 
   ##### NETWORK ####
   # http://docs.openstack.org/havana/install-guide/install/apt/content/install-neutron.configure-networks.html
