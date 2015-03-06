@@ -145,10 +145,10 @@
     copy: src={{ private }}/files/openstack/fed-cloud09.pem dest=/etc/pki/tls/certs/fed-cloud09-neutron.pem mode=600 owner=neutron group=root
   - name: add ssl key for neutron
     copy: src={{ private }}/files/openstack/fed-cloud09.key dest=/etc/pki/tls/private/fed-cloud09-neutron.key mode=600 owner=neutron group=root
-  - name: add ssl cert for nova
-    copy: src={{ private }}/files/openstack/fed-cloud09.pem dest=/etc/pki/tls/certs/fed-cloud09-nova.pem mode=600 owner=nova group=root
-  - name: add ssl key for nova
-    copy: src={{ private }}/files/openstack/fed-cloud09.key dest=/etc/pki/tls/private/fed-cloud09-nova.key mode=600 owner=nova group=root
+  #- name: add ssl cert for nova
+  #  copy: src={{ private }}/files/openstack/fed-cloud09.pem dest=/etc/pki/tls/certs/fed-cloud09-nova.pem mode=600 owner=nova group=root
+  #- name: add ssl key for nova
+  #  copy: src={{ private }}/files/openstack/fed-cloud09.key dest=/etc/pki/tls/private/fed-cloud09-nova.key mode=600 owner=nova group=root
 
   # http://docs.openstack.org/trunk/install-guide/install/yum/content/basics-database-controller.html
   - name: install mysql packages
@@ -352,8 +352,11 @@
   - ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=osapi_compute_listen_port value=6774
   - ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=ec2_listen_port value=6773
   - ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=glance_api_servers value=https://{{ controller_hostname }}:9292
-  - ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=cert value=/etc/pki/tls/certs/fed-cloud09-nova.pem
-  - ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=key value=/etc/pki/tls/private/fed-cloud09-nova.key
+  #- ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=cert value=/etc/pki/tls/certs/fed-cloud09-nova.pem
+  #- ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=key value=/etc/pki/tls/private/fed-cloud09-nova.key
+  - ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=novncproxy_host  value={{ controller_hostname }}
+  - ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=ssl_only value=False
+
 
   - ini_file: dest=/etc/glance/glance-api.conf section=keystone_authtoken option=auth_uri value=https://{{ controller_hostname }}:5000
   - ini_file: dest=/etc/glance/glance-api.conf section=keystone_authtoken option=auth_protocol value=https
@@ -405,7 +408,7 @@
   - ini_file: dest=/etc/swift/proxy-server.conf section="filter:authtoken" option=auth_protocol value=https
   - ini_file: dest=/etc/swift/proxy-server.conf section="filter:authtoken" option=auth_host value={{ controller_hostname }}
   - ini_file: dest=/etc/swift/proxy-server.conf section="filter:authtoken" option=cafile value=/etc/pki/tls/certs/fed-cloud09-keystone.pem
-  - ini_file: dest=/etc/swift/proxy-server.conf section=DEFAULT option=bind_port value=6080
+  - ini_file: dest=/etc/swift/proxy-server.conf section=DEFAULT option=bind_port value=7080
   - ini_file: dest=/etc/swift/proxy-server.conf section=DEFAULT option=bind_ip value=127.0.0.1
 
   - ini_file: dest=/etc/ceilometer/ceilometer.conf section=keystone_authtoken option=auth_uri value=https://{{ controller_hostname }}:5000
