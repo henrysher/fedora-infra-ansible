@@ -173,20 +173,28 @@ factory.addStep(ShellCommand(command=["runtask", '-i',
 
 
 {% if deployment_type == 'dev' %}
-factory.addStep(MasterShellCommand(command=["mkdir", '-m', '0755', Interpolate('{{ public_artifacts_dir }}/%(prop:uuid)s/')]))
+
+import datetime
+from buildbot.process.properties import renderer
+
+@renderer
+def today(props):
+    return datetime.datetime.now().strftime("%Y%m%d")
+
+artifactsdir = Interpolate('{{ public_artifacts_dir }}/%(prop:uuid)s/%(kw:today)s', today=today)
+
+# create artifacts dir on master
+factory.addStep(MasterShellCommand(command=["mkdir", '-m', '0755', artifactsdir],
+                                   descriptionDone=['Create artifacs dir']))
 
 # copy artifacts to master
 factory.addStep(DirectoryUpload(slavesrc=Interpolate('/var/lib/taskotron/artifacts/%(prop:uuid)s/'),
-                                masterdest=Interpolate('{{ public_artifacts_dir }}/%(prop:uuid)s/task_output')))
+                                masterdest='%s/task_output' % artifactsdir))
 
 # copy taskotron log to master
-factory.addStep(FileUpload(slavesrc="/var/log/taskotron/taskotron.log",
-                           masterdest=Interpolate('{{ public_artifacts_dir }}/%(prop:uuid)s/taskotron.log'),
+factory.addStep(FileUpload(slavesrc='/var/log/taskotron/taskotron.log',
+                           masterdest='%s/taskotron.log' % artifactsdir,
                            mode=0644))
-
-# change permissions for uuid dir on master to be accessible via http
-#factory.addStep(MasterShellCommand(command=["chmod", '-R', '0755', Interpolate('{{ public_artifacts_dir }}/%(prop:uuid)s/')]))
-
 {% else %}
 # capture the taskotron log
 factory.addStep(ShellCommand(command=["cat", "/var/log/taskotron/taskotron.log"], name="cat_log",
