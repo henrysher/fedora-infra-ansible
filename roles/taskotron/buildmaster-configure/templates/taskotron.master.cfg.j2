@@ -173,13 +173,16 @@ factory.addStep(ShellCommand(command=["runtask", '-i',
 
 
 {% if deployment_type == 'dev' %}
+factory.addStep(MasterShellCommand(command=["mkdir", '-m', '0755', Interpolate('{{ public_artifacts_dir }}/%(prop:uuid)s/')]))
+
 # copy artifacts to master
 factory.addStep(DirectoryUpload(slavesrc=Interpolate('/var/lib/taskotron/artifacts/%(prop:uuid)s/'),
                                 masterdest=Interpolate('{{ public_artifacts_dir }}/%(prop:uuid)s/task_output')))
 
 # copy taskotron log to master
 factory.addStep(FileUpload(slavesrc="/var/log/taskotron/taskotron.log",
-                           masterdest=Interpolate('{{ public_artifacts_dir }}/%(prop:uuid)s/taskotron.log')))
+                           masterdest=Interpolate('{{ public_artifacts_dir }}/%(prop:uuid)s/taskotron.log'),
+                           mode=0644))
 
 # change permissions for uuid dir on master to be accessible via http
 #factory.addStep(MasterShellCommand(command=["chmod", '-R', '0755', Interpolate('{{ public_artifacts_dir }}/%(prop:uuid)s/')]))
