@@ -93,20 +93,31 @@
     when: packstack_sucessfully_finished.stat.exists == False
     ignore_errors: yes
   - lineinfile: dest=/etc/sysconfig/network-scripts/ifcfg-eth1 regexp="^ONBOOT=" line="ONBOOT=yes"
+    notify:
+      - restart network
   # only for first run
   - lineinfile: dest=/etc/sysconfig/network-scripts/ifcfg-eth1 regexp="^NETMASK=" line="NETMASK=255.255.255.0"
     when: packstack_sucessfully_finished.stat.exists == False
+    notify:
+      - restart network
   - lineinfile: dest=/etc/sysconfig/network-scripts/ifcfg-eth1 regexp="^IPADDR=" line="IPADDR={{controller_private_ip}}"
     when: packstack_sucessfully_finished.stat.exists == False
+    notify:
+      - restart network
   - lineinfile: dest=/etc/sysconfig/network-scripts/ifcfg-eth1 regexp="BOOTPROTO=" line="BOOTPROTO=none"
+    notify:
+      - restart network
   - template: src={{files}}/fedora-cloud/ifcfg-br-ex dest=/etc/sysconfig/network-scripts/ifcfg-br-ex owner=root mode=0644
     when: packstack_sucessfully_finished.stat.exists == False
+    notify:
+      - restart network
   - template: src={{files}}/fedora-cloud/ifcfg-eth0 dest=/etc/sysconfig/network-scripts/ifcfg-eth0 owner=root mode=0644
     when: packstack_sucessfully_finished.stat.exists == False
+    notify:
+      - restart network
   - command: ifup eth1
     when: packstack_sucessfully_finished.stat.exists == False
-
-  # FIXME notify network service restart, eth1 must be up and configured
+  - meta: flush_handlers
 
   # http://docs.openstack.org/trunk/install-guide/install/yum/content/basics-ntp.html
   - service: name=ntpd state=started enabled=yes
