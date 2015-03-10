@@ -610,16 +610,18 @@
   - shell: source /root/keystonerc_admin && nova floating-ip-create external
     when: packstack_sucessfully_finished.stat.exists == False
 
-  # 172.16.0.1/12 -- 172.21.0.1/12 - Free to take
-  # 172.23.0.1/12 - free (but used by old cloud)
-  # 172.24.0.1/12 - RESERVED it is used internally for OS
-  # 172.25.0.1/12 - Cloudintern
-  # 172.26.0.1/12 - infrastructure
-  # 172.27.0.1/12 - persistent
-  # 172.28.0.1/12 - transient
-  # 172.29.0.1/12 - scratch
-  # 172.30.0.1/12 - copr
-  # 172.31.0.1/12 - Free to take
+  # 172.16.0.1/16 -- 172.22.0.1/16 - free (can be split to /20)
+  # 172.23.0.1/16 - free (but used by old cloud)
+  # 172.24.0.1/24 - RESERVED it is used internally for OS
+  # 172.24.1.0/24 -- 172.24.255.0/24 - likely free (?)
+  # 172.25.0.1/20  - Cloudintern (172.25.0.1 - 172.25.15.254)
+  # 172.25.16.1/20 - infrastructure (172.25.16.1 - 172.25.31.254)
+  # 172.25.32.1/20 - persistent (172.25.32.1 - 172.25.47.254)
+  # 172.25.48.1/20 - transient (172.25.48.1 - 172.25.63.254)
+  # 172.25.64.1/20 - scratch (172.25.64.1 - 172.25.79.254)
+  # 172.25.80.1/20 - copr (172.25.80.1 - 172.25.95.254)
+  # 172.25.96.1/20 -- 172.25.240.1/20 - free
+  # 172.26.0.1/16 -- 172.31.0.1/16 - free (can be split to /20)
 
   # Cloudintern network
   - name: Create a router for Cloudintern
@@ -648,7 +650,7 @@
       tenant_name="cloudintern"
       network_name="cloudintern-net"
       name="cloudintern-subnet"
-      cidr="172.25.0.1/12"
+      cidr="172.25.0.1/20"
       gateway_ip="172.25.0.1"
       dns_nameservers="66.35.62.163,140.211.169.201"
     register: CLOUDINTERN_SUBNET_ID
@@ -687,8 +689,8 @@
       tenant_name=copr
       network_name=copr-net
       name=copr-subnet
-      cidr="172.30.0.1/12"
-      gateway_ip="172.30.0.1"
+      cidr="172.25.80.1/20"
+      gateway_ip="172.25.80.1"
       dns_nameservers="66.35.62.163,140.211.169.201"
     register: COPR_SUBNET_ID
   - name: Connect router's interface to the copr-subnet
@@ -726,8 +728,8 @@
       tenant_name="infrastructure"
       network_name="infrastructure-net"
       name="infrastructure-subnet"
-      cidr="172.26.0.1/12"
-      gateway_ip="172.26.0.1"
+      cidr="172.25.16.1/20"
+      gateway_ip="172.25.16.1"
       dns_nameservers="66.35.62.163,140.211.169.201"
     register: INFRASTRUCTURE_SUBNET_ID
   - name: Connect router's interface to the infrastructure-subnet
@@ -765,8 +767,8 @@
       tenant_name=persistent
       network_name=persistent-net
       name=persistent-subnet
-      cidr="172.27.0.1/12"
-      gateway_ip="172.27.0.1"
+      cidr="172.25.32.1/20"
+      gateway_ip="172.25.32.1"
       dns_nameservers="66.35.62.163,140.211.169.201"
     register: PERSISTENT_SUBNET_ID
   - name: Connect router's interface to the persistent-subnet
@@ -804,8 +806,8 @@
       tenant_name=transient
       network_name=transient-net
       name=transient-subnet
-      cidr=172.28.0.1/12
-      gateway_ip=172.28.0.1
+      cidr=172.25.48.1/20
+      gateway_ip=172.25.48.1
       dns_nameservers="66.35.62.163,140.211.169.201"
     register: TRANSIENT_SUBNET_ID
   - name: Connect router's interface to the transient-subnet
@@ -843,8 +845,8 @@
       tenant_name=scratch
       network_name=scratch-net
       name=scratch-subnet
-      cidr="172.29.0.1/12"
-      gateway_ip="172.29.0.1"
+      cidr="172.25.64.1/20"
+      gateway_ip="172.25.64.1"
       dns_nameservers="66.35.62.163,140.211.169.201"
     register: SCRATCH_SUBNET_ID
   - name: Connect router's interface to the scratch-subnet
@@ -894,7 +896,7 @@
           port_range_max: "22"
           ethertype: "IPv4"
           protocol: "tcp"
-          remote_ip_prefix: "172.30.0.1/12"
+          remote_ip_prefix: "172.25.80.1/20"
 
 
   # Update quota for Copr
