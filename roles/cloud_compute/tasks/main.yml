@@ -17,6 +17,12 @@
   notify:
     - restart network
 
+- name: add cert to ca-bundle.crt so plain curl works
+  copy: src={{ private }}/files/openstack/fed-cloud09.pem dest=/etc/pki/ca-trust/source/anchors/ mode=600 owner=root group=root
+  notify:
+    - update ca-trust
+- meta: flush_handlers
+
 - yum: state=present name=https://repos.fedorapeople.org/repos/openstack/openstack-icehouse/rdo-release-icehouse-4.noarch.rpm
 
 # http://docs.openstack.org/icehouse/install-guide/install/yum/content/nova-compute.html
@@ -31,33 +37,84 @@
 
 - name: Set up db connection to controller
   ini_file: dest=/etc/nova/nova.conf section=database option=connection value=mysql://nova:{{NOVA_DBPASS}}@{{controller_private_ip}}/nova
+  notify:
+    - restart openstack-nova-compute
 - ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=auth_strategy value=keystone
-- ini_file: dest=/etc/nova/nova.conf section=keystone_authtoken option=auth_uri value=https://{{controller_private_ip}}:5000
-- ini_file: dest=/etc/nova/nova.conf section=keystone_authtoken option=auth_host value={{controller_private_ip}}
+  notify:
+    - restart openstack-nova-compute
+- ini_file: dest=/etc/nova/nova.conf section=keystone_authtoken option=auth_uri value=https://{{controller_hostname}}:5000
+  notify:
+    - restart openstack-nova-compute
+- ini_file: dest=/etc/nova/nova.conf section=keystone_authtoken option=auth_host value={{controller_hostname}}
+  notify:
+    - restart openstack-nova-compute
 - ini_file: dest=/etc/nova/nova.conf section=keystone_authtoken option=auth_protocol value=https
+  notify:
+    - restart openstack-nova-compute
 - ini_file: dest=/etc/nova/nova.conf section=keystone_authtoken option=auth_port value=35357
+  notify:
+    - restart openstack-nova-compute
 - ini_file: dest=/etc/nova/nova.conf section=keystone_authtoken option=cafile value=/etc/pki/tls/certs/fed-cloud09-keystone.pem
-
+  notify:
+    - restart openstack-nova-compute
 - ini_file: dest=/etc/nova/nova.conf section=keystone_authtoken option=admin_user value=nova
+  notify:
+    - restart openstack-nova-compute
 - ini_file: dest=/etc/nova/nova.conf section=keystone_authtoken option=admin_tenant_name value=services
+  notify:
+    - restart openstack-nova-compute
 - name: set admin_password
   ini_file: dest=/etc/nova/nova.conf section=keystone_authtoken option=admin_password value={{NOVA_PASS}}
+  notify:
+    - restart openstack-nova-compute
 
 - ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=rpc_backend value=nova.openstack.common.rpc.impl_kombu
+  notify:
+    - restart openstack-nova-compute
 - ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=rabbit_host value={{controller_private_ip}}
+  notify:
+    - restart openstack-nova-compute
 - ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=rabbit_hosts value={{controller_private_ip}}:5672
+  notify:
+    - restart openstack-nova-compute
 - ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=rabbit_userid value=amqp_user
+  notify:
+    - restart openstack-nova-compute
 - ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=rabbit_password value={{ CONFIG_AMQP_AUTH_PASSWORD }}
+  notify:
+    - restart openstack-nova-compute
 - ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=rabbit_port value=5672
+  notify:
+    - restart openstack-nova-compute
 - ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=rabbit_use_ssl value=False
+  notify:
+    - restart openstack-nova-compute
 
 - ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=my_ip value={{compute_private_ip}}
+  notify:
+    - restart openstack-nova-compute
 - ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=vnc_enabled value=True
+  notify:
+    - restart openstack-nova-compute
 - ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=vncserver_listen value=0.0.0.0
+  notify:
+    - restart openstack-nova-compute
 - ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=vncserver_proxyclient_address value={{compute_private_ip}}
-- ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=novncproxy_base_url value=http://{{controller_private_ip}}:6080/vnc_auto.html
+  notify:
+    - restart openstack-nova-compute
+- ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=novncproxy_base_url value=https://{{controller_hostname}}:6080/vnc_auto.html
+  notify:
+    - restart openstack-nova-compute
 
-- ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=glance_host value={{controller_private_ip}}
+- ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=glance_host value={{controller_hostname}}
+  notify:
+    - restart openstack-nova-compute
+- ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=glance_protocol value=https
+  notify:
+    - restart openstack-nova-compute
+- ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=glance_api_servers value=https://{{ controller_hostname }}:9292
+  notify:
+    - restart openstack-nova-compute
 
 - service: name=libvirtd state=started enabled=yes
 - service: name=messagebus state=started
@@ -74,59 +131,138 @@
   - openstack-neutron-openvswitch
 
 - ini_file: dest=/etc/neutron/neutron.conf section=DEFAULT option=auth_strategy value=keystone
-- ini_file: dest=/etc/neutron/neutron.conf section=keystone_authtoken option=auth_uri value=https://{{controller_private_ip}}:5000
-- ini_file: dest=/etc/neutron/neutron.conf section=keystone_authtoken option=auth_host value={{controller_private_ip}}
+  notify:
+    - restart neutron-openvswitch-agent
+- ini_file: dest=/etc/neutron/neutron.conf section=keystone_authtoken option=auth_uri value=https://{{controller_hostname}}:5000
+  notify:
+    - restart neutron-openvswitch-agent
+- ini_file: dest=/etc/neutron/neutron.conf section=keystone_authtoken option=auth_host value={{controller_hostname}}
+  notify:
+    - restart neutron-openvswitch-agent
 - ini_file: dest=/etc/neutron/neutron.conf section=keystone_authtoken option=auth_protocol value=https
+  notify:
+    - restart neutron-openvswitch-agent
 - ini_file: dest=/etc/neutron/neutron.conf section=keystone_authtoken option=auth_port value=35357
+  notify:
+    - restart neutron-openvswitch-agent
 - ini_file: dest=/etc/neutron/neutron.conf section=keystone_authtoken option=cafile value=/etc/pki/tls/certs/fed-cloud09-keystone.pem
+  notify:
+    - restart neutron-openvswitch-agent
 - ini_file: dest=/etc/neutron/neutron.conf section=keystone_authtoken option=admin_user value=neutron
+  notify:
+    - restart neutron-openvswitch-agent
 - ini_file: dest=/etc/neutron/neutron.conf section=keystone_authtoken option=admin_tenant_name value=services
+  notify:
+    - restart neutron-openvswitch-agent
 - name: set admin_password
   ini_file: dest=/etc/neutron/neutron.conf section=keystone_authtoken option=admin_password value={{NEUTRON_PASS}}
+  notify:
+    - restart neutron-openvswitch-agent
 
 - ini_file: dest=/etc/neutron/neutron.conf section=DEFAULT option=rpc_backend value=neutron.openstack.common.rpc.impl_kombu
+  notify:
+    - restart neutron-openvswitch-agent
 - ini_file: dest=/etc/neutron/neutron.conf section=DEFAULT option=rabbit_host value={{controller_private_ip}}
+  notify:
+    - restart neutron-openvswitch-agent
 - ini_file: dest=/etc/neutron/neutron.conf section=DEFAULT option=rabbit_hosts value={{controller_private_ip}}:5672
+  notify:
+    - restart neutron-openvswitch-agent
 - ini_file: dest=/etc/neutron/neutron.conf section=DEFAULT option=rabbit_userid value=amqp_user
+  notify:
+    - restart neutron-openvswitch-agent
 - ini_file: dest=/etc/neutron/neutron.conf section=DEFAULT option=rabbit_password value={{ CONFIG_AMQP_AUTH_PASSWORD }}
+  notify:
+    - restart neutron-openvswitch-agent
 - ini_file: dest=/etc/neutron/neutron.conf section=DEFAULT option=rabbit_port value=5672
+  notify:
+    - restart neutron-openvswitch-agent
 
 # uncomment if you want to debug compute instance
 #- ini_file: dest=/etc/neutron/neutron.conf section=DEFAULT option=verbose value=True
+#  notify:
+#      - restart neutron-openvswitch-agent
 - ini_file: dest=/etc/neutron/neutron.conf section=DEFAULT option=core_plugin value=neutron.plugins.ml2.plugin.Ml2Plugin
+  notify:
+    - restart neutron-openvswitch-agent
 - ini_file: dest=/etc/neutron/neutron.conf section=DEFAULT option=service_plugins value=neutron.services.l3_router.l3_router_plugin.L3RouterPlugin
+  notify:
+    - restart neutron-openvswitch-agent
 
 - ini_file: dest=/etc/neutron/plugins/ml2/ml2_conf.ini section=ml2 option=type_drivers value=local,flat,gre
+  notify:
+    - restart neutron-openvswitch-agent
 - ini_file: dest=/etc/neutron/plugins/ml2/ml2_conf.ini section=ml2 option=tenant_network_types value=gre
+  notify:
+    - restart neutron-openvswitch-agent
 - ini_file: dest=/etc/neutron/plugins/ml2/ml2_conf.ini section=ml2 option=mechanism_drivers value=openvswitch
+  notify:
+    - restart neutron-openvswitch-agent
 - ini_file: dest=/etc/neutron/plugins/ml2/ml2_conf.ini section=ml2_type_gre option=tunnel_id_ranges value=1:1000
+  notify:
+    - restart neutron-openvswitch-agent
 - ini_file: dest=/etc/neutron/plugins/ml2/ml2_conf.ini section=ovs option=local_ip value={{compute_private_ip}}
+  notify:
+    - restart neutron-openvswitch-agent
 - ini_file: dest=/etc/neutron/plugins/ml2/ml2_conf.ini section=ovs option=tunnel_type value=gre
+  notify:
+    - restart neutron-openvswitch-agent
 - ini_file: dest=/etc/neutron/plugins/ml2/ml2_conf.ini section=ovs option=tunnel_types value=gre
+  notify:
+    - restart neutron-openvswitch-agent
 - ini_file: dest=/etc/neutron/plugins/ml2/ml2_conf.ini section=agent option=tunnel_types value=gre
+  notify:
+    - restart neutron-openvswitch-agent
 - ini_file: dest=/etc/neutron/plugins/ml2/ml2_conf.ini section=ovs option=enable_tunneling value=True
+  notify:
+    - restart neutron-openvswitch-agent
 - ini_file: dest=/etc/neutron/plugins/ml2/ml2_conf.ini section=securitygroup option=firewall_driver value=neutron.agent.linux.iptables_firewall.OVSHybridIptablesFirewallDriver
+  notify:
+    - restart neutron-openvswitch-agent
 - ini_file: dest=/etc/neutron/plugins/ml2/ml2_conf.ini section=securitygroup option=enable_security_group value=True
+  notify:
+    - restart neutron-openvswitch-agent
 
 # WORKAROUND https://ask.openstack.org/en/question/28734/instance-failed-to-spawn-you-must-call-aug-init-first-to-initialize-augeas/
 - ini_file: dest=/usr/lib/systemd/system/neutron-openvswitch-agent.service section=Service option=ExecStart value="/usr/bin/neutron-openvswitch-agent --config-file /usr/share/neutron/neutron-dist.conf --config-file /etc/neutron/neutron.conf --config-file /etc/neutron/plugin.ini --log-file /var/log/neutron/openvswitch-agent.log"
+  notify:
+    - restart neutron-openvswitch-agent
 
 - service: name=openvswitch state=started enabled=yes
 - command: ovs-vsctl --may-exist add-br br-int
 
 - ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=network_api_class value=nova.network.neutronv2.api.API
-- ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=neutron_url value=http://{{controller_private_ip}}:9696
+  notify:
+    - restart openstack-nova-compute
+- ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=neutron_url value=https://{{controller_hostname}}:9696
+  notify:
+    - restart openstack-nova-compute
 - ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=neutron_auth_strategy value=keystone
+  notify:
+    - restart openstack-nova-compute
 - ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=neutron_admin_tenant_name value=services
+  notify:
+    - restart openstack-nova-compute
 - ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=neutron_admin_username value=neutron
+  notify:
+    - restart openstack-nova-compute
 - name: set neutron_admin_password
   ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=neutron_admin_password value={{NEUTRON_PASS}}
-- ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=neutron_admin_auth_url value=https://{{controller_private_ip}}:35357/v2.0
+  notify:
+    - restart openstack-nova-compute
+- ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=neutron_admin_auth_url value=https://{{controller_hostname}}:35357/v2.0
+  notify:
+    - restart openstack-nova-compute
 - ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=linuxnet_interface_driver value=nova.network.linux_net.LinuxOVSInterfaceDriver
+  notify:
+    - restart openstack-nova-compute
 - ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=firewall_driver value=nova.virt.firewall.NoopFirewallDriver
+  notify:
+    - restart openstack-nova-compute
 - ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=security_group_api value=neutron
+  notify:
+    - restart openstack-nova-compute
 
 - file: src=/etc/neutron/plugins/ml2/ml2_conf.ini dest=/etc/neutron/plugin.ini state=link
-
-- service: name=neutron-openvswitch-agent state=restarted enabled=yes
-- service: name=openstack-nova-compute state=restarted enabled=yes
+  notify:
+    - restart openstack-nova-compute

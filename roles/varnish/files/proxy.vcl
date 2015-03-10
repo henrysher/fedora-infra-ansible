@@ -124,33 +124,23 @@ backend mirrormanager2 {
 }
 
 
-#acl purge {
-#    "192.168.1.3";
-#    "192.168.1.4";
-#    "192.168.1.5";
-#    "192.168.1.6";
-#    "192.168.1.13";
-#    "192.168.1.24";
-#    "192.168.1.23";
-#    "192.168.1.41";
-#    "10.5.126.31";
-#    "10.5.126.32";
-#    "10.5.126.33";
-#    "10.5.126.34";
-#    "10.5.126.37";
-#    "10.5.126.38";
-#}
+acl purge {
+    "192.168.1.129"; // wiki01.vpn
+    "192.168.1.130"; // wiki02.vpn
+    "10.5.126.60"; // wiki01.stg
+    "10.5.126.63"; // wiki01
+    "10.5.126.73"; // wiki02
+    "10.5.126.23"; // lockbox01
+    "192.168.1.58"; //lockbox01.vpn
+}
 
 sub vcl_recv {
-#    if (req.request == "PURGE") {
-#        if (!client.ip ~ purge) {
-#            error 405 "Not allowed.";
-#        }
-#        if (req.url ~ "^http://") {
-#            set req.url = regsub(req.url, "http://localhost:6081","");
-#        }
-#        purge_url(req.url);
-#    }
+    if (req.method == "PURGE") {
+        if (!client.ip ~ purge) {
+            return (synth(405, "Not allowed"));
+        }
+        return(purge);
+    }
 
     if (req.url ~ "^/wiki/") {
         set req.backend_hint = wiki;

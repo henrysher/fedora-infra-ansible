@@ -26,8 +26,10 @@ the missing branches (or even the missing repo)
 
 """
 
+import multiprocessing.pool
 import os
 import subprocess
+import time
 
 import requests
 
@@ -56,6 +58,7 @@ GIT_FOLDER = '/srv/git/rpms/'
 MKBRANCH = '/usr/local/bin/mkbranch'
 SETUP_PACKAGE = '/usr/local/bin/setup_git_package'
 
+THREADS = 20
 VERBOSE = False
 
 
@@ -67,7 +70,7 @@ class ProcessError(InternalError):
     pass
 
 
-def _invoke(program, args):
+def _invoke(program, args, cwd=None):
     '''Run a command and raise an exception if an error occurred.
 
     :arg program: The program to invoke
@@ -79,63 +82,60 @@ def _invoke(program, args):
     cmdLine.extend(args)
     if VERBOSE:
         print ' '.join(cmdLine)
+        print '  in', cwd
 
-    if VERBOSE:
-        program = subprocess.Popen(
-            cmdLine, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-    else:
-        program = subprocess.Popen(cmdLine, stderr=subprocess.STDOUT)
+    program = subprocess.Popen(
+        cmdLine, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, cwd=cwd)
 
-    retCode = program.wait()
-    if retCode != 0:
+    stdout, stderr = program.communicate()
+
+    if program.returncode != 0:
         e = ProcessError()
-        e.returnCode = retCode
+        e.returnCode = program.returncode
         e.cmd = ' '.join(cmdLine)
-        if VERBOSE:
-            output = program.stdout.read()
-            e.message = 'Error, "%s" returned %s: %s' % (
-                e.cmd, e.returnCode, output)
-            print e.message
-        else:
-            e.message = 'Error, "%s" returned %s' % (e.cmd, e.returnCode)
+        e.cwd = cwd
+        e.message = 'Error, "%s" (in %r) returned %s\n  stdout: %s\n  stderr: %s' % (
+            e.cmd, e.cwd, e.returnCode, stdout, stderr)
+        print e.message
         raise e
 
+    return stdout.strip()
 
-def _create_branch(pkgname, branch):
+
+def _create_branch(pkgname, branch, existing_branches):
     '''Create a specific branch for a package.
 
     :arg pkgname: Name of the package to branch
     :arg branch: Name of the branch to create
+    :arg existing_branches: A list of the branches that already exist locally.
 
     '''
+    branch = branch.replace('*', '').strip()
     if branch == 'master':
         print 'ERROR: Proudly refusing to create master branch. Invalid repo?'
         print 'INFO: Please check %s repo' % pkgname
         return
 
-    branchpath = os.path.join(
-        GIT_FOLDER, '%s.git' % pkgname, 'refs/heads', branch)
-    if not os.path.exists(branchpath):
-        try:
-            _invoke(MKBRANCH, [branch, pkgname])
-        except ProcessError, e:
-            if e.returnCode == 255:
-                # This is a warning, not an error
-                return
-            raise
-        finally:
-            fedmsg.publish(
-                topic='branch',
-                modname='git',
-                msg=dict(
-                    agent='pkgdb',
-                    name=pkgname,
-                    branch=branch,
-                ),
-            )
-    elif VERBOSE:
-            print 'Was asked to create branch %s of package %s, but it '\
-                'already exists' % (pkgname, branch)
+    if branch in existing_branches:
+       print 'ERROR: Refusing to create a branch %s that exists' % branch
+       return
+
+    try:
+        _invoke(MKBRANCH, [branch, pkgname])
+        fedmsg.publish(
+            topic='branch',
+            modname='git',
+            msg=dict(
+                agent='pkgdb',
+                name=pkgname,
+                branch=branch,
+            ),
+        )
+    except ProcessError, e:
+        if e.returnCode == 255:
+            # This is a warning, not an error
+            return
+        raise
 
 
 def pkgdb_pkg_branch():
@@ -168,43 +168,48 @@ def get_git_branch(pkg):
     """
     git_folder = os.path.join(GIT_FOLDER, '%s.git' % pkg)
     if not os.path.exists(git_folder):
-        print 'Could not find %s' % git_folder
+        if VERBOSE:
+            print 'Could not find %s' % git_folder
         return set()
 
-    head_folder = os.path.join(git_folder, 'refs', 'heads')
-    return set(os.listdir(head_folder))
+    branches = [
+       lclbranch.replace('*', '').strip()
+       for lclbranch in _invoke('git', ['branch'], cwd=git_folder).split('\n')
+    ]
+    return set(branches)
 
 
-def branch_package(pkgname, branches):
+def branch_package(pkgname, requested_branches, existing_branches):
     '''Create all the branches that are listed in the pkgdb for a package.
 
     :arg pkgname: The package to create branches for
-    :arg branches: The branches to creates
+    :arg requested_branches: The branches to creates
+    :arg existing_branches: A list of existing local branches
 
     '''
     if VERBOSE:
-        print 'Fixing package %s for branches %s' % (pkgname, branches)
+        print 'Fixing package %s for branches %s' % (pkgname, requested_branches)
 
     # Create the devel branch if necessary
-    if not os.path.exists(
-            os.path.join(GIT_FOLDER, '%s.git/refs/heads/master' % pkgname)):
+    exists = os.path.exists(os.path.join(GIT_FOLDER, '%s.git' % pkgname))
+    if not exists or 'master' not in existing_branches:
         _invoke(SETUP_PACKAGE, [pkgname])
-        if 'master' in branches:
-            branches.remove('master')  # SETUP_PACKAGE creates master
-            fedmsg.publish(
-                topic='branch',
-                modname='git',
-                msg=dict(
-                    agent='pkgdb',
-                    name=pkgname,
-                    branch='master',
-                ),
-             )
+        if 'master' in requested_branches:
+            requested_branches.remove('master')  # SETUP_PACKAGE creates master
+        fedmsg.publish(
+            topic='branch',
+            modname='git',
+            msg=dict(
+                agent='pkgdb',
+                name=pkgname,
+                branch='master',
+            ),
+        )
 
     # Create all the required branches for the package
     # Use the translated branch name until pkgdb falls inline
-    for branch in branches:
-        _create_branch(pkgname, branch)
+    for branch in requested_branches:
+        _create_branch(pkgname, branch, existing_branches)
 
 
 def main():
@@ -214,10 +219,14 @@ def main():
 
     local_pkgs = set(os.listdir(GIT_FOLDER))
     local_pkgs = set([it.replace('.git', '') for it in local_pkgs])
+    if VERBOSE:
+        print "Found %i local packages" % len(local_pkgs)
 
     pkgdb_info = pkgdb_pkg_branch()
 
     pkgdb_pkgs = set(pkgdb_info.keys())
+    if VERBOSE:
+        print "Found %i pkgdb packages" % len(pkgdb_pkgs)
 
     ## Commented out as we keep the git of retired packages while they won't
     ## show up in the information retrieved from pkgdb.
@@ -230,19 +239,38 @@ def main():
         print 'Some packages are present in pkgdb but not locally:'
         print ', '.join(sorted(pkgdb_pkgs - local_pkgs))
 
+
+    if VERBOSE:
+        print "Finding the lists of local branches for local repos."
+    start = time.time()
+    if THREADS == 1:
+        git_branch_lookup = map(get_git_branch, sorted(pkgdb_info))
+    else:
+        threadpool = multiprocessing.pool.ThreadPool(processes=THREADS)
+        git_branch_lookup = threadpool.map(get_git_branch, sorted(pkgdb_info))
+
+    # Zip that list of results up into a lookup dict.
+    git_branch_lookup = dict(zip(sorted(pkgdb_info), git_branch_lookup))
+
+    if VERBOSE:
+        print "Found all local git branches in %0.2fs" % (time.time() - start)
+
     tofix = set()
     for pkg in sorted(pkgdb_info):
         pkgdb_branches = pkgdb_info[pkg]
-        git_branches = get_git_branch(pkg)
+        git_branches = git_branch_lookup[pkg]
         diff = (pkgdb_branches - git_branches)
         if diff:
             print '%s missing: %s' % (pkg, ','.join(sorted(diff)))
             tofix.add(pkg)
-            branch_package(pkg, diff)
+            branch_package(pkg, diff, git_branches)
 
     if tofix:
         print 'Packages fixed (%s): %s' % (
             len(tofix), ', '.join(sorted(tofix)))
+    else:
+        if VERBOSE:
+            print 'Didn\'t find any packages to fix.'
 
 
 if __name__ == '__main__':
