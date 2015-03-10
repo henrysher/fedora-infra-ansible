@@ -620,7 +620,8 @@
   # 172.25.48.1/20 - transient (172.25.48.1 - 172.25.63.254)
   # 172.25.64.1/20 - scratch (172.25.64.1 - 172.25.79.254)
   # 172.25.80.1/20 - copr (172.25.80.1 - 172.25.95.254)
-  # 172.25.96.1/20 -- 172.25.240.1/20 - free
+  # 172.25.96.1/20 - cloudsig (172.25.96.1 - 172.25.111.254)
+  # 172.25.112.1/20 -- 172.25.240.1/20 - free
   # 172.26.0.1/16 -- 172.31.0.1/16 - free (can be split to /20)
 
   # Cloudintern network
@@ -857,7 +858,44 @@
       router_name="ext-to-scratch"
       subnet_name="scratch-subnet"
 
-
+  # cloudsig network
+  - name: "Create a router for cloudsig"
+    neutron_router:
+      login_username="admin" login_password="{{ ADMIN_PASS }}" login_tenant_name="admin"
+      auth_url="https://{{controller_hostname}}:35357/v2.0"
+      tenant_name=cloudsig
+      name=ext-to-cloudsig
+    register: ROUTER_ID
+  - name: "Connect router's gateway to the external network"
+    neutron_router_gateway:
+      login_username="admin" login_password="{{ ADMIN_PASS }}" login_tenant_name="admin"
+      auth_url="https://{{controller_hostname}}:35357/v2.0"
+      router_name="ext-to-cloudsig"
+      network_name="external"
+  - name: Create a private network for cloudsig
+    neutron_network:
+      login_username="admin" login_password="{{ ADMIN_PASS }}" login_tenant_name="admin"
+      auth_url="https://{{controller_hostname}}:35357/v2.0"
+      tenant_name=cloudsig
+      name=cloudsig-net
+  - name: Create a subnet in the cloudisg-net
+    neutron_subnet:
+      login_username="admin" login_password="{{ ADMIN_PASS }}" login_tenant_name="admin"
+      auth_url="https://{{controller_hostname}}:35357/v2.0"
+      tenant_name=cloudsig
+      network_name=cloudsig-net
+      name=cloudsig-subnet
+      cidr="172.25.96.1/20"
+      gateway_ip="172.25.96.1"
+      dns_nameservers="66.35.62.163,140.211.169.201"
+    register: CLOUDSIG_SUBNET_ID
+  - name: "Connect router's interface to the cloudsig-subnet"
+    neutron_router_interface:
+      login_username="admin" login_password="{{ ADMIN_PASS }}" login_tenant_name="admin"
+      auth_url="https://{{controller_hostname}}:35357/v2.0"
+      tenant_name=cloudsig
+      router_name="ext-to-cloudisg"
+      subnet_name="cloudsig-subnet"
 
   #################
   # Security Groups
@@ -909,7 +947,7 @@
           remote_ip_prefix: "{{ item.prefix }}"
     with_items:
       - { name: cloudintern, prefix: '172.25.0.1/20' }
-      - { name: cloudsig, prefix: '' }
+      - { name: cloudsig, prefix: '172.25.96.1/20' }
       - { name: copr, prefix: '172.25.80.1/20' }
       - { name: infrastructure, prefix: "172.25.16.1/20" }
       - { name: persistent, prefix: "172.25.32.1/20" }
