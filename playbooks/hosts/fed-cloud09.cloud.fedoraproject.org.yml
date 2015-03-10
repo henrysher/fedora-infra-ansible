@@ -145,10 +145,6 @@
     copy: src={{ private }}/files/openstack/fed-cloud09.pem dest=/etc/pki/tls/certs/fed-cloud09-neutron.pem mode=600 owner=neutron group=root
   - name: add ssl key for neutron
     copy: src={{ private }}/files/openstack/fed-cloud09.key dest=/etc/pki/tls/private/fed-cloud09-neutron.key mode=600 owner=neutron group=root
-  #- name: add ssl cert for nova
-  #  copy: src={{ private }}/files/openstack/fed-cloud09.pem dest=/etc/pki/tls/certs/fed-cloud09-nova.pem mode=600 owner=nova group=root
-  #- name: add ssl key for nova
-  #  copy: src={{ private }}/files/openstack/fed-cloud09.key dest=/etc/pki/tls/private/fed-cloud09-nova.key mode=600 owner=nova group=root
 
   # http://docs.openstack.org/trunk/install-guide/install/yum/content/basics-database-controller.html
   - name: install mysql packages
@@ -194,31 +190,6 @@
       regexp="RABBITMQ_NODE_PORT"
       line="    'RABBITMQ_NODE_PORTTTTT'        => $port,"
       backup=yes
-  #- lineinfile:
-  #    dest=/usr/share/openstack-puppet/modules/rabbitmq/templates/rabbitmq.config.erb
-  #    regexp="cacertfile"
-  #    line="    {ssl_options, [{cacertfile,\"<%= @ssl_cert %>\"},"
-  #    backup=yes
-  #- lineinfile:
-  #    dest=/usr/share/openstack-puppet/modules/neutron/manifests/init.pp
-  #    regexp="rabbit_use_ssl              = "
-  #    line="  $rabbit_use_ssl              = true,"
-  #    backup=yes
-  #- lineinfile:
-  #    dest=/usr/share/openstack-puppet/modules/nova/manifests/init.pp
-  #    regexp="rabbit_use_ssl           = "
-  #    line="  $rabbit_use_ssl           = true,"
-  #    backup=yes
-  #- lineinfile:
-  #    dest=/usr/share/openstack-puppet/modules/glance/manifests/notify/rabbitmq.pp
-  #    regexp="rabbit_use_ssl               = "
-  #    line="  $rabbit_use_ssl               = true,"
-  #    backup=yes
-  #- lineinfile:
-  #    dest=/usr/share/openstack-puppet/modules/ceilometer/manifests/init.pp
-  #    regexp="rabbit_use_ssl      = "
-  #    line="  $rabbit_use_ssl      = true,"
-  #    backup=yes
   - lineinfile:
       dest=/usr/lib/python2.7/site-packages/packstack/puppet/templates/mongodb.pp
       regexp="pidfilepath"
@@ -238,33 +209,6 @@
   #### FIXME 
   - lineinfile: dest=/etc/rabbitmq/rabbitmq-env.conf regexp="^RABBITMQ_NODE_PORT=" state="absent"
   - service: name=rabbitmq-server state=started
-
-  # WORKAROUND again
-  #- ini_file: dest=/etc/keystone/keystone.conf section="DEFAULT" option="rabbit_use_ssl" value="true"
-  #- service: name=rabbitmq-server state=restarted
-  #- ini_file: dest=/etc/nova/nova.conf section="DEFAULT" option="rabbit_use_ssl" value="true"
-  #- ini_file: dest=/etc/cinder/cinder.conf section="DEFAULT" option="rabbit_use_ssl" value="true"
-  #- ini_file: dest=/etc/ceilometer/ceilometer.conf section="DEFAULT" option="rabbit_use_ssl" value="true"
-  #- service: name="{{item}}" state=restarted
-  #  with_items:
-  #  - openstack-ceilometer-alarm-evaluator
-  #  - openstack-ceilometer-alarm-notifier
-  #  - openstack-ceilometer-api
-  #  - openstack-ceilometer-central
-  #  - openstack-ceilometer-collector
-  #  - openstack-ceilometer-compute
-  #  - openstack-ceilometer-notification
-  #  - openstack-cinder-api
-  #  - openstack-cinder-backup
-  #  - openstack-cinder-scheduler
-  #  - openstack-cinder-volume
-  #  - openstack-nova-api
-  #  - openstack-nova-cert
-  #  - openstack-nova-compute
-  #  - openstack-nova-conductor
-  #  - openstack-nova-consoleauth
-  #  - openstack-nova-novncproxy
-  #  - openstack-nova-scheduler
 
   # flip endpoints internalurl to internal IP
   # ceilometer
@@ -355,8 +299,6 @@
   - ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=osapi_compute_listen_port value=6774
   - ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=ec2_listen_port value=6773
   - ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=glance_api_servers value=https://{{ controller_hostname }}:9292
-  #- ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=cert value=/etc/pki/tls/certs/fed-cloud09-nova.pem
-  #- ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=key value=/etc/pki/tls/private/fed-cloud09-nova.key
   - ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=novncproxy_host  value={{ controller_hostname }}
   - ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=ssl_only value=False
 
