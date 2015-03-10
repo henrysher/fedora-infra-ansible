@@ -622,7 +622,8 @@
   # 172.25.80.1/20 - copr (172.25.80.1 - 172.25.95.254)
   # 172.25.96.1/20 - cloudsig (172.25.96.1 - 172.25.111.254)
   # 172.25.112.1/20 - qa (172.25.112.1 - 172.25.127.254)
-  # 172.25.128.1/20 -- 172.25.240.1/20 - free
+  # 172.25.128.1/20 - pythonbots (172.25.128.1 - 172.25.143.254)
+  # 172.25.143.1/20 -- 172.25.240.1/20 - free
   # 172.26.0.1/16 -- 172.31.0.1/16 - free (can be split to /20)
 
   # Cloudintern network
@@ -690,7 +691,7 @@
       - { name: copr, cidr: '172.25.80.1/20', gateway: '172.25.80.1' }
       - { name: infrastructure, cidr: '172.25.16.1/20', gateway: '172.25.16.1' }
       - { name: persistent, cidr: '172.25.32.1/20', gateway: '172.25.32.1' }
-      - { name: pythonbots, cidr: '', gateway: '' }
+      - { name: pythonbots, cidr: '172.25.128.1/20', gateway: '172.25.128.1' }
       - { name: qa, cidr: '172.25.112.1/20', gateway: '172.25.112.1' }
       - { name: scratch, cidr: '172.25.64.1/20', gateway: '172.25.64.1' }
       - { name: transient, cidr: '172.25.48.1/20', gateway: '172.25.48.1' } 
@@ -698,9 +699,9 @@
     neutron_router_interface:
       login_username="admin" login_password="{{ ADMIN_PASS }}" login_tenant_name="admin"
       auth_url="https://{{controller_hostname}}:35357/v2.0"
-      tenant_name={{ item }}"
+      tenant_name="{{ item }}"
       router_name="ext-to-{{ item }}"
-      subnet_name={{ item }}-subnet"
+      subnet_name="{{ item }}-subnet"
     with_items:
       - cloudintern
       - cloudsig
@@ -766,7 +767,7 @@
       - { name: copr, prefix: '172.25.80.1/20' }
       - { name: infrastructure, prefix: "172.25.16.1/20" }
       - { name: persistent, prefix: "172.25.32.1/20" }
-      - { name: pythonbots, prefix: '' }
+      - { name: pythonbots, prefix: '172.25.128.1/20' }
       - { name: qa, prefix: "172.25.112.1/20" }
       - { name: scratch, prefix: '172.25.64.1/20' }
       - { name: transient, prefix: '172.25.48.1/20' }
