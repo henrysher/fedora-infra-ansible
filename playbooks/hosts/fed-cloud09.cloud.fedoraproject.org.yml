@@ -859,10 +859,10 @@
 
 
 
-################
-# Copr
-# ##############
-  - name: Copr - Create 'ssh-anywhere' security group
+  #################
+  # Security Groups
+  ################
+  - name: Create 'ssh-anywhere' security group
     neutron_sec_group:
       login_username: "admin"
       login_password: "{{ ADMIN_PASS }}"
@@ -871,7 +871,7 @@
       state: "present"
       name: 'ssh-anywhere'
       description: "allow ssh from anywhere"
-      tenant_name: "copr"
+      tenant_name: "{{item}}"
       rules:
         - direction: "ingress"
           port_range_min: "22"
@@ -879,8 +879,18 @@
           ethertype: "IPv4"
           protocol: "tcp"
           remote_ip_prefix: "0.0.0.0/0"
+    with_items:
+      - cloudintern
+      - cloudsig
+      - copr
+      - infrastructure
+      - persistent
+      - pythonbots
+      - qa
+      - scratch
+      - transient
 
-  - name: Copr - Create 'ssh-internal' security group
+  - name: Create 'ssh-internal' security group
     neutron_sec_group:
       login_username: "admin"
       login_password: "{{ ADMIN_PASS }}"
@@ -888,16 +898,109 @@
       auth_url: "https://{{controller_hostname}}:35357/v2.0"
       state: "present"
       name: 'ssh-internal'
-      description: "allow ssh from copr-network"
-      tenant_name: "copr"
+      description: "allow ssh from {{item.name}}-network"
+      tenant_name: "{{ item.name }}"
       rules:
         - direction: "ingress"
           port_range_min: "22"
           port_range_max: "22"
           ethertype: "IPv4"
           protocol: "tcp"
-          remote_ip_prefix: "172.25.80.1/20"
+          remote_ip_prefix: "{{ item.prefix }}"
+    with_items:
+      - { name: cloudintern, prefix: '172.25.0.1/20' }
+      - { name: cloudsig, prefix: '' }
+      - { name: copr, prefix: '172.25.80.1/20' }
+      - { name: infrastructure, prefix: "172.25.16.1/20" }
+      - { name: persistent, prefix: "172.25.32.1/20" }
+      - { name: pythonbots, prefix: '' }
+      - { name: qa, prefix: "" }
+      - { name: scratch, prefix: '172.25.64.1/20' }
+      - { name: transient, prefix: '172.25.48.1/20' }
 
+  - name: Create 'web-80-anywhere' security group
+    neutron_sec_group:
+      login_username: "admin"
+      login_password: "{{ ADMIN_PASS }}"
+      login_tenant_name: "admin"
+      auth_url: "https://{{controller_hostname}}:35357/v2.0"
+      state: "present"
+      name: 'web-80-anywhere'
+      description: "allow web-80 from anywhere"
+      tenant_name: "{{item}}"
+      rules:
+        - direction: "ingress"
+          port_range_min: "80"
+          port_range_max: "80"
+          ethertype: "IPv4"
+          protocol: "tcp"
+          remote_ip_prefix: "0.0.0.0/0"
+    with_items:
+      - cloudintern
+      - cloudsig
+      - copr
+      - infrastructure
+      - persistent
+      - pythonbots
+      - qa
+      - scratch
+      - transient
+
+  - name: Create 'web-443-anywhere' security group
+    neutron_sec_group:
+      login_username: "admin"
+      login_password: "{{ ADMIN_PASS }}"
+      login_tenant_name: "admin"
+      auth_url: "https://{{controller_hostname}}:35357/v2.0"
+      state: "present"
+      name: 'web-443-anywhere'
+      description: "allow web-443 from anywhere"
+      tenant_name: "{{item}}"
+      rules:
+        - direction: "ingress"
+          port_range_min: "443"
+          port_range_max: "443"
+          ethertype: "IPv4"
+          protocol: "tcp"
+          remote_ip_prefix: "0.0.0.0/0"
+    with_items:
+      - cloudintern
+      - cloudsig
+      - copr
+      - infrastructure
+      - persistent
+      - pythonbots
+      - qa
+      - scratch
+      - transient
+
+  - name: Create 'wide-open' security group
+    neutron_sec_group:
+      login_username: "admin"
+      login_password: "{{ ADMIN_PASS }}"
+      login_tenant_name: "admin"
+      auth_url: "https://{{controller_hostname}}:35357/v2.0"
+      state: "present"
+      name: 'wide-open'
+      description: "allow anything from anywhere"
+      tenant_name: "{{item}}"
+      rules:
+        - direction: "ingress"
+          port_range_min: "0"
+          port_range_max: "65535"
+          ethertype: "IPv4"
+          protocol: "tcp"
+          remote_ip_prefix: "0.0.0.0/0"
+    with_items:
+      - cloudintern
+      - cloudsig
+      - copr
+      - infrastructure
+      - persistent
+      - pythonbots
+      - qa
+      - scratch
+      - transient
 
   # Update quota for Copr
   #   SEE:
