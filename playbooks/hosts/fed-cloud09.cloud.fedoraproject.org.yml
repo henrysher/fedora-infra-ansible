@@ -146,7 +146,8 @@
     copy: src={{ private }}/files/openstack/fed-cloud09.key dest=/etc/pki/tls/private/fed-cloud09.key mode=600 owner=rabbitmq group=root
   - name: add cert to ca-bundle.crt so plain curl works
     copy: src={{ private }}/files/openstack/fed-cloud09.pem dest=/etc/pki/ca-trust/source/anchors/ mode=600 owner=root group=root
-  - command: /usr/bin/update-ca-trust
+    notify:
+      - update ca-trust
 
   - name: add ssl cert for keystone
     copy: src={{ private }}/files/openstack/fed-cloud09.pem dest=/etc/pki/tls/certs/fed-cloud09-keystone.pem mode=644 owner=keystone group=root
