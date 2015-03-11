@@ -23,8 +23,11 @@
   - name: Clone the dns repo into /var/tmp/dns-checkout.....
     local_action: git repo=/git/dns/ dest={{tmp.stdout}}
 
-  - name: Run zone-template
+  - name: Run zone-template (fedoraproject.org)
     local_action: command {{tmp.stdout}}/zone-template {{tmp.stdout}}/fedoraproject.org.cfg {{status}} {{ansible_default_ipv4.address}} chdir={{tmp.stdout}}
+
+  - name: Run zone-template (getfedora.org)
+    local_action: command {{tmp.stdout}}/zone-template {{tmp.stdout}}/getfedora.org.cfg {{status}} {{ansible_default_ipv4.address}} chdir={{tmp.stdout}}
 
   - name: Commit once
     local_action: command git commit -a -m '{{status}} {{inventory_hostname}}' --author '{{userstring}}' chdir={{tmp.stdout}}
