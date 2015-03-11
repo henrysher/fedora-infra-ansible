@@ -17,12 +17,27 @@
     local_action: add_host hostname={{ item }} groupname=myvms_new
     with_items: vmlist.list_vms
 
+# Call out to another playbook.  Disable any proxies that may live here
+- include: update-proxy-dns.yml status=disable proxies=myvms_new:&proxies
+
 - name: update the system
   hosts: "{{ target }}:myvms_new"
   gather_facts: False
   user: root
 
   tasks:
+  - name: schedule regular host downtime
+    nagios: action=downtime minutes=30 service=host host={{ inventory_hostname_short }}
+    delegate_to: noc01.phx2.fedoraproject.org
+    ignore_errors: true
+    when: inventory_hostname.find('.stg.') == -1
+
+  - name: schedule stg host downtime
+    nagios: action=downtime minutes=30 service=host host={{ inventory_hostname_short }}.stg
+    delegate_to: noc01.phx2.fedoraproject.org
+    ignore_errors: true
+    when: inventory_hostname.find('.stg.') != -1
+
   - name: expire-caches
     command: yum clean expire-cache
     
