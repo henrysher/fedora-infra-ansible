@@ -387,9 +387,10 @@
   - shell: cat /etc/pki/tls/certs/fed-cloud09-keystone.pem /etc/pki/tls/private/fed-cloud09.key > /etc/haproxy/fed-cloud09.combined
   - file: path=/etc/haproxy/fed-cloud09.combined owner=haproxy mode=644 
   - copy: src={{ files }}/fedora-cloud/haproxy.cfg dest=/etc/haproxy/haproxy.cfg mode=644 owner=root group=root
+  # first OS have to free ports so haproxy can bind it, then we start OS on modified ports
+  - shell: openstack-service stop
   - service: name=haproxy state=started enabled=yes
-
-  - shell: openstack-service restart
+  - shell: openstack-service start
 
   - lineinfile: dest=/etc/openstack-dashboard/local_settings regexp="^OPENSTACK_KEYSTONE_URL " line="OPENSTACK_KEYSTONE_URL = 'https://{{controller_hostname}}:5000/v2.0'"
     notify:
