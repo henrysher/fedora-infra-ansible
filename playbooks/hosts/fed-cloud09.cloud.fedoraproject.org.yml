@@ -247,26 +247,6 @@
   - shell: source /root/keystonerc_admin && keystone endpoint-list | grep {{SERVICE_ID.stdout}} | awk '{print $2}'
     register: ENDPOINT_ID
   - shell: source /root/keystonerc_admin && keystone endpoint-list |grep {{SERVICE_ID.stdout}} |grep -v {{ controller_hostname }} && (keystone endpoint-delete {{ENDPOINT_ID.stdout}} && keystone endpoint-create --region 'RegionOne' --service {{SERVICE_ID.stdout}} --publicurl 'https://{{ controller_hostname }}:9292'  --adminurl 'https://{{ controller_hostname }}:9292' --internalurl 'https://{{ controller_hostname }}:9292' ) || true
-  # keystone --- !!!!! we need to use ADMIN_TOKEN here
-  - shell: source /root/keystonerc_admin && keystone service-list | grep 'keystone' | awk '{print $2}'
-    register: SERVICE_ID
-  - shell: source /root/keystonerc_admin && keystone endpoint-list | grep {{SERVICE_ID.stdout}} | awk '{print $2}'
-    register: ENDPOINT_ID
-  - ini_file: dest=/etc/keystone/keystone.conf section=ssl option=certfile value=/etc/pki/tls/certs/fed-cloud09-keystone.pem
-    notify:
-      - restart openstack-keystone
-  - ini_file: dest=/etc/keystone/keystone.conf section=ssl option=keyfile value=/etc/pki/tls/private/fed-cloud09-keystone.key
-    notify:
-      - restart openstack-keystone
-  - shell: source /root/keystonerc_admin && keystone endpoint-list |grep {{SERVICE_ID.stdout}} |grep -v {{ controller_hostname }} && (keystone endpoint-delete {{ENDPOINT_ID.stdout}} && keystone --os-token '{{ADMIN_TOKEN}}' --os-endpoint 'https://{{ controller_hostname }}:35357/v2.0' endpoint-create --region 'RegionOne' --service {{SERVICE_ID.stdout}} --publicurl 'https://{{ controller_hostname }}:5000/v2.0'  --adminurl 'https://{{ controller_hostname }}:35357/v2.0' --internalurl 'https://{{ controller_hostname }}:5000/v2.0' ) || true
-    notify:
-      - restart openstack-keystone
-  - ini_file: dest=/etc/keystone/keystone.conf section=ssl option=enable value=True
-    notify:
-      - restart openstack-keystone
-  - meta: flush_handlers
-  - lineinfile: dest=/root/keystonerc_admin regexp="^export OS_AUTH_URL" line="export OS_AUTH_URL=https://{{ controller_hostname }}:5000/v2.0/"
-  - lineinfile: dest=/root/keystonerc_admin line="export OS_CACERT=/etc/pki/tls/certs/fed-cloud09-keystone.pem"
   # neutron
   - shell: source /root/keystonerc_admin && keystone service-list | grep 'neutron' | awk '{print $2}'
     register: SERVICE_ID
@@ -303,6 +283,17 @@
   - shell: source /root/keystonerc_admin && keystone endpoint-list | grep {{SERVICE_ID.stdout}} | awk '{print $2}'
     register: ENDPOINT_ID
   - shell: source /root/keystonerc_admin && keystone endpoint-list |grep {{SERVICE_ID.stdout}} |grep -v {{ controller_hostname }} && (keystone endpoint-delete {{ENDPOINT_ID.stdout}} && keystone endpoint-create --region 'RegionOne' --service {{SERVICE_ID.stdout}} --publicurl 'https://{{ controller_hostname }}:8080'  --adminurl 'https://{{ controller_hostname }}:8080' --internalurl 'https://{{ controller_hostname }}:8080' ) || true
+  # keystone --- !!!!! we need to use ADMIN_TOKEN here - this MUST be last before we restart OS and set up haproxy
+  - shell: source /root/keystonerc_admin && keystone service-list | grep 'keystone' | awk '{print $2}'
+    register: SERVICE_ID
+  - shell: source /root/keystonerc_admin && keystone endpoint-list | grep {{SERVICE_ID.stdout}} | awk '{print $2}'
+    register: ENDPOINT_ID
+  - ini_file: dest=/etc/keystone/keystone.conf section=ssl option=certfile value=/etc/pki/tls/certs/fed-cloud09-keystone.pem
+  - ini_file: dest=/etc/keystone/keystone.conf section=ssl option=keyfile value=/etc/pki/tls/private/fed-cloud09-keystone.key
+  - shell: source /root/keystonerc_admin && keystone endpoint-list |grep {{SERVICE_ID.stdout}} |grep -v {{ controller_hostname }} && (keystone endpoint-delete {{ENDPOINT_ID.stdout}} && keystone --os-token '{{ADMIN_TOKEN}}' --os-endpoint 'http://{{ controller_hostname }}:35357/v2.0' endpoint-create --region 'RegionOne' --service {{SERVICE_ID.stdout}} --publicurl 'https://{{ controller_hostname }}:5000/v2.0'  --adminurl 'https://{{ controller_hostname }}:35357/v2.0' --internalurl 'https://{{ controller_hostname }}:5000/v2.0' ) || true
+  - ini_file: dest=/etc/keystone/keystone.conf section=ssl option=enable value=True
+  - lineinfile: dest=/root/keystonerc_admin regexp="^export OS_AUTH_URL" line="export OS_AUTH_URL=https://{{ controller_hostname }}:5000/v2.0/"
+  - lineinfile: dest=/root/keystonerc_admin line="export OS_CACERT=/etc/pki/tls/certs/fed-cloud09-keystone.pem"
 
   # Setup sysconfig file for novncproxy
   - copy: src={{ files }}/fedora-cloud/openstack-nova-novncproxy dest=/etc/sysconfig/openstack-nova-novncproxy mode=644 owner=root group=root
