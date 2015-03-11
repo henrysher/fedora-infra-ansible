@@ -253,10 +253,18 @@
   - shell: source /root/keystonerc_admin && keystone endpoint-list | grep {{SERVICE_ID.stdout}} | awk '{print $2}'
     register: ENDPOINT_ID
   - ini_file: dest=/etc/keystone/keystone.conf section=ssl option=certfile value=/etc/pki/tls/certs/fed-cloud09-keystone.pem
+    notify:
+      - restart openstack-keystone
   - ini_file: dest=/etc/keystone/keystone.conf section=ssl option=keyfile value=/etc/pki/tls/private/fed-cloud09-keystone.key
+    notify:
+      - restart openstack-keystone
   - shell: source /root/keystonerc_admin && keystone endpoint-list |grep {{SERVICE_ID.stdout}} |grep -v {{ controller_hostname }} && (keystone endpoint-delete {{ENDPOINT_ID.stdout}} && keystone --os-token '{{ADMIN_TOKEN}}' --os-endpoint 'https://{{ controller_hostname }}:35357/v2.0' endpoint-create --region 'RegionOne' --service {{SERVICE_ID.stdout}} --publicurl 'https://{{ controller_hostname }}:5000/v2.0'  --adminurl 'https://{{ controller_hostname }}:35357/v2.0' --internalurl 'https://{{ controller_hostname }}:5000/v2.0' ) || true
+    notify:
+      - restart openstack-keystone
   - ini_file: dest=/etc/keystone/keystone.conf section=ssl option=enable value=True
-  - service: name=openstack-keystone state=restarted
+    notify:
+      - restart openstack-keystone
+  - meta: flush_handlers
   - lineinfile: dest=/root/keystonerc_admin regexp="^export OS_AUTH_URL" line="export OS_AUTH_URL=https://{{ controller_hostname }}:5000/v2.0/"
   - lineinfile: dest=/root/keystonerc_admin line="export OS_CACERT=/etc/pki/tls/certs/fed-cloud09-keystone.pem"
   # neutron
@@ -384,8 +392,11 @@
   - shell: openstack-service restart
 
   - lineinfile: dest=/etc/openstack-dashboard/local_settings regexp="^OPENSTACK_KEYSTONE_URL " line="OPENSTACK_KEYSTONE_URL = 'https://{{controller_hostname}}:5000/v2.0'"
+    notify:
+      - restart httpd
   - lineinfile: dest=/etc/openstack-dashboard/local_settings regexp="OPENSTACK_SSL_CACERT " line="OPENSTACK_SSL_CACERT = '/etc/pki/tls/certs/fed-cloud09-keystone.pem'"
-  - service: name=httpd state=restarted 
+    notify:
+      - restart httpd
 
 
   # configure cider with multi back-end
