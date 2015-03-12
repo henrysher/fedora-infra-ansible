@@ -138,6 +138,7 @@
     - openstack-neutron
     - openstack-nova-common
     - haproxy
+    - http://people.redhat.com/~lkellogg/rpms/openvswitch-2.3.1-2.git20150113.el7.x86_64.rpm
   - yum: name=* state=latest
 
   - name: add ssl cert
@@ -463,12 +464,13 @@
       state=present
     with_items:
       - { name: persistent, desc: "persistent instances" }
-      - { name: qa, desc: "" }
+      - { name: qa, desc: "developmnet and test-day applications of QA" }
       - { name: transient, desc: 'transient instances' }
-      - { name: infrastructure, desc: "" }
+      - { name: infrastructure, desc: "one off instances for infrastructure folks to test or check something (proof-of-concept)" }
       - { name: cloudintern, desc: 'project for the cloudintern under mattdm' }
       - { name: cloudsig, desc: 'Fedora cloud sig folks.' }
-      - { name: copr, desc: 'Copr tenant for the buildsys' }
+      - { name: copr, desc: 'Space for Copr builders' }
+      - { name: coprdev, desc: 'Development version of Copr' }
       - { name: pythonbots, desc: 'project for python build bot users - twisted, etc' }
       - { name: scratch, desc: 'scratch and short term instances' }
 
@@ -580,7 +582,8 @@
   # 172.25.96.1/20 - cloudsig (172.25.96.1 - 172.25.111.254)
   # 172.25.112.1/20 - qa (172.25.112.1 - 172.25.127.254)
   # 172.25.128.1/20 - pythonbots (172.25.128.1 - 172.25.143.254)
-  # 172.25.143.1/20 -- 172.25.240.1/20 - free
+  # 172.25.144.1/20 - coprdev (172.25.144.1 - 172.25.159.254)
+  # 172.25.160.1/20 -- 172.25.240.1/20 - free
   # 172.26.0.1/16 -- 172.31.0.1/16 - free (can be split to /20)
 
   # Cloudintern network
@@ -594,6 +597,7 @@
       - cloudintern
       - cloudsig
       - copr
+      - coprdev
       - infrastructure
       - persistent
       - pythonbots
@@ -610,6 +614,7 @@
       - cloudintern
       - cloudsig
       - copr
+      - coprdev
       - infrastructure
       - persistent
       - pythonbots
@@ -626,6 +631,7 @@
       - cloudintern
       - cloudsig
       - copr
+      - coprdev
       - infrastructure
       - persistent
       - pythonbots
@@ -646,6 +652,7 @@
       - { name: cloudintern, cidr: '172.25.0.1/20', gateway: '172.25.0.1' }
       - { name: cloudsig, cidr: '172.25.96.1/20', gateway: '172.25.96.1' }
       - { name: copr, cidr: '172.25.80.1/20', gateway: '172.25.80.1' }
+      - { name: coprdev, cidr: '172.25.144.1/20', gateway: '172.25.144.1' }
       - { name: infrastructure, cidr: '172.25.16.1/20', gateway: '172.25.16.1' }
       - { name: persistent, cidr: '172.25.32.1/20', gateway: '172.25.32.1' }
       - { name: pythonbots, cidr: '172.25.128.1/20', gateway: '172.25.128.1' }
@@ -663,6 +670,7 @@
       - cloudintern
       - cloudsig
       - copr
+      - coprdev
       - infrastructure
       - persistent
       - pythonbots
@@ -694,6 +702,7 @@
       - cloudintern
       - cloudsig
       - copr
+      - coprdev
       - infrastructure
       - persistent
       - pythonbots
@@ -722,6 +731,7 @@
       - { name: cloudintern, prefix: '172.25.0.1/20' }
       - { name: cloudsig, prefix: '172.25.96.1/20' }
       - { name: copr, prefix: '172.25.80.1/20' }
+      - { name: coprdev, prefix: '172.25.80.1/20' }
       - { name: infrastructure, prefix: "172.25.16.1/20" }
       - { name: persistent, prefix: "172.25.32.1/20" }
       - { name: pythonbots, prefix: '172.25.128.1/20' }
