@@ -548,11 +548,10 @@
   - name: Create role coprdev
     shell: source /root/keystonerc_admin && keystone role-list |grep coprdev || keystone role-create --name coprdev
   - name: Assign users to coprdev as secondary tentant
-    shell: source /root/keystonerc_admin && keystone user-role-list | grep coprdev || keystone user-role-add --user {{item}} --role coprdev --tenant coprdev || true
-    #keystone_user:
-    #  endpoint="https://{{controller_hostname}}:35357/v2.0"
-    #  login_user="admin" login_password="{{ ADMIN_PASS }}"
-    #  role=coprdev user={{ item }} tenant=coprdev
+    keystone_user:
+      endpoint="https://{{controller_hostname}}:35357/v2.0"
+      login_user="admin" login_password="{{ ADMIN_PASS }}"
+      role=coprdev user={{ item }} tenant=coprdev
     with_items:
       - msuchy
       - copr
