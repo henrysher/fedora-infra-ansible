@@ -545,7 +545,10 @@
       - { name: red, email: 'red@fedoraproject.org', tenant: infrastructure, password: "{{red_password}}", public_key: "{{ lookup('pipe', '/srv/web/infra/ansible/scripts/auth-keys-from-fas red') }}" }
 
   - name: Assign users to coprdev as secondary tentant
-    keystone_user: role=coprdev user={{ item }} tenant=coprdev
+    keystone_user:
+      auth_url="https://{{controller_hostname}}:35357/v2.0"
+      login_username="{{ item.name }}" login_password="{{ item.password }}"
+      role=coprdev user={{ item }} tenant=coprdev
     with_items:
       - msuchy
       - copr
