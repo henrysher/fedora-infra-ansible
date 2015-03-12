@@ -2,17 +2,18 @@
 - name: ensure the drbackup group exists
   group: name=drbackup state=present
 
+# Do not move the homedir outside of /home, since either this or uid < 1000 is required
 - name: ensure the drbackup user exists
-  user: name=drbackup comment="DR Backup User" group=drbackup shell=/bin/bash home=/var/lib/drbackup
+  user: name=drbackup comment="DR Backup User" group=drbackup shell=/bin/bash home=/home/drbackup
 
 - name: Make sure the drbackup homedir exists
-  file: dest=/var/lib/drbackup/ state=directory owner=drbackup group=drbackup mode=0700
+  file: dest=/home/drbackup/ state=directory owner=drbackup group=drbackup mode=0700
 
 - name: install the authorized SSH key
-  file: dest=/var/lib/drbackup/.ssh/ state=directory owner=drbackup group=drbackup mode=0700
+  file: dest=/home/drbackup/.ssh/ state=directory owner=drbackup group=drbackup mode=0700
 
 - name: install the backup ssh keys
-  copy: src={{private}}/files/backup.pub dest=/var/lib/drbackup/.ssh/authorized_keys owner=drbackup group=drbackup mode=0600
+  copy: src={{private}}/files/backup.pub dest=/home/drbackup/.ssh/authorized_keys owner=drbackup group=drbackup mode=0600
 
 #
 # deploy the confine-ssh script
