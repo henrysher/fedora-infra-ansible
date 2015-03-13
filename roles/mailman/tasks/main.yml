@@ -76,8 +76,8 @@
   user: name=mailman groups=apache append=yes
   tags:
   - config
-  notify:
-    - restart mailman3
+  #notify:
+  #  - restart mailman3
 
 - name: add postfix to the mailman group
   user: name=postfix groups=mailman append=yes
@@ -98,8 +98,8 @@
   template: src=mailman.cfg.j2 dest=/etc/mailman.cfg
   tags:
   - config
-  notify:
-    - restart mailman3
+  #notify:
+  #  - restart mailman3
 
 
 #
@@ -134,7 +134,7 @@
   - config
   notify:
     - reload apache
-    - restart mailman3
+    #- restart mailman3
 
 - name: install the hyperkitty settings admin file
   template: src=settings_admin.py.j2
@@ -151,7 +151,6 @@
   - config
   notify:
     - reload apache
-    - restart mailman3
 
 - name: install the hyperkitty wsgi file
   copy: src=webui.wsgi
@@ -197,16 +196,16 @@
         dest="{{ mailman_webui_confdir }}/mailman-hyperkitty.cfg"
   tags:
   - config
-  notify:
-    - restart mailman3
+  #notify:
+  #  - restart mailman3
 
 - name: symlink the hyperkitty conffile in mailman directory
   file: src="{{ mailman_webui_confdir }}/mailman-hyperkitty.cfg"
         dest=/etc/mailman3.d/hyperkitty.cfg state=link
   tags:
   - config
-  notify:
-    - restart mailman3
+  #notify:
+  #  - restart mailman3
 
 
 #
@@ -252,10 +251,10 @@
   command: "{{ mailman_webui_basedir }}/bin/post-update.sh"
   when: inventory_hostname.startswith('mailman01')
 
-# Postfix
-- name: create the postfix aliases
-  command: su mailman -s /bin/sh -c "mailman3 aliases"
-           creates=/var/lib/mailman3/data/postfix_lmtp.db
+## Postfix
+#- name: create the postfix aliases
+#  command: su mailman -s /bin/sh -c "mailman3 aliases"
+#           creates=/var/lib/mailman3/data/postfix_lmtp.db
 
 # Memcached
 - name: set the memcached sysconfig file
@@ -265,3 +264,6 @@
 
 - name: start memcached
   service: state=started enabled=yes name=memcached
+
+#- name: start mailman3
+#  service: state=started enabled=yes name=mailman3
