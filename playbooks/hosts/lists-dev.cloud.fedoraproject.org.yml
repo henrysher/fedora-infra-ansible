@@ -105,16 +105,11 @@
     postgresql_user: name=hyperkittyadmin password={{ lists_dev_hk_db_pass }}
   - name: hyperkitty DB user
     postgresql_user: name=hyperkittyapp password={{ lists_dev_hk_db_pass }}
-  - name: kittystore DB admin user
-    postgresql_user: name=kittystoreadmin password={{ lists_dev_ks_db_pass }}
-  - name: kittystore DB user
-    postgresql_user: name=kittystoreapp password={{ lists_dev_ks_db_pass }}
   - name: databases creation
     postgresql_db: name={{ item }} owner="{{ item }}admin" encoding=UTF-8
     with_items:
     - mailman
     - hyperkitty
-    - kittystore
 
 - name: setup mailman and hyperkitty
   hosts: hyperkitty-stg
@@ -130,8 +125,6 @@
     mailman_mailman_db_pass: "{{ lists_dev_mm_db_pass }}"
     mailman_hyperkitty_admin_db_pass: "{{ lists_dev_hk_db_pass }}"
     mailman_hyperkitty_db_pass: "{{ lists_dev_hk_db_pass }}"
-    mailman_kittystore_admin_db_pass: "{{ lists_dev_ks_db_pass }}"
-    mailman_kittystore_db_pass: "{{ lists_dev_ks_db_pass }}"
     mailman_hyperkitty_cookie_key: "randomstringusedasacookiesecurekey-yesthisshouldbeinaprivaterepo_butidonthaveaccesstoit"
     mailman_url: "{{ ansible_fqdn }}"
   - collectd/base
@@ -142,7 +135,6 @@
     yum: pkg={{ item }} state=present
     with_items:
     - tar
-    - mailman # transition from mailman2.1
     - vim
     - tmux
     - patch
@@ -157,16 +149,6 @@
     lineinfile: dest=/etc/aliases regexp='^root:' line="root:abompard@fedoraproject.org"
     notify:
     - reload aliases
-
-
-  # Start services
-  - name: start services
-    service: state=started enabled=yes name={{ item }}
-    with_items:
-    - httpd
-    - postgresql
-    - mailman3
-    - postfix
 
 
   handlers:
