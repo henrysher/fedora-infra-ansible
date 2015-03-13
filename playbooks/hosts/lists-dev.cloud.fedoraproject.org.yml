@@ -73,6 +73,10 @@
   - name: start postgresql
     service: state=started name=postgresql
 
+  - name: allow running sudo commands as postgresql for ansible
+    copy: src="{{ files }}/lists-dev/sudoers-norequiretty-postgres" dest=/etc/sudoers.d/norequiretty-postgres
+          owner=root group=root mode=0440
+
   handlers:
   - include: "{{ handlers }}/restart_services.yml"
   - name: restart postgresql
