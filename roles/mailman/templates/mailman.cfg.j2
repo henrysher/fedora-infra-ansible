@@ -9,7 +9,13 @@
 site_owner: root@localhost
 
 # Set the paths to be Fedora-compliant
-layout: fhs
+#layout: fhs
+# Until the mailman3 rpm is back:
+layout: dev
+
+[paths.dev]
+var_dir = /srv/webui/var
+
 [paths.fhs]
 bin_dir: /usr/libexec/mailman3
 var_dir: /var/lib/mailman3
@@ -19,18 +25,18 @@ lock_dir: /run/lock/mailman3
 ext_dir: /etc/mailman3.d
 pid_file: /run/mailman3/master.pid
 
-[database]
-class: mailman.database.postgresql.PostgreSQLDatabase
-url: postgresql://mailmanadmin:{{ mailman_mailman_db_pass }}@{{ mailman_db_server }}/mailman
+#[database]
+#class: mailman.database.postgresql.PostgreSQLDatabase
+#url: postgresql://mailmanadmin:{{ mailman_mailman_db_pass }}@{{ mailman_db_server }}/mailman
 
 [archiver.hyperkitty]
-class: hyperkitty.archiver.Archiver
+class: mailman_hyperkitty.Archiver
 enable: yes
 configuration: /etc/mailman3.d/hyperkitty.cfg
 
-[archiver.fedmsg]
-class: mailman3_fedmsg_plugin.Archiver
-enable: yes
+#[archiver.fedmsg]
+#class: mailman3_fedmsg_plugin.Archiver
+#enable: yes
 
 [archiver.prototype]
 enable: yes

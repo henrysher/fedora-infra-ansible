@@ -10,11 +10,6 @@ from django.conf import settings
 from django.contrib import admin
 admin.autodiscover()
 
-# Import hyperkitty urls and set urlpatterns if you want to hook
-# hyperkitty into an existing django site.
-# Otherwise set ROOT_URLCONF in settings.py to
-# `hyperkitty.urls`.
-
 from django.core.urlresolvers import reverse_lazy
 from django.views.generic import RedirectView
 
@@ -23,6 +18,6 @@ urlpatterns = patterns('',
     #url(r'^$', 'postorius.views.list_index'),
     url(r'^admin/', include('postorius.urls')),
     url(r'^archives/', include('hyperkitty.urls')),
-    url(r'', include('social_auth.urls')),
-    url(r'', include('django_browserid.urls')),
+    url(r'', include('social_auth.urls'), {"SSL": True}),
+    url(r'', include('django_browserid.urls'), {"SSL": True}),
 )

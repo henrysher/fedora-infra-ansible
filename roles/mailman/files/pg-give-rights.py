@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 # vim: et ts=4 sw=4 fileencoding=utf-8
 
 """
@@ -57,22 +57,22 @@ def main():
     site.addsitedir(conf["confdir"])
     import settings_admin
 
-    # KittyStore
-    dbspec = re.match("""
-        postgresql://
-        (?P<user>[a-z]+)
-        :
-        (?P<password>[^@]+)
-        @
-        (?P<host>[^/]+)
-        /
-        (?P<database>[^/?]+)
-        """, settings_admin.KITTYSTORE_URL, re.X)
-    give_rights(dbspec.group("host"),
-                dbspec.group("user"),
-                dbspec.group("password"),
-                dbspec.group("database")
-                )
+    ## KittyStore
+    #dbspec = re.match("""
+    #    postgresql://
+    #    (?P<user>[a-z]+)
+    #    :
+    #    (?P<password>[^@]+)
+    #    @
+    #    (?P<host>[^/]+)
+    #    /
+    #    (?P<database>[^/?]+)
+    #    """, settings_admin.KITTYSTORE_URL, re.X)
+    #give_rights(dbspec.group("host"),
+    #            dbspec.group("user"),
+    #            dbspec.group("password"),
+    #            dbspec.group("database")
+    #            )
 
     # HyperKitty
     give_rights(

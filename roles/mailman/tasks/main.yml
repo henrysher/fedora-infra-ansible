@@ -13,13 +13,16 @@
   command: semanage fcontext -a -t etc_t "{{ mailman_webui_confdir }}(/.*)?"
 
 - name: set the SELinux policy for the fulltext index
-  command: semanage fcontext -a -t httpd_sys_content_t "{{ mailman_webui_basedir }}/kittystore_search_index(/.*)?"
+  command: semanage fcontext -a -t httpd_sys_rw_content_t "{{ mailman_webui_basedir }}/fulltext_index(/.*)?"
 
 - name: set the SELinux policy for the static files directory
   command: semanage fcontext -a -t httpd_sys_content_t "{{ mailman_webui_basedir }}/static(/.*)?"
 
 - name: set the SELinux policy for the log directory
   command: semanage fcontext -a -t httpd_log_t "/var/log/hyperkitty(/.*)?"
+
+- name: set the SELinux policy for the generated postfix databases
+  command: semanage fcontext -a -t etc_aliases_t "{{ mailman_webui_basedir }}/var/data/postfix_.*"
 
 - name: allow Apache to remotely connect to PostgreSQL
   seboolean: name=httpd_can_network_connect_db state=yes persistent=yes
@@ -50,15 +53,18 @@
   - mailman3
   - mailman3-selinux
   - python-psycopg2
-  - python-storm-postgresql
-  - kittystore
   - hyperkitty
   - hyperkitty-selinux
   - postorius
   - memcached
   - python-pylibmc
+  - python-django-haystack-xapian
   - yum-plugin-post-transaction-actions
   - mailman3-fedmsg-plugin
+  # to run the test suite:
+  - python-beautifulsoup4
+  - python-mock
+  - python-whoosh
   tags:
   - packages
 
@@ -72,6 +78,13 @@
   - config
   notify:
     - restart mailman3
+
+- name: add postfix to the mailman group
+  user: name=postfix groups=mailman append=yes
+  tags:
+  - config
+  notify:
+    - restart postfix
 
 # for access to the full-text index
 - name: add apache to the mailman group
@@ -130,13 +143,6 @@
   tags:
   - config
 
-- name: install the hyperkitty settings test file
-  copy: src=settings_test.py
-        dest="{{ mailman_webui_confdir }}/settings_test.py"
-        owner=root group=root mode=0640
-  tags:
-  - config
-
 - name: install the hyperkitty urls file
   copy: src=urls.py
         dest="{{ mailman_webui_confdir }}/urls.py"
@@ -175,8 +181,8 @@
   notify:
     - reload apache
 
-- name: create the kittystore plain text index dir
-  file: path="{{ mailman_webui_basedir }}/kittystore_search_index"
+- name: create the fulltext index dir
+  file: path="{{ mailman_webui_basedir }}/fulltext_index"
         state=directory owner=mailman group=mailman mode=0755
 
 - name: create the hyperkitty static files dir
@@ -187,8 +193,8 @@
 # Plug HyperKitty into Mailman
 #
 - name: copy the mailman-hyperkitty conffile
-  template: src=mailman-hyperkitty.cfg.j2
-            dest="{{ mailman_webui_confdir }}/mailman-hyperkitty.cfg"
+  copy: src=mailman-hyperkitty.cfg
+        dest="{{ mailman_webui_confdir }}/mailman-hyperkitty.cfg"
   tags:
   - config
   notify:
@@ -228,17 +234,11 @@
   - pg-give-rights.py
   - post-update.sh
   - import-mm2.py
-  - clean-sessions.sh
 
 - name: copy the initial user fixture
   copy: src=postorius.initial-user.json
         dest=/etc/postorius/sites/default/initial-user.json
         owner=root group=apache mode=0640
-
-- name: install the cronjobs
-  file: dest=/etc/cron.daily/hyperkitty-clean-sessions.sh
-        src="{{ mailman_webui_basedir }}/bin/clean-sessions.sh"
-        state=link
 
 
 # Sync databases

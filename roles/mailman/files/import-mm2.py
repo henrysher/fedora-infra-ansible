@@ -1,21 +1,28 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
+
+from __future__ import unicode_literals, absolute_import, print_function
 
 import os
 import sys
 import subprocess
 import pickle
 from optparse import OptionParser
+from locale import getpreferredencoding
 import yaml
 
+MAILMAN_BIN = subprocess.check_output(["which", "mailman"]).decode("ascii").strip()
+
+from mailman.commands.cli_import import Bouncer
+sys.modules["Mailman.Bouncer"] = Bouncer
 
 def call(command):
-    print "PYTHONPATH=%s" % os.environ["PYTHONPATH"], " ".join(command)
+    print(" ".join(command))
     subprocess.check_call(command, env=os.environ)
 
 def cmdget(command):
-    print "PYTHONPATH=%s" % os.environ["PYTHONPATH"], " ".join(command)
+    print(" ".join(command))
     out = subprocess.check_output(command, env=os.environ)
-    return out.strip()
+    return out.decode(getpreferredencoding()).strip()
 
 
 class Importer(object):
@@ -26,10 +33,11 @@ class Importer(object):
         self.index_path = self._get_index_path()
         self.existing_lists = [ l.strip() for l in
                 cmdget(["sudo", "-u", "mailman",
-                "mailman3", "lists", "-q"]).split("\n") ]
+                MAILMAN_BIN, "lists", "-q"]).split("\n") ]
         self.excluded = opts.exclude.strip().split(",")
 
     def _get_index_path(self):
+        return None
         sys.path.append(self.config["confdir"])
         settings = __import__("settings")
         sys.path.pop()
@@ -43,40 +51,41 @@ class Importer(object):
         for index, listname in enumerate(all_listnames):
             listaddr = "%s@%s" % (listname, self.config["domain"])
             if listname in self.excluded or listaddr in self.excluded:
-                print "Skipping excluded list %s" % listaddr
+                print("Skipping excluded list %s" % listaddr)
                 continue
-            print listaddr, "(%d/%d)" % (index+1, len(all_listnames))
+            print(listaddr, "(%d/%d)" % (index+1, len(all_listnames)))
             confpickle = os.path.join(mm2libdir, 'lists', listname,
                                       'config.pck')
             if not os.path.exists(confpickle):
-                print "Missing configuration pickle:", confpickle
+                print("Missing configuration pickle:", confpickle)
                 continue
             list_is_new = bool(listaddr not in self.existing_lists)
             if list_is_new:
-                call(["sudo", "-u", "mailman", "mailman3", "create", "-d",
+                call(["sudo", "-u", "mailman", MAILMAN_BIN, "create", "-d",
                       listaddr])
-                call(["sudo", "-u", "mailman", "mailman3", "import21",
+                call(["sudo", "-u", "mailman", MAILMAN_BIN, "import21",
                       listaddr, confpickle])
             if not self.opts.no_archives:
                 archivefile = os.path.join(
                         mm2libdir, "archives", "private",
                         "%s.mbox" % listname, "%s.mbox" % listname)
-                archive_policy = bool(pickle.load(
-                                      open(confpickle)).get('archive'))
+                archive_policy = bool(pickle.load(open(confpickle, "rb"),
+                    encoding="utf-8", errors="ignore").get('archive'))
                 if not archive_policy:
-                    print "List %s wants no archiving" % listname
+                    print("List %s wants no archiving" % listname)
                     continue
                 if os.path.exists(archivefile) and \
                         (list_is_new or not self.opts.new_only):
-                    call(["sudo", "kittystore-import", "-p",
-                         self.config["confdir"], "-s", "settings_admin",
-                         "-l", listaddr, "--continue", "--no-sync-mailman",
-                         archivefile])
+                    call(["sudo", "django-admin", "hyperkitty_import",
+                          "--pythonpath", self.config["confdir"],
+                          "--settings", "settings", "-l", listaddr,
+                          "--no-sync-mailman", archivefile])
                 if self.index_path:
                     call(["sudo", "chown", "mailman:apache", "-R", self.index_path])
                     call(["sudo", "chmod", "g+w", self.index_path])
-        call(["sudo", "kittystore-sync-mailman", "-p",
-             self.config["confdir"], "-s", "settings_admin"])
+        call(["sudo", "django-admin", "mailman_sync",
+              "--pythonpath", self.config["confdir"],
+              "--settings", "settings"])
 
 
 
@@ -100,10 +109,6 @@ def main():
 
     with open(opts.config) as conffile:
         config = yaml.safe_load(conffile)
-
-    sys.path.append(config["mm21codedir"])
-    # set the env var to propagate to subprocesses
-    os.environ["PYTHONPATH"] = config["mm21codedir"]
 
     importer = Importer(opts, config)
     importer.import_dir(mm2libdir)

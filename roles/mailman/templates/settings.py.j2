@@ -20,6 +20,8 @@ MANAGERS = ADMINS
 MAILMAN_REST_SERVER = MAILMAN_API_URL = 'http://localhost:8001'
 MAILMAN_API_USER = MAILMAN_USER = 'restadmin'
 MAILMAN_API_PASS = MAILMAN_PASS = 'restpass'
+MAILMAN_ARCHIVER_KEY = 'SecretArchiverAPIKey'
+MAILMAN_ARCHIVER_FROM = ("127.0.0.1", "::1")
 
 # CSS theme for postorius
 MAILMAN_THEME = "default"
@@ -37,7 +39,12 @@ DATABASES = {
 
 # Hosts/domain names that are valid for this site; required if DEBUG is False
 # See https://docs.djangoproject.com/en/1.5/ref/settings/#allowed-hosts
-ALLOWED_HOSTS = [".fedoraproject.org", "discuss.arquillian.org", "127.0.0.1"] # 127.0.0.1: HAProxy ping
+ALLOWED_HOSTS = [
+    ".fedoraproject.org",
+    "discuss.arquillian.org",
+    "localhost", # Archiving API from Mailman
+    "127.0.0.1", # HAProxy ping
+]
 # And for BrowserID too, see
 # http://django-browserid.rtfd.org/page/user/settings.html#django.conf.settings.BROWSERID_AUDIENCES
 BROWSERID_AUDIENCES = [
@@ -151,10 +158,8 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.messages.middleware.MessageMiddleware',
     # Uncomment the next line for simple clickjacking protection:
     # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'hyperkitty.middleware.KittyStoreDjangoMiddleware',
     'hyperkitty.middleware.SSLRedirect',
     'hyperkitty.middleware.TimezoneMiddleware',
-    'hyperkitty.middleware.MailmanUserMetadata',
 )
 
 ROOT_URLCONF = 'urls'
@@ -196,20 +201,18 @@ INSTALLED_APPS = (
     'django_gravatar',
     'south',
     'crispy_forms',
-    'compressor',
     'paintstore',
+    'compressor',
     'django_browserid',
+    'haystack',
+    'django_extensions',
     'postorius',
 )
 
 
-import django
-if django.VERSION[:2] < (1, 6):
-    TEST_RUNNER = 'discover_runner.DiscoverRunner'
-else:
-    # Django 1.6 defaults to a JSON serializer, but it won't work with django-openid, see
-    # https://bugs.launchpad.net/django-openid-auth/+bug/1252826
-    SESSION_SERIALIZER = 'django.contrib.sessions.serializers.PickleSerializer'
+# Django 1.6 defaults to a JSON serializer, but it won't work with django-openid, see
+# https://bugs.launchpad.net/django-openid-auth/+bug/1252826
+SESSION_SERIALIZER = 'django.contrib.sessions.serializers.PickleSerializer'
 
 
 REST_FRAMEWORK = {
@@ -271,6 +274,17 @@ COMPRESS_PRECOMPILERS = (
 COMPRESS_OFFLINE = True
 # needed for debug mode
 #INTERNAL_IPS = ('127.0.0.1',)
+
+
+#
+# Full-text search engine
+#
+HAYSTACK_CONNECTIONS = {
+    'default': {
+        'ENGINE': 'haystack.backends.whoosh_backend.WhooshEngine',
+        'PATH': "{{ mailman_webui_basedir }}/fulltext_index",
+    },
+}
 
 
 # A sample logging configuration. The only tangible logging
@@ -353,22 +367,11 @@ APP_NAME = 'Fedora list archives'
 # By default, only a login through Persona or your email provider is allowed.
 USE_INTERNAL_AUTH = False
 
-# URL to the KittyStore database
-KITTYSTORE_URL = 'postgresql://kittystoreapp:{{ mailman_kittystore_db_pass }}@{{ mailman_db_server }}/kittystore'
-# Path to the KittyStore search index (writable directory)
-KITTYSTORE_SEARCH_INDEX = '{{ mailman_webui_basedir }}/kittystore_search_index'
-
 # Use SSL when logged in
-#USE_SSL = True
-# In the Fedora infra, SSL is handled by the proxy and we can't detect it
-USE_SSL = False
+USE_SSL = True
 
 # Only display mailing-lists from the same virtual host as the webserver
 FILTER_VHOST = False
-
-# WARNING: the KITTYSTORE_DEBUG variable below will output every SQL query.
-# That's a huge amount of text, don't enable it if you don't need to.
-KITTYSTORE_DEBUG = False
 
 # This is for development purposes
 USE_MOCKUPS = False

@@ -8,13 +8,12 @@ export PATH=$PATH:$(dirname $(realpath $0)) # make yamlget available
 
 BASEDIR=`yamlget basedir $CONFFILE`
 CONFDIR=`yamlget confdir $CONFFILE`
-INDEXDIR=$BASEDIR/kittystore_search_index
+INDEXDIR=$BASEDIR/fulltext_index
 
 django-admin collectstatic --clear --noinput --verbosity 0 --pythonpath $CONFDIR --settings settings
 django-admin compress --pythonpath $CONFDIR --settings settings
 django-admin syncdb --pythonpath $CONFDIR --settings settings_admin --noinput --migrate
 django-admin loaddata /etc/postorius/sites/default/initial-user.json --pythonpath $CONFDIR --settings settings_admin
-kittystore-updatedb --pythonpath $CONFDIR --settings settings_admin
 chown mailman:mailman -R $INDEXDIR
 chmod g+w -R $INDEXDIR
 
@@ -27,7 +26,6 @@ restorecon -r "$BASEDIR"
 
 # Run unit tests
 django-admin test --pythonpath $CONFDIR --settings settings_test hyperkitty
-nose2 kittystore
 
 # Reload Apache to flush the python cache
 systemctl reload httpd
