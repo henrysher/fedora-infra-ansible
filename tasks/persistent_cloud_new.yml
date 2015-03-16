@@ -8,36 +8,38 @@
 # OS_TENANT_ID
 # OS_TENANT_NAME
 
+- debug: msg="Auth {{OS_AUTH_URL}} {{OS_TENANT_NAME}} {{OS_USERNAME}}"
 
 # To use direct `nova` commands construct _OS_AUTH_OPTS as:
 # --os-auth-url {{OS_AUTH_URL}} --os-username {{OS_USERNAME}} --os-password {{OS_PASSWORD}} --os-tenant-name {{OS_TENANT_NAME}} --os-tenant-id {{OS_TENANT_ID}}
-#- name: get current VM status
-#  local_action: "shell nova --insecure  {{_OS_AUTH_OPTS}} show  {{inventory_hostname}}   2>/dev/null | grep status | cut -d'|' -f3 | cut -d' ' -f2"
-#  register: vm_status
-#- name: spinup VM: without novaclient, need to set key-pair and floating ip later
-#  local_action: "shell nova --insecure  {{_OS_AUTH_OPTS}} boot --flavor {{flavor_id}} --image {{image}}  --poll  {{inventory_hostname}}"
-#  when: vm_status.stdout != "ACTIVE"
+- name: get current VM status
+  local_action: "shell nova --insecure  {{_OS_AUTH_OPTS}} show  {{inventory_hostname}}   2>/dev/null | grep status | cut -d'|' -f3 | cut -d' ' -f2"
+  register: vm_status
 
-- debug: msg="Auth {{OS_AUTH_URL}} {{OS_TENANT_NAME}} {{OS_USERNAME}}"
+- name: spinup VM: without novaclient, need to set key-pair and floating ip later
+  local_action: "shell nova --insecure  {{_OS_AUTH_OPTS}} boot --flavor {{flavor_id}} --image {{image}}  --poll  {{inventory_hostname}}"
+  when: vm_status.stdout != "ACTIVE"
 
-- name: spin UP VM using nova_compute
-  delegate_to: 127.0.0.1
-  nova_compute:
-      # insecure: True
-      auth_url: "{{OS_AUTH_URL}}"
-      login_username: "{{OS_USERNAME}}"
-      login_password: "{{OS_PASSWORD}}"
-      login_tenant_name: "{{OS_TENANT_NAME}}"
-      name: "{{inventory_hostname}}"
-      image_id: "{{ image }}"
-      wait_for: 300
-      flavor_id: "{{ flavor_id }}"  # TODO: conversion from `instance_type`
-      security_groups: "{{security_group}}"
-      key_name: "{{ keypair }}"
-      floating_ips:
-        - "{{public_ip}}"
-  register: nova_result
-  # when: vm_status.stdout != "ACTIVE"
+
+
+#- name: spin UP VM using nova_compute
+#  delegate_to: 127.0.0.1
+#  nova_compute:
+#      # insecure: True
+#      auth_url: "{{OS_AUTH_URL}}"
+#      login_username: "{{OS_USERNAME}}"
+#      login_password: "{{OS_PASSWORD}}"
+#      login_tenant_name: "{{OS_TENANT_NAME}}"
+#      name: "{{inventory_hostname}}"
+#      image_id: "{{ image }}"
+#      wait_for: 300
+#      flavor_id: "{{ flavor_id }}"  # TODO: conversion from `instance_type`
+#      security_groups: "{{security_group}}"
+#      key_name: "{{ keypair }}"
+#      floating_ips:
+#        - "{{public_ip}}"
+#  register: nova_result
+#  # when: vm_status.stdout != "ACTIVE"
 
 # - debug: msg="{{ nova_result.info }}"
 
