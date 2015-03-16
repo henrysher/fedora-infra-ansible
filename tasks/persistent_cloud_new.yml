@@ -12,36 +12,37 @@
 
 # To use direct `nova` commands construct _OS_AUTH_OPTS as:
 # --os-auth-url {{OS_AUTH_URL}} --os-username {{OS_USERNAME}} --os-password {{OS_PASSWORD}} --os-tenant-name {{OS_TENANT_NAME}} --os-tenant-id {{OS_TENANT_ID}}
-- name: "get current VM status"
-  # local_action: "shell nova --insecure  {{_OS_AUTH_OPTS}} show  {{inventory_hostname}}   2>/dev/null | grep status | cut -d'|' -f3 | cut -d' ' -f2"
-  local_action: "shell nova --insecure   --os-auth-url {{OS_AUTH_URL}} --os-username {{OS_USERNAME}} --os-password {{OS_PASSWORD}} --os-tenant-name {{OS_TENANT_NAME}} --os-tenant-id {{OS_TENANT_ID}}  show  {{inventory_hostname}}   2>/dev/null | grep status | cut -d'|' -f3 | cut -d' ' -f2"
-  register: vm_status
+#- name: "get current VM status"
+#  # local_action: "shell nova --insecure  {{_OS_AUTH_OPTS}} show  {{inventory_hostname}}   2>/dev/null | grep status | cut -d'|' -f3 | cut -d' ' -f2"
+#  local_action: "shell nova --insecure   --os-auth-url {{OS_AUTH_URL}} --os-username {{OS_USERNAME}} --os-password {{OS_PASSWORD}} --os-tenant-name {{OS_TENANT_NAME}}   show  {{inventory_hostname}}   2>/dev/null | grep status | cut -d'|' -f3 | cut -d' ' -f2"
+#  register: vm_status
 
-- name: "spinup VM without novaclient, need to set key-pair and floating ip later"
-  # local_action: "shell nova --insecure  {{_OS_AUTH_OPTS}} boot --flavor {{flavor_id}} --image {{image}}  --poll  {{inventory_hostname}}"
-  local_action: "shell nova --insecure   --os-auth-url {{OS_AUTH_URL}} --os-username {{OS_USERNAME}} --os-password {{OS_PASSWORD}} --os-tenant-name {{OS_TENANT_NAME}} --os-tenant-id {{OS_TENANT_ID}}  boot --flavor {{flavor_id}} --image {{image}}  --poll  {{inventory_hostname}}"
-  when: vm_status.stdout != "ACTIVE"
+#- debug: msg="{{ vm_status.stdout }}"
+## nova --insecure --os-auth-url https://fed-cloud09.cloud.fedoraproject.org:5000/v2.0 --os-username vgologuz --os-password coprBACK6 --os-tenant-name coprdev  boot --flavor 2 --image 86422ca2-6eeb-435c-87e8-402b3c7c3b7b --nic net-id=53fb02fd-6e97-4cfc-b298-a2ff867daa52  --key-name fas  --poll copr-be-dev2
+#- name: "spinup VM without novaclient, need to set key-pair and floating ip later"
+#  # local_action: "shell nova --insecure  {{_OS_AUTH_OPTS}} boot --flavor {{flavor_id}} --image {{image}}  --poll  {{inventory_hostname}}"
+#  local_action: "shell nova --insecure   --os-auth-url {{OS_AUTH_URL}} --os-username {{OS_USERNAME}} --os-password {{OS_PASSWORD}} --os-tenant-name {{OS_TENANT_NAME}} --os-tenant-id {{OS_TENANT_ID}}  boot --flavor {{flavor_id}} --image {{image}} --key-name {{keypair}}   --nic net-id={{cloud_network}}  --poll  {{inventory_hostname}}"
+#  when: vm_status.stdout != "ACTIVE"
 
 
-
-#- name: spin UP VM using nova_compute
-#  delegate_to: 127.0.0.1
-#  nova_compute:
-#      # insecure: True
-#      auth_url: "{{OS_AUTH_URL}}"
-#      login_username: "{{OS_USERNAME}}"
-#      login_password: "{{OS_PASSWORD}}"
-#      login_tenant_name: "{{OS_TENANT_NAME}}"
-#      name: "{{inventory_hostname}}"
-#      image_id: "{{ image }}"
-#      wait_for: 300
-#      flavor_id: "{{ flavor_id }}"  # TODO: conversion from `instance_type`
-#      security_groups: "{{security_group}}"
-#      key_name: "{{ keypair }}"
-#      floating_ips:
-#        - "{{public_ip}}"
-#  register: nova_result
-#  # when: vm_status.stdout != "ACTIVE"
+- name: spin UP VM using nova_compute
+  delegate_to: 127.0.0.1
+  nova_compute:
+      # insecure: True
+      auth_url: "{{OS_AUTH_URL}}"
+      login_username: "{{OS_USERNAME}}"
+      login_password: "{{OS_PASSWORD}}"
+      login_tenant_name: "{{OS_TENANT_NAME}}"
+      name: "{{inventory_hostname}}"
+      image_id: "{{ image }}"
+      wait_for: 300
+      flavor_id: "{{ flavor_id }}"  # TODO: conversion from `instance_type`
+      security_groups: "{{security_group}}"
+      key_name: "{{ keypair }}"
+      floating_ips:
+        - "{{public_ip}}"
+  register: nova_result
+  # when: vm_status.stdout != "ACTIVE"
 
 # - debug: msg="{{ nova_result.info }}"
 
