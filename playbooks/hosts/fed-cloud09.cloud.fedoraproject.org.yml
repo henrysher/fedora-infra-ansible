@@ -741,6 +741,16 @@
       - scratch
       - transient
 
+  - name: "routing between copr tenants"
+    neutron_router_gateway:
+      login_username="admin" login_password="{{ ADMIN_PASS }}" login_tenant_name="admin"
+      auth_url="https://{{controller_hostname}}:35357/v2.0"
+      router_name="ext-to-{{item.name}}"
+      network_name="{{item.target}}"
+    with_items:
+      - { name: copr, target: coprdev }
+      - { name: coprdev, target: copr }
+
   #################
   # Security Groups
   ################
