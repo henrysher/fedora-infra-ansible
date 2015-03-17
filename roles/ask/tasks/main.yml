@@ -136,7 +136,19 @@
 
 #
 # ?
-#
+
+- name: Disable Celery for good
+  copy: >
+    dest=/usr/lib/python2.6/site-packages/celeryconfig.py
+    content="CELERY_ALWAYS_EAGER = True"
+    owner=root group=root mode=0644
+  tags:
+  - ask
+  - files
+  - celery
+  notify:
+  - restart httpd
+
 - name: HOTFIX askbot backends.py
   copy: >
     src=backends.py dest=/usr/lib/python2.6/site-packages/post_office/backends.py
