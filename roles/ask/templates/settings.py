@@ -78,7 +78,7 @@ LANGUAGE_CODE = 'en'
 
 # Absolute path to the directory that holds uploaded media
 # Example: "/home/media/media.lawrence.com/"
-MEDIA_ROOT = os.path.join(os.path.dirname(__file__), 'askbot', 'upfiles')
+MEDIA_ROOT = '/srv/askbot-uploaded'
 MEDIA_URL = '/upfiles/'
 STATIC_URL = '/m/'#this must be different from MEDIA_URL
 
