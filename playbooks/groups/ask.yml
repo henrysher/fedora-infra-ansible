@@ -48,3 +48,62 @@
 
   handlers:
   - include: "{{ handlers }}/restart_services.yml"
+
+- name: set up gluster on stg
+  hosts: ask-stg
+  user: root
+  gather_facts: True
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  roles:
+  - role: gluster/server
+    name: gluster
+    username: "{{ ask_gluster_username }}"
+    password: "{{ ask_gluster_password }}"
+    owner: root
+    group: root
+    datadir: /srv/glusterfs/ask-stg
+
+  - role: gluster/client
+    name: gluster
+    servers:
+    - ask01.stg.phx2.fedoraproject.org
+    username: "{{ ask_gluster_username }}"
+    password: "{{ ask_gluster_password }}"
+    owner: apache
+    group: root
+    mountdir: /srv/askbot-uploaded
+
+- name: set up gluster on prod
+  hosts: ask
+  user: root
+  gather_facts: True
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  roles:
+  - role: gluster/server
+    name: gluster
+    username: "{{ ask_gluster_username }}"
+    password: "{{ ask_gluster_password }}"
+    owner: root
+    group: root
+    datadir: /srv/glusterfs/ask
+
+  - role: gluster/client
+    name: gluster
+    servers:
+    - ask01..phx2.fedoraproject.org
+    - ask02..phx2.fedoraproject.org
+    username: "{{ ask_gluster_username }}"
+    password: "{{ ask_gluster_password }}"
+    owner: apache
+    group: root
+    mountdir: /srv/askbot-uploaded
