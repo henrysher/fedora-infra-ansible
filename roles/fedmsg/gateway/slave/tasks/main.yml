@@ -73,6 +73,16 @@
   - fedmsg/gateway
   - fedmsg/gateway/slave
 
+- name: put our combined cert in place
+  copy: >
+    src={{private}}/httpd/wildcard-2014.fedoraproject.org.combined.cert
+    dest=/etc/pki/tls/certs/wildcard-2014.fedoraproject.org.combined.cert
+    owner=root group=root mode=0644
+  notify: restart stunnel
+  tags:
+  - fedmsg/gateway
+  - fedmsg/gateway/slave
+
 - name: start the gateway for raw zeromq traffic
   service: name=fedmsg-gateway state=started enabled=yes
   tags:
