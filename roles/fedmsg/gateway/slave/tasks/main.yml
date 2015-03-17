@@ -49,7 +49,9 @@
   copy: src=stunnel.service
         dest=/usr/lib/systemd/system/stunnel.service
         owner=root group=root mode=0755
-  notify: reload systemd
+  notify:
+  - reload systemd
+  - restart stunnel
   tags:
   - fedmsg/gateway
   - fedmsg/gateway/slave
@@ -66,6 +68,7 @@
             owner=root group=root mode=0600
   with_items:
   - { file: stunnel-conf.j2, dest: /etc/stunnel/stunnel.conf }
+  notify: restart stunnel
   tags:
   - fedmsg/gateway
   - fedmsg/gateway/slave
