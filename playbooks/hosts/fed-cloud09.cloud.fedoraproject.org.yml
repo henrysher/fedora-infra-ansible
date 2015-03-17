@@ -698,19 +698,20 @@
     neutron_network:
       login_username="admin" login_password="{{ ADMIN_PASS }}" login_tenant_name="admin"
       auth_url="https://{{controller_hostname}}:35357/v2.0"
-      tenant_name="{{ item }}"
-      name="{{ item }}-net"
+      tenant_name="{{ item.name }}"
+      name="{{ item.name }}-net"
+      share="{{ item.shared }}"
     with_items:
-      - cloudintern
-      - cloudsig
-      - copr
-      - coprdev
-      - infrastructure
-      - persistent
-      - pythonbots
-      - qa
-      - scratch
-      - transient
+      - { name: cloudintern, shared: false }
+      - { name: cloudsig, shared: false }
+      - { name: copr, shared: true }
+      - { name: coprdev, shared: true }
+      - { name: infrastructure, shared: false }
+      - { name: persistent, shared: false }
+      - { name: pythonbots, shared: false }
+      - { name: qa, shared: false }
+      - { name: scratch, shared: false }
+      - { name: transient, shared: false }
   - name: Create a subnet for all tenants
     neutron_subnet:
       login_username="admin" login_password="{{ ADMIN_PASS }}" login_tenant_name="admin"
