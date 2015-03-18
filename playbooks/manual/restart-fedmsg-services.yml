@@ -47,6 +47,22 @@
   - name: bounce the fedmsg-irc service
     service: name=fedmsg-irc state=restarted
 
+- name: tell nagios to be quiet about FMN for the moment
+  hosts: notifs-backend;notifs-backend-stg
+  user: root
+  gather_facts: False
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  tasks:
+  - name: schedule a 10 minute downtime.  give notifs backend time to start up.
+    nagios: action=downtime minutes=10 service=host host={{ inventory_hostname }}
+    delegate_to: noc01.phx2.fedoraproject.org
+    ignore_errors: true
+
 - name: restart fedmsg-hub instances
   hosts: fedmsg-hubs;fedmsg-hubs-stg
   user: root
