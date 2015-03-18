@@ -3,20 +3,26 @@
 # This is the base set of files needed for copr
 
 
-- include: "{{ tasks }}/cloud_setup_basic.yml"
-- include: "{{ tasks }}/postfix_basic.yml"
+# again to late to do it here
+# - include: "{{ tasks }}/cloud_setup_basic.yml"
+# already included into the `base` role
+#- include: "{{ tasks }}/postfix_basic.yml"
 
-- name: setup correct hostname for copr machine
-  hostname: name="{{ copr_hostbase }}.cloud.fedoraproject.org"
-  #  hostname: name="{{ hostbase|regex_replace('.*-$', '')}}.cloud.fedoraproject.org"
-  tags:
-  - config
+# To late to do it here (
+#- name: setup correct hostname for copr machine
+#  hostname: name="{{ copr_hostbase }}.cloud.fedoraproject.org"
+#  #  hostname: name="{{ hostbase|regex_replace('.*-$', '')}}.cloud.fedoraproject.org"
+#  tags:
+#  - config
 
 - name: copy .forward file
   copy: src="{{ _forward_src }}" dest="/root/.forward" owner=root group=root
 
 - name: deploy /etc/hosts file
   copy: src="hosts" dest=/etc/hosts owner=root group=root mode=644
+
+- name: install copr repo
+  copy: src="yum/copr.repo" dest="/etc/yum.repos.d/copr.repo"
 
 - name: install common copr packages
   yum: state=present pkg={{ item }}
@@ -41,7 +47,4 @@
   service: state=running enabled=yes name={{ item }}
   with_items:
   - fail2ban
-
-- name: install copr repo
-  copy: src="yum/copr.repo" dest="/etc/yum.repos.d/copr.repo"
 
