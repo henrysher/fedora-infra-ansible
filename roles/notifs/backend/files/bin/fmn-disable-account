@@ -1,0 +1,47 @@
+#!/usr/bin/env python
+""" fmn-disable-account USER
+
+Disables the FMN account for a user.
+"""
+
+import argparse
+
+import fedmsg
+import fedmsg.config
+
+import fmn.lib
+import fmn.lib.models
+
+
+def parse_args():
+    parser = argparse.ArgumentParser(__doc__)
+    parser.add_argument('user', help='FAS username to disable.')
+    parser.add_argument('--context', nargs='+', default=['irc', 'email'],
+                        help="Contexts to disable.  Defaults to all.")
+    return parser.parse_args()
+
+def disable(session, user, contexts):
+    openid = '%s.id.fedoraproject.org' % user
+    for context in contexts:
+        pref = fmn.lib.models.Preference.load(session, openid, context)
+        if pref:
+            print "Disabling %r for %r" % (context, openid)
+            pref.set_enabled(session, False)
+        else:
+            print "No context %r found for %r" % (context, openid)
+
+
+if __name__ == '__main__':
+        args = parse_args()
+
+        config = fedmsg.config.load_config()
+        config.update({
+            'active': True,
+            'name': 'relay_inbound',
+            'cert_prefix': 'fmn',
+        })
+        fedmsg.init(**config)
+
+        session = fmn.lib.models.init(config['fmn.sqlalchemy.uri'])
+
+        disable(session, args.user, args.context)
