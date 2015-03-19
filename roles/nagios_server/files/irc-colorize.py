@@ -29,7 +29,7 @@ mirc_colors = {
 mapping = {
     'RECOVERY': 'green',
     'OK': 'green',
-    'ACKNOWLEDGEMENT', 'yellow',
+    'ACKNOWLEDGEMENT': 'yellow',
     'UNKNOWN': 'purple',
     'WARNING': 'teal',
     # 'red' probably makes the most sense here, but it behaved oddly
