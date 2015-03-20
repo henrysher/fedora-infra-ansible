@@ -285,7 +285,7 @@
     register: SERVICE_ID
   - shell: source /root/keystonerc_admin && keystone endpoint-list | grep {{SERVICE_ID.stdout}} | awk '{print $2}'
     register: ENDPOINT_ID
-  - shell: source /root/keystonerc_admin && keystone endpoint-list |grep {{SERVICE_ID.stdout}} |grep -v {{ controller_hostname }} && (keystone endpoint-delete {{ENDPOINT_ID.stdout}} && keystone endpoint-create --region 'RegionOne' --service {{SERVICE_ID.stdout}} --publicurl 'https://{{controller_hostname}}:8080/v1/AUTH_%(tenant_id)s'  --adminurl 'https://{{controller_private_ip}}:8080' --internalurl 'https://{{controller_private_ip}}:8080/v1/AUTH_%(tenant_id)s' ) || true
+  - shell: source /root/keystonerc_admin && keystone endpoint-list |grep {{SERVICE_ID.stdout}} |grep -v {{ controller_hostname }} && (keystone endpoint-delete {{ENDPOINT_ID.stdout}} && keystone endpoint-create --region 'RegionOne' --service {{SERVICE_ID.stdout}} --publicurl 'https://{{controller_hostname}}:8080/v1/AUTH_%(tenant_id)s'  --adminurl 'https://{{controller_hostname}}:8080' --internalurl 'https://{{controller_hostname}}:8080/v1/AUTH_%(tenant_id)s' ) || true
   # swift_s3
   - shell: source /root/keystonerc_admin && keystone service-list | grep 'swift_s3' | awk '{print $2}'
     register: SERVICE_ID

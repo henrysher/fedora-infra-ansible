@@ -33,7 +33,7 @@
 
   pre_tasks:
   - name: tell nagios to shush w.r.t. the frontend
-    nagios: action=downtime minutes=60 service=host host={{ inventory_hostname }}
+    nagios: action=downtime minutes=15 service=host host={{ inventory_hostname }}
     delegate_to: noc01.phx2.fedoraproject.org
     ignore_errors: true
 
@@ -55,7 +55,7 @@
 
   pre_tasks:
   - name: tell nagios to shush w.r.t. the backend
-    nagios: action=downtime minutes=60 service=host host={{ inventory_hostname }}
+    nagios: action=downtime minutes=15 service=host host={{ inventory_hostname }}
     delegate_to: noc01.phx2.fedoraproject.org
     ignore_errors: true
 
@@ -76,11 +76,13 @@
   - name: And... start the backend again
     service: name="fedmsg-hub" state=started
 
-  post_tasks:
-  - name: tell nagios to unshush w.r.t. the backend
-    nagios: action=unsilence service=host host={{ inventory_hostname }}
-    delegate_to: noc01.phx2.fedoraproject.org
-    ignore_errors: true
+  # Don't bother unshushing the backend here.  it takes a few minutes to start
+  # up anyways, so just let the downtime expire.
+  #post_tasks:
+  #- name: tell nagios to unshush w.r.t. the backend
+  #  nagios: action=unsilence service=host host={{ inventory_hostname }}
+  #  delegate_to: noc01.phx2.fedoraproject.org
+  #  ignore_errors: true
 
 - name: restart the frontend
   hosts: notifs-web;notifs-web-stg

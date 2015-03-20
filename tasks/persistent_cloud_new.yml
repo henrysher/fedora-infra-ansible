@@ -61,5 +61,7 @@
 #  local_action: "shell nova --insecure  {{_OS_AUTH_OPTS}} volume-attach {{inventory_hostname}} {{item}} "
 #  with_items: volumes
 #  when: volumes is defined and vm_status.stdout != "ACTIVE"
-nova --os-username=admin --os-password=c24da73c18e7880cbb6f --os-tenant-name=copr --os-auth-url="https://fed-cloud09.cloud.fedoraproject.org:5000/v2.0" volume-attach test ff735862-ac95-4b7f-82ba-081583e46898
-nova --os-username=admin --os-password=c24da73c18e7880cbb6f --os-tenant-name=copr --os-auth-url="https://fed-cloud09.cloud.fedoraproject.org:5000/v2.0" volume-list |grep foo
+
+# instance can be both id and name, volume must be id
+- shell: source keystonerc_admin && nova --os-tenant-name={{inventory_tenant}} volume-list | grep ' {{item}} ' | grep 'available' && nova --os-tenant-name={{inventory_tenant}} volume-attach "{{inventory_instance_name}}" "{{item}}"
+  with_items: inventory_volumes
