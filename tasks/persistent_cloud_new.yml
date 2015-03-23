@@ -30,7 +30,7 @@
 #  register: nova_result
 
 - name: get flavour ID
-  local_action: shell source /root/keystonerc_admin && nova | grep ' {{ instance_type }} ' | awk '{print $2}'
+  local_action: shell source /root/keystonerc_admin && nova flavor-list | grep ' {{ instance_type }} ' | awk '{print $2}'
   register: FLAVOUR_ID
 
 - name: spin UP VM using nova_compute
@@ -39,7 +39,7 @@
   local_action:
       module: nova_compute
       insecure: True
-      auth_url: "{{OS_AUTH_URL}}"
+      auth_url: "{{os_auth_url}}"
       login_username: "{{OS_USERNAME}}"
       login_password: "{{OS_PASSWORD}}"
       login_tenant_name: "{{OS_TENANT_NAME}}"
