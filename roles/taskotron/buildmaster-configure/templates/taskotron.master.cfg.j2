@@ -126,6 +126,12 @@ c['schedulers'].append(ForceScheduler(
                                             label='type of object to use',
                                             default='',
                                             size=256),
+{% if deployment_type == 'dev' %}
+                            StringParameter(name='uuid',
+                                            label='UUID of the build in progress',
+                                            default='',
+                                            size=256),
+{% endif %}
                             StringParameter(name='arch',
                                             label='arch of rpm to test',
                                             default='x86_64',
@@ -158,9 +164,9 @@ factory.addStep(Git(repourl=Interpolate('{{ grokmirror_user }}@{{ buildmaster }}
                     mode='full', method='clobber'))
 
 # run the runner
-factory.addStep(ShellCommand(command=["runtask", '-i',
-                                        Interpolate('%(prop:item)s'), '-t',
-                                        Interpolate('%(prop:item_type)s'),
+factory.addStep(ShellCommand(command=["runtask",
+                                        '-i', Interpolate('%(prop:item)s'),
+                                        '-t', Interpolate('%(prop:item_type)s'),
                                         '-a', Interpolate('%(prop:arch)s'),
                                         '-j', Interpolate('%(prop:buildername)s/%(prop:buildnumber)s'),
 {% if deployment_type == 'dev' %}
@@ -356,6 +362,14 @@ mn = MailNotifier(fromaddr='taskotron@fedoraproject.org',
 
 c['status'].append(mn)
 
+{% if deployment_type == 'dev' %}
+# ExecDB's push-notifications:
+import buildbot.status.status_push
+sp = buildbot.status.status_push.HttpStatusPush(
+        serverUrl="{{ execdb_statuspush }}",
+        debug=True)
+c['status'].append(sp)
+{% endif %}
 
 ####### PROJECT IDENTITY
 
