@@ -63,5 +63,6 @@
 #  when: volumes is defined and vm_status.stdout != "ACTIVE"
 
 # instance can be both id and name, volume must be id
-- shell: source keystonerc_admin && nova --os-tenant-name={{inventory_tenant}} volume-list | grep ' {{item}} ' | grep 'available' && nova --os-tenant-name={{inventory_tenant}} volume-attach "{{inventory_instance_name}}" "{{item}}"
-  with_items: inventory_volumes
+# volume must be id
+- shell: source keystonerc_admin && nova --os-tenant-name={{inventory_tenant}} volume-list | grep ' {{item.volume_id}} ' | grep 'available' && nova --os-tenant-name={{inventory_tenant}} volume-attach "{{inventory_instance_name}}" "{{item.volume_id}}" "{{item.device}}"
+  with_items: volumes
