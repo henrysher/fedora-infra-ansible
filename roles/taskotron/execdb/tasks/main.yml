@@ -1,0 +1,57 @@
+- name: ensure packages required for execdb are installed
+  action: yum name={{ item }} state=latest
+  with_items:
+    - execdb
+    - mod_wsgi
+    - python-psycopg2
+    - libsemanage-python
+
+- name: ensure database is created
+  delegate_to: "{{ execdb_db_host }}"
+  sudo_user: postgres
+  sudo: true
+  action: postgresql_db db={{ execdb_db_name }}
+
+- name: ensure dev execdb db user has access to dev database
+  when: deployment_type == 'dev'
+  delegate_to: "{{ execdb_db_host }}"
+  sudo_user: postgres
+  sudo: true
+  action: postgresql_user db={{ execdb_db_name }} user={{ dev_execdb_db_user }} password={{ dev_execdb_db_password }} role_attr_flags=NOSUPERUSER
+
+- name: ensure stg execdb db user has access to stg database
+  when: deployment_type == 'stg'
+  delegate_to: "{{ execdb_db_host }}"
+  sudo_user: postgres
+  sudo: true
+  action: postgresql_user db={{ execdb_db_name }} user={{ stg_execdb_db_user }} password={{ stg_execdb_db_password }} role_attr_flags=NOSUPERUSER
+
+- name: ensure prod execdb db user has access to prod database
+  when: deployment_type == 'prod'
+  delegate_to: "{{ execdb_db_host }}"
+  sudo_user: postgres
+  sudo: true
+  action: postgresql_user db={{ execdb_db_name }} user={{ prod_execdb_db_user }} password={{ prod_execdb_db_password }} role_attr_flags=NOSUPERUSER
+
+- name: ensure local execdb db user has access to prod database
+  when: deployment_type == 'local'
+  delegate_to: "{{ execdb_db_host }}"
+  sudo_user: postgres
+  sudo: true
+  action: postgresql_user db={{ execdb_db_name }} user={{ local_execdb_db_user }} password={{ local_execdb_db_password }} role_attr_flags=NOSUPERUSER
+
+- name: ensure selinux lets httpd talk to postgres
+  seboolean: name=httpd_can_network_connect_db persistent=yes state=yes
+
+- name: generate execdb config
+  template: src=settings.py.j2 dest=/etc/execdb/settings.py owner=root group=root mode=0644
+  notify:
+    - restart httpd
+
+- name: generate execdb apache config
+  template: src=execdb.conf.j2 dest=/etc/httpd/conf.d/execdb.conf owner=root group=root mode=0644
+  notify:
+    - restart httpd
+
+- name: initialize execdb database
+  shell: PROD='true' execdb init_db

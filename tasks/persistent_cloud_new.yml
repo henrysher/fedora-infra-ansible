@@ -29,21 +29,20 @@
 #  local_action: "nova_compute insecure=True auth_url={{OS_AUTH_URL}} login_username={{OS_USERNAME}} login_password={{OS_PASSWORD}} #login_tenant_name={{OS_TENANT_NAME}} name={{inventory_hostname}} image_id={{ image }}   wait_for=300 flavor_id={{ flavor_id }} security_groups={{security_group}} key_name={{keypair}} nics=[{{}}]"
 #  register: nova_result
 
-
 - name: spin UP VM using nova_compute
   #delegate_to: 127.0.0.1
   sudo: False
   local_action:
       module: nova_compute
       insecure: True
-      auth_url: "{{OS_AUTH_URL}}"
-      login_username: "{{OS_USERNAME}}"
-      login_password: "{{OS_PASSWORD}}"
-      login_tenant_name: "{{OS_TENANT_NAME}}"
-      name: "{{inventory_hostname}}"
+      auth_url: "{{os_auth_url}}"
+      login_username: "admin"
+      login_password: "{{ADMIN_PASS}}"
+      login_tenant_name: "{{inventory_tenant}}"
+      name: "{{inventory_instance_name}}"
       image_id: "{{ image }}"
       wait_for: 300
-      flavor_id: "{{ flavor_id }}"  # TODO: conversion from `instance_type`
+      flavor_id: "{{ instance_type|flavor_name_to_id('admin', ADMIN_PASS, inventory_tenant, os_auth_url) }}
       security_groups: "{{security_group}}"
       key_name: "{{ keypair }}"
       nics: "{{ cloud_networks }}"
@@ -63,5 +62,8 @@
 #  when: volumes is defined and vm_status.stdout != "ACTIVE"
 
 # instance can be both id and name, volume must be id
-- shell: source keystonerc_admin && nova --os-tenant-name={{inventory_tenant}} volume-list | grep ' {{item}} ' | grep 'available' && nova --os-tenant-name={{inventory_tenant}} volume-attach "{{inventory_instance_name}}" "{{item}}"
-  with_items: inventory_volumes
+# volume must be id
+- shell: source keystonerc_admin && nova --os-tenant-name={{inventory_tenant}} volume-list | grep ' {{item.volume_id}} ' | grep 'available' && nova --os-tenant-name={{inventory_tenant}} volume-attach "{{inventory_instance_name}}" "{{item.volume_id}}" "{{item.device}}"
+  with_items: volumes
+  when: volumes is defined and vm_status.stdout == "ACTIVE"
+
