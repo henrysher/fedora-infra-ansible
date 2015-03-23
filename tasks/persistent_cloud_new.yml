@@ -29,10 +29,6 @@
 #  local_action: "nova_compute insecure=True auth_url={{OS_AUTH_URL}} login_username={{OS_USERNAME}} login_password={{OS_PASSWORD}} #login_tenant_name={{OS_TENANT_NAME}} name={{inventory_hostname}} image_id={{ image }}   wait_for=300 flavor_id={{ flavor_id }} security_groups={{security_group}} key_name={{keypair}} nics=[{{}}]"
 #  register: nova_result
 
-- name: get flavour ID
-  local_action: shell source /root/keystonerc_admin && nova flavor-list | grep ' {{ instance_type }} ' | awk '{print $2}'
-  register: FLAVOUR_ID
-
 - name: spin UP VM using nova_compute
   #delegate_to: 127.0.0.1
   sudo: False
@@ -46,7 +42,7 @@
       name: "{{inventory_hostname}}"
       image_id: "{{ image }}"
       wait_for: 300
-      flavor_id: "{{ FLAVOUR_ID.stdout }}"
+      flavor_id: "{{ instance_type|flavor_name_to_id('admin', ADMIN_PASS, inventory_tenant, os_auth_url) }}
       security_groups: "{{security_group}}"
       key_name: "{{ keypair }}"
       nics: "{{ cloud_networks }}"
