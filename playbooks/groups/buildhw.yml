@@ -3,7 +3,7 @@
 # NOTE: most of these vars_path come from group_vars/buildhw or from hostvars
 
 - name: make koji builder(s) on raw hw
-  hosts: buildhw;buildppc;buildarm;buildaarch64:bkernel
+  hosts: buildhw:buildppc:buildarm:buildaarch64:bkernel
   user: root
   gather_facts: True
 
@@ -18,6 +18,8 @@
   - koji_builder
   - { role: bkernel, when: inventory_hostname.startswith('bkernel') }
   - hosts
+  - { role: fas_client, when: inventory_hostname.startswith('aarch64') }
+  - { role: sudo, when: inventory_hostname.startswith('aarch64') }
 
   tasks:
   - include: "{{ tasks }}/yumrepos.yml"
