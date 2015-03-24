@@ -21,25 +21,13 @@
   - packages
   - yumrepos
 
-- name: put fedora repos on x86 systems
+- name: put fedora repos on primary architecture systems
   action: copy src="{{ files }}/common/{{ item }}" dest="/etc/yum.repos.d/{{ item }}"
   with_items:
   - fedora.repo
   - fedora-updates.repo
   - fedora-updates-testing.repo
-  when: ansible_distribution == 'Fedora' and (ansible_architecture == 'x86_64' or ansible_architecture == 'i386')
-  tags:
-  - config
-  - packages
-  - yumrepos
-
-- name: put fedora repos on arm systems
-  action: copy src="{{ files }}/common/{{ item }}-arm" dest="/etc/yum.repos.d/{{ item }}"
-  with_items:
-  - fedora.repo
-  - fedora-updates.repo
-  - fedora-updates-testing.repo
-  when: ansible_distribution == 'Fedora' and ansible_architecture == 'armv7l' and not inventory_hostname.startswith('arm03')
+  when: ansible_distribution == 'Fedora' and (ansible_architecture == 'x86_64' or ansible_architecture == 'i386' or ansible_architecture == 'armv7l')
   tags:
   - config
   - packages
