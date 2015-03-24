@@ -18,12 +18,6 @@ import smtplib
 import fedmsg
 import fedmsg.config
 
-from email import Header, Utils
-try:
-    from email.mime.text import MIMEText
-except ImportError:
-    from email.MIMEText import MIMEText
-
 import hashlib
 
 # Reading buffer size
@@ -58,39 +52,6 @@ def check_auth(username):
     except KeyError:
         pass
     return authenticated
-
-def send_email(pkg, checksum, filename, username):
-    text = """A file has been added to the lookaside cache for %(pkg)s:
-
-%(checksum)s  %(filename)s""" % locals()
-    msg = MIMEText(text)
-    try:
-        sender_name = pwd.getpwnam(username)[4]
-        sender_email = '%s@fedoraproject.org' % username
-    except KeyError:
-        sender_name = ''
-        sender_email = 'nobody@fedoraproject.org'
-        syslog.syslog('Unable to find account info for %s (uploading %s)' %
-                      (username, filename))
-    if sender_name:
-        try:
-            sender_name = unicode(sender_name, 'ascii')
-        except UnicodeDecodeError:
-            sender_name = Header.Header(sender_name, 'utf-8').encode()
-            msg.set_charset('utf-8')
-    sender = Utils.formataddr((sender_name, sender_email))
-    recipients = ['%s-owner@fedoraproject.org' % pkg,
-                  'scm-commits@lists.fedoraproject.org']
-    msg['Subject'] = 'File %s uploaded to lookaside cache by %s' % (
-            filename, username)
-    msg['From'] = sender
-    msg['To'] = ', '.join(recipients)
-    msg['X-Fedora-Upload'] = '%s, %s' % (pkg, filename)
-    try:
-        s = smtplib.SMTP('bastion')
-        s.sendmail(sender, recipients, msg.as_string())
-    except:
-        syslog.syslog('sending mail for upload of %s failed!' % filename)
 
 def main():
     os.umask(002)
@@ -218,7 +179,6 @@ def main():
 
     print >> sys.stderr, '[username=%s] Stored %s (%d bytes)' % (username, dest_file, filesize)
     print 'File %s size %d %s %s stored OK' % (filename, filesize, hash_type.upper(), checksum)
-    send_email(name, checksum, filename, username)
 
     # Emit a fedmsg message.  Load the config to talk to the fedmsg-relay.
     try:
