@@ -13,7 +13,7 @@ def flavor_id_to_name(host_vars, user, password, tenant, auth_url):
     try:
         flavor = nt.flavors.get(host_vars)
     except novaclient.exceptions.NotFound:
-        raise errors.AnsibleFilterError('There is no flavor of name {0}'.format(host_vars))
+        raise errors.AnsibleFilterError('There is no flavor of name {0} accessible for tenant {1}'.format(host_vars, tenant))
     return flavor.name
 
 
@@ -22,7 +22,7 @@ def flavor_name_to_id(host_vars, user, password, tenant, auth_url):
     for i in nt.flavors.list():
         if i.name == host_vars:
           return i.id
-    raise errors.AnsibleFilterError('There is no flavor of id {0}'.format(host_vars))
+    raise errors.AnsibleFilterError('There is no flavor of id {0} accessible for tenant {1}'.format(host_vars, tenant))
 
 def image_id_to_name(host_vars, user, password, tenant, auth_url):
     auth = identity.Password(auth_url=auth_url, username=user,
@@ -34,7 +34,7 @@ def image_id_to_name(host_vars, user, password, tenant, auth_url):
     try:
           return glance.images.get(host_vars).name
     except glanceclient.exc.HTTPNotFound:
-        raise errors.AnsibleFilterError('There is no image of id {0}'.format(host_vars))
+        raise errors.AnsibleFilterError('There is no image of id {0} accessible for tenant {1}'.format(host_vars, tenant))
 
 def image_name_to_id(host_vars, user, password, tenant, auth_url):
     auth = identity.Password(auth_url=auth_url, username=user,
@@ -46,7 +46,7 @@ def image_name_to_id(host_vars, user, password, tenant, auth_url):
     for i in glance.images.list():
         if i.name == host_vars:
           return i.id
-    raise errors.AnsibleFilterError('There is no image of name {0}'.format(host_vars))
+    raise errors.AnsibleFilterError('There is no image of name {0} accessible for tenant {1}'.format(host_vars, tenant))
 
 def network_name_to_id(host_vars, user, password, tenant, auth_url):
     auth = identity.Password(auth_url=auth_url, username=user,
@@ -59,7 +59,7 @@ def network_name_to_id(host_vars, user, password, tenant, auth_url):
     if networks:
         return networks[0]['id']
     else:
-        raise errors.AnsibleFilterError('There is no network of name {0}'.format(host_vars))
+        raise errors.AnsibleFilterError('There is no network of name {0} accessible for tenant {1}'.format(host_vars, tenant))
 
 def network_id_to_name(host_vars, user, password, tenant, auth_url):
     auth = identity.Password(auth_url=auth_url, username=user,
@@ -72,7 +72,7 @@ def network_id_to_name(host_vars, user, password, tenant, auth_url):
     if networks:
         return networks[0]['name']
     else:
-        raise errors.AnsibleFilterError('There is no network of id {0}'.format(host_vars))
+        raise errors.AnsibleFilterError('There is no network of id {0} accessible for tenant {1}'.format(host_vars, tenant))
 
 class FilterModule (object):
     def filters(self):
