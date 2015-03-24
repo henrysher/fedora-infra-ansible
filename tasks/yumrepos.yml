@@ -33,13 +33,13 @@
   - packages
   - yumrepos
 
-- name: put fedora repos on aarch64 systems
-  action: copy src="{{ files }}/common/{{ item }}-aarch64" dest="/etc/yum.repos.d/{{ item }}"
+- name: put fedora repos on secondary architecture systems
+  action: copy src="{{ files }}/common/{{ item }}-secondary" dest="/etc/yum.repos.d/{{ item }}"
   with_items:
   - fedora.repo
   - fedora-updates.repo
   - fedora-updates-testing.repo
-  when: ansible_distribution == 'Fedora' and ansible_architecture == 'aarch64'
+  when: ansible_distribution == 'Fedora' and (ansible_architecture == 'aarch64' or ansible_architecture == 'ppc64' or ansible_architecture == 'ppc64le')
   tags:
   - config
   - packages
