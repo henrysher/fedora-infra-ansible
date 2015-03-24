@@ -18,14 +18,14 @@
   - koji_builder
   - { role: bkernel, when: inventory_hostname.startswith('bkernel') }
   - hosts
-  - { role: fas_client, when: inventory_hostname.startswith('aarch64') }
-  - { role: sudo, when: inventory_hostname.startswith('aarch64') }
+  - { role: fas_client, when: not inventory_hostname.startswith('bkernel') }
+  - { role: sudo, when: not inventory_hostname.startswith('bkernel') }
 
   tasks:
   - include: "{{ tasks }}/2fa_client.yml"
-    when: inventory_hostname.startswith('aarch64')
+    when: not inventory_hostname.startswith('bkernel')
   - include: "{{ tasks }}/motd.yml"
-    when: inventory_hostname.startswith('aarch64')
+    when: not inventory_hostname.startswith('bkernel')
   - include: "{{ tasks }}/yumrepos.yml"
 
   handlers:

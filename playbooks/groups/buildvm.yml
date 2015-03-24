@@ -34,9 +34,15 @@
   - hosts
   - { role: nfs/client, when: not inventory_hostname.startswith('arm'), mnt_dir: '/mnt/fedora_koji',  nfs_src_dir: 'fedora_koji' }
   - { role: nfs/client, when: datacenter == 'staging', mnt_dir: '/mnt/fedora_koji',  nfs_src_dir: 'fedora_koji' }
+  - { role: fas_client, when: not inventory_hostname.startswith('bkernel') }
+  - { role: sudo, when: not inventory_hostname.startswith('bkernel') }
   - koji_builder
 
   tasks:
+  - include: "{{ tasks }}/2fa_client.yml"
+    when: not inventory_hostname.startswith('bkernel')
+  - include: "{{ tasks }}/motd.yml"
+    when: not inventory_hostname.startswith('bkernel')
   - include: "{{ tasks }}/yumrepos.yml"
 
   - name: make sure kojid is running
