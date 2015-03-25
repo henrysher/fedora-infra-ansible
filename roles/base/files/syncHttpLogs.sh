@@ -32,13 +32,13 @@ syncHttpLogs proxy01.phx2.fedoraproject.org
 syncHttpLogs proxy02.vpn.fedoraproject.org
 syncHttpLogs proxy03.vpn.fedoraproject.org
 syncHttpLogs proxy04.vpn.fedoraproject.org
-# syncHttpLogs proxy05.vpn.fedoraproject.org
+syncHttpLogs proxy05.vpn.fedoraproject.org
 syncHttpLogs proxy06.vpn.fedoraproject.org
 syncHttpLogs proxy07.vpn.fedoraproject.org
 syncHttpLogs proxy08.vpn.fedoraproject.org
 syncHttpLogs proxy09.vpn.fedoraproject.org
 syncHttpLogs proxy10.phx2.fedoraproject.org
-# syncHttpLogs proxy11.phx2.fedoraproject.org
+syncHttpLogs proxy11.phx2.fedoraproject.org
 syncHttpLogs proxy01.stg.phx2.fedoraproject.org
 syncHttpLogs app01.stg.phx2.fedoraproject.org
 syncHttpLogs bapp02.phx2.fedoraproject.org
