@@ -20,6 +20,8 @@ def parse_args():
                         help='If specified, create the'
                         'default preferences.  Otherwise, no preferences are'
                         'set.')
+    parser.add_argument('--staging', default=False, action='store_true',
+                        help='Create the user with a staging openid.')
     parser.add_argument('--email', default=None,
                         help='Email address to set for the account.')
     parser.add_argument('--ircnick', default=None,
@@ -29,8 +31,12 @@ def parse_args():
     return parser.parse_args()
 
 
-def create(session, user, create_defaults, detail_values):
-    openid = '%s.id.fedoraproject.org' % user
+def create(session, user, create_defaults, detail_values, staging):
+    if staging:
+        openid = '%s.id.stg.fedoraproject.org' % user
+    else:
+        openid = '%s.id.fedoraproject.org' % user
+
     openid_url = 'http://%s/' % openid
     user = fmn.lib.models.User.get_or_create(
         session,
@@ -61,4 +67,4 @@ if __name__ == '__main__':
 
         session = fmn.lib.models.init(config['fmn.sqlalchemy.uri'])
 
-        create(session, args.user, args.create_defaults, details)
+        create(session, args.user, args.create_defaults, details, args.staging)
