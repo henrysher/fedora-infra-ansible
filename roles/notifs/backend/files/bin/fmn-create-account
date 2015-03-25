@@ -1,0 +1,64 @@
+#!/usr/bin/env python
+""" fmn-create-account USER
+
+Create a new FMN account for an existing FAS user.
+"""
+
+import argparse
+
+import fedmsg
+import fedmsg.config
+
+import fmn.lib
+import fmn.lib.models
+
+
+def parse_args():
+    parser = argparse.ArgumentParser(__doc__)
+    parser.add_argument('user', help='FAS username to disable.')
+    parser.add_argument('--create-defaults', default=False, action='store_true',
+                        help='If specified, create the'
+                        'default preferences.  Otherwise, no preferences are'
+                        'set.')
+    parser.add_argument('--email', default=None,
+                        help='Email address to set for the account.')
+    parser.add_argument('--ircnick', default=None,
+                        help='IRC nick to set for the account.')
+
+
+    return parser.parse_args()
+
+
+def create(session, user, create_defaults, detail_values):
+    openid = '%s.id.fedoraproject.org' % user
+    openid_url = 'http://%s' % openid
+    user = fmn.lib.models.User.get_or_create(
+        session,
+        openid=openid,
+        openid_url=openid_url,
+        create_defaults=create_defaults,
+        detail_values=detail_values,
+    )
+    print user
+
+
+if __name__ == '__main__':
+        args = parse_args()
+
+        config = fedmsg.config.load_config()
+        config.update({
+            'active': True,
+            'name': 'relay_inbound',
+            'cert_prefix': 'fmn',
+        })
+        fedmsg.init(**config)
+
+        details = {} 
+        if args.email:
+            details['email'] = args.email
+        if args.ircnick:
+            details['irc nick'] = args.ircnick
+
+        session = fmn.lib.models.init(config['fmn.sqlalchemy.uri'])
+
+        create(session, args.user, args.create_defaults, details)
