@@ -49,30 +49,52 @@ def image_name_to_id(host_vars, user, password, tenant, auth_url):
     raise errors.AnsibleFilterError('There is no image of name {0} accessible for tenant {1}'.format(host_vars, tenant))
 
 def network_name_to_id(host_vars, user, password, tenant, auth_url):
+    """ Accept one name of network or list of names of networks and return the same
+    structure, but names replaced by ids of the network(s). """
     auth = identity.Password(auth_url=auth_url, username=user,
                          password=password, tenant_name=tenant)
     sess = session.Session(auth=auth)
     token = auth.get_token(sess)
     endpoint = auth.get_endpoint(sess, service_name='neutron', service_type='network')
     neutron = NeutronClient('2.0', endpoint_url=endpoint, token=token)
-    networks = neutron.list_networks(name=host_vars, fields='id')["networks"]
-    if networks:
-        return networks[0]['id']
+    result_as_list = isinstance(host_vars, list)
+    if not result_as_list:
+        host_vars = [host_vars]
+    result = []
+    for net in host_vars:
+        networks = neutron.list_networks(name=net, fields='name')["networks"]
+        if networks:
+            result += [networks[0]['id']]
+        else:
+            raise errors.AnsibleFilterError('There is no network of name {0} accessible for tenant {1}'.format(host_vars, tenant))
+    if result_as_list:
+        return result
     else:
-        raise errors.AnsibleFilterError('There is no network of name {0} accessible for tenant {1}'.format(host_vars, tenant))
+        return result[0]
 
 def network_id_to_name(host_vars, user, password, tenant, auth_url):
+    """ Accept one id of network or list of ids of networks and return the same
+    structure, but ids replaced by name of the network(s). """
     auth = identity.Password(auth_url=auth_url, username=user,
                          password=password, tenant_name=tenant)
     sess = session.Session(auth=auth)
     token = auth.get_token(sess)
     endpoint = auth.get_endpoint(sess, service_name='neutron', service_type='network')
     neutron = NeutronClient('2.0', endpoint_url=endpoint, token=token)
-    networks = neutron.list_networks(id=host_vars, fields='name')["networks"]
-    if networks:
-        return networks[0]['name']
+    result_as_list = isinstance(host_vars, list)
+    if not result_as_list:
+        host_vars = [host_vars]
+    result = []
+    for net in host_vars:
+        networks = neutron.list_networks(id=net, fields='name')["networks"]
+        if networks:
+            result += [networks[0]['name']]
+        else:
+            raise errors.AnsibleFilterError('There is no network of id {0} accessible for tenant {1}'.format(host_vars, tenant))
+    if result_as_list:
+        return result
     else:
-        raise errors.AnsibleFilterError('There is no network of id {0} accessible for tenant {1}'.format(host_vars, tenant))
+        return result[0]
 
 class FilterModule (object):
     def filters(self):

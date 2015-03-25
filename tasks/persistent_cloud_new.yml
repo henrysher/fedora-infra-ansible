@@ -8,7 +8,7 @@
 # OS_TENANT_ID
 # OS_TENANT_NAME
 
-- debug: msg="Auth {{OS_AUTH_URL}} {{OS_TENANT_NAME}} {{OS_USERNAME}}"
+#- debug: msg="Auth {{OS_AUTH_URL}} {{OS_TENANT_NAME}} {{OS_USERNAME}}"
 
 # To use direct `nova` commands construct _OS_AUTH_OPTS as:
 # --os-auth-url {{OS_AUTH_URL}} --os-username {{OS_USERNAME}} --os-password {{OS_PASSWORD}} --os-tenant-name {{OS_TENANT_NAME}} --os-tenant-id {{OS_TENANT_ID}}
@@ -40,12 +40,12 @@
       login_password: "{{ADMIN_PASS}}"
       login_tenant_name: "{{inventory_tenant}}"
       name: "{{inventory_instance_name}}"
-      image_id: "{{ image }}"
+      image_id: "{{ image|image_name_to_id('admin', ADMIN_PASS, inventory_tenant, os_auth_url) }}"
       wait_for: 300
-      flavor_id: "{{ instance_type|flavor_name_to_id('admin', ADMIN_PASS, inventory_tenant, os_auth_url) }}
+      flavor_id: "{{ instance_type|flavor_name_to_id('admin', ADMIN_PASS, inventory_tenant, os_auth_url) }}"
       security_groups: "{{security_group}}"
       key_name: "{{ keypair }}"
-      nics: "{{ cloud_networks }}"
+      nics: "{{ cloud_networks|network_name_to_id('admin', ADMIN_PASS, inventory_tenant, os_auth_url) }}"
       # floating_ip_pools: "{{ floating_ip_pools }}"
       floating_ips:
         - "{{public_ip}}"
