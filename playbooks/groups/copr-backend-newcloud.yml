@@ -1,0 +1,78 @@
+- name: check/create instance
+  hosts: copr-be-dev.cloud.fedoraproject.org
+  #hosts: copr-be-dev2.cloud.fedoraproject.org
+  #hosts: copr-back:copr-back-stg
+  #hosts: copr-back-stg
+  user: fedora
+  sudo: True
+  #user: root
+  gather_facts: False
+  # gather_facts: False
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - /srv/web/infra/ansible/vars/fedora-cloud.yml
+   - /srv/private/ansible/files/openstack/passwords.yml
+  vars:
+    OS_AUTH_URL: "https://fed-cloud09.cloud.fedoraproject.org:5000/v2.0"
+
+  # DEBUG OTHER
+  #vars_prompt:
+  #  - name: "OS_USERNAME"
+  #    prompt: "Enter user name for  perform actions with OS"
+  #    private: no
+
+  #  - name: "OS_PASSWORD"
+  #    prompt: "Enter OS password"
+  #    private: yes
+
+
+  tasks:
+  # - include: "{{ tasks }}/persistent_cloud.yml"
+
+  # DEBUG OTHER
+  - include: "{{ tasks }}/persistent_cloud_new.yml"
+  - include: "{{ tasks }}/growroot_cloud.yml"
+  - debug: msg="root auth users {{root_auth_users}}"
+
+- name: cloud basic setup
+  hosts: 209.132.184.53
+  #hosts: copr-be-dev2.cloud.fedoraproject.org
+  #hosts: copr-back:copr-back-stg
+  #hosts: copr-back-stg
+  user: fedora
+  sudo: True
+  gather_facts: True
+  # gather_facts: False
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+
+  tasks:
+  - include: "{{ tasks }}/cloud_setup_basic.yml"
+
+  - name: set hostname (required by some services, at least postfix need it)
+    shell: "hostname {{copr_hostbase}}.cloud.fedoraproject.org"
+
+- name: provision instance
+  hosts: 209.132.184.53
+  #hosts: copr-be-dev2.cloud.fedoraproject.org
+  #hosts: copr-back:copr-back-stg
+  #hosts: copr-back-stg
+  #user: root
+  gather_facts: True
+  #gather_facts: False
+  user: fedora
+  sudo: True
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  # Roles are run first, before tasks, regardless of where you place them here.
+  roles:
+  - base
+  - copr/backend
+  - fedmsg/base
