@@ -29,6 +29,11 @@
 #  local_action: "nova_compute insecure=True auth_url={{OS_AUTH_URL}} login_username={{OS_USERNAME}} login_password={{OS_PASSWORD}} #login_tenant_name={{OS_TENANT_NAME}} name={{inventory_hostname}} image_id={{ image }}   wait_for=300 flavor_id={{ flavor_id }} security_groups={{security_group}} key_name={{keypair}} nics=[{{}}]"
 #  register: nova_result
 
+- name: check it out
+  local_action: shell nc -d -z -w 5 {{ inventory_hostname }} 22 >>/dev/null
+  register: host_is_up
+  ignore_errors: true
+
 - name: spin UP VM using nova_compute
   #delegate_to: 127.0.0.1
   sudo: False
@@ -50,6 +55,7 @@
       floating_ips:
         - "{{public_ip}}"
   register: nova_result
+  when: host_is_up|failed
   # when: vm_status.stdout != "ACTIVE"
 
 - debug: msg="{{ nova_result.info }}"
