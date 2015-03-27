@@ -66,7 +66,7 @@ def network_name_to_id(host_vars, user, password, tenant, auth_url):
         if networks:
             result += [networks[0]['id']]
         else:
-            raise errors.AnsibleFilterError('There is no network of name {0} accessible for tenant {1}'.format(host_vars, tenant))
+            raise errors.AnsibleFilterError('There is no network of name {0} accessible for tenant {1}'.format(net, tenant))
     if result_as_list:
         return result
     else:
@@ -90,7 +90,7 @@ def network_id_to_name(host_vars, user, password, tenant, auth_url):
         if networks:
             result += [networks[0]['name']]
         else:
-            raise errors.AnsibleFilterError('There is no network of id {0} accessible for tenant {1}'.format(host_vars, tenant))
+            raise errors.AnsibleFilterError('There is no network of id {0} accessible for tenant {1}'.format(net, tenant))
     if result_as_list:
         return result
     else:
