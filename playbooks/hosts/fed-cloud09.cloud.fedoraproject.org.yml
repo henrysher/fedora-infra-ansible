@@ -6,7 +6,8 @@
   gather_facts: True
 
   vars:
-   all_tenants: ['cloudintern', 'cloudsig', 'copr', 'coprdev', 'infrastructure',
+    # this is actually without admin tenant
+    all_tenants: ['cloudintern', 'cloudsig', 'copr', 'coprdev', 'infrastructure',
       'persistent', 'pythonbots', 'qa', 'scratch', 'transient']
 
   vars_files:
@@ -556,17 +557,7 @@
 
   - name: Create roles for additional tenants
     shell: source /root/keystonerc_admin && keystone role-list |grep ' {{item}} ' || keystone role-create --name {{ item }}
-    with_items:
-      - cloudintern
-      - cloudsig
-      - copr
-      - coprdev
-      - infrastructure
-      - persistent
-      - pythonbots
-      - qa
-      - scratch
-      - transient
+    with_items: all_tenants
   - name: Assign users to secondary tentants
     shell: source /root/keystonerc_admin && keystone user-role-list --user "{{item.user}}" --tenant "{{item.tenant}}" | grep ' {{item.tenant }} ' || keystone user-role-add --user {{item.user}} --role {{item.tenant}} --tenant {{item.tenant}} || true
     #keystone_user:
@@ -671,34 +662,14 @@
       auth_url="https://{{controller_hostname}}:35357/v2.0"
       tenant_name="{{ item }}"
       name="ext-to-{{ item }}"
-    with_items:
-      - cloudintern
-      - cloudsig
-      - copr
-      - coprdev
-      - infrastructure
-      - persistent
-      - pythonbots
-      - qa
-      - scratch
-      - transient
+    with_items: all_tenants
   - name: "Connect router's gateway to the external network"
     neutron_router_gateway:
       login_username="admin" login_password="{{ ADMIN_PASS }}" login_tenant_name="admin"
       auth_url="https://{{controller_hostname}}:35357/v2.0"
       router_name="ext-to-{{ item }}"
       network_name="external"
-    with_items:
-      - cloudintern
-      - cloudsig
-      - copr
-      - coprdev
-      - infrastructure
-      - persistent
-      - pythonbots
-      - qa
-      - scratch
-      - transient
+    with_items: all_tenants
   - name: Create a private network for all tenants
     neutron_network:
       login_username="admin" login_password="{{ ADMIN_PASS }}" login_tenant_name="admin"
@@ -745,17 +716,7 @@
       tenant_name="{{ item }}"
       router_name="ext-to-{{ item }}"
       subnet_name="{{ item }}-subnet"
-    with_items:
-      - cloudintern
-      - cloudsig
-      - copr
-      - coprdev
-      - infrastructure
-      - persistent
-      - pythonbots
-      - qa
-      - scratch
-      - transient
+    with_items: all_tenants
 
   #################
   # Security Groups
@@ -777,17 +738,7 @@
           ethertype: "IPv4"
           protocol: "tcp"
           remote_ip_prefix: "0.0.0.0/0"
-    with_items:
-      - cloudintern
-      - cloudsig
-      - copr
-      - coprdev
-      - infrastructure
-      - persistent
-      - pythonbots
-      - qa
-      - scratch
-      - transient
+    with_items: all_tenants
 
   - name: "Create 'ssh-internal' security group"
     neutron_sec_group:
@@ -835,17 +786,7 @@
           ethertype: "IPv4"
           protocol: "tcp"
           remote_ip_prefix: "0.0.0.0/0"
-    with_items:
-      - cloudintern
-      - cloudsig
-      - copr
-      - coprdev
-      - infrastructure
-      - persistent
-      - pythonbots
-      - qa
-      - scratch
-      - transient
+    with_items: all_tenants
 
   - name: "Create 'web-443-anywhere' security group"
     neutron_sec_group:
@@ -864,17 +805,7 @@
           ethertype: "IPv4"
           protocol: "tcp"
           remote_ip_prefix: "0.0.0.0/0"
-    with_items:
-      - cloudintern
-      - cloudsig
-      - copr
-      - coprdev
-      - infrastructure
-      - persistent
-      - pythonbots
-      - qa
-      - scratch
-      - transient
+    with_items: all_tenants
 
   - name: "Create 'wide-open' security group"
     neutron_sec_group:
@@ -893,17 +824,7 @@
           ethertype: "IPv4"
           protocol: "tcp"
           remote_ip_prefix: "0.0.0.0/0"
-    with_items:
-      - cloudintern
-      - cloudsig
-      - copr
-      - coprdev
-      - infrastructure
-      - persistent
-      - pythonbots
-      - qa
-      - scratch
-      - transient
+    with_items: all_tenants
 
   - name: "Create 'ALL ICMP' security group"
     neutron_sec_group:
@@ -920,17 +841,7 @@
           ethertype: "IPv4"
           protocol: "icmp"
           remote_ip_prefix: "0.0.0.0/0"
-    with_items:
-      - cloudintern
-      - cloudsig
-      - copr
-      - coprdev
-      - infrastructure
-      - persistent
-      - pythonbots
-      - qa
-      - scratch
-      - transient
+    with_items: all_tenants
 
   # Update quota for Copr
   #   SEE:
