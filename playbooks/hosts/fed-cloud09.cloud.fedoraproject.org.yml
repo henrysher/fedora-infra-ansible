@@ -552,13 +552,7 @@
       - { name: tflink, email: 'tflink@fedoraproject.org', tenant: qa, password: "{{tflink_password}}", public_key: "{{ lookup('pipe', '/srv/web/infra/ansible/scripts/auth-keys-from-fas tflink') }}" }
       - { name: atomic, email: 'walters@redhat.com', tenant: scratch, password: "{{cockpit_password}}", public_key: "{{ lookup('pipe', '/srv/web/infra/ansible/scripts/auth-keys-from-fas walters') }}" }
 #      - { name: twisted, email: 'buildbot@twistedmatrix.com', tenant: pythonbots, password: "{{twisted_password}}", public_key: "" }
-  - name: upload SSH keys for admin
-    nova_keypair:
-      auth_url="https://{{controller_hostname}}:35357/v2.0"
-      login_username="admin"
-      login_password="{{ ADMIN_PASS }}" login_tenant_name="{{item}}" name="fedora-admin-20130801"
-      public_key="{{ lookup('file', files + '/fedora-cloud/fedora-admin-20130801.pub') }}"
-    with_items: all_tenants
+      - { name: admin, tenant: admin, password: "{{ADMIN_PASS}}", public_key: "{{ lookup('file', files + '/fedora-cloud/fedora-admin-20130801.pub') }}" }
 
   - name: Create roles for additional tenants
     shell: source /root/keystonerc_admin && keystone role-list |grep ' {{item}} ' || keystone role-create --name {{ item }}
