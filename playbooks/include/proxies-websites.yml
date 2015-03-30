@@ -11,52 +11,6 @@
   handlers:
   - include: "{{ handlers }}/restart_services.yml"
 
-    ### Put in the proxy website ip addresses 
-  vars:
-  - fpo_ips:
-    # Staging
-    - "10.5.126.88"                               # proxy01.stg
-
-    # Production
-    - "10.5.126.52"                               # proxy01
-    - "85.236.55.6"                               # proxy02
-    - "[2001:4178:2:1269::fed2]"                  # proxy02
-    - "66.35.62.162"                              # proxy03
-    - "152.19.134.142"                            # proxy04
-    - "[2610:28:3090:3001:dead:beef:cafe:fed3]"   # proxy04
-    - "[2a00:d1a0:1::131]"                        # proxy05
-    - "5.175.150.50"                              # proxy05
-    - "140.211.169.196"                           # proxy06
-    - "213.175.193.206"                           # proxy07
-    - "67.203.2.67"                               # proxy08
-    - "[2607:f188::dead:beef:cafe:fed1]"          # proxy08
-    - "192.168.122.2"                             # proxy09
-    - "10.5.126.51"                               # proxy10
-    - "67.219.144.68"                             # proxy11
-    - "2604:1580:fe00:0:5054:ff:feae:702c"        # proxy11
-
-  - wildcard_fpo_ips:
-    # Staging
-    - "10.5.126.88"                               # proxy01.stg
-
-    # Production
-    - "10.5.126.52"                               # proxy01
-    - "85.236.55.6"                               # proxy02
-    - "[2001:4178:2:1269::fed2]"                  # proxy02
-    - "66.35.62.162"                              # proxy03
-    - "152.19.134.142"                            # proxy04
-    - "[2610:28:3090:3001:dead:beef:cafe:fed3]"   # proxy04
-    - "[2a00:d1a0:1::131]"                        # proxy05
-    - "5.175.150.50"                              # proxy05
-    - "140.211.169.196"                           # proxy06
-    - "213.175.193.206"                           # proxy07
-    - "67.203.2.67"                               # proxy08
-    - "[2607:f188::dead:beef:cafe:fed1]"          # proxy08
-    - "192.168.122.2"                             # proxy09
-    - "10.5.126.51"                               # proxy10
-    - "67.219.144.68"                             # proxy11
-    - "2604:1580:fe00:0:5054:ff:feae:702c"        # proxy11
-
 
   pre_tasks:
   - name: Install policycoreutils-python
@@ -94,7 +48,6 @@
 
   - role: httpd/website
     name: fedoraproject.org
-    ips: "{{fpo_ips}}"
     cert_name: "{{wildcard_cert_name}}"
     server_aliases: [stg.fedoraproject.org]
 
@@ -102,7 +55,6 @@
   # that redirect to http://fedoraproject.org
   - role: httpd/website
     name: fedoraproject.com
-    ips: "{{wildcard_fpo_ips}}"
     cert_name: "{{wildcard_cert_name}}"
     server_aliases:
     - fedora.asia
@@ -184,12 +136,10 @@
     name: admin.fedoraproject.org
     server_aliases: [admin.stg.fedoraproject.org]
     sslonly: true
-    ips: "{{wildcard_fpo_ips}}"
     cert_name: "{{wildcard_cert_name}}"
 
   - role: httpd/website
     name: cloud.fedoraproject.org
-    ips: "{{wildcard_fpo_ips}}"
     cert_name: "{{wildcard_cert_name}}"
 
   - role: httpd/website
@@ -198,7 +148,6 @@
     - [mirrors.stg.fedoraproject.org]
     - fedoramirror.net
     - www.fedoramirror.net
-    ips: "{{wildcard_fpo_ips}}"
     cert_name: "{{wildcard_cert_name}}"
 
   - role: httpd/website
@@ -215,14 +164,12 @@
     - download09.fedoraproject.org
     - download10.fedoraproject.org
     - download.stg.fedoraproject.org
-    ips: "{{wildcard_fpo_ips}}"
     cert_name: "{{wildcard_cert_name}}"
 
   - role: httpd/website
     name: translate.fedoraproject.org
     server_aliases: [translate.stg.fedoraproject.org]
     sslonly: true
-    ips: "{{wildcard_fpo_ips}}"
     cert_name: "{{wildcard_cert_name}}"
 
   - role: httpd/website
@@ -230,19 +177,16 @@
     server_aliases:
     - spins.stg.fedoraproject.org
     - spins-test.fedoraproject.org
-    ips: "{{wildcard_fpo_ips}}"
     cert_name: "{{wildcard_cert_name}}"
 
   - role: httpd/website
     name: boot.fedoraproject.org
     server_aliases: [boot.stg.fedoraproject.org]
-    ips: "{{wildcard_fpo_ips}}"
     cert_name: "{{wildcard_cert_name}}"
 
   - role: httpd/website
     name: boot.fedoraproject.org
     server_aliases: [boot.stg.fedoraproject.org]
-    ips: "{{wildcard_fpo_ips}}"
     cert_name: "{{wildcard_cert_name}}"
 
   - role: httpd/website
@@ -252,7 +196,6 @@
     - smolt.fedoraproject.org
     - stg.smolts.org
     - www.smolts.org
-    ips: "{{wildcard_fpo_ips}}"
     cert_name: "{{wildcard_cert_name}}"
 
   - role: httpd/website
@@ -260,19 +203,16 @@
     server_aliases:
     - doc.fedoraproject.org
     - docs.stg.fedoraproject.org
-    ips: "{{wildcard_fpo_ips}}"
     cert_name: "{{wildcard_cert_name}}"
 
   - role: httpd/website
     name: bodhi.fedoraproject.org
     server_aliases: [bodhi.stg.fedoraproject.org]
-    ips: "{{wildcard_fpo_ips}}"
     cert_name: "{{wildcard_cert_name}}"
 
   - role: httpd/website
     name: bugz.fedoraproject.org
     server_aliases: [bugz.stg.fedoraproject.org]
-    ips: "{{wildcard_fpo_ips}}"
     cert_name: "{{wildcard_cert_name}}"
 
   - role: httpd/website
@@ -280,7 +220,6 @@
     server_aliases:
     - fas.stg.fedoraproject.org
     - accounts.fedoraproject.org
-    ips: "{{wildcard_fpo_ips}}"
     cert_name: "{{wildcard_cert_name}}"
 
   - role: httpd/website
@@ -293,25 +232,21 @@
     - www.fedora.community
     - www.fedoraproject.community
     ssl: false
-    ips: "{{wildcard_fpo_ips}}"
     cert_name: "{{wildcard_cert_name}}"
 
   - role: httpd/website
     name: get.fedoraproject.org
     server_aliases: [get.stg.fedoraproject.org]
-    ips: "{{wildcard_fpo_ips}}"
     cert_name: "{{wildcard_cert_name}}"
 
   - role: httpd/website
     name: help.fedoraproject.org
     server_aliases: [help.stg.fedoraproject.org]
-    ips: "{{wildcard_fpo_ips}}"
     cert_name: "{{wildcard_cert_name}}"
 
   - role: httpd/website
     name: it.fedoracommunity.org
     server_aliases: [it.fedoracommunity.org]
-    ips: "{{wildcard_fpo_ips}}"
     cert_name: "{{wildcard_cert_name}}"
 
   - role: httpd/website
@@ -319,46 +254,38 @@
     server_aliases:
     - uk.fedoracommunity.org
     - www.uk.fedoracommunity.org
-    ips: "{{wildcard_fpo_ips}}"
     cert_name: "{{wildcard_cert_name}}"
 
   - role: httpd/website
     name: people.fedoraproject.org
     server_aliases: [people.fedoraproject.org]
-    ips: "{{wildcard_fpo_ips}}"
     cert_name: "{{wildcard_cert_name}}"
 
   - role: httpd/website
     name: join.fedoraproject.org
     server_aliases: [join.stg.fedoraproject.org]
-    ips: "{{wildcard_fpo_ips}}"
     cert_name: "{{wildcard_cert_name}}"
 
   - role: httpd/website
     name: l10n.fedoraproject.org
     server_aliases: [l10n.stg.fedoraproject.org]
-    ips: "{{wildcard_fpo_ips}}"
     cert_name: "{{wildcard_cert_name}}"
 
   - role: httpd/website
     name: start.fedoraproject.org
     server_aliases: [start.stg.fedoraproject.org]
-    ips: "{{wildcard_fpo_ips}}"
     cert_name: "{{wildcard_cert_name}}"
 
   - role: httpd/website
     name: kde.fedoraproject.org
-    ips: "{{wildcard_fpo_ips}}"
     cert_name: "{{wildcard_cert_name}}"
 
   - role: httpd/website
     name: nightly.fedoraproject.org
-    ips: "{{wildcard_fpo_ips}}"
     cert_name: "{{wildcard_cert_name}}"
 
   - role: httpd/website
     name: store.fedoraproject.org
-    ips: "{{wildcard_fpo_ips}}"
     cert_name: "{{wildcard_cert_name}}"
 
   - role: httpd/website
@@ -368,7 +295,6 @@
     - 389tcp.org
     - www.389tcp.org
     ssl: false
-    ips: "{{wildcard_fpo_ips}}"
     cert_name: "{{wildcard_cert_name}}"
     
   - role: httpd/website
@@ -376,53 +302,45 @@
     server_aliases: [www.fedoramagazine.org stg.fedoramagazine.org]
     cert_name: fedoramagazine.org
     SSLCertificateChainFile: fedoramagazine.org.intermediate.cert
-    ips: "{{wildcard_fpo_ips}}"
 
   - role: httpd/website
     name: k12linux.org
     server_aliases:
     - www.k12linux.org
     ssl: false
-    ips: "{{wildcard_fpo_ips}}"
     cert_name: "{{wildcard_cert_name}}"
 
   - role: httpd/website
     name: fonts.fedoraproject.org
     server_aliases: [fonts.stg.fedoraproject.org]
-    ips: "{{wildcard_fpo_ips}}"
     cert_name: "{{wildcard_cert_name}}"
 
   - role: httpd/website
     name: meetbot.fedoraproject.org
     server_aliases: [meetbot.stg.fedoraproject.org]
-    ips: "{{wildcard_fpo_ips}}"
     cert_name: "{{wildcard_cert_name}}"
 
   - role: httpd/website
     name: fudcon.fedoraproject.org
     server_aliases: [fudcon.stg.fedoraproject.org]
-    ips: "{{wildcard_fpo_ips}}"
     cert_name: "{{wildcard_cert_name}}"
 
   - role: httpd/website
     name: ask.fedoraproject.org
     server_aliases: [ask.stg.fedoraproject.org]
     sslonly: true
-    ips: "{{wildcard_fpo_ips}}"
     cert_name: "{{wildcard_cert_name}}"
 
   - role: httpd/website
     name: badges.fedoraproject.org
     server_aliases: [badges.stg.fedoraproject.org]
     sslonly: true
-    ips: "{{wildcard_fpo_ips}}"
     cert_name: "{{wildcard_cert_name}}"
 
   - role: httpd/website
     name: darkserver.fedoraproject.org
     server_aliases: [darkserver.stg.fedoraproject.org]
     sslonly: true
-    ips: "{{wildcard_fpo_ips}}"
     cert_name: "{{wildcard_cert_name}}"
 
   - role: httpd/website
@@ -431,7 +349,6 @@
     - paste.stg.fedoraproject.org
     - fpaste.org
     - www.fpaste.org
-    ips: "{{wildcard_fpo_ips}}"
     cert_name: "{{wildcard_cert_name}}"
 
   - role: httpd/website
@@ -439,7 +356,6 @@
     server_aliases: [apps.stg.fedoraproject.org]
     sslonly: true
     gzip: true
-    ips: "{{wildcard_fpo_ips}}"
     cert_name: "{{wildcard_cert_name}}"
 
   # Kinda silly that we have two entries here, one for prod and one for stg.
@@ -449,7 +365,6 @@
     name: taskotron.fedoraproject.org
     server_aliases: [taskotron.fedoraproject.org]
     sslonly: true
-    ips: "{{wildcard_fpo_ips}}"
     cert_name: "{{wildcard_cert_name}}"
 
   - role: httpd/website
@@ -458,7 +373,6 @@
     # Set this explicitly to stg here.. as per the original puppet config.
     SSLCertificateChainFile: wildcard-2014.stg.fedoraproject.org.intermediate.cert
     sslonly: true
-    ips: "{{wildcard_fpo_ips}}"
     cert_name: "{{wildcard_cert_name}}"
     when: env == "staging"
 
@@ -468,7 +382,6 @@
     sslonly: true
     # Set this explicitly to stg here.. as per the original puppet config.
     SSLCertificateChainFile: wildcard-2014.stg.fedoraproject.org.intermediate.cert
-    ips: "{{wildcard_fpo_ips}}"
     cert_name: "{{wildcard_cert_name}}"
     when: env == "staging"
 
@@ -476,7 +389,6 @@
     name: id.fedoraproject.org
     server_aliases:
     - "*.id.fedoraproject.org"
-    ips: "{{wildcard_fpo_ips}}"
     # Must not be sslonly, because example.id.fedoraproject.org must be reachable
     # via plain http for openid identity support
     cert_name: wildcard-2014.id.fedoraproject.org
@@ -486,7 +398,6 @@
     name: id.stg.fedoraproject.org
     server_aliases:
     - "*.id.stg.fedoraproject.org"
-    ips: "{{wildcard_fpo_ips}}"
     # Must not be sslonly, because example.id.fedoraproject.org must be reachable
     # via plain http for openid identity support
     cert_name: "{{wildcard_cert_name}}"
@@ -497,13 +408,11 @@
     name: getfedora.org
     server_aliases: [stg.getfedora.org]
     sslonly: true
-    ips: "{{fpo_ips}}"
     cert_name: getfedora.org
     SSLCertificateChainFile: getfedora.org.intermediate.cert
 
   - role: httpd/website
     name: qa.fedoraproject.org
-    ips: "{{fpo_ips}}"
     cert_name: "{{wildcard_cert_name}}"
     server_aliases: [qa.stg.fedoraproject.org]
     sslonly: true
@@ -513,12 +422,10 @@
     server_aliases: [redirect.stg.fedoraproject.org]
     sslonly: true
     gzip: true
-    ips: "{{fpo_ips}}"
     cert_name: "{{wildcard_cert_name}}"
 
   - role: httpd/website
     name: geoip.fedoraproject.org
     server_aliases: [geoip.stg.fedoraproject.org]
     sslonly: true
-    ips: "{{fpo_ips}}"
     cert_name: "{{wildcard_cert_name}}"
