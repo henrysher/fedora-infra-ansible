@@ -1,34 +1,6 @@
 # New tasks to spin up instance in https://fed-cloud09.cloud.fedoraproject.org
 # DON'T USE FOR PRODUCTION !
 
-# Variables for authentication
-# OS_AUTH_URL
-# OS_USERNAME
-# OS_PASSWORD
-# OS_TENANT_ID
-# OS_TENANT_NAME
-
-#- debug: msg="Auth {{OS_AUTH_URL}} {{OS_TENANT_NAME}} {{OS_USERNAME}}"
-
-# To use direct `nova` commands construct _OS_AUTH_OPTS as:
-# --os-auth-url {{OS_AUTH_URL}} --os-username {{OS_USERNAME}} --os-password {{OS_PASSWORD}} --os-tenant-name {{OS_TENANT_NAME}} --os-tenant-id {{OS_TENANT_ID}}
-#- name: "get current VM status"
-#  # local_action: "shell nova --insecure  {{_OS_AUTH_OPTS}} show  {{inventory_hostname}}   2>/dev/null | grep status | cut -d'|' -f3 | cut -d' ' -f2"
-#  local_action: "shell nova --insecure   --os-auth-url {{OS_AUTH_URL}} --os-username {{OS_USERNAME}} --os-password {{OS_PASSWORD}} --os-tenant-name {{OS_TENANT_NAME}}   show  {{inventory_hostname}}   2>/dev/null | grep status | cut -d'|' -f3 | cut -d' ' -f2"
-#  register: vm_status
-
-#- debug: msg="{{ vm_status.stdout }}"
-## nova --insecure --os-auth-url https://fed-cloud09.cloud.fedoraproject.org:5000/v2.0 --os-username vgologuz --os-password coprBACK6 --os-tenant-name coprdev  boot --flavor 2 --image 86422ca2-6eeb-435c-87e8-402b3c7c3b7b --nic net-id=53fb02fd-6e97-4cfc-b298-a2ff867daa52  --key-name fas  --poll copr-be-dev2
-#- name: "spinup VM without novaclient, need to set key-pair and floating ip later"
-#  # local_action: "shell nova --insecure  {{_OS_AUTH_OPTS}} boot --flavor {{flavor_id}} --image {{image}}  --poll  {{inventory_hostname}}"
-#  local_action: "shell nova --insecure   --os-auth-url {{OS_AUTH_URL}} --os-username {{OS_USERNAME}} --os-password {{OS_PASSWORD}} --os-tenant-name {{OS_TENANT_NAME}} --os-tenant-id {{OS_TENANT_ID}}  boot --flavor {{flavor_id}} --image {{image}} --key-name {{keypair}}   --nic net-id={{cloud_network}}  --poll  {{inventory_hostname}}"
-#  when: vm_status.stdout != "ACTIVE"
-
-
-#- name: spin UP VM using nova_compute
-#  local_action: "nova_compute insecure=True auth_url={{OS_AUTH_URL}} login_username={{OS_USERNAME}} login_password={{OS_PASSWORD}} #login_tenant_name={{OS_TENANT_NAME}} name={{inventory_hostname}} image_id={{ image }}   wait_for=300 flavor_id={{ flavor_id }} security_groups={{security_group}} key_name={{keypair}} nics=[{{}}]"
-#  register: nova_result
-
 - name: check it out
   local_action: shell nc -d -z -w 5 {{ inventory_hostname }} 22 >>/dev/null
   register: host_is_up
@@ -55,16 +27,6 @@
         - "{{public_ip}}"
   register: nova_result
   when: host_is_up|failed
-  # when: vm_status.stdout != "ACTIVE"
-
-#- debug: msg="{{ nova_result.info }}"
-
-# Something wrong with OS volume attach/detach at the moment
-# TODO: discover if volume is attached or not
-#- name: attach volumes
-#  local_action: "shell nova --insecure  {{_OS_AUTH_OPTS}} volume-attach {{inventory_hostname}} {{item}} "
-#  with_items: volumes
-#  when: volumes is defined and vm_status.stdout != "ACTIVE"
 
 # instance can be both id and name, volume must be id
 # volume must be id
