@@ -38,16 +38,31 @@
    - { role: collectd/base, tags: ['collectd_base'] }
    - { role: yum-cron, tags: ['yumcron'] }
    - { role: sudo, tags: ['sudo'] }
-   - { role: taskotron/resultsdb-backend, tags: ['resultsdb-be'] }
-   - { role: taskotron/resultsdb-frontend, tags: ['resultsdb-fe'] }
 
   tasks:
   # this is how you include other task lists
   - include: "{{ tasks }}/yumrepos.yml"
   - include: "{{ tasks }}/2fa_client.yml"
   - include: "{{ tasks }}/motd.yml"
+  - include: "{{ tasks }}/apache.yml"
 
   handlers:
    - include: "{{ handlers }}/restart_services.yml"
 
+- name: configure resultsdb
+  hosts: resultsdb-stg
+  user: root
+  gather_facts: True
+
+  vars_files: 
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  roles:
+   - { role: taskotron/resultsdb-backend, tags: ['resultsdb-be'] }
+   - { role: taskotron/resultsdb-frontend, tags: ['resultsdb-fe'] }
+
+  handlers:
+   - include: "{{ handlers }}/restart_services.yml"
 
