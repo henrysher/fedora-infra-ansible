@@ -68,7 +68,7 @@
 
 # instance can be both id and name, volume must be id
 # volume must be id
-- shell: nova --insecure --os-auth-url="{{os_auth_url}}" --os-username="admin" --os-password="{{ADMIN_PASS}}" --os-tenant-name={{inventory_tenant}} volume-list | grep ' {{item.volume_id}} ' | grep 'available' && nova --insecure --os-auth-url="{{os_auth_url}}" --os-username="admin" --os-password="{{ADMIN_PASS}}" --os-tenant-name={{inventory_tenant}} volume-attach "{{inventory_instance_name}}" "{{item.volume_id}}" "{{item.device}}"
+- shell: nova --os-cacert="{{ private }}/files/openstack/fed-cloud09.pem" --os-auth-url="{{os_auth_url}}" --os-username="admin" --os-password="{{ADMIN_PASS}}" --os-tenant-name={{inventory_tenant}} volume-list | grep ' {{item.volume_id}} ' | grep 'available' && nova --insecure --os-auth-url="{{os_auth_url}}" --os-username="admin" --os-password="{{ADMIN_PASS}}" --os-tenant-name={{inventory_tenant}} volume-attach "{{inventory_instance_name}}" "{{item.volume_id}}" "{{item.device}}"
   with_items: volumes
   when: volumes is defined
 
