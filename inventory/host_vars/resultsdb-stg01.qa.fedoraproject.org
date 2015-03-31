@@ -8,3 +8,14 @@ volgroup: /dev/vg_guests
 eth0_ip: 10.5.124.147
 vmhost: virthost-comm04.qa.fedoraproject.org
 datacenter: phx2
+
+# default virt install command is for a single nic-device
+# define in another group file for more nics (see buildvm)
+virt_install_command: /usr/bin/virt-install -n {{ inventory_hostname }} -r {{ mem_size }}
+                 --disk bus=virtio,path={{ volgroup }}/{{ inventory_hostname }}
+                 --vcpus={{ num_cpus }}  -l {{ ks_repo }} -x
+                 "ks={{ ks_url }} ip={{ eth0_ip }} netmask={{ nm }}
+                  gateway={{ gw }} dns={{ dns }} console=tty0 console=ttyS0
+                  hostname={{ inventory_hostname }}"
+                 --network=bridge=br0 --autostart --noautoconsole
+
