@@ -11,9 +11,6 @@
   - obs-signd # TODO: remove, since it will be installed as dependency by copr-backend
   - redis # we need this to start the service in next step
 
-- name: enable and start redis  # TODO: .service in copr-backend should depend on redis
-  service: name=redis enabled=yes state=started
-
 - name: make copr dirs
   file: state=directory path={{ item }}
   with_items:
@@ -133,8 +130,17 @@
   tags:
   - config
 
-- name: enable and run copr-backend
-  service: name="copr-backend" enabled=yes state=running
+- name: copy logstash config
+  template: src=logstash.d/copr_backend.conf dest=/etc/logstash.d/copr_backend.conf
+  notify:
+  - restart logstash
+
+- name: enable and run copr-backend services
+  service: name="{{ item }}" enabled=yes state=running
+  with_items:
+  - redis       # TODO: .service in copr-backend should depend on redis
+  - logstash
+  - copr-backend
 
 - name: copy delete-forgotten-instances.pl
   copy: src="delete-forgotten-instances.pl" dest=/home/copr/delete-forgotten-instances.pl mode=755
