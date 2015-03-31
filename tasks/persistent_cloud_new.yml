@@ -70,5 +70,6 @@
 # volume must be id
 - local_action: shell nova --os-auth-url="{{os_auth_url}}" --os-username="admin" --os-password="{{ADMIN_PASS}}" --os-tenant-name={{inventory_tenant}} volume-list | grep ' {{item.volume_id}} ' | grep 'available' && nova --os-auth-url="{{os_auth_url}}" --os-username="admin" --os-password="{{ADMIN_PASS}}" --os-tenant-name={{inventory_tenant}} volume-attach "{{inventory_instance_name}}" "{{item.volume_id}}" "{{item.device}}"
   with_items: volumes
+  ignore_errors: yes
   when: volumes is defined
 
