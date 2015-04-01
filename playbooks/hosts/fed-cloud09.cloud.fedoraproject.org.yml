@@ -740,6 +740,28 @@
           remote_ip_prefix: "0.0.0.0/0"
     with_items: all_tenants
 
+  - name: "Create 'ssh-from-persistent' security group"
+    neutron_sec_group:
+      login_username: "admin"
+      login_password: "{{ ADMIN_PASS }}"
+      login_tenant_name: "admin"
+      auth_url: "https://{{controller_hostname}}:35357/v2.0"
+      state: "present"
+      name: 'ssh-from-persistent-{{item}}'
+      description: "allow ssh from persistent"
+      tenant_name: "{item}}"
+      rules:
+        - direction: "ingress"
+          port_range_min: "22"
+          port_range_max: "22"
+          ethertype: "IPv4"
+          protocol: "tcp"
+          remote_ip_prefix: "172.25.32.1/20"
+    with_items:
+      - copr
+      - coprdev
+
+
   - name: "Create 'ssh-internal' security group"
     neutron_sec_group:
       login_username: "admin"
@@ -850,6 +872,10 @@
   # default is 10 instances, 20 cores, 51200 RAM, 10 floating IPs
   - shell: source /root/keystonerc_admin && keystone tenant-list | grep 'copr ' | awk '{print $2}'
     register: TENANT_ID
-  - shell: source /root/keystonerc_admin && nova quota-update --instances 40 --cores 80 --ram 512000 --floating-ips 40 {{ TENANT_ID.stdout }}
+  - shell: source /root/keystonerc_admin && nova quota-update --instances 40 --cores 80 --ram 300000 --floating-ips 10 --security-groups 20 {{ TENANT_ID.stdout }}
+
+  - shell: source /root/keystonerc_admin && keystone tenant-list | grep 'coprdev ' | awk '{print $2}'
+    register: TENANT_ID
+  - shell: source /root/keystonerc_admin && nova quota-update --instances 40 --cores 80 --ram 300000 --floating-ips 10 --security-groups 20 {{ TENANT_ID.stdout }}
 
 
