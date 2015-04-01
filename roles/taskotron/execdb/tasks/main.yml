@@ -1,5 +1,15 @@
 - name: ensure packages required for execdb are installed
   action: yum name={{ item }} state=latest
+  when: deployment_type == 'prod'
+  with_items:
+    - execdb
+    - mod_wsgi
+    - python-psycopg2
+    - libsemanage-python
+
+- name: ensure packages required for execdb are installed (testing)
+  action: yum name={{ item }} state=latest enablerepo=infrastructure-testing
+  when: deployment_type == 'dev' or deployment_type == 'stg'
   with_items:
     - execdb
     - mod_wsgi
