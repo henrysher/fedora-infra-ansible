@@ -1,5 +1,13 @@
 - name: ensure packages required for fakefedorainfra are installed
   action: yum name={{ item }} state=latest
+  when: deployment_type == 'prod'
+  with_items:
+    - mod_wsgi
+    - fake_fedorainfra
+
+- name: ensure packages required for fakefedorainfra are installed (infra-testing)
+  action: yum name={{ item }} state=latest enablerepo=infrastructure-testing
+  when: deployment_type == 'dev' or deployment_type == 'stg'
   with_items:
     - mod_wsgi
     - fake_fedorainfra

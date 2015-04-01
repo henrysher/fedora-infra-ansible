@@ -1,8 +1,18 @@
 - name: ensure packages required for libtaskotron are installed
   action: yum name={{ item }} state=latest
+  when: deployment_type == 'prod'
   with_items:
     - PyYAML
     - libtaskotron
+    - resultsdb_api
+
+- name: ensure packages required for libtaskotron are installed (infra-testing)
+  action: yum name={{ item }} state=latest enablerepo=infrastructure-testing
+  when: deployment_type == 'dev' or deployment_type == 'stg'
+  with_items:
+    - PyYAML
+    - libtaskotron
+    - resultsdb_api
 
 - name: ensure packages required for taskotron tasks are installed
   action: yum name={{ item }} state=latest
