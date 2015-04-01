@@ -169,7 +169,7 @@ factory.addStep(ShellCommand(command=["runtask",
                                         '-t', Interpolate('%(prop:item_type)s'),
                                         '-a', Interpolate('%(prop:arch)s'),
                                         '-j', Interpolate('%(prop:buildername)s/%(prop:buildnumber)s'),
-{% if deployment_type == 'dev' %}
+{% if deployment_type in ['dev', 'stg'] %}
                                         '--uuid', Interpolate('%(prop:uuid)s'),
 {% endif %}
                                         Interpolate('%(prop:taskname)s.yml')],
@@ -178,7 +178,7 @@ factory.addStep(ShellCommand(command=["runtask",
                              logfiles={'taskotron.log': {'filename': '/var/log/taskotron/taskotron.log', }}))
 
 
-{% if deployment_type == 'dev' %}
+{% if deployment_type in ['dev', 'stg'] %}
 # create artifacts dir on master
 factory.addStep(MasterShellCommand(command=["mkdir", '-m', '0755', Interpolate('{{ public_artifacts_dir }}/%(prop:uuid)s')],
                                    descriptionDone=['Create artifacs dir']))
