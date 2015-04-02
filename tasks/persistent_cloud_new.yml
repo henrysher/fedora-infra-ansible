@@ -35,3 +35,11 @@
   ignore_errors: yes
   when: volumes is defined
 
+- name: wait for he host to be hot
+  local_action: wait_for host={{ public_ip }} port=22 delay=1 timeout=600
+
+# We need to specify user, here we trying with fedora or root
+- name: wait until ssh is available
+  local_action:  shell false; until [ "$?" -eq "0" ]; do sleep 2; ssh -o PasswordAuthentication=no fedora@{{ public_ip }} 'echo foobar' 2>/dev/null || ssh -o PasswordAuthentication=no root@{{ public_ip }} 'echo foobar' 2>/dev/null; done
+  async: 600
+  poll: 2
