@@ -121,7 +121,17 @@
   with_items:
   - { file: pagure.cfg, location: /etc/pagure }
   - { file: pagure.conf, location: /etc/httpd/conf.d }
-  - { file: pagure.wsgi, location: /var/www/, dest: pagure.wsgi }
+  tags:
+  - config
+  - web
+  - pagure
+  notify:
+  - restart apache
+
+- name: Install the wsgi file
+  template: src=pagure.wsgi
+            dest=/var/www/pagure.wsgi
+            owner=git group=git mode=0644
   tags:
   - config
   - web
