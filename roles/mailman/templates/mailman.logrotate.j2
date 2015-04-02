@@ -1,0 +1,11 @@
+{{ mailman_webui_basedir }}/var/logs/*.log {
+    missingok
+    sharedscripts
+    su mailman mailman
+    postrotate
+        /bin/kill -HUP `cat /run/mailman3/master.pid 2>/dev/null` 2>/dev/null || true
+        # Don't run "mailman3 reopen" with SELinux on here in the logrotate
+        # context, it will be blocked
+        #/usr/bin/mailman3 reopen >/dev/null 2>&1 || true
+    endscript
+}
