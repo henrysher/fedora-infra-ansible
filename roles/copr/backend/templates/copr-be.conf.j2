@@ -1,0 +1,75 @@
+[backend]
+
+# URL where are results visible
+results_baseurl={{ backend_base_url }}/results
+
+# Base frontend url
+frontend_base_url={{ frontend_base_url }}
+# Url for backend communication endpoint (will be eliminated at some point)
+frontend_url={{ frontend_base_url }}/backend
+
+# must have same value as BACKEND_PASSWORD from have frontend in /etc/copr/copr.conf
+# default is PASSWORDHERE but you really should change it. really.
+frontend_auth={{ copr_backend_password }}
+
+group0_name=PC
+group0_archs=i386,x86_64
+
+# path to ansible playbook which spawns builder
+# see /usr/share/copr*/playbooks/ for examples
+# default is /etc/copr/builder_playbook.yml
+group0_spawn_playbook=/home/copr/provision/builderpb_nova.yml
+# path to ansible playbook which terminate builder
+# default is /etc/copr/terminate_playbook.yml
+group0_terminate_playbook=/home/copr/provision/terminatepb.yml
+group0_max_workers=4
+
+
+# directory where jobs are stored
+# no defaults
+jobsdir=/var/lib/copr/jobs
+
+# directory where results are stored
+# should be accessible from web using 'results_baseurl' URL
+# no default
+destdir=/var/lib/copr/public_html/results
+
+# default is 10
+sleeptime=30
+
+
+# path to log file
+# default is /var/log/copr/backend.log
+logfile=/var/log/copr/backend.log
+
+# default is /var/log/copr/workers/
+worker_logdir=/var/log/copr/workers/
+
+# exit on worker failure
+# default is false
+#exit_on_worker=false
+
+# publish fedmsg notifications from workers if true
+# default is false
+fedmsg_enabled={{ fedmsg_enabled }}
+
+# enable package signing, require configured
+# signer host and correct /etc/sign.conf
+do_sign={{ do_sign }}
+
+# host or ip of machine with copr-keygen
+# usually the same as in /etc/sign.conf
+keygen_host={{ keygen_host }}
+
+# minimum age for builds to be pruned
+prune_days=14
+
+# Spawn builder in advance, before we get task?
+# It save time, but consume resources even when
+# nothing is in queue
+
+spawn_in_advance={{ spawn_in_advance }}
+
+[builder]
+# default is 1800
+timeout=21600
