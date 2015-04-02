@@ -93,13 +93,13 @@
   service: state=running enabled=yes name=lighttpd
 
 # setup dirs for the ansible execution off of provisioning
-- name: dirs from provision
-  file: state=directory path="/home/copr/provision/{{ item }}" owner=copr group=copr
-  with_items:
-  - action_plugins
-  - library
-  tags:
-  - provision_config
+#- name: dirs from provision
+#  file: state=directory path="/home/copr/provision/{{ item }}" owner=copr group=copr
+#  with_items:
+#  - action_plugins
+#  - library
+#  tags:
+#  - provision_config
 
 - name: put ansible.cfg for all this into /etc/ansible/ on the system
   copy: src="provision/ansible.cfg" dest=/etc/ansible/ansible.cfg
@@ -107,11 +107,13 @@
   - provision_config
 
 - name: put some files into the provision subdir
-  template: src="provision/{{ item }}" dest="/home/copr/provision/{{ item }}"
-  with_items:
-  - inventory
-  - builderpb.yml
-  - terminatepb.yml
+  template: src="{{ item }}" dest="/home/copr/provision/{{ item }}"
+  with_fileglob:
+  - templates/provision/*.yml
+  #with_items:
+  #- inventory
+  #- builderpb.yml
+  #- terminatepb.yml
   tags:
   - provision_config
 
