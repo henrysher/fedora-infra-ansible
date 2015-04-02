@@ -1,0 +1,15 @@
+[Unit]
+Description=GNU Mailing List Manager
+After=syslog.target network.target
+
+[Service]
+Type=forking
+PIDFile={{ mailman_webui_basedir }}/var/master.pid
+User=mailman
+Group=mailman
+ExecStart={{ mailman_webui_basedir }}/venv-3.4/bin/mailman -C /etc/mailman.cfg start
+ExecReload={{ mailman_webui_basedir }}/venv-3.4/bin/mailman -C /etc/mailman.cfg restart
+ExecStop={{ mailman_webui_basedir }}/venv-3.4/bin/mailman -C /etc/mailman.cfg stop
+
+[Install]
+WantedBy=multi-user.target
