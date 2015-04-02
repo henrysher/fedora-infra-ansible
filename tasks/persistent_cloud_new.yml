@@ -45,3 +45,9 @@
   local_action:  shell false; until [ "$?" -eq "0" ]; do sleep 2; ssh -vvvv -o PasswordAuthentication=no fedora@{{ public_ip }} 'echo foobar' ; done
   async: 10
   poll: 2
+  register: ssh_check
+  ignore_errors: True
+
+- debug: msg="{{ ssh_check.stdout}} \n {{ssh_check.stderr }}"
+
+
