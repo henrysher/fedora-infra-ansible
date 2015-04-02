@@ -1,0 +1,39 @@
+---
+# Define resources for this group of hosts here.
+lvm_size: 20000
+mem_size: 2048
+num_cpus: 2
+
+# for systems that do not match the above - specify the same parameter in
+# the host_vars/$hostname file
+
+tcp_ports: [ 22, 80, 443, 9418,
+    # These 16 ports are used by fedmsg.  One for each wsgi thread.
+    3000, 3001, 3002, 3003, 3004, 3005, 3006, 3007,
+    3008, 3009, 3010, 3011, 3012, 3013, 3014, 3015 ]
+
+fas_client_groups: sysadmin-noc,sysadmin-web
+
+freezes: false
+
+# Configuration for the git-daemon/server
+git_group: git
+git_port: 9418
+git_server: /usr/libexec/git-core/git-daemon
+git_server_args: --export-all --syslog --inetd --verbose
+git_basepath: /srv/git/repositories
+
+# For the MOTD
+csi_security_category: Low
+csi_primary_contact: Fedora admins - admin@fedoraproject.org
+csi_purpose: Run the pagure instances for fedora
+csi_relationship: |
+    There are a few things running here:
+
+    - The apache/mod_wsgi app for pagure
+
+    - This host relies on:
+      - A postgres db server running locally
+
+    - Things that rely on this host:
+      - nothing currently
