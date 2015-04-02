@@ -1,0 +1,217 @@
+---
+# Configuration for the pagure webapp
+
+- name: install needed packages
+  yum: pkg={{ item }} state=present
+  with_items:
+  - pagure
+  - python-psycopg2
+  - libsemanage-python
+  -postgresql-server
+  tags:
+  - pagure
+  - packages
+
+
+# Set-up gitolite
+
+- name: create the folder where we store the git repositories
+  action: file state=directory
+               path=/srv/git
+               owner=root group=root mode=0755
+  tags:
+  - gitolite
+  - pagure
+
+- name: Rename the user gitolite into git
+  command: usermod --move-home --login git --home /srv/git/ gitolite
+  tags:
+  - gitolite
+  - pagure
+
+- name: Rename the group gitolite into git
+  command: groupmod --new-name git gitolite
+  tags:
+  - gitolite
+  - pagure
+
+- name: create the /etc/gitolite/conf folder
+  action: file state=directory
+               path=/etc/gitolite/conf
+               owner=git group=git mode=0775
+  tags:
+  - gitolite
+  - pagure
+
+- name: Adjust owner of /srv/git
+  command: chown git:git -R /srv/git/
+  tags:
+  - gitolite
+  - pagure
+
+- name: Adjust permissions of /etc/gitolite
+  command: chown git:git -R /etc/gitolite
+  tags:
+  - gitolite
+  - pagure
+
+- name: set-up gitolite
+  command: gl-setup
+  sudo: yes
+  sudo_user: git
+  creates: /srv/git/.gitolite.rc
+  tags:
+  - gitolite
+  - pagure
+
+- name: install our own gitolite configuration
+  template: src=gitolite.rc
+            dest=/srv/git/.gitolite.rc
+            owner=git group=git mode=0755
+  tags:
+  - gitolite
+  - pagure
+
+- name: create all the directories where we store the git repos
+  action: file state=directory
+               path={{ item }}
+               owner=git group=git mode=0775
+  with_items:
+  - /srv/git/repositories/
+  - /srv/git/repositories/forks
+  - /srv/git/repositories/docs
+  - /srv/git/repositories/tickets
+  - /srv/git/repositories/requests
+  tags:
+  - gitolite
+  - pagure
+
+
+# Set-up PostgresQL
+
+- name: Initialize postgres if necessary
+  command: /usr/bin/postgresql-setup initdb
+           creates=/var/lib/pgsql/data
+  notify:
+  - restart postgresql
+  tags:
+  - postgresql
+  - pagure
+
+- name: Set postgresql-server to run on boot
+  service: name=postgresql enabled=yes
+  ignore_errors: true
+  notify:
+  - restart postgresql
+  tags:
+  - service
+  - postgresql
+  - pagure
+
+- name: Ensure postgres has a place to backup to
+  file: dest=/backups state=directory owner=postgres
+  tags:
+  - postgresql
+  - pagure
+
+- name: Copy over backup scriplet
+  copy: src=backup-database dest=/usr/local/bin/backup-database mode=0755
+  tags:
+  - postgresql
+  - pagure
+
+- name: Set up some cronjobs to backup databases as configured
+  template: >
+    src=cron-backup-database
+    dest=/etc/cron.d/cron-backup-database-{{ item }}
+  with_items:
+  - anitya
+  tags:
+  - cron
+  - postgresql
+  - pagure
+
+- name: Add our postgres config file.
+  copy: >
+    src={{ item }}
+    dest=/var/lib/pgsql/data/{{ item }}
+    owner=postgres
+  with_items:
+  - pg_hba.conf
+  notify:
+  - restart postgresql
+  tags:
+  - config
+  - postgresql
+  - pagure
+
+- name: Set up some cronjobs to backup databases as configured
+  template: >
+    src=cron-backup-database
+    dest=/etc/cron.d/cron-backup-database-{{ item }}
+  with_items:
+  - "{{ dbs_to_backup }}"
+  when: dbs_to_backup != []
+  tags:
+  - cron
+  - pagure
+
+
+# Set-up Pagure
+
+- name: copy sundry pagure configuration
+  template: src={{ item.file }}
+            dest={{ item.location }}/{{ item.dest }}
+            owner=apache group=apache mode=0600
+  with_items:
+  - { file: pagure_admin.cfg, location: /etc/pagure, dest: pagure.cfg }
+#  - { file: alembic.ini, location: /etc/pagure, dest: alembic.ini }
+  changed_when: "1 != 1"
+  tags:
+  - config
+  - web
+  - pagure
+  notify:
+  - restart apache
+
+- name: create the database scheme
+  command: /usr/bin/python2 /usr/share/pagure/pagure_createdb.py
+  changed_when: "1 != 1"
+  environment:
+      PAGURE_CONFIG: /etc/pagure/pagure.cfg
+  tags:
+  - web
+  - pagure
+
+- name: Install all the configuration files of pagure
+  template: src={{ item.file }}
+            dest={{ item.location }}/{{ item.file }}
+            owner=apache group=apache mode=0600
+  with_items:
+  - { file: pagure.cfg, location: /etc/pagure }
+  - { file: pagure.conf, location: /etc/httpd/conf.d }
+  - { file: pagure.wsgi, location: /var/www/, dest: pagure.wsgi }
+  tags:
+  - config
+  - web
+  - pagure
+  notify:
+  - restart apache
+
+- name: set sebooleans so pkgdb2 can talk to the db
+  action: seboolean name=httpd_can_network_connect_db
+                    state=true
+                    persistent=true
+  tags:
+  - selinux
+  - web
+  - pagure
+
+- name: set sebooleans so apache can send emails
+  action: seboolean name=httpd_can_sendmail
+                    state=true
+                    persistent=true
+  tags:
+  - selinux
+  - web
+  - pagure
