@@ -41,12 +41,25 @@
 
 # Check is failing on the lockbox, something with ssh identity available for ssh invocation through the shell module,
 ## We need to specify user, here we trying with fedora or root
+- name: debug ansible local action
+  local_action: shell echo $SSH_AUTH_SOCK
+  ignore_errors: True
+
+- name: debug ansible local action 2
+  local_action: shell env
+  ignore_errors: True
+
+
+- name: debug ansible local action 3
+  local_action: command env
+  ignore_errors: True
+
 - name: wait until ssh is available
   # local_action:  shell false; until [ "$?" -eq "0" ]; do sleep 2; ssh -o PasswordAuthentication=no fedora@{{ public_ip }} 'echo foobar'  || ssh -o PasswordAuthentication=no root@{{ public_ip }} 'echo foobar'; done
   # local_action: shell false; until [ "$?" -eq "0" ]; do sleep 2; ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no fedora@{{ public_ip }} 'echo foobar'; done
-  local_action: shell whoami && ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no fedora@{{ public_ip }} 'echo foobar'
-  async: 20
-  poll: 5
+  local_action: shell whoami && ssh -vvvv -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no fedora@{{ public_ip }} 'echo foobar'
+  # async: 20
+  # poll: 5
   # register: ssh_check
   ignore_errors: True
 
