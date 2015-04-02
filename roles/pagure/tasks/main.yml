@@ -117,10 +117,10 @@
 - name: Install all the configuration files of pagure
   template: src={{ item.file }}
             dest={{ item.location }}/{{ item.file }}
-            owner=apache group=apache mode=0600
+            owner={{ item.user }} group={{ item.user }} mode=0600
   with_items:
-  - { file: pagure.cfg, location: /etc/pagure }
-  - { file: pagure.conf, location: /etc/httpd/conf.d }
+  - { file: pagure.cfg, location: /etc/pagure, user=git }
+  - { file: pagure.conf, location: /etc/httpd/conf.d, user=apache }
   tags:
   - config
   - web
