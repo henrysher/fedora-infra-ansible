@@ -43,7 +43,7 @@ EMAIL_HOST='bastion'
 EMAIL_PORT='25'
 EMAIL_USE_TLS=False
 EMAIL_BACKEND = 'post_office.EmailBackend'
-
+FEEDBACK_EMAILS = 'sysadmin-ask-members@fedoraproject.org'
 
 #incoming mail settings
 #after filling out these settings - please
