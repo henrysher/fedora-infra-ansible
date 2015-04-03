@@ -5,6 +5,7 @@
   yum: pkg={{ item }} state=present
   with_items:
   - pagure
+  - pagure-milters
   - python-psycopg2
   - libsemanage-python
   tags:
@@ -88,7 +89,7 @@
   - pagure
 
 
-# Set-up postfix
+# Set-up postfix and the milter for postfix
 
 - name: Add the /etc/aliases file
   copy: src=aliases dest=/etc/aliases owner=root mode=644
@@ -96,6 +97,18 @@
   - config
   - pagure
   - postfix
+  notify:
+  - restart pagure_milter
+
+- name: Set pagure_milter to run on boot
+  service: name=pagure_milter enabled=yes
+  ignore_errors: true
+  notify:
+  - restart pagure_milter
+  tags:
+  - service
+  - postfix
+  - pagure
 
 
 # Set-up Pagure
