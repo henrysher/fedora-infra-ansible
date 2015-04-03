@@ -1,5 +1,11 @@
 - name: copy .pem
   copy: src=../../files/fedora-cloud/fed-cloud09.pem  dest=/etc/pki/ca-trust/source/anchors/
 
+- name: debug if file was copied
+  command: "ls -lah /etc/pki/ca-trust/source/anchors/"
+  register: pem_copy
+
+- debug: msg="{{ pem_copy.stdout }}"
+
 - name: update certificates
   command: /usr/bin/update-ca-trust
