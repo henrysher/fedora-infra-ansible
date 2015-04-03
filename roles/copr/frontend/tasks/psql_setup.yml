@@ -15,6 +15,8 @@
 
 - name: copy pg_hba.conf
   copy: src="pg/pg_hba.conf" dest=/var/lib/pgsql/data/pg_hba.conf owner=postgres group=postgres mode=0600
+  notify:
+  - restart postgresql
   tags:
   - config
 
@@ -45,6 +47,10 @@
 
 - name: Create db
   postgresql_db: name="coprdb" encoding='UTF-8'
+  sudo: yes
+  user: postgres
 
 - name: Create db user
   postgresql_user: db="coprdb" name="copr-fe" password="{{ copr_database_password }}" role_attr_flags=SUPERUSER,NOCREATEDB,NOCREATEROLE
+  sudo: yes
+  user: postgres
