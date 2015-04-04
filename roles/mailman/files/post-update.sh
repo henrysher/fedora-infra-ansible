@@ -29,5 +29,6 @@ django-admin test --pythonpath $CONFDIR --settings settings_test hyperkitty
 
 # Reload Apache to flush the python cache
 systemctl reload httpd
-# Restart Mailman3 since kittystore was updated
-systemctl restart mailman3
+
+# Clean the cache
+systemctl restart memcached

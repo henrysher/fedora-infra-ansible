@@ -4,38 +4,19 @@ Django settings for HyperKitty + Postorius
 """
 
 import os
-
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
+# SECURITY WARNING: keep the secret key used in production secret!
+SECRET_KEY = '{{ mailman_hyperkitty_cookie_key }}'
+
+# SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
+
 TEMPLATE_DEBUG = DEBUG
 
 ADMINS = (
      ('HyperKitty Admin', 'abompard@fedoraproject.org'),
 )
-
-MANAGERS = ADMINS
-
-# Mailman API credentials
-MAILMAN_REST_SERVER = MAILMAN_API_URL = 'http://localhost:8001'
-MAILMAN_API_USER = MAILMAN_USER = 'restadmin'
-MAILMAN_API_PASS = MAILMAN_PASS = 'restpass'
-MAILMAN_ARCHIVER_KEY = 'SecretArchiverAPIKey'
-MAILMAN_ARCHIVER_FROM = ("127.0.0.1", "::1")
-
-# CSS theme for postorius
-MAILMAN_THEME = "default"
-
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'hyperkitty',
-        'USER': 'hyperkittyapp',
-        'PASSWORD': '{{ mailman_hyperkitty_db_pass }}',
-        'HOST': '{{ mailman_db_server }}',
-        'PORT': '',                      # Set to empty string for default.
-    }
-}
 
 # Hosts/domain names that are valid for this site; required if DEBUG is False
 # See https://docs.djangoproject.com/en/1.5/ref/settings/#allowed-hosts
@@ -53,36 +34,99 @@ BROWSERID_AUDIENCES = [
     "https://lists-dev.cloud.fedoraproject.org",
 ]
 
+# Mailman API credentials
+MAILMAN_REST_SERVER = MAILMAN_API_URL = 'http://localhost:8001'
+MAILMAN_API_USER = MAILMAN_USER = 'restadmin'
+MAILMAN_API_PASS = MAILMAN_PASS = 'restpass'
+MAILMAN_ARCHIVER_KEY = 'SecretArchiverAPIKey'
+MAILMAN_ARCHIVER_FROM = ('127.0.0.1', '::1')
+
+# Application definition
+
+INSTALLED_APPS = (
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    #'django.contrib.sites',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
+    # Uncomment the next line to enable the admin:
+    'django.contrib.admin',
+    # Uncomment the next line to enable admin documentation:
+    # 'django.contrib.admindocs',
+    'hyperkitty',
+    'social.apps.django_app.default',
+    'rest_framework',
+    'django_gravatar',
+    'crispy_forms',
+    'paintstore',
+    'compressor',
+    'django_browserid',
+    'haystack',
+    'django_extensions',
+    'postorius',
+)
+import django
+if django.VERSION[:2] < (1, 7):
+    INSTALLED_APPS = INSTALLED_APPS + ("south",)
+
+
+MIDDLEWARE_CLASSES = (
+    'django.middleware.common.CommonMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
+    # Uncomment the next line for simple clickjacking protection:
+    # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'hyperkitty.middleware.SSLRedirect',
+    'hyperkitty.middleware.TimezoneMiddleware',
+)
+
+ROOT_URLCONF = 'urls'
+
+# CSS theme for postorius
+MAILMAN_THEME = "default"
+
+
+# Database
+# https://docs.djangoproject.com/en/1.6/ref/settings/#databases
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'hyperkitty',
+        'USER': 'hyperkittyapp',
+        'PASSWORD': '{{ mailman_hyperkitty_db_pass }}',
+        'HOST': '{{ mailman_db_server }}',
+        'PORT': '',                      # Set to empty string for default.
+    }
+}
+
+
 # We're behind a proxy, use the X-Forwarded-Host header
 # See https://docs.djangoproject.com/en/1.5/ref/settings/#use-x-forwarded-host
 USE_X_FORWARDED_HOST = True
-
 # In the Fedora infra, requests are systematically redirected to HTTPS, so put
 # something always true here:
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_SERVER', 'lists.fedoraproject.org')
 
-# Local time zone for this installation. Choices can be found here:
-# http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
-# although not all choices may be available on all operating systems.
-# In a Windows environment this must be set to your system time zone.
-TIME_ZONE = 'America/Chicago'
+# Internationalization
+# https://docs.djangoproject.com/en/1.6/topics/i18n/
 
-# Language code for this installation. All choices can be found here:
-# http://www.i18nguy.com/unicode/language-identifiers.html
 LANGUAGE_CODE = 'en-us'
 
-SITE_ID = 1
+TIME_ZONE = 'America/Chicago'
 
-# If you set this to False, Django will make some optimizations so as not
-# to load the internationalization machinery.
 USE_I18N = True
 
-# If you set this to False, Django will not format dates, numbers and
-# calendars according to the current locale.
 USE_L10N = True
 
-# If you set this to False, Django will not use timezone-aware datetimes.
 USE_TZ = True
+
+
+# Static files (CSS, JavaScript, Images)
+# https://docs.djangoproject.com/en/1.6/howto/static-files/
 
 # Absolute filesystem path to the directory that will hold user-uploaded files.
 # Example: "/var/www/example.com/media/"
@@ -109,7 +153,6 @@ STATICFILES_DIRS = (
     # Put strings here, like "/home/html/static" or "C:/www/django/static".
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
-    #BASE_DIR + '/static/',
 )
 
 # List of finder classes that know how to find static files in
@@ -121,20 +164,9 @@ STATICFILES_FINDERS = (
     'compressor.finders.CompressorFinder',
 )
 
-# Make this unique, and don't share it with anybody.
-SECRET_KEY = '{{ mailman_hyperkitty_cookie_key }}'
-
-# List of callables that know how to import templates from various sources.
-TEMPLATE_LOADERS = (
-    'django.template.loaders.filesystem.Loader',
-    'django.template.loaders.app_directories.Loader',
-#     'django.template.loaders.eggs.Loader',
-)
-
 
 TEMPLATE_CONTEXT_PROCESSORS = (
     "django.contrib.auth.context_processors.auth",
-    "social_auth.context_processors.social_auth_login_redirect",
     "django.contrib.messages.context_processors.messages",
     "django.core.context_processors.debug",
     "django.core.context_processors.i18n",
@@ -144,108 +176,75 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     "django.core.context_processors.request",
     "django.core.context_processors.tz",
     "django.contrib.messages.context_processors.messages",
+    "social.apps.django_app.context_processors.backends",
+    "social.apps.django_app.context_processors.login_redirect",
     "hyperkitty.context_processors.export_settings",
     "hyperkitty.context_processors.postorius_info",
     "postorius.context_processors.postorius",
 )
 
-
-MIDDLEWARE_CLASSES = (
-    'django.middleware.common.CommonMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    # Uncomment the next line for simple clickjacking protection:
-    # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'hyperkitty.middleware.SSLRedirect',
-    'hyperkitty.middleware.TimezoneMiddleware',
-)
-
-ROOT_URLCONF = 'urls'
-
-# Python dotted path to the WSGI application used by Django's runserver.
-#WSGI_APPLICATION = 'mailman_web.wsgi.application'
-
 TEMPLATE_DIRS = (
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
-#    BASE_DIR + '/templates',
 )
 
-AUTHENTICATION_BACKENDS = (
-    #'social_auth.backends.browserid.BrowserIDBackend', # replaced with django_browserid
-    'hyperkitty.lib.fedora.FedoraBackend',
-    'social_auth.backends.google.GoogleBackend',
-    'social_auth.backends.yahoo.YahooBackend',
-    #'social_auth.backends.OpenIDBackend',
-    'django.contrib.auth.backends.ModelBackend',
-    'django_browserid.auth.BrowserIDBackend',
-)
-
-INSTALLED_APPS = (
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    #'django.contrib.sites',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
-    # Uncomment the next line to enable the admin:
-    'django.contrib.admin',
-    # Uncomment the next line to enable admin documentation:
-    # 'django.contrib.admindocs',
-    'hyperkitty',
-    'social_auth',
-    'rest_framework',
-    'django_gravatar',
-    'south',
-    'crispy_forms',
-    'paintstore',
-    'compressor',
-    'django_browserid',
-    'haystack',
-    'django_extensions',
-    'postorius',
-)
-
-
-# Django 1.6 defaults to a JSON serializer, but it won't work with django-openid, see
+# Django 1.6+ defaults to a JSON serializer, but it won't work with django-openid, see
 # https://bugs.launchpad.net/django-openid-auth/+bug/1252826
 SESSION_SERIALIZER = 'django.contrib.sessions.serializers.PickleSerializer'
 
 
-REST_FRAMEWORK = {
-    'DEFAULT_RENDERER_CLASSES': (
-        'rest_framework.renderers.JSONRenderer',
-        'rest_framework.renderers.JSONPRenderer',
-        'rest_framework.renderers.XMLRenderer',
-        'rest_framework.renderers.BrowsableAPIRenderer',
-    )
-}
-
 LOGIN_URL          = '/archives/accounts/login/'
 LOGIN_REDIRECT_URL = '/archives/'
 LOGIN_ERROR_URL    = '/archives/accounts/login/'
-SOCIAL_AUTH_COMPLETE_URL_NAME  = 'socialauth_complete'
-SOCIAL_AUTH_ASSOCIATE_URL_NAME = 'socialauth_associate_complete'
-SOCIAL_AUTH_DEFAULT_USERNAME = 'new_social_auth_user'
-SOCIAL_AUTH_UUID_LENGTH = 16
-SOCIAL_AUTH_LAST_LOGIN = 'social_auth_last_login_backend'
-GOOGLE_DISPLAY_NAME = 'HyperKitty'
-SOCIAL_AUTH_PIPELINE = (
-    'social_auth.backends.pipeline.social.social_auth_user',
-    'social_auth.backends.pipeline.associate.associate_by_email',
-    'social_auth.backends.pipeline.user.get_username',
-    'social_auth.backends.pipeline.user.create_user',
-    'social_auth.backends.pipeline.social.associate_user',
-    'social_auth.backends.pipeline.social.load_extra_data',
-    'social_auth.backends.pipeline.user.update_user_details'
-)
-SOCIAL_AUTH_USERNAME_IS_FULL_EMAIL = True
 
 BROWSERID_USERNAME_ALGO = lambda email: email # Use the email as identifier
 BROWSERID_VERIFY_CLASS = "django_browserid.views.Verify"
+
+
+
+#
+# Social auth
+#
+
+AUTHENTICATION_BACKENDS = (
+    #'social.backends.open_id.OpenIdAuth',
+    # http://python-social-auth.readthedocs.org/en/latest/backends/google.html
+    'social.backends.google.GoogleOpenId',
+    #'social.backends.google.GoogleOAuth2',
+    #'social.backends.twitter.TwitterOAuth',
+    'social.backends.yahoo.YahooOpenId',
+    'social.backends.fedora.FedoraOpenId',
+    'django_browserid.auth.BrowserIDBackend',
+    'django.contrib.auth.backends.ModelBackend',
+)
+
+# http://python-social-auth.readthedocs.org/en/latest/configuration/django.html#database
+if django.VERSION[:2] < (1, 7):
+    SOUTH_MIGRATION_MODULES = {
+        'default': 'social.apps.django_app.default.south_migrations'
+    }
+
+SOCIAL_AUTH_USERNAME_IS_FULL_EMAIL = True
+
+# http://python-social-auth.readthedocs.org/en/latest/pipeline.html#authentication-pipeline
+SOCIAL_AUTH_PIPELINE = (
+    'social.pipeline.social_auth.social_details',
+    'social.pipeline.social_auth.social_uid',
+    'social.pipeline.social_auth.auth_allowed',
+    'social.pipeline.social_auth.social_user',
+    'social.pipeline.user.get_username',
+    # Associates the current social details with another user account with
+    # a similar email address. Disabled by default, enable with care:
+    # http://python-social-auth.readthedocs.org/en/latest/use_cases.html#associate-users-by-email
+    'social.pipeline.social_auth.associate_by_email',
+    'social.pipeline.user.create_user',
+    'social.pipeline.social_auth.associate_user',
+    'social.pipeline.social_auth.load_extra_data',
+    'social.pipeline.user.user_details',
+)
+
+
 
 #
 # Gravatar
@@ -274,6 +273,10 @@ COMPRESS_PRECOMPILERS = (
 COMPRESS_OFFLINE = True
 # needed for debug mode
 #INTERNAL_IPS = ('127.0.0.1',)
+
+# Django Crispy Forms
+CRISPY_TEMPLATE_PACK = 'bootstrap3'
+CRISPY_FAIL_SILENTLY = not DEBUG
 
 
 #
@@ -360,6 +363,10 @@ CACHES = {
 }
 
 
+
+#
+# HyperKitty-specific
+#
 
 APP_NAME = 'Fedora list archives'
 
