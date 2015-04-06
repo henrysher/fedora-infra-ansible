@@ -13,10 +13,21 @@
   - apps-fp-o
 
 - name: Copy in some global assets used around our apps
-  synchronize: >
-    src=global/ dest=/srv/web/apps-fp-o/global/
+  synchronize: src=global/ dest=/srv/web/apps-fp-o/global/
   tags:
   - apps-fp-o
+
+- name: Copy in fedmenu assets for staging
+  synchronize: src=fedmenu-staging/ dest=/srv/web/apps-fp-o/fedmenu/
+  when: environment == 'staging'
+  tags:
+  - apps-fp-o
+
+#- name: Copy in fedmenu assets for production
+#  synchronize: src=fedmenu/ dest=/srv/web/apps-fp-o/fedmenu/
+#  when: environment != 'staging'
+#  tags:
+#  - apps-fp-o
 
 - name: Copy in our app data yaml
   file: >
