@@ -86,6 +86,7 @@ def get_fas_groupings(fas_credentials, lookup, **config):
 
     results = {}
     packager_id, ambassadors_id = None, None
+    sponsor_types = ['sponsor', 'administrator']
     for user in mega_list:
         # This is the main check.
         for group_name, badge_id in lookup.iteritems():
@@ -106,11 +107,11 @@ def get_fas_groupings(fas_credentials, lookup, **config):
 
         for role in user.roles:
             if role.group_id == packager_id:
-                if role.role_type == 'sponsor' and role.role_status == 'approved':
+                if role.role_type in sponsor_types and role.role_status == 'approved':
                     results['sponsors'] = results.get('sponsors', []) + [user]
 
             if role.group_id == ambassadors_id:
-                if role.role_type == 'sponsor' and role.role_status == 'approved':
+                if role.role_type in sponsor_types and role.role_status == 'approved':
                     results['ambassadors_sponsors'] = results.get('ambassadors_sponsors', []) + [user]
 
     return results
