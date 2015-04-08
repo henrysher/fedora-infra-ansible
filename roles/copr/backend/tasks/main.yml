@@ -169,6 +169,13 @@
   shell: "chown -R copr:copr /var/lib/copr/public_html"
   when: copr_results_dir_st.stat.pw_name != "copr"
 
+- command: "ls -dZ /var/lib/copr/public_html/"
+  register: public_html_ls
+
+- name: update selinux context for results if root folder doesn't have proper type
+  command: "restorecon -vvRF /var/lib/copr/public_html/"
+  when: "copr_data_t" not in "{{ public_html_ls.stdout }}"
+
 - name: install cert to access fed-cloud09
   # TODO: remove this when fed-cloud09 receives external cert
   include: install_cloud_cert.yml
