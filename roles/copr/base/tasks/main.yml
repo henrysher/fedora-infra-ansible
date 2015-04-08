@@ -43,6 +43,11 @@
   tags:
   - packages
 
+- name: make sure our resolv.conf is the one being used - set PEERDNS=no in /etc/sysconfig/network
+  lineinfile: dest=/etc/sysconfig/network create=yes backup=yes state=present line='PEERDNS=no' regexp=^PEERDNS=
+  tags:
+  - config
+
 - name: enable services
   service: state=running enabled=yes name={{ item }}
   with_items:
