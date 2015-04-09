@@ -1,6 +1,13 @@
 ---
 - include: "mount_fs.yml"
 
+- command: "ls -dZ /var/lib/pgsql"
+  register: pgsql_ls
+
+- name: update selinux context for postgress db dir if it's wrong
+  command: "restorecon -vvRF /var/lib/pgsql"
+  when: "'postgresql_db_t' not in  pgsql_ls.stdout "
+
 - name: install pkgs for copr-frontend
   action: yum state=present pkg={{ item }}
   with_items:
@@ -90,10 +97,3 @@
   when: devel
   copy: src=banner-include.html dest=/var/lib/copr/
 
-
-- command: "ls -dZ /var/lib/pgsql"
-  register: pgsql_ls
-
-- name: update selinux context for postgress db dir if it's wrong
-  command: "restorecon -vvRF /var/lib/pgsql"
-  when: "'postgresql_db_t' not in  pgsql_ls.stdout "
