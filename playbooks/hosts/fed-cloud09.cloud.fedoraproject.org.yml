@@ -742,6 +742,26 @@
           remote_ip_prefix: "0.0.0.0/0"
     with_items: all_tenants
 
+  - name: "Allow nagios checks"
+    neutron_sec_group:
+      login_username: "admin"
+      login_password: "{{ ADMIN_PASS }}"
+      login_tenant_name: "admin"
+      auth_url: "https://{{controller_hostname}}:35357/v2.0"
+      state: "present"
+      name: 'allow-nagios-{{item}}'
+      description: "allow ssh from anywhere"
+      tenant_name: "{{item}}"
+      rules:
+        - direction: "ingress"
+          port_range_min: "5666"
+          port_range_max: "5666"
+          ethertype: "IPv4"
+          protocol: "tcp"
+          remote_ip_prefix: "209.132.181.35/32"
+    with_items:
+    - persistent
+
   - name: "Create 'ssh-from-persistent' security group"
     neutron_sec_group:
       login_username: "admin"
