@@ -231,11 +231,16 @@
   - command: packstack --answer-file=/root/packstack-controller-answers.txt
     when: packstack_sucessfully_finished.stat.exists == False
   - file: path=/etc/packstack_sucessfully_finished state=touch
+  # FIXME we should really reboot here
 
   - name: Set shell to nova user to allow cold migrations
     user: name=nova shell=/bin/bash
-
-  # FIXME we should really reboot here
+  - name: SSH authorized key for nova user
+    authorized_key: user=nova key="{{fed_cloud09_nova_public_key}}"
+  - name: SSH public key for nova user
+    template: src={{ files }}/fedora-cloud/fed_cloud09_nova_public_key dest=/var/lib/nova/.ssh/id_rsa.pub owner=nova group=nova
+  - name: Deploy private SSH key
+    copy: src={{ private }}/files/openstack/fed-cloud09-nova.key dest=/var/lib/nova/.ssh/id_rsa mode=600 owner=nova group=nova
 
   # http://docs.openstack.org/icehouse/install-guide/install/yum/content/basics-queue.html
   # https://openstack.redhat.com/Securing_services#qpid
