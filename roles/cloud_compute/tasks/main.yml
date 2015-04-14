@@ -285,6 +285,13 @@
   notify:
     - restart openstack-nova-compute
 
+- name: Set shell to nova user to allow cold migrations
+  user: name=nova shell=/bin/bash
+- name: SSH public key for nova user
+  authorized_key: user=nova key="{{fed_cloud09_nova_public_key}}"
+- name: Deploy private SSH key
+  copy: src={{ private }}/files/openstack/fed-cloud09-nova.key dest=/var/lib/nova/.ssh/ mode=600 owner=nova group=nova
+
 # This needs to be run after controller reprovision
 - name: "restart neutron-openvswitch-agent"
   service: name=neutron-openvswitch-agent state=restarted
