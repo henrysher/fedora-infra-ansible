@@ -109,7 +109,7 @@ config = {
 
     ## Backend stuff ##
     {% if env == 'staging' %}
-    "fmn.backends": ["email", "irc", "android", "desktop"],
+    "fmn.backends": ["email", "irc", "android"],
     {% else %}
     "fmn.backends": ["email", "irc"],  # android is disabled.
     {% endif %}

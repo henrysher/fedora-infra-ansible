@@ -5,7 +5,7 @@ config = {
     "datanommer.sqlalchemy.url": "postgresql://{{datanommerDBUser}}:{{datanommerDBPassword}}@db-datanommer/datanommer",
 
     {% if env == 'staging' %}
-    "fmn.backends": ["email", "irc", "android", "desktop"],
+    "fmn.backends": ["email", "irc", "android"],
     {% else %}
     "fmn.backends": ["email", "irc"],  # android is disabled.
     {% endif %}
