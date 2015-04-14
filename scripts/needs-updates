@@ -23,7 +23,11 @@ def main(args):
         output_opts=True, connect_opts=True, usage='ans-command [options]')
     parser.add_option('--host', dest='hostlist', action='append',
         help="hosts to contact, defaults to all in your inventory", default=[])
+    parser.add_option('-l','--list', dest='listupdates', action='store_true',
+        help="list the updates needed", default=False)
     options, args = parser.parse_args(args)
+    list_updates=options.listupdates
+    del options.listupdates
     options.module_name = 'yum' 
     options.module_args = 'list=updates'
         
@@ -51,13 +55,17 @@ def main(args):
         transport=options.connection
     )
     
+    updates = ""
     needsupdate = []
     results = runner.run()
     for (host,d) in results['contacted'].items():
          answer = d.get('results', [])
          if answer:
-             needsupdate.append('%s : %s' % (host, len(answer)))
-                
+	     updates="%s:%s" % (host,len(answer))
+	     if list_updates:
+		for update in answer:
+	             updates+=",%s" % update['name']
+	     needsupdate.append(updates)
          else:
              if d.get('failed', False):
                  err = d.get('stderr', '').strip()
@@ -65,16 +73,13 @@ def main(args):
                      print >> sys.stderr, 'Error: %s said %s' % (host, err)
                  msg = d.get('msg', '').strip()
                  if msg:
-                     print >> sys.stderr, 'Error: %s said %s' % (host, msg)                 
+                     print >> sys.stderr, 'Error: %s said %s' % (host, msg)
              
     for host in results['dark']:
         print >> sys.stderr, 'Error: Could not reach: %s' % host
-        
+
     for host in sorted(needsupdate):
         print host
-        
-
-
 
 if __name__ == '__main__':
     try:
@@ -83,4 +88,3 @@ if __name__ == '__main__':
         # Generic handler for ansible specific errors
         print "ERROR: %s" % str(e)
         sys.exit(1)
-

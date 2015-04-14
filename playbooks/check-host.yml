@@ -1,0 +1,269 @@
+# tags defined: [check], services, updates, restart, fileverify, iptables, selinux
+# for the fix part, I guess its better to include the role(s) for particular host that brings the system
+# to the desired state in terms of: services, updates, file verification, iptables, and selinux
+---
+- hosts: "{{ target }}"
+  user: root
+  vars:
+  - datadir_prfx_path: "/var/tmp/ansible-chk-host/"
+
+  tasks:
+
+  - name: create temp dir for collecting info
+    shell: mktemp -d
+    register: temp_dir
+    changed_when: False
+
+  - name: Get list of active loaded services with systemctl
+    shell: '/bin/systemctl -t service --no-legend | egrep "loaded active" | tr -s " " | cut -d " " -f1'
+    changed_when: False
+    when: ansible_distribution_major_version|int > 6
+    register: loaded_active_services_systemctl
+    tags:
+      - check
+      - services
+
+  - name: Get list of inactive loaded services with systemctl
+    shell: '/bin/systemctl -t service --no-legend | egrep -v "loaded active" | tr -s " " | cut -d " " -f1'
+    changed_when: False
+    when: ansible_distribution_major_version|int > 6
+    register: loaded_inactive_services_systemctl
+    tags:
+      - check
+      - services
+
+
+  - name: Get list of enabled services with chkconfig at current runlevel
+    shell: "chkconfig | grep \"`runlevel | cut -d ' ' -f 2`:on\" | awk '{print $1}'"
+    changed_when: False
+    when: ansible_distribution_major_version|int <= 6
+    register: enabled_services_chkconfig
+    tags:
+      - check
+      - services
+
+  - name: Get list of disabled services with chkconfig at current runlevel
+    shell: "chkconfig | grep \"`runlevel | cut -d ' ' -f 2`:off\" | awk '{print $1}'"
+    changed_when: False
+    when: ansible_distribution_major_version|int <= 6
+    register: disabled_services_chkconfig
+    tags:
+      - check
+      - services
+
+
+  - name: output enabled service list chkconfig
+    shell: echo {{enabled_services_chkconfig.stdout_lines}} >> {{temp_dir.stdout}}/eservices
+    when: enabled_services_chkconfig is defined and enabled_services_chkconfig.rc == 0
+    changed_when: False
+    tags:
+      - check
+      - services
+
+  - name: output disabled loaded service list chkconfig
+    shell: echo {{disabled_services_chkconfig.stdout_lines}} >> {{temp_dir.stdout}}/dservices
+    when: disabled_services_chkconfig is defined and disabled_services_chkconfig.rc == 0
+    changed_when: False
+    tags:
+      - check
+      - services
+
+
+  - name: output loaded active service list systemctl
+    shell: echo {{loaded_active_services_systemctl.stdout_lines}} >> {{temp_dir.stdout}}/laservices
+    when: loaded_active_services_systemctl is defined and loaded_active_services_systemctl.rc == 0
+    changed_when: False
+    tags:
+      - check
+      - services
+
+  - name: output loaded inactive service list systemctl 
+    shell: echo {{loaded_inactive_services_systemctl.stdout_lines}} >> {{temp_dir.stdout}}/liservices
+    when: loaded_inactive_services_systemctl is defined and loaded_inactive_services_systemctl.rc == 0
+    changed_when: False
+    tags:
+      - check
+      - services
+
+  - name: Check for pending updates
+#    script: {{ scripts }}/needs-updates --host {{ ansible_fqdn  }}
+    script: needs-updates --host {{ ansible_fqdn }}
+    register: list_update
+    delegate_to: 127.0.0.1
+    changed_when: False
+    tags:
+      - check
+      - updates
+
+  - name: Show pending updates
+    shell: echo {{list_update.stdout_lines}} >> {{temp_dir.stdout}}/pending_updates
+    changed_when: False
+    tags:
+      - check
+      - updates
+
+  - name: Get processes that need restarting
+    shell: needs-restarting
+    register: needs_restarting
+    changed_when: False
+    tags:
+      - check
+      - restart
+
+  - name: Show processes that need restarting
+    shell: echo {{needs_restarting.stdout_lines}} >> {{temp_dir.stdout}}/needing_restart
+    changed_when: False
+    tags:
+      - check
+      - restart
+
+  - name: Get locally changed files from the rpm package
+    shell: rpm_tmp_var=`mktemp` && ! rpm -Va 2>/dev/null > $rpm_tmp_var && [[ -s $rpm_tmp_var ]] && echo $rpm_tmp_var warn=no
+    register: localchanges
+    changed_when: False
+    tags:
+      - check
+      - fileverify
+
+  - name: Get locally changed files (excluding config files)
+    command: "egrep -v '  c /' {{ localchanges.stdout }}"
+    register: rpm_va_nc
+    changed_when: False
+    when: localchanges is defined and localchanges.stdout != ""
+    tags:
+      - check
+      - fileverify
+
+  - name: Show locally changed files (excluding config files)
+    shell: echo {{rpm_va_nc.stdout_lines}} >> {{temp_dir.stdout}}/local_changed
+    when: rpm_va_nc.stdout != ""
+    changed_when: False
+    tags:
+      - check
+      - fileverify
+
+  - name: 'Whitelist - Get locally changed files (config files)'
+    command: "egrep '  c /' {{ localchanges.stdout }}"
+    register: rpm_va_c
+    when: localchanges is defined and localchanges.stdout != ""
+    changed_when: False
+    tags:
+      - check
+      - fileverify
+
+  - name: 'Whitelist - Show locally changed files (config files)'
+    shell: echo {{rpm_va_c.stdout_lines}} >> {{temp_dir.stdout}}/local_config_changed
+    changed_when: False
+    when: rpm_va_c.stdout != ""
+    tags:
+      - check
+      - fileverify
+
+  - name: Check if using iptables
+    shell: /sbin/iptables -S
+    register: iptablesn
+    changed_when: False
+    tags:
+      - check
+      - iptables
+
+  - name: Show iptables rules
+    shell: echo "{{iptablesn.stdout_lines}}" >> {{ temp_dir.stdout }}/iptables
+    changed_when: False
+    tags:
+      - check
+      - iptables
+
+  - name: Show current SELinux status
+    shell: echo "SELinux is {{ ansible_selinux.status }} for this System" >> {{temp_dir.stdout}}/selinux
+    changed_when: False
+    tags:
+      - check
+      - selinux
+
+  - name: Show Boot SELinux mode 
+    shell: echo "SELinux boots to {{ ansible_selinux.config_mode }} mode " >> {{temp_dir.stdout}}/selinux
+    when: ansible_selinux.status != "disabled"
+    changed_when: False
+    tags:
+      - check
+      - selinux
+
+  - name: Show Current SELinux mode
+    shell: echo "SELinux currently is in {{ ansible_selinux.mode }} mode" >> {{temp_dir.stdout}}/selinux
+    when: ansible_selinux.status != "disabled"
+    changed_when: False
+    tags:
+      - check
+      - selinux
+
+  - name: Match current SELinux status with boot status
+    shell: echo "SElinux Current and Boot modes are in sync" >> {{temp_dir.stdout}}/selinux
+    when: ansible_selinux.status != "disabled" and ansible_selinux.config_mode == ansible_selinux.mode
+    changed_when: False
+    tags:
+      - check
+      - selinux
+
+
+  - name: misMatch current SELinux status with boot status
+    shell: echo "SElinux Current and Boot modes are NOT in sync" >> {{temp_dir.stdout}}/selinux
+    when: ansible_selinux.status != "disabled" and ansible_selinux.config_mode != ansible_selinux.mode
+    changed_when: False
+    tags:
+      - check
+      - selinux
+
+  - name: resolve last persisted dir - if one is present
+    local_action: shell ls -d -1 {{datadir_prfx_path}}/{{ansible_fqdn}}-* 2>/dev/null | sort -r | head -1
+    register: last_dir
+    changed_when: False
+    ignore_errors: True
+
+  - name: get file list
+    shell: ls -1 {{temp_dir.stdout}}/*
+    register: file_list
+    changed_when: False
+
+  - name: get timestamp
+    shell: "date +%Y-%m-%d-%H-%M-%S"
+    register: timestamp
+    changed_when: False
+
+  - name: create persisting-state directory
+    local_action: file path=/{{datadir_prfx_path}}/{{ansible_fqdn}}-{{timestamp.stdout}} state=directory
+    changed_when: False
+
+  - name: fetch file list
+    fetch: src={{item}} dest=/{{datadir_prfx_path}}/{{ansible_fqdn}}-{{timestamp.stdout}}/ flat=true
+    with_items: file_list.stdout_lines
+    changed_when: False
+
+
+  - name: diff the new files with last ones presisted
+    local_action: shell for file in {{datadir_prfx_path}}/{{ansible_fqdn}}-{{timestamp.stdout}}/*; do filename=$(basename $file); diff {{datadir_prfx_path}}/{{ansible_fqdn}}-{{timestamp.stdout}}/$filename {{last_dir.stdout.strip(':')}}/$filename; done
+    ignore_errors: True
+    changed_when: False
+    register: file_diff
+    when: last_dir is defined and last_dir.stdout != ""
+    
+  - name: display diff
+    debug: var=file_diff.stdout_lines
+    ignore_errors: True
+    changed_when: False
+    when: file_diff is defined
+
+#clean up: can also be put as handlers
+
+  - name: clean remote temp dir
+    file: path={{temp_dir.stdout}} state=absent
+    changed_when: False
+
+  - name: clean rpm temp file
+    file: path={{localchanges.stdout}} state=absent
+    changed_when: False
+
+   
+#  handlers:
+#  - include: "{{ handlers }}/restart_services.yml"
+#  - include: "restart_services.yml"
