@@ -59,6 +59,10 @@
     ignore_errors: yes
  
   - lvg: vg=cinder-volumes pvs=/dev/md127 pesize=32 vg_options=""
+  - name: Create logical volume for Swift
+    lvol: vg=swift_store lv=vg_server size=100g
+  - name: Create FS on Swift storage
+    filesystem: fstype=ext4 dev=/dev/vg_server/swift_store
 
   - template: src={{ files }}/fedora-cloud/hosts dest=/etc/hosts owner=root mode=0644
 
