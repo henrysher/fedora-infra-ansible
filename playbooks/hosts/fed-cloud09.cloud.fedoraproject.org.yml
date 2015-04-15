@@ -1,4 +1,23 @@
 ---
+- name:  Prepare storage on compute nodes
+  hosts: openstack-compute
+  user:  root
+  sudo:  yes
+  gather_facts: True
+
+  vars_files:
+  - /srv/web/infra/ansible/vars/fedora-cloud.yml
+
+  tasks:
+  # This is in fact duplicate from compute nodes, just be sure in case we did not run
+  # compute nodes playbook yet.
+  - name: Create logical volume for Swift
+    lvol: vg=vg_server lv=swift_store size=100g
+  - name: Create FS on Swift storage
+    filesystem: fstype=ext4 dev=/dev/vg_server/swift_store
+  - name: SSH authorized key for root user
+    authorized_key: user=nova key="{{fed_cloud09_root_public_key}}"
+
 - name: deploy Open Stack controler
   hosts: fed-cloud09.cloud.fedoraproject.org
   user: root
@@ -36,9 +55,10 @@
     user: name=root password={{ cloud_rootpw }} state=present
     tags:
     - rootpw
-
   - name: Set the hostname
     action: hostname name={{ controller_hostname }}
+  - name: Deploy root private SSH key
+    copy: src={{ private }}/files/openstack/fed-cloud09-root.key dest=/root/.ssh/id_rsa mode=600 owner=root group=root
 
   - name: install core pkgs
     action: yum state=present pkg={{ item }}
