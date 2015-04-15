@@ -23,6 +23,11 @@
   lvol: vg=vg_guests lv=nova size=100%FREE
 - filesystem: fstype=ext4 dev=/dev/mapper/vg_guests-nova
 - mount: name=/var/lib/nova src=/dev/mapper/vg_guests-nova fstype=ext4 state=mounted
+- name: Create logical volume for Swift
+  lvol: vg=vg_server lv=swift_store size=100g
+- name: Create FS on Swift storage
+  filesystem: fstype=ext4 dev=/dev/vg_server/swift_store
+
 - file: path=/var/lib/nova/{{item}} owner=nova group=nova mode=0755 state=directory
   with_items:
   - buckets
