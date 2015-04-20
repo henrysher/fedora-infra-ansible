@@ -16,7 +16,7 @@
   - name: Create FS on Swift storage
     filesystem: fstype=ext4 dev=/dev/vg_server/swift_store
   - name: SSH authorized key for root user
-    authorized_key: user=nova key="{{fed_cloud09_root_public_key}}"
+    authorized_key: user=root key="{{fed_cloud09_root_public_key}}"
 
 - name: deploy Open Stack controler
   hosts: fed-cloud09.cloud.fedoraproject.org
@@ -57,8 +57,8 @@
     - rootpw
   - name: Set the hostname
     action: hostname name={{ controller_hostname }}
-#  - name: Deploy root private SSH key
-#    copy: src={{ private }}/files/openstack/fed-cloud09-root.key dest=/root/.ssh/id_rsa mode=600 owner=root group=root
+  - name: Deploy root private SSH key
+    copy: src={{ private }}/files/openstack/fed-cloud09-root.key dest=/root/.ssh/id_rsa mode=600 owner=root group=root
 
   - name: install core pkgs
     action: yum state=present pkg={{ item }}
