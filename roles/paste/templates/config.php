@@ -41,7 +41,7 @@ $sg_php_score = 50;
 $sg_php_type = 2;
 $sg_censor = "vipshare.me
 http://bit.ly/
-http://tinyurl.com/file
+tinyurl.com
 freepremium.info.tm
 filevis.com
 terafile.co
