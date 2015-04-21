@@ -22,93 +22,16 @@
    - "/srv/private/ansible/vars.yml"
    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
 
-  vars:
-    packages:
-    - koschei
-    services:
-    - koschei-polling
-    - koschei-resolver
-    - koschei-scheduler
-    - koschei-watcher
-    # httpd is here temporarly only, it will be removed once koschei
-    # implements "base" role
-    - httpd
-    # flag controlling whether koji PEM private key and certificate
-    # should be deployed by playbook
-    cert: false
+  roles:
+  - koschei
 
   tasks:
-
   - include: "{{ tasks }}/growroot_cloud.yml"
   - include: "{{ tasks }}/cloud_setup_basic.yml"
   - include: "{{ tasks }}/postfix_basic.yml"
 
-  # Temporary yum repo hosted on fedorapeople, it will be replaced by
-  # Fedora infra repo once Koschei completes RFR.  Copr can't be used
-  # because of limitations of Fedora cloud routing -- machines in
-  # different networks can't access each other, even through public IP
-  - name: add koschei yum repo
-    action: copy src="{{ files }}/koschei/koschei.repo" dest="/etc/yum.repos.d/koschei.repo"
-
-  - name: yum update koschei package
-    yum: name={{item}} state=latest
-    with_items: "{{packages}}"
-    register: yumupdate
-    # TODO: restart httpd
-    tags:
-    - packages
-
-  - name: stop koschei
-    action: service name={{item}} state=stopped
-    with_items: "{{services}}"
-    when: yumupdate.changed
-
-  - name: install /etc/koschei/config.cfg file
-    template: src="{{ files }}/koschei/config.cfg.j2" dest="/etc/koschei/config.cfg"
-    notify:
-    - restart koschei
-    # TODO: restart httpd
-    tags:
-    - config
-
-  - name: install koschei.pem koji key and cert
-    copy: >
-      src="{{ private }}/files/koschei/koschei.pem"
-      dest="/etc/koschei/koschei.pem"
-      owner=koschei
-      group=koschei
-      mode=0400
-    when: cert
-    tags:
-    - config
-
-  - name: install koji ca cert
-    copy: >
-      src="{{ puppet_private }}/fedora-ca.cert"
-      dest="/etc/koschei/fedora-ca.cert"
-      owner=root
-      group=root
-      mode=0644
-    tags:
-    - config
-
-  - name: run koschei migration
-    command: alembic -c /usr/share/koschei/alembic.ini upgrade head
-    sudo_user: koschei
-    when: yumupdate.changed
-
-  - name: enable koschei to start
-    action: service name={{item}} state=running enabled=true
-    with_items: "{{services}}"
-    tags:
-    - service
-
   handlers:
   - include: "{{ handlers }}/restart_services.yml"
-
-  - name: restart koschei
-    action: service name={{item}} state=restarted
-    with_items: "{{services}}"
 
 - name: setup fedmsg
   hosts: koschei.cloud.fedoraproject.org

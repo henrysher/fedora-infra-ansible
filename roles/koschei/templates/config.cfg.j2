@@ -4,14 +4,45 @@
 # default one.
 config = {
     "database_config": {
-        "username": "koschei",
+        "hostname": "{{ koschei_pgsql_hostname }}",
+        "username": "koscheiuser",
         "password": "{{ koschei_pgsql_password }}",
         "database": "koschei"
     },
     "koji_config": {
+        "server": "http://{{ koschei_koji_hub }}/kojihub",
+        "topurl": "http://{{ koschei_kojipkgs }}",
+        "weburl": "http://{{ koschei_koji_hub }}/koji",
         "cert": "/etc/koschei/koschei.pem",
         "ca": "/etc/koschei/fedora-ca.cert",
         "server_ca": "/etc/koschei/fedora-ca.cert",
+        "source_tag": "{{ koschei_koji_tag }}",
+        "target_tag": "{{ koschei_koji_tag }}",
+        "build_tag": "{{ koschei_koji_tag }}-build",
+        "max_builds": 30,
+        "build_arches": ['i386', 'x86_64', 'armhfp'],
+        "build_opts": {
+        },
+        "load_threshold": 0.5,
+        "task_priority": 30,
+    },
+    "dependency": {
+        "build_group": "build",
+        "for_arch": "x86_64",
+        "repo_cache_items": 10,
+        "keep_build_deps_for": 5,
+        "repos": {
+            "x86_64": "http://{{ koschei_kojipkgs }}/repos/{{ koschei_koji_tag }}-build/{repo_id}/x86_64",
+            "i386": "http://{{ koschei_kojipkgs }}/repos/{{ koschei_koji_tag }}-build/{repo_id}/i386",
+        },
+    },
+    "services": {
+        "watcher": {
+            "watchdog_interval": 600, # in seconds
+        },
+        "polling": {
+            "interval": 20 * 60,
+        },
     },
     "flask": {
         "SECRET_KEY": "{{ koschei_flask_secret_key }}",
@@ -29,7 +60,7 @@ config = {
                 "level": "WARN",
                 "mailhost": "localhost",
                 "fromaddr": "koschei@fedoraproject.org",
-                "toaddrs": ['msimacek@redhat.com', 'mizdebsk@redhat.com'],
+                "toaddrs": ['sysadmin-koschei-members@fedoraproject.org'],
                 "subject": "Koschei warning",
             },
         },
@@ -37,18 +68,6 @@ config = {
     "fedmsg-publisher": {
         "enabled": True,
         "modname": "koschei",
-    },
-#    "services": {
-#        "polling": {
-#            "interval": 60,
-#        },
-#    },
-    "dependency": {
-        "repo_chache_items": 5,
-        "keep_build_deps_for": 2
-    },
-    "koji_config": {
-        "max_builds": 30
     },
 }
 

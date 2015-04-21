@@ -1,0 +1,62 @@
+- name: install packages
+  yum: name={{ item }} state=installed
+  with_items:
+  - koschei
+  tags:
+  - koschei
+  - packages
+
+- name: install config.cfg
+  template: >
+    src="config.cfg.j2"
+    dest="/etc/koschei/config.cfg"
+  notify:
+  - restart koschei-polling
+  - restart koschei-resolver
+  - restart koschei-scheduler
+  - restart koschei-watcher
+  - restart httpd
+  tags:
+  - koschei
+  - config
+
+- name: install koji key and cert
+  copy: >
+    src="{{ private }}/files/koschei/koschei.pem"
+    dest="/etc/koschei/koschei.pem"
+    owner=koschei
+    group=koschei
+    mode=0400
+  notify:
+  - restart koschei-scheduler
+  tags:
+  - koschei
+  - config
+
+- name: install koji ca cert
+  copy: >
+    src="{{ puppet_private }}/fedora-ca.cert"
+    dest="/etc/koschei/fedora-ca.cert"
+    owner=root
+    group=root
+    mode=0644
+  notify:
+  - restart koschei-polling
+  - restart koschei-resolver
+  - restart koschei-scheduler
+  - restart koschei-watcher
+  - restart httpd
+  tags:
+  - koschei
+  - config
+
+- name: enable services to start on boot
+  action: service name={{ item }} state=running enabled=true
+  with_items:
+  - koschei-polling
+  - koschei-resolver
+  - koschei-scheduler
+  - koschei-watcher
+  tags:
+  - koschei
+  - service
