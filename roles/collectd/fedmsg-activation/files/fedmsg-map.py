@@ -19,7 +19,7 @@ expected = '/wAAAAAAAAABfw=='
 active = collections.defaultdict(list)
 inactive = collections.defaultdict(list)
 
-for_collectd = 'collectd' in sys.argv
+for_collectd = 'verbose' not in sys.argv
 
 
 def info(content="\n"):
