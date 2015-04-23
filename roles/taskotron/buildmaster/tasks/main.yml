@@ -24,13 +24,11 @@
     - restart httpd
 
 - name: copy artifacts httpd config
-  when: deployment_type == 'dev' or deployment_type == 'stg'
   template: src=artifacts.conf.j2 dest=/etc/httpd/conf.d/artifacts.conf owner=root group=root
   notify:
     - restart httpd
 
 - name: create artifacts directory
-  when: deployment_type == 'dev' or deployment_type == 'stg'
   file: path={{ item }} state=directory owner=buildmaster group=buildmaster mode=0775 setype=httpd_sys_content_t
   with_items:
   - /srv/taskotron
