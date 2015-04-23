@@ -96,8 +96,8 @@ def do_scan():
 
     info("  total active:   %i\n" % active_n_total)
     info("total inactive:   %i\n" % inactive_n_total)
-    value = 100 * float(active_n_total) / (active_n_total + inactive_n_total)
-    info("percent active: %%%0.1f\n" % value)
+    value = float(active_n_total) / (active_n_total + inactive_n_total)
+    info("percent active: %%%0.1f\n" % (100 * value))
     return value
 
 if not for_collectd:
