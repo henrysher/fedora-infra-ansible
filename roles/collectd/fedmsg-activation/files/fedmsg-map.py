@@ -106,9 +106,9 @@ else:
     interval = 10
     host = socket.getfqdn()
     while True:
-        start = timestamp = time.time()
+        start = time.time()
         value = do_scan()
-        stop = time.time()
+        stop = timestamp = time.time()
         delta = stop - start
         output = (
             "PUTVAL "
