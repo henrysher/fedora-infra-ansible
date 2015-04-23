@@ -119,7 +119,7 @@ else:
             host=host,
             interval=interval,
             timestamp=int(timestamp),
-            value=value)
+            value="%0.1f" % value)
         print(output)
         if interval - delta > 0:
             time.sleep(interval - delta)
