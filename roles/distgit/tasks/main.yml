@@ -205,11 +205,23 @@
 
 # -- CGit ------------------------------------------------
 # This is the pretty web view of the repositories, using CGit.
-- name: install the cgitrc file
+- name: install the prod cgitrc file
   copy: src=cgitrc dest=/etc/cgitrc
+  when: env != 'staging'
+  tags: distgit
+  notify:
+  - restart httpd
+
+- name: install the stg cgitrc file
+  copy: src=cgitrc dest=/etc/cgitrc-staging
+  when: env == 'staging'
+  tags: distgit
+  notify:
+  - restart httpd
 
 - name: install the CGit-related httpd config
   copy: src=redirect.conf dest=/etc/httpd/conf.d/pkgs.fedoraproject.org/redirect.conf
+  tags: distgit
   notify:
   - restart httpd
 
