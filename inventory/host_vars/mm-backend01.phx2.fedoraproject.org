@@ -1,0 +1,28 @@
+---
+lvm_size: 20000
+mem_size: 4096
+num_cpus: 2
+nm: 255.255.255.0
+gw: 10.5.126.254
+dns: 10.5.126.21
+ks_url: http://10.5.126.23/repo/rhel/ks/kvm-rhel-7
+ks_repo: http://10.5.126.23/repo/rhel/RHEL7-x86_64/
+volgroup: /dev/vg_virthost03
+eth0_ip: 10.5.126.183
+eth1_ip: 10.5.127.23
+vmhost: virthost03.phx2.fedoraproject.org
+datacenter: phx2
+
+# nfs mount options, overrides the all/default
+nfs_mount_opts: "ro,hard,bg,intr,nodev,nosuid"
+
+# We define this here to override the global one because we need eth1
+virt_install_command: virt-install -n {{ inventory_hostname }} -r {{ mem_size }}
+                 --disk bus=virtio,path={{ volgroup }}/{{ inventory_hostname }}
+                 --vcpus={{ num_cpus }}  -l {{ ks_repo }} -x
+                 "ksdevice=eth0 ks={{ ks_url }} console=tty0 console=ttyS0
+                  hostname={{ inventory_hostname }} nameserver={{ dns }}
+                  ip={{ eth0_ip }}::{{ gw }}:{{ nm }}:{{ inventory_hostname }}:eth0:none
+                  ip={{ eth1_ip }}:::{{ nm }}:{{ inventory_hostname }}-nfs:eth1:none"
+                 --network=bridge=br0,model=virtio --network=bridge=br1,model=virtio
+                 --autostart --noautoconsole
