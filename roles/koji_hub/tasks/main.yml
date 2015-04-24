@@ -30,6 +30,15 @@
   tags:
   - koji_hub
 
+- name: fedmenu shim
+  template: src=fedmenu-extra-footer.html dest=/usr/share/koji-web/static/extra-footer.html
+  tags: koji_hub
+  notify: restart httpd
+  # XXX - we only want to do this in staging for now because it requires a patch
+  # to koji itself to include the extra-footer.html file in a sufficiently
+  # advanced way.
+  when: env == 'staging'
+
 - name: hub config
   template: src=hub.conf.j2 dest=/etc/koji-hub/hub.conf owner=apache group=apache mode=600
   tags:
