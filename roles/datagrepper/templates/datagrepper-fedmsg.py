@@ -10,7 +10,11 @@ config = {
     # other apps.
     {% if environment == "staging" %}
     'datanommer.sqlalchemy.url': 'postgresql://{{ datanommerDBUser }}:{{ datanommerDBPassword }}@db01.stg.phx2.fedoraproject.org/datanommer',
+    'fedmenu_url': 'https://apps.stg.fedoraproject.org/fedmenu',
+    'fedmenu_data_url': 'https://apps.stg.fedoraproject.org/js/data.js',
     {% else %}
     'datanommer.sqlalchemy.url': 'postgresql://{{ datanommerDBUser }}:{{ datanommerDBPassword }}@db-datanommer02.phx2.fedoraproject.org/datanommer',
+    'fedmenu_url': 'https://apps.fedoraproject.org/fedmenu',
+    'fedmenu_data_url': 'https://apps.fedoraproject.org/js/data.js',
     {% endif %}
 }
