@@ -26,9 +26,12 @@ SOFTWARE."""
     :license: MIT
 """
 
-import ansible.runner
+import os
 
 ALIAS_PATH = '/srv/web/infra/hosts/{hostname}/host_aliases'
+os.environ['ANSIBLE_HOST_KEY_CHECKING'] = 'False'
+
+import ansible.runner
 
 if __name__ == "__main__":
     runner = ansible.runner.Runner(module_name="setup")
@@ -46,7 +49,10 @@ if __name__ == "__main__":
 
         ansible_hostname = facts["ansible_hostname"]
         if ansible_hostname not in names:
-            names.append(ansible_hostname)
+           if ansible_fqdn.find('.stg.') != -1 or hostname.find('.stg.') != -1:
+             names.append(ansible_hostname+".stg")
+           else:
+             names.append(ansible_hostname)
 
         try:
             with open(ALIAS_PATH.format(hostname=hostname),
@@ -58,13 +64,19 @@ if __name__ == "__main__":
         except IOError:
             pass
 
-        ipv4_addresses = facts["ansible_all_ipv4_addresses"]
-        names.extend(sorted(ipv4_addresses))
+        ipv4_addresses = facts["ansible_default_ipv4"]
+        if ipv4_addresses:
+         names.append(ipv4_addresses["address"])
 
         # ignore link local addresses
-        non_link_local = [a for a in facts["ansible_all_ipv6_addresses"] if
-                          not a.startswith("fe80::")]
-        names.extend(sorted(non_link_local))
+        non_link_local = facts["ansible_default_ipv6"]
+        if non_link_local:
+         names.append(non_link_local["address"])
+
+        #get tunnel addresses; hardcoded to tun0
+        if facts.has_key('ansible_tun0'):
+         tunnel_addresses=facts["ansible_tun0"]
+         names.append(tunnel_addresses['ipv4']['address'])
 
         sshhostkeys[hostname] = {"key": key,
                                  "names": ",".join(names)}
