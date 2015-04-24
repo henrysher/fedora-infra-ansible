@@ -13,6 +13,4 @@ config = {
     {% else %}
     'datanommer.sqlalchemy.url': 'postgresql://{{ datanommerDBUser }}:{{ datanommerDBPassword }}@db-datanommer02.phx2.fedoraproject.org/datanommer',
     {% endif %}
-    'fedmsg.consumers.datagrepper-runner.enabled': True,
 }
-
