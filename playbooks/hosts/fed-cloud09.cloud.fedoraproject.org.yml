@@ -57,8 +57,12 @@
     - rootpw
   - name: Set the hostname
     action: hostname name={{ controller_hostname }}
+
   - name: Deploy root private SSH key
     copy: src={{ private }}/files/openstack/fed-cloud09-root.key dest=/root/.ssh/id_rsa mode=600 owner=root group=root
+
+  - name: Deploy root public SSH key
+    copy: src={{ files }}/fedora-cloud/fed09-ssh-key.pub dest=/root/.ssh/id_rsa.pub mode=600 owner=root group=root
 
   - name: install core pkgs
     action: yum state=present pkg={{ item }}
@@ -91,7 +95,7 @@
 
   # http://docs.openstack.org/trunk/install-guide/install/yum/content/basics-networking.html
   - service: name=NetworkManager state=stopped enabled=no
-  - service: name=network state=started enabled=yes
+  - service: name=network enabled=yes
   - service: name=firewalld state=stopped enabled=no
     ignore_errors: yes
   - service: name=iptables state=started enabled=yes
