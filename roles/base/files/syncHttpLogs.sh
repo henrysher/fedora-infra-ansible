@@ -57,7 +57,6 @@ syncHttpLogs datagrepper02.phx2.fedoraproject.org
 syncHttpLogs datagrepper01.stg.phx2.fedoraproject.org
 syncHttpLogs fedoauth01.phx2.fedoraproject.org
 syncHttpLogs fedoauth02.phx2.fedoraproject.org
-syncHttpLogs fedoauth01.stg.phx2.fedoraproject.org
 syncHttpLogs ask01.phx2.fedoraproject.org
 syncHttpLogs ask02.phx2.fedoraproject.org
 syncHttpLogs ask01.stg.phx2.fedoraproject.org
