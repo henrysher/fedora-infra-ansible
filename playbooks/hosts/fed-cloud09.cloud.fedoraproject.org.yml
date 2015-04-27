@@ -251,8 +251,7 @@
       insertbefore="^}"
   # http://openstack.redhat.com/Quickstart
   - template: src={{ files }}/fedora-cloud/packstack-controller-answers.txt dest=/root/ owner=root mode=0600
-  - name: SSH authorized key for root user
-    authorized_key: user=root key="{{fed_cloud09_root_public_key}}"
+  - authorized_key: user=root key="{{ lookup('file', files + '/fedora-cloud/fed09-ssh-key.pub') }}"
   - command: packstack --answer-file=/root/packstack-controller-answers.txt
     when: packstack_sucessfully_finished.stat.exists == False
   - file: path=/etc/packstack_sucessfully_finished state=touch
