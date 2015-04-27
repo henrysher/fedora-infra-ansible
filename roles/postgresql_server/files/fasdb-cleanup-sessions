@@ -1,0 +1,12 @@
+#!/bin/sh
+
+PGOPTIONS='-c maintenance_work_mem=1048576'
+SESSIONDBS='fas2'
+
+# Clean out old sessions since TurboGears doesn't
+for db in $SESSIONDBS; do
+/usr/bin/psql $db > /dev/null <<EOF
+delete from visit where expiry < now() - interval '1h';
+delete from visit_identity where visit_key not in (select visit_key from visit);
+EOF
+done

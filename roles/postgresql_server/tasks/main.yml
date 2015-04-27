@@ -88,3 +88,21 @@
   tags:
   - cron
   - postgresql
+
+- name: Set up a script for cron job to clean long fas sessions on fas database server only
+  copy: >
+    src=fasdb-cleanup-sessions
+    dest=/usr/local/bin/fasdb-cleanup-sessions
+  when: inventory_hostname.startswith('db-fas01')
+  tags:
+  - cron
+  - postgresql
+
+- name: Set up a cron job to clean long fas sessions on fas database server only
+  copy: >
+    src=fasdb-cleanup-sessions.cron
+    dest=/etc/cron.d/fasdb-cleanup-sessions.cron
+  when: inventory_hostname.startswith('db-fas01')
+  tags:
+  - cron
+  - postgresql
