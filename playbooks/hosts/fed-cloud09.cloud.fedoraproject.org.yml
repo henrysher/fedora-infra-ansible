@@ -413,6 +413,8 @@
   - ini_file: dest=/etc/neutron/neutron.conf section=DEFAULT option=ssl_key_file value=/etc/pki/tls/private/fed-cloud09-neutron.key
   - ini_file: dest=/etc/neutron/neutron.conf section=DEFAULT option=ssl_ca_file value=/etc/pki/tls/certs/fed-cloud09-neutron.pem
   - ini_file: dest=/etc/neutron/neutron.conf section=DEFAULT option=bind_port value=8696
+  - lineinfile: dest=/etc/neutron/neutron.conf regexp="^service_provider = LOADBALANCER" line="service_provider = LOADBALANCER:Haproxy:neutron.services.loadbalancer.drivers.haproxy.plugin_driver.HaproxyOnHostPluginDriver:default" insertafter="\[service_providers]"
+  - lineinfile: dest=/etc/neutron/neutron.conf regexp="^service_provider = FIREWALL" line="service_provider = FIREWALL:Iptables:neutron.agent.linux.iptables_firewall.OVSHybridIptablesFirewallDriver:default" insertafter="\[service_providers]"
 
   - ini_file: dest=/etc/neutron/api-paste.conf section="filter:authtoken" option=auth_uri value=https://{{ controller_hostname }}:5000
   - ini_file: dest=/etc/neutron/api-paste.conf section="filter:authtoken" option=auth_host value={{ controller_hostname }}
