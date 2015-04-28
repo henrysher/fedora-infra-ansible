@@ -149,10 +149,10 @@
 - name: restart bridge
   shell: /usr/lib/systemd/systemd-sysctl --prefix=/proc/sys/net/bridge
 
-- name: hup libvirtd
-  command: pkill -HUP libvirtd
+- name: reload libvirtd
+  service: name=libvirtd state=reloaded
   ignore_errors: true
-  when: inventory_hostname.startswith('buildhw')
+  when: ansible_virtualization_role == 'host'
 
 - name: restart fcomm-cache-worker
   service: name=fcomm-cache-worker state=restarted
