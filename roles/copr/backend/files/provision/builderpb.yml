@@ -10,8 +10,8 @@
   vars:
   - security_group: builder
   - image_id: cba0c766-84ac-4048-b0f5-6d4000af62f8
-  - OS_USERNAME: msuchy
-  - OS_AUTH_URL: http://172.23.0.2:5000/v2.0
+  - OS_USERNAME_OLD: msuchy
+  - OS_AUTH_URL_OLD: http://172.23.0.2:5000/v2.0
   # todo: remove after transition to new cloud
 
   tasks:
@@ -20,7 +20,7 @@
     register: vm_name
 
   - name: spin it up
-    local_action: nova_compute auth_url={{OS_AUTH_URL}} flavor_id=6 image_id={{ image_id }} key_name=buildsys login_password={{OS_PASSWORD}} login_tenant_name={{OS_TENANT_NAME}} login_username={{OS_USERNAME}} security_groups={{security_group}} wait=yes name="{{vm_name.stdout}}"
+    local_action: nova_compute auth_url={{OS_AUTH_URL_OLD}} flavor_id=6 image_id={{ image_id }} key_name=buildsys login_password={{OS_PASSWORD}} login_tenant_name={{OS_TENANT_NAME}} login_username={{OS_USERNAME_OLD}} security_groups={{security_group}} wait=yes name="{{vm_name.stdout}}"
     register: nova
 
   # should be able to use nova.private_ip, but it does not work with Fedora Cloud.
