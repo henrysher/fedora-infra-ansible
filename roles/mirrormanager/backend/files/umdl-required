@@ -1,0 +1,45 @@
+#!/bin/bash
+
+if [ $# -ne 1 ]; then
+	echo "Exactly one parameter needed. /path/to/logfile"
+	exit 1
+fi
+
+exec >> $1
+exec 2>&1
+
+CURDATE=`date +%s`
+
+if [ -e /var/run/mirrormanager/umdl ]; then
+	. /var/run/mirrormanager/umdl
+else
+	# 48 hours -> 172800 seconds
+	let LASTRUN=CURDATE-172800
+fi
+
+let DELTA=CURDATE-LASTRUN
+
+date
+echo "Last sync more than ${DELTA} seconds ago. Running umdl"
+
+/usr/local/bin/last-sync -d ${DELTA} -q
+
+if [ "$?" -ne "0" ]; then
+	# no changes on the master mirror
+	# abort
+	exit 0
+fi
+
+/usr/local/bin/lock-wrapper umdl /usr/bin/mm2_update-master-directory-list
+
+if [ "$?" -eq "0" ]; then
+	# success! remember the date of this run
+	CURDATE=`date +%s`
+	echo "LASTRUN=${CURDATE}" > /var/run/mirrormanager/umdl
+	date
+	echo "Finished umdl successfully"
+	exit 0
+fi
+
+date
+echo "umdl returned not zero. Something failed. Please check umdl.log"
