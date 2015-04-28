@@ -377,6 +377,15 @@
   - ini_file: dest=/etc/glance/glance-api.conf section=keystone_authtoken option=auth_host value={{ controller_hostname }}
   - ini_file: dest=/etc/glance/glance-api.conf section=keystone_authtoken option=cafile value=/etc/pki/tls/certs/fed-cloud09-keystone.pem
   - ini_file: dest=/etc/glance/glance-api.conf section=DEFAULT option=bind_port value=7292
+  # configure Glance to use Swift as backend
+  - ini_file: dest=/etc/glance/glance-api.conf section=DEFAULT option=default_store value=swift
+  - ini_file: dest=/etc/glance/glance-api.conf section=glance_store option=stores value=glance.store.swift.Store
+  - ini_file: dest=/etc/glance/glance-api.conf section=glance_store option=swift_store_auth_address value=https://{{ controller_hostname }}:5000/v2.0
+  - ini_file: dest=/etc/glance/glance-api.conf section=glance_store option=swift_store_user value="services:swift"
+  - ini_file: dest=/etc/glance/glance-api.conf section=glance_store option=swift_store_key value="{{ SWIFT_PASS }}"
+  - ini_file: dest=/etc/glance/glance-api.conf section=glance_store option=swift_store_create_container_on_put value="True"
+  - shell: rsync /usr/share/glance/glance-api-dist-paste.ini /etc/glance/glance-api-paste.ini
+  - shell: rsync /usr/share/glance/glance-registry-dist-paste.ini /etc/glance/glance-registry-paste.ini
 
   - ini_file: dest=/etc/glance/glance-registry.conf section=keystone_authtoken option=auth_uri value=https://{{ controller_hostname }}:5000
   - ini_file: dest=/etc/glance/glance-registry.conf section=keystone_authtoken option=auth_host value={{ controller_hostname }}
