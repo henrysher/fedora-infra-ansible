@@ -7,6 +7,13 @@ config = dict(
     environment="prod",
     {% endif %}
 
+    # Most hosts will be "false" here indicating that if they publish messages,
+    # they will passively bind to ports and have other consuming services
+    # actively connect to them.  If this flag is set to True, then the service
+    # will actively connect out to a fedmsg-relay to have its messages forwarded
+    # on.
+    active={{fedmsg_active}},
+
     {% if not ansible_hostname.startswith('busgateway') %}
     # These options provide a place for hub processes to write out their last
     # processed message.  This let's them read it in at startup and figure out
