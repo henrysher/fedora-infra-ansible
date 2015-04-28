@@ -37,8 +37,18 @@
   - config
   when: inventory_hostname.startswith('secondary')
 
-- name: setup secondary /etc/sigul/server.conf file
-  copy: src="{{ files }}/sign/server.conf.secondary" dest=/etc/sigul/server.conf owner=root group=sigul mode=640
+- name: Install secondary arch koji configs
+  template: src="{{ files }}/sign/bridge.conf.secondary.j2" dest=/etc/sigul/bridge.conf owner=root group=sigul mode=640
+  tags:
+  - config
+  when: inventory_hostname.startswith('secondary')
+
+- name: setup secondary koji config files
+  copy: src="{{ files }}/sign/{{ item }}" dest=/etc/{{ item }} owner=root group=root mode=644
+  with_items:
+  - koji-arm.conf
+  - koji-ppc.conf
+  - koji-s390.conf
   when: inventory_hostname.startswith('secondary')
 
 - name: setup gpg link
