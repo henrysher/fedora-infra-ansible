@@ -14,6 +14,16 @@ config = dict(
     # on.
     active={{fedmsg_active}},
 
+    {% if fedmsg_cert_prefix is defined %}
+    # Most fedmsg enabled services dynamically guess their cert_prefix by
+    # looking at the namespace of the python code that they're running in.  For
+    # instance, bodhi's code is in the 'bodhi' python module, so fedmsg grabs
+    # that and uses it for its cert prefix.  Some code, however, runs in an
+    # oddly-namespaced module, and so we allow the option here to override that
+    # at the host level.
+    cert_prefix='{{fedmsg_cert_prefix}}',
+    {% endif %}
+
     {% if not ansible_hostname.startswith('busgateway') %}
     # These options provide a place for hub processes to write out their last
     # processed message.  This let's them read it in at startup and figure out
