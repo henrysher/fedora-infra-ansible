@@ -151,6 +151,15 @@
     notify:
     - reload aliases
 
+  # Mailman is installed from source, not from the RPM
+  - name: systemd service file for mailman3
+    template: src="{{ files }}mailman3.service.j2" dest=/etc/systemd/system/multi-user.target.wants/mailman3.service
+    tags:
+    - config
+
+  - name: mailman logging -- rotation
+    template: src=mailman.logrotate.j2 dest=/etc/logrotate.d/mailman3
+
 
   handlers:
   - include: "{{ handlers }}/restart_services.yml"
