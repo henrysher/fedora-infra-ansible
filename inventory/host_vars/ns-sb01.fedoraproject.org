@@ -3,8 +3,6 @@ nm: 255.255.255.0
 gw: 192.168.122.1
 dns: 8.8.8.8
 
-ks_url: http://209.132.181.6/repo/rhel/ks/kvm-rhel-7
-ks_repo: http://209.132.181.6/repo/rhel/RHEL7-x86_64/
 volgroup: /dev/vg_Server
 eth0_ip: 192.168.122.3
 vmhost: serverbeach09.fedoraproject.org
@@ -19,4 +17,21 @@ virt_install_command: virt-install -n {{ inventory_hostname }} -r {{ mem_size }}
                  "ksdevice=eth0 ks={{ ks_url }} ip={{ eth0_ip }} netmask={{ nm }}
                   gateway={{ gw }} dns={{ dns }} console=tty0 console=ttyS0
                   hostname={{ inventory_hostname }}"
+                 --network bridge=virbr0,model=virtio
                  --autostart --noautoconsole
+
+ks_url: http://209.132.181.6/repo/rhel/ks/kvm-rhel-7-ext
+ks_repo: http://209.132.181.6/repo/rhel/RHEL7-x86_64/
+
+# This is consumed by the roles/fedora-web/main role
+sponsor: serverbeach
+postfix_group: vpn
+
+mem_size: 6144
+nrpe_procs_warn: 900
+nrpe_procs_crit: 1000
+
+# This is used in the httpd.conf to determine the value for serverlimit and
+# maxrequestworkers. On 8gb proxies, 900 seems fine. But on 4gb proxies, this
+# should be lowered in the host vars for that proxy.
+maxrequestworkers: 600
