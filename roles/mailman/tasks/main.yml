@@ -67,6 +67,8 @@
   - python-whoosh
   - python-tox
   - python-vcrpy
+  # django-compressor implicitely requires BeautifulSoup until v1.4
+  - python-BeautifulSoup
   tags:
   - packages
 
@@ -255,20 +257,29 @@
 # Only run this on mailman01 for now. 
 # TODO: run it on lists-dev too
 # 
+
+# The post-update scripts needs memcached to be up (django-compressor will
+# store the timestamps there)
+- name: start services
+  service: state=started enabled=yes name=memcached
+
 - name: run the post-update script
   command: "{{ mailman_webui_basedir }}/bin/post-update.sh"
   when: inventory_hostname.startswith('mailman01')
+
 
 ## Postfix
 #- name: create the postfix aliases
 #  command: su mailman -s /bin/sh -c "mailman3 aliases"
 #           creates=/var/lib/mailman3/data/postfix_lmtp.db
 
+
 # Memcached
 - name: set the memcached sysconfig file
   copy: src=memcached.sysconfig dest=/etc/sysconfig/memcached
   notify:
   - restart memcached
+
 
 # Start services
 - name: start services
