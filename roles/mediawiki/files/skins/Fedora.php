@@ -344,12 +344,21 @@ class FedoraTemplate extends QuickTemplate {
 	<?php $this->html('bottomscripts'); /* JS call to runBodyOnloadHook */ ?>
 
   <script src="https://apps.fedoraproject.org/fedmenu/js/jquery-1.11.2.min.js"></script>
+  <script src="https://apps.fedoraproject.org/fedmenu/js/fedora-libravatar.js"></script>
   <script src="https://apps.fedoraproject.org/fedmenu/js/fedmenu.js"></script>
   <script>
     fedmenu({
         'url': 'https://apps.fedoraproject.org/js/data.js',
         'mimeType': 'application/javascript',
         'position': 'bottom-right',
+        <?php
+            $subject = $skin->getTitle()->getInternalURL();
+            $pattern = '/User:([a-zA-Z0-9]+)$/';
+            preg_match($pattern, $subject, $matches);
+            if (sizeof($matches) == 2):
+                echo "'user': '" . strtolower($matches[1]) . "',";
+            endif;
+        ?>
     });
   </script>
 
