@@ -206,6 +206,24 @@
   tags:
   - koji_hub
 
+- name: check selinux default context for /mnt/fedora_koji in staging
+  command: matchpathcon /mnt/fedora_koji
+  register: mnt_fedora_koji_context
+  when: env == "staging"
+  always_run: yes
+  changed_when: "1 != 1"
+  tags:
+  - koji_hub
+  - selinux
+
+- name: /mnt/fedora_koji selinux file context
+  command: semanage fcontext -a -t httpd_sys_rw_content_t "/mnt/fedora_koji(/.*)?"
+  when: env == "staging" and
+        mnt_fedora_koji_context.stdout.find('httpd_sys_rw_content_t') == -1
+  tags:
+  - koji_hub
+  - selinux
+
 - name: set sebooleans so koji can talk to the db
   seboolean: name=httpd_can_network_connect_db state=true persistent=true
   tags:
