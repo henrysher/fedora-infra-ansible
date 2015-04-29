@@ -16,9 +16,6 @@ config = fedmsg.config.load_config()
 timeout = 0.2
 expected = '/wAAAAAAAAABfw=='
 
-active = collections.defaultdict(list)
-inactive = collections.defaultdict(list)
-
 for_collectd = 'verbose' not in sys.argv
 
 
@@ -29,6 +26,9 @@ def info(content="\n"):
 
 
 def do_scan():
+    active = collections.defaultdict(list)
+    inactive = collections.defaultdict(list)
+
     for i, item in enumerate(config['endpoints'].items()):
         name, endpoints = item
         for endpoint in endpoints:
@@ -103,7 +103,7 @@ def do_scan():
 if not for_collectd:
     do_scan()
 else:
-    interval = 10
+    interval = 30
     host = socket.getfqdn()
     while True:
         start = time.time()
