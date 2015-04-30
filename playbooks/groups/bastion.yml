@@ -1,5 +1,5 @@
 - name: make the servers
-  hosts: bastion:!bastion-comm01.qa.fedoraproject.org
+  hosts: bastion
   user: root
   gather_facts: False
 
@@ -43,3 +43,14 @@
 
   handlers:
   - include: "{{ handlers }}/restart_services.yml"
+
+- name: configure bastion-qa
+  hosts: bastion-comm01.qa.fedoraproject.org
+  user: root
+  gather_facts: True
+
+  tasks:
+  - name: install needed packages
+    yum: pkg={{ item }} state=present
+    with_items:
+    - ipmitool
