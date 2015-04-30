@@ -1,0 +1,57 @@
+- name: make secondary arch download
+  hosts: secondary
+  user: root
+
+  gather_facts: False
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  tasks:
+  - include: "{{ tasks }}/virt_instance_create.yml"
+
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"
+
+- name: setup secondary arch download server
+  hosts: secondary
+  user: root
+  gather_facts: True
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - "/srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml"
+
+  roles:
+  - base
+  - rkhunter
+  - nagios_client
+  - hosts
+  - fas_client
+  - collectd/base
+  - download
+  - rsyncd
+  - sudo
+  - { role: nfs/client, 
+      mnt_dir: '/srv/pub/archive',  
+      nfs_src_dir: 'fedora_ftp/fedora.redhat.com/pub/archive' }
+  - { role: nfs/client, 
+      mnt_dir: '/srv/pub/alt',  
+      nfs_mount_opts: "rw,hard,bg,intr,noatime,nodev,nosuid,nfsvers=3",
+      nfs_src_dir: 'fedora_ftp/fedora.redhat.com/pub/alt' }
+  - { role: nfs/client,
+      mnt_dir: '/srv/pub/secondary',
+      nfs_mount_opts: "rw,hard,bg,intr,noatime,nodev,nosuid,nfsvers=3",
+      nfs_src_dir: 'fedora_ftp/fedora.redhat.com/pub/fedora-secondary' }
+
+  tasks:
+  - include: "{{ tasks }}/yumrepos.yml"
+  - include: "{{ tasks }}/2fa_client.yml"
+  - include: "{{ tasks }}/motd.yml"
+  - include: "{{ tasks }}/apache.yml"
+
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"
