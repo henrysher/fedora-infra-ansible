@@ -355,7 +355,7 @@ class FedoraTemplate extends QuickTemplate {
             $subject = $skin->getTitle()->getInternalURL();
             $pattern = '/User:([a-zA-Z0-9]+)(\/.*)?$/';
             preg_match($pattern, $subject, $matches);
-            if (sizeof($matches) == 2):
+            if (sizeof($matches) >= 2):
                 echo "'user': '" . strtolower($matches[1]) . "',";
             endif;
         ?>
