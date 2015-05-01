@@ -104,7 +104,7 @@
 
 - name: /etc/kojid/kojid.conf
   copy: src=kojid.conf dest=/etc/kojid/kojid.conf
-  when: not inventory_hostname.startswith(('arm01','arm03','aarch64','koji01.stg','buildvm-01.stg'))
+  when: not inventory_hostname.startswith(('arm01','arm03','aarch64','ppc8','koji01.stg','buildvm-01.stg'))
   notify:
   - restart kojid
   tags:
@@ -128,13 +128,19 @@
 
 - name: /etc/koji/koji.conf
   copy: src=koji.conf dest=/etc/koji.conf
-  when: not inventory_hostname.startswith(('arm01','arm03','aarch64'))
+  when: not inventory_hostname.startswith(('arm01','arm03','aarch64','ppc8'))
   tags:
   - koji_builder
 
 - name: /etc/koji/koji.conf
   copy: src=arm-koji.conf dest=/etc/koji.conf
   when: inventory_hostname.startswith(('arm01','arm03','aarch64'))
+  tags:
+  - koji_builder
+
+- name: /etc/koji/koji.conf
+  copy: src=ppc-koji.conf dest=/etc/koji.conf
+  when: inventory_hostname.startswith(('ppc8'))
   tags:
   - koji_builder
 
@@ -177,7 +183,7 @@
 
 - name: make a mnt/koji link
   file: state=link src=/mnt/fedora_koji/koji dest=/mnt/koji
-  when: inventory_hostname.startswith(('build','aarch64'))
+  when: inventory_hostname.startswith(('build','aarch64','ppc8'))
   tags:
   - koji_builder
 

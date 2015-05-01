@@ -3,7 +3,7 @@
 # NOTE: most of these vars_path come from group_vars/buildhw or from hostvars
 
 - name: make koji builder(s) on raw hw
-  hosts: buildhw:buildppc:buildarm:buildaarch64:bkernel
+  hosts: buildhw:buildppc:buildarm:buildaarch64:buildppc64:bkernel
   remote_user: root
   gather_facts: True
 
@@ -16,6 +16,7 @@
   - base
   - { role: nfs/client, when: inventory_hostname.startswith('build') , mnt_dir: '/mnt/fedora_koji',  nfs_src_dir: 'fedora_koji' }
   - { role: nfs/client, when: inventory_hostname.startswith('aarch64') , mnt_dir: '/mnt/fedora_koji',  nfs_src_dir: 'fedora_arm/data' }
+  - { role: nfs/client, when: inventory_hostname.startswith('ppc8') , mnt_dir: '/mnt/fedora_koji',  nfs_src_dir: 'fedora_ppc/data' }
   - koji_builder
   - { role: bkernel, when: inventory_hostname.startswith('bkernel') }
   - hosts
