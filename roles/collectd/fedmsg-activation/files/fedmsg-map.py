@@ -103,7 +103,7 @@ def do_scan():
 if not for_collectd:
     do_scan()
 else:
-    interval = 30
+    interval = 10
     host = socket.getfqdn()
     while True:
         start = time.time()
