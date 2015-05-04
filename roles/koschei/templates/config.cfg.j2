@@ -65,9 +65,25 @@ config = {
             },
         },
     },
+    "fedmsg": {
+        {% if env == 'staging' %}
+        "topic": "org.fedoraproject.stg.buildsys",
+        {% else %}
+        "topic": "org.fedoraproject.prod.buildsys",
+        {% endif %}
+    }
     "fedmsg-publisher": {
         "enabled": True,
         "modname": "koschei",
+    },
+    "pkgdb": {
+        {% if env == 'staging' %}
+        "pkgdb_url": 'https://admin.stg.fedoraproject.org/pkgdb/api',
+        "topic_re": r'\.stg\.pkgdb\.',
+        {% else %}
+        "pkgdb_url": 'https://admin.fedoraproject.org/pkgdb/api',
+        "topic_re": r'\.prod\.pkgdb\.',
+        {% endif %}
     },
     "frontend": {
         {% if env == 'staging' %}
