@@ -14,7 +14,7 @@ if [ ! -d $dest ]; then
    mkdir -p $dest
 fi
 $wgetcmd -O $dest/$hour.txt.gz $src
-gunzip $dest/$host.txt.gz
+gunzip $dest/$hour.txt.gz
 ln -sf $dest/$hour.txt $base/torrent/current.txt
 
 
@@ -24,7 +24,8 @@ dest=$base/everything/$date
 if [ ! -d $dest ]; then
    mkdir -p $dest
 fi
-$wgetcmd -O $dest/$hour.xml $src
+$wgetcmd -O $dest/$hour.xml.gz $src
+gunzip $dest/$hour.txt.gz
 ln -sf $dest/$hour.xml $base/everything/current.xml
 
 
