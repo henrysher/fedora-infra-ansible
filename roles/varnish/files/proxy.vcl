@@ -123,6 +123,11 @@ backend mirrormanager2 {
     .port = "10039";
 }
 
+backend koschei {
+    .host = "localhost";
+    .port = "10040";
+}
+
 
 acl purge {
     "192.168.1.129"; // wiki01.vpn
@@ -242,6 +247,13 @@ sub vcl_recv {
     if (req.http.X-Forwarded-Server ~ "^ask.fedoraproject.org") {
         set req.backend_hint = askbot;
         if (req.url ~ "^/m/") {
+            unset req.http.cookie;
+            set req.url = regsub(req.url, "\?.*", "");
+        }
+    }
+    if (req.http.X-Forwarded-Server ~ "^koschei.fedoraproject.org") {
+        set req.backend_hint = koschei;
+        if (req.url ~ "^/static/") {
             unset req.http.cookie;
             set req.url = regsub(req.url, "\?.*", "");
         }
