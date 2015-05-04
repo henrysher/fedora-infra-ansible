@@ -43,16 +43,9 @@
 
   tasks:
   - name: schedule regular host downtime
-    nagios: action=downtime minutes=30 service=host host={{ inventory_hostname_short }}
+    nagios: action=downtime minutes=30 service=host host={{ inventory_hostname_short }}{{ env_suffix }}
     delegate_to: noc01.phx2.fedoraproject.org
     ignore_errors: true
-    when: inventory_hostname.find('.stg.') == -1
-
-  - name: schedule stg host downtime
-    nagios: action=downtime minutes=30 service=host host={{ inventory_hostname_short }}.stg
-    delegate_to: noc01.phx2.fedoraproject.org
-    ignore_errors: true
-    when: inventory_hostname.find('.stg.') != -1
 
   - name: halt the vm instances - to poweroff
     command: /sbin/shutdown -h 1
@@ -75,7 +68,7 @@
 
   tasks:
   - name: tell nagios to shush
-    nagios: action=downtime minutes=60 service=host host={{ inventory_hostname }}
+    nagios: action=downtime minutes=60 service=host host={{ inventory_hostname_short }}{{ env_suffix }}
     delegate_to: noc01.phx2.fedoraproject.org
     ignore_errors: true
 
@@ -100,7 +93,7 @@
     when: inventory_hostname_short.startswith('serverbeach')
 
   - name: tell nagios to unshush
-    nagios: action=unsilence service=host host={{ inventory_hostname }}
+    nagios: action=unsilence service=host host={{ inventory_hostname_short }}{{ env_suffix }}
     delegate_to: noc01.phx2.fedoraproject.org
     ignore_errors: true
 
