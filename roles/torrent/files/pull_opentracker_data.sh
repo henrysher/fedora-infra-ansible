@@ -13,7 +13,8 @@ dest=$base/torrent/$date
 if [ ! -d $dest ]; then
    mkdir -p $dest
 fi
-$wgetcmd -O $dest/$hour.txt $src
+$wgetcmd -O $dest/$hour.txt.gz $src
+gunzip $dest/$host.txt.gz
 ln -sf $dest/$hour.txt $base/torrent/current.txt
 
 
