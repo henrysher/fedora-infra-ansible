@@ -65,3 +65,24 @@
   service: name=opentracker-ipv4 state=started enabled=yes
   tags:
   - config
+
+- name: check the selinux context of webdir
+  command: matchpathcon /srv/web
+  register: webdir
+  always_run: yes
+  changed_when: "1 != 1"
+  tags:
+  - config
+  - selinux
+  - httpd
+  - httpd/website
+
+- name: /srv/web file contexts
+  command: semanage fcontext -a -t httpd_sys_content_t "/srv/web(/.*)?"
+  when: webdir.stdout.find('httpd_sys_content_t') == -1
+  tags:
+  - config
+  - selinux
+  - httpd
+  - httpd/website
+
