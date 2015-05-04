@@ -68,7 +68,10 @@
   - service
 
 - name: allow httpd to connect to db
-  seboolean: name=httpd_can_network_connect_db state=yes persistent=yes
+  seboolean: name={{ item }} state=yes persistent=yes
+  with_items:
+  - httpd_can_network_connect
+  - httpd_can_network_connect_db
   notify:
   - restart httpd
   tags:
