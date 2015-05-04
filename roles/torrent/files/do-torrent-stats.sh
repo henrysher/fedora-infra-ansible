@@ -2,7 +2,7 @@
 
 statscmd=/usr/local/bin/torrent-data.py
 btdata=/srv/torrent/data/bttrack.dat
-outputdir=/srv/torrent/www/stats/
+outputdir=/srv/web/stats/
 hourlydir=$outputdir/hourly
 dailydir=$outputdir/daily
 latestlink=$outputdir/current-stats.json
