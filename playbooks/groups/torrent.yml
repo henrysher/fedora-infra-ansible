@@ -36,10 +36,21 @@
   - openvpn/client
   - torrent
 
+  - role: httpd/mod_ssl
+
+  - role: httpd/certificate
+    name: wildcard-2014.fedoraproject.org
+    SSLCertificateChainFile: wildcard-2014.fedoraproject.org.intermediate.cert
+
+  - role: httpd/website
+    name: torrent.fedoraproject.org
+    cert_name: "{{wildcard_cert_name}}"
+
   tasks:
   - include: "{{ tasks }}/yumrepos.yml"
   - include: "{{ tasks }}/2fa_client.yml"
   - include: "{{ tasks }}/motd.yml"
+  - include: "{{ tasks }}/apache.yml"
 
   handlers:
   - include: "{{ handlers }}/restart_services.yml"
