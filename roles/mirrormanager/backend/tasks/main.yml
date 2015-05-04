@@ -24,9 +24,13 @@
   file: path=/var/log/mirrormanager state=directory owner=mirrormanager group=mirrormanager mode=0755
 
 - name: install MM configuration file
-  template: src={{ roles }}/mirrormanager/frontend2/templates/mirrormanager2.cfg
-            dest=/etc/mirrormanager/mirrormanager2.cfg
-            mode=600 owner=mirrormanager group=mirrormanager
+  template: src={{ item.file }} dest={{ item.dest }}
+             owner=mirrormanager group=mirrormanager mode=0600
+  with_items:
+  - { file: {{ roles }}/mirrormanager/frontend2/templates/mirrormanager2.cfg,
+      dest: /etc/mirrormanager/mirrormanager2.cfg }
+  - { file: {{ roles }}/mirrormanager/frontend2/templates/alembic.ini,
+      dest: /etc/mirrormanager/alembic.ini }
   tags:
   - config
 
