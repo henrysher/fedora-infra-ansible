@@ -14,6 +14,13 @@
   tags:
   - packages
 
+- name: install systemd unit for btseed
+  copy: src=btseed.service dst=/etc/systemd/system/btseed.service
+  notify:
+  - reload systemd
+  tags:
+  - packages
+
 - name: Create the required directories
   file: path={{ item.file }} owner={{ item.owner }}
         group={{ item.group }} mode={{ item.mode }} state=directory
@@ -42,8 +49,19 @@
   - { file: torrentjsonstats.py, dest: /usr/local/bin/torrentjsonstats.py, mode: 755 }
   - { file: torrent-hashes.py, dest: /usr/local/bin/torrent-hashes.py, mode: 755 }
   - { file: pull_opentracker_data.sh, dest: /usr/local/bin/pull_opentracker_data.sh, mode: 755 }
+  - { file: bittorrent-sysconfig, dest: /etc/sysconfig/bittorrent, mode: 644 }
   # Directory
   - { file: torrent-generator, dest: /srv/torrent/torrent-generator, mode: 755 }
   - { file: spins-generator, dest: /srv/torrent/spins-generator, mode: 755 }
+  tags:
+  - config
+
+- name: set btseed to start
+  service: name=btseed state=started enabled=yes
+  tags:
+  - config
+
+- name: set opentracker-ivp4 to start
+  service: name=opentracker-ipv4 state=started enabled=yes
   tags:
   - config
