@@ -66,8 +66,11 @@
   - include: "{{ tasks }}/motd.yml"
   - include: "{{ tasks }}/apache.yml"
 
-  - name: Install createrepo
-    yum: pkg=createrepo state=present
+  - name: Install some misc packages needed for various tasks
+    yum: pkg={{ item }} state=present
+    with_items:
+    - createrepo
+    - koji
 
   handlers:
   - include: "{{ handlers }}/restart_services.yml"
