@@ -30,7 +30,7 @@ ln -sf $dest/$hour.xml $base/everything/current.xml
 # generate the json files
 hourdate=`date +%Y-%m-%d-%H-%M`
 /usr/local/bin/torrentjsonstats.py $base/torrent/current.txt > /srv/web/stats/hourly/torrent-stats-$hourdate.json
-ln -sf /srv/torrent/www/stats/hourly/torrent-stats-$hourdate.json /srv/web/stats/current-stats.json
+ln -sf /srv/web/stats/hourly/torrent-stats-$hourdate.json /srv/web/stats/current-stats.json
 
 if [ $hour == '12' ]; then
   /usr/local/bin/torrentjsonstats.py $base/torrent/current.txt > /srv/web/stats/daily/torrent-stats-$date.json
