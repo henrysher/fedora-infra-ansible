@@ -45,13 +45,6 @@
   - /etc/ssh/ssh_known_hosts
   when: inventory_hostname not in result.list_vms
 
-- name: Add new ssh_host_key for newly installed host
-  local_action: known_hosts path={{item}} host={{ inventory_hostname }} state=present
-  ignore_errors: True
-  with_items:
-  - /root/.ssh/known_hosts
-  when: inventory_hostname not in result.list_vms
-
 - name: wait for ssh on the vm to start back
   local_action: wait_for delay=10 host={{ inventory_hostname }} port=22 state=started timeout=1200
   when: inventory_hostname not in result.list_vms
