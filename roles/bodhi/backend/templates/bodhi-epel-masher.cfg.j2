@@ -6,6 +6,19 @@
 ## $Id: bodhi-prod.cfg.erb,v 1.8 2008/05/21 23:38:07 lmacken Exp $
 ##
 
+arches = 'i386 x86_64 ppc/ppc64'
+
+# EPEL specific configuration
+epel7_arches = 'x86_64 ppc64'
+epel7-testing_arches = 'x86_64 ppc64'
+el6-epel_arches = 'x86_64 i386 ppc64'
+el6-epel-testing_arches = 'x86_64 i386 ppc64'
+el5-epel_arches = 'x86_64 i386 ppc'
+el5-epel-testing_arches = 'x86_64 i386 ppc'
+
+# For pushing EPEL updates from the masher
+bodhi_url = 'http://localhost/updates'
+
 sqlobject.dburi="notrans_postgres://bodhi:{{ bodhiPassword }}@db-bodhi/bodhi"
 
 masher = None # we are the masher
@@ -34,10 +47,7 @@ tg.ignore_parameters = ["_csrf_token"]
 jobs = ''
 
 # Query the Fedora Package Database for the list of Critical Path Packages.
-# This pkgdb feature is currently broken in staging.
-{% if environment == "production" %}
 critpath.type = 'pkgdb'
-{% endif %}
 
 # FAS2
 #sqlalchemy.dburi="sqlite:///"
@@ -49,11 +59,17 @@ visit.saprovider.model="fedora.accounts.tgfas.Visit"
 visit.cookie.secure = True
 
 # Our identity that we use to fetch bugzilla details and such
-bodhi_password='{{ bodhiBugzillaPassword }}'
+bodhi_password='<%= bodhiBugzillaPassword %>'
 bodhi_email = 'updates@fedoraproject.org'
 
+# TurboMail 3.0 settings
 mail.on = True
-mail.server = 'bastion'
+mail.transport = 'smtp'
+mail.smtp.server = 'bastion'
+# The 'utf-8-qp' encoding causes problems with TurboMail 3.x
+# https://fedorahosted.org/bodhi/ticket/648
+mail.message.encoding = 'utf-8'
+
 notice_sender = 'updates@fedoraproject.org'
 security_team = 'security_respons-members@fedoraproject.org'
 release_team_address = 'bodhiadmin-members@fedoraproject.org'
@@ -83,13 +99,12 @@ client_cert = '/etc/pki/bodhi/bodhi.pem'
 clientca_cert = '/etc/pki/bodhi/fedora-upload-ca.cert'
 serverca_cert = '/etc/pki/bodhi/fedora-server-ca.cert'
 
-masher_lock_id = 'FEDORA'
+masher_lock_id = 'FEDORA-EPEL'
 
-master_repomd = 'http://download01.phx2.fedoraproject.org/pub/fedora/linux/updates/%d/i386/repodata/repomd.xml'
-fedora_master_repomd = 'http://download01.phx2.fedoraproject.org/pub/fedora/linux/updates/%d/i386/repodata/repomd.xml'
-fedora_epel_master_repomd = 'http://download01.phx2.fedoraproject.org/pub/epel/%d/i386/repodata/repomd.xml'
+master_repomd = 'http://download01.phx2.fedoraproject.org/pub/fedora/linux/updates/%d/%s/repodata/repomd.xml'
+fedora_master_repomd = 'http://download01.phx2.fedoraproject.org/pub/fedora/linux/updates/%d/%s/repodata/repomd.xml'
+fedora_epel_master_repomd = 'http://download01.phx2.fedoraproject.org/pub/epel/%d/%s/repodata/repomd.xml'
 
-arches = 'armhfp i386 x86_64'
 
 [logging]
 
@@ -134,9 +149,4 @@ propagate=0
 [[[turbomail]]]
 level='INFO'
 qualname='turbomail'
-handlers=['debug_out']
-
-[[[urllib3]]]
-level='WARN'
-qualname='urllib3'
 handlers=['debug_out']

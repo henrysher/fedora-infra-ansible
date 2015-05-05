@@ -6,20 +6,6 @@
 ## $Id: bodhi-prod.cfg.erb,v 1.8 2008/05/21 23:38:07 lmacken Exp $
 ##
 
-# Release status
-# pre-beta enforces the 'Pre Beta' policy defined here:
-# https://fedoraproject.org/wiki/Updates_Policy
-f21.status = 'pre_beta'
-
-f21.post_beta.mandatory_days_in_testing = 7
-f21.post_beta.critpath.num_admin_approvals = 0
-f21.post_beta.critpath.min_karma = 2
-f21.post_beta.critpath.stable_after_days_without_negative_karma = 14
-
-f21.pre_beta.mandatory_days_in_testing = 3
-f21.pre_beta.critpath.num_admin_approvals = 0
-f21.pre_beta.critpath.min_karma = 1
-
 sqlobject.dburi="notrans_postgres://bodhi:{{ bodhiPassword }}@db-bodhi/bodhi"
 
 masher = None # we are the masher
@@ -45,10 +31,13 @@ tg.strict_parameters = True
 tg.ignore_parameters = ["_csrf_token"]
 
 # Periodic jobs
-jobs = 'nagmail cache_release_data refresh_metrics approve_testing_updates expire_buildroot_overrides clean_pending_tags'
+jobs = ''
 
 # Query the Fedora Package Database for the list of Critical Path Packages.
+# This pkgdb feature is currently broken in staging.
+<% if environment == "production" %>
 critpath.type = 'pkgdb'
+<% end %>
 
 # FAS2
 #sqlalchemy.dburi="sqlite:///"
@@ -60,17 +49,11 @@ visit.saprovider.model="fedora.accounts.tgfas.Visit"
 visit.cookie.secure = True
 
 # Our identity that we use to fetch bugzilla details and such
-bodhi_password='{{ bodhiBugzillaPassword }}'
+bodhi_password='<%= bodhiBugzillaPassword %>'
 bodhi_email = 'updates@fedoraproject.org'
 
-# TurboMail 3.0 settings
 mail.on = True
-mail.transport = 'smtp'
-mail.smtp.server = 'bastion'
-# The 'utf-8-qp' encoding causes problems with TurboMail 3.x
-# https://fedorahosted.org/bodhi/ticket/648
-mail.message.encoding = 'utf-8'
-
+mail.server = 'bastion'
 notice_sender = 'updates@fedoraproject.org'
 security_team = 'security_respons-members@fedoraproject.org'
 release_team_address = 'bodhiadmin-members@fedoraproject.org'
@@ -102,11 +85,11 @@ serverca_cert = '/etc/pki/bodhi/fedora-server-ca.cert'
 
 masher_lock_id = 'FEDORA'
 
-master_repomd = 'http://download01.phx2.fedoraproject.org/pub/fedora/linux/updates/%d/i386/repodata/repomd.xml'
-fedora_master_repomd = 'http://download01.phx2.fedoraproject.org/pub/fedora/linux/updates/%d/i386/repodata/repomd.xml'
-fedora_epel_master_repomd = 'http://download01.phx2.fedoraproject.org/pub/epel/%d/i386/repodata/repomd.xml'
+master_repomd = 'http://download01.phx2.fedoraproject.org/pub/fedora/linux/updates/%d/%s/repodata/repomd.xml'
+fedora_master_repomd = 'http://download01.phx2.fedoraproject.org/pub/fedora/linux/updates/%d/%s/repodata/repomd.xml'
+fedora_epel_master_repomd = 'http://download01.phx2.fedoraproject.org/pub/epel/%d/%s/repodata/repomd.xml'
 
-arches = 'i386 x86_64'
+arches = 'armhfp i386 x86_64'
 
 [logging]
 
