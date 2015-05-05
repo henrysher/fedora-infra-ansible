@@ -24,8 +24,7 @@ dest=$base/everything/$date
 if [ ! -d $dest ]; then
    mkdir -p $dest
 fi
-$wgetcmd -O $dest/$hour.xml.gz $src
-gunzip $dest/$hour.txt.gz
+$wgetcmd -O $dest/$hour.xml $src
 ln -sf $dest/$hour.xml $base/everything/current.xml
 
 
