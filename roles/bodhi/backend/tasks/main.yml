@@ -20,6 +20,7 @@
   - restart httpd
   tags:
   - config
+  when: inventory_hostname.startswith('bodhi-backend01')
 
 - name: install bodhi-masher /etc/httpd/conf.d/bodhi.conf file
   copy: >
@@ -80,23 +81,16 @@
     owner=masher
     mode=0640
   with_items:
-  - f13-updates.mash
-  - f14-updates.mash
-  - f14-updates-testing.mash
-  - f15-updates.mash
-  - f15-updates-testing.mash
-  - f16-updates.mash
-  - f16-updates-testing.mash
-  - f17-updates.mash
-  - f17-updates-testing.mash
-  - f18-updates.mash
-  - f18-updates-testing.mash
-  - f19-updates.mash
-  - f19-updates-testing.mash
   - f20-updates.mash
   - f20-updates-testing.mash
+  - f21-updates.mash
+  - f21-updates-testing.mash
+  - f22-updates.mash
+  - f22-updates-testing.mash
   - el6-epel.mash
   - el6-epel-testing.mash
+  - epel7-epel.mash
+  - epel7-epel-testing.mash
   tags:
   - config
 
@@ -106,7 +100,6 @@
   yum: pkg={{ item }} state=present
   with_items:
   - repoview
-  when: epelmasher
   tags:
   - packages
 
@@ -117,7 +110,7 @@
     owner=masher 
     group=masher 
     mode=0600
-  when: epelmasher
+  when: inventory_hostname.startswith('bodhi-backend02')
   notify:
   - restart httpd
   tags:
@@ -132,7 +125,7 @@
     owner=masher 
     group=masher 
     mode=0600
-  when: jobrunner
+  when: inventory_hostname.startswith('bodhi-backend01')
   notify:
   - restart httpd
   tags:
