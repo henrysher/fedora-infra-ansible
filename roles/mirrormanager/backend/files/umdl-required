@@ -19,9 +19,6 @@ fi
 
 let DELTA=CURDATE-LASTRUN
 
-date
-echo "Last sync more than ${DELTA} seconds ago. Running umdl"
-
 /usr/local/bin/last-sync -d ${DELTA} -q
 
 if [ "$?" -ne "0" ]; then
@@ -29,6 +26,9 @@ if [ "$?" -ne "0" ]; then
 	# abort
 	exit 0
 fi
+
+date
+echo "Last sync more than ${DELTA} seconds ago. Running umdl"
 
 /usr/local/bin/lock-wrapper umdl /usr/bin/mm2_update-master-directory-list
 
