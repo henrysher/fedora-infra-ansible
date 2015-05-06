@@ -1,0 +1,19 @@
+- name: add libvirt remote user
+  user:
+    name: "{{ libvirt_user }}"
+    groups: kvm
+
+- name: add ssh key for libvirt remote user
+  authorized_key:
+    user: "{{ libvirt_user }}"
+    path: /home/{{ libvirtuser }}/.ssh/authorized_keys
+    key: "{{ libvirt_remote_pubkey }}"
+
+- name: add polkit rule for users in kvm group
+  copy:
+    src: polkit/10-libvirt.rules
+    dest: /etc/polkit-1/rules.d/10-libvirt.rules
+    owner: root
+    group: root
+    mode: 0644
+
