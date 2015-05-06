@@ -27,19 +27,18 @@ if [ "$?" -ne "0" ]; then
 	exit 0
 fi
 
+echo -n "Last sync more than ${DELTA} seconds ago. Running umdl at "
 date
-echo "Last sync more than ${DELTA} seconds ago. Running umdl"
 
 /usr/local/bin/lock-wrapper umdl /usr/bin/mm2_update-master-directory-list
 
 if [ "$?" -eq "0" ]; then
 	# success! remember the date of this run
-	CURDATE=`date +%s`
 	echo "LASTRUN=${CURDATE}" > /var/run/mirrormanager/umdl
+	echo -n "Finished umdl successfully at "
 	date
-	echo "Finished umdl successfully"
 	exit 0
 fi
 
+echo -n "umdl returned not zero. Something failed. Please check umdl.log. "
 date
-echo "umdl returned not zero. Something failed. Please check umdl.log"
