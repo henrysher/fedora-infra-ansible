@@ -18,7 +18,11 @@
     mode: 0644
 
 - name: generate libvirt xml files for clients
-  template: src=client-libvirt.xml.j2 dest=/root/{{ item }}.libvirt.xml
+  template:
+    src: client-libvirt.xml.j2
+    dest: /root/{{ item }}.libvirt.xml
+    vmhostname: {{ clients[item]['hostname'] }}
+    vmmacaddress: {{ clients[item]['macaddress'] }}
   with_items:
     - "virt02"
     - "virt03"
