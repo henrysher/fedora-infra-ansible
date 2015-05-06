@@ -1,0 +1,32 @@
+#!/usr/bin/python
+
+import argparse
+import sys
+
+import mirrormanager2.lib
+
+parser = argparse.ArgumentParser(usage=sys.argv[0] + " [options]")
+parser.add_argument(
+    "-c", "--config",
+    dest="config", default='/etc/mirrormanager/mirrormanager2.cfg',
+    help="Configuration file to use")
+
+options = parser.parse_args()
+
+config = dict()
+with open(options.config) as config_file:
+    exec(compile(config_file.read(), options.config, 'exec'), config)
+
+session = mirrormanager2.lib.create_session(config['DB_URL'])
+
+# Get all active mirrors
+hosts = mirrormanager2.lib.get_mirrors(session, private=False,
+    admin_active=True, user_active=True, site_private=False,
+    site_user_active=True, site_admin_active=True)
+
+# only the ids
+hosts = [ host.id for host in hosts ]
+
+session.close()
+
+print max(hosts)
