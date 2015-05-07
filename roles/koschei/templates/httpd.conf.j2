@@ -1,0 +1,15 @@
+<VirtualHost *>
+    ServerName {{ ansible_fqdn }}
+
+    WSGIDaemonProcess koschei user=koschei group=koschei threads=5 home=/usr/share/koschei
+    WSGIScriptAlias /koschei /usr/share/koschei/koschei.wsgi
+    Alias /koschei/static /usr/share/koschei/static/
+
+    <Directory /usr/share/koschei>
+        WSGIProcessGroup koschei
+        WSGIApplicationGroup %{GLOBAL}
+        Options All
+        AllowOverride All
+        Require all granted
+    </Directory>
+</VirtualHost>
