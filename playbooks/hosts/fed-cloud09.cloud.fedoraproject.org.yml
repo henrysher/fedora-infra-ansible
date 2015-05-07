@@ -510,7 +510,21 @@
     nova_flavor:
       login_username="admin" login_password="{{ ADMIN_PASS }}" login_tenant_name="admin"
       auth_url="https://{{controller_hostname}}:35357/v2.0"
-      name="m1.builder" ram="5120" disk="50" vcpus="2" swap="5120"
+      name="{{item.name}}" ram="{{item.ram}}" disk="{{item.disk}}" vcpus="{{item.vcpus}}" swap="{{item.swap}}"
+    with_items:
+      - { name: m1.builder, ram: 5120, disk: 50, vcpus: 2, swap: 5120 }
+      # same as m.* but with swap
+      - { name: ms1.tiny, ram: 512, disk: 1, vcpus: 1, swap: 512 }
+      - { name: ms1.small, ram: 2048, disk: 20, vcpus: 1, swap: 2048 }
+      - { name: ms1.medium, ram: 4096, disk: 40, vcpus: 2, swap: 4096 }
+      - { name: ms1.large, ram: 8192, disk: 50, vcpus: 4, swap: 4096 }
+      - { name: ms1.xlarge, ram: 16384, disk: 160, vcpus: 8, swap: 16384 }
+      # inspired by http://aws.amazon.com/ec2/instance-types/
+      - { name: c4.large, ram: 3072, disk: 0, vcpus: 2, swap: 0 }
+      - { name: c4.xlarge, ram: 7168, disk: 0, vcpus: 4, swap: 0 }
+      - { name: c4.2xlarge, ram: 14336, disk: 0, vcpus: 8, swap: 0 }
+      - { name: r3.large, ram: 16384, disk: 32, vcpus: 2, swap: 16384 }
+
 
   #####  download common Images #####
   - get_url: url=http://download.fedoraproject.org/pub/fedora/linux/updates/20/Images/x86_64/Fedora-x86_64-20-20140407-sda.qcow2 dest=/root/images/Fedora-x86_64-20-20140407-sda.qcow2 mode=0440
