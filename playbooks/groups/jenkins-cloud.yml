@@ -395,6 +395,14 @@
     tags:
     - packages
 
+  - name: install packages available on el7 builder
+    action: yum state=present pkg={{ item }}
+    with_items:
+    - python-pygit2     # Required for pagure
+    when: ansible_distribution_version == "7.0"
+    tags:
+    - packages
+
   - name: install pkgs for jenkins for fedora systems > F19
     action: yum state=present pkg={{ item }}
     when: is_fedora is defined and ansible_distribution_major_version > 20
