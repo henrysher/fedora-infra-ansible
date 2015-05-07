@@ -17,8 +17,25 @@
     group: root
     mode: 0644
 
+- name: get vm list
+  virt: command=list_vms
+  register: result
+  always_run: yes
+
 - name: generate libvirt xml files for clients
   template:
     src: client-libvirt.xml.j2
-    dest: /root/{{ item }}.libvirt.xml
+    dest: /root/{{ item.hostname }}.libvirt.xml
+  when: item.hostname not in result.list_vms
   with_items: clients
+
+- name: ensure the guest lvs are created
+  lvol: lv={{ item.hostname }} vg={{ volgroup }} size={{ item.lvm_size }} state=present
+  when: item.hostname not in result.list_vms
+  with_items: clients
+
+- name: ensure vms are defined
+  virt: command=define xml=/root/{{ item.hostname }}.libvirt.xml
+  when: item.hostname not in result.list_vms
+  with_items: clients
+
