@@ -527,10 +527,6 @@
 
 
   #####  download common Images #####
-  - get_url: url=http://download.fedoraproject.org/pub/fedora/linux/updates/20/Images/x86_64/Fedora-x86_64-20-20140407-sda.qcow2 dest=/root/images/Fedora-x86_64-20-20140407-sda.qcow2 mode=0440
-  - get_url: url=http://download.fedoraproject.org/pub/fedora/linux/releases/21/Cloud/Images/x86_64/Fedora-Cloud-Base-20141203-21.x86_64.qcow2 dest=/root/images/Fedora-Cloud-Base-20141203-21.x86_64.qcow2 mode=0440
-  - get_url: url=http://cloud.centos.org/centos/7/images/CentOS-7-x86_64-GenericCloud-1503.qcow2 dest=/root/images/CentOS-7-x86_64-GenericCloud-1503.qcow2 mode=0440
-  - get_url: url=http://cloud.centos.org/centos/6/images/CentOS-6-x86_64-GenericCloud-20141129_01.qcow2 dest=/root/images/CentOS-6-x86_64-GenericCloud-20141129_01.qcow2 mode=0440
   # restricted images (RHEL) are handled two steps below
   - name: Add the images
     glance_image:
@@ -539,16 +535,16 @@
       name="{{ item.name }}"
       disk_format=qcow2
       is_public=True
-      file="{{ item.file }}"
+      copy_from="{{ item.copy_from }}"
     with_items:
       - name: fedora-cloud-64-20-20140407
-        file: /root/images/Fedora-x86_64-20-20140407-sda.qcow2
+        copy_from: http://download.fedoraproject.org/pub/fedora/linux/updates/20/Images/x86_64/Fedora-x86_64-20-20140407-sda.qcow2
       - name: Fedora-Cloud-Base-20141203-21
-        file: /root/images/Fedora-Cloud-Base-20141203-21.x86_64.qcow2
+        copy_from: http://download.fedoraproject.org/pub/fedora/linux/releases/21/Cloud/Images/x86_64/Fedora-Cloud-Base-20141203-21.x86_64.qcow2
       - name: CentOS-7-x86_64-GenericCloud-1503
-        file: /root/images/CentOS-7-x86_64-GenericCloud-1503.qcow2
+        copy_from: http://cloud.centos.org/centos/7/images/CentOS-7-x86_64-GenericCloud-1503.qcow2
       - name: CentOS-6-x86_64-GenericCloud-20141129_01
-        file: /root/images/CentOS-6-x86_64-GenericCloud-20141129_01.qcow2
+        copy_from: http://cloud.centos.org/centos/6/images/CentOS-6-x86_64-GenericCloud-20141129_01.qcow2
 
   # RHEL6 can be downloaded from https://rhn.redhat.com/rhn/software/channel/downloads/Download.do?cid=16952
   - stat: path=/root/images/rhel-guest-image-6.6-20141222.0.x86_64.qcow2
