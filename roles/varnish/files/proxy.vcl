@@ -251,9 +251,9 @@ sub vcl_recv {
             set req.url = regsub(req.url, "\?.*", "");
         }
     }
-    if (req.http.X-Forwarded-Server ~ "^koschei.fedoraproject.org") {
+    if (req.url ~ "^/koschei") {
         set req.backend_hint = koschei;
-        if (req.url ~ "^/static/") {
+        if (req.url ~ "^/koschei/static/") {
             unset req.http.cookie;
             set req.url = regsub(req.url, "\?.*", "");
         }
