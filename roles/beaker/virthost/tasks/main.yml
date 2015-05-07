@@ -1,3 +1,77 @@
+---
+# This is somewhat a duplication of the virthost task used by other virthosts
+# doing things this way isn't ideal but for this application, we need a local
+# non-root user which can control VMs and the other infra virthosts are locked
+# down in a way which makes that impossible.
+#
+# If it's possible to unify the two tasks/roles, that's probably for the best
+# but for now, we're left with the duplication :(
+
+
+- name: install libvirt packages on rhel7 virthosts
+  yum: pkg={{ item }} state=present
+  with_items:
+  - qemu-kvm
+  - libvirt
+  - virt-install
+  tags:
+  - packages
+  when: ansible_distribution == 'RedHat' and ansible_distribution_major_version == '7'
+
+# install libvirtd.conf 
+#
+# This provides us with the ability to control VMs with non-root and
+# non-fas accounts
+#
+- name: install libvirtd.conf
+  copy: src="{{ files }}/virthost/libvirtd.conf" dest=/etc/libvirt/libvirtd.conf
+  notify:
+  - restart libvirtd
+  tags:
+  - config
+
+- name: enable libvirtd
+  service: name=libvirtd state=started enabled=yes
+
+#
+# Disable lvmetad as it causes lots of problems with iscsi shared lvm and caching. 
+#
+- name: disable lvmetad
+  lineinfile: dest=/etc/lvm/lvm.conf regexp="^    use_lvmetad = 1" line="    use_lvmetad = 0" backrefs=yes
+
+- name: set bridging to work right
+  copy: src="{{ files }}/virthost/99-bridge.rules" dest=/etc/udev/rules.d/99-bridge.rules
+  notify:
+  - restart bridge
+  tags:
+  - config
+  when: ansible_distribution == 'RedHat' and ansible_distribution_major_version == '7'
+
+- name: generate config for ethernet device
+  template:
+    src: ifcfg-device.j2
+    dest: /etc/sysconfig/network-scripts/ifcfg-{{ eth_interface }}
+    owner: root
+    group: root
+    mode: 0644
+  notify:
+  - restart bridge
+  - restart network
+
+- name: generate config for ethernet bridge
+  template:
+    src: ifcfg-bridge.j2
+    dest: /etc/sysconfig/network-scripts/ifcfg-{{ bridge_name }}
+    owner: root
+    group: root
+    mode: 0644
+  notify:
+  - restart bridge
+  - restart network
+
+#
+# This is where the duplication with regular virthosts stops
+#
 - name: add libvirt remote user
   user:
     name: "{{ libvirt_user }}"
@@ -10,8 +84,8 @@
     key: "{{ libvirt_remote_pubkey }}"
 
 - name: add polkit rule for users in kvm group
-  copy:
-    src: polkit/10-libvirt.rules
+  template:
+    src: 10-libvirt.rules
     dest: /etc/polkit-1/rules.d/10-libvirt.rules
     owner: root
     group: root
@@ -39,7 +113,7 @@
   with_items: clients
 
 - name: ensure vms are defined
-  command: "virsh define --file /root/{{ item.hostname }}.libvirt.xml"
+  command: "virsh define --file /home/{{ libvirt_user }}/{{ item.hostname }}.libvirt.xml"
   when: item.hostname not in result.list_vms
   with_items: clients
   sudo: true
