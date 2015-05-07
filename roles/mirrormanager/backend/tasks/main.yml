@@ -50,3 +50,15 @@
 
 - name: install sync to mirrorlist servers script
   template: src=sync_pkl_to_mirrorlists.sh dest=/usr/local/bin/sync_pkl_to_mirrorlists.sh mode=0755
+
+- name: setup /var/lib/mirrormanager/.ssh directory
+  copy: >
+    src="{{ puppet_private }}/mirrormanager/"
+    dest="/var/lib/mirrormanager/.ssh"
+    directory_mode=yes
+    owner=mirrormanager
+    group=mirrormanager
+    mode=0700
+  tags:
+  - config
+  when: env != 'staging'
