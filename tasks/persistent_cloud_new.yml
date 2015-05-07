@@ -1,5 +1,4 @@
 # New tasks to spin up instance in https://fed-cloud09.cloud.fedoraproject.org
-# DON'T USE FOR PRODUCTION !
 
 - name: check it out
   local_action: shell nc -d -z -w 5 {{ inventory_hostname }} 22 >>/dev/null
@@ -7,7 +6,6 @@
   ignore_errors: true
 
 - name: spin UP VM using nova_compute
-  #delegate_to: 127.0.0.1
   sudo: False
   local_action:
       module: nova_compute
@@ -22,7 +20,6 @@
       security_groups: "{{security_group}}"
       key_name: "{{ keypair }}"
       nics: "{{ cloud_networks }}"
-      # floating_ip_pools: "{{ floating_ip_pools }}"
       floating_ips:
         - "{{public_ip}}"
   register: nova_result
@@ -39,12 +36,13 @@
   local_action: wait_for host={{ public_ip }} port=22 delay=1 timeout=600
   when: host_is_up|failed
 
-# Check is failing on the lockbox, something with ssh identity available for ssh invocation through the shell module,
-# see: http://fpaste.org/206551/
+# SSH is up and running, however cloud-init still did not deployed ssh keypair
+# we have to wait some time. 10 sec is usually enough, but not always.
 - name: waiting for cloud-init
   pause: seconds=30
   when: host_is_up|failed
 
+# TODO - somehow guess when keypair is finally deployed and return little bit earlier
 ## We need to specify user, here we trying with fedora or root
 #- name: wait until ssh is available
 #  # local_action:  shell false; until [ "$?" -eq "0" ]; do sleep 2; ssh -o PasswordAuthentication=no fedora@{{ public_ip }} 'echo foobar'  || ssh -o PasswordAuthentication=no root@{{ public_ip }} 'echo foobar'; done
