@@ -90,3 +90,21 @@
 
   handlers:
   - include: "{{ handlers }}/restart_services.yml"
+
+# Do this one last, since the mirrormanager user needs to exist so that it can
+# own the fedmsg certs we put in place here.
+- name: Put fedmsg stuff in place
+  hosts: mm;mm-stg
+  user: root
+  gather_facts: True
+
+  vars_files:
+  -  /srv/web/infra/ansible/vars/global.yml
+  - "/srv/private/ansible/vars.yml"
+  - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  roles:
+  - fedmsg/base
+
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"
