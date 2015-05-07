@@ -3,17 +3,11 @@
   <memory unit='MiB'>{{ item.memsize }}</memory>
   <vcpu placement='static'>{{ item.num_cpus }}</vcpu>
   <os>
-    <type arch='x86_64' machine='pc-i440fx-1.6'>hvm</type>
-    <bootmenu enable='yes'/>
+    <type arch='x86_64'>hvm</type>
+    <boot dev='network'>
+    <boot dev='hd'>
+    <bootmenu enable='no'/>
   </os>
-  <features>
-    <acpi/>
-    <apic/>
-    <pae/>
-  </features>
-  <cpu mode='custom' match='exact'>
-    <model fallback='allow'>Nehalem</model>
-  </cpu>
   <clock offset='utc'>
     <timer name='rtc' tickpolicy='catchup'/>
     <timer name='pit' tickpolicy='delay'/>
@@ -22,12 +16,7 @@
   <on_poweroff>destroy</on_poweroff>
   <on_reboot>restart</on_reboot>
   <on_crash>restart</on_crash>
-  <pm>
-    <suspend-to-mem enabled='no'/>
-    <suspend-to-disk enabled='no'/>
-  </pm>
   <devices>
-    <emulator>/usr/libexec/qemu-kvm</emulator>
     <disk type='block' device='disk'>
       <driver name='qemu' type='raw' cache='none' io='native'/>
       <source dev='/dev/{{ volgroup }}/{{ item.hostname }}'/>
@@ -35,22 +24,6 @@
       <boot order='2'/>
       <address type='pci' domain='0x0000' bus='0x00' slot='0x07' function='0x0'/>
     </disk>
-    <controller type='usb' index='0' model='ich9-ehci1'>
-      <address type='pci' domain='0x0000' bus='0x00' slot='0x05' function='0x7'/>
-    </controller>
-    <controller type='usb' index='0' model='ich9-uhci1'>
-      <master startport='0'/>
-      <address type='pci' domain='0x0000' bus='0x00' slot='0x05' function='0x0' multifunction='on'/>
-    </controller>
-    <controller type='usb' index='0' model='ich9-uhci2'>
-      <master startport='2'/>
-      <address type='pci' domain='0x0000' bus='0x00' slot='0x05' function='0x1'/>
-    </controller>
-    <controller type='usb' index='0' model='ich9-uhci3'>
-      <master startport='4'/>
-      <address type='pci' domain='0x0000' bus='0x00' slot='0x05' function='0x2'/>
-    </controller>
-    <controller type='pci' index='0' model='pci-root'/>
     <controller type='virtio-serial' index='0'>
       <address type='pci' domain='0x0000' bus='0x00' slot='0x06' function='0x0'/>
     </controller>
@@ -67,8 +40,6 @@
     <console type='pty'>
       <target type='serial' port='0'/>
     </console>
-    <input type='tablet' bus='usb'/>
-    <input type='mouse' bus='ps2'/>
     <graphics type='vnc' port='-1' autoport='yes'/>
     <video>
       <model type='vga' vram='9216' heads='1'/>
