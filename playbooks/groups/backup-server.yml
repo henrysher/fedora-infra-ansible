@@ -4,7 +4,7 @@
 # NOTE: most of these vars_path come from group_vars/backup_server or from hostvars
 
 - name: make backup server system
-  hosts: backup03.phx2.fedoraproject.org:backup01.phx2.fedoraproject.org
+  hosts: backup01.phx2.fedoraproject.org
   user: root
   gather_facts: True
 
@@ -26,6 +26,7 @@
       mnt_dir: '/fedora_backups',
       nfs_mount_opts: "rw,hard,bg,intr,noatime,nodev,nosuid",
       nfs_src_dir: '/fedora_backups' }
+  - openvpn/client
 
   tasks:
   - include: "{{ tasks }}/yumrepos.yml"
@@ -50,7 +51,6 @@
 
   - name: Schedule the GNOME backup script
     cron: name="Backup" hour=5 minute=0 job="(cd /fedora_backups/gnome/; /usr/local/bin/lock-wrapper gnomebackup /usr/local/bin/gnome_backup)" user=gnomebackup
-    when: inventory_hostname.startswith('backup03')
 
   - name:  Add a Directory for each of the GNOME machines
     file: dest=/fedora_backups/gnome/{{ item }} owner=gnomebackup group=gnomebackup state=directory
