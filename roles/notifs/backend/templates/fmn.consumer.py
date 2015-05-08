@@ -149,15 +149,4 @@ config = {
     "fmn.acceptance_url": base + "confirm/accept/{secret}",
     "fmn.rejection_url": base + "confirm/reject/{secret}",
     "fmn.support_email": "notifications@" + domain,
-
-    # Generic stuff
-    "logging": dict(
-        loggers=dict(
-            fmn={
-                "level": "DEBUG",
-                "propagate": False,
-                "handlers": ["console", "mailer"],
-            },
-        ),
-    ),
 }
