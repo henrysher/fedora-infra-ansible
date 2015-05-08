@@ -85,6 +85,26 @@
     path: /home/{{ libvirt_user }}/.ssh/authorized_keys
     key: "{{ libvirt_remote_pubkey }}"
 
+#
+# For some reason, virsh will always find qemu:///session instead
+# of the qemu:///system that we need, so force a new default
+#
+- name: create libvirt config for libvirt remote user
+  copy:
+    src: libvirt.conf
+    dest: /home/{{ libvirt_user }}/.config/libvirt/libvirt.conf
+    owner: "{{ libvirt_user }}"
+    group: "{{ libvirt_user }}"
+    mode: 0644
+
+- name: create libvirt config for root user
+  copy:
+    src: libvirt.conf
+    dest: /etc/libvirt/libvirt.conf
+    owner: root
+    group: root
+    mode: 0644
+
 - name: add polkit rule for users in kvm group
   template:
     src: 10-libvirt.rules.j2
