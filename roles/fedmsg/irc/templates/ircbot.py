@@ -13,13 +13,16 @@ config = dict(
             {% endif %}
             channel='fedora-fedmsg',
 
-            # Ignore some of the koji spamminess
             filters=dict(
                 topic=[
+                    # Ignore some of the koji spamminess
                     'buildsys.repo.init',
                     'buildsys.repo.done',
                     'buildsys.untag',
                     'buildsys.tag',
+                    # And some of the FAF/ABRT spamminess
+                    'faf.report.threshold1',
+                    'faf.problem.threshold1',
                 ],
                 body=[],
             ),
