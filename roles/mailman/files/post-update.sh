@@ -14,8 +14,8 @@ django-admin collectstatic --clear --noinput --verbosity 0 --pythonpath $CONFDIR
 django-admin compress --pythonpath $CONFDIR --settings settings
 django-admin syncdb --pythonpath $CONFDIR --settings settings_admin --noinput --migrate
 django-admin loaddata /etc/postorius/sites/default/initial-user.json --pythonpath $CONFDIR --settings settings_admin
-chown mailman:mailman -R $INDEXDIR
-chmod g+w -R $INDEXDIR
+mkdir -p $INDEXDIR
+chown apache:apache -R $INDEXDIR
 
 # Give database rights to the non-admin user
 sleep $[ ( $RANDOM % 10 )  + 1 ]s # avoid simultaneous lockups on parallel servers. Yes, this is dirty.
