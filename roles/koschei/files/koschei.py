@@ -1,3 +1,7 @@
+import socket
+
+hostname = socket.gethostname().split('.', 1)[0]
+
 config = {
-    "name": "koschei",
+    "name": "koschei.%s" % hostname,
 }
