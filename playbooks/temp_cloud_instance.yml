@@ -1,0 +1,70 @@
+# setup a transient fedora instance
+# optionally can take -e "name=something image=imagename public_ips=public_ip root_auth_users='user1 user2 user3'"
+
+- name: check/create instance
+  hosts: lockbox01.phx2.fedoraproject.org
+  user: root
+  gather_facts: False
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - /srv/private/ansible/vars.yml
+   - /srv/web/infra/ansible/vars/fedora-cloud.yml
+   - /srv/private/ansible/files/openstack/passwords.yml
+  vars:
+  - keypair: fedora-admin-20130801
+  - image: {{ centos70_x86_64 }}
+  - instance_type: m1.small
+  - security_group: web-80-anywhere-persistent,web-443-anywhere-persistent,ssh-anywhere-persistent,default
+  - region: nova
+  - auth_url: "{{os_auth_url}}"
+  - login_username: "admin"
+  - login_password: "{{ADMIN_PASS}}"
+  - login_tenant_name: transient
+  - image_id: "{{ image|image_name_to_id('admin', ADMIN_PASS, inventory_tenant, os_auth_url) }}"
+  - nics:
+    - net-id: "28db7265-fb78-4937-bfe3-9c8a9b959c30"
+  - floating_ips:
+     - "{{public_ip}}"
+
+  tasks:
+  - name: fail when name is not provided
+    fail: msg="Please specify the name of the instance"
+    when: name is not defined
+
+  - name: fail when public_ip is not provided
+    fail: msg="Please specify the public_ip for the instance"
+    when: public_ip is not defined
+
+  - include: "{{ tasks }}/transient_cloud_new.yml"
+
+- name: provision instance
+  hosts: tmp_just_created
+  gather_facts: True
+  user: fedora
+  sudo: True
+
+  vars_files: 
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  tasks:
+  - name: install cloud-utils
+    yum: pkg=cloud-utils state=present
+
+  - name: growpart /dev/vda1 partition (/) to full size
+    action: command growpart /dev/vda 1
+    register: growpart
+    always_run: true
+    changed_when: "growpart.rc != 1"
+    failed_when: growpart.rc == 2
+
+  - name: resize the /dev/vda 1 fs
+    action: command xfs_growfs /dev/vda1
+    when: growpart.rc == 0
+
+  - include: "{{ tasks }}/cloud_setup_basic.yml"
+
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"
