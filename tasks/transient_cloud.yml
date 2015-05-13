@@ -24,7 +24,14 @@
   local_action: add_host hostname="{{ nova_result.public_ip }}" groupname=tmp_just_created
 
 - name: mail off about where it is
-  local_action: mail to=sysadmin-main-members@fedoraproject.org from=ansible-create@fedoraproject.org subject="{{ nova_result.public_ip }}" msg="transient cloud instance created on {{ nova_result.public_ip }}\n name = {{ name }}\nroot_uath_users = {{ root_auth_users }}\nimage = {{ image }}"
+  local_action: mail 
+    to=sysadmin-main-members@fedoraproject.org 
+    from=ansible-create@fedoraproject.org
+    subject="{{ nova_result.public_ip }}"
+    body="transient cloud instance created on {{ nova_result.public_ip }}
+          name = {{ name }}
+          root_uath_users = {{ root_auth_users }}
+          image = {{ image }}"
 
 - name: wait for he host to be hot
   local_action: wait_for host={{ nova_result.public_ip }} port=22 delay=1 timeout=600
