@@ -1,4 +1,8 @@
 # run the crawler twice a day
 # logs sent to /var/log/mirrormanager/crawler.log and crawl/* by default
 # 32GB of RAM is not enough for 75 threads, 38 seems to work so far
-0 */12 * * * mirrormanager /usr/bin/mm2_crawler --threads 38 `/usr/local/bin/run_crawler.sh 2` > /dev/null 2>&1
+#
+# [ "`hostname -s`" == "mm-crawler02" ] && sleep 3h is used to start the crawl
+# later on the second crawler to reduce the number of parallel accesses to
+# the database
+0 */12 * * * mirrormanager [ "`hostname -s`" == "mm-crawler02" ] && sleep 3h; /usr/bin/mm2_crawler --threads 38 `/usr/local/bin/run_crawler.sh 2` > /dev/null 2>&1
