@@ -20,7 +20,6 @@
       auto_floating_ip: true
       user_data: "#cloud-config\ndisable_root: 0"
   register: nova_result
-  when: host_is_up|failed
 
 - name: add it to the special group
   local_action: add_host hostname="{{ public_ip }}" groupname=tmp_just_created
@@ -31,10 +30,8 @@
 
 - name: wait for he host to be hot
   local_action: wait_for host={{ public_ip }} port=22 delay=1 timeout=600
-  when: host_is_up|failed
 
 # SSH is up and running, however cloud-init still did not deployed ssh keypair
 # we have to wait some time. 10 sec is usually enough, but not always.
 - name: waiting for cloud-init
   pause: seconds=30
-  when: host_is_up|failed
