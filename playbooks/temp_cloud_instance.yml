@@ -1,5 +1,20 @@
-# setup a transient fedora instance
-# optionally can take -e "name=something image=imagename root_auth_users='user1 user2 user3'"
+#
+# setup a transient instance in the Fedora infrastructure private cloud
+#
+# This playbook is used to spin up a transient instance for someone to test something. 
+# In particular transient instances will all be terminated at least by the next 
+# maint window for the cloud, but ideally people will terminate instances they 
+# are done using. 
+#
+# If you have an application or longer term item that should always be around
+# please use the persistent playbook instead.
+#
+# You MUST pass a name to it, ie: -e 'name=somethingdescriptive'
+# You can optionally override defaults by passing any of the following: 
+# image=imagename (default is centos70_x86_64)
+# instance_type=some instance type (default is m1.small)
+# root_auth_users='user1 user2 user3' (default is sysadmin-main group)
+#
 
 - name: check/create instance
   hosts: lockbox01.phx2.fedoraproject.org
@@ -25,6 +40,7 @@
 - name: provision instance
   hosts: tmp_just_created
   gather_facts: True
+  environment: "ANSIBLE_HOST_KEY_CHECKING=False"
 
   vars_files: 
    - /srv/web/infra/ansible/vars/global.yml
