@@ -8,7 +8,7 @@
 - name: spin UP VM using nova_compute
   sudo: False
   local_action:
-      security_groups: web-80-anywhere-transient,web-443-anywhere-transient,ssh-anywhere-transient,default
+      security_groups: all-icmp-transient,web-80-anywhere-transient,web-443-anywhere-transient,ssh-anywhere-transient,default
       nics:
       - net-id: "28db7265-fb78-4937-bfe3-9c8a9b959c30"
       name: "{{ name }}"
@@ -21,14 +21,12 @@
       wait_for: 300
       flavor_id: "{{ instance_type|flavor_name_to_id('admin', ADMIN_PASS, 'transient', os_auth_url) }}"
       key_name: fedora-admin-20130801
-      floating_ips:
-        - "{{public_ip}}"
-      
+      auto_floating_ip: true
   register: nova_result
   when: host_is_up|failed
 
 - name: add it to the special group
-  local_action: add_host hostname=public_ip groupname=tmp_just_created
+  local_action: add_host hostname="{{ public_ip }}" groupname=tmp_just_created
 
 #- name: mail off about where it is
 #  local_action: mail to=sysadmin-main-members@fedoraproject.org from=ansible-create@fedoraproject.org subject={{ public_ip }} msg="cloud instance created on {{ public_ip }}\n {{ hostbase }} {{ root_auth_users }} "
