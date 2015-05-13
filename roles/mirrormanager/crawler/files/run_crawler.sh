@@ -26,4 +26,7 @@ for i in `seq 1 ${NUMBER_OF_CRAWLERS}`; do
         fi
         let STARTID=${STARTID}+${PART}
         let STOPID=${STOPID}+${PART}
+	if [ "${STOPID}" -eq "${MAX_HOST}" ]; then
+		let STOPID=${STOPID}+1
+	fi
 done
