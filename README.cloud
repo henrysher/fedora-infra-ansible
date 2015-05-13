@@ -207,3 +207,53 @@ For persistent:
 
 3. euca-terminate-instances <the id, something like i-00000295>
 
+
+
+New Cloud stuff
+===============
+
+These are instructions for some basic tasks regarding our "new" openstack cloud.
+
+:author: Lando Calrissian
+
+Creating a persistant instance
+------------------------------
+
+1) Select an available floating IP
+
+    source CONFIG_FILE
+    nova floating-ip-list
+
+2) Add that IP addr to dns (typically as foo.cloud.fedoraproject.org)
+
+3) Create persistent storage disk for the instance (if necessary.. you might not
+   need this).
+
+    nova volume-create --display-name SOME_NAME SIZE
+
+4) Add to ansible inventory in the persistent-cloud group.
+   You should use the FQDN for this and not the IP.  Names are good.
+
+5) setup the host_vars file.  It should looks something like this::
+
+        instance_type: m1.medium                           
+        image: "{{ f20_qcow_id }}"                         
+        keypair: fedora-admin-20130801                     
+        security_group: webserver                          
+        zone: nova                                         
+        tcp_ports: [22, 80, 443]                           
+
+        hostbase: taiga                                    
+        public_ip: 209.132.184.50                          
+        root_auth_users:  ralph maxamillion                
+        description: taiga frontend server                 
+                                                           
+        volumes:                                           
+          - volume_id: VOLUME_UUID_GOES_HERE
+            device: /dev/vdc                               
+                                                           
+        cloud_networks:                                    
+          # persistent-net                                 
+          - net-id: "7c705493-f795-4c3a-91d3-c5825c50abfe" 
+
+6) setup the host playbook
