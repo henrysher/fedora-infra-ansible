@@ -39,7 +39,6 @@
    - { role: yum-cron, tags: ['yumcron'] }
    - { role: sudo, tags: ['sudo'] }
    - apache
-   - { role: phabricator, tags: ['phabricator'] }
 
   tasks:
   # this is how you include other task lists
@@ -49,6 +48,24 @@
 
   handlers:
    - include: "{{ handlers }}/restart_services.yml"
+
+- name: configure phabricator
+  hosts: qadevel-stg
+  user: root
+  gather_facts: True
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  roles:
+   - { role: maraidb_server, tags: ['mariadb'] }
+   - { role: phabricator, tags: ['phabricator'] }
+
+  handlers:
+   - include: "{{ handlers }}/restart_services.yml"
+
 
 #- name: configure taskotron-ci master
 #  hosts: qadevel-stg
