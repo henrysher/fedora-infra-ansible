@@ -19,9 +19,11 @@
 
 - name: put step-tickers in place
   action: copy src="{{ files }}/common/step-tickers" dest=/etc/ntp/step-tickers
+  when: not ansible_cmdline.ostree
 
 - name: enable the service
   action: service name=ntpd state=running enabled=true
+  when: not ansible_cmdline.ostree
 
 #- name: edit hostname to be instance name - prefix hostbase var if it exists
 #  action: shell hostname  {{ hostbase }}`curl -s http://169.254.169.254/latest/meta-data/instance-id`
