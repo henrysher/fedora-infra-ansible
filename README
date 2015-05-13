@@ -15,12 +15,25 @@ library - library of custom local ansible modules
 
 playbooks - collections of plays we want to run on systems
 
+  groups: groups of hosts configured from one playbook.
+  
+  hosts: playbooks for single hosts. 
+
+  manual: playbooks that are only run manually by an admin as needed.
+
 tasks - snippets of tasks that should be included in plays
 
 roles - specific roles to be use in playbooks. 
         Each role has it's own files/templates/vars
 
 filter_plugins - Jinja filters
+
+master.yml - This is the master playbook, consisting of all 
+             current group and host playbooks. Note that the 
+             daily cron doesn't run this, it runs even over
+             playbooks that are not yet included in master. 
+             This playbook is usefull for making changes over 
+             multiple groups/hosts usually with -t (tag). 
 
 == Paths ==
 
@@ -36,212 +49,23 @@ In general to run any ansible playbook you will want to run:
 
 sudo -i ansible-playbook /path/to/playbook.yml
 
-== Cloud information ==
+== Scheduled check-diff ==
 
-cloud instances:
-to startup a new cloud instance and configure for basic server use run (as
-root):
+Every night a cron job runs over all playbooks under playbooks/{groups}{hosts}
+with the ansible --check --diff options. A report from this is sent to 
+sysadmin-logs. In the ideal state this report would be empty. 
 
-el6:
-sudo -i ansible-playbook /srv/web/infra/ansible/playbooks/el6_temp_instance.yml
+== Idempotency ==
 
-f19:
-sudo -i ansible-playbook /srv/web/infra/ansible/playbooks/f19_temp_instance.yml
+All playbooks should be idempotent. Ie, if run once they should bring the 
+machine(s) to the desired state, and if run again N times after that they should
+make 0 changes (because the machine(s) are in the desired state). 
+Please make sure your playbooks are idempotent. 
 
+== Can be run anytime ==
 
-The -i is important - ansible's tools need access to root's sshagent as well
-as the cloud credentials to run the above playbooks successfully.
-
-This will setup a new instance, provision it and email sysadmin-main that
-the instance was created, it's instance id (for terminating it, attaching
-volumes, etc) and it's ip address.
-
-You will then be able to login, as root.
-
-You can add various extra vars to the above commands to change the instance
-you've just spun up.
-
-variables to define:
-instance_type=c1.medium
-security_group=default
-root_auth_users='username1 username2 @groupname'
-hostbase=basename for hostname - will have instance id appended to it
-
-
-define these with:
-
---extra-vars="varname=value varname1=value varname2=value"
-
-Name        Memory_MB  Disk   VCPUs
-m1.tiny     512        0      1    
-m1.small    2048       20     1    
-m1.medium   4096       40     2    
-m1.large    8192       80     4    
-m1.xlarge   16384      160    8    
-m1.builder  5120       50     3    
-
-Setting up a new persistent cloud host:
-1. select an ip:
-   source /srv/private/ansible/files/openstack/persistent-admin/ec2rc.sh
-   oeuca-describe-addresses
-  - pick an ip from the list that is not assigned anywhere
-  - add it into dns - normally in the cloud.fedoraproject.org but it doesn't
-    have to be
-
-2. If needed create a persistent storage disk for the instance:
-   source /srv/private/ansible/files/openstack/persistent-admin/ec2rc.sh
-   euca-create-volume -z nova -s <size in gigabytes>
-
-
-3. set up the host/ip in ansible host inventory
-   - add to ansible/inventory/inventory under [persistent-cloud]
-     - either the ip itself or the hostname you want to refer to it as
-
-4. setup the host_vars
-   - create file named by the hostname or ip you used in the inventory
-   - for adding persistent volumes add an entry like this into the host_vars file
-
-   volumes: ['-d /dev/vdb vol-BCA33FCD', '-d /dev/vdc vol-DC833F48']
-
-   for each volume you want to attach to the instance.
-
-   The device names matter - they start at /dev/vdb and increment. However,
-   they are not reliable IN the instance. You should find the device, partition
-   it, format it and label the formatted device then mount the device by label
-   or  by UUID. Do not count on the device name being the same each time.
-
-
-Contents should look like this (remove all the comments)
-
----
-# 2cpus, 3GB of ram 20GB of ephemeral space
-instance_type: m1.large 
-# image id - see global vars. You can also use euca-describe-images to find other images as well
-image: "{{ el6_qcow_id }}"
-keypair: fedora-admin-20130801
-# what security group to add the host to
-security_group: webserver 
-zone: fedoracloud 
-# instance id will be appended
-hostbase: hostname_base- 
-# ip should be in the 209.132.184.XXX range
-public_ip: $ip_you_selected
-# users/groups who should have root ssh access
-root_auth_users:  skvidal bkabrda 
-description: some description so someone else can know what this is
-
-The available images can be found by running::
-   source /srv/private/ansible/files/openstack/persistent-admin/ec2rc.sh
-   euca-describe-images | grep ami
-
-4. setup a host playbook ansible/playbooks/hosts/$YOUR_HOSTNAME_HERE.yml
-   Note: the name of this file doesn't really matter but it should normally
-         be the hostname of the host you're setting up. 
-
-- name: check/create instance
-  hosts: $YOUR_HOSTNAME/IP HERE
-  user: root
-  gather_facts: False
-
-  vars_files:
-   - /srv/web/infra/ansible/vars/global.yml
-   - "{{ private }}/vars.yml"
-
-  tasks:
-  - include: "{{ tasks }}/persistent_cloud.yml"
-
-- name: provision instance
-  hosts: $YOUR_HOSTNAME/IP HERE
-  user: root
-  gather_facts: True
-
-  vars_files:
-   - /srv/web/infra/ansible/vars/global.yml
-   - "{{ private }}/vars.yml"
-   - /srv/web/infra/ansible/vars//{{ ansible_distribution }}.yml
-
-  tasks:
-  - include: "{{ tasks }}/cloud_setup_basic.yml
-  # fill in other actions/includes/etc here
-
-  handlers:
-  - include: "{{ handlers }}/restart_services.yml
-
-
-5. add/commit the above to the git repo and push your changes
-
-
-6. set it up:
-   sudo -i ansible-playbook /srv/web/infra/ansible/playbooks/hosts/$YOUR_HOSTNAME_HERE.yml
-
-7. login, etc
-
-You should be able to run that playbook over and over again safely, it will
-only setup/create a new instance if the ip is not up/responding.
-
-SECURITY GROUPS
-- to edit security groups you must either have your own cloud account or
-  be a member of sysadmin-main
-
-This gives you the credential to change things in the persistent tenant
-- source /srv/private/ansible/files/openstack/persistent-admin/ec2rc.sh
-
-
-This lists all security groups in that tenant:
-- euca-describe-groups | grep GROUP
-
-the output will look like this:
-euca-describe-groups  | grep GROU
-GROUP	d4e664a10e2c4210839150be09c46e5e	default	default
-GROUP	d4e664a10e2c4210839150be09c46e5e	jenkins	jenkins instance group
-GROUP	d4e664a10e2c4210839150be09c46e5e	logstash	logstash security group
-GROUP	d4e664a10e2c4210839150be09c46e5e	smtpserver	list server group. needs web and smtp
-GROUP	d4e664a10e2c4210839150be09c46e5e	webserver	webserver security group
-GROUP	d4e664a10e2c4210839150be09c46e5e	wideopen	wideopen
-
-
-This lets you list the rules in a specific group:
-- euca-describe-group groupname
-
-the output will look like this:
-
-euca-describe-group wideopen
-GROUP	d4e664a10e2c4210839150be09c46e5e	wideopen	wideopen
-PERMISSION	d4e664a10e2c4210839150be09c46e5e	wideopen ALLOWS	tcp	1	65535	FROM	CIDR	0.0.0.0/0
-PERMISSION	d4e664a10e2c4210839150be09c46e5e	wideopen ALLOWS	icmp	-1	-1	FROM	CIDR	0.0.0.0/0
-
-
-To create a new group:
-euca-create-group -d "group description here" groupname
-
-To add a rule to a group:
-euca-authorize -P tcp -p 22 groupname
-euca-authorize -P icmp -t -1:-1 groupname
-
-To delete a rule from a group:
-euca-revoke -P tcp -p 22 groupname
-
-Notes:
-- Be careful removing or adding rules to existing groups b/c you could be
-impacting other instances using that security group.
-
-- You will almost always want to allow 22/tcp (sshd) and icmp -1 -1 (ping
-and traceroute and friends). 
-
-
-
-
-TERMINATING INSTANCES
-
-For transient:
-1. source /srv/private/ansible/files/openstack/transient-admin/ec2rc.sh
-
-  - OR -
-
-For persistent:
-1. source /srv/private/ansible/files/openstack/persistent-admin/ec2rc.sh
-
-2. euca-describe-instances | grep <ip of your instance>
-
-3. euca-terminate-instances <the id, something like i-00000295>
+When a playbook or change is checked into ansible you should assume 
+that it could be run at ANY TIME. Always make sure the checked in state
+is the desired state. Always test changes when they land so they don't 
+surprise you later. 
 
