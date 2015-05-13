@@ -34,17 +34,7 @@
   tasks:
   - name: install cloud-utils
     yum: pkg=cloud-utils state=present
-
-  - name: growpart /dev/vda1 partition (/) to full size
-    action: command growpart /dev/vda 1
-    register: growpart
-    always_run: true
-    changed_when: "growpart.rc != 1"
-    failed_when: growpart.rc == 2
-
-  - name: resize the /dev/vda 1 fs
-    action: command xfs_growfs /dev/vda1
-    when: growpart.rc == 0
+    when: ansible_distribution_major_version < '22'
 
   - include: "{{ tasks }}/cloud_setup_basic.yml"
 
