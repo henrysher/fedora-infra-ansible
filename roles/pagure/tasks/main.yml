@@ -44,9 +44,25 @@
   - gitolite
   - pagure
 
-- name: create the /etc/gitolite/conf folder
+- name: create the /srv/git/.gitolite/conf folder
   action: file state=directory
-               path=/etc/gitolite/conf
+               path=/srv/git/.gitolite/conf
+               owner=git group=git mode=0775
+  tags:
+  - gitolite
+  - pagure
+
+- name: create the /srv/git/.gitolite/keydir folder
+  action: file state=directory
+               path=/srv/git/.gitolite/keydir
+               owner=git group=git mode=0775
+  tags:
+  - gitolite
+  - pagure
+
+- name: create the /srv/git/.gitolite/logs folder
+  action: file state=directory
+               path=/srv/git/.gitolite/logs
                owner=git group=git mode=0775
   tags:
   - gitolite
@@ -58,18 +74,8 @@
   - gitolite
   - pagure
 
-- name: Adjust permissions of /etc/gitolite
-  command: chown git:git -R /etc/gitolite
-  tags:
-  - gitolite
-  - pagure
-
-#- name: set-up gitolite
-  #command: gl-setup
-           #creates=/srv/git/.gitolite.rc
-  #sudo: yes
-  #sudo_user: git
-
+- name: Adjust permissions of /srv/git/.gitolite
+  command: chown git:git -R /srv/git/.gitolite
   tags:
   - gitolite
   - pagure
