@@ -8,6 +8,14 @@
 - name: spin UP VM using nova_compute
   sudo: False
   local_action:
+      keypair: fedora-admin-20130801
+      image: "{{ image }}"
+      instance_type: "{{ instance_type }}"
+      security_group: web-80-anywhere-transient,web-443-anywhere-transient,ssh-anywhere-transient,default
+      region: nova
+      image_id: "{{ image|image_name_to_id('admin', ADMIN_PASS, inventory_tenant, os_auth_url) }}"
+      nics:
+      - net-id: "28db7265-fb78-4937-bfe3-9c8a9b959c30"
       name: "{{ name }}"
       module: nova_compute
       auth_url: "{{os_auth_url}}"
@@ -21,6 +29,7 @@
       key_name: "{{ keypair }}"
       floating_ips:
         - "{{public_ip}}"
+      
   register: nova_result
   when: host_is_up|failed
 
