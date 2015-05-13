@@ -86,6 +86,14 @@
 - name: start and enable phabricator phd service
   service: name=phd enabled=yes state=started
 
+- name: Install the SSL cert so that we can use https
+  copy: >
+      src={{ private}}/files/httpd/{{ item }} dest=/etc/pki/tls/certs/{{ item }}
+      owner=root group=root mode=0600
+  with_items:
+  - "{{ sslcertfile }}"
+  - "{{ sslkeyfile }}"
+
 - name: copy phabricator httpd config
   template: src=phabricator.conf.j2 dest=/etc/httpd/conf.d/phabricator.conf owner=root group=root mode=0644
   notify:
