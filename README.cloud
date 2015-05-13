@@ -35,12 +35,12 @@ define these with:
 --extra-vars="varname=value varname1=value varname2=value"
 
 Name        Memory_MB  Disk   VCPUs
-m1.tiny     512        0      1    
-m1.small    2048       20     1    
-m1.medium   4096       40     2    
-m1.large    8192       80     4    
-m1.xlarge   16384      160    8    
-m1.builder  5120       50     3    
+m1.tiny     512        0      1
+m1.small    2048       20     1
+m1.medium   4096       40     2
+m1.large    8192       80     4
+m1.xlarge   16384      160    8
+m1.builder  5120       50     3
 
 Setting up a new persistent cloud host:
 1. select an ip:
@@ -77,19 +77,19 @@ Contents should look like this (remove all the comments)
 
 ---
 # 2cpus, 3GB of ram 20GB of ephemeral space
-instance_type: m1.large 
+instance_type: m1.large
 # image id - see global vars. You can also use euca-describe-images to find other images as well
 image: "{{ el6_qcow_id }}"
 keypair: fedora-admin-20130801
 # what security group to add the host to
-security_group: webserver 
-zone: fedoracloud 
+security_group: webserver
+zone: fedoracloud
 # instance id will be appended
-hostbase: hostname_base- 
+hostbase: hostname_base-
 # ip should be in the 209.132.184.XXX range
 public_ip: $ip_you_selected
 # users/groups who should have root ssh access
-root_auth_users:  skvidal bkabrda 
+root_auth_users:  skvidal bkabrda
 description: some description so someone else can know what this is
 
 The available images can be found by running::
@@ -98,7 +98,7 @@ The available images can be found by running::
 
 4. setup a host playbook ansible/playbooks/hosts/$YOUR_HOSTNAME_HERE.yml
    Note: the name of this file doesn't really matter but it should normally
-         be the hostname of the host you're setting up. 
+         be the hostname of the host you're setting up.
 
 - name: check/create instance
   hosts: $YOUR_HOSTNAME/IP HERE
@@ -188,7 +188,7 @@ Notes:
 impacting other instances using that security group.
 
 - You will almost always want to allow 22/tcp (sshd) and icmp -1 -1 (ping
-and traceroute and friends). 
+and traceroute and friends).
 
 
 
@@ -236,24 +236,24 @@ Creating a persistant instance
 
 5) setup the host_vars file.  It should looks something like this::
 
-        instance_type: m1.medium                           
-        image: "{{ f20_qcow_id }}"                         
-        keypair: fedora-admin-20130801                     
-        security_group: webserver                          
-        zone: nova                                         
-        tcp_ports: [22, 80, 443]                           
+        instance_type: m1.medium
+        image: "{{ f20_qcow_id }}"
+        keypair: fedora-admin-20130801
+        security_group: webserver
+        zone: nova
+        tcp_ports: [22, 80, 443]
 
-        hostbase: taiga                                    
-        public_ip: 209.132.184.50                          
-        root_auth_users:  ralph maxamillion                
-        description: taiga frontend server                 
-                                                           
-        volumes:                                           
+        hostbase: taiga
+        public_ip: 209.132.184.50
+        root_auth_users:  ralph maxamillion
+        description: taiga frontend server
+
+        volumes:
           - volume_id: VOLUME_UUID_GOES_HERE
-            device: /dev/vdc                               
-                                                           
-        cloud_networks:                                    
-          # persistent-net                                 
-          - net-id: "7c705493-f795-4c3a-91d3-c5825c50abfe" 
+            device: /dev/vdc
+
+        cloud_networks:
+          # persistent-net
+          - net-id: "7c705493-f795-4c3a-91d3-c5825c50abfe"
 
 6) setup the host playbook
