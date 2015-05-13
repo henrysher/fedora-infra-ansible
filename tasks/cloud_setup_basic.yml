@@ -1,23 +1,19 @@
 ---
-- name: update all
-  command: yum -y update creates=/etc/sysconfig/global-update-applied
-  register: updated
-  tags:
-  - packages
 
 - name: ntp pkgs
-  action: yum state=present pkg={{ item }}
+  yum: state=present pkg={{ item }}
   with_items:
   - ntpdate
   - ntp
   - libsemanage-python
   - libselinux-python
+  when: ansible_distribution_major_version < '22'
   tags:
   - packages
 
-- name: write out global-update-applied file if we updated
-  copy: content="updated" dest=/etc/sysconfig/global-update-applied 
-  when: updated is defined
+- name: ntp pkgs
+  command: dnf install -y ntpdate ntp libsemanage-python libselinux-python
+  when: ansible_distribution_major_version > '22'
   tags:
   - packages
 
@@ -55,3 +51,22 @@
   tags:
   - config
 
+- name: update all
+  command: yum -y update creates=/etc/sysconfig/global-update-applied
+  register: updated
+  when: ansible_distribution_major_version < '22'
+  tags:
+  - packages
+
+- name: update all
+  command: dnf -y update creates=/etc/sysconfig/global-update-applied
+  register: updated
+  when: ansible_distribution_major_version > '21'
+  tags:
+  - packages
+
+- name: write out global-update-applied file if we updated
+  copy: content="updated" dest=/etc/sysconfig/global-update-applied 
+  when: updated is defined
+  tags:
+  - packages
