@@ -5,6 +5,14 @@
   register: host_is_up
   ignore_errors: true
 
+- name: clean out old known_hosts
+  local_action: known_hosts path={{item}} host={{inventory_hostname}} state=absent
+  ignore_errors: True
+  with_items:
+  - /root/.ssh/known_hosts
+  - /etc/ssh/ssh_known_hosts
+  when: host_is_up|failed
+
 - name: spin UP VM using nova_compute
   sudo: False
   local_action:
