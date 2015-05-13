@@ -24,8 +24,11 @@
 - name: create phabricator daemon user
   user: name={{ phabricator_daemon_user }}
 
+- name: add apache user to daemon user group
+  user: name=apache groups={{ phabricator_daemon_user }}
+
 - name: create vcs user
-  user: name={{ phabricator_vcs_user }} password={{ phabricator_vcs_user_password }}
+  user: name={{ phabricator_vcs_user }} password={{ phabricator_vcs_user_password }} groups={{ phabricator_daemon_user }}
   when: enable_phabricator_git
 
 - name: add vcs user to sudoers to write as daemon user with restrictions for git
@@ -55,7 +58,7 @@
   file: path={{ phabricator_filedir }} state=directory owner=apache group=apache mode=1755
 
 - name: create log directory for phabricator
-  file: path=/var/log/phabricator state=directory owner={{ phabricator_daemon_user }} group=apache mode=1775
+  file: path=/var/log/phabricator state=directory owner={{ phabricator_daemon_user }} group={{ phabricator_daemon_user }} mode=1775
 
 # disabling phabricator env
 #- name: generate phabricator environment
