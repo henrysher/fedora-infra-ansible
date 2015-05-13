@@ -13,7 +13,7 @@
 
 - name: ntp pkgs
   command: dnf install -y ntpdate ntp libsemanage-python libselinux-python
-  when: ansible_distribution_major_version > '22'
+  when: ansible_distribution_major_version > '21' and not ansible_cmdline.ostree
   tags:
   - packages
 
@@ -61,7 +61,7 @@
 - name: update all
   command: dnf -y update creates=/etc/sysconfig/global-update-applied
   register: updated
-  when: ansible_distribution_major_version > '21'
+  when: ansible_distribution_major_version > '21' and not ansible_cmdline.ostree
   tags:
   - packages
 

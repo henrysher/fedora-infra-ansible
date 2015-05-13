@@ -49,9 +49,13 @@
    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
 
   tasks:
-  - name: install cloud-utils
+  - name: install cloud-utils (yum)
     yum: pkg=cloud-utils state=present
     when: ansible_distribution_major_version < '22'
+
+  - name: install cloud-utils (dnf)
+    command: dnf install -y cloud-utils
+    when: ansible_distribution_major_version > '21' and not ansible_cmdline.ostree
 
   - include: "{{ tasks }}/cloud_setup_basic.yml"
 
