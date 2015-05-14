@@ -1,153 +1,104 @@
 == Cloud information ==
 
-cloud instances:
-to startup a new cloud instance and configure for basic server use run (as
-root):
 
-el6:
-sudo -i ansible-playbook /srv/web/infra/ansible/playbooks/el6_temp_instance.yml
+=== Transient instances ===
 
-f19:
-sudo -i ansible-playbook /srv/web/infra/ansible/playbooks/f19_temp_instance.yml
+Transient instances are short term use instances for Fedora 
+contributors. They can be terminated at any time and shouldn't be
+relied on for any production use.  If you have an application 
+or longer term item that should always be around
+please create a persistent playbook instead. (see below)
 
+to startup a new transient cloud instance and configure for basic 
+server use run (as root):
+
+sudo -i ansible-playbook /srv/web/infra/ansible/playbooks/transient_cloud_instance.yml -e 'name=somename'
 
 The -i is important - ansible's tools need access to root's sshagent as well
 as the cloud credentials to run the above playbooks successfully.
 
 This will setup a new instance, provision it and email sysadmin-main that
-the instance was created, it's instance id (for terminating it, attaching
-volumes, etc) and it's ip address.
+the instance was created and it's ip address.
 
-You will then be able to login, as root.
+You will then be able to login, as root if you are in the sysadmin-main group.
+(If you are making the instance for another user, see below)
 
-You can add various extra vars to the above commands to change the instance
-you've just spun up.
+You MUST pass a name to it, ie: -e 'name=somethingdescriptive'
+You can optionally override defaults by passing any of the following: 
+image=imagename (default is centos70_x86_64)
+instance_type=some instance type (default is m1.small)
+root_auth_users='user1 user2 user3 @group1' (default always includes sysadmin-main group)
 
-variables to define:
-instance_type=c1.medium
-security_group=default
-root_auth_users='username1 username2 @groupname'
-hostbase=basename for hostname - will have instance id appended to it
+Note: if you run this playbook with the same name= multiple times
+openstack is smart enough to just return the current ip of that instance
+and go on. This way you can re-run if you want to reconfigure it without
+reprovisioning it.
 
+=== Persistent cloud instances ===
 
-define these with:
-
---extra-vars="varname=value varname1=value varname2=value"
-
-Name        Memory_MB  Disk   VCPUs
-m1.tiny     512        0      1
-m1.small    2048       20     1
-m1.medium   4096       40     2
-m1.large    8192       80     4
-m1.xlarge   16384      160    8
-m1.builder  5120       50     3
+Persistent cloud instances are ones that we want to always have up and 
+configured. These are things like dev instances for various applications, 
+proof of concept servers for evaluating something, etc. They will be 
+reprovisioned after a reboot/maint window for the cloud. 
 
 Setting up a new persistent cloud host:
-1. select an ip:
-   source /srv/private/ansible/files/openstack/persistent-admin/ec2rc.sh
-   oeuca-describe-addresses
-  - pick an ip from the list that is not assigned anywhere
-  - add it into dns - normally in the cloud.fedoraproject.org but it doesn't
-    have to be
 
-2. If needed create a persistent storage disk for the instance:
-   source /srv/private/ansible/files/openstack/persistent-admin/ec2rc.sh
-   euca-create-volume -z nova -s <size in gigabytes>
+1) Select an available floating IP
 
+    source /srv/private/ansible/files/openstack/novarc
+    nova floating-ip-list
 
-3. set up the host/ip in ansible host inventory
-   - add to ansible/inventory/inventory under [persistent-cloud]
-     - either the ip itself or the hostname you want to refer to it as
+2) Add that IP addr to dns (typically as foo.cloud.fedoraproject.org)
 
-4. setup the host_vars
-   - create file named by the hostname or ip you used in the inventory
-   - for adding persistent volumes add an entry like this into the host_vars file
+3) Create persistent storage disk for the instance (if necessary.. you might not
+   need this).
 
-   volumes: ['-d /dev/vdb vol-BCA33FCD', '-d /dev/vdc vol-DC833F48']
+    nova volume-create --display-name SOME_NAME SIZE
 
-   for each volume you want to attach to the instance.
+4) Add to ansible inventory in the persistent-cloud group.
+   You should use the FQDN for this and not the IP.  Names are good.
 
-   The device names matter - they start at /dev/vdb and increment. However,
-   they are not reliable IN the instance. You should find the device, partition
-   it, format it and label the formatted device then mount the device by label
-   or  by UUID. Do not count on the device name being the same each time.
+5) setup the host_vars file.  It should looks something like this::
 
+        instance_type: m1.medium
+        image: 
+        keypair: fedora-admin-20130801
+        security_group: webserver
+        zone: nova
+        tcp_ports: [22, 80, 443]
 
-Contents should look like this (remove all the comments)
+        inventory_tenant: persistent
+        inventory_instance_name: taiga
+        hostbase: taiga
+        public_ip: 209.132.184.50
+        root_auth_users:  ralph maxamillion
+        description: taiga frontend server
 
----
-# 2cpus, 3GB of ram 20GB of ephemeral space
-instance_type: m1.large
-# image id - see global vars. You can also use euca-describe-images to find other images as well
-image: "{{ el6_qcow_id }}"
-keypair: fedora-admin-20130801
-# what security group to add the host to
-security_group: webserver
-zone: fedoracloud
-# instance id will be appended
-hostbase: hostname_base-
-# ip should be in the 209.132.184.XXX range
-public_ip: $ip_you_selected
-# users/groups who should have root ssh access
-root_auth_users:  skvidal bkabrda
-description: some description so someone else can know what this is
+        volumes:
+          - volume_id: VOLUME_UUID_GOES_HERE
+            device: /dev/vdc
 
-The available images can be found by running::
-   source /srv/private/ansible/files/openstack/persistent-admin/ec2rc.sh
-   euca-describe-images | grep ami
+        cloud_networks:
+          # persistent-net
+          - net-id: "7c705493-f795-4c3a-91d3-c5825c50abfe"
 
-4. setup a host playbook ansible/playbooks/hosts/$YOUR_HOSTNAME_HERE.yml
-   Note: the name of this file doesn't really matter but it should normally
-         be the hostname of the host you're setting up.
+6) setup the host playbook
 
-- name: check/create instance
-  hosts: $YOUR_HOSTNAME/IP HERE
-  user: root
-  gather_facts: False
-
-  vars_files:
-   - /srv/web/infra/ansible/vars/global.yml
-   - "{{ private }}/vars.yml"
-
-  tasks:
-  - include: "{{ tasks }}/persistent_cloud.yml"
-
-- name: provision instance
-  hosts: $YOUR_HOSTNAME/IP HERE
-  user: root
-  gather_facts: True
-
-  vars_files:
-   - /srv/web/infra/ansible/vars/global.yml
-   - "{{ private }}/vars.yml"
-   - /srv/web/infra/ansible/vars//{{ ansible_distribution }}.yml
-
-  tasks:
-  - include: "{{ tasks }}/cloud_setup_basic.yml
-  # fill in other actions/includes/etc here
-
-  handlers:
-  - include: "{{ handlers }}/restart_services.yml
-
-
-5. add/commit the above to the git repo and push your changes
-
-
-6. set it up:
+7) run the playbook:
    sudo -i ansible-playbook /srv/web/infra/ansible/playbooks/hosts/$YOUR_HOSTNAME_HERE.yml
-
-7. login, etc
 
 You should be able to run that playbook over and over again safely, it will
 only setup/create a new instance if the ip is not up/responding.
 
-SECURITY GROUPS
+=== SECURITY GROUPS ===
+
+FIXME: needs work for new cloud. 
+
 - to edit security groups you must either have your own cloud account or
   be a member of sysadmin-main
 
 This gives you the credential to change things in the persistent tenant
 - source /srv/private/ansible/files/openstack/persistent-admin/ec2rc.sh
-
 
 This lists all security groups in that tenant:
 - euca-describe-groups | grep GROUP
@@ -190,70 +141,16 @@ impacting other instances using that security group.
 - You will almost always want to allow 22/tcp (sshd) and icmp -1 -1 (ping
 and traceroute and friends).
 
-
-
-
-TERMINATING INSTANCES
+=== TERMINATING INSTANCES === 
 
 For transient:
-1. source /srv/private/ansible/files/openstack/transient-admin/ec2rc.sh
+1. source /srv/private/ansible/files/openstack/transient-admin/keystonerc.sh
 
   - OR -
 
 For persistent:
-1. source /srv/private/ansible/files/openstack/persistent-admin/ec2rc.sh
+1. source /srv/private/ansible/files/openstack/persistent-admin/keystonerc.sh
 
-2. euca-describe-instances | grep <ip of your instance>
+2. nova list | grep <ip of your instance or name of your instance>
 
-3. euca-terminate-instances <the id, something like i-00000295>
-
-
-
-New Cloud stuff
-===============
-
-These are instructions for some basic tasks regarding our "new" openstack cloud.
-
-Creating a persistant instance
-------------------------------
-
-1) Select an available floating IP
-
-    source /srv/private/ansible/files/openstack/novarc
-    nova floating-ip-list
-
-2) Add that IP addr to dns (typically as foo.cloud.fedoraproject.org)
-
-3) Create persistent storage disk for the instance (if necessary.. you might not
-   need this).
-
-    nova volume-create --display-name SOME_NAME SIZE
-
-4) Add to ansible inventory in the persistent-cloud group.
-   You should use the FQDN for this and not the IP.  Names are good.
-
-5) setup the host_vars file.  It should looks something like this::
-
-        instance_type: m1.medium
-        image: "{{ f20_qcow_id }}"
-        keypair: fedora-admin-20130801
-        security_group: webserver
-        zone: nova
-        tcp_ports: [22, 80, 443]
-
-        inventory_tenant: persistent
-        inventory_instance_name: taiga
-        hostbase: taiga
-        public_ip: 209.132.184.50
-        root_auth_users:  ralph maxamillion
-        description: taiga frontend server
-
-        volumes:
-          - volume_id: VOLUME_UUID_GOES_HERE
-            device: /dev/vdc
-
-        cloud_networks:
-          # persistent-net
-          - net-id: "7c705493-f795-4c3a-91d3-c5825c50abfe"
-
-6) setup the host playbook
+3. nova delete <name of instance or ID of instance>
