@@ -1,0 +1,79 @@
+#
+# This is a beaker_server role. 
+#
+---
+
+# it's unfortunate, but the beaker devs say that this is required until
+# https://bugzilla.redhat.com/show_bug.cgi?id=1074384 is solved
+- name: switch selinux off
+  selinux: state=disabled
+  tags:
+    - selinux
+    - beaker_server
+
+- name: put beaker server repos on Rhel systems
+  action: copy src="{{ item }}" dest="/etc/yum.repos.d/{{ item }}"
+  with_items:
+    - beaker-server-rhel.repo
+  when: ansible_distribution == 'RedHat'
+
+- name: put beaker server repos on Fedora systems
+  action: copy src="{{ item }}" dest="/etc/yum.repos.d/{{ item }}"
+  with_items:
+    - beaker-server-fedora.repo
+  when: ansible_distribution == 'Fedora'
+
+- name: install beaker-server package
+  yum: name=beaker-server state=present
+  tags:
+    - beaker_server
+    - MySQL-python
+
+- name: Replace default apache beaker-server.conf
+  copy:
+    src: beaker-server.conf
+    dest: /etc/httpd/conf.d/beaker-server.conf
+    owner: root
+    group: root
+    mode: 0644
+  notify:
+    - restart httpd
+  tags:
+    - beaker-server
+
+- name: Replace default beaker_server.cfg file
+  template:
+    src: etc/beaker/server.cfg.j2
+    dest: /etc/beaker/server.cfg
+    owner: apache
+    group: root
+    mode: 0660
+    backup: yes
+    force: yes
+  register: setup_beaker_conf
+  notify:
+    - restart beaker server
+    - restart httpd
+  tags:
+    - beaker-server
+
+- name: create the beaker database
+  mysql_db: name=beaker state=present
+
+- name: create beaker user
+  mysql_user: name={{beaker_server_admin_user}} password={{beaker_server_admin_pass}} priv=beaker.*:ALL,GRANT state=present
+
+- name: initialize beaker database
+  command: "beaker-init -u {{beaker_server_admin_user}} -p {{beaker_server_admin_pass}} -e {{beaker_server_email}}"
+  when: setup_beaker_conf|success
+  tags:
+    - beaker-init
+    - beaker-server
+
+- name: ensure the Apache server and the Beaker daemon are running
+  service: name={{ item }} state=started enabled=yes
+  with_items:
+    - httpd
+    - beakerd
+  tags:
+    - beaker-server
