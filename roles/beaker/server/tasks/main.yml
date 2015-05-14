@@ -46,13 +46,13 @@
     - beaker-server
 
 - name: create the beaker database
-  mysql_db: name=beaker state=present
+  mysql_db: name={{ beaker_db_name }} state=present
 
 - name: create beaker database user
   mysql_user:
     name: "{{ beaker_db_user }}"
     password: "{{ beaker_db_password }}"
-    priv: "beaker.*:ALL,GRANT state=present"
+    priv: "{{ beaker_db_name }}.*:ALL,GRANT state=present"
 
 - name: initialize beaker database
   command: "beaker-init -u {{beaker_server_admin_user}} -p {{beaker_server_admin_pass}} -e {{beaker_server_email}}"
