@@ -47,3 +47,23 @@
 
   handlers:
   - include: "{{ handlers }}/restart_services.yml"
+
+- name: configure beaker and required services
+  hosts: beaker-stg
+  user: root
+  gather_facts: True
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  roles:
+   - { role: mariadb_server, tags: ['mariadb'] }
+   - { role: beaker/base, tags: ['beakerbase'] }
+   - { role: beaker/labcontroller, tags: ['beakerlabcontroller'] }
+   - { role: beaker/server, tags: ['beakerserver'] }
+
+  handlers:
+   - include: "{{ handlers }}/restart_services.yml"
+

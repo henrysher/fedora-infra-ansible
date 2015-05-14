@@ -1,0 +1,51 @@
+#
+# This is a beaker_labcontroller role.
+#
+---
+- name: install packages needed for beaker lab-controller
+  yum: pkg={{ item }} state=present
+  with_items:
+  - beaker-lab-controller
+  - tftp-server
+
+- name: check beaker-transfer state
+  command: service beaker-transfer status
+  failed_when: no
+  changed_when: no
+  register: transfer_state
+
+- name: Replace default labcontroller.conf file
+  template:
+    src: etc/beaker/labcontroller.conf.j2
+    dest: /etc/beaker/labcontroller.conf
+    owner: apache
+    group: root
+    mode: 0660
+    backup: yes
+    force: yes
+  register: configure_result
+  notify:
+    - restart httpd
+    - restart beaker lab controller
+  tags:
+    - beaker_lab_controller
+
+- name: restart beaker-transfer
+  service: name=beaker-transfer state=restarted
+  when: (transfer_state.rc == 0) and (configure_result.changed)
+
+- name: enable tftp
+  command: chkconfig tftp on
+  tags:
+    - beaker_lab_controller
+
+- name: start required services 
+  service: name={{ item }} state=started enabled=yes
+  with_items:
+    - httpd
+    - xinetd
+    - beaker-proxy
+    - beaker-provision
+    - beaker-watchdog
+  tags:
+    - beaker_lab_controller
