@@ -8,7 +8,7 @@
 RSYNC='/usr/bin/rsync'
 RS_OPT="-avSHP  --numeric-ids"
 RS_DEADLY="--delete --delete-excluded --delete-delay --delay-updates"
-ALT_EXCLUDES="--exclude deltaisos/archive --exclude 21_Alpha* --exclude 21-Alpha* --exclude 21_Beta* --exclude=F21a-TC1"
+ALT_EXCLUDES="--exclude deltaisos/archive --exclude 22_Alpha* --exclude 22_Beta*"
 EPL_EXCLUDES=""
 FED_EXCLUDES=""
 
