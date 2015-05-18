@@ -89,6 +89,19 @@ config = dict(
             for i in range(2)
         ],
 
+        # pagure runs as 4 procs and 4 threads, so 16 endpoints in total.
+{% if env != 'staging' %}
+        "pagure.pagure01": [
+            "tcp://pagure01.fedoraproject.org:30%02i" % i
+            for i in range(16)
+        ],
+{% else %}
+        "pagure.pagure-stg01": [
+            "tcp://pagure-stg01.fedoraproject.org:30%02i" % i
+            for i in range(16)
+        ],
+{% endif %}
+
         # mizdebsk says he thinks we'll need three sockets.  Two services
         # (koschei-resolver and koschei-polling) are only sending messages, one
         # service (koschei-watcher) can both send and receive them.  The wsgi
