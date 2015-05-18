@@ -54,6 +54,18 @@
    - "/srv/private/ansible/vars.yml"
    - "{{ vars_path }}/{{ ansible_distribution }}.yml"
 
+  pre_tasks:
+  - name: install fedmsg-relay
+    yum: pkg=fedmsg-relay state=present
+    tags:
+    - pagure
+    - pagure/fedmsg
+  - name: and start it
+    service: name=fedmsg-relay state=started
+    tags:
+    - pagure
+    - pagure/fedmsg
+
   roles:
   - pagure/frontend
   - pagure/fedmsg
