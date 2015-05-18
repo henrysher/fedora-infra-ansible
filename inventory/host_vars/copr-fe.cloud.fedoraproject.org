@@ -1,15 +1,21 @@
 ---
-instance_type: m1.medium
-image: "{{ f20_qcow_id }}"
+instance_type: ms1.medium
+image: "{{ fedora21_x86_64 }}"
 keypair: fedora-admin-20130801
-security_group: webserver
+security_group: web-80-anywhere-persistent,web-443-anywhere-persistent,ssh-anywhere-persistent,default
 zone: nova
 hostbase: copr-fe-
-public_ip: 209.132.184.144
-root_auth_users:  bkabrda ryanlerch pingou msuchy sgallagh nb asamalik
-description: copr frontend server
+public_ip: 209.132.184.54
+root_auth_users:  ryanlerch pingou msuchy sgallagh nb asamalik vgologuz
+description: copr frontend server - prod instance
 volumes: ['-d /dev/vdb vol-0000000f']
 tcp_ports: [22, 80, 443]
+volumes: [ {volume_id: '8f790db7-8294-4d2b-8bae-7af5961ce0f8', device: '/dev/vdc'} ]
+inventory_tenant: persistent
+inventory_instance_name: copr-fe
+cloud_networks:
+  # persistent-net
+  - net-id: "7c705493-f795-4c3a-91d3-c5825c50abfe"
 
 # Copr vars
 
@@ -21,11 +27,4 @@ dbs_to_backup:
 
 # Backup db dumps in /backups
 host_backup_targets: ['/backups']
-
-# for the new cloud:
-# uncomment after switch
-# volumes: [ {volume_id: '8f790db7-8294-4d2b-8bae-7af5961ce0f8', device: '/dev/vdc'} ]
-cloud_networks:
-  # persistent-net
-  - net-id: "7c705493-f795-4c3a-91d3-c5825c50abfe"
 
