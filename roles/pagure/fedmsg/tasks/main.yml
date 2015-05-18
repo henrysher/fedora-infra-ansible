@@ -11,6 +11,8 @@
   - policycoreutils-python  # This is in the kickstart now.  Here for old hosts.
   tags:
   - packages
+  - pagure
+  - pagure/fedmsg
 
 # We use setgid here so that the monitoring sockets created by fedmsg services
 # are accessible to the nrpe group.
@@ -21,10 +23,16 @@
     owner=fedmsg
     group=nrpe
     state=directory
+  tags:
+  - pagure
+  - pagure
+  - pagure/fedmsg
 
 - name: setup /etc/fedmsg.d directory
   file: path=/etc/fedmsg.d owner=root group=root mode=0755 state=directory
   tags:
+  - pagure
+  - pagure/fedmsg
   - config
 
 # Any files that change need to restart any services that depend on them.  A
@@ -48,6 +56,8 @@
   tags:
   - config
   - fedmsgdconfig
+  - pagure
+  - pagure/fedmsg
   notify:
   - restart httpd
   - restart fedmsg-relay
@@ -59,6 +69,8 @@
   tags:
   - config
   - fedmsgdconfig
+  - pagure
+  - pagure/fedmsg
   notify:
   - restart httpd
   - restart fedmsg-relay
@@ -67,6 +79,8 @@
   file: path=/etc/pki/fedmsg owner=root group=root mode=0755 state=directory
   tags:
   - config
+  - pagure
+  - pagure/fedmsg
 
 - name: install fedmsg ca.cert
   copy: >
@@ -77,6 +91,8 @@
     mode=0644
   tags:
   - config
+  - pagure
+  - pagure/fedmsg
 
 - name: fedmsg certs
   copy: >
@@ -90,6 +106,8 @@
   when: fedmsg_certs != []
   tags:
   - config
+  - pagure
+  - pagure/fedmsg
 
 - name: fedmsg keys
   copy: >
@@ -103,18 +121,35 @@
   when: fedmsg_certs != []
   tags:
   - config
+  - pagure
+  - pagure/fedmsg
 
 # Three tasks for handling our custom selinux module
 - name: ensure a directory exists for our custom selinux module
   file: dest=/usr/local/share/fedmsg state=directory
+  tags:
+  - selinux
+  - pagure
+  - pagure/fedmsg
 
 - name: copy over our custom selinux module
   copy: src=selinux/fedmsg.pp dest=/usr/local/share/fedmsg/fedmsg.pp
   register: selinux_module
+  tags:
+  - selinux
+  - pagure
+  - pagure/fedmsg
 
 - name: install our custom selinux module
   command: semodule -i /usr/local/share/fedmsg/fedmsg.pp
   when: selinux_module|changed
+  tags:
+  - selinux
+  - pagure
+  - pagure/fedmsg
 
 - name: start fedmsg-relay
   service: name=fedmsg-relay state=running enabled=yes
+  tags:
+  - pagure
+  - pagure/fedmsg
