@@ -1,14 +1,22 @@
 ---
-instance_type: m1.xlarge
-image: "{{ f20_qcow_id }}"
+
+instance_type: ms1.xlarge
+image: "{{ fedora21_x86_64 }}"
 keypair: fedora-admin-20130801
-security_group: webserver
+security_group: web-80-anywhere-persistent,web-443-anywhere-persistent,ssh-anywhere-persistent,default
 zone: nova
 hostbase: copr-be-
-public_ip: 209.132.184.142
-root_auth_users:  bkabrda msuchy pingou msuchy sgallagh nb asamalik vgologuz
+public_ip: 209.132.184.48
+root_auth_users:  msuchy pingou msuchy sgallagh nb asamalik vgologuz
 description: copr dispatcher and repo server
-volumes: ['-d /dev/vdc vol-00000028']
+volumes: [ {volume_id: '63c3a40c-e228-417a-97a2-e2c34730bf3b', device: '/dev/vdc'} ]
+inventory_tenant: persistent
+inventory_instance_name: copr-fe
+cloud_networks:
+  # persistent-net
+  - net-id: "7c705493-f795-4c3a-91d3-c5825c50abfe"
+  # copr-net
+  - net-id: "bba5cd9b-8a90-497b-a87f-62372f037620"
 
 tcp_ports: [ 22, 80, 443,
 # These 8 ports are used by fedmsg.  One for each wsgi thread.
@@ -29,12 +37,3 @@ copr_hostbase: copr-be
 
 host_backup_targets: ['/var/lib/copr/public_html/results']
 _copr_be_conf: copr-be.conf
-
-# for the new cloud:
-# uncomment after switch
-# volumes: [ {volume_id: '63c3a40c-e228-417a-97a2-e2c34730bf3b', device: '/dev/vdc'} ]
-cloud_networks:
-  # persistent-net
-  - net-id: "7c705493-f795-4c3a-91d3-c5825c50abfe"
-  # copr-net
-  - net-id: "bba5cd9b-8a90-497b-a87f-62372f037620"
