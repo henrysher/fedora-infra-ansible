@@ -1018,4 +1018,7 @@
     register: TENANT_ID
   - shell: source /root/keystonerc_admin && nova quota-update --instances 40 --cores 80 --ram 300000 --floating-ips 10 --security-groups 20 {{ TENANT_ID.stdout }}
 
+  - shell: source /root/keystonerc_admin && keystone tenant-list | grep 'persistent ' | awk '{print $2}'
+    register: TENANT_ID
+  - shell: source /root/keystonerc_admin && nova quota-update --instances 20 --cores 40 --security-groups 20 {{ TENANT_ID.stdout }}
 
