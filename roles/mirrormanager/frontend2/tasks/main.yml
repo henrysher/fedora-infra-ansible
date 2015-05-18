@@ -4,6 +4,7 @@
 - name: clean yum metadata
   command: yum clean all
   tags:
+  - mm2_frontend
   - packages
 
 - name: install needed packages
@@ -16,6 +17,7 @@
   - python-memcached
   - libsemanage-python
   tags:
+  - mm2_frontend
   - packages
 
 - name: install configuration file
@@ -29,17 +31,27 @@
   notify:
   - restart httpd
   tags:
+  - mm2_frontend
   - config
 
 - name: create the database scheme
   command: /usr/bin/python2 /usr/share/mirrormanager2/mirrormanager2_createdb.py
   environment:
       MM2_CONFIG: /etc/mirrormanager/mirrormanager2.cfg
+  tags:
+  - mm2_frontend
+  - config
 
 - name: set sebooleans so mirrormanager can connect to its db
   action: seboolean name=httpd_can_network_connect_db
                     state=true
                     persistent=true
+  tags:
+  - mm2_frontend
+  - config
 
 - name: startup apache
   service: name=httpd enabled=yes state=started
+  tags:
+  - mm2_frontend
+  - config
