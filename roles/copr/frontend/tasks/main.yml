@@ -6,7 +6,7 @@
 
 - name: update selinux context for postgress db dir if it's wrong
   command: "restorecon -vvRF /var/lib/pgsql"
-  when: "'postgresql_db_t' not in  pgsql_ls.stdout "
+  when: pgsql_ls.stdout is defined and 'postgresql_db_t' not in  pgsql_ls.stdout
 
 - name: install pkgs for copr-frontend
   action: yum state=present pkg={{ item }}
