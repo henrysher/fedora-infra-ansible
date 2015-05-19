@@ -27,6 +27,7 @@ c['slaves'] = [
                 {% endfor %}
               ]
 
+{% if deployment_type == 'qadevel-prod' %}
 c['slaves'].append(
                     openstack.OpenStackLatentBuildSlave(
                         "{{ qadevel_stg_buildslave_user }}",
@@ -39,7 +40,7 @@ c['slaves'].append(
                         os_auth_url="https://fed-cloud02.cloud.fedoraproject.org:5001/v2.0"
                     )
                   )
-
+{% endif %}
 # 'slavePortnum' defines the TCP port to listen on for connections from slaves.
 # This must match the value configured into the buildslaves (with their
 # --master option)
@@ -56,6 +57,7 @@ from buildbot.changes.gitpoller import GitPoller
 interval = {{ buildslave_poll_interval }}
 
 c['change_source'] = []
+{% if deployment_type == 'qadevel-prod' %}
 c['change_source'].append(GitPoller(
         'https://bitbucket.org/fedoraqa/taskotron-trigger.git',
         workdir='gitpoller-workdir-trigger', branch='develop',
@@ -85,7 +87,7 @@ c['change_source'].append(GitPoller(
         workdir='gitpoller-workdir-fake_fedorainfra', branch='develop',
         pollinterval=interval,
         project='fake_fedorainfra'))
-
+{% endif %}
 ####### SCHEDULERS
 
 # Configure the Schedulers, which decide how to react to incoming changes.  In this
@@ -96,6 +98,7 @@ from buildbot.schedulers.forcesched import ForceScheduler
 from buildbot.changes import filter
 c['schedulers'] = []
 
+{% if deployment_type == 'qadevel-prod' %}
 c['schedulers'].append(SingleBranchScheduler(
                             name="trigger-scheduler",
                             change_filter=filter.ChangeFilter(project='trigger', branch='develop'),
@@ -127,8 +130,15 @@ c['schedulers'].append(ForceScheduler(
 c['schedulers'].append(ForceScheduler(
                             name="openstack-force",
                             builderNames=["openstack-builder"]))
-
-
+{% endif %}
+{% if deployment_type == 'qadevel-stg' %}
+c['schedulers'].append(SingleBranchScheduler(
+                            name="libtaskotron",
+                            builderNames=['libtaskotron-builder'],
+                            treeStableTimer=None,
+                            change_filter=filter.ChangeFilter(project='libtaskotron',
+                                                                branch='develop')))
+{% endif %}
 ####### BUILDERS
 
 # The 'builders' list defines the Builders, which tell Buildbot how to perform a build:
@@ -141,6 +151,7 @@ from buildbot.steps.shell import ShellCommand
 from buildbot.process.properties import Interpolate
 
 
+{% if deployment_type == 'qadevel-prod' %}
 def create_test_factory(repo_name, func=True):
     factory = BuildFactory()
     factory.addStep(Git(repourl=Interpolate('https://bitbucket.org/fedoraqa/%s.git' % repo_name),
@@ -157,11 +168,25 @@ libtaskotron_factory = create_test_factory('libtaskotron')
 resultsdb_factory = create_test_factory('resultsdb')
 resultsdb_api_factory = create_test_factory('resultsdb_api')
 fake_fedorainfra_factory = create_test_factory('fake_fedorainfra')
+{% endif %}
 
+{% if deployment_type == 'qadevel-stg' %}
+def create_test_factory(repo_name, func=True):
+    factory = BuildFactory()
+    factory.addStep(Git(repourl=Interpolate('{{ repo_base }}/%s.git' % repo_name),
+                    mode='full', method='clobber'))
+    factory.addStep(ShellCommand(command=['virtualenv', '--system-site-packages', 'env']))
+    factory.addStep(ShellCommand(command=['bash', '-c', 'source env/bin/activate; pip install -r requirements.txt']))
+    factory.addStep(ShellCommand(command=['bash', '-c', 'source env/bin/activate; TEST="true" py.test %s testing/' % '-F' if func else ''], name=repo_name))
 
+    return factory
+
+libtaskotron_factory = create_test_factory('LTRN/libtaskotron')
+{% endif %}
 from buildbot.config import BuilderConfig
 
 c['builders'] = []
+{% if deployment_type == 'qadevel-prod' %}
 c['builders'].append(
     BuilderConfig(name="trigger-builder",
       slavenames=[{% for buildslave in buildslaves %}"{{ buildslave }}",{% endfor %}],
@@ -187,8 +212,15 @@ c['builders'].append(
     BuilderConfig(name="openstack-builder",
       slavenames=["{{ qadevel_stg_buildslave_user }}"],
       factory=trigger_factory))
+{% endif %}
 
+{% if deployment_type == 'qadevel-stg' %}
+c['builders'].append(
+    BuilderConfig(name="libtaskotron-builder",
+      slavenames=[{% for buildslave in buildslaves %}"{{ buildslave }}",{% endfor %}],
+      factory=libtaskotron_factory))
 
+{% endif %}
 ####### STATUS TARGETS
 
 # 'status' is a list of Status Targets. The results of each build will be
