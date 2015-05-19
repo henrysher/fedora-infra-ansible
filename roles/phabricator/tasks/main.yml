@@ -32,10 +32,16 @@
   when: enable_phabricator_git
 
 - name: add vcs user to sudoers to write as daemon user with restrictions for git
-  lineinfile: "dest=/etc/sudoers state=present line='{{ phabricator_vcs_user }} ALL=({{ phabricator_daemon_user }}) SETENV: NOPASSWD: /usr/bin/git-upload-pack, /usr/bin/git-receive-pack'"
+  lineinfile: "dest=/etc/sudoers state=present line='{{ phabricator_vcs_user }} ALL=({{ phabricator_daemon_user }}) SETENV: NOPASSWD: /usr/libexec/git-core/git-upload-pack, /usr/libexec/git-core/git-receive-pack'"
 
 - name: remove tty requirement for sudo by git user
   lineinfile: "dest=/etc/sudoers state=present line='Defaults:{{phabricator_vcs_user }} !requiretty'"
+
+- name: add apache user to sudoers to write as daemon user with restrictions for git
+  lineinfile: "dest=/etc/sudoers state=present line='apache ALL=({{ phabricator_daemon_user }}) SETENV: NOPASSWD: /usr/libexec/git-core/git-http-backend'"
+
+- name: remove tty requirement for sudo by git user
+  lineinfile: "dest=/etc/sudoers state=present line='Defaults:apache !requiretty'"
 
 - name: update php.ini
   copy: src=php.ini dest=/etc/php.d/php.ini owner=root group=root mode=0644
