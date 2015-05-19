@@ -15,7 +15,7 @@ os.environ['PAGURE_CONFIG'] = '/etc/pagure/pagure.cfg'
 ## Is necessary to work around bug in libgit2:
 ## refs: https://github.com/libgit2/libgit2/issues/2965
 ## and   https://github.com/libgit2/libgit2/issues/2797
-os.environ['TEMP'] = '/var/tmp/'
+os.environ['TEMP'] = '/srv/tmp/'
 
 ## The following is only needed if you did not install pagure
 ## as a python module (for example if you run it from a git clone).
