@@ -216,11 +216,20 @@
     proxyurl: http://localhost:10009
 
   - role: httpd/reverseproxy
+    when: env != "staging"
     website: admin.fedoraproject.org
     destname: mirrormanager
     remotepath: /mirrormanager
     localpath: /mirrormanager
     proxyurl: http://localhost:10008
+
+  - role: httpd/reverseproxy
+    when: env == "staging"
+    website: admin.fedoraproject.org
+    destname: mirrormanager
+    remotepath: /mirrormanager
+    localpath: /mirrormanager
+    proxyurl: "{{ varnish_url }}"
 
   - role: httpd/reverseproxy
     website: mirrors.fedoraproject.org
