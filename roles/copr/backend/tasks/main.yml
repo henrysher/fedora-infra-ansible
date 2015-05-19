@@ -80,6 +80,12 @@
   when: not devel
   include: "install_certs.yml"
 
+- name: allow lighttpd set fds limit
+  seboolean: name=httpd_setrlimit state=yes persistent=yes
+
+- name: create directory for compress module of lighttpd
+  file: path=/var/cache/lighttpd/compress owner=lighttpd group=lighttpd mode=0644 state=directory
+
 # mime default to text/plain and enable dirlisting for indexes
 - name: update lighttpd configs
   copy: src="lighttpd/{{ item }}" dest="/etc/lighttpd/conf.d/{{ item }}" owner=root group=root mode=0644
