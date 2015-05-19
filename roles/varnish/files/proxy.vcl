@@ -187,6 +187,10 @@ sub vcl_recv {
             unset req.http.cookie;
             set req.url = regsub(req.url, "\?.*", "");
         }
+        if (req.url ~ "^/mirrormanager/mirrors") {
+            unset req.http.cookie;
+            set req.url = regsub(req.url, "\?.*", "");
+        }
     }
     if (req.url ~ "^/mirrormanager2/") {
         set req.backend_hint = mirrormanager2;
@@ -299,3 +303,13 @@ sub vcl_recv {
 #        unset beresp.http.set-cookie;
 #    }
 #}
+
+
+# Make sure mirrormanager/mirrors doesn't set any cookies
+# (Setting cookies would make varnish store a HIT-FOR-PASS
+#  making it always fetch from backend)
+sub vcl_backend_response {
+    if (bereq.url ~ "^/mirrormanager/mirrors") {
+        unset beresp.http.set-cookie;
+    }
+}
