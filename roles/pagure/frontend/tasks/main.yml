@@ -139,11 +139,11 @@
 
 - name: copy sundry pagure configuration
   template: src={{ item.file }}
-            dest={{ item.location }}/{{ item.dest }}
-            owner=apache group=apache mode=0600
+            dest={{ item.location }}/{{ item.file }}
+            owner=git group=postfix mode=0640
   with_items:
-  - { file: pagure_admin.cfg, location: /etc/pagure, dest: pagure.cfg }
-#  - { file: alembic.ini, location: /etc/pagure, dest: alembic.ini }
+  - { file: pagure.cfg, location: /etc/pagure }
+#  - { file: alembic.ini, location: /etc/pagure }
   changed_when: "1 != 1"
   tags:
   - config
@@ -191,7 +191,6 @@
             dest={{ item.location }}/{{ item.file }}
             owner={{ item.user }} group={{ item.group }} mode={{ item.mode }}
   with_items:
-  - { file: pagure.cfg, location: /etc/pagure, user: git, group: postfix, mode: 640 }
   - { file: pagure.conf, location: /etc/httpd/conf.d, user: apache, group: apache, mode: 600 }
   tags:
   - config
