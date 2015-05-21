@@ -70,13 +70,13 @@
   - pagure
 
 - name: Adjust owner of /srv/git
-  command: chown git:git -R /srv/git/
+  file: name=/srv/git state=directory recurse=yes owner=git group=git
   tags:
   - gitolite
   - pagure
 
 - name: Adjust permissions of /srv/git/.gitolite
-  command: chown git:git -R /srv/git/.gitolite
+  file: name=/srv/git/.gitolite state=directory recurse=yes owner=git group=git
   tags:
   - gitolite
   - pagure
@@ -217,9 +217,15 @@
   tags:
   - pagure
 
-- name: Manually fix current ACLs since Ansible doesnt know recursive acls
+- name: Manually fix current default ACLs since Ansible doesnt know recursive acls
   when: acl_updates.changed
   command: /usr/bin/setfacl -Rdm user:apache:rx /srv/git
+  tags:
+  - pagure
+
+- name: Manually fix current ACLs since Ansible doesnt know recursive acls
+  when: acl_updates.changed
+  command: /usr/bin/setfacl -Rm user:apache:rx /srv/git
   tags:
   - pagure
 
