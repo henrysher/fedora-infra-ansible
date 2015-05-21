@@ -35,6 +35,19 @@
   with_items:
     - site-defaults.cfg
 
+- name: "fix mock configs to use nearest mirror"
+  # Affects only some fedora configs ... repo urls are tricky. TODO: add for epel
+  command: "ls -1 /etc/mock/fedora\*.cfg"
+  register: mock_fedora_configs_to_patch
+
+- name: "patch mock.cfg"
+  replace: >
+        dest={{ item }}
+        regexp='^metalink=https://mirrors.fedoraproject.org/metalink\?repo=updates-released-f\$releasever&arch=\$basearch'
+        replace='baseurl=http://infrastructure.fedoraproject.org/pub/fedora/linux/updates/$releasever/$basearch/'
+  with_items: mock_fedora_configs_to_patch.stdout_lines
+
+
 # ansible doesn't support simultaneously usage of async and with_* options
 # it's not even planned for implementation, see https://github.com/ansible/ansible/issues/5841
 - name: prepare cache
