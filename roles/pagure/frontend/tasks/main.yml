@@ -211,6 +211,14 @@
   notify:
   - restart apache
 
+- name: Add default facl so apache can read git repos
+  acl: default=yes etype=user entity=apache permissions=rx name=/srv/git
+  register: acl_updates
+
+- name: Manually fix current ACLs since Ansible doesnt know recursive acls
+  when: acl_updates.changed
+  command: /usr/bin/setfacl -Rdm user:apache:rx /srv/git
+
 - name: set sebooleans so pkgdb2 can talk to the db
   action: seboolean name=httpd_can_network_connect_db
                     state=true
