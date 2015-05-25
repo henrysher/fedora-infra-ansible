@@ -56,6 +56,14 @@
   - restart collectd
   when: collectd_apache is defined
 
+- name: Let collectd talk to apache over tcp
+  seboolean: name=collectd_tcp_network_connect state=yes persistent=yes
+  tags:
+  - collectd
+  ignore_errors: True
+  notify:
+  - restart collectd
+  when: collectd_apache is defined
 
 # Three tasks for handling our (two) custom selinux modules.
 - name: ensure a directory exists for our custom selinux module
