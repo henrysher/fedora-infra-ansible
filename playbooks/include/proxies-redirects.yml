@@ -119,6 +119,18 @@
     path: /static/js/release-counter-ext.js
     target: https://getfedora.org/static/js/release-counter-ext.js
 
+#
+# When there is no prerelease we redirect the prerelease urls
+# back to the main release. 
+# This should be disabled when there is a prerelease
+#
+  - role: httpd/redirectmatch
+    name: prerelease-to-final
+    website: getfedora.org
+    regex: /(.*)/prerelease.*$
+    target: https://stg.getfedora.org/$1
+    when: env == 'staging'
+
   - role: httpd/redirect
     name: store
     website: store.fedoraproject.org
