@@ -58,7 +58,7 @@
     - java-1.8.0-openjdk
     tags:
     - packages
-    when: ansible_distribution_major_version != '7'
+    when: ansible_distribution_major_version|int != 7
 
   - name: add jenkins proxy config file for apache
     action: copy src="{{ files }}/jenkins/master/jenkins-apache.conf"
@@ -406,7 +406,7 @@
 
   - name: install pkgs for jenkins for fedora systems > F19
     action: yum state=present pkg={{ item }}
-    when: is_fedora is defined and ansible_distribution_major_version > 20
+    when: is_fedora is defined and ansible_distribution_major_version|int > 20
     with_items:
     - sbt-extras
 

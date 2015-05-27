@@ -56,11 +56,11 @@
   tasks:
   - name: install cloud-utils (yum)
     yum: pkg=cloud-utils state=present
-    when: ansible_distribution_major_version < '22'
+    when: ansible_distribution_major_version|int < 22
 
   - name: install cloud-utils (dnf)
     command: dnf install -y cloud-utils
-    when: ansible_distribution_major_version > '21' and ansible_cmdline.ostree is not defined
+    when: ansible_distribution_major_version|int > 21 and ansible_cmdline.ostree is not defined
 
   - include: "{{ tasks }}/cloud_setup_basic.yml"
 
