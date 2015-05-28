@@ -56,6 +56,12 @@
   - restart collectd
   when: collectd_apache is defined
 
+- name: Install libsemanage-python so we can set an sebool below
+  yum: name=libsemanage-python state=present
+  tags:
+  - collectd
+  when: collectd_apache is defined
+
 - name: Let collectd talk to apache over tcp
   seboolean: name=collectd_tcp_network_connect state=yes persistent=yes
   tags:
