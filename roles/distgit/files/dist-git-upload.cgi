@@ -112,11 +112,6 @@ def main():
     hash_dir = os.path.join(module_dir, filename, hash_type, checksum)
     msgpath = os.path.join(name, module_dir, filename, hash_type, checksum, filename)
 
-    if hash_type == "md5":
-        # Preserve compatibility with the current folder hierarchy for md5
-        hash_dir = os.path.join(module_dir, filename, checksum)
-        msgpath = os.path.join(name, module_dir, filename, checksum, filename)
-
     unwanted_prefix = '/srv/cache/lookaside/pkgs/'
     if msgpath.startswith(unwanted_prefix):
         msgpath = msgpath[len(unwanted_prefix):]
@@ -179,6 +174,11 @@ def main():
 
     print >> sys.stderr, '[username=%s] Stored %s (%d bytes)' % (username, dest_file, filesize)
     print 'File %s size %d %s %s stored OK' % (filename, filesize, hash_type.upper(), checksum)
+
+    # Add the file to the old path, where fedpkg is currently looking for it
+    if hash_type == "md5":
+        old_path = os.path.join(module_dir, filename, checksum, filename)
+        os.link(dest_file, old_path)
 
     # Emit a fedmsg message.  Load the config to talk to the fedmsg-relay.
     try:
