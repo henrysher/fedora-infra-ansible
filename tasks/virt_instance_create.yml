@@ -48,3 +48,18 @@
 - name: wait for ssh on the vm to start back
   local_action: wait_for delay=10 host={{ inventory_hostname }} port=22 state=started timeout=1200
   when: inventory_hostname not in result.list_vms
+
+- name: gather ssh host key from new instance
+  local_action: ssh-keyscan -t rsa {{ inventory_hostname }}
+  ignore_errors: True
+  register: hostkey
+  when: inventory_hostname not in result.list_vms
+
+- name: add new ssh host key (you still need to add it to official ssh_host_keys later)
+  local_action: known_hosts path={{item}} key={{ hostkey.stdout }} host={{ inventory_hostname }} state=present
+  ignore_errors: True
+  with_items:
+  - /root/.ssh/known_hosts
+  - /etc/ssh/ssh_known_hosts
+  when: inventory_hostname not in result.list_vms
+
