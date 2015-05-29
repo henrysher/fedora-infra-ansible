@@ -179,9 +179,9 @@ def main():
     # Add the file to the old path, where fedpkg is currently looking for it
     if hash_type == "md5":
         old_dir = os.path.join(module_dir, filename, checksum)
-        os.makedirs(old_dir)
 
         try:
+            os.makedirs(old_dir)
             os.link(dest_file, os.path.join(old_dir, filename))
         except OSError as e:
             if e.errno != errno.EEXIST:
