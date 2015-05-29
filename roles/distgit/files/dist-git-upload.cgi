@@ -179,13 +179,25 @@ def main():
     # Add the file to the old path, where fedpkg is currently looking for it
     if hash_type == "md5":
         old_dir = os.path.join(module_dir, filename, checksum)
+        old_path = os.path.join(old_dir, filename)
 
         try:
             os.makedirs(old_dir)
-            os.link(dest_file, os.path.join(old_dir, filename))
+
         except OSError as e:
             if e.errno != errno.EEXIST:
                 raise e
+
+        try:
+            os.link(dest_file, old_path)
+
+        except OSError as e:
+            if e.errno != errno.EEXIST:
+                raise e
+
+            # The file already existed at the old path, hardlink over it
+            os.unlink(old_path)
+            os.link(old_path)
 
     # Emit a fedmsg message.  Load the config to talk to the fedmsg-relay.
     try:
