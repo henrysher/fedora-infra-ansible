@@ -177,8 +177,9 @@ def main():
 
     # Add the file to the old path, where fedpkg is currently looking for it
     if hash_type == "md5":
-        old_path = os.path.join(module_dir, filename, checksum, filename)
-        os.link(dest_file, old_path)
+        old_dir = os.path.join(module_dir, filename, checksum)
+        os.makedirs(old_dir)
+        os.link(dest_file, os.path.join(old_dir, filename))
 
     # Emit a fedmsg message.  Load the config to talk to the fedmsg-relay.
     try:
