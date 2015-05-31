@@ -181,7 +181,7 @@ sub vcl_recv {
             set req.url = regsub(req.url, "\?.*", "");
         }
     }
-    if (req.url ~ "^/mirrormanager/") {
+    if (req.url ~ "^/mirrormanager") {
         set req.backend_hint = mirrormanager;
         if (req.url ~ "^/mirrormanager/static/") {
             unset req.http.cookie;
