@@ -29,6 +29,38 @@
    - "/srv/private/ansible/vars.yml"
    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
 
+  pre_tasks:
+  - name: Install policycoreutils-python
+    yum: pkg=policycoreutils-python state=present
+
+  - name: Create /srv/web/ for all the goodies.
+    file: >
+        dest=/srv/web state=directory
+        owner=root group=root mode=0755
+    tags:
+    - httpd
+    - httpd/website
+
+  - name: check the selinux context of webdir
+    command: matchpathcon /srv/web
+    register: webdir
+    always_run: yes
+    changed_when: "1 != 1"
+    tags:
+    - config
+    - selinux
+    - httpd
+    - httpd/website
+
+  - name: /srv/web file contexts
+    command: semanage fcontext -a -t httpd_sys_content_t "/srv/web(/.*)?"
+    when: webdir.stdout.find('httpd_sys_content_t') == -1
+    tags:
+    - config
+    - selinux
+    - httpd
+    - httpd/website
+
   roles:
   - base
   - rkhunter
