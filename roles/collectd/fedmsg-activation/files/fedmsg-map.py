@@ -22,8 +22,6 @@ for_collectd = 'verbose' not in sys.argv
 active = collections.defaultdict(list)
 inactive = collections.defaultdict(list)
 
-pool = multiprocessing.pool.ThreadPool(25)
-
 def info(content="\n"):
     if not for_collectd:
         sys.stdout.write(content)
@@ -53,10 +51,24 @@ def scan_one(item):
 
 
 def scan_all():
+    global active
+    global inactive
+
+    del active
+    del inactive
+
+    active = collections.defaultdict(list)
+    inactive = collections.defaultdict(list)
+
     items = [(name, addr)
              for name, endpoints in config['endpoints'].items()
              for addr in endpoints]
+
+    # There is likely overhead in creating and destroying this thing, but we have
+    # memory leaks to track down.
+    pool = multiprocessing.pool.ThreadPool(25)
     pool.map(scan_one, items)
+    pool.close()
 
     info()
 
@@ -129,5 +141,3 @@ else:
         print(output)
         if interval - delta > 0:
             time.sleep(interval - delta)
-
-pool.close()
