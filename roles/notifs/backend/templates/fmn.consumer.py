@@ -32,8 +32,9 @@ class MutexLock(AbstractFileLock):
     def release_write_lock(self):
         return self.mutex.release_write_lock()
 
-    def __json__(self):
-        return repr(self)
+    @classmethod
+    def __json__(cls):
+        return repr(cls)
 
 
 config = {
