@@ -1,0 +1,197 @@
+#!/usr/bin/python2
+
+# cronjobs are run on releng01.stg
+# Looks like:
+# /usr/local/bin/owner-sync-pkgdb f19 
+# /usr/local/bin/owner-sync-pkgdb dist-5E-epel 
+# /usr/local/bin/owner-sync-pkgdb dist-6E-epel
+# /usr/local/bin/owner-sync-pkgdb epel7 
+
+import sys
+import os
+import ConfigParser
+from urlparse import urljoin
+
+import requests
+
+DEBUG=False
+VERIFY=True
+{% if env == 'staging' %}
+BASEURL = os.environ.get('PACKAGEDBURL') or 'https://admin.stg.fedoraproject.org/pkgdb/'
+{% else %}
+BASEURL = os.environ.get('PACKAGEDBURL') or 'https://admin.fedoraproject.org/pkgdb/'
+{% endif %}
+if not BASEURL.endswith('/'):
+    BASEURL = BASEURL + '/'
+
+# Why do we have this?  Seems insecure....
+sys.path.append('.')
+
+try:
+    import koji
+except:
+    import brew as koji
+
+extraArchList = {'kernel': ('i586', 'i686', 'noarch'),
+                'kernel-xen-2.6': ('i586', 'i686', 'noarch'),
+                'glibc': ('i686',),
+                'openssl': ('i686',),
+                'em8300-kmod': ('i586', 'i686'),
+                'sysprof-kmod': ('i586', 'i686'),
+                }
+
+def usage():
+    print "Usage: owner-sync <tag>"
+    print "    <tag>: tag to synchronize owners for"
+    sys.exit(1)
+
+def get_options():
+    # shamelessly stolen from koji CLI
+    opts = {
+        'server': 'http://koji.fedoraproject.org/kojihub',
+        'weburl': 'http://koji.fedoraproject.org/koji',
+        'cert': '/etc/pki/pkgdb/pkgdb.pem',
+        'ca': '/etc/pki/pkgdb/fedora-server-ca.cert',
+        'serverca': '/etc/pki/pkgdb/fedora-server-ca.cert'
+    }
+    for configFile in ('/etc/koji.conf', os.path.expanduser('~/.koji/config')):
+        if os.access(configFile, os.F_OK):
+            f = open(configFile)
+            config = ConfigParser.ConfigParser()
+            config.readfp(f)
+            f.close()
+            if config.has_section('koji'):
+                for name, value in config.items('koji'):
+                    if opts.has_key(name):
+                        opts[name] = value
+    for entry in opts.keys():
+        if entry == 'server' or entry == 'weburl':
+            pass
+        opts[entry] = os.path.expanduser(opts[entry])
+    return opts
+
+if __name__ == '__main__':
+    try:
+        tag=sys.argv[1]
+    except:
+        print "ERROR: no tag specified!\n"
+        usage()
+
+    if tag.endswith('epel') or tag.startswith('epel'):
+        if tag.startswith('epel'):
+            version = tag.split('epel')[1]
+        else:
+            version = tag.split('-')[1][:-1]
+
+        data = requests.get(urljoin(BASEURL, 'api/collections'), verify=VERIFY).json()
+        branch_names = set()
+        for collection in (c for c in data['collections'] if c['status'] != 'EOL'):
+            ### TODO: check with pingou that this is now returning the same
+            # format as the collection names in api/vcs
+            # By moving the data from gitbranchname into branchname, I think
+            # that the data will now match
+            branch_names.add(collection['branchname'])
+
+        if tag.startswith('epel'):
+            # Ex: epel7 => epel7
+            reponame = tag
+        else:
+            # Ex: dist-6E-epel => el6
+            reponame = 'el%s' % version
+        if reponame not in branch_names:
+            print 'tag %s => repo %s: does not seem to be a non-EOL branch' % (tag, reponame)
+            sys.exit(1)
+
+        # EPEL needs a separate entry in koji for each epel version
+
+        data = requests.get(urljoin(BASEURL, 'api/vcs?format=json'), verify=VERIFY).json()
+        acls = data['packageAcls']
+        pkgs = {}
+        for pkg_name in acls:
+            try:
+                owners = acls[pkg_name][reponame]
+            except KeyError:
+                # Package is not branched for this release
+                continue
+            if len(owners['commit']['people']):
+                # Arbitrarily take the first committer listed as the owner in
+                # koji
+                pkgs[pkg_name] = owners['commit']['people'][0]
+            else:
+                pkgs[pkg_name] = 'orphan'
+        pkgList = pkgs.keys()
+        BuildEPEL = True
+        arches = ["primary"]
+    else:
+        # Fedora only needs one entry per package for all Fedora releases
+        # Use the owner from bugzilla for simplicity
+        data = requests.get(urljoin(BASEURL, 'api/bugzilla?format=json'), verify=VERIFY).json()
+        acls = data['bugzillaAcls']
+        pkgList = acls['Fedora'].keys()
+        pkgs = {}
+        for pkg in acls['Fedora']:
+            owner = acls['Fedora'][pkg]['owner']
+            owner = owner.replace('group::', '').replace('@', '')
+            pkgs[pkg] = owner
+
+        #pkgs = dict(((p, acls['Fedora'][p]['owner']) for p in acls['Fedora']))
+        BuildEPEL = False
+{% if env == 'staging' %}
+        arches = ["primary"]
+{% else %}
+        arches = ["primary", "arm", "ppc", "s390"]
+{% endif %}
+    pkgList.sort()
+
+    options = get_options()
+
+    for arch in arches:
+        if arch == "primary":
+{% if env == 'staging' %}
+            session = koji.ClientSession("http://koji.stg.fedoraproject.org/kojihub")
+{% else %}
+            session = koji.ClientSession("http://koji.fedoraproject.org/kojihub")
+{% endif %}
+        else:
+            session = koji.ClientSession("http://%s.koji.fedoraproject.org/kojihub" % arch)
+        try:
+            session.ssl_login(options['cert'], options['ca'], options['serverca'])
+        except:
+            print "Unable to sync to %s hub" % arch
+            continue
+        kojitag = session.getTag(tag)
+        if kojitag is None:
+            print "ERROR: tag %s does not exist!\n" % (tag)
+            usage()
+
+        kojipkgs = {}
+        kojiusers = [user['name'] for user in session.listUsers()]
+
+        for p in session.listPackages(tagID=tag, inherited = True):
+            kojipkgs[p['package_name']] = p
+
+        for pkg in pkgList:
+            owner = pkgs[pkg]
+            if DEBUG:
+                print '[DEBUG] Package: %s, Owner: %s' % (pkg, owner)
+
+            if not owner in kojiusers:
+                # add the user first
+                if DEBUG:
+                    print "Adding user %s" % owner
+                else:
+                    session.createUser(owner)
+                    kojiusers.append(owner)
+            if not kojipkgs.has_key(pkg):
+                if DEBUG:
+                    print "Adding package %s for %s with owner %s" % (pkg, tag, owner)
+                else:
+                    extraArches = None
+                    if pkg in extraArchList:
+                        extraArches = extraArchList[pkg]
+                    session.packageListAdd(tag, pkg, owner = owner, extra_arches=extraArches)
+            elif kojipkgs[pkg]['owner_name'] != owner:
+                if DEBUG:
+                    print "Setting owner for %s in %s to %s" % (pkg, tag, owner)
+                else:
+                    session.packageListSetOwner(tag, pkg, owner, force = True)

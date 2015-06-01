@@ -134,3 +134,81 @@
   - restart httpd
   tags:
   - config
+
+#
+# cron job that syncs packages to koji
+#
+- name: put owner-sync-pkgdb in place
+  template: src=owner-sync-pkgdb.j2 dest=/usr/local/bin/owner-sync-pkgdb mode=0755
+  tags:
+  - config
+
+- name: sync packages from pkgdb2 to koji (el5)
+  cron: name="owner-sync-el5" minute="7,17,27,37,47,57" user="root" 
+        job="/usr/local/bin/owner-sync-pkgdb dist-5E-epel"
+        cron_file=update-koji-owner-EL-5
+  when: inventory_hostname.startswith('bodhi-backend01') and env == "production"
+
+- name: sync packages from pkgdb2 to koji (el6)
+  cron: name="owner-sync-el5" minute="7,17,27,37,47,57" user="root" 
+        job="/usr/local/bin/owner-sync-pkgdb dist-6E-epel"
+        cron_file=update-koji-owner-EL-6
+  when: inventory_hostname.startswith('bodhi-backend01') and env == "production"
+  
+- name: sync packages from pkgdb2 to koji (epel7)
+  cron: name="owner-sync-el5" minute="7,17,27,37,47,57" user="root" 
+        job="/usr/local/bin/owner-sync-pkgdb epel7"
+        cron_file=update-koji-owner-epel7
+  when: inventory_hostname.startswith('bodhi-backend01') and env == "production"
+  
+- name: sync packages from pkgdb2 to koji (f20)
+  cron: name="owner-sync-el5" minute="7,17,27,37,47,57" user="root" 
+        job="/usr/local/bin/owner-sync-pkgdb f20"
+        cron_file=update-koji-owner-f20
+  when: inventory_hostname.startswith('bodhi-backend01')
+
+#
+# cron job that syncs updates to master mirror
+#
+
+- name: put fedora-updates-push in place
+  copy: src=fedora-updates-push dest=/usr/local/bin/fedora-updates-push mode=0755
+  tags:
+  - config
+  when: inventory_hostname.startswith('bodhi-backend01') and env == "production"
+
+- name: put fedora-epel-push in place
+  copy: src=fedora-epel-push dest=/usr/local/bin/fedora-epel-push mode=0755
+  tags:
+  - config
+  when: inventory_hostname.startswith('bodhi-backend02') and env == "production"
+
+- name: put update-fullfilelist in place
+  copy: src=update-fullfilelist dest=/usr/local/bin/update-fullfilelist mode=0755
+  tags:
+  - config
+  when: inventory_hostname.startswith('bodhi-backend01') and env == "production"
+
+- name: Updates sync cron job. 
+  cron: name="updates-sync" minute="15,45" user="ftpsync"
+        job="/usr/local/bin/lock-wrapper fedora-updates-push '/usr/local/bin/fedora-updates-push && /usr/local/bin/update-fullfilelist fedora"
+        cron_file=updates-sync
+  when: inventory_hostname.startswith('bodhi-backend01') and env == "production"
+  tags:
+  - config
+
+- name: epel Updates sync cron job. 
+  cron: name="epel-updates-sync" minute="15,45" user="ftpsync"
+        job="/usr/local/bin/lock-wrapper fedora-epel-push '/usr/local/bin/fedora-epel-push && /usr/local/bin/update-fullfilelist epel"
+        cron_file=updates-sync
+  when: inventory_hostname.startswith('bodhi-backend02') and env == "production"
+  tags:
+  - config
+
+- name: directory sizes update cron job. 
+  cron: name="directory-sizes-update" minute="30" hour="19" user="ftpsync"
+        job="/usr/bin/find /srv/pub/alt/ /srv/pub/archive/ /srv/pub/fedora-secondary/ /srv/pub/fedora/ /srv/pub/epel/ -type d ! -path '/srv/pub/fedora/.snapshot*' ! -path '/srv/pub/epel/.snapshot*' ! -path '/srv/pub/alt/.snapshot*' ! -path '/srv/pub/archive/.snapshot*' ! -path '/srv/pub/fedora-secondary/.snapshot*' ! -path '/srv/pub/alt/stage*' ! -path '/srv/pub/alt/tmp' ! -path '/srv/pub/alt/screenshots/f21/source' | grep -v snapshot | /usr/bin/xargs -n 1 /usr/bin/du --exclude=.snapshot --exclude=stage -sh > /tmp/DIRECTORY_SIZES.txt 2> /dev/null; cp /tmp/DIRECTORY_SIZES.txt /srv/pub/"
+        cron_file=directory-sizes-update
+  when: inventory_hostname.startswith('bodhi-backend02') and env == "production"
+  tags:
+  - config
