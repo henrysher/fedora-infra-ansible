@@ -1,0 +1,26 @@
+---
+- name: add repo
+  action: copy src=grafana.repo dest=/etc/yum.repos.d/grafana.repo
+  tags:
+  - grafana
+  - packages
+  - repo
+
+- name: install grafana
+  yum: pkg=grafana state=present
+  tags:
+  - grafana
+  - packages
+
+- name: Set grafana to run on boot
+  service: name=grafana enabled=yes state=running
+  tags:
+  - service
+  - grafana
+
+- name: grafana apache proxy config file
+  copy: src=grafana.conf dest=/etc/httpd/conf.d/grafana.conf owner=root group=root mode=644
+  notify:
+  - restart apache
+  tags:
+  - grafana

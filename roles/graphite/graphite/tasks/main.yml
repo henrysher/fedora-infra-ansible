@@ -1,0 +1,40 @@
+---
+- name: install needed packages
+  yum: pkg={{ item }} state=present
+  with_items:
+  - graphite-web
+  - python-carbon
+  - libsemanage-python
+  - mod_ssl
+  tags:
+  - graphite
+  - carbon
+  - packages
+
+- name: graphite-web config file
+  template: src=local_settings.py dest=/etc/graphite-web/local_settings.py owner=root group=root mode=644
+  notify:
+  - restart apache
+  tags:
+  - graphite
+
+- name: graphite-web apache config
+  template: src=graphite-web.conf dest=/etc/httpd/conf.d/graphite-web.conf owner=root group=root mode=644
+  notify:
+  - restart apache
+  tags:
+  - graphite
+
+- name: Set carbon-aggregator to run on boot
+  service: name=carbon-aggregator enabled=yes state=running
+  tags:
+  - service
+  - graphite
+  - carbon
+
+- name: Set carbon-cache to run on boot
+  service: name=carbon-cache enabled=yes state=running
+  tags:
+  - service
+  - graphite
+  - carbon
