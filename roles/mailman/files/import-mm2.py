@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 
 from __future__ import unicode_literals, absolute_import, print_function
 
@@ -10,7 +10,7 @@ from optparse import OptionParser
 from locale import getpreferredencoding
 import yaml
 
-MAILMAN_BIN = subprocess.check_output(["which", "mailman"]).decode("ascii").strip()
+MAILMAN_BIN = subprocess.check_output(["which", "mailman3"]).decode("ascii").strip()
 
 from mailman.commands.cli_import import Bouncer
 sys.modules["Mailman.Bouncer"] = Bouncer
