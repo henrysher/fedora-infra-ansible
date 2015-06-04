@@ -186,7 +186,7 @@ def main():
 
         except OSError as e:
             if e.errno != errno.EEXIST:
-                raise e
+                send_error(str(e))
 
         try:
             os.link(dest_file, old_path)
