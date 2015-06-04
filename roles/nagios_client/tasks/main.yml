@@ -137,6 +137,17 @@
   - restart nrpe
   tags:
   - nagios_client
+#
+# The actual items files here end in .j2 (they are templates)
+# So when adding or modifying them change the .j2 version in git.
+#
+- name: install nrpe check_mysql config for mariadb servers
+  template: src=check_mysql.cfg.j2 dest=/etc/nrpe.d/check_mysql.cfg
+  when: inventory_hostname.startswith('db03')
+  notify:
+  - restart nrpe
+  tags:
+  - nagios_client
 
 - name: install nrpe checks for proxies
   template: src={{ item }}.j2 dest=/etc/nrpe.d/{{ item }}
