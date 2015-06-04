@@ -33,16 +33,21 @@ CACHE_DIR = '/srv/cache/lookaside/pkgs'
 # Fedora Packager Group
 PACKAGER_GROUP = 'packager'
 
-def send_error(text):
+def send_error(text, status='500 Internal Server Error'):
+    print 'Status: %s' % status
+    print 'Content-type: text/plain'
+    print
     print text
-    sys.exit(1)
+    sys.exit(0)
 
 def check_form(form, var):
     ret = form.getvalue(var, None)
     if ret is None:
-        send_error('Required field "%s" is not present.' % var)
+        send_error('Required field "%s" is not present.' % var,
+                   status='400 Bad Request')
     if isinstance(ret, list):
-        send_error('Multiple values given for "%s". Aborting.' % var)
+        send_error('Multiple values given for "%s". Aborting.' % var,
+                   status='400 Bad Request')
     return ret
 
 def check_auth(username):
@@ -59,11 +64,8 @@ def main():
 
     username = os.environ.get('SSL_CLIENT_S_DN_CN', None)
     if not check_auth(username):
-        print 'Status: 403 Forbidden'
-        print 'Content-type: text/plain'
-        print
-        print 'You must connect with a valid certificate and be in the %s group to upload.' % PACKAGER_GROUP
-        sys.exit(0)
+        send_error('You must connect with a valid certificate and be in the %s group to upload.' % PACKAGER_GROUP,
+                   status='403 Forbidden')
 
     print 'Content-Type: text/plain'
     print
@@ -84,7 +86,8 @@ def main():
         hash_type = "md5"
 
     else:
-        send_error('Required checksum is not present.')
+        send_error('Required checksum is not present.',
+                   status='400 Bad Request')
 
     action = None
     upload_file = None
@@ -103,10 +106,12 @@ def main():
         if form.has_key('file'):
             upload_file = form['file']
             if not upload_file.file:
-                send_error('No file given for upload. Aborting.')
+                send_error('No file given for upload. Aborting.',
+                           status='400 Bad Request')
             filename = os.path.basename(upload_file.filename)
         else:
-            send_error('Required field "file" is not present.')
+            send_error('Required field "file" is not present.',
+                       status='400 Bad Request')
         print >> sys.stderr, '[username=%s] Processing upload request: NAME=%s FILENAME=%s %sSUM=%s' % (username, name, filename, hash_type.upper(), checksum)
 
     module_dir = os.path.join(CACHE_DIR, name)
@@ -121,7 +126,8 @@ def main():
     git_dir = os.path.join(GITREPO, '%s.git' %  name)
     if not os.path.isdir(git_dir):
         print >> sys.stderr, '[username=%s] Unknown module: %s' % (username, name)
-        send_error('Module "%s" does not exist!' % name)
+        send_error('Module "%s" does not exist!' % name,
+                   status='404 Not Found')
 
     # try to see if we already have this file...
     dest_file = os.path.join(hash_dir, filename)
@@ -163,7 +169,8 @@ def main():
     check_checksum = m.hexdigest()
     if checksum != check_checksum:
         os.unlink(tmpfile)
-        send_error("%s check failed. Received %s instead of %s." % (hash_type.upper(), check_checksum, checksum))
+        send_error("%s check failed. Received %s instead of %s." % (hash_type.upper(), check_checksum, checksum),
+                   status='400 Bad Request')
 
     # wow, even the checksum matches. make sure full path is valid now
     if not os.path.isdir(hash_dir):
