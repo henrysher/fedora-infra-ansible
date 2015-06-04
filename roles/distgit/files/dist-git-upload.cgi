@@ -34,6 +34,15 @@ CACHE_DIR = '/srv/cache/lookaside/pkgs'
 PACKAGER_GROUP = 'packager'
 
 def send_error(text, status='500 Internal Server Error'):
+    """Send an error back to the client
+
+    This ensures that the client will get a proper error, including the HTTP
+    status code, so that it can handle problems appropriately.
+
+    Args:
+        text (str): The error message to send the client
+        status (str, optional): The HTTP status code to return to the client.
+    """
     print 'Status: %s' % status
     print 'Content-type: text/plain'
     print
