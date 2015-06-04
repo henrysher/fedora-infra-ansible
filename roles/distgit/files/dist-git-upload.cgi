@@ -213,7 +213,7 @@ def main():
 
             # The file already existed at the old path, hardlink over it
             os.unlink(old_path)
-            os.link(old_path)
+            os.link(dest_file, old_path)
 
     # Emit a fedmsg message.  Load the config to talk to the fedmsg-relay.
     try:
