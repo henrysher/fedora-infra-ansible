@@ -65,6 +65,27 @@ def check_auth(username):
         pass
     return authenticated
 
+
+def hardlink(src, dest):
+    try:
+        os.makedirs(os.path.dirname(dest))
+
+    except OSError as e:
+        if e.errno != errno.EEXIST:
+            send_error(str(e))
+
+    try:
+        os.link(src, dest)
+
+    except OSError as e:
+        if e.errno != errno.EEXIST:
+            send_error(str(e))
+
+        # The file already existed at the dest path, hardlink over it
+        os.unlink(dest)
+        os.link(src, dest)
+
+
 def main():
     os.umask(002)
 
@@ -137,6 +158,9 @@ def main():
 
     # try to see if we already have this file...
     dest_file = os.path.join(hash_dir, filename)
+    old_dir = os.path.join(module_dir, filename, checksum)
+    old_path = os.path.join(old_dir, filename)
+
     if os.path.exists(dest_file):
         if action == 'check':
             print 'Available'
@@ -147,7 +171,13 @@ def main():
             print 'File: %s Size: %d' % (dest_file, dest_file_stat.st_size)
         sys.exit(0)
     elif action == 'check':
-        print 'Missing'
+        if os.path.exists(old_path):
+            # The file had been uploaded at the old path
+            hardlink(old_path, dest_file)
+            print 'Available'
+        else:
+            print 'Missing'
+
         sys.exit(0)
 
     # check that all directories are in place
@@ -191,26 +221,7 @@ def main():
 
     # Add the file to the old path, where fedpkg is currently looking for it
     if hash_type == "md5":
-        old_dir = os.path.join(module_dir, filename, checksum)
-        old_path = os.path.join(old_dir, filename)
-
-        try:
-            os.makedirs(old_dir)
-
-        except OSError as e:
-            if e.errno != errno.EEXIST:
-                send_error(str(e))
-
-        try:
-            os.link(dest_file, old_path)
-
-        except OSError as e:
-            if e.errno != errno.EEXIST:
-                send_error(str(e))
-
-            # The file already existed at the old path, hardlink over it
-            os.unlink(old_path)
-            os.link(dest_file, old_path)
+        hardlink(dest_file, old_path)
 
     # Emit a fedmsg message.  Load the config to talk to the fedmsg-relay.
     try:
