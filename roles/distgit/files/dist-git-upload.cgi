@@ -209,7 +209,7 @@ def main():
 
         except OSError as e:
             if e.errno != errno.EEXIST:
-                raise e
+                send_error(str(e))
 
             # The file already existed at the old path, hardlink over it
             os.unlink(old_path)
