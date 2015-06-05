@@ -126,6 +126,14 @@
   tags:
   - koji_builder
 
+- name: config for the kojid runroot plugin (only in staging)
+  src: runroot.conf dest=/etc/kojid/runroot.conf
+  when: inventory_hostname.startswith(('koji01.stg','buildvm-01.stg'))
+  notify:
+  - restart kojid
+  tags:
+  - koji_builder
+
 - name: /etc/koji/koji.conf
   copy: src=koji.conf dest=/etc/koji.conf
   when: not inventory_hostname.startswith(('arm01','arm03','aarch64','ppc8'))
