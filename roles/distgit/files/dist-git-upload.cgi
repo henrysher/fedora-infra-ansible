@@ -66,7 +66,7 @@ def check_auth(username):
     return authenticated
 
 
-def hardlink(src, dest):
+def hardlink(src, dest, username):
     try:
         os.makedirs(os.path.dirname(dest))
 
@@ -84,6 +84,8 @@ def hardlink(src, dest):
         # The file already existed at the dest path, hardlink over it
         os.unlink(dest)
         os.link(src, dest)
+
+    print >> sys.stderr, "[username=%s] ln %s %s" % (username, src, dest)
 
 
 def main():
@@ -169,7 +171,7 @@ def main():
     elif action == 'check':
         if os.path.exists(old_path):
             # The file had been uploaded at the old path
-            hardlink(old_path, dest_file)
+            hardlink(old_path, dest_file, username)
             print 'Available'
         else:
             print 'Missing'
@@ -217,7 +219,7 @@ def main():
 
     # Add the file to the old path, where fedpkg is currently looking for it
     if hash_type == "md5":
-        hardlink(dest_file, old_path)
+        hardlink(dest_file, old_path, username)
 
     # Emit a fedmsg message.  Load the config to talk to the fedmsg-relay.
     try:
