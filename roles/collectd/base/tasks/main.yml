@@ -56,6 +56,16 @@
   - restart collectd
   when: collectd_apache is defined
 
+- name: /etc/collectd/graphite.conf
+  copy: src=graphite.conf dest=/etc/collectd.d/graphite.conf
+  tags:
+  - collectd
+  - graphite
+  - graphite-collectd
+  notify:
+  - restart collectd
+  when: collectd_graphite is defined and ansible_distribution_major_version != '6'
+
 - name: Install libsemanage-python so we can set an sebool below
   yum: name=libsemanage-python state=present
   tags:
