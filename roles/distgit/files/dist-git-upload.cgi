@@ -237,4 +237,8 @@ def main():
         print "Error with fedmsg", str(e)
 
 if __name__ == '__main__':
-    main()
+    try:
+        main()
+
+    except Exception as e:
+        send_error(str(e))
