@@ -3,10 +3,10 @@
 ## Basic options ##
 DBName = koji      
 DBUser = koji      
-{% if ansible_hostname.startswith('koji') %}
+{% if inventory_hostname.startswith('koji') %}
 DBHost = db-koji01
 DBPass = {{ kojiPassword }}
-{% elif ansible_hostname == 's390-koji01.qa.fedoraproject.org' %}
+{% elif inventory_hostname == 's390-koji01.qa.fedoraproject.org' %}
 DBHost = db-s390-koji01
 DBPass = {{ s390kojiPassword }}
 {% endif %}
@@ -19,10 +19,10 @@ MaxRequestLength = 83886080
 
 ## the client username is the common name of the subject of their client certificate
 DNUsernameComponent = CN
-{% if ansible_hostname.startswith('koji') %}
+{% if inventory_hostname.startswith('koji') %}
 ## separate multiple DNs with |
 ProxyDNs = emailAddress=buildsys@fedoraproject.org,CN=kojiweb,OU=Fedora Builders,O=Fedora Project,ST=North Carolina,C=US|emailAddress=releng@fedoraproject.org,CN=sign-bridge1,OU=Package Signing,O=Fedora Project,ST=North Carolina,C=US
-{% elif ansible_hostname == 's390-koji01.qa.fedoraproject.org' %}
+{% elif inventory_hostname == 's390-koji01.qa.fedoraproject.org' %}
 ProxyDNs = /C=US/ST=North Carolina/O=Fedora Project/OU=Fedora Builders/CN=s390.koji.fedoraproject.org/emailAddress=buildsys@fedoraproject.org|/C=US/ST=North Carolina/O=Fedora Project/OU=secondary arch/CN=secondary-signer/emailAddress=ausil@fedoraproject.org
 {% endif %}
 
@@ -32,9 +32,9 @@ ProxyDNs = /C=US/ST=North Carolina/O=Fedora Project/OU=Fedora Builders/CN=s390.k
 
 ##  Other options  ##
 LoginCreatesUser = On
-{% if ansible_hostname.startswith('koji') %}
+{% if inventory_hostname.startswith('koji') %}
 KojiWebURL = http://koji.fedoraproject.org/koji
-{% elif ansible_hostname == 's390-koji01.qa.fedoraproject.org' %}
+{% elif inventory_hostname == 's390-koji01.qa.fedoraproject.org' %}
 KojiWebURL = http://s390.koji.fedoraproject.org/koji
 {% endif %}
 # The domain name that will be appended to Koji usernames
@@ -70,7 +70,7 @@ DisableNotifications = True
 #Plugins = darkserver-plugin
 Plugins = fedmsg-koji-plugin
 
-{% if ansible_hostname.startswith('koji') %}
+{% if inventory_hostname.startswith('koji') %}
 [policy]
 
 
