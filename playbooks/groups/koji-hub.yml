@@ -3,7 +3,7 @@
 # NOTE: most of these vars_path come from group_vars/koji-hub or from hostvars
 
 - name: make koji hub
-  hosts: koji-stg:koji01.phx2.fedoraproject.org:koji02.phx2.fedoraproject.org
+  hosts: koji-stg:koji01.phx2.fedoraproject.org:koji02.phx2.fedoraproject.org:s390-koji01.qa.fedoraproject.org
   user: root
   gather_facts: False
 
@@ -21,7 +21,7 @@
 # Once the instance exists, configure it. 
 
 - name: make koji_hub server system
-  hosts: koji-stg:koji01.phx2.fedoraproject.org:koji02.phx2.fedoraproject.org
+  hosts: koji-stg:koji01.phx2.fedoraproject.org:koji02.phx2.fedoraproject.org:s390-koji01.qa.fedoraproject.org
   user: root
   gather_facts: True
 
@@ -43,11 +43,15 @@
   - koji_hub
   - { role: koji_builder, when: env == "staging" }
   - { role: nfs/server, when: env == "staging" }
-  - { role: keepalived, when: env != "staging" }
+  - { role: keepalived, when: env == "production" and inventory_hostname.startswith('koji') }
   - role: nfs/client
     mnt_dir: '/mnt/fedora_koji'
     nfs_src_dir: 'fedora_koji'
-    when: env != 'staging'
+    when: env == 'production' and inventory_hostname.startswith('koji')
+  - role: nfs/client
+    mnt_dir: '/mnt/koji'
+    nfs_src_dir: 'fedora_s390/data'
+    when: env == 'production' and inventory_hostname.startswith('s390')
   - sudo
 
   tasks:
