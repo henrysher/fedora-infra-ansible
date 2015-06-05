@@ -233,10 +233,14 @@
   - lookaside-upload.conf
   notify:
   - restart httpd
+  tags:
+  - distgit
 
 - name: create the Lookaside Cache root directory
   file: dest=/srv/cache/lookaside/pkgs state=directory
         owner=apache group=apache
+  tags:
+  - distgit
 
 - name: set the selinux boolean nis_enabled
   seboolean: name=nis_enabled persistent=yes state=yes
@@ -261,6 +265,7 @@
   - config
   - lookaside
   - selinux
+  - distgit
 
 - name: set the SELinux policy for the Lookaside Cache root directory
   command: semanage fcontext -a -t nfs_t "/srv/cache(/.*)?"
@@ -269,27 +274,38 @@
   - config
   - lookaside
   - selinux
+  - distgit
 
 - name: install the fedora-ca.cert
   copy: src={{private}}/files/fedora-ca.cert dest=/etc/httpd/conf/cacert.pem
+  tags:
+  - distgit
 
 - name: install the pkgs cert
   copy: src={{private}}/files/pkgs.fedoraproject.org_key_and_cert.pem
         dest=/etc/httpd/conf/pkgs.fedoraproject.org_key_and_cert.pem
         owner=apache mode=0400
   when: env != "staging"
+  tags:
+  - distgit
 
 - name: install the pkgs.stg cert
   copy: src={{private}}/files/pkgs.stg.fedoraproject.org_key_and_cert.pem
         dest=/etc/httpd/conf/pkgs.fedoraproject.org_key_and_cert.pem
         owner=apache mode=0400
   when: env == "staging"
+  tags:
+  - distgit
 
 - name: install the updatecrl.sh script
   copy: src=updatecrl.sh dest=/usr/local/bin/updatecrl.sh owner=root mode=755
+  tags:
+  - distgit
 
 - name: run the updatecrl script
   command: /usr/local/bin/updatecrl.sh creates=/etc/pki/tls/crl.pem
+  tags:
+  - distgit
 
 - name: schedule cron job to run the updatectl script
   cron: >
@@ -297,6 +313,8 @@
     minute=0
     user=root
     job="/usr/local/bin/updatecrl.sh"
+  tags:
+  - distgit
 
 - name: create /srv/web directory
   file: dest=/srv/web state=directory
@@ -305,6 +323,8 @@
   copy: src=dist-git-upload.cgi dest=/srv/web/upload.cgi owner=root group=root mode=0755
   notify:
   - restart httpd
+  tags:
+  - distgit
 
 - name: check the selinux context of the upload CGI script
   command: matchpathcon /srv/web/upload.cgi
