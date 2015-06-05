@@ -328,3 +328,10 @@
   command: semodule -i /usr/local/share/selinux/upload_cgi.pp
   when: selinux_module|changed
 
+- name: copy over our custom nfs selinux policy
+  copy: src=cgi-nfs.pp dest=/usr/local/share/selinux/cgi-nfs.pp
+  register: nfs_selinux_module
+
+- name: install our custom nfs selinux policy
+  command: semodule -i /usr/local/share/selinux/cgi-nfs.pp
+  when: nfs_selinux_module|changed
