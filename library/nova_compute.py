@@ -184,7 +184,8 @@ EXAMPLES = '''
        wait_for: 200
        flavor_id: 4
        nics:
-         - net-id: 34605f38-e52a-25d2-b6ec-754a13ffb723
+         # persistent-net
+         - net-id: 67b77354-39a4-43de-b007-bb813ac5c35f
        meta:
          hostname: test1
          group: uge_master
