@@ -262,6 +262,14 @@
   - lookaside
   - selinux
 
+- name: set the SELinux policy for the Lookaside Cache root directory
+  command: semanage fcontext -a -t nfs_t "/srv/cache(/.*)?"
+  when: lcachecontext.stdout.find('nfs_t') == -1 and env != "staging"
+  tags:
+  - config
+  - lookaside
+  - selinux
+
 - name: install the fedora-ca.cert
   copy: src={{private}}/files/fedora-ca.cert dest=/etc/httpd/conf/cacert.pem
 
