@@ -11,9 +11,6 @@ import sys
 import cgi
 import tempfile
 import grp
-import pwd
-import syslog
-import smtplib
 import errno
 
 import fedmsg
