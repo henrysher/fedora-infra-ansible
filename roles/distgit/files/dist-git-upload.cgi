@@ -67,12 +67,7 @@ def check_auth(username):
 
 
 def hardlink(src, dest, username):
-    try:
-        os.makedirs(os.path.dirname(dest))
-
-    except OSError as e:
-        if e.errno != errno.EEXIST:
-            send_error(str(e))
+    makedirs(os.path.dirname(dest), username)
 
     try:
         os.link(src, dest)
@@ -86,6 +81,16 @@ def hardlink(src, dest, username):
         os.link(src, dest)
 
     print >> sys.stderr, "[username=%s] ln %s %s" % (username, src, dest)
+
+
+def makedirs(dir, username, mode=02755):
+    try:
+        os.makedirs(dir, mode=mode)
+        print >> sys.stderr, '[username=%s] mkdir %s' % (username, dir)
+
+    except OSError as e:
+        if e.errno != errno.EEXIST:
+            send_error(str(e))
 
 
 def main():
@@ -179,8 +184,7 @@ def main():
         sys.exit(0)
 
     # check that all directories are in place
-    if not os.path.isdir(module_dir):
-        os.makedirs(module_dir, 02775)
+    makedirs(module_dir, username)
 
     # grab a temporary filename and dump our file in there
     tempfile.tempdir = module_dir
@@ -207,10 +211,7 @@ def main():
                    status='400 Bad Request')
 
     # wow, even the checksum matches. make sure full path is valid now
-    if not os.path.isdir(hash_dir):
-        os.makedirs(hash_dir, 02775)
-        print >> sys.stderr, '[username=%s] mkdir %s' % (username, hash_dir)
-
+    makedirs(hash_dir, username)
     os.rename(tmpfile, dest_file)
     os.chmod(dest_file, 0644)
 
