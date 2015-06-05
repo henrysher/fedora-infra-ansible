@@ -241,4 +241,6 @@ if __name__ == '__main__':
         main()
 
     except Exception as e:
+        import traceback
+        print >> sys.stderr, '%s' % traceback.format_exc()
         send_error(str(e))
