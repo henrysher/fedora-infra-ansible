@@ -257,6 +257,12 @@
   - config
   - koji_hub
 
+- name: make an empty /mnt/fedora_koji for stg.
+  file: state=directory path=/mnt/fedora_koji/ owner=root group=root
+  tags:
+  - koji_hub
+  when: env == "staging" and ansible_hostname.startswith('koji')
+
 - name: make mnt/koji directory
   file: state=link src=/mnt/fedora_koji/koji dest=/mnt/koji owner=root group=root
   tags:
