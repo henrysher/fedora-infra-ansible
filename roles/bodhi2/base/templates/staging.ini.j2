@@ -1,5 +1,11 @@
+[filter:proxy-prefix]
+use = egg:PasteDeploy#prefix
+prefix = /updates2
+scheme = https
+
 [app:main]
 use = egg:bodhi
+filter-with = proxy-prefix
 
 ##
 ## Messages
@@ -29,7 +35,7 @@ libravatar_dns = False
 # Captcha - if 'captcha.secret' is not None, then it will be used for comments
 # captcha.secret must be 32 url-safe base64-encoded bytes
 # you can generate afresh with >>> cryptography.fernet.Fernet.generate_key()
-captcha.secret = CHANGEME
+captcha.secret = {{ bodhi2CaptchaSecret }}
 # Dimensions
 captcha.image_width = 300
 captcha.image_height = 80
@@ -106,7 +112,7 @@ fedora_master_repomd = http://download.fedora.redhat.com/pub/fedora/linux/update
 fedora_epel_master_repomd = http://download.fedora.redhat.com/pub/epel/%d/i386/repodata/repomd.xml
 
 ## The base url of this application
-base_address = https://admin.stg.fedoraproject.org/updates/
+base_address = https://admin.stg.fedoraproject.org/updates2/
 
 ## Supported update types
 update_types = bugfix enhancement security newpackage
@@ -348,10 +354,10 @@ openid_template = {username}.id.fedoraproject.org
 ##
 ## Pyramid settings
 ##
-pyramid.reload_templates = true
-pyramid.debug_authorization = true
-pyramid.debug_notfound = true
-pyramid.debug_routematch = true
+pyramid.reload_templates = false
+pyramid.debug_authorization = false
+pyramid.debug_notfound = false
+pyramid.debug_routematch = false
 pyramid.default_locale_name = en
 
 pyramid.includes =
@@ -362,8 +368,7 @@ debugtoolbar.hosts = 127.0.0.1 ::1
 ##
 ## Database
 ##
-# XXX - you should really change this to postgres
-sqlalchemy.url = sqlite:////var/cache/bodhi.db
+sqlalchemy.url = postgresql://bodhi2:{{ bodhi2Password }}@db-bodhi/bodhi2
 
 ##
 ## Templates
@@ -383,7 +388,7 @@ authtkt.secure = false
 session.type = file
 session.data_dir = %(here)s/data/sessions/data
 session.lock_dir = %(here)s/data/sessions/lock
-session.key = mykey
+session.key = {{ bodhi2SessionKey }}
 session.cookie_on_exception = true
 cache.regions = default_term, second, short_term, long_term
 cache.type = memory
@@ -396,6 +401,7 @@ cache.long_term.expire = 3600
 use = egg:waitress#main
 host = 0.0.0.0
 port = 6543
+
 
 [pshell]
 m = bodhi.models
