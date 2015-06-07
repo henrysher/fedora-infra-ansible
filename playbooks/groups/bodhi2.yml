@@ -1,0 +1,52 @@
+- name: make bodhi2
+  hosts: bodhi2-stg
+  user: root
+  gather_facts: False
+
+  vars_files:
+  - /srv/web/infra/ansible/vars/global.yml
+  - "/srv/private/ansible/vars.yml"
+  - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  tasks:
+  - include: "{{ tasks }}/virt_instance_create.yml"
+
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"
+
+- name: make the box be real
+  hosts: bodhi2-stg
+  user: root
+  gather_facts: True
+
+  vars_files:
+  - /srv/web/infra/ansible/vars/global.yml
+  - "/srv/private/ansible/vars.yml"
+  - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+
+  roles:
+  - base
+  - rkhunter
+  - { role: denyhosts, when: ansible_distribution_major_version|int != 7 }
+  - nagios_client
+  - hosts
+  - fas_client
+  - sudo
+  - collectd/base
+  - rsyncd
+  - { role: openvpn/client,
+      when: env != "staging" }
+  - apache
+# TODO:
+  #- { role: fedmsg/base,  when: "inventory_hostname.startswith('bodhi0')" }
+  - { role: bodhi2/base, when: "inventory_hostname.startswith('bodhi0')" }
+
+  tasks:
+  - include: "{{ tasks }}/yumrepos.yml"
+  - include: "{{ tasks }}/2fa_client.yml"
+  - include: "{{ tasks }}/motd.yml"
+  - include: "{{ tasks }}/mod_wsgi.yml"
+
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"
