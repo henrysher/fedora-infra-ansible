@@ -52,6 +52,11 @@
     mnt_dir: '/mnt/koji'
     nfs_src_dir: 'fedora_s390/data'
     when: env == 'production' and inventory_hostname.startswith('s390')
+    # In staging, we mount fedora_koji as read only (see nfs_mount_opts)
+  - role: nfs/client
+    mnt_dir: '/mnt/fedora_koji_prod'
+    nfs_src_dir: 'fedora_koji'
+    when: env == 'staging' and inventory_hostname.startswith('koji')
   - sudo
 
   tasks:
