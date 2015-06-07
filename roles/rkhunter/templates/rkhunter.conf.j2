@@ -308,6 +308,9 @@ ALLOWHIDDENDIR=/dev/.udevdb
 ALLOWHIDDENDIR=/dev/.udev.tdb
 ALLOWHIDDENDIR=/dev/.udev/db
 ALLOWHIDDENDIR=/dev/.udev/rules.d
+{% if ansible_hostname.startswith('fed-cloud') %}
+ALLOWHIDDENDIR=/etc/.git
+{% endif %}
 
 #
 # Allow the specified hidden files.
@@ -329,6 +332,10 @@ ALLOWHIDDENFILE=/dev/.udev/uevent_seqnum
 {% if ansible_distribution == 'Fedora' and ansible_distribution_major_version > 20 %}
 # Fedora 21 and higher systems has a /dev/.updated file
 ALLOWHIDDENFILE=/etc/.updated
+{% endif %}
+{% if ansible_hostname.startswith('fed-cloud') %}
+ALLOWHIDDENFILE=/etc/.etckeeper
+ALLOWHIDDENFILE=/etc/.gitignore
 {% endif %}
 
 #
@@ -376,6 +383,10 @@ ALLOWDEVFILE=/dev/.udev/uevent_seqnum
 ALLOWDEVFILE=/dev/md/autorebuild.pid
 {% if ansible_hostname == 'notifs-backend01' %}
 ALLOWDEVFILE=/dev/shm/fmn-cache.dbm
+{% endif %}
+{% if ansible_hostname.startswith('kojipkgs') %}
+ALLOWDEVFILE=/dev/shm/squid-squid-page-pool.shm
+ALLOWDEVFILE=/dev/shm/squid-cache_mem.shm
 {% endif %}
 
 #
