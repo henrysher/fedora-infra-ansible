@@ -2,6 +2,19 @@
 # tasklist for setting up bodhi
 # This is the base set of files needed for bodhi
 
+- name: setup the bodhi2 copr repo
+  copy: >
+    src="lmacken-bodhi2-epel-7.repo"
+    dest="/etc/yum.repos.d/lmacken-bodhi2-epel-7.repo"
+    owner=root
+    group=root
+    mode=0644
+  when: inventory_hostname.startswith('bodhi0')
+  tags:
+  - config
+  - bodhi
+
+
 - name: install needed packages
   yum: pkg={{ item }} state=present
   with_items:
