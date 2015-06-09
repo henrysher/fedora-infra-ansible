@@ -1,0 +1,21 @@
+[Unit]
+Description=cdic async executor daemon
+# Requires=postgresql.service # uncomment after added
+# After=
+# Requires=cdic_gunicorn.socket
+After=network.target
+
+[Service]
+PIDFile=/run/cdic/pid_async
+User=cdic
+Group=cdic
+WorkingDirectory=/home/cdic/server/cdic/src/cdic
+Environment="PYTHONPATH=..:$PYTHONPATH"
+# ExecReload=/bin/kill -s HUP $MAINPID
+ExecStop=/bin/kill -s TERM $MAINPID
+ExecStartPre=/usr/local/bin/cdic_update_db.sh
+ExecStart=/usr/bin/python3 manage.py run_async_tasks
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
