@@ -8,26 +8,6 @@
   tags:
   - packages
 
-- name: copy sundry mote configuration
-  template: src={{ item.file }}
-            dest={{ item.location }}/{{ item.dest }}
-            owner=apache group=apache mode=0600
-  with_items:
-  - { file: mote_config.py, location: /etc/mote, dest: config.py }
-  - { file: alembic.ini, location: /etc/nuancier, dest: alembic.ini }
-  changed_when: "1 != 1"
-  tags:
-  - config
-  notify:
-  - restart apache
-
-- name: create the cache folder where nuancier creates the thumbnails
-  action: file state=directory
-               path=/var/cache/nuancier/cache
-               owner=apache group=apache mode=0700
-  tags:
-  - setup
-
 - name: replace the mote configuration file by the one with the normal user
   template: src={{ item.file }}
             dest="{{ item.location }}/{{ item.file }}"
@@ -42,11 +22,6 @@
   notify:
   - restart apache
   - restart memcached
-
-- name: set sebooleans so nuancier can talk to the db
-  action: seboolean name=httpd_can_network_connect_db
-                    state=true
-                    persistent=true
 
 - name: apply selinux type to static files
   file: >
