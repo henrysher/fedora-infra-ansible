@@ -1,10 +1,21 @@
 - name: check/create instance
-  hosts: rh-power2.fit.vutbr.cz
+  hosts: 127.0.0.1
   gather_facts: False
 
   tasks:
+    - name: add hypervisor
+      local_action: add_host hostname=rh-power2.fit.vutbr.cz groupname=spinup_vm_group
+
+
+- name: spinup vm
+  hosts: spinup_vm_group
+  gather_facts: False
+  user: msuchy
+
+  tasks:
+    - shell: host -t A  rh-power-vm26.fit.vutbr.cz
     - name: spin up VM
-      command: /home/msuchy/bin/get-one-vm.sh
+      shell: /home/msuchy/bin/get-one-vm.sh
       register: get_one
 
     - debug: msg="{{ get_one.stdout }}"
