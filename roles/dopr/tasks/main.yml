@@ -10,7 +10,12 @@
   - packages
 
 - name: enable our copr
-  shell: "dnf copr enable -y msuchy/copr"
+  command: "dnf copr enable -y msuchy/copr"
+  args:
+    creates: "/etc/yum.repos.d/_copr_msuchy-copr.repo"
+
+- name: create cdic user
+  user: name="cdic"
 
 - name: install dopr specific packages
   yum: state=present pkg={{ item }}
@@ -25,9 +30,6 @@
   - dnf-plugins-core
   - python3-psycopg2
   - phantomjs
-
-- name: create cdic user
-  user: name="cdic" group="cdic"
 
 - name: git clone casperjs
   git: repo=git://github.com/n1k0/casperjs.git
