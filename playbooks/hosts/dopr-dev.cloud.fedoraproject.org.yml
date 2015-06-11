@@ -6,7 +6,12 @@
 
   tasks:
   - name: clean out old known_hosts for dopr-dev
-    #    local_action: known_hosts path={{item}} host=dopr-dev.cloud.fedoraproject.org state=absent
+    local_action: known_hosts path={{item}} host=dopr-dev.cloud.fedoraproject.org state=absent
+    ignore_errors: True
+    with_items:
+    - /root/.ssh/known_hosts
+    - /etc/ssh/ssh_known_hosts
+  - name: clean out old known_hosts for dopr-dev ip
     local_action: known_hosts path={{item}} host=209.132.184.42 state=absent
     ignore_errors: True
     with_items:
