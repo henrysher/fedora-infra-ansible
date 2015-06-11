@@ -103,8 +103,8 @@
   - koji_builder
 
 - name: /etc/kojid/kojid.conf
-  copy: src=kojid.conf dest=/etc/kojid/kojid.conf
-  when: not inventory_hostname.startswith(('arm01','arm03','aarch64','ppc8','koji01.stg','buildvm-01.stg'))
+  template: src=kojid.conf dest=/etc/kojid/kojid.conf
+  when: not inventory_hostname.startswith(('arm01','arm03','aarch64','ppc8'))
   notify:
   - restart kojid
   tags:
@@ -113,14 +113,6 @@
 - name: arm /etc/kojid/kojid.conf
   copy: src=arm-kojid.conf dest=/etc/kojid/kojid.conf
   when: inventory_hostname.startswith(('arm01','arm03','aarch64'))
-  notify:
-  - restart kojid
-  tags:
-  - koji_builder
-
-- name: staging /etc/kojid/kojid.conf
-  copy: src=stg-kojid.conf dest=/etc/kojid/kojid.conf
-  when: inventory_hostname.startswith(('koji01.stg','buildvm-01.stg'))
   notify:
   - restart kojid
   tags:
