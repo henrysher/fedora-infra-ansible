@@ -67,14 +67,12 @@
 - name: copy cdic config
   template: src="cdic.py" dest="/home/cdic/.config/cdic.py"
 
-- copy: src="cdic_update_db.sh" dest="/usr/local/bin/" chmod=0755
+- copy: src="cdic_update_db.sh" dest="/usr/local/bin/" mode=0755
 
 - name: copy ssh key for github
   copy: src="{{private}}/files/dopr/github-testing" dest="/home/cdic/.ssh/id_rsa"
 
 - include: "psql_setup.yml"
-
-
 
 - name: enables services
   service: state=running enabled=yes name={{ item }}
@@ -82,5 +80,3 @@
   - redis
   - cdic_async
   - cdic_gunicorn
-
-
