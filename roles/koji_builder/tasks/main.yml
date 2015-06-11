@@ -102,17 +102,8 @@
   tags:
   - koji_builder
 
-- name: /etc/kojid/kojid.conf
+- name: build /etc/kojid/kojid.conf from group vars
   template: src=kojid.conf dest=/etc/kojid/kojid.conf
-  when: not inventory_hostname.startswith(('arm01','arm03','aarch64','ppc8'))
-  notify:
-  - restart kojid
-  tags:
-  - koji_builder
-
-- name: arm /etc/kojid/kojid.conf
-  copy: src=arm-kojid.conf dest=/etc/kojid/kojid.conf
-  when: inventory_hostname.startswith(('arm01','arm03','aarch64'))
   notify:
   - restart kojid
   tags:
@@ -120,7 +111,7 @@
 
 - name: config for the kojid runroot plugin (only in staging)
   copy: src=runroot.conf dest=/etc/kojid/runroot.conf
-  when: inventory_hostname.startswith(('koji01.stg','buildvm-01.stg'))
+  when: 'staging' in group_names
   notify:
   - restart kojid
   tags:
