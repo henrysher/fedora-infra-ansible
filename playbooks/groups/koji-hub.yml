@@ -41,7 +41,7 @@
   - apache
   - fedmsg/base
   - koji_hub
-  - { role: koji_builder, when: env == "staging" }
+  - { role: koji_builder, when: env == "staging" and inventory_hostname.startswith('s390') }}
   - { role: nfs/server, when: env == "staging" }
   - { role: keepalived, when: env == "production" and inventory_hostname.startswith('koji') }
   - role: nfs/client
@@ -70,7 +70,7 @@
 
 - name: Start the kojid builder daemon, but only on staging.
   # Really -- this should never be set for prod.
-  hosts: koji-stg
+  hosts: koji-stg:s390-koji01.qa.fedoraproject.org
   user: root
   gather_facts: True
 
