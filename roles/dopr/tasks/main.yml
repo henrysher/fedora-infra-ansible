@@ -32,6 +32,7 @@
   - python3-psycopg2
   - python-psycopg2  # for psql utils
   - phantomjs
+  - nginx
 
 - name: git clone casperjs
   git: repo=git://github.com/n1k0/casperjs.git
@@ -79,6 +80,13 @@
   copy: src="{{private}}/files/dopr/github-testing" dest="/home/cdic/.ssh/id_rsa"
 
 - include: "psql_setup.yml"
+
+- name: Allow nginx to connect to upstream
+  seboolean: name=httpd_can_network_connect state=yes persistent=yes
+
+# copy nginx config
+- copy: src="nginx.conf" dest="/etc/nginx/nginx.conf"
+- copy: src="nginx/cdic.conf" dest="/etc/nginx/conf.d/"
 
 - name: enables services
   service: state=running enabled=yes name={{ item }}
