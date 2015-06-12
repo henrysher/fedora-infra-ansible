@@ -118,11 +118,6 @@ backend paste {
     .port = "10027";
 }
 
-backend mirrormanager2 {
-    .host = "localhost";
-    .port = "10039";
-}
-
 backend koschei {
     .host = "localhost";
     .port = "10040";
@@ -191,9 +186,6 @@ sub vcl_recv {
             unset req.http.cookie;
             set req.url = regsub(req.url, "\?.*", "");
         }
-    }
-    if (req.url ~ "^/mirrormanager2/") {
-        set req.backend_hint = mirrormanager2;
     }
     if (req.url ~ "^/updates/") {
         set req.backend_hint = bodhi;
