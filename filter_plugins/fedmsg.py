@@ -21,6 +21,8 @@ def invert_fedmsg_policy(hosts, vars):
                 inverted[key].append(cert['service'] + '-' + fqdn)
 
     result = inverted.items()
+    # Sort things so they come out in a reliable order (idempotence)
+    [inverted[key].sort() for key in inverted]
     result.sort(key=operator.itemgetter(0))
     return result
 
