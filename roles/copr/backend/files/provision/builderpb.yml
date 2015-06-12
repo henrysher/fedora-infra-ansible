@@ -36,7 +36,7 @@
 
 - hosts: builder_temp_group
   user: root
-  gather_facts: True
+  gather_facts: False
   vars:
    - files: files/
   
@@ -84,7 +84,7 @@
     action: authorized_key user=mockbuilder key='{{ lookup('file', '/home/copr/provision/files/buildsys.pub') }}'
 
   - name: put updated mock configs into /etc/mock
-    action: template src={{ files }}/mock/{{ item }} dest=/etc/mock
+    action: copy src={{ files }}/mock/{{ item }} dest=/etc/mock
     with_items:
     - site-defaults.cfg
 
