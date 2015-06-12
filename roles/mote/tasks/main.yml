@@ -16,6 +16,8 @@
   - { file: config.py, location: /etc/mote }
   - { file: mote.conf, location: /etc/httpd/conf.d }
   - { file: mote.wsgi, location: /usr/share/mote }
+  - { file: category_mappings.json, location: /usr/share/mote }
+  - { file: name_mappings.json, location: /usr/share/mote }
   tags:
   - config
   notify:
@@ -42,4 +44,14 @@
 - name: apply selinux type to the wsgi file
   file: >
     dest=/usr/share/mote/mote.wsgi
+    setype=httpd_sys_content_t
+
+- name: apply selinux type to the name mappings file
+  file: >
+    dest=/usr/share/mote/name_mappings.json
+    setype=httpd_sys_content_t
+
+- name: apply selinux type to the category mappings file
+  file: >
+    dest=/usr/share/mote/category_mappings.json
     setype=httpd_sys_content_t
