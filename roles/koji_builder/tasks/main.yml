@@ -122,6 +122,20 @@
   tags:
   - koji_builder
 
+- name: Create a directory for plugins.
+  file: dest=/usr/lib/koji-hub-plugins state=directory
+  when: "'runroot' in group_names"
+  tags:
+  - koji_builder
+
+- name: Copy in the kojid runroot plugin itself.
+  copy: src=runroot.py dest=/usr/lib/koji-hub-plugins/runroot.py
+  when: "'runroot' in group_names"
+  notify:
+  - restart kojid
+  tags:
+  - koji_builder
+
 # setup for oz/imagefactory
 - name: make .psphere dir
   file: state=directory path=/root/.psphere mode=775 owner=root group=root
