@@ -12,7 +12,7 @@ def invert_fedmsg_policy(hosts, vars):
     for host in hosts:
         prefix = '.'.join([vars[host]['fedmsg_prefix'],
                            vars[host]['fedmsg_env']])
-        fqdn = vars[host].get('fedmsg_fqdn', vars[host]['ansible_fqdn'])
+        fqdn = vars[host].get('fedmsg_fqdn', host)
 
         for cert in vars[host]['fedmsg_certs']:
             for topic in cert.get('can_send', []):
