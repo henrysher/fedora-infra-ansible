@@ -303,5 +303,9 @@ sub vcl_recv {
 sub vcl_backend_response {
     if (bereq.url ~ "^/mirrormanager/mirrors") {
         unset beresp.http.set-cookie;
+        set beresp.ttl = 6h;
+    }
+    if (bereq.url ~ "^/mirrormanager/static/") {
+        set beresp.ttl = 6h;
     }
 }
