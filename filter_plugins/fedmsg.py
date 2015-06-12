@@ -23,3 +23,10 @@ def invert_fedmsg_authz_policy(vars):
     result = inverted.items()
     result.sort(key=operator.itemgetter(0))
     return result
+
+
+class FilterModule(object):
+    def filters(self):
+        return {
+            "invert_fedmsg_authz_policy": invert_fedmsg_authz_policy,
+        }
