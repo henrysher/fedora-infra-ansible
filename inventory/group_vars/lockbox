@@ -7,3 +7,21 @@ num_cpus: 2
 tcp_ports: [ 443 ]
 
 fas_client_groups: sysadmin-noc,sysadmin-qa,fi-apprentice
+
+# These are consumed by a task in roles/fedmsg/base/main.yml
+# We don't really use the announce cert.. but it was supposed to be a way for
+# the FPL and other powers that be to broadcast announcements, like the FCC's
+# emergency broadcast system.  The cert are group are here.. but no tools on the
+# client side are configured to do anything with this yet.
+fedmsg_certs:
+- service: shell
+  owner: root
+  group: sysadmin
+  can_send:
+  - ansible.playbook.complete
+  - ansible.playbook.start
+- service: announce
+  owner: root
+  group: fedmsg-announce
+  can_send:
+  - announce.announcement
