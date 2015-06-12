@@ -81,6 +81,27 @@
   - restart fedmsg-irc
   - restart fedmsg-relay
 
+- name: dynamically generate policy from group/host vars.
+  template: >
+    src="{{ item }}.j2"
+    dest="/etc/fedmsg.d/{{ item }}"
+    owner=root
+    group=root
+    mode=644
+  with_items:
+  - policy.py
+  when: "'persistent-cloud' not in group_names and env == 'staging'"
+  tags:
+  - config
+  - fedmsgdconfig
+  - fedmsg/base
+  notify:
+  - restart httpd
+  - restart fedmsg-gateway
+  - restart fedmsg-hub
+  - restart fedmsg-irc
+  - restart fedmsg-relay
+
 - name: setup basic /etc/fedmsg.d/ contents for cloud hosts
   template: >
     src="{{ item }}.j2"
