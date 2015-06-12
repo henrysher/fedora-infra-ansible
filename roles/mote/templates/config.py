@@ -18,9 +18,9 @@ ignore_dir = "meetbot"
 
 # Location where raw logs/minutes are stored (remote location)
 {% if env == 'staging' %}
-meetbot_prefix = "http://meetbot.stg.fedoraproject.org"
+meetbot_prefix = "http://meetbot-raw.stg.fedoraproject.org"
 {% else %}
-meetbot_prefix = "http://meetbot.fedoraproject.org"
+meetbot_prefix = "http://meetbot-raw.fedoraproject.org"
 {% endif %}
 
 # Time (in seconds) after which the log/meeting cache expires
