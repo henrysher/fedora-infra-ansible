@@ -17,7 +17,11 @@ log_team_folder = "teams"
 ignore_dir = "meetbot"
 
 # Location where raw logs/minutes are stored (remote location)
+{% if env == 'staging' %}
+meetbot_prefix = "http://meetbot.stg.fedoraproject.org"
+{% else %}
 meetbot_prefix = "http://meetbot.fedoraproject.org"
+{% endif %}
 
 # Time (in seconds) after which the log/meeting cache expires
 cache_expire_time = 60 * 60 * 1
@@ -27,19 +31,21 @@ cache_expire_time = 60 * 60 * 1
 Development Configuration
 '''
 
-enable_debug = True
-app_port = 5000
-app_host = "127.0.0.1"
+## Don't turn this on in Fedora Infrastructure as it might allow remote execution
+## of arbitrary code.
+##enable_debug = True
+#app_port = 5000
+#app_host = "127.0.0.1"
 
 '''
 General Configuration
 '''
 
 admin_groups = ["sysadmin-mote"]
-memcached_ip = "127.0.0.1:11211"
+
 # memcached must be installed for this feature
+memcached_ip = "memcached01:11211"
 use_memcached = False # Use a memcached store for greater performance
 
 # JSON cache store location
-json_cache_location = "/tmp/mote/cache.json"
-
+json_cache_location = "/var/tmp/mote/cache.json"
