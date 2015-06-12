@@ -11,6 +11,7 @@
   - policycoreutils-python  # This is in the kickstart now.  Here for old hosts.
   tags:
   - packages
+  - anitya/fedmsg
 
 # We use setgid here so that the monitoring sockets created by fedmsg services
 # are accessible to the nrpe group.
@@ -21,10 +22,13 @@
     owner=fedmsg
     group=nrpe
     state=directory
+  tags:
+  - anitya/fedmsg
 
 - name: setup /etc/fedmsg.d directory
   file: path=/etc/fedmsg.d owner=root group=root mode=0755 state=directory
   tags:
+  - anitya/fedmsg
   - config
 
 # Any files that change need to restart any services that depend on them.  A
@@ -48,6 +52,7 @@
   tags:
   - config
   - fedmsgdconfig
+  - anitya/fedmsg
   notify:
   - restart httpd
   - restart fedmsg-relay
@@ -59,6 +64,7 @@
   tags:
   - config
   - fedmsgdconfig
+  - anitya/fedmsg
   notify:
   - restart httpd
   - restart fedmsg-relay
@@ -67,6 +73,7 @@
   file: path=/etc/pki/fedmsg owner=root group=root mode=0755 state=directory
   tags:
   - config
+  - anitya/fedmsg
 
 - name: install fedmsg ca.cert
   copy: >
@@ -77,6 +84,7 @@
     mode=0644
   tags:
   - config
+  - anitya/fedmsg
 
 - name: fedmsg certs
   copy: >
@@ -90,6 +98,7 @@
   when: fedmsg_certs != []
   tags:
   - config
+  - anitya/fedmsg
 
 - name: fedmsg keys
   copy: >
@@ -103,15 +112,22 @@
   when: fedmsg_certs != []
   tags:
   - config
+  - anitya/fedmsg
 
 # Three tasks for handling our custom selinux module
 - name: ensure a directory exists for our custom selinux module
   file: dest=/usr/local/share/fedmsg state=directory
+  tags:
+  - anitya/fedmsg
 
 - name: copy over our custom selinux module
   copy: src=selinux/fedmsg.pp dest=/usr/local/share/fedmsg/fedmsg.pp
   register: selinux_module
+  tags:
+  - anitya/fedmsg
 
 - name: install our custom selinux module
   command: semodule -i /usr/local/share/fedmsg/fedmsg.pp
   when: selinux_module|changed
+  tags:
+  - anitya/fedmsg
