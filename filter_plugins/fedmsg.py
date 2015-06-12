@@ -8,6 +8,8 @@ def invert_fedmsg_policy(hosts, vars):
     Really, returns a list of tuples -- not a dict.
     """
 
+    return [('what', 'is going on')]  # debugging, obviously.
+
     inverted = {}
     for host in vars:
         prefix = '.'.join([vars[host]['fedmsg_prefix'],
