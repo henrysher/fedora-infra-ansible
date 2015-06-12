@@ -8,10 +8,8 @@ def invert_fedmsg_policy(hosts, vars):
     Really, returns a list of tuples -- not a dict.
     """
 
-    return [('what', 'is going on')]  # debugging, obviously.
-
     inverted = {}
-    for host in vars:
+    for host in hosts:
         prefix = '.'.join([vars[host]['fedmsg_prefix'],
                            vars[host]['fedmsg_env']])
         fqdn = vars[host].get('fedmsg_fqdn', vars[host]['ansible_fqdn'])
