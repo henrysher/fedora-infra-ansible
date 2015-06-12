@@ -216,6 +216,17 @@ config = dict(
         topic_prefix + "announce.announcement": [
             "announce-lockbox01.phx2.fedoraproject.org",
         ],
+
+        {% if env == 'staging' %}
+        # ** policy dynamically generated from inventory vars
+        # See ansible/filter_plugins/fedmsg.py for this inversion filter.
+        {% for topic, certs in hostvars | invert_fedmsg_authz_policy %}
+        "{{topic}}": [
+        {% for cert in certs %}
+            "{{ cert }}",{% endfor %}
+        ],
+        {% endfor %}
+        {% endif %}
     },
 )
 
