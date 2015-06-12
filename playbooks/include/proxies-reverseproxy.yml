@@ -14,6 +14,19 @@
   vars:
   - varnish_url: http://localhost:6081
 
+  pre_tasks:
+
+  - name: Remove some crusty files from bygone eras
+    file: dest=/etc/httpd/conf.d/{{item}} state=absent
+    with_items:
+    - meetbot.fedoraproject.org/reversepassproxy.conf
+    - meetbot.fedoraproject.org/meetbot.conf
+    notify:
+    - restart apache
+    tags:
+    - httpd
+    - httpd/reverseproxy
+
   roles:
 
   - role: httpd/reverseproxy
@@ -59,7 +72,7 @@
 
   - role: httpd/reverseproxy
     website: meetbot.fedoraproject.org
-    #destname: mote
+    destname: mote
     #remotepath: /mote/
     # Talk directly to the app server, not haproxy
     proxyurl: http://value01
