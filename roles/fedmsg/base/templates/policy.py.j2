@@ -220,7 +220,7 @@ config = dict(
         {% if env == 'staging' %}
         # ** policy dynamically generated from inventory vars
         # See ansible/filter_plugins/fedmsg.py for this inversion filter.
-        {% for topic, certs in hostvars | invert_fedmsg_authz_policy %}
+        {% for topic, certs in groups['all'] | invert_fedmsg_policy(hostvars) %}
         "{{topic}}": [
         {% for cert in certs %}
             "{{ cert }}",{% endfor %}

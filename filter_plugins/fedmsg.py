@@ -1,7 +1,7 @@
 import operator
 
 
-def invert_fedmsg_authz_policy(vars):
+def invert_fedmsg_policy(hosts, vars):
     """ Given hostvars that map hosts -> topics, invert that
     and return a dict that maps topics -> hosts.
 
@@ -28,5 +28,5 @@ def invert_fedmsg_authz_policy(vars):
 class FilterModule(object):
     def filters(self):
         return {
-            "invert_fedmsg_authz_policy": invert_fedmsg_authz_policy,
+            "invert_fedmsg_policy": invert_fedmsg_policy,
         }
