@@ -14,7 +14,7 @@ def invert_fedmsg_authz_policy(vars):
                            vars[host]['fedmsg_env']])
         fqdn = vars[host].get('fedmsg_fqdn', vars[host]['ansible_fqdn'])
 
-        for cert in vars[host].get('fedmsg_certs', []):
+        for cert in vars[host]['fedmsg_certs']:
             for topic in cert.get('can_send', []):
                 key = prefix + '.' + topic
                 inverted[key] = inverted.get(key, [])
