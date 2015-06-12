@@ -1,12 +1,17 @@
 import operator
 
 
-def invert_fedmsg_policy(hosts, vars):
+def invert_fedmsg_policy(groups, vars, env):
     """ Given hostvars that map hosts -> topics, invert that
     and return a dict that maps topics -> hosts.
 
     Really, returns a list of tuples -- not a dict.
     """
+
+    if env == 'staging':
+        hosts = groups['staging']
+    else:
+        hosts = [h for h in groups['all'] if h not in groups['staging']]
 
     inverted = {}
     for host in hosts:
