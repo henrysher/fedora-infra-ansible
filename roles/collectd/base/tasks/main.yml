@@ -72,14 +72,14 @@
   - collectd
   when: collectd_apache is defined
 
-- name: Let collectd talk to apache over tcp
+- name: Let collectd talk to things over tcp
   seboolean: name=collectd_tcp_network_connect state=yes persistent=yes
   tags:
   - collectd
   ignore_errors: True
   notify:
   - restart collectd
-  when: collectd_apache is defined
+  when: collectd_apache is defined or collectd_graphite is defined
 
 - name: enable collectd nfs module
   copy: src=nfs.conf dest=/etc/collectd.d/nfs.conf
