@@ -98,11 +98,11 @@
     tags:
     - config
 
-  - name: make sure jenkins is stopped
-    action: service name=jenkins state=stopped
+#  - name: make sure jenkins is stopped
+#    action: service name=jenkins state=stopped
 
-  - name: clean any previous plugin deployments
-    action: file state=absent path=/var/lib/jenkins/plugins
+#  - name: clean any previous plugin deployments
+#    action: file state=absent path=/var/lib/jenkins/plugins
 
   - name: mkdir dir for jenkins data
     action: file state=directory path=/var/lib/jenkins/plugins/ owner=jenkins group=jenkins
@@ -203,35 +203,7 @@
 #     - config
 
   - name: Install custom jenkins plugins (from ansible bigfiles)
-    action: copy src="{{ bigfiles }}/jenkins/{{ item }}.hpi" dest=/var/lib/jenkins/plugins/{{ item }}.hpi
-    with_items:
-    - fedmsg
-    - bazaar
-    - chucknorris
-    - cobertura
-    - cvs
-    - external-monitor-job
-    - git
-    - git-client
-    - instant-messaging
-    - ldap
-    - matrix-auth
-    - maven-plugin
-    - mercurial
-    - openid
-    - python
-    - scm-api
-    - ssh-agent
-    - subversion
-    - translation
-    - violations
-    - xunit
-    - multiple-scms
-    - credentials
-    - mailer
-    - javadoc
-    - warnings
-    - ghprb
+    synchronize: src="{{ bigfiles }}/jenkins/" dest=/var/lib/jenkins/plugins/ delete=yes
     notify:
       - restart jenkins
     tags:
@@ -244,9 +216,9 @@
     tags:
      - config
 
-  - name: Give the user jenkins the ownership of the /var/lib/jenkins
-    file: path=/var/lib/jenkins/
-          owner=jenkins group=jenkins recurse=yes
+#  - name: Give the user jenkins the ownership of the /var/lib/jenkins
+#    file: path=/var/lib/jenkins/
+#          owner=jenkins group=jenkins recurse=yes
 
   - name: add jenkins ssh priv key so it can connect to clients
     action: copy src="{{ private }}/files/jenkins/ssh/jenkins_master" dest=/var/tmp/jenkins_master_id_rsa mode=600 owner=jenkins group=jenkins
