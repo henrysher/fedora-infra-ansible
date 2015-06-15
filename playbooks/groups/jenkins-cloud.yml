@@ -228,6 +228,13 @@
 
   - meta: flush_handlers
 
+# 
+# We have to wait here because if jenkins is restarting it takes a while to unpack all the 
+# plugins and create the directory we use below to sync the hotfix versions over the plugin versions
+# for the openid pluin.
+#
+  - wait_for: path=/var/lib/jenkins/plugins/openid/WEB-INF/lib/
+
   - name: jenkins hotfix big file
     synchronize: src="{{ bigfiles }}/hotfixes/jenkins/openid/" dest=/var/lib/jenkins/plugins/openid/WEB-INF/lib/
     notify:
