@@ -7,6 +7,7 @@
   - mote
   tags:
   - packages
+  - mote
 
 - name: replace the mote configuration file by the one with the normal user
   template: src={{ item.file }}
@@ -20,6 +21,7 @@
   - { file: name_mappings.json, location: /usr/share/mote }
   tags:
   - config
+  - mote
   notify:
   - restart apache
 
@@ -29,6 +31,7 @@
   - mote-updater
   tags:
   - services
+  - mote
 
 - name: apply selinux type to static files
   file: >
@@ -36,29 +39,48 @@
     setype=httpd_sys_content_t
     state=directory
     recurse=yes
+  tags:
+  - mote
+  - selinux
+
 - name: apply selinux type to meetbot files
   file: >
     dest=/srv/web/meetbot/
     setype=httpd_sys_content_t
     state=directory
     recurse=yes
+  tags:
+  - mote
+  - selinux
 
 - name: set sebooleans so apache can use memcached
   action: seboolean name=httpd_can_network_memcache
                     state=true
                     persistent=true
+  tags:
+  - mote
+  - selinux
 
 - name: apply selinux type to the wsgi file
   file: >
     dest=/usr/share/mote/mote.wsgi
     setype=httpd_sys_content_t
+  tags:
+  - mote
+  - selinux
 
 - name: apply selinux type to the name mappings file
   file: >
     dest=/usr/share/mote/name_mappings.json
     setype=httpd_sys_content_t
+  tags:
+  - mote
+  - selinux
 
 - name: apply selinux type to the category mappings file
   file: >
     dest=/usr/share/mote/category_mappings.json
     setype=httpd_sys_content_t
+  tags:
+  - mote
+  - selinux
