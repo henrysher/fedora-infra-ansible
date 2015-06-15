@@ -216,10 +216,6 @@
     tags:
      - config
 
-#  - name: Give the user jenkins the ownership of the /var/lib/jenkins
-#    file: path=/var/lib/jenkins/
-#          owner=jenkins group=jenkins recurse=yes
-
   - name: add jenkins ssh priv key so it can connect to clients
     action: copy src="{{ private }}/files/jenkins/ssh/jenkins_master" dest=/var/tmp/jenkins_master_id_rsa mode=600 owner=jenkins group=jenkins
     tags:
@@ -230,18 +226,10 @@
     tags:
     - config
 
-  - name: start jenkins itself
-    action: service name=jenkins state=running
-
-  - name: wait for a dir to exist - this is just ugly
-    shell: while `true`; do [ -d /var/lib/jenkins/plugins/openid/WEB-INF/lib/ ] && break; sleep 5; done
-    async: 1800
-    poll: 20
+  - meta: flush_handlers
 
   - name: jenkins hotfix big file
-    copy: src={{ item }} dest=/var/lib/jenkins/plugins/openid/WEB-INF/lib/ group=jenkins mode=655
-    with_fileglob:
-     - "{{ bigfiles }}/hotfixes/jenkins/openid/*.jar"
+    synchronize: src="{{ bigfiles }}/hotfixes/jenkins/openid/" dest=/var/lib/jenkins/plugins/openid/WEB-INF/lib/
     notify:
       - restart jenkins
 
