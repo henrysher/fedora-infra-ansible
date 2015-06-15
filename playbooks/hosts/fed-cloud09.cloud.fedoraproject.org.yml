@@ -163,10 +163,21 @@
     get_url: url=https://repos.fedorapeople.org/repos/openstack/openstack-icehouse/rdo-release-icehouse-4.noarch.rpm dest=/root/
   - yum: state=present name=/root/rdo-release-icehouse-4.noarch.rpm
 
+  - name: make sure epel-release is installed
+    get_url: url=http://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm dest=/root/
+  - yum: state=present name=/root/epel-release-latest-7.noarch.rpm
+
+  - name: make sure latest openvswitch is installed
+    get_url: url=http://people.redhat.com/~lkellogg/rpms/openvswitch-2.3.1-2.git20150113.el7.x86_64.rpm dest=/root/
+  - yum: state=present name=/root/openvswitch-2.3.1-2.git20150113.el7.x86_64.rpm
+
+  - name: make sure latest openstack-utils is installed
+    get_url: url=https://repos.fedorapeople.org/repos/openstack/openstack-juno/epel-7/openstack-utils-2014.2-1.el7.centos.noarch.rpm dest=/root/
+  - yum: state=present name=/root/openstack-utils-2014.2-1.el7.centos.noarch.rpm
+
   - name: install basic openstack packages
     action: yum state=present name={{ item }}
     with_items:
-    - http://dl.fedoraproject.org/pub/epel/7/x86_64/e/epel-release-7-5.noarch.rpm
     - openstack-utils
     - openstack-selinux
     - openstack-packstack
@@ -177,8 +188,6 @@
     - openstack-neutron
     - openstack-nova-common
     - haproxy
-    - http://people.redhat.com/~lkellogg/rpms/openvswitch-2.3.1-2.git20150113.el7.x86_64.rpm
-    - https://repos.fedorapeople.org/repos/openstack/openstack-juno/epel-7/openstack-utils-2014.2-1.el7.centos.noarch.rpm
 
   - name: install etckeeper
     action: yum state=present name=etckeeper
@@ -518,26 +527,47 @@
     notify:
       - restart httpd
 
-
   # configure cider with multi back-end
   # https://access.redhat.com/documentation/en-US/Red_Hat_Enterprise_Linux_OpenStack_Platform/5/html/Cloud_Administrator_Guide/section_manage-volumes.html
   - ini_file: dest=/etc/cinder/cinder.conf section=DEFAULT option="enabled_backends" value="equallogic-1,lvmdriver-1"
+    notify:
+    - restart cinder
   # LVM
   - ini_file: dest=/etc/cinder/cinder.conf section="lvmdriver-1" option="volume_group" value="cinder-volumes"
+    notify:
+    - restart cinder
   - ini_file: dest=/etc/cinder/cinder.conf section="lvmdriver-1" option="volume_driver" value="cinder.volume.drivers.lvm.LVMISCSIDriver"
+    notify:
+    - restart cinder
   - ini_file: dest=/etc/cinder/cinder.conf section="lvmdriver-1" option="volume_backend_name" value="LVM_iSCSI"
+    notify:
+    - restart cinder
   # Dell EqualLogic - http://docs.openstack.org/trunk/config-reference/content/dell-equallogic-driver.html
   - ini_file: dest=/etc/cinder/cinder.conf section="equallogic-1" option="volume_driver" value="cinder.volume.drivers.eqlx.DellEQLSanISCSIDriver"
+    notify:
+    - restart cinder
   - ini_file: dest=/etc/cinder/cinder.conf section="equallogic-1" option="san_ip" value="{{ IP_EQLX }}"
+    notify:
+    - restart cinder
   - ini_file: dest=/etc/cinder/cinder.conf section="equallogic-1" option="san_login" value="{{ SAN_UNAME }}"
+    notify:
+    - restart cinder
   - name: set password for equallogic-1
     ini_file: dest=/etc/cinder/cinder.conf section="equallogic-1" option="san_password" value="{{ SAN_PW }}"
+    notify:
+    - restart cinder
   - ini_file: dest=/etc/cinder/cinder.conf section="equallogic-1" option="eqlx_group_name" value="{{ EQLX_GROUP }}"
+    notify:
+    - restart cinder
   - ini_file: dest=/etc/cinder/cinder.conf section="equallogic-1" option="eqlx_pool" value="{{ EQLX_POOL }}"
+    notify:
+    - restart cinder
   - ini_file: dest=/etc/cinder/cinder.conf section="equallogic-1" option="volume_backend_name" value="equallogic"
-  - service: name=openstack-cinder-api state=restarted
-  - service: name=openstack-cinder-scheduler state=restarted
-  - service: name=openstack-cinder-volume state=restarted
+    notify:
+    - restart cinder
+
+  # flush handlers here in case cinder changes and we need to restart it.
+  - meta: flush_handlers
 
   # create storage types
   # note that existing keys can be retrieved using: cinder extra-specs-list
