@@ -69,6 +69,15 @@
 
 - name: Configure httpd dl main conf
   copy: src=httpd/dl.fedoraproject.org.conf dest=/etc/httpd/conf.d/dl.fedoraproject.org.conf
+  notify:
+  - restart httpd
+
+- name: Make sure apache autoindex.conf is replaced with ours
+  copy: src=httpd/dl.fedoraproject.org/autoindex.conf dest=/etc/httpd/conf.d/autoindex.conf
+  notify:
+  - restart httpd
 
 - name: Configure httpd dl sub conf
   copy: src=httpd/dl.fedoraproject.org/ dest=/etc/httpd/conf.d/dl.fedoraproject.org/
+  notify:
+  - restart httpd
