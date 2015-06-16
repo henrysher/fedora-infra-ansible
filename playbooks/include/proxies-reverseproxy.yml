@@ -28,16 +28,6 @@
     - httpd
     - httpd/reverseproxy
 
-  - name: "Conversely, remove some stg things that shouldn't be in prod."
-    file: dest=/etc/httpd/conf.d/{{item}} state=absent
-    with_items:
-    - meetbot.fedoraproject.org/mote.conf
-    when: env != 'staging'
-    notify:
-    - restart apache
-    tags:
-    - httpd
-    - httpd/reverseproxy
 
   roles:
 
@@ -75,30 +65,19 @@
     destname: mailman3
     when: env == "staging"
 
-  # The old way
-  - role: httpd/reverseproxy
-    website: meetbot.fedoraproject.org
-    destname: meetbot
-    remotepath: /meetbot/
-    when: env != 'staging'
-    # Talk directly to the app server, not haproxy
-    proxyurl: http://value01
-
-  # The new place for the raw originals
+  # The place for the raw originals
   - role: httpd/reverseproxy
     website: meetbot-raw.fedoraproject.org
     destname: meetbot
     remotepath: /meetbot/
-    when: env == 'staging'
     # Talk directly to the app server, not haproxy
     proxyurl: http://value01
 
-  # The new place for the fancy mote view
+  # The place for the fancy mote view
   - role: httpd/reverseproxy
     website: meetbot.fedoraproject.org
     destname: mote
     #remotepath: /mote/
-    when: env == 'staging'
     # Talk directly to the app server, not haproxy
     proxyurl: http://value01
 
