@@ -112,6 +112,7 @@
 
 - name: set the mailman conffile
   template: src={{ item }} dest=/etc/mailman.cfg
+            owner=root group=mailman mode=0640
   with_first_found:
   - mailman.cfg.{{ ansible_hostname }}.j2
   - mailman.cfg.j2
@@ -226,8 +227,9 @@
 # Plug HyperKitty into Mailman
 #
 - name: copy the mailman-hyperkitty conffile
-  copy: src=mailman-hyperkitty.cfg
-        dest="{{ mailman_webui_confdir }}/mailman-hyperkitty.cfg"
+  template: src=mailman-hyperkitty.cfg.j2
+            dest="{{ mailman_webui_confdir }}/mailman-hyperkitty.cfg"
+            owner=root group=mailman mode=0640
   tags:
   - config
   notify:
