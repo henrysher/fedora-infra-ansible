@@ -20,18 +20,19 @@ INSTALLED_APPS += ["taiga_contrib_fas_openid_auth"]
 # the 303 redirects that we need to do for openid to finish.
 REST_FRAMEWORK['EXCEPTION_HANDLER'] = "taiga_contrib_fas_openid_auth.services.exception_handler"
 
-EVENTS_PUSH_BACKEND = "taiga.events.backends.rabbitmq.EventsPushBackend"
-EVENTS_PUSH_BACKEND_OPTIONS = {"url": "amqp://taiga:{{ taiga_events_password }}@localhost:5672/taiga"}
+## Uncomment all this stuff to get the async celery stuff working.
+## It is not necessary.. it just makes everything snappier.
+#EVENTS_PUSH_BACKEND = "taiga.events.backends.rabbitmq.EventsPushBackend"
+#EVENTS_PUSH_BACKEND_OPTIONS = {"url": "amqp://taiga:{{ taiga_events_password }}@localhost:5672/taiga"}
+#
+#from .celery import *
+#
+#BROKER_URL = 'amqp://guest:guest@localhost:5672//'
+#CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+#CELERY_ENABLED = True
 
-
-from .celery import *
-
-BROKER_URL = 'amqp://guest:guest@localhost:5672//'
-CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
-CELERY_ENABLED = True
-
-# Uncomment and populate with proper connection parameters
-# for enable email sending.
+## Uncomment and populate with proper connection parameters
+## for enable email sending.
 #EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 #EMAIL_USE_TLS = False
 #EMAIL_HOST = "localhost"
