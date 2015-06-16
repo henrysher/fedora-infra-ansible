@@ -171,9 +171,14 @@
 ### DONE with taiga-front
 
 ### FINALLY, nginx to serve/proxy it all
+
 - copy: src=taiga.nginx dest=/etc/nginx/conf.d/taiga
         mode=0644 owner=nginx group=nginx
   notify: restart nginx
+  tags: taiga
+
+# Add nginx to the taiga group so it gets rights to read all our static stuff
+- user: name=nginx groups=taiga append=yes
   tags: taiga
 
 - file: dest=/etc/nginx/site-enabled/default state=absent
