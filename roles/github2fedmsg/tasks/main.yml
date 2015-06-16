@@ -10,12 +10,15 @@
   - libsemanage-python
   tags:
   - packages
+  - github2fedmsg
 
 - name: make some directories
   file: dest="{{item}}" mode=0755 state=directory
   with_items:
   - /etc/github2fedmsg
   - /usr/share/github2fedmsg
+  tags:
+  - github2fedmsg
 
 - name: copy github2fedmsg app configuration
   template: >
@@ -25,6 +28,7 @@
   - github2fedmsg.ini
   tags:
   - config
+  - github2fedmsg
   notify:
   - restart apache
 
@@ -36,17 +40,19 @@
   - github2fedmsg.wsgi
   tags:
   - config
+  - github2fedmsg
   notify:
   - restart apache
 
 - name: copy github2fedmsg httpd config
-  copy: >
+  template: >
     src={{ item }} dest="/etc/httpd/conf.d/{{ item }}"
     owner=apache group=apache mode=0644
   with_items:
   - github2fedmsg.conf
   tags:
   - config
+  - github2fedmsg
   notify:
   - restart apache
 
@@ -57,8 +63,12 @@
     owner=root group=root mode=0644
   tags:
   - hotfix
+  - github2fedmsg
   notify:
   - restart apache
 
 - name: ensure selinux lets httpd talk to postgres
   seboolean: name=httpd_can_network_connect_db persistent=yes state=yes
+  tags:
+  - selinux
+  - github2fedmsg
