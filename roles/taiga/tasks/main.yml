@@ -172,7 +172,7 @@
 
 ### FINALLY, nginx to serve/proxy it all
 
-- copy: src=taiga.nginx dest=/etc/nginx/conf.d/taiga
+- copy: src=taiga.nginx dest=/etc/nginx/conf.d/taiga.conf
         mode=0644 owner=nginx group=nginx
   notify: restart nginx
   tags: taiga
@@ -183,10 +183,6 @@
 - file: dest=/home/taiga mode=0750
   tags: taiga
 - seboolean: name=httpd_read_user_content state=true persistent=true
-  tags: taiga
-
-- file: dest=/etc/nginx/site-enabled/default state=absent
-  notify: restart nginx
   tags: taiga
 
 - service: name=nginx state=running enabled=yes
