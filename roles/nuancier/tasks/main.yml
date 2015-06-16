@@ -13,6 +13,7 @@
   - python-alembic
   tags:
   - packages
+  - nuancier
 
 - name: copy sundry nuancier configuration
   template: src={{ item.file }}
@@ -24,6 +25,7 @@
   changed_when: "1 != 1"
   tags:
   - config
+  - nuancier
   notify:
   - restart apache
 
@@ -33,6 +35,7 @@
                owner=apache group=apache mode=0700
   tags:
   - setup
+  - nuancier
 
 - name: create the cache folder where nuancier creates the thumbnails
   action: file state=directory
@@ -40,12 +43,15 @@
                owner=apache group=apache mode=0700
   tags:
   - setup
+  - nuancier
 
 - name: create the database scheme
   command: /usr/bin/python2 /usr/share/nuancier/nuancier_createdb.py
   environment:
       NUANCIER_CONFIG: /etc/nuancier/nuancier.cfg
   changed_when: "1 != 1"
+  tags:
+  - nuancier
 
 - name: replace the nuancier configuration file by the one with the normal user
   template: src={{ item.file }}
@@ -58,6 +64,7 @@
   - { file: nuancier.wsgi, location: /var/www }
   tags:
   - config
+  - nuancier
   notify:
   - restart apache
 
@@ -65,6 +72,9 @@
   action: seboolean name=httpd_can_network_connect_db
                     state=true
                     persistent=true
+  tags:
+  - nuancier
+  - selinux
 
 - name: apply selinux type to static files
   file: >
@@ -72,18 +82,30 @@
     setype=httpd_sys_content_t
     state=directory
     recurse=yes
+  tags:
+  - nuancier
+  - selinux
 
 - name: set sebooleans so apache can use glusterfs
   action: seboolean name=httpd_use_fusefs
                     state=true
                     persistent=true
+  tags:
+  - nuancier
+  - selinux
 
 - name: set sebooleans so apache can send emails
   action: seboolean name=httpd_can_sendmail
                     state=true
                     persistent=true
+  tags:
+  - nuancier
+  - selinux
 
 - name: apply selinux type to the wsgi file
   file: >
     dest=/var/www/nuancier.wsgi
     setype=httpd_sys_content_t
+  tags:
+  - nuancier
+  - selinux
