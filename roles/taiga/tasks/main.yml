@@ -78,14 +78,27 @@
 - git: repo=https://github.com/taigaio/taiga-back.git dest=/srv/taiga-back version=stable
   tags: taiga
 
-## TODO -- make this idempotent with creates=...
-#- command: "{{item}}" chdir=/srv/taiga-back
-#  with_items:
-#  - pip3 install -r requirements.txt
-#  - python3 manage.py migrate --noinput
-#  - python3 manage.py loaddata initial_user
-#  - python3 manage.py loaddata initial_project_templates
-#  - python3 manage.py loaddata initial_role
-#  - python3 manage.py compilemessages
-#  - python3 manage.py collectstatic --noinput
-#  tags: taiga
+- command: pip3 install -r requirements.txt
+           chdir=/srv/taiga-back
+           creates=/usr/lib/python3.4/site-packages/django/
+  tags: taiga
+
+## TODO -- make these idempotent with creates=...
+- command: python3 manage.py migrate --noinput
+           chdir=/srv/taiga-back
+  tags: taiga
+- command: python3 manage.py loaddata initial_user
+           chdir=/srv/taiga-back
+  tags: taiga
+- command: python3 manage.py loaddata initial_project_templates
+           chdir=/srv/taiga-back
+  tags: taiga
+- command: python3 manage.py loaddata initial_role
+           chdir=/srv/taiga-back
+  tags: taiga
+- command: python3 manage.py compilemessages
+           chdir=/srv/taiga-back
+  tags: taiga
+- command: python3 manage.py collectstatic --noinput
+           chdir=/srv/taiga-back
+  tags: taiga
