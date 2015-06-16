@@ -1,0 +1,26 @@
+---
+#
+# Install packages needed for fedora people
+#
+- name: install packages needed for fedora people
+  yum: name={{ item }} state=present
+  with_items:
+  - cvs
+  - git
+  - bzr
+  - mercurial
+  - lftp
+  - quota
+  - nano
+  - pyliblzma
+  tags:
+  - packages
+
+- name: set selinux booleans needed for people
+  seboolean: name=httpd_enable_homedirs state=true persistent=true
+  with_items:
+  - httpd_enable_homedirs
+  - git_cgi_enable_homedirs
+  - git_system_enable_homedirs
+
+

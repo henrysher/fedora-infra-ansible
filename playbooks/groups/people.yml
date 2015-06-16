@@ -2,11 +2,9 @@
 #
 #
 - name: make the people server
-  hosts: people02.fedoraproject.org
+  hosts: people01.fedoraproject.org
   user: root
   gather_facts: False
-  accelerate: "{{ accelerated }}"
-
 
   vars_files: 
    - /srv/web/infra/ansible/vars/global.yml
@@ -20,10 +18,9 @@
   - include: "{{ handlers }}/restart_services.yml"
 
 - name: make the box be real
-  hosts: people02.fedoraproject.org
+  hosts: people01.fedoraproject.org
   user: root
   gather_facts: True
-  accelerate: "{{ accelerated }}"
 
   vars_files: 
    - /srv/web/infra/ansible/vars/global.yml
@@ -39,43 +36,44 @@
   - rkhunter
   - rsyncd
   - sudo
-  - { role: denyhosts, when: ansible_distribution_major_version|int != 7 }
   - { role: openvpn/client, when: env != "staging" }
-  - { role: collectd/fedmsg-service, process: fedmsg-hub }
-  - apache
-  - git/hooks
-  - git/make_checkout_seed
-  - git/server
-  - gitolite/base
-  - gitolite/check_fedmsg_hooks
   - cgit/base
   - cgit/clean_lock_cron
   - cgit/make_pkgs_list
   - clamav
-  - distgit
+  - fedmsg/base
 
+  - role: apache
+
+  - role: httpd/mod_ssl
+
+  - role: httpd/certificate
+    name: wildcard-2014.fedorapeople.org
+    SSLCertificateChainFile: wildcard-2014.fedorapeople.org.intermediate.cert
+
+  - role: httpd/certificate
+    name: planet.fedoraproject.org
+    SSLCertificateChainFile: planet.fedoraproject.org.org.intermediate.cert
+
+  - role: httpd/website
+    name: fedorapeople.org
+    cert_name: wildcard-2014.fedorapeople.org
+    server_aliases:
+    - *.fedorapeople.org
+
+  - role: httpd/website
+    name: fedoraplanet.org
+
+  - role: httpd/website
+    cert_name: planet.fedoraproject.org
+    name: planet.fedoraproject.org
+
+  - role: planet
  
   tasks:
   - include: "{{ tasks }}/yumrepos.yml"
   - include: "{{ tasks }}/2fa_client.yml"
   - include: "{{ tasks }}/motd.yml"
-
-  handlers:
-  - include: "{{ handlers }}/restart_services.yml"
- 
-- name: setup fedmsg on people
-  hosts: people02.fedoraproject.org
-  user: root
-  gather_facts: True
-
-  vars_files:
-  - /srv/web/infra/ansible/vars/global.yml
-  - "/srv/private/ansible/vars.yml"
-  - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
-
-  roles:
-  - fedmsg/base
-  - fedmsg/hub
 
   handlers:
   - include: "{{ handlers }}/restart_services.yml"

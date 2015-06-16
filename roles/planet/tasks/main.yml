@@ -17,7 +17,14 @@
   tags:
     - planet_server
 
-- name: ad planet config directory
+- name: install the planet packages
+  yum:  pkg={{item}} state=present
+  with_items:
+    - venus
+  tags:
+    - planet_server
+
+- name: add base planet config directory
   file: path=/etc/planet state=directory owner=root group=root mode=0775
   tags:
     - planet_server
@@ -26,62 +33,262 @@
   copy: src=fpbuilder.conf dest=/etc/planet/fpbuilder.conf mode=0644 owner=root group=root
   tags:
     - planet_server
-  
-- name: create planet directory
-  file: path={{ item }} state=directory owner=planet-user group=web mode=0775
-  with_item:
-    - /srv/planet
-    - /srv/planet/site
-    - /srv/planet/config
 
-- name: install the planet packages
-  yum:  pkg={{item}} state=present
-  with_items:
-    - venus
-  tags:
-    - planet_server
-
-- name: copy the planet cron job
-  copy: src=planet-cron dest=/etc/cron.d/planet-cron
-  tags:
-    - planet_server
-
-- name: copy the planet http config file
-  copy: src=planet-httpd.conf dest=/etc/httpd/conf.d/planet.conf
-  tags:
-    - planet_server
+#- name: copy the planet http config file
+#  copy: src=planet-httpd.conf dest=/etc/httpd/conf.d/planet.conf
+#  tags:
+#    - planet_server
 
 - name: copy the run planet-config script
   copy: src=pull-run-planet-config.sh dest=/usr/local/bin/pull-run-planet-config.sh
   tags:
     - planet_server
 
+- name: create planet directory
+  file: path={{ item }} state=directory owner=planet-user group=web mode=0775
+  with_item:
+    - /srv/planet/site
+    - /srv/planet/config
+
 - name: copy the run-planet script
   copy: src=run-planet.sh dest=srv/planet/config/run-planet
   tags:
     - planet_server
 
-##
-## This is the area where we put in each sub-planets congfigs
-##
-- name: create sub-planet for {{ argv }}
+#
+# base planet.fedoraproject.org planet
+#
+
+- name: create planet directory (people)
   file: path={{ item }} state=directory owner=planet-user group=web mode=0775
   with_item:
-    - /srv/planet/site/people/
-    - /srv/planet/site/people/css
-    - /srv/planet/site/people/images
-    - /srv/planet/site/people/images/heads
+    - /etc/planet/people
+    - /srv/planet/site/people
     - /srv/planet/config/people
-    - /srv/planet/config/people/templates
-  tags:
-    - planet_people    
 
-- name: copy base people config file
-  copy: src=people_base_config dest=/etc/planet/people_base_config
+- name: copy the planet cron job (people)
+  copy: src=planet-cron dest=/etc/cron.d/planet-cron
   tags:
-    - planet_people
- 
-- name: copy over trees to site
-  copy: src=sub-planets/people/site/css dest=/srv/planet/site/people/css
+    - planet_server
+
+#
+# design
+#
+
+- name: create planet directory (design)
+  file: path={{ item }} state=directory owner=planet-user group=web mode=0775
+  with_item:
+    - /etc/planet/design
+    - /srv/planet/config/design
+    - /srv/planet/site/design
+
+- name: copy the planet cron job (design)
+  copy: src=sub-planets/design/planet-group.cron dest=/etc/cron.d/planet-design.cron
   tags:
-    - planet_people
+    - planet_server
+
+- name: copy the planet fpbulder.conf (design)
+  copy: src=sub-planets/design/fpbuilder.conf dest=/etc/planet/design/fpbuilder.conf
+  tags:
+    - planet_server
+
+- name: copy the cache and templates (design)
+  copy: src=sub-planets/design/{{ item }} dest=/srv/planet/config/design/{{ item }}
+  with_item:
+  - cache
+  - templates
+  tags:
+    - planet_server
+
+- name: copy the css and images (design)
+  copy: src=sub-planets/design/{{ item }} dest=/srv/planet/site/design/{{ item }}
+  with_item:
+  - css
+  - images
+  tags:
+    - planet_server
+#
+# desktop
+#
+
+- name: create planet directory (desktop)
+  file: path={{ item }} state=directory owner=planet-user group=web mode=0775
+  with_item:
+    - /etc/planet/desktop
+    - /srv/planet/config/desktop
+    - /srv/planet/site/desktop
+
+- name: copy the planet cron job (desktop)
+  copy: src=sub-planets/desktop/planet-group.cron dest=/etc/cron.d/planet-desktop.cron
+  tags:
+    - planet_server
+
+- name: copy the planet fpbulder.conf (desktop)
+  copy: src=sub-planets/desktop/fpbuilder.conf dest=/etc/planet/desktop/fpbuilder.conf
+  tags:
+    - planet_server
+
+- name: copy the cache and templates (desktop)
+  copy: src=sub-planets/desktop/{{ item }} dest=/srv/planet/config/desktop/{{ item }}
+  with_item:
+  - cache
+  - templates
+  tags:
+    - planet_server
+
+- name: copy the css and images (desktop)
+  copy: src=sub-planets/desktop/{{ item }} dest=/srv/planet/site/desktop/{{ item }}
+  with_item:
+  - css
+  - images
+  tags:
+    - planet_server
+
+#
+# edited
+#
+
+- name: create planet directory (edited)
+  file: path={{ item }} state=directory owner=planet-user group=web mode=0775
+  with_item:
+    - /etc/planet/edited
+    - /srv/planet/config/edited
+    - /srv/planet/site/edited
+
+- name: copy the planet cron job (edited)
+  copy: src=sub-planets/edited/planet-group.cron dest=/etc/cron.d/planet-edited.cron
+  tags:
+    - planet_server
+
+- name: copy the planet fpbulder.conf (edited)
+  copy: src=sub-planets/edited/fpbuilder.conf dest=/etc/planet/edited/fpbuilder.conf
+  tags:
+    - planet_server
+
+- name: copy the cache and templates (edited)
+  copy: src=sub-planets/edited/{{ item }} dest=/srv/planet/config/edited/{{ item }}
+  with_item:
+  - cache
+  - templates
+  tags:
+    - planet_server
+
+- name: copy the css and images (edited)
+  copy: src=sub-planets/edited/{{ item }} dest=/srv/planet/site/edited/{{ item }}
+  with_item:
+  - css
+  - images
+  tags:
+    - planet_server
+
+#
+# people
+#
+
+- name: create planet directory (people)
+  file: path={{ item }} state=directory owner=planet-user group=web mode=0775
+  with_item:
+    - /etc/planet/people
+    - /srv/planet/config/people
+    - /srv/planet/site/people
+
+- name: copy the planet cron job (people)
+  copy: src=sub-planets/people/planet-group.cron dest=/etc/cron.d/planet-people.cron
+  tags:
+    - planet_server
+
+- name: copy the planet fpbulder.conf (people)
+  copy: src=sub-planets/people/fpbuilder.conf dest=/etc/planet/people/fpbuilder.conf
+  tags:
+    - planet_server
+
+- name: copy the cache and templates (people)
+  copy: src=sub-planets/people/{{ item }} dest=/srv/planet/config/people/{{ item }}
+  with_item:
+  - cache
+  - templates
+  tags:
+    - planet_server
+
+- name: copy the css and images (people)
+  copy: src=sub-planets/people/{{ item }} dest=/srv/planet/site/people/{{ item }}
+  with_item:
+  - css
+  - images
+  tags:
+    - planet_server
+
+#
+# security
+#
+
+- name: create planet directory (security)
+  file: path={{ item }} state=directory owner=planet-user group=web mode=0775
+  with_item:
+    - /etc/planet/security
+    - /srv/planet/config/security
+    - /srv/planet/site/security
+
+- name: copy the planet cron job (security)
+  copy: src=sub-planets/security/planet-group.cron dest=/etc/cron.d/planet-security.cron
+  tags:
+    - planet_server
+
+- name: copy the planet fpbulder.conf (security)
+  copy: src=sub-planets/security/fpbuilder.conf dest=/etc/planet/security/fpbuilder.conf
+  tags:
+    - planet_server
+
+- name: copy the cache and templates (security)
+  copy: src=sub-planets/security/{{ item }} dest=/srv/planet/config/security/{{ item }}
+  with_item:
+  - cache
+  - templates
+  tags:
+    - planet_server
+
+- name: copy the css and images (security)
+  copy: src=sub-planets/security/{{ item }} dest=/srv/planet/site/security/{{ item }}
+  with_item:
+  - css
+  - images
+  tags:
+    - planet_server
+
+#
+# summer-coding
+#
+
+- name: create planet directory (summer-coding)
+  file: path={{ item }} state=directory owner=planet-user group=web mode=0775
+  with_item:
+    - /etc/planet/summer-coding
+    - /srv/planet/config/summer-coding
+    - /srv/planet/site/summer-coding
+
+- name: copy the planet cron job (summer-coding)
+  copy: src=sub-planets/summer-coding/planet-group.cron dest=/etc/cron.d/planet-summer-coding.cron
+  tags:
+    - planet_server
+
+- name: copy the planet fpbulder.conf (summer-coding)
+  copy: src=sub-planets/summer-coding/fpbuilder.conf dest=/etc/planet/summer-coding/fpbuilder.conf
+  tags:
+    - planet_server
+
+- name: copy the cache and templates (summer-coding)
+  copy: src=sub-planets/summer-coding/{{ item }} dest=/srv/planet/config/summer-coding/{{ item }}
+  with_item:
+  - cache
+  - templates
+  tags:
+    - planet_server
+
+- name: copy the css and images (summer-coding)
+  copy: src=sub-planets/summer-coding/{{ item }} dest=/srv/planet/site/summer-coding/{{ item }}
+  with_item:
+  - css
+  - images
+  tags:
+    - planet_server
+
