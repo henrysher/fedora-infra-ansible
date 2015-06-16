@@ -106,7 +106,7 @@ config = dict(
 {% for host in groups['all'] %}
 {% if 'wsgi_fedmsg_service' in hostvars[host] and env == hostvars[host]['env'] %}
         "{{hostvars[host]['wsgi_fedmsg_service']}}.{{host.split('.')|first}}": [
-{% for i in range(wsgi_procs * wsgi_threads) %}
+{% for i in range(hostvars[host]['wsgi_procs'] * hostvars[host]['wsgi_threads']) %}
             "tcp://{{host}}:30{{'%02d' % i}}",
 {% endfor %}
         ],
