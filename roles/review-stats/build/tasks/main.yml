@@ -1,0 +1,35 @@
+- name: Install python-bugzilla
+  yum: pkg=python-bugzilla state=present
+  tags:
+  - review-stats
+  - review-stats/build
+
+- name: Ensure dir for content exists
+  file: dest=/srv/web/review-stats owner=apache group=apache mode=0755 state=directory
+  tags:
+  - review-stats
+  - review-stats/build
+
+- name: Copy review-stats.py
+  copy: >
+    src=review-status.py dest=/usr/local/bin/review-stats.py
+    owner=root group=root mode=0755
+  tags:
+  - review-stats
+  - review-stats/build
+
+- name: Copy templates
+  synchronize: src=templates dest=/usr/local/share/review-stats/templates/
+  tags:
+  - review-stats
+  - review-stats/build
+
+- name: Copy config file
+  template: >
+    src=review-stats.cfg
+    dest=/usr/local/share/review-stats/review-stats.cfg
+    owner=root group=root mode=0644
+  tags:
+  - review-stats
+  - review-stats/build
+

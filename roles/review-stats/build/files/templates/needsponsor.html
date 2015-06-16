@@ -1,0 +1,76 @@
+<!DOCTYPE html
+PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml"
+ xmlns:py="http://genshi.edgewall.org/"
+ xmlns:xi="http://www.w3.org/2001/XInclude">
+<head>
+  <META http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+  <base href="https://bugzilla.redhat.com/bugzilla/"/>
+  <title>$title</title>
+  <style type="text/css" media="screen">
+    .bz_state_NEEDSPONSOR {background-color: #AAFFAA}
+    .bz_state_FEATURE {background-color: #FFAAAA}
+    .bz_row_even {background-color: #FFFFFF}
+    .bz_row_odd {background-color: #EEEEEE}
+
+    #content
+    {
+      margin-left: 0ex!important;
+    }
+
+    td, th
+    {
+      border: none!important;
+      padding: 0.5ex 2ex!important;
+    }
+  </style>
+
+  <link rel="stylesheet" type="text/css" media="all"
+        href="//fedoraproject.org/static/css/fedora.css" />
+</head>
+
+<body>
+  <div id="wrapper">
+    <div id="head">
+      <h1><a href="http://fedoraproject.org/index.html">Fedora</a></h1>
+    </div>
+    <div id="content">
+<h2>$description</h2>
+Click the name to find all comments made in any review tickets.<br/>
+In parentheses is the date their oldest submission was made.<br/>
+Last Update: $update (v$version)<br/>
+There are $count tickets in this category<br/>
+
+<table class="buglist" cellspacing="0" cellpadding="4" width="100%">
+   <thead>
+     <tr align="left">
+       <th>ID</th>
+       <th>Alias</th>
+       <th>Last Change</th>
+       <th>Summary</th>
+     </tr>
+   </thead>
+
+   <py:for each="packager in packagers">
+   <tr><td colspan="5"><b>
+               <a href="buglist.cgi?emaillongdesc1=1&amp;emailtype1=substring&amp;component=Package%20Review&amp;query_format=advanced&amp;email1=${packager['email']}">${packager['name']}</a> (${packager['oldest']})
+   </b></td></tr>
+     <py:for each="bug in packager['bugs']">
+        <tr class="${bug['class']}">
+          <td>
+            <a href="show_bug.cgi?id=${bug['id']}">${bug['id']}</a>
+          </td>
+          <td>${bug['alias']} </td>
+          <td>${bug['lastchange']}</td>
+          <td>${bug['summary']}</td>
+         </tr>
+       </py:for>
+     </py:for>
+</table>
+    </div>
+  </div>
+  <xi:include href="bottom.html" />
+</body>
+</html>
