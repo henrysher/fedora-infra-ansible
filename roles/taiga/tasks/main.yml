@@ -166,3 +166,20 @@
         state=link
   tags: taiga
 ### DONE with taiga-front
+
+### FINALLY, nginx to serve/proxy it all
+- copy: src=taiga.nginx dest=/etc/nginx/sites-available/taiga
+        mode=0644 owner=nginx group=nginx
+  notify: restart nginx
+  tags: taiga
+
+- file: dest=/etc/nginx/site-enabled/default state=absent
+  notify: restart nginx
+  tags: taiga
+
+- file: src=/etc/nginx/sites-available/taiga dest=/etc/nginx/site-enabled/taiga state=link
+  notify: restart nginx
+  tags: taiga
+
+- service: name=nginx state=running enabled=yes
+  tags: taiga
