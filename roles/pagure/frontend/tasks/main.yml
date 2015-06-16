@@ -124,16 +124,6 @@
   - restart postfix
   - restart pagure_milter
 
-- name: Set pagure_milter to run on boot
-  service: name=pagure_milter enabled=yes state=running
-  ignore_errors: true
-  notify:
-  - restart pagure_milter
-  tags:
-  - service
-  - postfix
-  - pagure
-
 
 # Set-up Pagure
 
@@ -253,3 +243,18 @@
   - selinux
   - web
   - pagure
+
+
+# Ensure all the services are up and running
+
+- name: Start and enable httpd, postfix, pagure_milter
+  service: name={{ item }} enabled=yes state=started
+  with_items:
+  - httpd
+  - postfix
+  - pagure_milter
+  ignore_errors: true
+  tags:
+  - pagure
+  - service
+  - postfix
