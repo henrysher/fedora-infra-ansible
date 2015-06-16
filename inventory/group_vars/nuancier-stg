@@ -4,15 +4,18 @@ lvm_size: 20000
 mem_size: 1024
 num_cpus: 2
 
-# for systems that do not match the above - specify the same parameter in
-# the host_vars/$hostname file
+# Definining these vars has a number of effects
+# 1) mod_wsgi is configured to use the vars for its own setup
+# 2) iptables opens enough ports for all threads for fedmsg
+# 3) roles/fedmsg/base/ declares enough fedmsg endpoints for all threads
+wsgi_fedmsg_service: nuancier
+wsgi_procs: 2
+wsgi_threads: 2
 
-tcp_ports: [ 80, 443,
+tcp_ports: [ 80,
     # This port is required by gluster
     6996,
-    # These 16 ports are used by fedmsg.  One for each wsgi thread.
-    3000, 3001, 3002, 3003, 3004, 3005, 3006, 3007,
-    3008, 3009, 3010, 3011, 3012, 3013, 3014, 3015]
+    ]
 
 fas_client_groups: sysadmin-noc,sysadmin-web
 
