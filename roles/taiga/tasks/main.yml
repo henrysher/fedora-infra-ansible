@@ -23,6 +23,9 @@
   - libxslt-devel
   tags: taiga
 
+- user: name=taiga comment="Taiga System Account"
+  tags: taiga
+
 ### FIRST, there is a lot of postgres db stuff to setup ###
 - name: Initialize postgres if necessary
   command: /usr/bin/postgresql-setup initdb
@@ -75,36 +78,30 @@
 ### DONE with db stuff
 
 ### NEXT, setup taiga-back from git
-- user: name=taiga comment="Taiga System Account"
-  tags: taiga
-
-- file: dest=/srv state=directory
-  tags: taiga
-
-- git: repo=https://github.com/taigaio/taiga-back.git dest=/srv/taiga-back version=stable
+- git: repo=https://github.com/taigaio/taiga-back.git dest=/home/taiga/taiga-back version=stable
   tags: taiga
 
 - command: pip3 install -r requirements.txt
-           chdir=/srv/taiga-back
+           chdir=/home/taiga/taiga-back
            creates=/usr/lib/python3.4/site-packages/django/
   tags: taiga
 
 ## TODO -- make these idempotent with creates=...
 - command: sudo -u taiga python3 manage.py migrate --noinput
-           chdir=/srv/taiga-back
+           chdir=/home/taiga/taiga-back
   tags: taiga
 - command: sudo -u taiga python3 manage.py loaddata initial_user
-           chdir=/srv/taiga-back
+           chdir=/home/taiga/taiga-back
   tags: taiga
 - command: sudo -u taiga python3 manage.py loaddata initial_project_templates
-           chdir=/srv/taiga-back
+           chdir=/home/taiga/taiga-back
   tags: taiga
 - command: sudo -u taiga python3 manage.py loaddata initial_role
-           chdir=/srv/taiga-back
+           chdir=/home/taiga/taiga-back
   tags: taiga
 - command: sudo -u taiga python3 manage.py compilemessages
-           chdir=/srv/taiga-back
+           chdir=/home/taiga/taiga-back
   tags: taiga
 - command: sudo -u taiga python3 manage.py collectstatic --noinput
-           chdir=/srv/taiga-back
+           chdir=/home/taiga/taiga-back
   tags: taiga
