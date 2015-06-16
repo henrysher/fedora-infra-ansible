@@ -184,8 +184,12 @@
   tags: taiga
 - seboolean: name="{{item}}" state=true persistent=true
   with_items:
+  # So we can read static content at all
   - httpd_read_user_content
+  # So we can follow the symlink to our FAS plugin
   - httpd_enable_homedirs
+  # So we can reverse proxy stuff locally to gunicorn
+  - httpd_can_network_connect
   tags: taiga
 
 - service: name=nginx state=running enabled=yes
