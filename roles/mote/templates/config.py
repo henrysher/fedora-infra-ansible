@@ -50,7 +50,7 @@ use_memcached = False # Use a memcached store for greater performance
 json_cache_location = "/var/cache/httpd/mote/cache.json"
 
 # Use group/name mappings fetched from GitHub
-use_mappings_github = True
+use_mappings_github = False
 
 # If use_mappings_github is False, set alternate path
 name_mappings_path = "/usr/share/mote/name_mappings.json"
