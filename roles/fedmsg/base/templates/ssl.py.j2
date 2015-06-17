@@ -22,8 +22,16 @@ config = dict(
     crl_cache="/var/run/fedmsg/crl.pem",
     crl_cache_expiry=86400,  # Daily
 
-    certnames=dict(
-    [
+    certnames=dict([
+    # This is the set of certs for this host, dynamically generated from the
+    # ``fedmsg_certs`` host vars
+    {% for cert in fedmsg_certs %}
+       ("{{cert['service']}}.{{inventory_hostname_short}}",
+        "{{cert['service']}}-{{fedmsg_fqdn | default(ansible_fqdn)}}"),
+    {% endfor %}
+    ] + [
+        # This is the beginning of the static list.  We should eventually remove
+        # this.
         ("bugzilla.bugzilla2fedmsg01", "bugzilla2fedmsg-bugzilla2fedmsg01.%s" % suffix)
     ] + [
         ("shell.bugzilla2fedmsg01", "shell-bugzilla2fedmsg01.%s" % suffix)
