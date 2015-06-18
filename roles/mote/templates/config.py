@@ -16,11 +16,14 @@ log_team_folder = "teams"
 # an infinite loop on Fedora's meetbot instance.
 ignore_dir = "meetbot"
 
-# Location where raw logs/minutes are stored.
+# Location where raw logs/minutes are stored (remote)
+meetbot_prefix = "http://meetbot-raw.fedoraproject.org"
+
+# Location to fetch raw logs/minutes from (remote or local location)
 # This can be a remote location, but we just so happen to have the raw
 # logs/minutes served off a different http endpoint on the same box, so, use
 # those.
-meetbot_prefix = "http://localhost/meetbot"
+meetbot_fetch_prefix = "http://localhost/meetbot"
 
 # Time (in seconds) after which the log/meeting cache expires
 cache_expire_time = 60 * 60 * 1
