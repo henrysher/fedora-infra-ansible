@@ -11,6 +11,7 @@
   - redis
   - libsemanage-python
   - mod_ssl
+  - stunnel
   tags:
   - pagure
   - packages
@@ -127,6 +128,39 @@
   - restart pagure_milter
 
 
+# Set-up stunnel for the event source server
+
+- name: install stunnel service definition
+  copy: src=stunnel.service
+        dest=/usr/lib/systemd/system/stunnel.service
+        owner=root group=root mode=0755
+  notify:
+  - reload systemd
+  - restart stunnel
+  tags:
+  - pagure
+  - stunnel
+
+- name: ensure old stunnel init file is gone
+  file: dest=/etc/init.d/stunnel/stunnel.init state=absent
+  tags:
+  - pagure
+  - stunnel
+  - config
+
+- name: install stunnel.conf
+  template: src={{ item.file }}
+            dest={{ item.dest }}
+            owner=root group=root mode=0600
+  with_items:
+  - { file: stunnel-conf.j2, dest: /etc/stunnel/stunnel.conf }
+  notify: restart stunnel
+  tags:
+  - pagure
+  - stunnel
+  - config
+
+
 # Set-up Pagure
 
 - name: create the /var/www/releases folder
@@ -165,6 +199,7 @@
   copy: >
       src={{ private}}/files/httpd/{{ item }} dest=/etc/pki/tls/certs/{{ item }}
       owner=root group=root mode=0600
+  notify: restart stunnel
   with_items:
   - pagure.io.cert
   - pagure.io.key
