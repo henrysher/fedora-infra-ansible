@@ -43,10 +43,10 @@ config = dict(
             channel='fedora-apps',
             filters=dict(
                 topic=[
-                    '^((?!(github\.create|github\.issue\.|github\.pull_request\.|github\.commit_comment|github\.star)).)*$',
+                    '^((?!(github\.create|github\.issue\.|github\.pull_request\.|github\.commit_comment|github\.star|pagure)).)*$',
                 ],
                 body=[
-                    "^((?!(fedora-infra)).)*$",
+                    "^((?!(fedora-infra|pagure)).)*$",
                 ],
             ),
         ),
