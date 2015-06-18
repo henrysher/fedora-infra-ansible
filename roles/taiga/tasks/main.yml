@@ -6,6 +6,8 @@
 
 - yum: name={{item}} state=present
   with_items:
+  - postfix
+
   - nginx
   - libsemanage-python
   - postgresql-server
@@ -25,6 +27,16 @@
   tags: taiga
 
 - user: name=taiga comment="Taiga System Account"
+  tags: taiga
+
+### Real quick, let's setup postfix for mail on the side.
+### if we ever move this internally, we'll just use bastion.
+- name: Add the /etc/aliases file
+  copy: src=aliases dest=/etc/aliases owner=root mode=644
+  notify: restart postfix
+  tags: taiga
+- name: Set postfix to run on boot
+  service: name=postfix state=running enabled=yes
   tags: taiga
 
 ### FIRST, there is a lot of postgres db stuff to setup ###
@@ -65,8 +77,6 @@
 
 - name: Set postgresql-server to run on boot
   service: name=postgresql state=running enabled=yes
-  ignore_errors: true
-  notify: restart postgresql
   tags: taiga
 
 # Make sure we have db users

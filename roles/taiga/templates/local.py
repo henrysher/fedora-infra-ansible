@@ -31,11 +31,11 @@ REST_FRAMEWORK['EXCEPTION_HANDLER'] = "taiga_contrib_fas_openid_auth.services.ex
 #CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
 #CELERY_ENABLED = True
 
-## Uncomment and populate with proper connection parameters
-## for enable email sending.
-#EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-#EMAIL_USE_TLS = False
-#EMAIL_HOST = "localhost"
-#EMAIL_HOST_USER = ""
-#EMAIL_HOST_PASSWORD = ""
-#EMAIL_PORT = 25
+# Uncomment and populate with proper connection parameters
+# for enable email sending.
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_USE_TLS = False
+EMAIL_HOST = "localhost"
+EMAIL_HOST_USER = ""
+EMAIL_HOST_PASSWORD = ""
+EMAIL_PORT = 25
