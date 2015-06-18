@@ -8,6 +8,7 @@
   - supybot-pinglists
   - supybot-fedmsg
   - packagedb-cli
+  tags: supybot
 
 - name: creating zodbot log dir
   file: path={{ item }} state=directory owner=daemon
@@ -20,6 +21,7 @@
   - /srv/web/meetbot
   - /srv/web/meetbot/teams
   when: env != "staging"
+  tags: supybot
 
 - name: creating usrabot log dir
   file: path={{ item }} state=directory owner=daemon
@@ -32,15 +34,19 @@
   - /srv/web/meetbot
   - /srv/web/meetbot/teams
   when: env == "staging"
+  tags: supybot
 
 - name: setup meetings_by_team script
   copy: src=meetings_by_team.sh dest=/usr/local/bin/meetings_by_team.sh mode=755
+  tags: supybot
 
 - name: teams cron job
   cron: name=meetings-by-team hour="23" minute="0" user=apache job="/usr/local/bin/meetings_by_team.sh"
+  tags: supybot
 
 - name: setup meetbot.conf apache config
   copy: src=meetbot.conf dest=/etc/httpd/conf.d/meetbot.conf mode=644
+  tags: supybot
 
 - name: check the selinux context of the /srv/web/meetbot dir
   command: matchpathcon /srv/web/meetbot
@@ -51,6 +57,7 @@
   - config
   - selinux
   - meetbot
+  - supybot
 
 - name: /srv/web/meetbot file contexts
   command: semanage fcontext -a -t httpd_sys_content_t "/srv/web/meetbot(/.*)?"
@@ -59,12 +66,14 @@
   - config
   - selinux
   - meetbot
+  - supybot
 
 - name: setup cron job to start zodbot/ursabot on boot
   cron: name=zodbot special_time=reboot job='cd /srv/web/meetbot; supybot -d /var/lib/zodbot/conf/zodbot.conf' user=daemon
   tags:
   - config
   - meetbot
+  - supybot
   when: env != "staging"
 
 - name: setup cron job to start zodbot/ursabot on boot
@@ -72,4 +81,5 @@
   tags:
   - config
   - meetbot
+  - supybot
   when: env == "staging"
