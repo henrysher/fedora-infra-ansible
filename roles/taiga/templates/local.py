@@ -12,7 +12,7 @@ DEBUG = False
 TEMPLATE_DEBUG = False
 PUBLIC_REGISTER_ENABLED = True
 
-DEFAULT_FROM_EMAIL = "no-reply@example.com"
+DEFAULT_FROM_EMAIL = "nobody@fedoraproject.org"
 SERVER_EMAIL = DEFAULT_FROM_EMAIL
 
 INSTALLED_APPS += ["taiga_contrib_fas_openid_auth"]
