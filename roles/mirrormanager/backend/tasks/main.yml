@@ -63,3 +63,10 @@
   tags:
   - config
   when: env != 'staging'
+
+# To decrease the crawl duration on the mirrors we have been
+# recommending to lower the default value of vfs_cache_pressure
+# from 100 to 10. This causes the kernel to prefer to keep dentries
+# when under memory pressure. Let's also set it on the mm backend
+# systems as umdl is also mainly looking at the metadata.
+- sysctl: name=vm.vfs_cache_pressure value=10 state=present sysctl_set=yes reload=yes
