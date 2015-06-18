@@ -28,6 +28,52 @@ config = dict(
             ),
         ),
 
+        # For fedora-apps
+        dict(
+            network='chat.freenode.net',
+            port=6667,
+            make_pretty=True,
+            make_terse=True,
+
+            {% if env == 'staging' %}
+            nickname='fedmsg-apps-s',
+            {% else %}
+            nickname='fedmsg-apps',
+            {% endif %}
+            channel='fedora-apps',
+            filters=dict(
+                topic=[
+                    '^((?!(github\.create|github\.issue\.|github\.pull_request\.|github\.commit_comment|github\.star)).)*$',
+                ],
+                body=[
+                    "^((?!(fedora-infra)).)*$",
+                ],
+            ),
+        ),
+
+        # For fedora-hubs (not fedora-apps)
+        dict(
+            network='chat.freenode.net',
+            port=6667,
+            make_pretty=True,
+            make_terse=True,
+
+            {% if env == 'staging' %}
+            nickname='fedmsg-hubs-s',
+            {% else %}
+            nickname='fedmsg-hubs',
+            {% endif %}
+            channel='fedora-hubs',
+            filters=dict(
+                topic=[
+                    '^((?!(github\.create|github\.issue\.|github\.pull_request\.|github\.commit_comment|github\.star|github\.push|pagure)).)*$',
+                ],
+                body=[
+                    "^((?!(fedora-hubs)).)*$",
+                ],
+            ),
+        ),
+
         # Just for the Ask Fedora crew in #fedora-ask
         dict(
             network='chat.freenode.net',
