@@ -40,6 +40,7 @@ $sg_php_days = 90;
 $sg_php_score = 50;
 $sg_php_type = 2;
 $sg_censor = "vipshare.me
+bubbajeen.com
 http://bit.ly/
 tinyurl.com
 freepremium.info.tm
