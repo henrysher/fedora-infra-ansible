@@ -56,6 +56,12 @@
   - mm2_frontend
   - config
 
+- name: create /var/log/mirrormanager/crawler
+  file: path=/var/log/mirrormanager/crawler state=directory owner=mirrormanager group=mirrormanager mode=0755
+  tags:
+  - mm2_frontend
+  - config
+
 - name: apply selinux type to crawler log files
   file: >
     dest=/var/log/mirrormanager/crawler
@@ -70,12 +76,6 @@
   template: src=sync-crawler-logs.sh dest=/usr/local/bin/sync-crawler-logs.sh mode=0755
   tags:
   - mm2_frontend
-
-- name: create /var/log/mirrormanager/crawler
-  file: path=/var/log/mirrormanager/crawler state=directory owner=mirrormanager group=mirrormanager mode=0755
-  tags:
-  - mm2_frontend
-  - config
 
 - name: install the cron job
   template: src=frontend.cron dest=/etc/cron.d/mm2_frontend.cron
