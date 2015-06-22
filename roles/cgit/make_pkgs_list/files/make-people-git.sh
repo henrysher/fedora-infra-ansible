@@ -15,3 +15,4 @@ for homedir in /home/fedora/* ; do
 done
 
 cp -f $outfile  $finalfile
+chmod 644 $finalfile
