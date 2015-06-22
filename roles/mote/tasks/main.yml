@@ -26,8 +26,15 @@
   - nuke mote json cache
   - restart apache
 
+- name: Create /usr/share/httpd/.local for mote-updater to store the fedmsg CRL
+  file: dest=/usr/share/httpd/.local owner=apache group=apache state=directory
+  tags:
+  - mote
+
 - name: allow apache to run team sync script
   file: path=/srv/web/meetbot/teams state=directory recurse=yes owner=apache group=apache mode=0755
+  tags:
+  - mote
 
 - name: start mote-updater service
   service: name=mote-updater state=started enabled=yes
