@@ -15,6 +15,7 @@
   - pyliblzma
   tags:
   - packages
+  - people
 
 - name: install httpd config
   copy: src={{item}} dest=/etc/httpd/conf.d/{{item}}
@@ -22,6 +23,8 @@
   - cgit.conf
   - people.conf
   - planet.conf
+  tags:
+  - people
 
 - name: set selinux booleans needed for people
   seboolean: name=httpd_enable_homedirs state=true persistent=true
@@ -29,3 +32,52 @@
   - httpd_enable_homedirs
   - git_cgi_enable_homedirs
   - git_system_enable_homedirs
+  tags:
+  - people
+
+#
+# This sets the default, it's safe to always run. 
+# Default quota for users is 2gb
+#
+- name: set default xfs quotas on /srv
+  command: xfs_quota -x -c 'limit bsoft=2g bhard=2g -d' /srv
+  always_run: true
+  tags:
+  - people
+  - peoplequotas
+
+#
+# This sets quotas for people who requested more than default
+# It's also safe to aways run.
+#
+- name: set quotas for people who have more set
+  command: xfs_quota -x -c 'limit bsoft={{ item.quota }} bhard={{ item.quota }} {{ item.user }}' /srv
+  with_items:
+  - { user: apache, quota: 0 }
+  - { user: dmarlin, quota: 5g }
+  - { user: duffy, quota: 10g }
+  - { user: dwalsh, quota: 5g }
+  - { user: jdulaney, quota: 5g }
+  - { user: jnovy, quota: 5g }
+  - { user: kashyapc, quota: 5g }
+  - { user: lupinix, quota: 8g }
+  - { user: mimccune, quota: 3g }
+  - { user: nobody, quota: 0 }
+  - { user: npmccallum, quota: 5g }
+  - { user: parasense, quota: 5g }
+  - { user: planet-user, quota: 0 }
+  - { user: ppisar, quota: 4g }
+  - { user: pulpadmin, quota: 10g }
+  - { user: sapnetweavergatewayonfedora, quota: 5g }
+  - { user: slagle, quota: 7g }
+  - { user: spot, quota: 15g }
+  - { user: spstarr, quota: 4g }
+  - { user: steved, quota: 5g }
+  - { user: tekkamanninja, quota: 5g }
+  - { user: tflink, quota: 10g }
+  - { user: thunderbirdtr, quota: 3g }
+  - { user: zpericic, quota: 5g }
+  always_run: true
+  tags:
+  - people
+  - peoplequotas
