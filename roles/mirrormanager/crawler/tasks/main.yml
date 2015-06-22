@@ -9,7 +9,6 @@
 - name: install needed packages
   yum: pkg={{ item }} state=present
   with_items:
-  - httpd
   - mirrormanager2-crawler
   - python-psycopg2
   - fedmsg
@@ -36,27 +35,8 @@
   - config
   when: env != 'staging'
 
-- name: install configuration file
-  template: src={{ roles }}/mirrormanager/crawler/files/mirrormanager.conf
-            dest=/etc/httpd/conf.d/mirrormanager.conf
-            owner=apache group=apache mode=0600
-  notify:
-  - restart httpd
-  tags:
-  - config
-
-- name: apply selinux type to crawler log files
-  file: >
-    dest=/var/log/mirrormanager/crawler
-    setype=httpd_sys_content_t
-    state=directory
-    recurse=yes
-
 - name: install the script to get the highest mirror id
   copy: src=mm2_get-highest-active-host-id dest=/usr/local/bin/mm2_get-highest-active-host-id mode=0755
 
 - name: install the crawler distribute script
   copy: src=run_crawler.sh dest=/usr/local/bin/run_crawler.sh mode=0755
-
-- name: startup apache
-  service: name=httpd enabled=yes state=started
