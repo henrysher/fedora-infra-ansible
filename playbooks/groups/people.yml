@@ -27,6 +27,44 @@
    - "/srv/private/ansible/vars.yml"
    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
 
+  pretasks:
+
+  - name: mount project volume
+    mount: >
+        name=/project
+        src=/dev/mapper/GuestVolGroup00-project
+        fstype=xfs
+        opts="noatime,noexec,nosuid,nodev"
+        passno=0
+        dump=0
+        state=mounted
+    tags:
+    - mount
+
+  - name: mount srv volume
+    mount: >
+        name=/srv
+        src=/dev/mapper/GuestVolGroup00-srv
+        fstype=xfs
+        opts="usrjquota=aquota.user,grpjquota=aquota.group,noatime,noexec,nosuid,nodev"
+        passno=0
+        dump=0
+        state=mounted
+    tags:
+    - mount
+
+  - name: bind mount home volume
+    mount: >
+        name=/home
+        src=/srv/home
+        fstype=bind
+        opts="usrjquota=aquota.user,grpjquota=aquota.group,noatime,noexec,nosuid,nodev"
+        passno=0
+        dump=0
+        state=mounted
+    tags:
+    - mount
+
   roles:
   - base
   - collectd/base
