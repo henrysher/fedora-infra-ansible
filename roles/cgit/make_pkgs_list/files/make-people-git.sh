@@ -1,7 +1,7 @@
 #!/bin/bash
 outfile=`mktemp`
 
-finalfile=/var/www/git/cgit.repos
+finalfile=/var/www/cgit.repos
 for homedir in /home/fedora/* ; do
   if [ ! -d $homedir/public_git ]; then
     continue
