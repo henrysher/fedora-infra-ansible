@@ -72,8 +72,8 @@ BEGIN;
 -- add our staging builders, dynamically pulled from ansible inventory
 select now() as time, 'adding extra host(s)' as msg;
 
-{% for host in groups['buildvm-stg'] %}
-insert into users (name, usertype, status, enabled) values ('{{ host }}', 1, 0, True);
+{% for host in groups['buildvm-stg'] + groups['koji-stg'] %}
+insert into users (name, usertype, status) values ('{{ host }}', 1, 0);
 insert into host (user_id, name, arches) values (
     (select id from users where name='{{host}}'), '{{host}}', 'i386 x86_64');
 insert into host_channels (host_id, channel_id) values (
