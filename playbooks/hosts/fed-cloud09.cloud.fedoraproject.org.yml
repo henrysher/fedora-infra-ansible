@@ -195,30 +195,15 @@
     shell: cd /etc && etckeeper init
 
 
-  - name: add ssl cert
-    copy: src={{ private }}/files/openstack/fed-cloud09.pem dest=/etc/pki/tls/certs/fed-cloud09.pem mode=600 owner=rabbitmq group=root
-  - name: add ssl key
-    copy: src={{ private }}/files/openstack/fed-cloud09.key dest=/etc/pki/tls/private/fed-cloud09.key mode=600 owner=rabbitmq group=root
-  - name: add cert to ca-bundle.crt so plain curl works
-    copy: src={{ private }}/files/openstack/fed-cloud09.pem dest=/etc/pki/ca-trust/source/anchors/ mode=600 owner=root group=root
-    notify:
-      - update ca-trust
-
-  - name: add ssl cert for keystone
-    copy: src={{ private }}/files/openstack/fed-cloud09.pem dest=/etc/pki/tls/certs/fed-cloud09-keystone.pem mode=644 owner=keystone group=root
-  - name: add ssl key for keystone
-    copy: src={{ private }}/files/openstack/fed-cloud09.key dest=/etc/pki/tls/private/fed-cloud09-keystone.key mode=600 owner=keystone group=root
-  - name: add ssl cert for neutron
-    copy: src={{ private }}/files/openstack/fed-cloud09.pem dest=/etc/pki/tls/certs/fed-cloud09-neutron.pem mode=600 owner=neutron group=root
-  - name: add ssl key for neutron
-    copy: src={{ private }}/files/openstack/fed-cloud09.key dest=/etc/pki/tls/private/fed-cloud09-neutron.key mode=600 owner=neutron group=root
-  - name: add ssl cert for nova
-    copy: src={{ private }}/files/openstack/fed-cloud09.pem dest=/etc/pki/tls/certs/fed-cloud09-nova.pem mode=600 owner=nova group=root
-  - name: add ssl key for nova
-    copy: src={{ private }}/files/openstack/fed-cloud09.key dest=/etc/pki/tls/private/fed-cloud09-nova.key mode=600 owner=nova group=root
+  - name: add ssl cert files
+    copy: src={{ private }}/files/openstack/fedorainfracloud.org.{{item}} dest=/etc/pki/tls/certs/fedorainfracloud.org.{{item}} mode=0600 owner=rabbitmq group=root
+    with_items:
+    - pem
+    - key
+    - digicert.pem
 
   - file: state=directory path=/var/www/pub mode=0755
-  - copy: src={{ private }}/files/openstack/fed-cloud09.pem dest=/var/www/pub/ mode=644
+  - copy: src={{ private }}/files/openstack/fedorainfracloud.org.pem dest=/var/www/pub/ mode=644
 
   # http://docs.openstack.org/trunk/install-guide/install/yum/content/basics-database-controller.html
   - name: install mysql packages
@@ -306,7 +291,7 @@
     register: ENDPOINT_ID
     always_run: yes
     changed_when: false
-  - shell: source /root/keystonerc_admin && keystone endpoint-list |grep {{SERVICE_ID.stdout}} |grep -v {{ controller_hostname }} && (keystone endpoint-delete {{ENDPOINT_ID.stdout}} && keystone endpoint-create --region 'RegionOne' --service {{SERVICE_ID.stdout}} --publicurl 'https://{{ controller_hostname }}:8777'  --adminurl 'https://{{ controller_hostname }}:8777' --internalurl 'https://{{ controller_hostname }}:8777' ) || true
+  - shell: source /root/keystonerc_admin && keystone endpoint-list |grep {{SERVICE_ID.stdout}} |grep -v {{ controller_hostname }} && (keystone endpoint-delete {{ENDPOINT_ID.stdout}} && keystone endpoint-create --region 'RegionOne' --service {{SERVICE_ID.stdout}} --publicurl 'https://{{ controller_publicname }}:8777'  --adminurl 'https://{{ controller_publicname }}:8777' --internalurl 'https://{{ controller_publicname }}:8777' ) || true
   # cinder
   - shell: source /root/keystonerc_admin && keystone service-list | grep 'cinder ' | awk '{print $2}'
     register: SERVICE_ID
@@ -316,7 +301,7 @@
     register: ENDPOINT_ID
     always_run: yes
     changed_when: false
-  - shell: source /root/keystonerc_admin && keystone endpoint-list |grep {{SERVICE_ID.stdout}} |grep -v {{ controller_hostname }} && (keystone endpoint-delete {{ENDPOINT_ID.stdout}} && keystone endpoint-create --region 'RegionOne' --service {{SERVICE_ID.stdout}} --publicurl 'https://{{ controller_hostname }}:8776/v1/%(tenant_id)s'  --adminurl 'https://{{ controller_hostname }}:8776/v1/%(tenant_id)s' --internalurl 'https://{{ controller_hostname }}:8776/v1/%(tenant_id)s' ) || true
+  - shell: source /root/keystonerc_admin && keystone endpoint-list |grep {{SERVICE_ID.stdout}} |grep -v {{ controller_hostname }} && (keystone endpoint-delete {{ENDPOINT_ID.stdout}} && keystone endpoint-create --region 'RegionOne' --service {{SERVICE_ID.stdout}} --publicurl 'https://{{ controller_publicname }}:8776/v1/%(tenant_id)s'  --adminurl 'https://{{ controller_publicname }}:8776/v1/%(tenant_id)s' --internalurl 'https://{{ controller_publicname }}:8776/v1/%(tenant_id)s' ) || true
   # cinderv2
   - shell: source /root/keystonerc_admin && keystone service-list | grep 'cinderv2' | awk '{print $2}'
     register: SERVICE_ID
@@ -326,7 +311,7 @@
     register: ENDPOINT_ID
     always_run: yes
     changed_when: false
-  - shell: source /root/keystonerc_admin && keystone endpoint-list |grep {{SERVICE_ID.stdout}} |grep -v {{ controller_hostname }} && (keystone endpoint-delete {{ENDPOINT_ID.stdout}} && keystone endpoint-create --region 'RegionOne' --service {{SERVICE_ID.stdout}} --publicurl 'https://{{ controller_hostname }}:8776/v2/%(tenant_id)s'  --adminurl 'https://{{ controller_hostname }}:8776/v2/%(tenant_id)s' --internalurl 'https://{{ controller_hostname }}:8776/v2/%(tenant_id)s' ) || true
+  - shell: source /root/keystonerc_admin && keystone endpoint-list |grep {{SERVICE_ID.stdout}} |grep -v {{ controller_hostname }} && (keystone endpoint-delete {{ENDPOINT_ID.stdout}} && keystone endpoint-create --region 'RegionOne' --service {{SERVICE_ID.stdout}} --publicurl 'https://{{ controller_publicname }}:8776/v2/%(tenant_id)s'  --adminurl 'https://{{ controller_publicname }}:8776/v2/%(tenant_id)s' --internalurl 'https://{{ controller_publicname }}:8776/v2/%(tenant_id)s' ) || true
   # glance
   - shell: source /root/keystonerc_admin && keystone service-list | grep 'glance' | awk '{print $2}'
     register: SERVICE_ID
@@ -336,7 +321,7 @@
     register: ENDPOINT_ID
     always_run: yes
     changed_when: false
-  - shell: source /root/keystonerc_admin && keystone endpoint-list |grep {{SERVICE_ID.stdout}} |grep -v {{ controller_hostname }} && (keystone endpoint-delete {{ENDPOINT_ID.stdout}} && keystone endpoint-create --region 'RegionOne' --service {{SERVICE_ID.stdout}} --publicurl 'https://{{ controller_hostname }}:9292'  --adminurl 'https://{{ controller_hostname }}:9292' --internalurl 'https://{{ controller_hostname }}:9292' ) || true
+  - shell: source /root/keystonerc_admin && keystone endpoint-list |grep {{SERVICE_ID.stdout}} |grep -v {{ controller_hostname }} && (keystone endpoint-delete {{ENDPOINT_ID.stdout}} && keystone endpoint-create --region 'RegionOne' --service {{SERVICE_ID.stdout}} --publicurl 'https://{{ controller_publicname }}:9292'  --adminurl 'https://{{ controller_publicname }}:9292' --internalurl 'https://{{ controller_publicname }}:9292' ) || true
   # neutron
   - shell: source /root/keystonerc_admin && keystone service-list | grep 'neutron' | awk '{print $2}'
     always_run: yes
@@ -346,7 +331,7 @@
     always_run: yes
     changed_when: false
     register: ENDPOINT_ID
-  - shell: source /root/keystonerc_admin && keystone endpoint-list |grep {{SERVICE_ID.stdout}} |grep -v {{ controller_hostname }} && (keystone endpoint-delete {{ENDPOINT_ID.stdout}} && keystone endpoint-create --region 'RegionOne' --service {{SERVICE_ID.stdout}} --publicurl 'https://{{ controller_hostname }}:9696/'  --adminurl 'https://{{ controller_hostname }}:9696/' --internalurl 'https://{{ controller_hostname }}:9696/' ) || true
+  - shell: source /root/keystonerc_admin && keystone endpoint-list |grep {{SERVICE_ID.stdout}} |grep -v {{ controller_hostname }} && (keystone endpoint-delete {{ENDPOINT_ID.stdout}} && keystone endpoint-create --region 'RegionOne' --service {{SERVICE_ID.stdout}} --publicurl 'https://{{ controller_publicname }}:9696/'  --adminurl 'https://{{ controller_publicname }}:9696/' --internalurl 'https://{{ controller_publicname }}:9696/' ) || true
   # nova
   - shell: source /root/keystonerc_admin && keystone service-list | grep 'nova ' | awk '{print $2}'
     always_run: yes
@@ -356,7 +341,7 @@
     always_run: yes
     changed_when: false
     register: ENDPOINT_ID
-  - shell: source /root/keystonerc_admin && keystone endpoint-list |grep {{SERVICE_ID.stdout}} |grep -v {{ controller_hostname }} && (keystone endpoint-delete {{ENDPOINT_ID.stdout}} && keystone endpoint-create --region 'RegionOne' --service {{SERVICE_ID.stdout}} --publicurl 'https://{{ controller_hostname }}:8774/v2/%(tenant_id)s'  --adminurl 'https://{{ controller_hostname }}:8774/v2/%(tenant_id)s' --internalurl 'https://{{ controller_hostname }}:8774/v2/%(tenant_id)s' ) || true
+  - shell: source /root/keystonerc_admin && keystone endpoint-list |grep {{SERVICE_ID.stdout}} |grep -v {{ controller_hostname }} && (keystone endpoint-delete {{ENDPOINT_ID.stdout}} && keystone endpoint-create --region 'RegionOne' --service {{SERVICE_ID.stdout}} --publicurl 'https://{{ controller_publicname }}:8774/v2/%(tenant_id)s'  --adminurl 'https://{{ controller_publicname }}:8774/v2/%(tenant_id)s' --internalurl 'https://{{ controller_publicname }}:8774/v2/%(tenant_id)s' ) || true
   # nova_ec2
   - shell: source /root/keystonerc_admin && keystone service-list | grep 'nova_ec2' | awk '{print $2}'
     always_run: yes
@@ -366,7 +351,7 @@
     always_run: yes
     changed_when: false
     register: ENDPOINT_ID
-  - shell: source /root/keystonerc_admin && keystone endpoint-list |grep {{SERVICE_ID.stdout}} |grep -v {{ controller_hostname }} && (keystone endpoint-delete {{ENDPOINT_ID.stdout}} && keystone endpoint-create --region 'RegionOne' --service {{SERVICE_ID.stdout}} --publicurl 'https://{{ controller_hostname }}:8773/services/Cloud'  --adminurl 'https://{{ controller_hostname }}:8773/services/Admin' --internalurl 'https://{{ controller_hostname }}:8773/services/Cloud' ) || true
+  - shell: source /root/keystonerc_admin && keystone endpoint-list |grep {{SERVICE_ID.stdout}} |grep -v {{ controller_hostname }} && (keystone endpoint-delete {{ENDPOINT_ID.stdout}} && keystone endpoint-create --region 'RegionOne' --service {{SERVICE_ID.stdout}} --publicurl 'https://{{ controller_publicname }}:8773/services/Cloud'  --adminurl 'https://{{ controller_publicname }}:8773/services/Admin' --internalurl 'https://{{ controller_publicname }}:8773/services/Cloud' ) || true
   # novav3
   - shell: source /root/keystonerc_admin && keystone service-list | grep 'novav3' | awk '{print $2}'
     always_run: yes
@@ -376,7 +361,7 @@
     always_run: yes
     changed_when: false
     register: ENDPOINT_ID
-  - shell: source /root/keystonerc_admin && keystone endpoint-list |grep {{SERVICE_ID.stdout}} |grep -v {{ controller_hostname }} && (keystone endpoint-delete {{ENDPOINT_ID.stdout}} && keystone endpoint-create --region 'RegionOne' --service {{SERVICE_ID.stdout}} --publicurl 'https://{{ controller_hostname }}:8774/v3'  --adminurl 'https://{{ controller_hostname }}:8774/v3' --internalurl 'https://{{ controller_hostname }}:8774/v3' ) || true
+  - shell: source /root/keystonerc_admin && keystone endpoint-list |grep {{SERVICE_ID.stdout}} |grep -v {{ controller_hostname }} && (keystone endpoint-delete {{ENDPOINT_ID.stdout}} && keystone endpoint-create --region 'RegionOne' --service {{SERVICE_ID.stdout}} --publicurl 'https://{{ controller_publicname }}:8774/v3'  --adminurl 'https://{{ controller_publicname }}:8774/v3' --internalurl 'https://{{ controller_publicname }}:8774/v3' ) || true
   # swift
   - shell: source /root/keystonerc_admin && keystone service-list | grep 'swift ' | awk '{print $2}'
     always_run: yes
@@ -386,7 +371,7 @@
     always_run: yes
     changed_when: false
     register: ENDPOINT_ID
-  - shell: source /root/keystonerc_admin && keystone endpoint-list |grep {{SERVICE_ID.stdout}} |grep -v {{ controller_hostname }} && (keystone endpoint-delete {{ENDPOINT_ID.stdout}} && keystone endpoint-create --region 'RegionOne' --service {{SERVICE_ID.stdout}} --publicurl 'https://{{controller_hostname}}:8080/v1/AUTH_%(tenant_id)s'  --adminurl 'https://{{controller_hostname}}:8080' --internalurl 'https://{{controller_hostname}}:8080/v1/AUTH_%(tenant_id)s' ) || true
+  - shell: source /root/keystonerc_admin && keystone endpoint-list |grep {{SERVICE_ID.stdout}} |grep -v {{ controller_hostname }} && (keystone endpoint-delete {{ENDPOINT_ID.stdout}} && keystone endpoint-create --region 'RegionOne' --service {{SERVICE_ID.stdout}} --publicurl 'https://{{controller_publicname}}:8080/v1/AUTH_%(tenant_id)s'  --adminurl 'https://{{controller_publicname}}:8080' --internalurl 'https://{{controller_publicname}}:8080/v1/AUTH_%(tenant_id)s' ) || true
   # swift_s3
   - shell: source /root/keystonerc_admin && keystone service-list | grep 'swift_s3' | awk '{print $2}'
     always_run: yes
@@ -396,7 +381,7 @@
     always_run: yes
     changed_when: false
     register: ENDPOINT_ID
-  - shell: source /root/keystonerc_admin && keystone endpoint-list |grep {{SERVICE_ID.stdout}} |grep -v {{ controller_hostname }} && (keystone endpoint-delete {{ENDPOINT_ID.stdout}} && keystone endpoint-create --region 'RegionOne' --service {{SERVICE_ID.stdout}} --publicurl 'https://{{ controller_hostname }}:8080'  --adminurl 'https://{{ controller_hostname }}:8080' --internalurl 'https://{{ controller_hostname }}:8080' ) || true
+  - shell: source /root/keystonerc_admin && keystone endpoint-list |grep {{SERVICE_ID.stdout}} |grep -v {{ controller_hostname }} && (keystone endpoint-delete {{ENDPOINT_ID.stdout}} && keystone endpoint-create --region 'RegionOne' --service {{SERVICE_ID.stdout}} --publicurl 'https://{{ controller_publicname }}:8080'  --adminurl 'https://{{ controller_publicname }}:8080' --internalurl 'https://{{ controller_publicname }}:8080' ) || true
   # keystone --- !!!!! we need to use ADMIN_TOKEN here - this MUST be last before we restart OS and set up haproxy
   - shell: source /root/keystonerc_admin && keystone service-list | grep 'keystone' | awk '{print $2}'
     always_run: yes
@@ -406,124 +391,126 @@
     always_run: yes
     changed_when: false
     register: ENDPOINT_ID
-  - ini_file: dest=/etc/keystone/keystone.conf section=ssl option=certfile value=/etc/pki/tls/certs/fed-cloud09-keystone.pem
-  - ini_file: dest=/etc/keystone/keystone.conf section=ssl option=keyfile value=/etc/pki/tls/private/fed-cloud09-keystone.key
-  - shell: source /root/keystonerc_admin && keystone endpoint-list |grep {{SERVICE_ID.stdout}} |grep -v {{ controller_hostname }} && (keystone endpoint-delete {{ENDPOINT_ID.stdout}} && keystone --os-token '{{ADMIN_TOKEN}}' --os-endpoint 'http://{{ controller_hostname }}:35357/v2.0' endpoint-create --region 'RegionOne' --service {{SERVICE_ID.stdout}} --publicurl 'https://{{ controller_hostname }}:5000/v2.0'  --adminurl 'https://{{ controller_hostname }}:35357/v2.0' --internalurl 'https://{{ controller_hostname }}:5000/v2.0' ) || true
+  - ini_file: dest=/etc/keystone/keystone.conf section=ssl option=certfile value=/etc/pki/tls/certs/fedorainfracloud.org.pem
+  - ini_file: dest=/etc/keystone/keystone.conf section=ssl option=keyfile value=/etc/pki/tls/private/fedorainfracloud.org.key
+  - ini_file: dest=/etc/keystone/keystone.conf section=ssl option=ca_certs value=/etc/pki/tls/private/fedorainfracloud.org.digicert.pem
+  - shell: source /root/keystonerc_admin && keystone endpoint-list |grep {{SERVICE_ID.stdout}} |grep -v {{ controller_hostname }} && (keystone endpoint-delete {{ENDPOINT_ID.stdout}} && keystone --os-token '{{ADMIN_TOKEN}}' --os-endpoint 'http://{{ controller_publicname }}:35357/v2.0' endpoint-create --region 'RegionOne' --service {{SERVICE_ID.stdout}} --publicurl 'https://{{ controller_publicname }}:5000/v2.0'  --adminurl 'https://{{ controller_publicname }}:35357/v2.0' --internalurl 'https://{{ controller_publicname }}:5000/v2.0' ) || true
   - ini_file: dest=/etc/keystone/keystone.conf section=ssl option=enable value=True
-  - lineinfile: dest=/root/keystonerc_admin regexp="^export OS_AUTH_URL" line="export OS_AUTH_URL=https://{{ controller_hostname }}:5000/v2.0/"
-  - lineinfile: dest=/root/keystonerc_admin line="export OS_CACERT=/etc/pki/tls/certs/fed-cloud09-keystone.pem"
+  - lineinfile: dest=/root/keystonerc_admin regexp="^export OS_AUTH_URL" line="export OS_AUTH_URL=https://{{ controller_publicname }}:5000/v2.0/"
+  - lineinfile: dest=/root/keystonerc_admin line="export OS_CACERT=/etc/pki/tls/certs/fedorainfracloud.org.digicert.pem"
 
   # Setup sysconfig file for novncproxy
   - copy: src={{ files }}/fedora-cloud/openstack-nova-novncproxy dest=/etc/sysconfig/openstack-nova-novncproxy mode=644 owner=root group=root
 
-  - ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=novncproxy_base_url value=https://{{ controller_hostname }}:6080/vnc_auto.html
+  - ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=novncproxy_base_url value=https://{{ controller_publicname }}:6080/vnc_auto.html
 
   # set SSL for services
-  - ini_file: dest=/etc/nova/nova.conf section=keystone_authtoken option=auth_uri value=https://{{ controller_hostname }}:5000
+  - ini_file: dest=/etc/nova/nova.conf section=keystone_authtoken option=auth_uri value=https://{{ controller_publicname }}:5000
   - ini_file: dest=/etc/nova/nova.conf section=keystone_authtoken option=auth_protocol value=https
-  - ini_file: dest=/etc/nova/nova.conf section=keystone_authtoken option=auth_host value={{ controller_hostname }}
-  - ini_file: dest=/etc/nova/nova.conf section=keystone_authtoken option=cafile value=/etc/pki/tls/certs/fed-cloud09-keystone.pem
-  - ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=neutron_admin_auth_url value=https://{{ controller_hostname }}:35357/v2.0
-  - ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=neutron_url value=https://{{ controller_hostname }}:9696
+  - ini_file: dest=/etc/nova/nova.conf section=keystone_authtoken option=auth_host value={{ controller_publicname }}
+  - ini_file: dest=/etc/nova/nova.conf section=keystone_authtoken option=cafile value=/etc/pki/tls/certs/fedorainfracloud.org.digicert.pem
+  - ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=neutron_admin_auth_url value=https://{{ controller_publicname }}:35357/v2.0
+  - ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=neutron_url value=https://{{ controller_publicname }}:9696
   - ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=osapi_compute_listen_port value=6774
   - ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=ec2_listen_port value=6773
-  - ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=glance_api_servers value=https://{{ controller_hostname }}:9292
-  - ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=cert value=/etc/pki/tls/certs/fed-cloud09-nova.pem
-  - ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=key value=/etc/pki/tls/private/fed-cloud09-nova.key
-  - ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=novncproxy_host  value={{ controller_hostname }}
+  - ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=glance_api_servers value=https://{{ controller_publicname }}:9292
+  - ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=cert value=/etc/pki/tls/certs/fedorainfracloud.org.pem
+  - ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=key value=/etc/pki/tls/private/fedorainfracloud.org.key
+  - ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=ca value=/etc/pki/tls/certs/fedorainfracloud.org.digicert.pem
+  - ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=novncproxy_host  value={{ controller_publicname }}
   - ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=ssl_only value=False
   - ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=scheduler_default_filters value=RetryFilter,AvailabilityZoneFilter,RamFilter,ComputeFilter,ComputeCapabilitiesFilter,ImagePropertiesFilter,CoreFilter,DiskFilter
   - ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=default_floating_pool value=external
 
-  - ini_file: dest=/etc/glance/glance-api.conf section=keystone_authtoken option=auth_uri value=https://{{ controller_hostname }}:5000
+  - ini_file: dest=/etc/glance/glance-api.conf section=keystone_authtoken option=auth_uri value=https://{{ controller_publicname }}:5000
   - ini_file: dest=/etc/glance/glance-api.conf section=keystone_authtoken option=auth_protocol value=https
-  - ini_file: dest=/etc/glance/glance-api.conf section=keystone_authtoken option=auth_host value={{ controller_hostname }}
-  - ini_file: dest=/etc/glance/glance-api.conf section=keystone_authtoken option=cafile value=/etc/pki/tls/certs/fed-cloud09-keystone.pem
+  - ini_file: dest=/etc/glance/glance-api.conf section=keystone_authtoken option=auth_host value={{ controller_publicname }}
+  - ini_file: dest=/etc/glance/glance-api.conf section=keystone_authtoken option=cafile value=/etc/pki/tls/certs/fedorainfracloud.org.digicert.pem
   - ini_file: dest=/etc/glance/glance-api.conf section=DEFAULT option=bind_port value=7292
   # configure Glance to use Swift as backend
   - ini_file: dest=/etc/glance/glance-api.conf section=DEFAULT option=default_store value=swift
   - ini_file: dest=/etc/glance/glance-api.conf section=DEFAULT option=stores value=glance.store.swift.Store
-  - ini_file: dest=/etc/glance/glance-api.conf section=DEFAULT option=swift_store_auth_address value=https://{{ controller_hostname }}:5000/v2.0
+  - ini_file: dest=/etc/glance/glance-api.conf section=DEFAULT option=swift_store_auth_address value=https://{{ controller_publicname }}:5000/v2.0
   - ini_file: dest=/etc/glance/glance-api.conf section=DEFAULT option=swift_store_user value="services:swift"
   - ini_file: dest=/etc/glance/glance-api.conf section=DEFAULT option=swift_store_key value="{{ SWIFT_PASS }}"
   - ini_file: dest=/etc/glance/glance-api.conf section=DEFAULT option=swift_store_create_container_on_put value="True"
   - shell: rsync /usr/share/glance/glance-api-dist-paste.ini /etc/glance/glance-api-paste.ini
   - shell: rsync /usr/share/glance/glance-registry-dist-paste.ini /etc/glance/glance-registry-paste.ini
 
-  - ini_file: dest=/etc/glance/glance-registry.conf section=keystone_authtoken option=auth_uri value=https://{{ controller_hostname }}:5000
-  - ini_file: dest=/etc/glance/glance-registry.conf section=keystone_authtoken option=auth_host value={{ controller_hostname }}
+  - ini_file: dest=/etc/glance/glance-registry.conf section=keystone_authtoken option=auth_uri value=https://{{ controller_publicname }}:5000
+  - ini_file: dest=/etc/glance/glance-registry.conf section=keystone_authtoken option=auth_host value={{ controller_publicname }}
   - ini_file: dest=/etc/glance/glance-registry.conf section=keystone_authtoken option=auth_protocol value=https
-  - ini_file: dest=/etc/glance/glance-registry.conf section=keystone_authtoken option=cafile value=/etc/pki/tls/certs/fed-cloud09-keystone.pem
+  - ini_file: dest=/etc/glance/glance-registry.conf section=keystone_authtoken option=cafile value=/etc/pki/tls/certs/fedorainfracloud.org.digicert.pem
 
-  - ini_file: dest=/etc/glance/glance-cache.conf section=DEFAULT option=auth_url value=https://{{ controller_hostname }}:5000/v2.0
+  - ini_file: dest=/etc/glance/glance-cache.conf section=DEFAULT option=auth_url value=https://{{ controller_publicname }}:5000/v2.0
 
-  - ini_file: dest=/etc/glance/glance-scrubber.conf section=DEFAULT option=auth_url value=https://{{ controller_hostname }}:5000/v2.0
+  - ini_file: dest=/etc/glance/glance-scrubber.conf section=DEFAULT option=auth_url value=https://{{ controller_publicname }}:5000/v2.0
 
-  - ini_file: dest=/etc/cinder/cinder.conf section=keystone_authtoken option=auth_uri value=https://{{ controller_hostname }}:5000
+  - ini_file: dest=/etc/cinder/cinder.conf section=keystone_authtoken option=auth_uri value=https://{{ controller_publicname }}:5000
   - ini_file: dest=/etc/cinder/cinder.conf section=keystone_authtoken option=auth_protocol value=https
-  - ini_file: dest=/etc/cinder/cinder.conf section=keystone_authtoken option=cafile value=/etc/pki/tls/certs/fed-cloud09-keystone.pem
-  - ini_file: dest=/etc/cinder/cinder.conf section=DEFAULT option=backup_swift_url value=https://{{ controller_hostname }}:8080/v1/AUTH_
+  - ini_file: dest=/etc/cinder/cinder.conf section=keystone_authtoken option=cafile value=/etc/pki/tls/certs/fedorainfracloud.org.digicert.pem
+  - ini_file: dest=/etc/cinder/cinder.conf section=DEFAULT option=backup_swift_url value=https://{{ controller_publicname }}:8080/v1/AUTH_
   - ini_file: dest=/etc/cinder/cinder.conf section=DEFAULT option=osapi_volume_listen_port value=6776
-  - ini_file: dest=/etc/cinder/api-paste.conf section="filter:authtoken" option=auth_uri value=https://{{ controller_hostname }}:5000
-  - ini_file: dest=/etc/cinder/api-paste.conf section="filter:authtoken" option=auth_host value={{ controller_hostname }}
+  - ini_file: dest=/etc/cinder/api-paste.conf section="filter:authtoken" option=auth_uri value=https://{{ controller_publicname }}:5000
+  - ini_file: dest=/etc/cinder/api-paste.conf section="filter:authtoken" option=auth_host value={{ controller_publicname }}
   - ini_file: dest=/etc/cinder/api-paste.conf section="filter:authtoken" option=auth_protocol value=https
   - ini_file: dest=/etc/cinder/api-paste.conf section="filter:authtoken" option=service_protocol value=https
-  - ini_file: dest=/etc/cinder/api-paste.conf section="filter:authtoken" option=cafile value=/etc/pki/tls/certs/fed-cloud09-keystone.pem
-  - ini_file: dest=/etc/cinder/api-paste.ini section="filter:authtoken" option=auth_uri value=https://{{ controller_hostname }}:5000
-  - ini_file: dest=/etc/cinder/api-paste.ini section="filter:authtoken" option=auth_host value={{ controller_hostname }}
+  - ini_file: dest=/etc/cinder/api-paste.conf section="filter:authtoken" option=cafile value=/etc/pki/tls/certs/fedorainfracloud.org.digicert.pem
+  - ini_file: dest=/etc/cinder/api-paste.ini section="filter:authtoken" option=auth_uri value=https://{{ controller_publicname }}:5000
+  - ini_file: dest=/etc/cinder/api-paste.ini section="filter:authtoken" option=auth_host value={{ controller_publicname }}
   - ini_file: dest=/etc/cinder/api-paste.ini section="filter:authtoken" option=auth_protocol value=https
-  - ini_file: dest=/etc/cinder/api-paste.ini section="filter:authtoken" option=service_host value={{ controller_hostname }}
-  - ini_file: dest=/etc/cinder/api-paste.ini section="filter:authtoken" option=cafile value=/etc/pki/tls/certs/fed-cloud09-keystone.pem
+  - ini_file: dest=/etc/cinder/api-paste.ini section="filter:authtoken" option=service_host value={{ controller_publicname }}
+  - ini_file: dest=/etc/cinder/api-paste.ini section="filter:authtoken" option=cafile value=/etc/pki/tls/certs/fedorainfracloud.org.digicert.pem
   
-  - ini_file: dest=/etc/neutron/neutron.conf section=keystone_authtoken option=auth_uri value=https://{{ controller_hostname }}:5000
+  - ini_file: dest=/etc/neutron/neutron.conf section=keystone_authtoken option=auth_uri value=https://{{ controller_publicname }}:5000
   - ini_file: dest=/etc/neutron/neutron.conf section=keystone_authtoken option=auth_protocol value=https
-  - ini_file: dest=/etc/neutron/neutron.conf section=keystone_authtoken option=auth_host value={{ controller_hostname }}
-  - ini_file: dest=/etc/neutron/neutron.conf section=keystone_authtoken option=cafile value=/etc/pki/tls/certs/fed-cloud09-keystone.pem
-  - ini_file: dest=/etc/neutron/neutron.conf section=DEFAULT option=nova_url value=https://{{ controller_hostname }}:8774/v2
-  - ini_file: dest=/etc/neutron/neutron.conf section=DEFAULT option=nova_admin_auth_url value=https://{{ controller_hostname }}:35357/v2.0
+  - ini_file: dest=/etc/neutron/neutron.conf section=keystone_authtoken option=auth_host value={{ controller_publicname }}
+  - ini_file: dest=/etc/neutron/neutron.conf section=keystone_authtoken option=cafile value=/etc/pki/tls/certs/fedorainfracloud.org.digicert.pem
+  - ini_file: dest=/etc/neutron/neutron.conf section=DEFAULT option=nova_url value=https://{{ controller_publicname }}:8774/v2
+  - ini_file: dest=/etc/neutron/neutron.conf section=DEFAULT option=nova_admin_auth_url value=https://{{ controller_publicname }}:35357/v2.0
   - ini_file: dest=/etc/neutron/neutron.conf section=DEFAULT option=use_ssl value=False
-  - ini_file: dest=/etc/neutron/neutron.conf section=DEFAULT option=ssl_cert_file value=/etc/pki/tls/certs/fed-cloud09-neutron.pem
-  - ini_file: dest=/etc/neutron/neutron.conf section=DEFAULT option=ssl_key_file value=/etc/pki/tls/private/fed-cloud09-neutron.key
-  - ini_file: dest=/etc/neutron/neutron.conf section=DEFAULT option=ssl_ca_file value=/etc/pki/tls/certs/fed-cloud09-neutron.pem
+  - ini_file: dest=/etc/neutron/neutron.conf section=DEFAULT option=ssl_cert_file value=/etc/pki/tls/certs/fedorainfracloud.org.pem
+  - ini_file: dest=/etc/neutron/neutron.conf section=DEFAULT option=ssl_key_file value=/etc/pki/tls/private/fedorainfracloud.org.key
+  - ini_file: dest=/etc/neutron/neutron.conf section=DEFAULT option=ssl_ca_file value=/etc/pki/tls/certs/fedorainfracloud.org.digicert.pem
   - ini_file: dest=/etc/neutron/neutron.conf section=DEFAULT option=bind_port value=8696
   - lineinfile: dest=/etc/neutron/neutron.conf regexp="^service_provider = LOADBALANCER" line="service_provider = LOADBALANCER:Haproxy:neutron.services.loadbalancer.drivers.haproxy.plugin_driver.HaproxyOnHostPluginDriver:default" insertafter="\[service_providers]"
   - lineinfile: dest=/etc/neutron/neutron.conf regexp="^service_provider = FIREWALL" line="service_provider = FIREWALL:Iptables:neutron.agent.linux.iptables_firewall.OVSHybridIptablesFirewallDriver:default" insertafter="\[service_providers]"
 
-  - ini_file: dest=/etc/neutron/api-paste.conf section="filter:authtoken" option=auth_uri value=https://{{ controller_hostname }}:5000
-  - ini_file: dest=/etc/neutron/api-paste.conf section="filter:authtoken" option=auth_host value={{ controller_hostname }}
+  - ini_file: dest=/etc/neutron/api-paste.conf section="filter:authtoken" option=auth_uri value=https://{{ controller_publicname }}:5000
+  - ini_file: dest=/etc/neutron/api-paste.conf section="filter:authtoken" option=auth_host value={{ controller_publicname }}
   - ini_file: dest=/etc/neutron/api-paste.conf section="filter:authtoken" option=auth_protocol value=https
-  - ini_file: dest=/etc/neutron/api-paste.conf section="filter:authtoken" option=cafile value=/etc/pki/tls/certs/fed-cloud09-keystone.pem
+  - ini_file: dest=/etc/neutron/api-paste.conf section="filter:authtoken" option=cafile value=/etc/pki/tls/certs/fedorainfracloud.org.digicert.pem
 
-  - ini_file: dest=/etc/neutron/metadata_agent.ini section="filter:authtoken" option=auth_url value=https://{{ controller_hostname }}:35357/v2.0
-  - ini_file: dest=/etc/neutron/metadata_agent.ini section=DEFAULT option=auth_url value=https://{{ controller_hostname }}:35357/v2.0
+  - ini_file: dest=/etc/neutron/metadata_agent.ini section="filter:authtoken" option=auth_url value=https://{{ controller_publicname }}:35357/v2.0
+  - ini_file: dest=/etc/neutron/metadata_agent.ini section=DEFAULT option=auth_url value=https://{{ controller_publicname }}:35357/v2.0
 
-  - ini_file: dest=/etc/swift/proxy-server.conf section="filter:authtoken" option=auth_uri value=https://{{ controller_hostname }}:5000
+  - ini_file: dest=/etc/swift/proxy-server.conf section="filter:authtoken" option=auth_uri value=https://{{ controller_publicname }}:5000
   - ini_file: dest=/etc/swift/proxy-server.conf section="filter:authtoken" option=auth_protocol value=https
-  - ini_file: dest=/etc/swift/proxy-server.conf section="filter:authtoken" option=auth_host value={{ controller_hostname }}
-  - ini_file: dest=/etc/swift/proxy-server.conf section="filter:authtoken" option=cafile value=/etc/pki/tls/certs/fed-cloud09-keystone.pem
+  - ini_file: dest=/etc/swift/proxy-server.conf section="filter:authtoken" option=auth_host value={{ controller_publicname }}
+  - ini_file: dest=/etc/swift/proxy-server.conf section="filter:authtoken" option=cafile value=/etc/pki/tls/certs/fedorainfracloud.org.digicert.pem
   - ini_file: dest=/etc/swift/proxy-server.conf section=DEFAULT option=bind_port value=7080
   - ini_file: dest=/etc/swift/proxy-server.conf section=DEFAULT option=bind_ip value=127.0.0.1
 
-  - ini_file: dest=/etc/ceilometer/ceilometer.conf section=keystone_authtoken option=auth_uri value=https://{{ controller_hostname }}:5000
+  - ini_file: dest=/etc/ceilometer/ceilometer.conf section=keystone_authtoken option=auth_uri value=https://{{ controller_publicname }}:5000
   - ini_file: dest=/etc/ceilometer/ceilometer.conf section=keystone_authtoken option=auth_protocol value=https
-  - ini_file: dest=/etc/ceilometer/ceilometer.conf section=keystone_authtoken option=auth_host value={{ controller_hostname }}
-  - ini_file: dest=/etc/ceilometer/ceilometer.conf section=keystone_authtoken option=cafile value=/etc/pki/tls/certs/fed-cloud09-keystone.pem
-  - ini_file: dest=/etc/ceilometer/ceilometer.conf section=service_credentials option=os_auth_url value=https://{{ controller_hostname }}:35357/v2.0
+  - ini_file: dest=/etc/ceilometer/ceilometer.conf section=keystone_authtoken option=auth_host value={{ controller_publicname }}
+  - ini_file: dest=/etc/ceilometer/ceilometer.conf section=keystone_authtoken option=cafile value=/etc/pki/tls/certs/fedorainfracloud.org.digicert.pem
+  - ini_file: dest=/etc/ceilometer/ceilometer.conf section=service_credentials option=os_auth_url value=https://{{ controller_publicname }}:35357/v2.0
   - ini_file: dest=/etc/ceilometer/ceilometer.conf section=api option=port value=6777
 
   # enable stunell to neutron
-  - shell: cat /etc/pki/tls/certs/fed-cloud09-keystone.pem /etc/pki/tls/private/fed-cloud09.key > /etc/haproxy/fed-cloud09.combined
-  - file: path=/etc/haproxy/fed-cloud09.combined owner=haproxy mode=644 
+  - shell: cat /etc/pki/tls/certs/fedorainfracloud.org.pem /etc/pki/tls/private/fedorainfracloud.org.key > /etc/haproxy/fedorainfracloud.org.combined
+  - file: path=/etc/haproxy/fedorainfracloud.org.combined owner=haproxy mode=644 
   - copy: src={{ files }}/fedora-cloud/haproxy.cfg dest=/etc/haproxy/haproxy.cfg mode=644 owner=root group=root
   # first OS have to free ports so haproxy can bind it, then we start OS on modified ports
   - shell: openstack-service stop
   - service: name=haproxy state=started enabled=yes
   - shell: openstack-service start
 
-  - lineinfile: dest=/etc/openstack-dashboard/local_settings regexp="^OPENSTACK_KEYSTONE_URL " line="OPENSTACK_KEYSTONE_URL = 'https://{{controller_hostname}}:5000/v2.0'"
+  - lineinfile: dest=/etc/openstack-dashboard/local_settings regexp="^OPENSTACK_KEYSTONE_URL " line="OPENSTACK_KEYSTONE_URL = 'https://{{controller_publicname}}:5000/v2.0'"
     notify:
       - restart httpd
-  - lineinfile: dest=/etc/openstack-dashboard/local_settings regexp="OPENSTACK_SSL_CACERT " line="OPENSTACK_SSL_CACERT = '/etc/pki/tls/certs/fed-cloud09-keystone.pem'"
+  - lineinfile: dest=/etc/openstack-dashboard/local_settings regexp="OPENSTACK_SSL_CACERT " line="OPENSTACK_SSL_CACERT = '/etc/pki/tls/certs/fedorainfracloud.org.digicert.pem'"
     notify:
       - restart httpd
 
@@ -584,7 +571,7 @@
   - name: Add the cirros-0.3.2-x86_64 image
     glance_image:
       login_username="admin" login_password="{{ ADMIN_PASS }}" login_tenant_name="admin"
-      auth_url="https://{{controller_hostname}}:35357/v2.0"
+      auth_url="https://{{controller_publicname}}:35357/v2.0"
       name=cirros-0.3.2-x86_64
       disk_format=qcow2
       is_public=True
@@ -593,7 +580,7 @@
   - name: create non-standard flavor
     nova_flavor:
       login_username="admin" login_password="{{ ADMIN_PASS }}" login_tenant_name="admin"
-      auth_url="https://{{controller_hostname}}:35357/v2.0"
+      auth_url="https://{{controller_publicname}}:35357/v2.0"
       name="{{item.name}}" ram="{{item.ram}}" disk="{{item.disk}}" vcpus="{{item.vcpus}}" swap="{{item.swap}}"
     with_items:
       - { name: m1.builder, ram: 5120, disk: 50, vcpus: 2, swap: 5120 }
@@ -617,7 +604,7 @@
   - name: Add the images
     glance_image:
       login_username="admin" login_password="{{ ADMIN_PASS }}" login_tenant_name="admin"
-      auth_url="https://{{controller_hostname}}:35357/v2.0"
+      auth_url="https://{{controller_publicname}}:35357/v2.0"
       name="{{ item.name }}"
       disk_format=qcow2
       is_public=True
@@ -654,7 +641,7 @@
   - name: Add the RHEL6 image
     glance_image:
       login_username="admin" login_password="{{ ADMIN_PASS }}" login_tenant_name="admin"
-      auth_url="https://{{controller_hostname}}:35357/v2.0"
+      auth_url="https://{{controller_publicname}}:35357/v2.0"
       name="rhel-guest-image-6.6-20141222.0.x86_64"
       disk_format=qcow2
       is_public=True
@@ -667,7 +654,7 @@
   - name: Add the RHEL7 image
     glance_image:
       login_username="admin" login_password="{{ ADMIN_PASS }}" login_tenant_name="admin"
-      auth_url="https://{{controller_hostname}}:35357/v2.0"
+      auth_url="https://{{controller_publicname}}:35357/v2.0"
       name="rhel-guest-image-7.0-20140930.0.x86_64"
       disk_format=qcow2
       is_public=True
@@ -679,7 +666,7 @@
   - name: Create tenants
     keystone_user:
       login_user="admin" login_password="{{ ADMIN_PASS }}" login_tenant_name="admin"
-      endpoint="https://{{controller_hostname}}:35357/v2.0"
+      endpoint="https://{{controller_publicname}}:35357/v2.0"
       tenant="{{ item.name }}"
       tenant_description="{{ item.desc }}"
       state=present
@@ -700,7 +687,7 @@
   - name: Create users
     keystone_user:
       login_user="admin" login_password="{{ ADMIN_PASS }}" login_tenant_name="admin"
-      endpoint="https://{{controller_hostname}}:35357/v2.0"
+      endpoint="https://{{controller_publicname}}:35357/v2.0"
       user="{{ item.name }}"
       email="{{ item.email }}"
       tenant="{{ item.tenant }}"
@@ -731,7 +718,7 @@
       - { name: maxamillion, email: 'maxamillion@fedoraproject.org', tenant: infrastructure, password: "{{maxamillion_password}}" }
   - name: upload SSH keys for users
     nova_keypair:
-      auth_url="https://{{controller_hostname}}:35357/v2.0"
+      auth_url="https://{{controller_publicname}}:35357/v2.0"
       login_username="{{ item.username }}"
       login_password="{{ item.password }}" login_tenant_name="{{item.tenant}}" name="{{ item.name }}"
       public_key="{{ item.public_key }}"
@@ -767,7 +754,7 @@
   - name: Assign users to secondary tentants
     shell: source /root/keystonerc_admin && keystone user-role-list --user "{{item.user}}" --tenant "{{item.tenant}}" | grep ' {{item.tenant }} ' || keystone user-role-add --user {{item.user}} --role {{item.tenant}} --tenant {{item.tenant}} || true
     #keystone_user:
-    #  endpoint="https://{{controller_hostname}}:35357/v2.0"
+    #  endpoint="https://{{controller_publicname}}:35357/v2.0"
     #  login_user="admin" login_password="{{ ADMIN_PASS }}"
     #  role=coprdev user={{ item }} tenant=coprdev
     with_items:
@@ -824,7 +811,7 @@
   - name: Create en external network
     neutron_network:
       login_username="admin" login_password="{{ ADMIN_PASS }}" login_tenant_name="admin"
-      auth_url="https://{{controller_hostname}}:35357/v2.0"
+      auth_url="https://{{controller_publicname}}:35357/v2.0"
       name=external
       router_external=True
       provider_network_type=flat
@@ -833,7 +820,7 @@
   - name: Create an external subnet
     neutron_subnet:
       login_username="admin" login_password="{{ ADMIN_PASS }}" login_tenant_name="admin"
-      auth_url="https://{{controller_hostname}}:35357/v2.0"
+      auth_url="https://{{controller_publicname}}:35357/v2.0"
       name=external-subnet
       network_name=external
       cidr="{{ public_interface_cidr }}"
@@ -865,21 +852,21 @@
   - name: Create a router for all tenants
     neutron_router:
       login_username="admin" login_password="{{ ADMIN_PASS }}" login_tenant_name="admin"
-      auth_url="https://{{controller_hostname}}:35357/v2.0"
+      auth_url="https://{{controller_publicname}}:35357/v2.0"
       tenant_name="{{ item }}"
       name="ext-to-{{ item }}"
     with_items: all_tenants
   - name: "Connect router's gateway to the external network"
     neutron_router_gateway:
       login_username="admin" login_password="{{ ADMIN_PASS }}" login_tenant_name="admin"
-      auth_url="https://{{controller_hostname}}:35357/v2.0"
+      auth_url="https://{{controller_publicname}}:35357/v2.0"
       router_name="ext-to-{{ item }}"
       network_name="external"
     with_items: all_tenants
   - name: Create a private network for all tenants
     neutron_network:
       login_username="admin" login_password="{{ ADMIN_PASS }}" login_tenant_name="admin"
-      auth_url="https://{{controller_hostname}}:35357/v2.0"
+      auth_url="https://{{controller_publicname}}:35357/v2.0"
       tenant_name="{{ item.name }}"
       name="{{ item.name }}-net"
       shared="{{ item.shared }}"
@@ -897,7 +884,7 @@
   - name: Create a subnet for all tenants
     neutron_subnet:
       login_username="admin" login_password="{{ ADMIN_PASS }}" login_tenant_name="admin"
-      auth_url="https://{{controller_hostname}}:35357/v2.0"
+      auth_url="https://{{controller_publicname}}:35357/v2.0"
       tenant_name="{{ item.name }}"
       network_name="{{ item.name }}-net"
       name="{{ item.name }}-subnet"
@@ -918,7 +905,7 @@
   - name: "Connect router's interface to the TENANT-subnet"
     neutron_router_interface:
       login_username="admin" login_password="{{ ADMIN_PASS }}" login_tenant_name="admin"
-      auth_url="https://{{controller_hostname}}:35357/v2.0"
+      auth_url="https://{{controller_publicname}}:35357/v2.0"
       tenant_name="{{ item }}"
       router_name="ext-to-{{ item }}"
       subnet_name="{{ item }}-subnet"
@@ -932,7 +919,7 @@
       login_username: "admin"
       login_password: "{{ ADMIN_PASS }}"
       login_tenant_name: "admin"
-      auth_url: "https://{{controller_hostname}}:35357/v2.0"
+      auth_url: "https://{{controller_publicname}}:35357/v2.0"
       state: "present"
       name: 'ssh-anywhere-{{item}}'
       description: "allow ssh from anywhere"
@@ -951,7 +938,7 @@
       login_username: "admin"
       login_password: "{{ ADMIN_PASS }}"
       login_tenant_name: "admin"
-      auth_url: "https://{{controller_hostname}}:35357/v2.0"
+      auth_url: "https://{{controller_publicname}}:35357/v2.0"
       state: "present"
       name: 'allow-nagios-{{item}}'
       description: "allow nagios checks"
@@ -975,7 +962,7 @@
       login_username: "admin"
       login_password: "{{ ADMIN_PASS }}"
       login_tenant_name: "admin"
-      auth_url: "https://{{controller_hostname}}:35357/v2.0"
+      auth_url: "https://{{controller_publicname}}:35357/v2.0"
       state: "present"
       name: 'ssh-from-persistent-{{item}}'
       description: "allow ssh from persistent"
@@ -997,7 +984,7 @@
       login_username: "admin"
       login_password: "{{ ADMIN_PASS }}"
       login_tenant_name: "admin"
-      auth_url: "https://{{controller_hostname}}:35357/v2.0"
+      auth_url: "https://{{controller_publicname}}:35357/v2.0"
       state: "present"
       name: 'ssh-internal-{{item.name}}'
       description: "allow ssh from {{item.name}}-network"
@@ -1026,7 +1013,7 @@
       login_username: "admin"
       login_password: "{{ ADMIN_PASS }}"
       login_tenant_name: "admin"
-      auth_url: "https://{{controller_hostname}}:35357/v2.0"
+      auth_url: "https://{{controller_publicname}}:35357/v2.0"
       state: "present"
       name: 'web-80-anywhere-{{item}}'
       description: "allow web-80 from anywhere"
@@ -1045,7 +1032,7 @@
       login_username: "admin"
       login_password: "{{ ADMIN_PASS }}"
       login_tenant_name: "admin"
-      auth_url: "https://{{controller_hostname}}:35357/v2.0"
+      auth_url: "https://{{controller_publicname}}:35357/v2.0"
       state: "present"
       name: 'web-443-anywhere-{{item}}'
       description: "allow web-443 from anywhere"
@@ -1064,7 +1051,7 @@
       login_username: "admin"
       login_password: "{{ ADMIN_PASS }}"
       login_tenant_name: "admin"
-      auth_url: "https://{{controller_hostname}}:35357/v2.0"
+      auth_url: "https://{{controller_publicname}}:35357/v2.0"
       state: "present"
       name: 'wide-open-{{item}}'
       description: "allow anything from anywhere"
@@ -1083,7 +1070,7 @@
       login_username: "admin"
       login_password: "{{ ADMIN_PASS }}"
       login_tenant_name: "admin"
-      auth_url: "https://{{controller_hostname}}:35357/v2.0"
+      auth_url: "https://{{controller_publicname}}:35357/v2.0"
       state: "present"
       name: 'all-icmp-{{item}}'
       description: "allow all ICMP traffic"
@@ -1100,7 +1087,7 @@
       login_username: "admin"
       login_password: "{{ ADMIN_PASS }}"
       login_tenant_name: "admin"
-      auth_url: "https://{{controller_hostname}}:35357/v2.0"
+      auth_url: "https://{{controller_publicname}}:35357/v2.0"
       state: "present"
       name: 'keygen-persistent'
       description: "rules for copr-keygen"
