@@ -196,12 +196,23 @@
 
 
   - name: add ssl cert files
-    copy: src={{ private }}/files/openstack/fedorainfracloud.org.{{item}} dest=/etc/pki/tls/certs/fedorainfracloud.org.{{item}} mode=0600 owner=rabbitmq group=root
+    copy: src={{ private }}/files/openstack/fedorainfracloud.org.{{item}} dest=/etc/pki/tls/certs/fedorainfracloud.org.{{item}} mode=0644 owner=root group=root
     with_items:
     - pem
     - digicert.pem
   - name: add ssl key file
-    copy: src={{ private }}/files/openstack/fedorainfracloud.org.key dest=/etc/pki/tls/private/fedorainfracloud.org.key mode=0600 owner=rabbitmq group=root
+    copy: src={{ private }}/files/openstack/fedorainfracloud.org.key dest=/etc/pki/tls/private/fedorainfracloud.org.key mode=0600 owner=root group=root
+
+  - name: allow services key access
+    acl: name=/etc/pki/tls/private/fedorainfracloud.org.key entity={{item}} etype=user permissions="r" state=present
+    with_items:
+    - keystone
+    - neutron
+    - nova
+    - rabbitmq
+    - cinder
+    - ceilometer
+    - swift
 
   - file: state=directory path=/var/www/pub mode=0755
   - copy: src={{ private }}/files/openstack/fedorainfracloud.org.pem dest=/var/www/pub/ mode=644
@@ -392,13 +403,12 @@
     always_run: yes
     changed_when: false
     register: ENDPOINT_ID
-  - ini_file: dest=/etc/keystone/keystone.conf section=ssl option=certfile value=/etc/pki/tls/certs/fedorainfracloud.org.pem
+  - ini_file: dest=/etc/keystone/keystone.conf section=ssl option=certfile value=/etc/haproxy/fedorainfracloud.org.combined
   - ini_file: dest=/etc/keystone/keystone.conf section=ssl option=keyfile value=/etc/pki/tls/private/fedorainfracloud.org.key
   - ini_file: dest=/etc/keystone/keystone.conf section=ssl option=ca_certs value=/etc/pki/tls/private/fedorainfracloud.org.digicert.pem
   - shell: source /root/keystonerc_admin && keystone endpoint-list |grep {{SERVICE_ID.stdout}} |grep -v {{ controller_publicname }} && (keystone endpoint-delete {{ENDPOINT_ID.stdout}} && keystone --os-token '{{ADMIN_TOKEN}}' --os-endpoint 'http://{{ controller_publicname }}:35357/v2.0' endpoint-create --region 'RegionOne' --service {{SERVICE_ID.stdout}} --publicurl 'https://{{ controller_publicname }}:5000/v2.0'  --adminurl 'https://{{ controller_publicname }}:35357/v2.0' --internalurl 'https://{{ controller_publicname }}:5000/v2.0' ) || true
   - ini_file: dest=/etc/keystone/keystone.conf section=ssl option=enable value=True
   - lineinfile: dest=/root/keystonerc_admin regexp="^export OS_AUTH_URL" line="export OS_AUTH_URL=https://{{ controller_publicname }}:5000/v2.0/"
-  - lineinfile: dest=/root/keystonerc_admin line="export OS_CACERT=/etc/pki/tls/certs/fedorainfracloud.org.digicert.pem"
 
   # Setup sysconfig file for novncproxy
   - copy: src={{ files }}/fedora-cloud/openstack-nova-novncproxy dest=/etc/sysconfig/openstack-nova-novncproxy mode=644 owner=root group=root
