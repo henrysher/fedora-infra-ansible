@@ -28,8 +28,8 @@ BEGIN;
 
 -- bump sequences (not strictly needed anymore)
 select now() as time, 'bumping sequences' as msg;
-alter sequence task_id_seq restart with 90000000;
-alter sequence repo_id_seq restart with 9000000;
+alter sequence task_id_seq restart      with 90000000;
+alter sequence repo_id_seq restart      with 9000000;
 alter sequence imageinfo_id_seq restart with 900000;
 
 -- truncate sessions
