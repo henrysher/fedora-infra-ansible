@@ -70,7 +70,7 @@ COMMIT;
 BEGIN;
 
 -- add our staging builders, dynamically pulled from ansible inventory
-select now() as time, 'adding extra host(s)' as msg;
+select now() as time, 'adding staging host(s)' as msg;
 
 {% for host in groups['buildvm-stg'] + groups['koji-stg'] %}
 insert into users (name, usertype, status) values ('{{ host }}', 1, 0);
@@ -80,6 +80,17 @@ insert into host_channels (host_id, channel_id) values (
     (select id from host where name='{{host}}'), (select id from channels where name='default'));
 insert into host_channels (host_id, channel_id) values (
     (select id from host where name='{{host}}'), (select id from channels where name='createrepo'));
+{% endfor %}
+
+-- Add some people to be admins, only in staging.  Feel free to grow this list..
+select now() as time, 'adding staging admin(s)' as msg;
+
+{% for username in ['ralph', 'imcleod'] %}
+insert into user_perms (user_id, perm_id, active, creator_id) values (
+    (select id from users where name='{{username}}'),
+    (select id from permissions where name='admin'),
+    True,
+    (select id from users where name='{{username}}'));
 {% endfor %}
 
 COMMIT;
