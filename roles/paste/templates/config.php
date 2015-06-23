@@ -7,7 +7,7 @@
 /// Unless you are absolutely sure what you're doing ;-)
 
 {% if env == "staging" %}                                             
-$db_host = "db02.stg";
+$db_host = "db03.stg";
 {% else %}
 $db_host = "db-paste";
 {% endif %}
