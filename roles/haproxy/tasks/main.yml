@@ -33,6 +33,14 @@
   tags:
   - haproxy
 
+- name: check haproxy cfg to make sure it is valid (prod)
+  command: haproxy -c -f /etc/haproxy/haproxy.cfg
+  always_run: true
+  register: haproxyconfigcheck
+  changed_when: haproxyconfigcheck.rc != 0
+  tags:
+  - haproxy
+
 - name: Make sure haproxy is awake and reporting for duty
   service: name=haproxy state=started enabled=yes
   tags:
