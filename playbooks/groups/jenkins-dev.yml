@@ -24,3 +24,15 @@
   - include: "{{ tasks }}/cloud_setup_basic.yml"
   - name: set hostname (required by some services, at least postfix need it)
     shell: "hostname {{inventory_hostname}}"
+
+- name: provision instance
+  hosts: jenkins-dev
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  roles:
+  - base
+  - { role: jenkins/master, when: jenkins_master is defined }
+  - { role: jenkins/slave, when: jenkins_master is not defined }
