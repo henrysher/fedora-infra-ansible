@@ -19,13 +19,23 @@
   - resolvconf
   - base
 
-- name: global default packages to install
+- name: global default packages to install (yum)
   yum: state=present name={{ item }}
   with_items:
    - "{{ global_pkgs_inst }}"
   tags:
   - packages
   - base
+  when: ansible_distribution_major_version|int < 22
+
+- name: global default packages to install (dnf)
+  dnf: state=present name={{ item }}
+  with_items:
+   - "{{ global_pkgs_inst }}"
+  tags:
+  - packages
+  - base
+  when: ansible_distribution_major_version|int > 21 and ansible_cmdline.ostree is not defined
 
 - debug: msg="{{ansible_nodename}}  {{inventory_hostname}} {{ansible_distribution_major_version|int}}"
 
@@ -72,21 +82,41 @@
   - config
   - base
 
-- name: dist pkgs to remove
+- name: dist pkgs to remove (yum)
   yum: state=absent name={{ item }}
   with_items:
    - "{{ base_pkgs_erase }}"
   tags:
   - packages
   - base
+  when: ansible_distribution_major_version|int < 22
 
-- name: dist pkgs to install
+- name: dist pkgs to install (yum)
   yum: state=present name={{ item }}
   with_items:
    - "{{ base_pkgs_inst }}"
   tags:
   - packages
   - base
+  when: ansible_distribution_major_version|int < 22
+
+- name: dist pkgs to remove (dnf)
+  dnf: state=absent name={{ item }}
+  with_items:
+   - "{{ base_pkgs_erase }}"
+  tags:
+  - packages
+  - base
+  when: ansible_distribution_major_version|int > 21 and ansible_cmdline.ostree is not defined
+
+- name: dist pkgs to install (dnf)
+  dnf: state=present name={{ item }}
+  with_items:
+   - "{{ base_pkgs_inst }}"
+  tags:
+  - packages
+  - base
+  when: ansible_distribution_major_version|int > 21 and ansible_cmdline.ostree is not defined
 
 - name: dist disabled services
   service: state=stopped enabled=false name={{ item }}
