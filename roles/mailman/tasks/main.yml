@@ -59,7 +59,6 @@
   - python-pylibmc
   - python-django-haystack-xapian
   - yum-plugin-post-transaction-actions
-  #- mailman3-fedmsg-plugin
   # to run the test suite:
   - python-beautifulsoup4
   - python-mock
@@ -74,6 +73,19 @@
   - lynx
   tags:
   - packages
+
+- name: setup the mailman3-fedmsg repo
+  copy: src=mailman3-fedmsg-plugin.RedHat.repo
+        dest=/etc/yum.repos.d/mailman3-fedmsg-plugin.repo
+  when: ansible_distribution == 'RedHat'
+
+- name: add the GPG key for the mailman3-fedmsg-plugin repo
+  rpm_key: state=present key=https://copr-be.cloud.fedoraproject.org/results/ralph/fedmsg-python34/pubkey.gpg
+  when: ansible_distribution == 'RedHat'
+
+- name: install the mailman3 fedmsg plugin rpm
+  yum: pkg=mailman3-fedmsg-plugin state=present
+  when: ansible_distribution == 'RedHat'
 
 - name: install packages when not using source extracts
   when: ansible_hostname != "lists-dev.cloud.fedoraproject.org"
