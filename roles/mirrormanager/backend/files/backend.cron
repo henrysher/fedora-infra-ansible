@@ -4,10 +4,16 @@ MAILTO=root
 # mirrorlist servers
 55 * * * * mirrormanager /usr/bin/mm2_update-mirrorlist-server && /usr/local/bin/sync_pkl_to_mirrorlists.sh
 
-# update master directory list every hour
-# fedora message bus is queried before every run if there are actually changes
+# update master directory
 # logs sent to /var/log/mirrormanager/umdl.log by default
-0 * * * * mirrormanager /usr/local/bin/umdl-required /var/log/mirrormanager/umdl-required.log
+# check if category Fedora EPEL needs updating every 30 minutes
+0,30 * * * * mirrormanager /usr/local/bin/umdl-required EPEL /var/log/mirrormanager/umdl-required.log
+# check if category Fedora Linux needs updating every 30 minutes
+0,30 * * * * mirrormanager /usr/local/bin/umdl-required Linux /var/log/mirrormanager/umdl-required.log
+# the remaining categories are updated once a day
+15 0 * * * mirrormanager /usr/bin/mm2_update-master-directory-list --category="Fedora Archive"
+15 8 * * * mirrormanager /usr/bin/mm2_update-master-directory-list --category="Fedora Other"
+15 16 * * * mirrormanager /usr/bin/mm2_update-master-directory-list --category="Fedora Secondary Arches"
 
 # Sync netblocks list once a day
 30 0 * * * mirrormanager cd /usr/share/mirrormanager2 && /usr/bin/mm2_get_global_netblocks /var/lib/mirrormanager/global_netblocks.txt

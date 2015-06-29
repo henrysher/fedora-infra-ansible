@@ -1,17 +1,29 @@
 #!/bin/bash
 
-if [ $# -ne 1 ]; then
-	echo "Exactly one parameter needed. /path/to/logfile"
+if [ $# -ne 2 ]; then
+	echo "Exactly two parameter needed. category and /path/to/logfile"
 	exit 1
 fi
 
-exec >> $1
+exec >> $2
 exec 2>&1
 
 CURDATE=`date +%s`
+LAST_SYNC_ARG=""
 
-if [ -e /var/run/mirrormanager/umdl ]; then
-	. /var/run/mirrormanager/umdl
+if [ "${1}" ==  "Linux" ]; then
+	LAST_SYNC_ARG="-f -r"
+elif [ "${1}" ==  "EPEL" ]; then
+	LAST_SYNC_ARG="-e"
+fi
+
+if [ "${LAST_SYNC_ARG}" == "" ]; then
+	echo "Category is either Linux or EPEL"
+	exit 1
+fi
+
+if [ -e /var/run/mirrormanager/umdl-${1} ]; then
+	. /var/run/mirrormanager/umdl-${1}
 else
 	# 48 hours -> 172800 seconds
 	let LASTRUN=CURDATE-172800
@@ -19,7 +31,7 @@ fi
 
 let DELTA=CURDATE-LASTRUN
 
-/usr/local/bin/last-sync -d ${DELTA} -q
+/usr/local/bin/last-sync -d ${DELTA} -q ${LAST_SYNC_ARG}
 
 if [ "$?" -ne "0" ]; then
 	# no changes on the master mirror
@@ -27,14 +39,14 @@ if [ "$?" -ne "0" ]; then
 	exit 0
 fi
 
-echo -n "Last sync more than ${DELTA} seconds ago. Running umdl at "
+echo -n "Last sync more than ${DELTA} seconds ago. Running umdl for Fedora ${1} at "
 date
 
-/usr/local/bin/lock-wrapper umdl /usr/bin/mm2_update-master-directory-list
+/usr/local/bin/lock-wrapper umdl-${1} "/usr/bin/mm2_update-master-directory-list --category \"Fedora ${1}\""
 
 if [ "$?" -eq "0" ]; then
 	# success! remember the date of this run
-	echo "LASTRUN=${CURDATE}" > /var/run/mirrormanager/umdl
+	echo "LASTRUN=${CURDATE}" > /var/run/mirrormanager/umdl-${1}
 	echo -n "Finished umdl successfully at "
 	date
 	exit 0
