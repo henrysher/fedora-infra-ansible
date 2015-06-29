@@ -5,13 +5,23 @@
 - name: install needed packages
   yum: pkg={{ item }} state=present
   with_items:
-  - fedmsg
   - libsemanage-python
   - python-psutil
   - policycoreutils-python  # This is in the kickstart now.  Here for old hosts.
   tags:
   - packages
   - fedmsg/base
+
+- name: install python2 fedmsg package
+  yum: pkg=fedmsg state=present
+  when: 'python34-fedmsg' not in groups
+  tags: fedmsg/base
+
+- name: install the python34 fedmsg package
+  yum: pkg=python34-fedmsg-core state=present
+  when: 'python34-fedmsg' in groups
+  tags: fedmsg/base
+
 
 # We only need this on el6.  On el7, the fedmsg package uses systemd-tempfiles
 # to generate this effect for us.  Note that at the bottom of this role we add
