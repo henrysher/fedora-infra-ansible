@@ -121,15 +121,3 @@
   tags:
   - koschei
   - hotfix
-
-- name: HOTFIX koschei downgrade scheduler lock
-  lineinfile: >
-    dest=/usr/lib/python2.7/site-packages/koschei/scheduler.py
-    regexp="LOCK TABLE package IN EXCLUSIVE MODE"
-    line="        self.db.execute(\"LOCK TABLE package IN SHARE MODE;\")"
-  when: env == "production"
-  notify:
-  - restart koschei-scheduler
-  tags:
-  - koschei
-  - hotfix
