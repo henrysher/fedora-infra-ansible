@@ -242,6 +242,25 @@ def main():
                     ticketobj.url = ticket['html_url']
                     ticketobj.status = ticket['state']
                     tickets.append(ticketobj)
+        elif project.name.startswith('pagure.io:'):
+            project.name = project.name.split('pagure.io:')[1]
+            project.url = 'https://pagure.io/%s/' % (project.name)
+            project.site = 'pagure.io'
+            url = 'https://pagure.io/api/0/%s/issues?tags=%s' % (
+                project.name, project.tag)
+            stream = urllib2.urlopen(url)
+            output = stream.read()
+            jsonobj = json.loads(output)
+            if jsonobj:
+                for ticket in jsonobj['issues']:
+                    ticket_num = ticket_num + 1
+                    ticketobj = Ticket()
+                    ticketobj.id = ticket['id']
+                    ticketobj.title = ticket['title']
+                    ticketobj.url = 'https://pagure.io/%s/issue/%s' % (
+                        project.name, ticket['id'])
+                    ticketobj.status = ticket['status']
+                    tickets.append(ticketobj)
         else:
             project.url = 'https://fedorahosted.org/%s/' % (project.name)
             project.site = 'trac'
