@@ -122,6 +122,13 @@
   when: ansible_distribution == 'RedHat'
   tags: mailman
 
+- name: copy in our fedmsg-plugin conf file
+  copy: src=fedmsg-plugin-conf.py dest=/etc/fedmsg.d/fedmsg-plugin-conf.py
+  tags:
+  - fedmsgdconfig
+  - mailman
+  notify: restart mailman3
+
 - name: install packages when not using source extracts
   when: ansible_hostname != "lists-dev.cloud.fedoraproject.org"
   yum: pkg={{ item }} state=present
