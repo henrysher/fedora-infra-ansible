@@ -82,9 +82,9 @@ config = dict(
             make_terse=True,
 
             {% if env == 'staging' %}
-            nickname='commbot-s',
+            nickname='commopsbot-s',
             {% else %}
-            nickname='commbot',
+            nickname='commopsbot',
             {% endif %}
             channel='fedora-commops',
             filters=dict(
