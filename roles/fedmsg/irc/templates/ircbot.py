@@ -66,10 +66,30 @@ config = dict(
             channel='fedora-hubs',
             filters=dict(
                 topic=[
-                    '^((?!(github\.create|github\.issue\.|github\.pull_request\.|github\.commit_comment|github\.star|github\.push|pagure)).)*$',
+                    '^((?!(github\.create|github\.issue\.|github\.pull_request\.|github\.commit_comment|github\.star|pagure)).)*$',
                 ],
                 body=[
                     "^((?!(fedora-hubs)).)*$",
+                ],
+            ),
+        ),
+
+        # For that commops crew!
+        dict(
+            network='chat.freenode.net',
+            port=6667,
+            make_pretty=True,
+            make_terse=True,
+
+            {% if env == 'staging' %}
+            nickname='commopsbot-s',
+            {% else %}
+            nickname='commopsbot',
+            {% endif %}
+            channel='fedora-commops',
+            filters=dict(
+                topic=[
+                    '^((?!(planet|fedora_elections|meetbot\.meeting\.item\.help|meetbot\.meeting\.complete|github\.star|github\.fork|github\.release|fedocal\.meeting\.new|fedocal\.meeting\.update|fedocal\.meeting\.delete|fedocal\.calendar|fas\.user\.create|fedbadges\.person\.login\.first|pagure\.project\.new|askbot\.post\.flag_offensive|anitya\.distro\.add|anitya\.project\.map\.new)).)*$',
                 ],
             ),
         ),
