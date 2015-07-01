@@ -74,6 +74,26 @@ config = dict(
             ),
         ),
 
+        # For that commops crew!
+        dict(
+            network='chat.freenode.net',
+            port=6667,
+            make_pretty=True,
+            make_terse=True,
+
+            {% if env == 'staging' %}
+            nickname='commbot-s',
+            {% else %}
+            nickname='commbot',
+            {% endif %}
+            channel='fedora-commops',
+            filters=dict(
+                topic=[
+                    '^((?!(planet)).)*$',
+                ],
+            ),
+        ),
+
         # Just for the Ask Fedora crew in #fedora-ask
         dict(
             network='chat.freenode.net',
