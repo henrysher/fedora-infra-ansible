@@ -89,7 +89,7 @@ config = dict(
             channel='fedora-commops',
             filters=dict(
                 topic=[
-                    '^((?!(planet|fedora_elections|meetbot\.meeting\.item\.help|meetbot\.meeting\.complete|github\.star|github\.fork|github\.release|fedocal\.meeting\.new|fedocal\.meeting\.update|fedocal\.meeting\.delete|fedocal\.calendar|fas\.user\.create|fedbadges\.person\.login\.first|pagure\.project\.new|askbot\.post\.flag_offensive|anitya\.distro\.add)).)*$',
+                    '^((?!(planet|fedora_elections|meetbot\.meeting\.item\.help|meetbot\.meeting\.complete|github\.star|github\.fork|github\.release|fedocal\.meeting\.new|fedocal\.meeting\.update|fedocal\.meeting\.delete|fedocal\.calendar|fas\.user\.create|fedbadges\.person\.login\.first|pagure\.project\.new|askbot\.post\.flag_offensive|anitya\.distro\.add|anitya\.project\.map\.new)).)*$',
                 ],
             ),
         ),
