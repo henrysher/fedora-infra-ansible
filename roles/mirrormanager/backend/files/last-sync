@@ -41,6 +41,7 @@ delta = 86400
 # return 0 and no output if a sync happened during <delta>
 # if no sync happened 1 is returned
 quiet = False
+secondary = False
 
 def usage():
 	print
@@ -61,13 +62,14 @@ def usage():
 	print "                            for the query (default: 86400)"
 
 
-# -a -f -e -b -r -q -d
+# -a -f -e -b -r -s -q -d
 def parse_args():
 	global topics
 	global delta
 	global quiet
+	global secondary
 	try:
-		opts, args = getopt.getopt(sys.argv[1:], "afhebrqd:", ["all", "fedora", "epel", "rawhide", "branched", "quiet", "delta="])
+		opts, args = getopt.getopt(sys.argv[1:], "afhebrsqd:", ["all", "fedora", "epel", "rawhide", "branched", "secondary", "quiet", "delta="])
 	except getopt.GetoptError as err:
 		print str(err)
 		usage()
@@ -76,6 +78,7 @@ def parse_args():
 	for option, argument in opts:
 		if option in ("-a", "--all"):
 			topics =  [ fedora, epel, branched, rawhide ]
+			secondary = True
 		if option in ("-f", "--fedora"):
 			topics.append(fedora)
 		if option in ("-e", "--epel"):
@@ -84,6 +87,9 @@ def parse_args():
 			topics.append(rawhide)
 		if option in ("-b", "--branched"):
 			topics.append(branched)
+		if option in ("-s", "--secondary"):
+			topics.append(rawhide)
+			secondary = True
 		if option in ("-q", "--quiet"):
 			quiet = True
 		if option in ("-d", "--delta"):
@@ -107,8 +113,19 @@ parse_args()
 
 if topics == []:
 	topics =  [ fedora, epel, branched, rawhide ]
+	secondary = True
 
-data = requests.get(create_url(base_url, topics, delta)).json()
+i = 0
+data = None
+while i < 5:
+	try:
+		data = requests.get(create_url(base_url, topics, delta), timeout=1).json()
+		break
+	except:
+		pass
+
+if not data:
+	sys.exit(1)
 
 repos = []
 
@@ -120,7 +137,7 @@ for i in range(0, data['count']):
 		arch = data['raw_messages'][i]['msg']['arch']
 		if arch == '':
 			arch = 'primary'
-		else:
+		elif not secondary:
 			continue
 		repo = "%s-%s" % (data['raw_messages'][i]['msg']['branch'], arch)
 

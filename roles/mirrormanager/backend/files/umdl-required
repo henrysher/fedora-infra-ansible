@@ -13,8 +13,13 @@ LAST_SYNC_ARG=""
 
 if [ "${1}" ==  "Linux" ]; then
 	LAST_SYNC_ARG="-f -r"
+	CATEGORY="${1}"
 elif [ "${1}" ==  "EPEL" ]; then
 	LAST_SYNC_ARG="-e"
+	CATEGORY="${1}"
+elif [ "${1}" ==  "Secondary" ]; then
+	LAST_SYNC_ARG="-s"
+	CATEGORY="Secondary Arches"
 fi
 
 if [ "${LAST_SYNC_ARG}" == "" ]; then
@@ -39,18 +44,18 @@ if [ "$?" -ne "0" ]; then
 	exit 0
 fi
 
-echo -n "Last sync more than ${DELTA} seconds ago. Running umdl for Fedora ${1} at "
+echo -n "Last sync more than ${DELTA} seconds ago. Running umdl for Fedora ${CATEGORY} at "
 date
 
-/usr/local/bin/lock-wrapper umdl-${1} "/usr/bin/mm2_update-master-directory-list --category \"Fedora ${1}\""
+/usr/local/bin/lock-wrapper umdl-${1} "/usr/bin/mm2_update-master-directory-list --category \"Fedora ${CATEGORY}\""
 
 if [ "$?" -eq "0" ]; then
 	# success! remember the date of this run
 	echo "LASTRUN=${CURDATE}" > /var/run/mirrormanager/umdl-${1}
-	echo -n "Finished umdl successfully at "
+	echo -n "Finished umdl for Fedora ${CATEGORY} successfully at "
 	date
 	exit 0
 fi
 
-echo -n "umdl returned not zero. Something failed. Please check umdl.log. "
+echo -n "umdl for Fedora ${CATEGORY} returned non-zero. Something failed. Please check umdl.log. "
 date
