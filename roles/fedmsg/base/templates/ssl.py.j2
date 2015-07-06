@@ -15,9 +15,9 @@ config = dict(
     # This is the set of certs for this host, dynamically generated from the
     # ``fedmsg_certs`` host vars
     {% for cert in fedmsg_certs %}
-    ("{{cert['service']}}.{{inventory_hostname_short}}", "{{cert['service']}}-{{fedmsg_fqdn | default(ansible_fqdn)}}"),
+    ("{{cert.get('alias', cert['service'])}}.{{inventory_hostname_short}}", "{{cert['service']}}-{{fedmsg_fqdn | default(ansible_fqdn)}}"),
     {% endfor %}
-    ] + [
+] + [
         # This is the beginning of the static list.  We should eventually remove
         # this.
         ("git.hosted03", "git-hosted03.vpn.fedoraproject.org"),
