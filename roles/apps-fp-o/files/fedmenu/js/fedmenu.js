@@ -25,24 +25,21 @@ var fedmenu = function(options) { $(document).ready(function() {
     var script = $("script[src$='fedmenu.js']").attr('src');
     var base = script.slice(0, -13);
 
-    $('body', c).append('<link href="' + base + 'css/fedmenu.css" rel="stylesheet">');
+    // Add a <head> section if one doesn't exist.
+    // https://github.com/fedora-infra/fedmenu/issues/6
+    if ($('head', c).length == 0) $('html', c).append('<head></head>');
+    $('head', c).append('<link href="' + base + 'css/fedmenu.css" rel="stylesheet">');
+
     $('body', c).append(
         '<div id="fedmenu-tray" class="fedmenu-' + o.position + '">' +
         buttons + '</div>');
 
     $('body', c).append('<div id="fedmenu-wrapper"></div>');
 
-    $('body', c).append('<div id="fedmenu-main-content" class="fedmenu-content"></div>');
-    $('#fedmenu-main-content', c).append("<span class='fedmenu-exit'>&#x274C;</span>");
-    $('#fedmenu-main-content', c).append("<h1>Fedora Infrastructure Apps</h1>");
-
     var imgurl;
     if (o.user !== null) {
         imgurl = libravatar.url(o.user);
         $('#fedmenu-user-button .img', c).css('background-image', 'url("' + imgurl + '")');
-        $('body', c).append('<div id="fedmenu-user-content" class="fedmenu-content"></div>');
-        $('#fedmenu-user-content', c).append("<span class='fedmenu-exit'>&#x274C;</span>");
-        $('#fedmenu-user-content', c).append("<h1>View " + o.user + " in other apps</h1>");
     }
     if (o.package !== null) {
         /* This icon is not always going to exist, so we should put in an
@@ -50,9 +47,6 @@ var fedmenu = function(options) { $(document).ready(function() {
          * isn't there. */
         imgurl = 'https://apps.fedoraproject.org/packages/images/icons/' + o.package + '.png';
         $('#fedmenu-package-button .img', c).css('background-image', 'url("' + imgurl + '")');
-        $('body', c).append('<div id="fedmenu-package-content" class="fedmenu-content"></div>');
-        $('#fedmenu-package-content', c).append("<span class='fedmenu-exit'>&#x274C;</span>");
-        $('#fedmenu-package-content', c).append("<h1>View the " + o.package + " package elsewhere</h1>");
     }
 
     // Define three functions used to generate the content of the menu panes
@@ -67,6 +61,12 @@ var fedmenu = function(options) { $(document).ready(function() {
                 "</a></li>";
         });
         html = html + "</ul></div>";
+
+        if ($('#fedmenu-main-content').length == 0) {
+            $('body', c).append('<div id="fedmenu-main-content" class="fedmenu-content"></div>');
+            $('#fedmenu-main-content', c).append("<span class='fedmenu-exit'>&#x274C;</span>");
+            $('#fedmenu-main-content', c).append("<h1>Fedora Infrastructure Apps</h1>");
+        }
         $("#fedmenu-main-content", c).append(html);
     };
 
@@ -86,6 +86,11 @@ var fedmenu = function(options) { $(document).ready(function() {
             }
         });
         if (found) {
+            if ($('#fedmenu-user-content').length == 0) {
+                $('body', c).append('<div id="fedmenu-user-content" class="fedmenu-content"></div>');
+                $('#fedmenu-user-content', c).append("<span class='fedmenu-exit'>&#x274C;</span>");
+                $('#fedmenu-user-content', c).append("<h1>View " + o.user + " in other apps</h1>");
+            }
             html = html + "</ul></div>";
             $("#fedmenu-user-content", c).append(html);
         }
@@ -108,9 +113,51 @@ var fedmenu = function(options) { $(document).ready(function() {
         });
         if (found) {
             html = html + "</ul></div>";
+            if ($('#fedmenu-package-content').length == 0) {
+                $('body', c).append('<div id="fedmenu-package-content" class="fedmenu-content"></div>');
+                $('#fedmenu-package-content', c).append("<span class='fedmenu-exit'>&#x274C;</span>");
+                $('#fedmenu-package-content', c).append("<h1>View the " + o.package + " package elsewhere</h1>");
+            }
             $("#fedmenu-package-content", c).append(html);
         }
     };
+
+    // A handy lookup for those functions we just defined.
+    var content_makers = {
+        'main': make_main_content_html,
+        'user': make_user_content_html,
+        'package': make_package_content_html,
+    };
+
+    // Figure out the current site that we're on, if possible, and return the
+    // data we have on it from the json we loaded.
+    var get_current_site = function() {
+        var found = null;
+        var ours = window.location.toString();
+        ours = ours.slice(ours.indexOf('://') + 3)
+        $.each(master_data, function(i, node) {
+            $.each(node.children, function(j, leaf) {
+                var theirs = leaf.data.url;
+                theirs = theirs.slice(theirs.indexOf('://') + 3)
+                if (theirs.indexOf(ours) === 0) found = leaf;
+            })
+        });
+        return found;
+    }
+
+    // Try to construct a little footer for the menus.
+    var add_footer_links = function() {
+        var site = get_current_site();
+        var content = "";
+        if (site != null && site.data.bugs_url != undefined && site.data.source_url != undefined) {
+            content = content + "Problems with " + site.name +
+                "?  Please <a href='" + site.data.bugs_url +
+                "'>file bugs</a> or check out <a href='" +
+                site.data.source_url + "'>the source</a>.";
+        }
+        content = content + "<br/>Powered by <a href='https://github.com/fedora-infra/fedmenu'>fedmenu</a>.";
+        $(".fedmenu-content").append("<div><p>" + content + "</p></div>");
+    }
 
     $.ajax({
         url: o.url,
@@ -122,11 +169,8 @@ var fedmenu = function(options) { $(document).ready(function() {
             console.log(err);
         },
         success: function(script) {
-            $.each(json.children, make_main_content_html);
-            if (o.user !== null)
-                $.each(json.children, make_user_content_html);
-            if (o.package !== null)
-                $.each(json.children, make_package_content_html);
+            // Save this for later...
+            master_data = json.children;
         },
     });
 
@@ -135,8 +179,17 @@ var fedmenu = function(options) { $(document).ready(function() {
             "#fedmenu-" + t + "-button," +
             "#fedmenu-" + t + "-content";
     };
-    var activate = function(t) { $(selector(t), c).addClass('fedmenu-active'); };
-    var deactivate = function(t) { $(selector(t), c).removeClass('fedmenu-active'); };
+
+    var activate = function(t) {
+        $.each(master_data, content_makers[t]);
+        $(".fedmenu-exit", c).click(function() {deactivate(t);});
+        add_footer_links();
+        setTimeout(function() {$(selector(t), c).addClass('fedmenu-active');}, 50);
+    };
+    var deactivate = function(t) {
+        $(selector(t), c).removeClass('fedmenu-active');
+        $('.fedmenu-content', c).remove();  // destroy content.
+    };
 
     var click_factory = function(t) { return function() {
         if ($(this).hasClass('fedmenu-active')) {
@@ -156,7 +209,7 @@ var fedmenu = function(options) { $(document).ready(function() {
         deactivate('package');
     });
     $(document).keydown(function(event) {
-        if (event.key == 'Esc'){
+        if (event.key == 'Escape' || event.key == 'Esc'){
             deactivate('main');
             deactivate('user');
             deactivate('package');
