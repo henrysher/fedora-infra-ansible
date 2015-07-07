@@ -489,6 +489,24 @@
     tags:
     - packages
 
+  - name: setup jenkins_slave user
+    action: user name=jenkins_slave state=present createhome=yes system=no
+    tags:
+    - jenkinsuser
+
+  - name: setup jenkins_slave ssh key
+    action: authorized_key user=jenkins_slave key="{{ item }}"
+    with_file:
+    - "{{ private }}/files/jenkins/ssh/jenkins_master.pub"
+
+  - name: jenkins_slave to mock group
+    action: user name=jenkins_slave groups=mock
+
+  - name: add .gitconfig for jenkins_slave user
+    action: copy src="{{ files }}/jenkins/gitconfig" dest=/home/jenkins_slave/.gitconfig owner=jenkins_slave group=jenkins_slave mode=664
+    tags:
+     - config
+
   - name: drop current android SDK
     when: is_fedora is defined
     action: file state=absent path=/var/android
@@ -521,24 +539,6 @@
     action: command hostname jenkins-{{ dist_tag }}
     tags:
     - config
-
-  - name: setup jenkins_slave user
-    action: user name=jenkins_slave state=present createhome=yes system=no
-    tags:
-    - jenkinsuser
-
-  - name: setup jenkins_slave ssh key
-    action: authorized_key user=jenkins_slave key="{{ item }}"
-    with_file:
-    - "{{ private }}/files/jenkins/ssh/jenkins_master.pub"
-
-  - name: jenkins_slave to mock group
-    action: user name=jenkins_slave groups=mock
-
-  - name: add .gitconfig for jenkins_slave user
-    action: copy src="{{ files }}/jenkins/gitconfig" dest=/home/jenkins_slave/.gitconfig owner=jenkins_slave group=jenkins_slave mode=664
-    tags:
-     - config
 
   - name: template sshd_config
     copy: src="{{ item }}" dest=/etc/ssh/sshd_config mode=0600 owner=root group=root
