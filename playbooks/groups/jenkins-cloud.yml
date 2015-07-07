@@ -264,8 +264,9 @@
 ###################################################
 # jenkins slaves
 
+# old cloud instance setup
 - name: check/create instance for jenkins-slaves
-  hosts: jenkins-slaves
+  hosts: jenkins-slaves:!jenkins-f22.fedorainfracloud.org
   user: root
   gather_facts: False
   tags:
@@ -281,6 +282,20 @@
   tasks:
   - include: "{{ tasks }}/persistent_cloud.yml"
   - include: "{{ tasks }}/growroot_cloud.yml"
+
+# new cloud instance setup
+- name: check/create instance
+  hosts: jenkins-f22.fedorainfracloud.org
+  gather_facts: False
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - /srv/private/ansible/vars.yml
+   - /srv/web/infra/ansible/vars/fedora-cloud.yml
+   - /srv/private/ansible/files/openstack/passwords.yml
+
+  tasks:
+  - include: "{{ tasks }}/persistent_cloud_new.yml"
 
 - name: provision workers
   hosts: jenkins-slaves
