@@ -76,10 +76,10 @@ select now() as time, 'adding staging host(s)' as msg;
 insert into users (name, usertype, status) values ('{{ host }}', 1, 0);
 insert into host (user_id, name, arches) values (
     (select id from users where name='{{host}}'), '{{host}}', 'i386 x86_64');
+{% for channel in [ 'default', 'createrepo', 'maven', 'appliance', 'livecd', 'vm', 'secure-boot', 'compose', 'eclipse', 'images', 'image'] %}
 insert into host_channels (host_id, channel_id) values (
-    (select id from host where name='{{host}}'), (select id from channels where name='default'));
-insert into host_channels (host_id, channel_id) values (
-    (select id from host where name='{{host}}'), (select id from channels where name='createrepo'));
+    (select id from host where name='{{host}}'), (select id from channels where name='{{channel}}'));
+{% endfor %}
 {% endfor %}
 
 -- Add some people to be admins, only in staging.  Feel free to grow this list..
