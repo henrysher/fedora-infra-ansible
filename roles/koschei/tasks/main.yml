@@ -125,3 +125,36 @@
             owner=koschei group=koschei mode=0600
   tags:
   - koschei
+
+- name: Create symlinks to python to get specific executable names
+  file: path="/usr/libexec/koschei/koschei-{{ item }}"
+        src=/usr/bin/python
+        state=link
+  when: env == "production"
+  with_items:
+  - polling
+  - resolver
+  - scheduler
+  - watcher
+  tags:
+  - koschei
+  - hotfix
+
+- name: Run using specific symlinks
+  lineinfile: dest="/usr/lib/systemd/system/koschei-{{ item }}.service"
+              regexp="^ExecStart"
+              line="ExecStart=/usr/libexec/koschei/koschei-{{ item }} -m koschei.main {{ item }}"
+  when: env == "production"
+  with_items:
+  - polling
+  - resolver
+  - scheduler
+  - watcher
+  tags:
+  - koschei
+  - hotfix
+  notify:
+  - restart koschei-polling
+  - restart koschei-resolver
+  - restart koschei-scheduler
+  - restart koschei-watcher
