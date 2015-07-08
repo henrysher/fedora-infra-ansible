@@ -74,6 +74,22 @@
   - config
   - selinux
 
+- name: check the selinux context of the planet dir
+  command: matchpathcon "/srv/planet(/.*)?"
+  register: gitcontext
+  always_run: yes
+  changed_when: false
+  tags:
+  - config
+  - selinux
+
+- name: set the SELinux policy for the planet dir
+  command: semanage fcontext -a -t httpd_sys_content_t "/srv/planet(/.*)?"
+  when: gitcontext.stdout.find('httpd_sys_content_t') == -1
+  tags:
+  - config
+  - selinux
+
 #
 # This sets the default, it's safe to always run. 
 # Default quota for users is 2gb
