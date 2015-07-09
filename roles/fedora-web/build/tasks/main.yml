@@ -1,0 +1,56 @@
+- name: Install needed packages
+  yum: pkg={{ item }} state=present
+  with_items:
+  - python-setuptools
+  - python-genshi
+  - babel
+  tags:
+  - packages
+  - fedora-web
+
+- name: Create directories
+  file: state=directory
+        path=/srv/web/{{item}}
+        owner=apache group=apache mode=0755
+        setype=httpd_sys_content_t seuser=system_u
+  with_items:
+  - fedora-web
+  - fedoraproject.org
+  - boot.fedoraproject.org
+  - spins.fedoraproject.org
+  - talk.fedoraproject.org
+  - start.fedoraproject.org
+  - mirrors.fedoraproject.org
+  - fedoracommunity.org
+  - fudcon.fedoraproject.org
+  - getfedora.org
+  tags:
+  - fedora-web
+
+- name: Copy syncStatic script (stg)
+  when: env == "staging"
+  copy: >
+    src=syncStatic.stg.sh dest=/usr/local/bin/syncStatic user=root group=root
+    mode=0755
+
+- name: Copy syncStatic script (prod)
+  when: env == "production"
+  copy: >
+    src=syncStatic.sh dest=/usr/local/bin/syncStatic user=root group=root
+    mode=0755
+
+- name: Copy syncTranslations script
+  copy: >
+    src=syncTranslations.sh dest=/usr/local/bin/syncTranslations.sh user=root
+    group=root mode=0755
+
+# TODO: Cron jobs
+
+## Install the cron job
+#- name: Install the easyfix cronjob
+#  copy: >
+#    src=easyfix.cron dest=/etc/cron.d/easyfix.cron
+#    owner=root group=root mode=0644
+#  tags:
+#  - files
+#  - easyfix
