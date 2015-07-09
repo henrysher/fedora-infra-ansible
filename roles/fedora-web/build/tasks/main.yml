@@ -32,25 +32,31 @@
   copy: >
     src=syncStatic.stg.sh dest=/usr/local/bin/syncStatic user=root group=root
     mode=0755
+  tags:
+  - fedora-web
 
 - name: Copy syncStatic script (prod)
   when: env == "production"
   copy: >
     src=syncStatic.sh dest=/usr/local/bin/syncStatic user=root group=root
     mode=0755
+  tags:
+  - fedora-web
 
 - name: Copy syncTranslations script
   copy: >
     src=syncTranslations.sh dest=/usr/local/bin/syncTranslations.sh user=root
     group=root mode=0755
+  tags:
+  - fedora-web
 
-# TODO: Cron jobs
-
-## Install the cron job
-#- name: Install the easyfix cronjob
-#  copy: >
-#    src=easyfix.cron dest=/etc/cron.d/easyfix.cron
-#    owner=root group=root mode=0644
-#  tags:
-#  - files
-#  - easyfix
+- name: Install the syncStatic and syncTranslations cronjobs
+  copy: >
+    src={{item}}.cron dest=/etc/cron.d/{{item}}.cron
+    owner=root group=root mode=0644
+  with_items:
+  - syncStatic
+  - syncTranslations
+  tags:
+  - fedora-web
+  - cron
