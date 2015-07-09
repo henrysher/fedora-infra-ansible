@@ -51,7 +51,7 @@ class RunRootTask(tasks.BaseTaskHandler):
             else:
                 options.append(o)
         rel_path = path[len(mount_data['mountpoint']):]
-        res = (os.path.join(mount_data['path'], rel_path), path, mount_data['fstype'], ','.join(options))
+        res = ("%s/%s" % (mount_data['path'], rel_path), path, mount_data['fstype'], ','.join(options))
         return res
 
     def _read_config(self):
