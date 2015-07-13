@@ -68,7 +68,7 @@ def get_file_hash(full_path, hashtype):
 
 
 def verify_source(dir, expected_name, expected_hash, hashtype):
-    sources = os.listdir(dir)
+    sources = listdir(dir)
 
     if len(sources) == 0:
         raise Exception("No source file in %s" % dir)
@@ -87,6 +87,19 @@ def verify_source(dir, expected_name, expected_hash, hashtype):
         die("Invalid %s for %s: %s" % (hashtype.upper(), source_path, hash))
 
     return source_path
+
+
+def listdir(dir):
+    try:
+        for f in os.listdir(dir):
+            yield f
+
+    except OSError as e:
+        if e.errno == errno.ENOTDIR:
+            error("%s is not a directory" % dir)
+
+        else:
+            raise
 
 
 def makedirs(dir):
@@ -122,18 +135,18 @@ def main(root, link_hashtype, perform=False):
     except OSError as e:
         die(e)
 
-    for pkg_name in os.listdir(root):
-        for source_name in os.listdir(pkg_name):
+    for pkg_name in listdir(root):
+        for source_name in listdir(pkg_name):
             source_dir = os.path.join(pkg_name, source_name)
 
-            for hash in os.listdir(source_dir):
+            for hash in listdir(source_dir):
                 if hash in ('md5', 'sha512'):
                     # This is not a hash, but a new-style path containing the
                     # hashtype. Let's just verify what it contains
                     hashtype = hash
                     hashtype_dir = os.path.join(source_dir, hash)
 
-                    for hash in os.listdir(hashtype_dir):
+                    for hash in listdir(hashtype_dir):
                         try:
                             verify_source(os.path.join(hashtype_dir, hash),
                                           source_name, hash, hashtype)
