@@ -1,0 +1,42 @@
+---
+- name: install build packages
+  yum: name={{ item }} state=installed
+  with_items:
+  - rpm-build
+  - yum-utils
+  - rpmdevtools
+
+- name: delete rpmbuild directories
+  file: path={{ rpmbuild_dir }}/{{ item }}/ state=absent
+  with_items:
+  - RPMS
+  - SRPMS
+  - BUILD
+  - BUILDROOT
+
+- name: create rpmbuild directories
+  file: path={{ rpmbuild_dir }}/{{ item }}/ state=directory recurse=yes
+  with_items:
+  - SPECS
+  - SOURCES
+
+- name: upload SPEC
+  template: src=openshift.spec.j2 dest={{ rpmbuild_dir }}/SPECS/openshift.spec
+
+- name: install build dependencies
+  command: yum-builddep -y {{ rpmbuild_dir }}/SPECS/openshift.spec
+
+- name: download openshift tarball
+  get_url:
+    url: https://github.com/openshift/origin/archive/{{ openshift_commit }}/{{ openshift_archive }}
+    dest: "{{ rpmbuild_dir }}/SOURCES/{{ openshift_archive }}"
+
+- name: run build
+  command: rpmbuild -bb --clean {{ rpmbuild_dir }}/SPECS/openshift.spec
+
+- name: find the RPMs
+  command: find {{ rpmbuild_dir }}/RPMS/ -type f
+  register: find_rpms
+
+- name: install the RPMs
+  shell: yum -y localinstall {{ rpmbuild_dir }}/RPMS/x86_64/*openshift*.rpm

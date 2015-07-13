@@ -1,0 +1,68 @@
+ServerName {{ ansible_fqdn }}
+ProxyRequests Off
+Listen {{ proxy_port }}
+
+{% if proxy_debug %}
+## debugging
+## in prod we should decrease verbosity
+# DumpIOInput On
+# DumpIOOutput On
+LogLevel Debug
+# LogLevel dumpio:trace7
+{% endif %}
+
+<VirtualHost *:{{ proxy_port }}>
+    DocumentRoot /var/www/html
+
+    SSLEngine on
+    SSLCertificateFile {{ ssl_cert_file }}
+    SSLCertificateKeyFile {{ ssl_key_file }}
+
+    SSLProxyEngine On
+{% if proxy_machine_ca_file is defined %}
+    SSLProxyCACertificateFile {{ ssl_client_ca_file }}
+{% endif %}
+{% if proxy_machine_cert_file is defined %}
+    SSLProxyMachineCertificateFile {{ ssl_client_certkey_file }}
+{% endif %}
+
+    SetEnv proxy-sendchunked 1
+    ProxyRequests Off
+    <Location "/">
+        ProxyPass {{ proxy_dest_url }} connectiontimeout=30 timeout=300
+        ProxyPassReverse {{ proxy_dest_url }}
+    </Location>
+
+    # don't auth /oauth/token/request and /oauth/token/display
+    <ProxyMatch /oauth/token/.*>
+        Require all granted
+    </ProxyMatch>
+
+    # /oauth/authorize and /oauth/approve should be protected by Apache.
+    <ProxyMatch /oauth/a.*>
+        <If "-R '{{ ansible_default_ipv4.address }}' || -R '{{ docker_network }}'">
+            Require all granted
+            RequestHeader set X-Remote-User {{ ansible_hostname }}
+        </If>
+        <Else>
+            AuthType Kerberos
+            AuthName "{{ proxy_authname }}"
+            KrbMethodNegotiate on
+            KrbMethodK5Passwd {{ 'on' if proxy_enable_password_login else 'off' }}
+            KrbServiceName Any
+            KrbAuthRealms {{ kerberos_client_realm_name }}
+            Krb5Keytab {{ krb_keytab_file }}
+            Require valid-user
+            RequestHeader set X-Remote-User %{REMOTE_USER}s
+        </Else>
+        RequestHeader unset Authorization
+        RequestHeader unset WWW-Authenticate
+    </ProxyMatch>
+
+    # All other requests should use Bearer tokens.  These can only be verified by
+    # OpenShift so we need to let these requests pass through.
+    <ProxyMatch ^/oauth/>
+        SetEnvIfNoCase Authorization Bearer passthrough
+        Require env passthrough
+    </ProxyMatch>
+</VirtualHost>

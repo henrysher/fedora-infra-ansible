@@ -1,0 +1,19 @@
+---
+- name: pull buildroot base image
+  command: docker pull {{ buildroot_build.base_registry }}/{{ buildroot_build.base_image }}
+
+- name: tag buildroot base image
+  command: docker tag -f {{ buildroot_build.base_registry }}/{{ buildroot_build.base_image }} {{ buildroot_build.base_image_retag }}
+  when: buildroot_base_image_retag is defined
+
+- name: pull build image git repository
+  git:
+    repo: "{{ buildroot_build.git_url }}"
+    dest: "{{ buildroot_build.git_local_path }}"
+    version: "{{ buildroot_build.git_branch }}"
+    accept_hostkey: yes
+  register: buildroot_git_repo
+
+- name: build buildroot
+  command: docker build --no-cache=true --tag={{ buildroot_tag }} {{ buildroot_build.git_local_path }}/{{ buildroot_build.git_subdir }}
+  when: buildroot_git_repo.changed

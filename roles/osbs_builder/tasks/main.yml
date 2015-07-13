@@ -1,0 +1,139 @@
+---
+- name: install packages required by osbs
+  yum: name={{ item }} state=installed
+  with_items:
+  - bind-utils
+  - iptables-services
+  - bridge-utils
+  - dock
+  - docker
+  - docker-registry
+
+### docker service ###
+
+- name: ensure docker is running
+  service: name=docker state=started enabled=yes
+
+- name: configure docker
+  template: src=sysconfig-docker.j2 dest=/etc/sysconfig/docker
+  register: docker_sysconfig
+
+- name: restart docker after changing configuration
+  service: name=docker state=restarted
+  when: docker_sysconfig.changed
+
+### openshift service ###
+
+# Permanent rules aren't applied immediately. Starting with ansible 1.9,
+# these two rules can be merged into one with permanent=true immediate=true.
+- name: open openshift port in the firewall
+  firewalld: port={{ openshift_port }}/tcp state=enabled permanent={{ item }}
+  with_items:
+  - true
+  - false
+  when: not behind_auth_proxy and manage_firewall
+
+- name: close openshift port in the firewall
+  firewalld: port={{ openshift_port }}/tcp state=disabled permanent={{ item }}
+  with_items:
+  - true
+  - false
+  when: behind_auth_proxy and manage_firewall
+
+- name: modifications in /etc/sysconfig/openshift
+  copy: src=sysconfig-openshift-{{ item }} dest=/etc/sysconfig/openshift-{{ item }}
+  with_items:
+  - master
+  - node
+
+- name: generate basic openshift configuration and certificates
+  command: openshift start --write-config=/etc/openshift
+  args:
+    chdir: "{{ openshift_home }}"
+    creates: /etc/openshift/node-{{ ansible_fqdn }}/node-config.yaml
+
+- name: link /etc/openshift/node to actual node directory
+  file: path=/etc/openshift/node src=/etc/openshift/node-{{ ansible_fqdn }} force=yes state=link
+
+- name: configure openshift master
+  template: src=master.yaml.j2 dest=/etc/openshift/master/master-config.yaml
+  register: openshift_master_config
+
+- name: configure openshift node
+  template: src=node.yaml.j2 dest=/etc/openshift/node/node-config.yaml
+  register: openshift_node_config
+
+- name: generate cert for authenticating proxy - self-signed certificate
+  command: >
+    openssl req -new -nodes -x509
+    -subj "/C=CZ/ST=SelfSigned/L=SelfSigned/O=IT/CN={{ ansible_fqdn }}"
+    -days 3650
+    -keyout {{ proxy_auth_key_file }}
+    -out {{ proxy_auth_cert_file }}
+    -extensions v3_ca
+  args:
+    creates: "{{ proxy_auth_cert_file }}"
+  when: behind_auth_proxy and proxy_auth_generate_selfsigned
+  register: auth_proxy_cert
+
+- name: generate cert for authenticating proxy - convert privkey to rsa
+  command: openssl rsa -in {{ proxy_auth_key_file }} -out {{ proxy_auth_key_file }}
+  when: auth_proxy_cert.changed
+
+- name: restart openshift master after changing configuration
+  service: name=openshift-master state=restarted
+  when: openshift_master_config.changed
+
+- name: restart openshift node after changing configuration
+  service: name=openshift-node state=restarted
+  when: openshift_node_config.changed
+
+- name: ensure openshift is running
+  service: name=openshift-{{ item }} state=started enabled=yes
+  with_items:
+  - master
+  - node
+
+- name: wait for openshift to start accepting connections
+  wait_for: port={{ openshift_port }} timeout=30
+
+# Set up authorization policy. If we are behind proxy then assign authenticated
+# users the "edit" role which can start builds and watch build logs.
+# If we are not (=debug), add both authenticated and unauthenticated users to
+# the role.
+- name: openshift auth - clear
+  command: osadm policy remove-role-from-group edit system:authenticated system:unauthenticated
+  environment: osc_environment
+  register: command_result
+  failed_when: command_result.rc != 0 and "unable to locate RoleBinding" not in command_result.stderr
+
+- name: openshift auth - make everyone cluster admin
+  command: osadm policy add-role-to-group edit system:unauthenticated system:authenticated
+  environment: osc_environment
+  when: not behind_auth_proxy
+
+- name: openshift auth - authenticated users are cluster admins
+  command: osadm policy add-role-to-group edit system:authenticated
+  environment: osc_environment
+  when: behind_auth_proxy
+
+# Useful when using "osc" to inspect openshift state.
+- name: add OPENSHIFTCONFIG to .bashrc
+  lineinfile:
+    dest: "{{ ansible_env.HOME }}/.bashrc"
+    regexp: "export OPENSHIFTCONFIG="
+    line: "export OPENSHIFTCONFIG={{ kubeconfig_path }}"
+
+### buildroot image ###
+
+- name: pull buildroot image
+  command: docker pull {{ buildroot_pull.registry }}/{{ buildroot_pull.image }}
+  register: pull_buildroot
+  when: not buildroot_from_source
+
+- name: tag buildroot image
+  command: docker tag -f {{ buildroot_pull.registry }}/{{ buildroot_pull.image }} {{ buildroot_tag }}
+  when: pull_buildroot.changed
+
+- include: buildroot_from_source.yml
+  when: buildroot_from_source

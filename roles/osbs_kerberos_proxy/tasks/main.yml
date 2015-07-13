@@ -1,0 +1,89 @@
+---
+- name: ensure required packages are installed
+  yum: name={{ item }} state=present
+  with_items:
+  # kerberos
+  - krb5-workstation
+  # httpd
+  - httpd
+  - mod_ssl
+  - mod_auth_kerb
+  # selinux
+  - policycoreutils-python
+
+# Based on https://github.com/bennojoy/kerberos_client
+# BSD licensed
+- name: configure kerberos client
+  template: src=krb5.conf.j2 dest=/etc/krb5.conf
+
+- name: generate self-signed certificate
+  command: >
+    openssl req -new -nodes -x509
+    -subj "/C=CZ/ST=SelfSigned/L=SelfSigned/O=IT/CN={{ ansible_fqdn }}"
+    -days 3650
+    -keyout {{ ssl_key_file }}
+    -out {{ ssl_cert_file }}
+    -extensions v3_ca
+  args:
+    creates: "{{ ssl_cert_file }}"
+  when: ssl_generate_selfsigned
+  notify:
+  - restart httpd
+
+# TODO: The private key is world readable after it is generated but before this task finishes.
+# We should use umask/private directory to protect it.
+- name: set permissions on private key
+  file:
+    path: "{{ ssl_key_file }}"
+    state: file
+    owner: "{{ proxy_secrets_owner }}"
+    group: "{{ proxy_secrets_group }}"
+    mode: "{{ proxy_secrets_perms }}"
+
+- name: create proxy client cert+key file
+  shell: cat {{ proxy_machine_cert_file }} {{ proxy_machine_key_file}} > {{ ssl_client_certkey_file }}
+  when: proxy_machine_cert_file is defined
+  register: certkey_file
+  notify:
+  - restart httpd
+
+- name: set permissions on client cert+key
+  file:
+    path: "{{ ssl_client_certkey_file }}"
+    state: file
+    owner: "{{ proxy_secrets_owner }}"
+    group: "{{ proxy_secrets_group }}"
+    mode: "{{ proxy_secrets_perms }}"
+  when: certkey_file.changed
+
+- name: copy client CA file
+  command: cp {{ proxy_machine_ca_file }} {{ ssl_client_ca_file }}
+  when: proxy_machine_ca_file is defined
+
+- name: set permissions on kerberos keytab
+  file:
+    path: "{{ krb_keytab_file }}"
+    state: file
+    owner: "{{ proxy_secrets_owner }}"
+    group: "{{ proxy_secrets_group }}"
+    mode: "{{ proxy_secrets_perms }}"
+
+- name: configure httpd
+  template: src=httpd-krbproxy.conf.j2 dest=/etc/httpd/conf.d/krbproxy.conf
+  notify:
+  - restart httpd
+
+- name: allow proxy port in selinux
+  shell: semanage port -a -t http_port_t -p tcp {{ proxy_port }} || true
+
+# Permanent rules aren't applied immediately. Starting with ansible 1.9,
+# this ugliness can be replaced with permanent=true immediate=true.
+- name: open required ports in the firewall
+  firewalld: port={{ proxy_port }}/tcp state=enabled permanent={{ item }}
+  with_items:
+  - true
+  - false
+  when: manage_firewall
+
+- name: ensure httpd is running
+  service: name=httpd state=started enabled=yes
