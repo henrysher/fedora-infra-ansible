@@ -1,0 +1,77 @@
+- name: check/create instance
+  hosts: artboard.fedorainfracloud.org
+  user: fedora
+  sudo: True
+  gather_facts: False
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - /srv/private/ansible/vars.yml
+   - /srv/web/infra/ansible/vars/fedora-cloud.yml
+   - /srv/private/ansible/files/openstack/passwords.yml
+
+  tasks:
+  - include: "{{ tasks }}/persistent_cloud_new.yml"
+  - include: "{{ tasks }}/growroot_cloud.yml"
+
+- name: setup all the things
+  hosts: artboard.fedorainfracloud.org
+  user: fedora
+  sudo: True
+  gather_facts: True
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - /srv/private/ansible/vars.yml
+   - /srv/private/ansible/files/openstack/passwords.yml
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  pre_tasks:
+  - include: "{{ tasks }}/cloud_setup_basic.yml"
+  - name: set hostname (required by some services, at least postfix need it)
+    shell: "hostname {{inventory_hostname}}"
+
+  tasks:
+
+  - name: mount up disk of persistent storage
+    mount: name=/srv/persist src='LABEL=artboard' fstype=ext4 state=mounted
+
+  # packages needed
+  - name: add packages
+    yum: state=present name={{ item }}
+    with_items:
+    - rsync
+    - openssh-clients
+    - httpd
+    - httpd-tools
+    - php
+    - php-gd
+    - php-mysql
+    - cronie-noanacron
+
+  # packages needed to be gone
+  - name: erase packages
+    yum: state=absent name={{ item }}
+    with_items:
+    - cronie-anacron
+
+  - name: artboard backup thing
+    copy: src="{{ files }}/artboard/artboard-backup" dest=/etc/cron.daily/artboard-backup mode=0755
+
+  - name: make artboard subdir 
+    file: path=/srv/persist/artboard mode=0755 state=directory
+
+  - name: link artboard into /var/www/html
+    file: state=link src=/srv/persist/artboard path=/var/www/html/artboard
+
+  - name: add apache confs
+    copy: src="{{ files }}/artboard/{{ item }}" dest="/etc/httpd/conf.d/{{ item }}"  backup=true
+    with_items:
+    - artboard.conf
+    - redirect.conf
+    notify: restart httpd
+    
+  - name: startup apache
+    service: name=httpd state=started
+
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"
