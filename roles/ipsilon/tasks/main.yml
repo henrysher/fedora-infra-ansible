@@ -49,14 +49,28 @@
   copy: src=ipsilon-httpd.conf
         dest=/etc/httpd/conf.d/ipsilon.conf
 
+- name: create wellknown directory
+  file: path=/etc/ipsilon/wellknown state=directory
+        owner=ipsilon group=ipsilon mode=0755
+
 - name: copy persona private key
   copy: src={{ private }}/files/ipsilon/persona.key dest=/etc/ipsilon/persona.key
         owner=ipsilon group=ipsilon mode=0600
   when: env != "staging"
 
+- name: copy persona public key
+  copy: src=browserid dest=/etc/ipsilon/welknown/browserid
+        owner=ipsilon group=ipsilon mode=0644
+  when: env != "staging"
+
 - name: copy persona STG private key
   copy: src={{ private }}/files/ipsilon/persona.stg.key dest=/etc/ipsilon/persona.stg.key
         owner=ipsilon group=ipsilon mode=0600
+  when: env == "staging"
+
+- name: copy persona STG public key
+  copy: src=browserid.stg dest=/etc/ipsilon/wellknown/browserid
+        owner=ipsilon group=ipsilon mode=0644
   when: env == "staging"
 
 - name: set sebooleans so ipsilon can talk to the db
