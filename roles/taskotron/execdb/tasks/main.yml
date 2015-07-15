@@ -63,5 +63,14 @@
   notify:
     - restart httpd
 
+- name: generate alembic.ini
+  template: src=alembic.ini.j2 dest=/usr/share/execdb/alembic.ini owner=root group=root mode=0644
+
 - name: initialize execdb database
   shell: PROD='true' execdb init_db
+
+- name: initialize alembic
+  shell: PROD='true' execdb init_alembic
+
+- name: upgrade execdb database via alembic
+  shell: PROD='true' execdb upgrade_db
