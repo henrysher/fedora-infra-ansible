@@ -52,6 +52,7 @@
 - name: configure phabricator
   hosts: qadevel-stg
   user: root
+
   gather_facts: True
 
   vars_files:
@@ -85,3 +86,32 @@
 
   handlers:
    - include: "{{ handlers }}/restart_services.yml"
+
+- name: configure static sites for qadevel-stg
+  hosts: qadevel-stg
+  user: root
+  gather_facts: True
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  handlers:
+   - include: "{{ handlers }}/restart_services.yml"
+
+  tasks:
+    - name: ensure ServerName is set in ssl.conf
+      replace: dest=/etc/httpd/conf.d/ssl.conf regexp='^#ServerName .*$' replace='ServerName {{ external_hostname }}:443'
+
+    - name: ensure ServerName is set in httpd.conf
+      replace: dest=/etc/httpd/conf/httpd.conf regexp='^#ServerName .*$' replace='ServerName {{ external_hostname }}:443'
+
+
+    - name: create dirs for static sites
+      file: path={{ item.document_root }} state=directory owner=apache group=apache mode=1755
+      with_items: static_sites
+
+   - name: generate virtualhosts for static sites
+     template:  src={{ files }}/httpd/newvirtualhost.conf.j2 dest=/etc/httpd/conf.d/{{ item.name }}.conf owner=root group=root mode=0644
+     with_items: static_sites
