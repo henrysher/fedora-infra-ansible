@@ -18,8 +18,8 @@ from buildbot.buildslave import openstack
 
 c['slaves'] = [
                 {% for buildslave in buildslaves %}
-                {% if deployment_type == 'qadevel-stg' %}
-                BuildSlave("{{ buildslave }}", "{{ qadevel_stg_buildslave_password }}"),
+                {% if deployment_type == 'qa-stg' %}
+                BuildSlave("{{ buildslave }}", "{{ qa_stg_buildslave_password }}"),
                 {% endif %}
                 {% if deployment_type == 'qadevel-prod' %}
                 BuildSlave("{{ buildslave }}", "{{ qadevel_prod_buildslave_password }}"),
@@ -30,8 +30,8 @@ c['slaves'] = [
 {% if deployment_type == 'qadevel-prod' %}
 c['slaves'].append(
                     openstack.OpenStackLatentBuildSlave(
-                        "{{ qadevel_stg_buildslave_user }}",
-                        "{{ qadevel_stg_buildslave_password }}",
+                        "{{ qadevel_prod_buildslave_user }}",
+                        "{{ qadevel_prod_buildslave_password }}",
                         flavor=3,
                         image="5345b501-9264-4198-a185-eb5a2282fed0",
                         os_username="{{ taskotron_openstack_username }}",
@@ -131,7 +131,7 @@ c['schedulers'].append(ForceScheduler(
                             name="openstack-force",
                             builderNames=["openstack-builder"]))
 {% endif %}
-{% if deployment_type == 'qadevel-stg' %}
+{% if deployment_type == 'qa-stg' %}
 c['schedulers'].append(SingleBranchScheduler(
                             name="libtaskotron",
                             builderNames=['libtaskotron-builder'],
@@ -175,7 +175,7 @@ resultsdb_api_factory = create_test_factory('resultsdb_api')
 fake_fedorainfra_factory = create_test_factory('fake_fedorainfra')
 {% endif %}
 
-{% if deployment_type == 'qadevel-stg' %}
+{% if deployment_type == 'qa-stg' %}
 def create_test_factory(repo_name, func=True):
     factory = BuildFactory()
     factory.addStep(Git(repourl=Interpolate('{{ repo_base }}/%s.git' % repo_name),
@@ -216,11 +216,11 @@ c['builders'].append(
 
 c['builders'].append(
     BuilderConfig(name="openstack-builder",
-      slavenames=["{{ qadevel_stg_buildslave_user }}"],
+      slavenames=["{{ qa_stg_buildslave_user }}"],
       factory=trigger_factory))
 {% endif %}
 
-{% if deployment_type == 'qadevel-stg' %}
+{% if deployment_type == 'qa-stg' %}
 c['builders'].append(
     BuilderConfig(name="libtaskotron-builder",
       slavenames=[{% for buildslave in buildslaves %}"{{ buildslave }}",{% endfor %}],
@@ -241,8 +241,8 @@ from buildbot.status.web import authz, auth
 authz_cfg=authz.Authz(
     # change any of these to True to enable; see the manual for more
     # options
-    {% if deployment_type == 'qadevel-stg' %}
-    auth=auth.BasicAuth([("{{ qadevel_stg_buildbot_master_user }}","{{ qadevel_stg_buildbot_master_password }}")]),
+    {% if deployment_type == 'qa-stg' %}
+    auth=auth.BasicAuth([("{{ qa_stg_buildbot_master_user }}","{{ qa_stg_buildbot_master_password }}")]),
     {% endif %}
     {% if deployment_type == 'qadevel-prod' %}
     auth=auth.BasicAuth([("{{ qadevel_prod_buildbot_master_user }}","{{ qadevel_prod_buildbot_master_password }}")]),
