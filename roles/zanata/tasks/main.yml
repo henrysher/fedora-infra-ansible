@@ -1,0 +1,31 @@
+- name: Install needed packages
+  yum: pkg={{ item }} state=present
+  with_items:
+  - zanata-python-client
+  tags:
+  - packages
+  - zanata
+
+- name: Create directories
+  file: state=directory
+        path={{item}}
+        owner=apache group=apache mode=0550
+  with_items:
+  - /var/lib/zanata
+  - /var/lib/zanata/.config
+  tags:
+  - zanata
+
+- name: Zanata auth config
+  template: >
+    src=zanata.ini dest=/var/lib/zanata/.config/zanata.ini owner=apache group=apache
+    mode=0600
+  tags:
+  - zanata
+
+- name: Zanata default config
+  copy: >
+    src=sample.xml dest=/var/lib/zanata/sample.xml owner=apache group=apache
+    mode=0600
+  tags:
+  - zanata
