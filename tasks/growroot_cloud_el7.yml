@@ -1,0 +1,30 @@
+- name: add infra repo 
+  action: get_url url=http://infrastructure.fedoraproject.org/el/infrastructure.repo dest=/etc/yum.repos.d/
+  when: is_rhel is defined
+  tags:
+  - config
+
+- name: install cloud-utils
+  yum: name=cloud-utils state=present
+  tags:
+  - packages
+
+- name: growpart the first partition (/) to full size
+  command: growpart /dev/vda 1
+  register: growpart
+  always_run: true
+  changed_when: "growpart.rc != 1"
+  failed_when: growpart.rc == 2
+   
+- name: reboot the box
+  command: /sbin/reboot
+  when: growpart.rc == 0
+  ignore_errors: true
+
+- name: wait for it to come back (should be quick)
+  local_action: wait_for host={{ inventory_hostname }} port=22 delay=10 timeout=120
+  when: growpart.rc == 0
+
+- name: resize the /dev/vda 1 fs
+  command: xfs_growfs /
+  when: growpart.rc == 0
