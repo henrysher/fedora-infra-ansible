@@ -4,7 +4,7 @@
 # NOTE: most of these vars_path come from group_vars/mirrorlist or from hostvars
 
 - name: make taskotron-ci staging
-  hosts: qadevel-stg
+  hosts: qa-stg
   user: root
   gather_facts: False
 
@@ -20,7 +20,7 @@
   - include: "{{ handlers }}/restart_services.yml"
 
 - name: make the box be real
-  hosts: qadevel-stg
+  hosts: qa-stg
   user: root
   gather_facts: True
 
@@ -50,7 +50,7 @@
    - include: "{{ handlers }}/restart_services.yml"
 
 - name: configure phabricator
-  hosts: qadevel-stg
+  hosts: qa-stg
   user: root
 
   gather_facts: True
@@ -68,8 +68,8 @@
    - include: "{{ handlers }}/restart_services.yml"
 
 
-- name: configure qadevel buildbot CI
-  hosts: qadevel-stg
+- name: configure qa stg buildbot CI
+  hosts: qa-stg
   user: root
   gather_facts: True
 
@@ -87,8 +87,8 @@
   handlers:
    - include: "{{ handlers }}/restart_services.yml"
 
-- name: configure static sites for qadevel-stg
-  hosts: qadevel-stg
+- name: configure static sites for qa-stg
+  hosts: qa-stg
   user: root
   gather_facts: True
 
@@ -103,20 +103,20 @@
       notify:
         - restart httpd
       tags:
-        - qadevelstaticsites
+        - qastaticsites
 
     - name: ensure ServerName is set in httpd.conf
       replace: dest=/etc/httpd/conf/httpd.conf regexp='^#ServerName .*$' replace='ServerName {{ external_hostname }}:443'
       notify:
         - restart httpd
       tags:
-        - qadevelstaticsites
+        - qastaticsites
 
     - name: create dirs for static sites
       file: path={{ item.document_root }} state=directory owner=apache group=apache mode=1755
       with_items: static_sites
       tags:
-        - qadevelstaticsites
+        - qastaticsites
 
     - name: generate virtualhosts for static sites
       template:  src={{ files }}/httpd/newvirtualhost.conf.j2 dest=/etc/httpd/conf.d/{{ item.name }}.conf owner=root group=root mode=0644
@@ -124,7 +124,7 @@
       notify:
         - restart httpd
       tags:
-        - qadevelstaticsites
+        - qastaticsites
 
   handlers:
      - include: "{{ handlers }}/restart_services.yml"
