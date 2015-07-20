@@ -235,9 +235,12 @@
   - restart apache
 
 - name: Install the wsgi file
-  template: src=pagure.wsgi
-            dest=/var/www/pagure.wsgi
+  template: src={{ item }}
+            dest=/var/www/{{ item }}
             owner=git group=git mode=0644
+  with_items:
+  - pagure.wsgi
+  - docs_pagure.wsgi
   tags:
   - config
   - web
