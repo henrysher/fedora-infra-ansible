@@ -255,8 +255,6 @@ class AccountSystem(BaseClient):
             103551: 'fschwarz@fedoraproject.org',
             # Martin Holec: martix@martix.names
             137561: 'mholec@redhat.com',
-            # Lokesh Mandvekar: lsm5@switzerlandmail.ch
-            169250: 'lsm5@fedoraproject.org',
             # John Dulaney: j_dulaney@live.com
             149140: 'jdulaney@fedoraproject.org',
             # Niels de Vos: niels@nixpanic.net
