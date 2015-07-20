@@ -1,0 +1,65 @@
+- name: ensure git storage path exists
+  file: path="/var/lib/dist-git/cache/lookaside" state=directory
+- file: path="/var/lib/dist-git/git/pkgs-git-repos-list" state=directory
+- file: path="/var/lib/dist-git/git/rpms/" state=directory
+
+- copy: src="dist-git-epel-7.repo" dest="/etc/yum.repos.d/"
+
+- name: install packages
+  yum: state=present name={{ item }}
+  with_items:
+  - epel-release
+  - cgit
+  - dist-git
+  - dist-git-selinux
+  - copr-dist-git
+
+- name: install packages which should be added as requirements
+  yum: state=present name={{ item }}
+  with_items:
+  - pyrpkg
+
+# TODO: remove, this should be done by `dist-git` package
+- group: name="cvsadmin" state=present
+
+- name: create user for git repos
+  user: name="copr-dist-git" groups=cvsadmin,packager
+
+- name: create user for copr-git service
+  user: name="copr-service" groups=apache,packager generate_ssh_key=yes ssh_key_bits=2048 ssh_key_file=.ssh/id_rsa
+
+# set ssh key, so that copr-service could access gitolite
+- name: read pub key into var
+  command: cat /home/copr-service/.ssh/id_rsa.pub
+  register: cat_pubkey
+
+- set_fact: pubkey="{{cat_pubkey.stdout|join('')}}"
+
+- debug: msg={{pubkey}}
+
+- name: prepare authorized key, so copr-service could interact with gitolite
+  authorized_key: user="copr-dist-git" key="{{pubkey}}" key_options="command=\"HOME=/var/lib/dist-git/git/ /usr/share/gitolite3/gitolite-shell $USER \"'"
+
+## keys done
+- name: install config for httpd to serve lookaside openly
+  copy: src="httpd/lookaside.conf" dest="/etc/httpd/conf.d/dist-git/lookaside.conf"
+  tags:
+  - config
+  notify:
+  - restart httpd
+
+- lineinfile: dest=/etc/cgitrc regexp="^project-list=" line="project-list=/var/lib/dist-git/git/pkgs-git-repos-list"
+- lineinfile: dest=/etc/cgitrc regexp="^scan-path=" line="scan-path=/var/lib/dist-git/git/rpms/"
+
+- name: install systemd unit
+  copy: src="systemd/copr_distgit_updater.service" dest="/etc/systemd/system/"
+
+- command: "systemctl daemon-reload"
+
+- name: ensure that services are enabled and started
+  service: name="{{ item }}" enabled=yes state=started
+  with_items:
+  - "httpd"
+  - "dist-git.socket"
+  - "copr_distgit_updater"
+
