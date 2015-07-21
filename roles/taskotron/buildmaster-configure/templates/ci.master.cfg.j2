@@ -98,7 +98,7 @@ from buildbot.schedulers.forcesched import ForceScheduler
 from buildbot.changes import filter
 c['schedulers'] = []
 
-{% if deployment_type == 'qadevel-prod' %}
+{# {% if deployment_type == 'qadevel-prod' %} #}
 c['schedulers'].append(SingleBranchScheduler(
                             name="trigger-scheduler",
                             change_filter=filter.ChangeFilter(project='trigger', branch='develop'),
@@ -130,6 +130,7 @@ c['schedulers'].append(ForceScheduler(
 c['schedulers'].append(ForceScheduler(
                             name="openstack-force",
                             builderNames=["openstack-builder"]))
+{#
 {% endif %}
 {% if deployment_type == 'qa-stg' %}
 c['schedulers'].append(SingleBranchScheduler(
@@ -144,6 +145,7 @@ c['schedulers'].append(ForceScheduler(
                             builderNames=["libtaskotron-builder"]))
 
 {% endif %}
+#}
 ####### BUILDERS
 
 # The 'builders' list defines the Builders, which tell Buildbot how to perform a build:
@@ -156,7 +158,9 @@ from buildbot.steps.shell import ShellCommand
 from buildbot.process.properties import Interpolate
 
 
+{#
 {% if deployment_type == 'qadevel-prod' %}
+#}
 def create_test_factory(repo_name, func=True):
     factory = BuildFactory()
     factory.addStep(Git(repourl=Interpolate('https://bitbucket.org/fedoraqa/%s.git' % repo_name),
@@ -173,6 +177,7 @@ libtaskotron_factory = create_test_factory('libtaskotron')
 resultsdb_factory = create_test_factory('resultsdb')
 resultsdb_api_factory = create_test_factory('resultsdb_api')
 fake_fedorainfra_factory = create_test_factory('fake_fedorainfra')
+{#
 {% endif %}
 
 {% if deployment_type == 'qa-stg' %}
@@ -189,6 +194,7 @@ def create_test_factory(repo_name, func=True):
 
 libtaskotron_factory = create_test_factory('LTRN/libtaskotron')
 {% endif %}
+#}
 from buildbot.config import BuilderConfig
 
 c['builders'] = []
