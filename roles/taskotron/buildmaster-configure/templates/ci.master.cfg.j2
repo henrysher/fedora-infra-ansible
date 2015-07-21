@@ -57,7 +57,9 @@ from buildbot.changes.gitpoller import GitPoller
 interval = {{ buildslave_poll_interval }}
 
 c['change_source'] = []
+{#
 {% if deployment_type == 'qadevel-prod' %}
+#}
 c['change_source'].append(GitPoller(
         'https://bitbucket.org/fedoraqa/taskotron-trigger.git',
         workdir='gitpoller-workdir-trigger', branch='develop',
@@ -87,7 +89,9 @@ c['change_source'].append(GitPoller(
         workdir='gitpoller-workdir-fake_fedorainfra', branch='develop',
         pollinterval=interval,
         project='fake_fedorainfra'))
+{#
 {% endif %}
+#}
 ####### SCHEDULERS
 
 # Configure the Schedulers, which decide how to react to incoming changes.  In this
@@ -198,7 +202,9 @@ libtaskotron_factory = create_test_factory('LTRN/libtaskotron')
 from buildbot.config import BuilderConfig
 
 c['builders'] = []
+{#
 {% if deployment_type == 'qadevel-prod' %}
+#}
 c['builders'].append(
     BuilderConfig(name="trigger-builder",
       slavenames=[{% for buildslave in buildslaves %}"{{ buildslave }}",{% endfor %}],
@@ -224,6 +230,7 @@ c['builders'].append(
     BuilderConfig(name="openstack-builder",
       slavenames=["{{ qa_stg_buildslave_user }}"],
       factory=trigger_factory))
+{#
 {% endif %}
 
 {% if deployment_type == 'qa-stg' %}
@@ -233,6 +240,7 @@ c['builders'].append(
       factory=libtaskotron_factory))
 
 {% endif %}
+#}
 ####### STATUS TARGETS
 
 # 'status' is a list of Status Targets. The results of each build will be
