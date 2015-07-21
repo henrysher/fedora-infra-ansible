@@ -49,6 +49,8 @@ cd /srv/web/fedora-web
 
 /usr/bin/git pull -q --ff-only || exit 1
 build spins.fedoraproject.org
+build labs.fedoraproject.org
+build arm.fedoraproject.org
 
 pushd mirrors.fedoraproject.org > /dev/null
 rsync -qa --delete-after --delay-updates . /srv/web/mirrors.fedoraproject.org/
@@ -66,5 +68,3 @@ build fedoracommunity.org
 build fudcon.fedoraproject.org
 build start.fedoraproject.org
 build getfedora.org
-build labs.fedoraproject.org
-build arm.fedoraproject.org
