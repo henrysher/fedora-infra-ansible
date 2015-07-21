@@ -26,5 +26,29 @@
   # this is how you include other task lists
   - include: "{{ tasks }}/motd.yml"
 
+  - name: install packager tools (yum)
+    action: yum state=present pkg={{ item }}
+    with_items:
+    - fedora-packager
+    when: ansible_distribution_major_version|int < 22
+    tags:
+    - packages
+
+  - name: install packager tools (dnf)
+    action: dnf state=present pkg={{ item }}
+    with_items:
+    - fedora-packager
+    when: ansible_distribution_major_version|int > 21
+    tags:
+    - packages
+
+  - name: allow packagers to use mock
+    lineinfile: dest=/etc/pam.d/mock line="{{ item }} sufficient pam_succeed_if.so user ingroup packager use_uid quiet"
+    with_items:
+    - account
+    - auth
+    tags:
+    - config
+
   handlers:
   - include: "{{ handlers }}/restart_services.yml"
