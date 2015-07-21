@@ -1142,6 +1142,10 @@
     register: TENANT_ID
   - shell: source /root/keystonerc_admin && nova quota-update --instances 40 --cores 80 --ram 300000 --floating-ips 10 --security-groups 20 {{ TENANT_ID.stdout }}
 
+#
+# Note that we set manually the amount of volumes for this tenant to 20 in the web interface. 
+# nova quota-update cannot do so.
+#
   - shell: source /root/keystonerc_admin && keystone tenant-list | grep 'persistent ' | awk '{print $2}'
     always_run: true
     changed_when: false
