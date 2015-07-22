@@ -40,6 +40,10 @@
   - apache
   - { role: bodhi2/base, when: "inventory_hostname.startswith('bodhi0')" }
   - { role: fedmsg/base,  when: "inventory_hostname.startswith('bodhi0')" }
+  - role: nfs/client
+    mnt_dir: '/mnt/koji'
+    nfs_src_dir: 'fedora_koji'
+    when: datacenter == 'staging'
 
   tasks:
   - include: "{{ tasks }}/yumrepos.yml"
