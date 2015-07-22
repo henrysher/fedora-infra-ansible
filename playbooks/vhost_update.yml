@@ -1,6 +1,7 @@
 # This playboook updates a virthost and all it's guests. 
 #
 # requires --extra-vars="target=somevhostname yumcommand=update"
+# Might add nodns=true at extra-vars
 #
 
 - name: find instances
@@ -19,6 +20,7 @@
 
 # Call out to another playbook.  Disable any proxies that may live here
 - include: update-proxy-dns.yml status=disable proxies=myvms_new:&proxies
+  when: nodns != "true"
 
 - name: update the system
   hosts: "{{ target }}:myvms_new"

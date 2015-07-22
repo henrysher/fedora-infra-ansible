@@ -2,6 +2,7 @@
 # This playbook lets you safely reboot a virthost and all it's guests. 
 # 
 # requires --extra-vars="target=somevhost fqdn"
+# Might add nodns=true to the extra vars
 
 #General overview:
 # talk to the vhost
@@ -34,6 +35,7 @@
 
 # Call out to another playbook.  Disable any proxies that may live here
 - include: update-proxy-dns.yml status=disable proxies=myvms_new:&proxies
+  when: nodns != "true"
 
 - name: halt instances
   hosts: myvms_new
@@ -99,6 +101,7 @@
 
 # Call out to that dns playbook.  Put proxies back in now that they're back
 - include: update-proxy-dns.yml status=enable proxies=myvms_new:&proxies
+  when: nodns != "true"
 
 - name: Fix unbound if necessary
   # intersection - hosts that are in our dynamic group and also in unbound-dns
