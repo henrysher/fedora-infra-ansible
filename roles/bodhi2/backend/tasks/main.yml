@@ -11,13 +11,6 @@
 - name: add the ftpsync update-fullfilelist script
   copy: src=update-fullfilelist dest=/usr/local/bin/update-fullfilelist owner=ftpsync group=ftpsync mode=555
 
-- name: add masher group
-  group: name=masher gid=751 system=yes state=present
-
-# masher user 751
-- name: add masher user as 751 - and group
-  user: name=masher uid=751 group=masher home=/home/masher groups=mock,ftpsync
-
 - name: install needed packages
   yum: pkg={{ item }} state=present
   with_items:
@@ -26,6 +19,13 @@
   - mash
   tags:
   - packages
+
+- name: add masher group
+  group: name=masher gid=751 system=yes state=present
+
+# masher user 751
+- name: add masher user as 751 - and group
+  user: name=masher uid=751 group=masher home=/home/masher groups=mock,ftpsync
 
 - name: install bodhi-masher /etc/httpd/conf.d/bodhi.conf file
   copy: >
