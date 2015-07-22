@@ -2,7 +2,7 @@
 # This playbook lets you safely reboot a virthost and all it's guests. 
 # 
 # requires --extra-vars="target=somevhost fqdn"
-# Might add nodns=true to the extra vars
+# Might add nodns=true or nonagios=true to the extra vars
 
 #General overview:
 # talk to the vhost
@@ -48,6 +48,7 @@
     nagios: action=downtime minutes=30 service=host host={{ inventory_hostname_short }}{{ env_suffix }}
     delegate_to: noc01.phx2.fedoraproject.org
     ignore_errors: true
+    when: nonagios != "true"
 
   - name: halt the vm instances - to poweroff
     command: /sbin/shutdown -h 1
@@ -73,6 +74,7 @@
     nagios: action=downtime minutes=60 service=host host={{ inventory_hostname_short }}{{ env_suffix }}
     delegate_to: noc01.phx2.fedoraproject.org
     ignore_errors: true
+    when: nonagios != "true"
 
   - name: reboot the virthost
     command: /sbin/shutdown -r 1
@@ -98,6 +100,7 @@
     nagios: action=unsilence service=host host={{ inventory_hostname_short }}{{ env_suffix }}
     delegate_to: noc01.phx2.fedoraproject.org
     ignore_errors: true
+    when: nonagios != "true"
 
 # Call out to that dns playbook.  Put proxies back in now that they're back
 - include: update-proxy-dns.yml status=enable proxies=myvms_new:&proxies
