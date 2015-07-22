@@ -35,7 +35,7 @@
 
 # Call out to another playbook.  Disable any proxies that may live here
 - include: update-proxy-dns.yml status=disable proxies=myvms_new:&proxies
-  when: nodns != "true"
+  when: not "true" in nodns
 
 - name: halt instances
   hosts: myvms_new
@@ -48,7 +48,7 @@
     nagios: action=downtime minutes=30 service=host host={{ inventory_hostname_short }}{{ env_suffix }}
     delegate_to: noc01.phx2.fedoraproject.org
     ignore_errors: true
-    when: nonagios != "true"
+    when: not "true" in nonagios
 
   - name: halt the vm instances - to poweroff
     command: /sbin/shutdown -h 1
@@ -74,7 +74,7 @@
     nagios: action=downtime minutes=60 service=host host={{ inventory_hostname_short }}{{ env_suffix }}
     delegate_to: noc01.phx2.fedoraproject.org
     ignore_errors: true
-    when: nonagios != "true"
+    when: not "true" in nonagios
 
   - name: reboot the virthost
     command: /sbin/shutdown -r 1
@@ -100,11 +100,11 @@
     nagios: action=unsilence service=host host={{ inventory_hostname_short }}{{ env_suffix }}
     delegate_to: noc01.phx2.fedoraproject.org
     ignore_errors: true
-    when: nonagios != "true"
+    when: not "true" in nonagios
 
 # Call out to that dns playbook.  Put proxies back in now that they're back
 - include: update-proxy-dns.yml status=enable proxies=myvms_new:&proxies
-  when: nodns != "true"
+  when: not "true" in nodns
 
 - name: Fix unbound if necessary
   # intersection - hosts that are in our dynamic group and also in unbound-dns
