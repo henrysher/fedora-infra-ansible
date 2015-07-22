@@ -217,30 +217,12 @@
   tags:
   - config
 
-- name: setup basic /etc/bodhi/ contents
-  template: >
-    src="staging.ini.j2"
-    dest="/etc/bodhi/production.ini"
+- name: have the masher own the bodhi config
+  file: >
+    path="/etc/bodhi/production.ini"
     owner=masher
     group=masher
-    mode=0600
-  when: inventory_hostname.startswith('bodhi') and env == 'staging'
-  notify:
-  - restart httpd
-  tags:
-  - config
-  - bodhi
-
-- name: setup basic /etc/bodhi/ contents
-  template: >
-    src="production.ini.j2"
-    dest="/etc/bodhi/production.ini"
-    owner=masher
-    group=masher
-    mode=0600
-  when: inventory_hostname.startswith('bodhi') and env == 'production'
-  notify:
-  - restart httpd
+  when: inventory_hostname.startswith('bodhi')
   tags:
   - config
   - bodhi
