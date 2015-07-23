@@ -35,7 +35,7 @@
 
 # Call out to another playbook.  Disable any proxies that may live here
 - include: update-proxy-dns.yml status=disable proxies=myvms_new:&proxies
-  when: not "true" in nodns
+  when: nodns is not defined or not "true" in nodns
 
 - name: halt instances
   hosts: myvms_new
@@ -48,7 +48,7 @@
     nagios: action=downtime minutes=30 service=host host={{ inventory_hostname_short }}{{ env_suffix }}
     delegate_to: noc01.phx2.fedoraproject.org
     ignore_errors: true
-    when: not "true" in nonagios
+    when: nonagios is not defined or not "true" in nonagios
 
   - name: halt the vm instances - to poweroff
     command: /sbin/shutdown -h 1
@@ -74,7 +74,7 @@
     nagios: action=downtime minutes=60 service=host host={{ inventory_hostname_short }}{{ env_suffix }}
     delegate_to: noc01.phx2.fedoraproject.org
     ignore_errors: true
-    when: not "true" in nonagios
+    when: nonagios is not defined or not "true" in nonagios
 
   - name: reboot the virthost
     command: /sbin/shutdown -r 1
