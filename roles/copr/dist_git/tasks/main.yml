@@ -41,8 +41,8 @@
 
 - name: prepare authorized key, so copr-service could interact with gitolite
   authorized_key: user="copr-dist-git" key="{{pubkey}}" key_options="command=\"HOME=/var/lib/dist-git/git/ /usr/share/gitolite3/gitolite-shell $USER \"'"
-
 ## keys done
+
 - name: install config for copr-dist-git
   template: src=copr-dist-git.conf.j2 dest=/etc/copr/copr-dist-git.conf mode=0644
 
@@ -58,6 +58,10 @@
   notify:
   - restart httpd
 
+- copy: src="dist-git.conf" dest="/etc/dist-git/dist-git.conf" mode=0644
+
+- copy: src="ssh_config" dest="/home/copr-service/.ssh/config" owner=copr-service group=cdic mode=0600
+
 - lineinfile: dest=/etc/cgitrc regexp="^project-list=" line="project-list=/var/lib/dist-git/git/pkgs-git-repos-list"
 - lineinfile: dest=/etc/cgitrc regexp="^scan-path=" line="scan-path=/var/lib/dist-git/git/rpms/"
 
@@ -65,6 +69,8 @@
   copy: src="systemd/copr_distgit_updater.service" dest="/etc/systemd/system/"
 
 - command: "systemctl daemon-reload"
+
+- command: "/usr/share/dist-git/dist_git_sync.sh"
 
 - name: ensure that services are enabled and started
   service: name="{{ item }}" enabled=yes state=started
