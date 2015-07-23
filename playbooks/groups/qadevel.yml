@@ -3,7 +3,7 @@
 # NOTE: make sure there is room/space for this server on the vmhost
 # NOTE: most of these vars_path come from group_vars/mirrorlist or from hostvars
 
-- name: make taskotron-ci staging
+- name: ensure qadevel instance is created
   hosts: qadevel
   user: root
   gather_facts: False
@@ -49,7 +49,26 @@
   handlers:
    - include: "{{ handlers }}/restart_services.yml"
 
-- name: configure taskotron-ci master
+- name: configure phabricator
+  hosts: qadevel
+  user: root
+
+  gather_facts: True
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  roles:
+   - { role: mariadb_server, tags: ['mariadb'] }
+   - { role: phabricator, tags: ['phabricator'] }
+
+  handlers:
+   - include: "{{ handlers }}/restart_services.yml"
+
+
+- name: configure qadevel buildmaster
   hosts: qadevel
   user: root
   gather_facts: True
@@ -66,7 +85,7 @@
   handlers:
    - include: "{{ handlers }}/restart_services.yml"
 
-- name: configure taskotron-ci local slave
+- name: configure qadevel local slave
   hosts: qadevel
   user: root
   gather_facts: True
