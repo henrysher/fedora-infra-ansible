@@ -1,9 +1,9 @@
 - include: "mount_fs.yml"
 
 - name: ensure git storage path exists
-  file: path="/var/lib/dist-git/cache/lookaside" state=directory
-- file: path="/var/lib/dist-git/git/pkgs-git-repos-list" state=directory
-- file: path="/var/lib/dist-git/git/rpms/" state=directory
+  file: path="/var/lib/dist-git/git" state=directory group=packager
+#- file: path="/var/lib/dist-git/git/pkgs-git-repos-list" state=file group=packager
+# - file: path="/var/lib/dist-git/git/rpms/" state=directory group=packager
 
 - copy: src="dist-git-epel-7.repo" dest="/etc/yum.repos.d/"
 
@@ -45,6 +45,11 @@
 ## keys done
 - name: install config for copr-dist-git
   template: src=copr-dist-git.conf.j2 dest=/etc/copr/copr-dist-git.conf
+
+- name: set git variables for copr-service user
+  copr: src=".gitconfig" dest="/home/copr-service/.gitconfig"
+
+- command: 'git config --global user.name "Copr dist git"'
 
 - name: install config for httpd to serve lookaside openly
   copy: src="httpd/lookaside.conf" dest="/etc/httpd/conf.d/dist-git/lookaside.conf"
