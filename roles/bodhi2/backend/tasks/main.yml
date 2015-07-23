@@ -232,3 +232,24 @@
 
 - name: make a mnt/koji link
   file: state=link src=/mnt/fedora_koji dest=/mnt/koji
+
+- name: copy over the mash configs
+  copy: >
+    src="{{ item }}.mash"
+    dest="/etc/bodhi/{{ item }}.mash"
+    owner=root
+    group=root
+    mode=0644
+  with_items:
+  - f23-updates
+  - f23-updates-testing
+  - f22-updates
+  - f22-updates-testing
+  - f21-updates
+  - f21-updates-testing
+  - epel7
+  - epel7-testing
+  - el6-epel
+  - el6-epel-testing
+  tags:
+  - config
