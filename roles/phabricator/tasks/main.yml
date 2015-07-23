@@ -33,6 +33,12 @@
     login_host: "127.0.0.1"
   delegate_to: "{{ inventory_hostname }}"
 
+- name: ensure backup directory exists
+  file: path={{ backup_dir }} state=directory owner=root group=root mode=1755
+
+- name: generate phabricator mysql backup cronjob
+  template: src=phabricator-mariadb-dump.cron.j2 dest=/etc/cron.d/phabricator-mariadb-dump.cron owner=root group=root mode=0644
+
 - name: create phabricator daemon user
   user: name={{ phabricator_daemon_user }}
 
