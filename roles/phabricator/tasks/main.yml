@@ -132,6 +132,16 @@
       group: root
       mode: 0600
 
+- name: Install the SSL intermediate cert
+  copy:
+      src: "{{ private}}/files/httpd/{{ sslintermediatecertfile }}"
+      dest: /etc/pki/tls/private/{{ sslintermediatecertfile }}
+      owner: root
+      group: root
+      mode: 0600
+  when: sslintermediatecertfile
+
+
 - name: copy phabricator httpd config
   template: src=phabricator.conf.j2 dest=/etc/httpd/conf.d/phabricator.conf owner=root group=root mode=0644
   notify:
