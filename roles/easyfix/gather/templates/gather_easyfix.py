@@ -66,7 +66,11 @@ class MediaWiki(fedora.client.Wiki):
     https://fedorapeople.org/gitweb?p=till/public_git/cnucnu.git;a=summary
     """
 
+{% if env == 'staging' %}
+    def __init__(self, base_url='https://stg.fedoraproject.org/w/', *args,
+{% else %}
     def __init__(self, base_url='https://fedoraproject.org/w/', *args,
+{% endif %}
         **kwargs):
         """ Instanciate a Mediawiki client.
         :arg base_url: base url of the mediawiki to query.
@@ -151,7 +155,11 @@ def gather_bugzilla_easyfix():
 def gather_project():
     """ Retrieve all the projects which have subscribed to this idea.
     """
+{% if env == 'staging' %}
+    wiki = MediaWiki(base_url='https://stg.fedoraproject.org/w/')
+{% else %}
     wiki = MediaWiki(base_url='https://fedoraproject.org/w/')
+{% endif %}
     page = wiki.get_pagesource("Easyfix")
     projects = []
     for row in page.split('\n'):
