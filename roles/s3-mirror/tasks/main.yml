@@ -1,0 +1,41 @@
+- name: Create s3-mirror group
+  group: gid=442 name=s3-mirror
+
+- name: Create s3-mirror user
+  user: group=s3-mirror groups=mirrors,mirrors2,apache name=s3-mirror comment="s3-mirror user" home=/home/s3-mirror shell=/bin/bash
+
+- name: s3cfg file
+  template: src=s3cfg dest=/home/s3-mirror/.s3cfg owner=s3-mirror group=s3-mirror mode=0600
+
+- name: Install packages
+  yum: pkg={{ item }} state=installed
+  with_items:
+  - mirrormanager-client
+  - s3cmd
+
+- name: Create needed directories
+  file: path={{item}} owner=s3-mirror group=s3-mirror state=directory mode=0755
+  with_items:
+  - /var/log/s3-mirror
+  - /var/lib/s3-mirror
+  - /var/run/s3-mirror
+  - /var/log/s3-mirror-logs
+  - /var/log/s3-mirror-logs/bucket
+
+- name: s3sync and symmetric_diff scripts
+  copy: src={{item}} dest=/usr/local/bin/{{item}} owner=s3-mirror group=s3-mirror mode=0755
+  with_items:
+  - s3sync
+  - symmetric_diff
+
+- name: s3-mirror-excludes.txt
+  copy: src=s3-excludes.txt dest=/usr/local/etc/s3-mirror-excludes.txt owner=s3-mirror group=s3-mirror mode=0644
+
+- name: s3-mirror logrotate
+  copy: src=s3-mirror.logrotate dest=/etc/logrotate.d/s3-mirror owner=s3-mirror group=s3-mirror mode=0644
+
+- name: s3-mirror init.d
+  copy: src=s3-mirror.init dest=/etc/init.d/s3-mirror owner=s3-mirror group=s3-mirror mode=0755
+
+- name: s3sync-logs
+  copy: src=s3sync-logs dest=/usr/local/bin/s3sync-logs owner=s3-mirror group=s3-mirror mode=0755

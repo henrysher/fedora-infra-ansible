@@ -1,0 +1,77 @@
+#!/bin/sh
+#
+# s3-mirror - sync content to S3
+#
+# chkconfig:   - 99 99
+# description: sync content to S3
+
+# http://fedoraproject.org/wiki/FCNewInit/Initscripts
+### BEGIN INIT INFO
+# Provides: 
+# Required-Start: $network $named $remote_fs
+# Required-Stop: 
+# Should-Start: 
+# Should-Stop: 
+# Default-Start: 
+# Default-Stop: 
+# Short-Description: 
+# Description: 
+### END INIT INFO
+
+# Source function library.
+. /etc/rc.d/init.d/functions
+
+exec="/usr/local/bin/s3sync"
+prog=${exec##*/}
+
+lockfile=/var/lock/subsys/$prog
+pidfile=/var/run/s3-mirror/pid
+
+start() {
+    echo -n $"Starting $prog: "
+    mkdir -p /var/run/s3-mirror
+    chown -R s3-mirror:s3-mirror /var/run/s3-mirror
+    daemon --user s3-mirror --pidfile $pidfile $exec &
+    retval=$?
+    echo
+    [ $retval -eq 0 ] && touch $lockfile
+    return $retval
+}
+
+stop() {
+    echo -n $"Stopping $prog: "
+    killproc -p $pidfile
+    retval=$?
+    echo
+    [ $retval -eq 0 ] && rm -f $lockfile
+    return $retval
+}
+
+restart() {
+    stop
+    start
+}
+
+case "$1" in
+    start|stop|restart)
+        $1
+        ;;
+    force-reload)
+        restart
+        ;;
+    status)
+        status $prog
+        ;;
+    try-restart|condrestart)
+        if status $prog >/dev/null ; then
+            restart
+        fi
+	;;
+    reload)
+        action $"Service ${0##*/} does not support the reload action: " /bin/false
+        exit 3
+        ;;
+    *)
+        echo $"Usage: $0 {start|stop|status|restart|try-restart|force-reload}"
+        exit 2
+esac

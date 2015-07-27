@@ -1,0 +1,15 @@
+/var/log/s3-mirror/*log {
+    daily
+    rotate 7
+    missingok
+    ifempty
+    compress
+    compresscmd /usr/bin/bzip2
+    uncompresscmd /usr/bin/bunzip2
+    compressext .bz2
+    dateext
+    copytruncate
+    postrotate
+        /bin/kill -HUP `cat /var/run/s3-mirror/pid 2>/dev/null` 2>/dev/null || true
+    endscript
+}

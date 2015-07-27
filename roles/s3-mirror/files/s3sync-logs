@@ -1,0 +1,33 @@
+#!/bin/sh
+
+s3cmd=/usr/bin/s3cmd
+
+S3CMD_ARGS="sync \
+  --recursive \
+  --delete-removed \
+  --verbose \
+  "
+targets="s3-mirror-us-east-1 s3-mirror-us-west-1 s3-mirror-us-west-2 s3-mirror-eu-west-1 s3-mirror-ap-northeast-1"
+for t in ${targets}; do
+    mkdir -p /var/log/s3-mirror-logs/bucket/${t}
+done
+
+echo "=============================================================="
+echo -n "Starting at "
+date
+
+time $s3cmd $S3CMD_ARGS s3://s3-mirror-logs.fedoraproject.org/s3-mirror-us-east-1/ /var/log/s3-mirror-logs/bucket/s3-mirror-us-east-1/ &
+time $s3cmd $S3CMD_ARGS s3://aws-logs-us-west-1.fedoraproject.org/s3-mirror-us-west-1/ /var/log/s3-mirror-logs/bucket/s3-mirror-us-west-1/ &
+time $s3cmd $S3CMD_ARGS s3://aws-logs-us-west-2.fedoraproject.org/s3-mirror-us-west-2/ /var/log/s3-mirror-logs/bucket/s3-mirror-us-west-2/ &
+time $s3cmd $S3CMD_ARGS s3://aws-logs-eu-west-1.fedoraproject.org/s3-mirror-eu-west-1/ /var/log/s3-mirror-logs/bucket/s3-mirror-eu-west-1/ &
+time $s3cmd $S3CMD_ARGS s3://aws-logs-ap-northeast-1.fedoraproject.org/s3-mirror-s3-northeast-1/ /var/log/s3-mirror-logs/bucket/s3-mirror-ap-northeast-1/ &
+wait
+
+# concatenate them for processing
+rm /var/log/s3-mirror-logs/combined.log
+find /var/log/s3-mirror-logs/bucket/ -type f -mtime -2 | sort -n | while read f; do
+    cat $f >> /var/log/s3-mirror-logs/combined.log
+done
+
+echo -n "Ending at "
+date
