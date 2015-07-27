@@ -33,7 +33,7 @@ fi
 
 # Freeze the website to prepare beta changes.  On release day, comment the git
 # checkout line below, run this script, and use:
-# sudo func proxy\* call command run "/usr/bin/rsync -a --no-owner --no-group bapp02::fedoraproject.org/* /srv/web/fedoraproject.org/"
+# sudo func proxy\* call command run "/usr/bin/rsync -a --no-owner --no-group sundries01::fedoraproject.org/* /srv/web/fedoraproject.org/"
 # on puppet1 to update the website.
 #
 # For any other last-minute changes or fixes, make the necessary changes in the
