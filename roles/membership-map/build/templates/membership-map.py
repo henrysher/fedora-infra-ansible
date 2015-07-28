@@ -38,7 +38,7 @@ def calc_list():
     group_name = 'ambassadors'
     
     username = 'fedoradummy'
-    password = '<%= fedoraDummyUserPassword %>'
+    password = '{{ fedoraDummyUserPassword }}'
 
 {% if env == "staging" %}
     base_url = 'https://admin.stg.fedoraproject.org/accounts/'
