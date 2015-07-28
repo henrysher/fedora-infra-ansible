@@ -146,7 +146,7 @@ def send_message(cbtype, *args, **kws):
 
     # We need this to distinguish between messages from primary koji
     # and the secondary hubs off for s390 and ppc.
-    body['instance'] = 'primary'
+    body['instance'] = '{{ fedmsg_koji_instance }}'
 
     # Don't publish these uninformative rpm.sign messages if there's no actual
     # sigkey present.  Koji apparently adds a dummy sig value when rpms are
