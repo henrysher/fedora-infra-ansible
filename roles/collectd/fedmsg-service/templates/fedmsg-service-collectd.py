@@ -51,12 +51,12 @@ def print_consumer(service, consumer):
 
     # And these got introduced even later
     if 'times' in consumer:
-        maxval = max(consumer['times'] or [0])
-        minval = min(consumer['times'] or [0])
+        maxval = 1000 * max(consumer['times'] or [0])
+        minval = 1000 * min(consumer['times'] or [0])
 
         avgval = 0
         if consumer['times']:
-            avgval = sum(consumer['times']) / len(consumer['times'])
+            avgval = 1000 * sum(consumer['times']) / len(consumer['times'])
 
         print "PUTVAL %s/%s/response_time-%s interval=5 %i:%i" % (
             hostname,
