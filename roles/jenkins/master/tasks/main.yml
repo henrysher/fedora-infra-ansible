@@ -60,14 +60,21 @@
   - jenkins/master
   - config
 
+- name: create directories for jenkins slaves config files
+  file: >
+    path="/var/lib/jenkins/nodes/{{ item.name }}"
+    state=directory
+  with_items: "{{ slaves }}"
+  tags:
+  - jenkins
+  - jenkins/master
+  - config
+
 - name: install jenkins slaves config files
   template: >
     src="slave-config.xml.j2"
     dest="/var/lib/jenkins/nodes/{{ item.name }}/config.xml"
-  with_items:
-  - name: EL6
-    host: jenkins-el6.fedorainfracloud.org
-    description: CentOS release 6.6 (Final)
+  with_items: "{{ slaves }}"
   notify:
   - restart jenkins
   tags:
