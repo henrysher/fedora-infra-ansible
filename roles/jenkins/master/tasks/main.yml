@@ -60,6 +60,21 @@
   - jenkins/master
   - config
 
+- name: install jenkins slaves config files
+  template: >
+    src="slave-config.xml.j2"
+    dest="/var/lib/jenkins/nodes/{{ item.name }}/config.xml"
+  with_items:
+  - name: EL6
+    host: jenkins-el6.fedorainfracloud.org
+    description: CentOS release 6.6 (Final)
+  notify:
+  - restart jenkins
+  tags:
+  - jenkins
+  - jenkins/master
+  - config
+
 - name: install private ssh key
   action: copy src="{{ private }}/files/jenkins/ssh/jenkins_master" dest=/etc/jenkins/id_rsa mode=400 owner=jenkins group=jenkins
   tags:
