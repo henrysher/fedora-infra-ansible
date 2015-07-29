@@ -174,6 +174,25 @@ config = dict(
             ),
         ),
 
+        # And for #fedora-g11n
+        dict(
+            network='chat.freenode.net',
+            port=6667,
+            make_pretty=True,
+            make_terse=True,
+
+            {% if env == 'staging' %}
+            nickname='fedmsg-g11n-stg',
+            {% else %}
+            nickname='fedmsg-g11n',
+            {% endif %}
+            channel='#fedora-g11n',
+            # If the word G11N appears in any message, forward it.
+            filters=dict(
+                body=['^((?!G11N).)*$'],
+            ),
+        ),
+
         # Hook up the design-team with badges messages
         dict(
             network='chat.freenode.net',
