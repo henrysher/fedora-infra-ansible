@@ -1,16 +1,16 @@
 #!/bin/bash
 
-pidfile=/var/run/s3-mirror/pid
 logfile="/var/log/s3-mirror/s3sync.log"
+tree="/srv/pub/"
+s3cmd=/usr/bin/s3cmd
+curdate=`date +%s`
 
-trap sighup_handler HUP
-trap "rm -f ${pidfile}" QUIT EXIT INT TERM
+if [ ! -d ${tree} ]; then
+    echo "Specified root of the directory tree (${tree}) does not exist. Exiting." | tee ${logfile}
+    exit 1
+fi
 
-function sighup_handler()
-{
-    exec 1>>${logfile} 2>&1
-}
-
+exec 1>>${logfile} 2>&1
 
 function newer()
 {
@@ -19,16 +19,6 @@ function newer()
     fi
     return 1
 }
-
-function repeat()
-{
-    while :; do
-	$1
-        /bin/sleep $((${RANDOM} % 300))
-    done
-}
-
-s3cmd=/usr/bin/s3cmd
 
 S3CMD_ARGS="sync \
   --verbose \
@@ -44,41 +34,51 @@ S3CMD_ARGS="sync \
 
 content="epel"
 targets="s3-mirror-us-east-1 s3-mirror-us-west-1 s3-mirror-us-west-2 s3-mirror-eu-west-1 s3-mirror-ap-northeast-1"
+report=0
 
-function parallel_sync_full()
-{
-    report=0
-    for c in ${content}; do
-	if $(newer /pub/${c}/fullfilelist /var/lib/s3-mirror/${c}-fullfilelist) ; then
-	    echo "=============================================================="
-	    echo -n "Starting at "
-	    date
-            time $s3cmd $S3CMD_ARGS  \
-		       --cache-file /var/lib/s3-mirror/${c}.cache \
-                       --delete-removed \
-                       --delete-after \
-                       --add-destination s3://s3-mirror-us-west-1.fedoraproject.org/pub/${c}/ \
-                       --add-destination s3://s3-mirror-us-west-2.fedoraproject.org/pub/${c}/ \
-                       --add-destination s3://s3-mirror-eu-west-1.fedoraproject.org/pub/${c}/ \
-                       --add-destination s3://s3-mirror-ap-northeast-1.fedoraproject.org/pub/${c}/ \
-                              /pub/${c}/ s3://s3-mirror-us-east-1.fedoraproject.org/pub/${c}/
-	    report=1
-	    cp -a /pub/${c}/fullfilelist /var/lib/s3-mirror/${c}-fullfilelist
-	fi
-    done
+if [ -e /var/run/s3-mirror/lastrun ]; then
+        . /var/run/s3-mirror/lastrun
+else
+        # 48 hours -> 172800 seconds
+        let lastrun=curdate-172800
+fi
 
-    if [ ${report} -ne 0 ] ; then
-	for target in ${targets} ; do
-           report_mirror -c /etc/mirrormanager-client/report_mirror_${target}.conf --exclude-from /usr/local/etc/s3-mirror-excludes.txt
-	done
-        echo -n "Ending at "
+let delta=curdate-lastrun
+
+# hardcoded to epel only '-e'
+/usr/local/bin/last-sync -d ${delta} -e
+
+if [ "$?" -ne "0" ]; then
+    # no changes since the last sync
+    # abort
+    exit 0
+fi
+
+for c in ${content}; do
+    if $(newer ${tree}/${c}/fullfilelist /var/lib/s3-mirror/${c}-fullfilelist) ; then
+        echo "=============================================================="
+        echo -n "Starting at "
         date
+        time $s3cmd $S3CMD_ARGS  \
+    	       --cache-file /var/lib/s3-mirror/${c}.cache \
+                   --delete-removed \
+                   --delete-after \
+                   --add-destination s3://s3-mirror-us-west-1.fedoraproject.org/pub/${c}/ \
+                   --add-destination s3://s3-mirror-us-west-2.fedoraproject.org/pub/${c}/ \
+                   --add-destination s3://s3-mirror-eu-west-1.fedoraproject.org/pub/${c}/ \
+                   --add-destination s3://s3-mirror-ap-northeast-1.fedoraproject.org/pub/${c}/ \
+                          ${tree}/${c}/ s3://s3-mirror-us-east-1.fedoraproject.org/pub/${c}/
+        report=1
+        cp -a ${tree}/${c}/fullfilelist /var/lib/s3-mirror/${c}-fullfilelist
+        echo "lastrun=${curdate}" > /var/run/s3-mirror/lastrun
     fi
-}
+done
 
 
-# send stdout/stderr to logfile
-sighup_handler
-mkdir -p $(dirname ${pidfile})
-echo "$$" > ${pidfile}
-repeat parallel_sync_full
+if [ ${report} -ne 0 ] ; then
+    for target in ${targets} ; do
+       report_mirror -c /etc/mirrormanager-client/report_mirror_${target}.conf --exclude-from /usr/local/etc/s3-mirror-excludes.txt
+    done
+    echo -n "Ending at "
+    date
+fi

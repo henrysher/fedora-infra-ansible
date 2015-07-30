@@ -11,6 +11,16 @@
   yum: pkg={{ item }} state=installed
   with_items:
   - s3cmd
+  - mirrormanager2-client
+
+- name: Create report_mirror config files
+  template: src=report_mirror.conf dest=/etc/mirrormanager-client/report_mirror_{{ item }} owner=s3-mirror group=s3-mirror mode=0400
+  with_items:
+  - s3-mirror-us-east-1
+  - s3-mirror-us-west-1
+  - s3-mirror-us-west-2
+  - s3-mirror-eu-west-1
+  - s3-mirror-ap-northeast-1
 
 - name: Create needed directories
   file: path={{item}} owner=s3-mirror group=s3-mirror state=directory mode=0755
@@ -33,11 +43,14 @@
 - name: s3-mirror logrotate
   copy: src=s3-mirror.logrotate dest=/etc/logrotate.d/s3-mirror owner=s3-mirror group=s3-mirror mode=0644
 
-- name: s3-mirror init.d
-  copy: src=s3-mirror.init dest=/etc/init.d/s3-mirror owner=s3-mirror group=s3-mirror mode=0755
-
 - name: s3sync-logs
   copy: src=s3sync-logs dest=/usr/local/bin/s3sync-logs owner=s3-mirror group=s3-mirror mode=0755
+
+- name: s3sync cron
+  cron: name="s3sync" minute="3,18,33,48" user="s3-mirror"
+        job="/usr/local/bin/lock-wrapper s3sync /usr/local/bin/s3sync"
+        cron_file=s3sync
+  when: env != 'staging'
 
 - name: s3sync-logs cron
   cron: name="s3sync-logs" hour="0" user="root"
