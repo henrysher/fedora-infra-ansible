@@ -328,14 +328,14 @@
   notify:
     - restart mailman3
 
-- name: symlink the hyperkitty conffile in mailman directory
-  file: src="{{ mailman_webui_confdir }}/mailman-hyperkitty.cfg"
-        dest=/etc/mailman3.d/hyperkitty.cfg state=link
+# To avoid confusion with "{{ mailman_webui_confdir }}/mailman-hyperkitty.cfg"
+# Don't create a symlink because ansible won't convert the regular file coming
+# from the RPM to a symlink.
+- name: remove the hyperkitty conffile in the mailman directory to avoid confusion
+  file: path=/etc/mailman3.d/hyperkitty.cfg state=absent
   tags:
   - config
   - mailman
-  notify:
-    - restart mailman3
 
 
 #
