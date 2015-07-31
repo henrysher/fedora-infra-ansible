@@ -51,6 +51,24 @@
     - /srv/planet/site
     - /srv/planet/config
 
+- name: check the selinux context of the planet dir
+  command: matchpathcon "/srv/planet(/.*)?"
+  register: gitcontext
+  always_run: yes
+  changed_when: false
+  tags:
+    - config
+    - selinux
+    - planet_server
+
+- name: set the SELinux policy for the planet dir
+  command: semanage fcontext -a -t httpd_sys_content_t "/srv/planet(/.*)?"
+  when: gitcontext.stdout.find('httpd_sys_content_t') == -1
+  tags:
+    - config
+    - selinux
+    - planet_server
+
 - name: copy the run-planet script
   copy: src=run-planet dest=/srv/planet/config/run-planet
   tags:
