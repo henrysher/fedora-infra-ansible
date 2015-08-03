@@ -34,3 +34,41 @@ koji_server_url: "http://s390.koji.fedoraproject.org/kojihub"
 koji_weburl: "http://s390.koji.fedoraproject.org/koji"
 
 fedmsg_koji_instance: s390
+
+# Overload the fedmsg_certs definition from the ansible koji group, since the
+# s390 hub *also* does compose stuff, not just koji stuff.
+fedmsg_certs:
+- service: shell
+  owner: root
+  group: sysadmin
+- service: koji
+  owner: root
+  group: apache
+  can_send:
+  - buildsys.build.state.change
+  - buildsys.package.list.change
+  - buildsys.repo.done
+  - buildsys.repo.init
+  - buildsys.rpm.sign
+  - buildsys.tag
+  - buildsys.task.state.change
+  - buildsys.untag
+- service: bodhi
+  owner: root
+  group: masher
+  can_send:
+  - compose.branched.complete
+  - compose.branched.mash.complete
+  - compose.branched.mash.start
+  - compose.branched.pungify.complete
+  - compose.branched.pungify.start
+  - compose.branched.rsync.complete
+  - compose.branched.rsync.start
+  - compose.branched.start
+  - compose.epelbeta.complete
+  - compose.rawhide.complete
+  - compose.rawhide.mash.complete
+  - compose.rawhide.mash.start
+  - compose.rawhide.rsync.complete
+  - compose.rawhide.rsync.start
+  - compose.rawhide.start
