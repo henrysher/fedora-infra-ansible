@@ -27,3 +27,31 @@
   handlers:
   - include: "{{ handlers }}/restart_services.yml"
   - include: "{{ handlers }}/semanage.yml"
+
+- name: get the system ready for data handling.
+  hosts: data-analysis01.phx2.fedoraproject.org
+  user: root
+  gather_facts: True
+
+  vars_files: 
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+  
+   roles:
+   - role: nfs/client
+     mnt_dir: '/srv/fedora_stats'
+     nfs_src_dir: 'fedora_stats'
+
+   tasks:
+     - name: install needed packages
+       yum: pkg={{ item }} state=present
+       with_items:
+         - httpd
+         - mod_ssl
+         - awstats
+         - rsync
+         - httpd-tools
+         - openssh-clients
+       
+##
