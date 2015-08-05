@@ -44,11 +44,7 @@
   handlers:
   - include: "{{ handlers }}/restart_services.yml"
 
-- name: install openshift
-  hosts: osbs-stg
-  user: root
-  gather_facts: True
-
+- include: ../openshift_common/openshift-cluster/config.yml
   vars:
     g_etcd_group: "{{ 'etcd' }}"
     g_masters_group: "{{ 'openshift_masters' }}"
@@ -56,6 +52,3 @@
     openshift_cluster_id: "{{ cluster_id | default('default') }}"
     openshift_debug_level: 4
     openshift_deployment_type: "{{ deployment_type }}"
-
-  tasks:
-  - include: ../openshift_common/openshift-cluster/config.yml
