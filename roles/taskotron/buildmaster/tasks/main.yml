@@ -71,3 +71,6 @@
   sudo_user: postgres
   action: postgresql_user db={{ buildmaster_db_name }} user={{ local_buildmaster_db_user }} password={{ local_buildmaster_db_password }} role_attr_flags=NOSUPERUSER
 
+- name: put robots.txt at web root of external hostname
+  when: robots_path is defined
+  template: src=robots.txt.j2 dest={{ robots_path }}/robots.txt owner=apache group=apache mode=0644
