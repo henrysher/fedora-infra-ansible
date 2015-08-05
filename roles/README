@@ -1,2 +1,55 @@
 
 Space for our ansible roles - ansible 1.2 and above only
+
+
+Notes About OpenShift Ansible Roles
+-----------------------------------
+The following roles that are "imported" at face value from the upstream
+OpenShift Ansible project[0] for use by OSBS[1][2][3]
+
+This is currently required by the playbooks/groups/osbs.yml playbook
+
+To re-import/update the OpenShift Ansible roles:
+
+    # This can be anywhere, just not in this git tree
+    $ cd /tmp/
+
+    $ git clone https://github.com/openshift/openshift-ansible.git
+    $ cd openshift-ansible/roles/
+
+    $ oo_roles=(
+        etcd
+        etcd_ca
+        etcd_certificates
+        openshift_examples
+        openshift_facts
+        openshift_manage_node
+        openshift_master
+        openshift_master_certificates
+        openshift_master_cluster
+        openshift_node
+        openshift_node_certificates
+        os_env_extras
+        os_env_extras_node
+        pods
+    )
+
+    # This assumes your local branch of this git repo exists in
+    # ~/src/fedora-ansible/ but replace that with the actual path
+    $ for role in ${oo_roles[@]}
+    do
+        cp -r $role ~/src/fedora-ansible/roles/
+    done
+
+    # Inspect the changes 
+    $ cd ~/src/fedora-ansible
+    $ git diff
+
+    # If you're happy with things, then
+    $ git commit -m "re-import/update openshift roles from upstream"
+    $ git push
+
+[0] - https://github.com/openshift/openshift-ansible
+[1] - https://github.com/projectatomic/osbs-client
+[2] - https://github.com/release-engineering/koji-containerbuild
+[3] - https://github.com/projectatomic/atomic-reactor
