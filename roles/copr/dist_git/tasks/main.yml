@@ -1,9 +1,5 @@
 - include: "mount_fs.yml"
 
-- name: ensure git storage path exists
-  file: path="/var/lib/dist-git/git" state=directory group=packager mode=0775
-#- file: path="/var/lib/dist-git/git/pkgs-git-repos-list" state=file group=packager
-# - file: path="/var/lib/dist-git/git/rpms/" state=directory group=packager
 
 - copy: src="dist-git-epel-7.repo" dest="/etc/yum.repos.d/"
 
@@ -15,6 +11,11 @@
   - dist-git
   - dist-git-selinux
   - copr-dist-git
+
+- name: ensure git storage path exists
+  file: path="/var/lib/dist-git/git" state=directory group=packager mode=0775
+#- file: path="/var/lib/dist-git/git/pkgs-git-repos-list" state=file group=packager
+# - file: path="/var/lib/dist-git/git/rpms/" state=directory group=packager
 
 - name: install packages which should be added as requirements
   yum: state=present name={{ item }}
