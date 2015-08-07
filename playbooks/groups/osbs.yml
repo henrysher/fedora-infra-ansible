@@ -98,3 +98,62 @@
       state: started
       enabled: yes
     
+- name: atomic-reactor install and config
+  hosts: openshift_masters
+  user: root
+  gather_facts: False
+
+  tasks:
+  - name: Configure the atomic-reactor COPR
+    copy:
+      src: osbs/atomic-reactor.repo
+      dest: /etc/yum/repos.d/atomic-reactor.repo
+
+  - name: Install atomic-reactor
+    yum: pkg=atomic-reactor state=present
+
+  - name: Build atomic-reactor base image
+    shell: atomic-reactor create-build-image --reactor-tarball-path /usr/share/atomic-reactor/atomic-reactor.tar.gz /usr/share/atomic-reactor/images/dockerhost-builder buildroot
+
+- name: atomic-reactor install and config
+  hosts: openshift_masters
+  user: root
+  gather_facts: False
+
+  tasks:
+  - name: Tag the buildroot for builder local registry
+    shell: docker tag buildroot localhost:5000/buildroot
+
+  - name: Push the buildroot to builder local registry
+    shell: docker push localhost:5000/buildroot
+
+  - name: Pull fedora docker image
+    shell: docker pull fedora
+
+  - name: Tag fedora for builder local registry
+    shell: docker tag fedora localhost:5000/fedora
+
+  - name: Push the fedora image to builder local registry
+    shell: docker push localhost:5000/fedora
+
+- name: OSBS Configuration - OpenShift Auth
+  hosts: openshift_masters
+  user: root
+  gather_facts: False
+
+  tasks:
+    - name: Set role-to-group for OSBS system:unauthenticated
+      shell: oadm policy add-role-to-group edit system:unauthenticated system:authenticated
+    - name: Set role-to-group for OSBS system:authenticated
+      shell: oadm policy add-role-to-group edit system:authenticated
+
+- name: OSBS Client tools config
+  hosts: openshift_masters:openshift_nodes
+  user: root
+  gather_facts: False
+
+  tasks:
+    - copy:
+        src: osbs/osbs.conf
+        dest: /etc/osbs.conf
+
