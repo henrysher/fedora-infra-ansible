@@ -54,3 +54,48 @@
     openshift_deployment_type: "{{ deployment_type }}"
   tags:
     - osbs-openshift
+
+- name: OpenShift post-install config
+  hosts: osbs-stg
+  user: root
+  gather_facts: True
+
+  tasks:
+  # This is technically idempotent via the 'oc create' command, it will just
+  # exit 1 if the service account already exists
+  - name: add OpenShift router service account
+    shell: echo '{"kind":"ServiceAccount","apiVersion":"v1","metadata":{"name":"router"}}' | /usr/bin/oc create -f -
+    ignore_errors: true
+
+  - name: add OpenShift router
+    shell: /usr/bin/oadm router --create=true --credentials=/etc/openshift/master/openshift-router.kubeconfig --service-account=router
+
+  - name: Create storage location for OpenShift internal registry
+    file: 
+      path: /var/lib/openshift/docker-registry
+      state: directory
+
+  # This is technically idempotent via the 'oc create' command, it will just
+  # exit 1 if the service account already exists
+  - name: add OpenShift internal registry
+    shell: echo '{"kind":"ServiceAccount","apiVersion":"v1","metadata":{"name":"registry"}}' | /usr/bin/oc create -f -
+    ignore_errors: true
+
+  - name: add OpenShift internal registry
+    shell: /usr/bin/oadm registry --create=true --credentials=/etc/openshift/master/openshift-registry.kubeconfig --mount-host=/var/lib/openshift/docker-registry --service-account=registry
+
+
+- name: docker-registry 
+  hosts: osbs-stg
+  user: root
+  gather_facts: True
+
+  tasks:
+  - name: Install docker-registry
+    yum: pkg=docker-registry state=installed
+  - name: Start/enable docker-registry service
+    service: 
+      name: docker-registry
+      stated: started
+      enabled: yes
+    
