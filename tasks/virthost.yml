@@ -12,7 +12,7 @@
   - python-virtinst
   tags:
   - packages
-  when: ansible_distribution == 'RedHat' and ansible_distribution_major_version == '6'
+  when: ansible_distribution == 'RedHat' and ansible_distribution_major_version|int == 6
 
 - name: install libvirt packages on rhel7 virthosts
   yum: pkg={{ item }} state=present
@@ -22,7 +22,7 @@
   - virt-install
   tags:
   - packages
-  when: ansible_distribution == 'RedHat' and ansible_distribution_major_version == '7'
+  when: ansible_distribution == 'RedHat' and ansible_distribution_major_version|int == 7
 
 # install libvirtd.conf 
 #
@@ -38,10 +38,16 @@
 - name: enable libvirtd
   service: name=libvirtd state=started enabled=yes
 
+#
+# Disable lvmetad as it causes lots of problems with iscsi shared lvm and caching. 
+#
+- name: disable lvmetad
+  lineinfile: dest=/etc/lvm/lvm.conf regexp="^    use_lvmetad = 1" line="    use_lvmetad = 0" backrefs=yes
+
 - name: set bridging to work right - 
   copy: src="{{ files }}/virthost/99-bridge.rules" dest=/etc/udev/rules.d/99-bridge.rules
   notify:
   - restart bridge
   tags:
   - config
-  when: ansible_distribution == 'RedHat' and ansible_distribution_major_version == '7'
+  when: ansible_distribution == 'RedHat' and ansible_distribution_major_version|int == 7

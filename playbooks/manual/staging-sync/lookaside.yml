@@ -1,0 +1,61 @@
+# This playbook syncs a *subset* of the production lookaside cache to stg.
+# bochecha asked for this in 2015 -- implemented by ralph.
+#
+# Presently, we only do the packages that start with 'a', because there's just
+# too much data otherwise.
+
+
+- name: tar up a subset of the prod lookaside cache
+  hosts: pkgs
+  user: root
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  vars:
+    tarball: /var/tmp/prod-lookaside-subset.tar.xz
+    intermediary: /var/tmp/prod-lookaside
+    target: /srv/cache/lookaside/pkgs
+
+  tasks:
+  - shell: tar -cJvf {{tarball}} {{target}}/ad*
+           creates={{tarball}}
+  - fetch: src={{tarball}}
+           dest={{intermediary}}
+           fail_on_missing=yes
+
+- name: copy and expand that subset to staging lookaside
+  hosts: pkgs-stg
+  user: root
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  vars:
+    tarball: /var/tmp/prod-lookaside-subset.tar.xz
+    intermediary: /var/tmp/prod-lookaside
+    target: /srv/cache/lookaside/pkgs
+
+  tasks:
+  - unarchive: src={{intermediary}}/pkgs02.phx2.fedoraproject.org/{{tarball}} dest=/
+
+- name: finish cleaning up after ourselves
+  hosts: lockbox01.phx2.fedoraproject.org;pkgs;pkgs-stg
+  user: root
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  vars:
+    tarball: /var/tmp/prod-lookaside-subset.tar.xz
+    intermediary: /var/tmp/prod-lookaside
+    target: /srv/cache/lookaside/pkgs
+
+  tasks:
+  - file: dest={{intermediary}} state=absent
+    tags: cleanup
+  - file: dest={{tarball}} state=absent
+    tags: cleanup

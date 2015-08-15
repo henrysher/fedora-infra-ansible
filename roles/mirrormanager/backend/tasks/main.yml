@@ -13,17 +13,23 @@
   - bzip2
   - python-psycopg2
   - fedmsg
-  - fedmsg-relay
   tags:
   - packages
 
 - name: create /etc/mirrormanager
   file: path=/etc/mirrormanager state=directory
 
+- name: create /var/log/mirrormanager
+  file: path=/var/log/mirrormanager state=directory owner=mirrormanager group=mirrormanager mode=0755
+
 - name: install MM configuration file
-  template: src={{ roles }}/mirrormanager/frontend2/templates/mirrormanager2.cfg
-            dest=/etc/mirrormanager/mirrormanager2.cfg
-            mode=600
+  template: src={{ item.file }} dest={{ item.dest }}
+             owner=mirrormanager group=mirrormanager mode=0600
+  with_items:
+  - { file: "{{ roles }}/mirrormanager/frontend2/templates/mirrormanager2.cfg",
+      dest: /etc/mirrormanager/mirrormanager2.cfg }
+  - { file: "{{ roles }}/mirrormanager/frontend2/templates/alembic.ini",
+      dest: /etc/mirrormanager/alembic.ini }
   tags:
   - config
 
@@ -31,3 +37,35 @@
   copy: src=backend.cron dest=/etc/cron.d/mm2_backend.cron
   tags:
   - config
+  when: env != 'staging'
+
+- name: install the fedmsg query script
+  copy: src=last-sync dest=/usr/local/bin/last-sync mode=0755
+
+- name: install the umdl-required script
+  copy: src=umdl-required dest=/usr/local/bin/umdl-required mode=0755
+
+- name: install the umdl-required logrotate file
+  copy: src=mm2_umdl-required.logrotate dest=/etc/logrotate.d/mm2_umdl-required mode=644
+
+- name: install sync to mirrorlist servers script
+  template: src=sync_pkl_to_mirrorlists.sh dest=/usr/local/bin/sync_pkl_to_mirrorlists.sh mode=0755
+
+- name: setup /var/lib/mirrormanager/.ssh directory
+  copy: >
+    src="{{ puppet_private }}/mirrormanager/"
+    dest="/var/lib/mirrormanager/.ssh"
+    directory_mode=yes
+    owner=mirrormanager
+    group=mirrormanager
+    mode=0700
+  tags:
+  - config
+  when: env != 'staging'
+
+# To decrease the crawl duration on the mirrors we have been
+# recommending to lower the default value of vfs_cache_pressure
+# from 100 to 10. This causes the kernel to prefer to keep dentries
+# when under memory pressure. Let's also set it on the mm backend
+# systems as umdl is also mainly looking at the metadata.
+- sysctl: name=vm.vfs_cache_pressure value=10 state=present sysctl_set=yes reload=yes

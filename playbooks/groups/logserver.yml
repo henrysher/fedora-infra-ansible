@@ -1,0 +1,55 @@
+- name: make logs server
+  hosts: log01.phx2.fedoraproject.org
+  user: root
+  gather_facts: False
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  tasks:
+  - include: "{{ tasks }}/virt_instance_create.yml"
+
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"
+
+- name: make the box be real
+  hosts: log01.phx2.fedoraproject.org
+  user: root
+  gather_facts: True
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  roles:
+  - base
+  - rkhunter
+  - nagios_client
+  - hosts
+  - fas_client
+  - apache
+  - collectd/base
+  - collectd/server
+  - sudo
+  - epylog
+
+  tasks:
+  - include: "{{ tasks }}/yumrepos.yml"
+  - include: "{{ tasks }}/2fa_client.yml"
+  - include: "{{ tasks }}/motd.yml"
+  - include: "{{ tasks }}/openvpn_client_7.yml"
+
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"
+  - include: "{{ handlers }}/semanage.yml"
+
+- name: Cloud Image stats
+  hosts: log01.phx2.fedoraproject.org
+  user: root
+  gather_facts: False
+
+  roles:
+  - cloudstats

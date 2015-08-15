@@ -15,6 +15,7 @@
   - koji
   tags:
   - packages
+  - tagger
 
 - name: link the README into the right place because tagger is ridiculous
   file: >
@@ -24,6 +25,7 @@
   tags:
   - config
   - ridiculous
+  - tagger
 
 - name: make the cache directory
   file: >
@@ -32,6 +34,7 @@
     owner=apache group=apache mode=0755
   tags:
   - config
+  - tagger
 
 - name: copy tagger app configuration
   template: >
@@ -39,14 +42,15 @@
     dest=/etc/fedoratagger/fedoratagger.cfg
     owner=apache
     group=apache
-    mode=0600
+    mode=0640
   tags:
   - config
+  - tagger
   notify:
   - restart apache
 
 - name: copy tagger httpd config
-  copy: >
+  template: >
     src=fedoratagger-app.conf
     dest=/etc/httpd/conf.d/fedoratagger.conf
     owner=apache
@@ -54,8 +58,20 @@
     mode=0644
   tags:
   - config
+  - tagger
   notify:
   - restart apache
+
+- name: copy tagger alembic config
+  template: >
+    src=alembic.ini
+    dest=/usr/share/fedoratagger/alembic.ini
+    owner=apache
+    group=apache
+    mode=0640
+  tags:
+  - config
+  - tagger
 
 - name: Set some selinux booleans
   seboolean: name={{item}} persistent=yes state=yes
@@ -64,6 +80,7 @@
   - httpd_verify_dns
   tags:
   - selinux
+  - tagger
 
 - name: check log file
   command: stat /var/log/fedoratagger.log
@@ -71,6 +88,8 @@
   always_run: yes
   changed_when: "1 != 1"
   ignore_errors: true
+  tags:
+  - tagger
 
 - name: ensure cronjob log file is writable
   file: >
@@ -80,6 +99,7 @@
   tags:
   - cron
   - config
+  - tagger
   when: logstat.rc == 1
 
 - name: setup the update-with-new-packages cronjob
@@ -89,6 +109,7 @@
   tags:
   - cron
   - config
+  - tagger
   when: install_tagger_cron
 
 - name: setup the remove-old-and-crusty-packages cronjob
@@ -98,4 +119,5 @@
   tags:
   - cron
   - config
+  - tagger
   when: install_tagger_cron

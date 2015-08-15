@@ -40,8 +40,6 @@ syncHttpLogs proxy09.vpn.fedoraproject.org
 syncHttpLogs proxy10.phx2.fedoraproject.org
 syncHttpLogs proxy11.vpn.fedoraproject.org
 syncHttpLogs proxy01.stg.phx2.fedoraproject.org
-syncHttpLogs app01.stg.phx2.fedoraproject.org
-syncHttpLogs bapp02.phx2.fedoraproject.org
 syncHttpLogs fas01.phx2.fedoraproject.org
 syncHttpLogs fas02.phx2.fedoraproject.org
 syncHttpLogs fas03.phx2.fedoraproject.org
@@ -55,9 +53,8 @@ syncHttpLogs paste01.stg.phx2.fedoraproject.org
 syncHttpLogs datagrepper01.phx2.fedoraproject.org
 syncHttpLogs datagrepper02.phx2.fedoraproject.org
 syncHttpLogs datagrepper01.stg.phx2.fedoraproject.org
-syncHttpLogs fedoauth01.phx2.fedoraproject.org
-syncHttpLogs fedoauth02.phx2.fedoraproject.org
-syncHttpLogs fedoauth01.stg.phx2.fedoraproject.org
+syncHttpLogs ipsilon01.phx2.fedoraproject.org
+syncHttpLogs ipsilon02.phx2.fedoraproject.org
 syncHttpLogs ask01.phx2.fedoraproject.org
 syncHttpLogs ask02.phx2.fedoraproject.org
 syncHttpLogs ask01.stg.phx2.fedoraproject.org
@@ -82,8 +79,7 @@ syncHttpLogs blockerbugs01.stg.phx2.fedoraproject.org
 syncHttpLogs value01.phx2.fedoraproject.org
 syncHttpLogs secondary01
 syncHttpLogs hosted03.vpn.fedoraproject.org old
-syncHttpLogs hosted04.vpn.fedoraproject.org old
-syncHttpLogs people03.vpn.fedoraproject.org old
+syncHttpLogs people01.vpn.fedoraproject.org old
 syncHttpLogs noc01.phx2.fedoraproject.org
 syncHttpLogs download01.phx2.fedoraproject.org
 syncHttpLogs download02.phx2.fedoraproject.org

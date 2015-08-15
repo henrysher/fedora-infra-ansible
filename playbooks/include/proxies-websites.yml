@@ -49,10 +49,12 @@
   - role: httpd/website
     name: fedoraproject.org
     cert_name: "{{wildcard_cert_name}}"
-    server_aliases: [stg.fedoraproject.org]
+    server_aliases:
+    - stg.fedoraproject.org
+    - localhost
 
   # This is for all the other domains we own
-  # that redirect to http://fedoraproject.org
+  # that redirect to https://fedoraproject.org
   - role: httpd/website
     name: fedoraproject.com
     cert_name: "{{wildcard_cert_name}}"
@@ -180,6 +182,18 @@
     cert_name: "{{wildcard_cert_name}}"
 
   - role: httpd/website
+    name: labs.fedoraproject.org
+    server_aliases:
+    - labs.stg.fedoraproject.org
+    cert_name: "{{wildcard_cert_name}}"
+
+  - role: httpd/website
+    name: arm.fedoraproject.org
+    server_aliases:
+    - arm.stg.fedoraproject.org
+    cert_name: "{{wildcard_cert_name}}"
+
+  - role: httpd/website
     name: boot.fedoraproject.org
     server_aliases: [boot.stg.fedoraproject.org]
     cert_name: "{{wildcard_cert_name}}"
@@ -209,6 +223,20 @@
     name: bodhi.fedoraproject.org
     server_aliases: [bodhi.stg.fedoraproject.org]
     cert_name: "{{wildcard_cert_name}}"
+
+  - role: httpd/website
+    name: flocktofedora.org
+    server_aliases:
+    - flocktofedora.org
+    - flocktofedora.net
+    - flocktofedora.com
+    ssl: false
+
+  - role: httpd/website
+    name: fedora.my
+    server_aliases:
+    - fedora.my
+    ssl: false
 
   - role: httpd/website
     name: bugz.fedoraproject.org
@@ -296,7 +324,15 @@
     - www.389tcp.org
     ssl: false
     cert_name: "{{wildcard_cert_name}}"
+
     
+  - role: httpd/website
+    name: whatcanidoforfedora.org
+    server_aliases:
+    - www.whatcanidoforfedora.org
+    ssl: false
+    cert_name: "{{wildcard_cert_name}}"
+
   - role: httpd/website
     name: fedoramagazine.org
     server_aliases: [www.fedoramagazine.org stg.fedoramagazine.org]
@@ -318,6 +354,11 @@
   - role: httpd/website
     name: meetbot.fedoraproject.org
     server_aliases: [meetbot.stg.fedoraproject.org]
+    cert_name: "{{wildcard_cert_name}}"
+
+  - role: httpd/website
+    name: meetbot-raw.fedoraproject.org
+    server_aliases: [meetbot-raw.stg.fedoraproject.org]
     cert_name: "{{wildcard_cert_name}}"
 
   - role: httpd/website
@@ -429,3 +470,13 @@
     server_aliases: [geoip.stg.fedoraproject.org]
     sslonly: true
     cert_name: "{{wildcard_cert_name}}"
+
+  - role: httpd/website
+    name: beaker.stg.fedoraproject.org
+    server_aliases: [beaker.stg.fedoraproject.org]
+    # Set this explicitly to stg here.. as per the original puppet config.
+    SSLCertificateChainFile: wildcard-2014.stg.fedoraproject.org.intermediate.cert
+    sslonly: true
+    cert_name: "{{wildcard_cert_name}}"
+    when: env == "staging"
+

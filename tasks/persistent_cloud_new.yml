@@ -1,13 +1,19 @@
-# New tasks to spin up instance in https://fed-cloud09.cloud.fedoraproject.org
-# DON'T USE FOR PRODUCTION !
+# New tasks to spin up instance in https://fedorainfracloud.org
 
 - name: check it out
   local_action: shell nc -d -z -w 5 {{ inventory_hostname }} 22 >>/dev/null
   register: host_is_up
   ignore_errors: true
 
+- name: clean out old known_hosts
+  local_action: known_hosts path={{item}} host={{inventory_hostname}} state=absent
+  ignore_errors: True
+  with_items:
+  - /root/.ssh/known_hosts
+  - /etc/ssh/ssh_known_hosts
+  when: host_is_up|failed
+
 - name: spin UP VM using nova_compute
-  #delegate_to: 127.0.0.1
   sudo: False
   local_action:
       module: nova_compute
@@ -22,7 +28,7 @@
       security_groups: "{{security_group}}"
       key_name: "{{ keypair }}"
       nics: "{{ cloud_networks }}"
-      # floating_ip_pools: "{{ floating_ip_pools }}"
+      user_data: "#cloud-config\ndisable_root: 0"
       floating_ips:
         - "{{public_ip}}"
   register: nova_result
@@ -39,12 +45,27 @@
   local_action: wait_for host={{ public_ip }} port=22 delay=1 timeout=600
   when: host_is_up|failed
 
-# Check is failing on the lockbox, something with ssh identity available for ssh invocation through the shell module,
-# see: http://fpaste.org/206551/
+- name: gather ssh host key from new instance
+  local_action: command ssh-keyscan -t rsa {{ inventory_hostname }}
+  ignore_errors: True
+  register: hostkey
+  when: host_is_up|failed
+
+- name: add new ssh host key (you still need to add it to official ssh_host_keys later)
+  local_action: known_hosts path={{item}} key="{{ hostkey.stdout }}" host={{ inventory_hostname }} state=present
+  ignore_errors: True
+  with_items:
+  - /root/.ssh/known_hosts
+  - /etc/ssh/ssh_known_hosts
+  when: host_is_up|failed
+
+# SSH is up and running, however cloud-init still did not deployed ssh keypair
+# we have to wait some time. 10 sec is usually enough, but not always.
 - name: waiting for cloud-init
   pause: seconds=30
   when: host_is_up|failed
 
+# TODO - somehow guess when keypair is finally deployed and return little bit earlier
 ## We need to specify user, here we trying with fedora or root
 #- name: wait until ssh is available
 #  # local_action:  shell false; until [ "$?" -eq "0" ]; do sleep 2; ssh -o PasswordAuthentication=no fedora@{{ public_ip }} 'echo foobar'  || ssh -o PasswordAuthentication=no root@{{ public_ip }} 'echo foobar'; done

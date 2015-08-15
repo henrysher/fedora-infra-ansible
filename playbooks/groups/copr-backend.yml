@@ -1,36 +1,41 @@
 - name: check/create instance
+  #hosts: copr-back
   hosts: copr-back:copr-back-stg
-  #hosts: copr-back-stg
   user: root
   gather_facts: False
 
   vars_files:
    - /srv/web/infra/ansible/vars/global.yml
-   - "/srv/private/ansible/vars.yml"
-
+   - /srv/private/ansible/vars.yml
+   - /srv/web/infra/ansible/vars/fedora-cloud.yml
+   - /srv/private/ansible/files/openstack/passwords.yml
   tasks:
-  - include: "{{ tasks }}/persistent_cloud.yml"
+  - include: "{{ tasks }}/persistent_cloud_new.yml"
   - include: "{{ tasks }}/growroot_cloud.yml"
 
 - name: cloud basic setup
   hosts: copr-back:copr-back-stg
-  #hosts: copr-back-stg
+  user: root
+  gather_facts: True
   vars_files:
    - /srv/web/infra/ansible/vars/global.yml
-   - "/srv/private/ansible/vars.yml"
+   - /srv/private/ansible/vars.yml
 
   tasks:
   - include: "{{ tasks }}/cloud_setup_basic.yml"
 
+  - name: set hostname (required by some services, at least postfix need it)
+    shell: "hostname {{copr_hostbase}}.cloud.fedoraproject.org"
+
 - name: provision instance
   hosts: copr-back:copr-back-stg
-  #hosts: copr-back-stg
   user: root
-  gather_facts: False
+  gather_facts: True
 
   vars_files:
    - /srv/web/infra/ansible/vars/global.yml
-   - "/srv/private/ansible/vars.yml"
+   - /srv/private/ansible/vars.yml
+   - /srv/private/ansible/files/openstack/passwords.yml
    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
 
   # Roles are run first, before tasks, regardless of where you place them here.

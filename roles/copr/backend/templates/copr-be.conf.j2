@@ -15,24 +15,39 @@ frontend_auth={{ copr_backend_password }}
 group0_name=PC
 group0_archs=i386,x86_64
 
-# path to ansible playbook which spawns builder
-# see /usr/share/copr*/playbooks/ for examples
-# default is /etc/copr/builder_playbook.yml
+# new OS cloud, VMM based backend
 group0_spawn_playbook=/home/copr/provision/builderpb_nova.yml
-# path to ansible playbook which terminate builder
-# default is /etc/copr/terminate_playbook.yml
 group0_terminate_playbook=/home/copr/provision/terminatepb_nova.yml
-# group0_max_workers=4
-group0_max_workers=20
+
+{% if devel %}
+group0_max_workers=16
 group0_max_vm_per_user=4
 group0_max_vm_total=12
+{% else %}
+build_groups=2
+group1_name=PPC64LE
+group1_archs=ppc64le
 
-# soon this will be obsoleted
-terminate_vars=vm_name
+group0_max_workers=28
+group0_max_vm_per_user=6
+group0_max_vm_total=25
+group0_vm_spawn_min_interval=5
+group0_max_spawn_processes=3
 
-# directory where jobs are stored
-# no defaults
-jobsdir=/var/lib/copr/jobs
+group1_spawn_playbook=/home/copr/provision/builderpb_ppc64le.yml
+group1_terminate_playbook=/home/copr/provision/terminatepb_ppc64le.yml
+
+group1_max_workers=3
+group1_max_vm_per_user=1
+group1_max_vm_total=2
+group1_max_spawn_processes=4
+{% endif %}
+
+## old OS cloud, non VMM backend
+#group0_spawn_playbook=/home/copr/provision/builderpb.yml
+#group0_terminate_playbook=/home/copr/provision/terminatepb.yml
+#group0_max_workers=4
+
 
 # directory where results are stored
 # should be accessible from web using 'results_baseurl' URL
@@ -41,7 +56,6 @@ destdir=/var/lib/copr/public_html/results
 
 # default is 10
 sleeptime=30
-
 
 # path to log file
 # default is /var/log/copr/backend.log
@@ -69,12 +83,11 @@ keygen_host={{ keygen_host }}
 # minimum age for builds to be pruned
 prune_days=14
 
-# Spawn builder in advance, before we get task?
-# It save time, but consume resources even when
-# nothing is in queue
-
-spawn_in_advance={{ spawn_in_advance }}
+dist_git_url=http://{{ dist_git_base_url }}/cgit
 
 [builder]
 # default is 1800
 timeout=21600
+
+# utilized by /usr/bin/check_consecutive_build_fails.py
+consecutive_failure_threshold=30

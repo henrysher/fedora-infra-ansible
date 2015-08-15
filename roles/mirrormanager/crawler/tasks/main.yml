@@ -9,11 +9,10 @@
 - name: install needed packages
   yum: pkg={{ item }} state=present
   with_items:
-  - httpd
   - mirrormanager2-crawler
   - python-psycopg2
   - fedmsg
-  - fedmsg-relay
+  - python-GeoIP
   tags:
   - packages
 
@@ -21,9 +20,13 @@
   file: path=/etc/mirrormanager state=directory
 
 - name: install MM configuration file
-  template: src={{ roles }}/mirrormanager/frontend2/templates/mirrormanager2.cfg
-            dest=/etc/mirrormanager/mirrormanager2.cfg
-            mode=600
+  template: src={{ item.file }} dest={{ item.dest }}
+              owner=mirrormanager group=mirrormanager mode=0600
+  with_items:
+  - { file: "{{ roles }}/mirrormanager/frontend2/templates/mirrormanager2.cfg",
+      dest: /etc/mirrormanager/mirrormanager2.cfg }
+  - { file: "{{ roles }}/mirrormanager/frontend2/templates/alembic.ini",
+      dest: /etc/mirrormanager/alembic.ini }
   tags:
   - config
 
@@ -31,12 +34,10 @@
   copy: src=crawler.cron dest=/etc/cron.d/mm2_crawler.cron
   tags:
   - config
+  when: env != 'staging'
 
-- name: install configuration file
-  template: src={{ roles }}/mirrormanager/crawler/files/mirrormanager.conf
-            dest=/etc/httpd/conf.d/mirrormanager.conf
-            owner=apache group=apache mode=0600
-  notify:
-  - restart httpd
-  tags:
-  - config
+- name: install the script to distribute the mirrors to crawl
+  copy: src=mm2_get-mirrors-to-crawl dest=/usr/local/bin/mm2_get-mirrors-to-crawl mode=0755
+
+- name: install the crawler distribute script
+  copy: src=run_crawler.sh dest=/usr/local/bin/run_crawler.sh mode=0755

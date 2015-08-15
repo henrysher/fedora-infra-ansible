@@ -49,6 +49,37 @@ def print_consumer(service, consumer):
             consumer['headcount_out']
         )
 
+    # And these got introduced even later
+    if 'times' in consumer:
+        maxval = 1000 * max(consumer['times'] or [0])
+        minval = 1000 * min(consumer['times'] or [0])
+
+        avgval = 0
+        if consumer['times']:
+            avgval = 1000 * sum(consumer['times']) / len(consumer['times'])
+
+        print "PUTVAL %s/%s/response_time-%s interval=5 %i:%i" % (
+            hostname,
+            service,
+            '%s_min' % consumer['name'],
+            timestamp,
+            minval,
+        )
+        print "PUTVAL %s/%s/response_time-%s interval=5 %i:%i" % (
+            hostname,
+            service,
+            '%s_max' % consumer['name'],
+            timestamp,
+            maxval,
+        )
+        print "PUTVAL %s/%s/response_time-%s interval=5 %i:%i" % (
+            hostname,
+            service,
+            '%s_avg' % consumer['name'],
+            timestamp,
+            avgval,
+        )
+
 
 def print_producer(service, producer):
     timestamp = int(time.time())

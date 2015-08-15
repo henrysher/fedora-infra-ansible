@@ -1,0 +1,64 @@
+# create a new bodhi-backend system
+#
+# This group makes bodhi-backend servers.
+# They are used by releng to push updates with bodhi. 
+# They also run some misc releng scripts.
+#
+
+- name: make bodhi-backend systems
+  hosts: bodhi-backend:bodhi-backend-stg
+  user: root
+  gather_facts: False
+
+  vars_files: 
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  tasks:
+  - include: "{{ tasks }}/virt_instance_create.yml"
+
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"
+
+# Once the instance exists, configure it. 
+
+- name: make bodhi-backend server system
+  hosts: bodhi-backend:bodhi-backend-stg
+  user: root
+  gather_facts: True
+
+  vars_files:
+  - /srv/web/infra/ansible/vars/global.yml
+  - "/srv/private/ansible/vars.yml"
+  - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  roles:
+  - base
+  - nagios_client
+  - collectd/base
+  - hosts
+  - builder_repo
+  - fas_client
+  - sudo
+#  - role: nfs/client
+#    mnt_dir: '/pub/'
+#    nfs_src_dir: 'fedora_ftp/fedora.redhat.com/pub/'
+  - role: nfs/client
+    mnt_dir: '/mnt/fedora_koji'
+    nfs_src_dir: 'fedora_koji'
+    when: datacenter != 'staging'
+  - role: nfs/client
+    mnt_dir: '/mnt/fedora_koji'
+    nfs_src_dir: 'fedora_koji'
+    when: datacenter == 'staging'
+  - bodhi2/backend
+  - fedmsg/base
+
+  tasks:
+  - include: "{{ tasks }}/2fa_client.yml"
+  - include: "{{ tasks }}/yumrepos.yml"
+  - include: "{{ tasks }}/motd.yml"
+
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"

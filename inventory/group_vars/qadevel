@@ -7,20 +7,24 @@ num_cpus: 2
 # for systems that do not match the above - specify the same parameter in
 # the host_vars/$hostname file
 
+deployment_type: qadevel-prod
 fas_client_groups: sysadmin-qa
-
 host_group: qadevel
+freezes: false
 
-# default virt install command is for a single nic-device
-# define in another group file for more nics (see buildvm)
-virt_install_command: /usr/sbin/virt-install -n {{ inventory_hostname }} -r {{ mem_size }}
-                 --disk bus=virtio,path={{ volgroup }}/{{ inventory_hostname }}
-                 --vcpus={{ num_cpus }}  -l {{ ks_repo }} -x
-                 "ks={{ ks_url }} ip={{ eth0_ip }} netmask={{ nm }}
-                  gateway={{ gw }} dns={{ dns }} console=tty0 console=ttyS0
-                  hostname={{ inventory_hostname }}"
-                 --network=bridge=br0 --autostart --noautoconsole
+tcp_ports: [ 80, 222, 443, "{{ buildslave_port }}", 222]
 
+sshd_port: 222
+sshd_config: ssh/sshd_config.qadevel
+
+sslcertfile: wildcard.qadevel.cloud.fedoraproject.org.crt
+sslkeyfile: wildcard.qadevel.cloud.fedoraproject.org.key
+sslintermediatecertfile: wildcard.qadevel.cloud.fedoraproject.org.intermediate.crt
+
+################################################################################
+# Buildbot Settings
+################################################################################
+#
 buildmaster_db_host: localhost
 buildmaster_template: ci.master.cfg.j2
 buildmaster_endpoint: buildmaster
@@ -31,13 +35,59 @@ buildslave_dir: /home/buildslave/slave
 buildslave_poll_interval: 1800
 master_dir: /home/buildmaster/master
 master_user: buildmaster
-external_hostname: qadevel.qa.fedoraproject.org
-deployment_type: qadevel-prod
-tcp_ports: [ 80, 222, 443, "{{ buildslave_port }}" ]
+external_hostname: qadevel.cloud.fedoraproject.org
 
 # for now, we're just doing a local slave so we need the slave vars in here
 slave_home: /home/buildslave/
 slave_dir: /home/buildslave/slave
 slave_user: buildslave
 
-freezes: false
+
+################################################################################
+# MariaDB Settings
+################################################################################
+
+mariadb_host: localhost
+mariadb_config: my.cnf.phabricator
+mariadb_user: '{{ qadevel_mariadb_user }}'
+mariadb_password: '{{ qadevel_mariadb_password }}'
+
+
+################################################################################
+# Phabricator Settings
+################################################################################
+phabricator_db_prefix: 'phabricator'
+enable_phabricator_git: True
+phabricator_vcs_user: git
+phabricator_vcs_user_password: '{{ qadevel_vcs_user_password }}'
+phabricator_daemon_user: phabdaemon
+phabroot: /usr/share/
+phabricator_filedir: /var/lib/phabricator/files
+phabricator_repodir: /var/lib/phabricator/repos
+phabricator_config_filename: qaconfig
+phabricator_header_color: 'blue'
+phabricator_mail_enabled: True
+phabricator_mail_domain: fedoraproject.org
+phabricator_mysqldump_filename: 'qadevel_phabricator.sql'
+ircnick: fedoraqabot
+
+
+################################################################################
+# Backup Settings
+################################################################################
+
+backup_dir: /srv/backup
+backup_username: root
+backup_ssh_pubkey: ssh-dss AAAAB3NzaC1kc3MAAACBAJr3xqn/hHIXeth+NuXPu9P91FG9jozF3Q1JaGmg6szo770rrmhiSsxso/Ibm2mObqQLCyfm/qSOQRynv6tL3tQVHA6EEx0PNacnBcOV7UowR5kd4AYv82K1vQhof3YTxOMmNIOrdy6deDqIf4sLz1TDHvEDwjrxtFf8ugyZWNbTAAAAFQCS5puRZF4gpNbaWxe6gLzm3rBeewAAAIBcEd6pRatE2Qc/dW0YwwudTEaOCUnHmtYs2PHKbOPds0+Woe1aWH38NiE+CmklcUpyRsGEf3O0l5vm3VrVlnfuHpgt/a/pbzxm0U6DGm2AebtqEmaCX3CIuYzKhG5wmXqJ/z+Hc5MDj2mn2TchHqsk1O8VZM+1Ml6zX3Hl4vvBsQAAAIALDt5NFv6GLuid8eik/nn8NORd9FJPDBJxgVqHNIm08RMC6aI++fqwkBhVPFKBra5utrMKQmnKs/sOWycLYTqqcSMPdWSkdWYjBCSJ/QNpyN4laCmPWLgb3I+2zORgR0EjeV2e/46geS0MWLmeEsFwztpSj4Tv4e18L8Dsp2uB2Q==  root@backup03-rdiff-backup
+host_backup_targets: ['/var/lib/phabricator/files', '/var/lib/phabricator/repos', '/srv/backup']
+
+
+################################################################################
+# Static Site Settings
+################################################################################
+
+static_sites:
+  - name: docs.{{ external_hostname }}
+    document_root: /var/www/docs
+sslonly: false
+

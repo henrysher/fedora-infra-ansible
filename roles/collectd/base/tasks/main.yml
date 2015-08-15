@@ -23,7 +23,7 @@
 
 # install collectd-network config
 - name: /etc/collectd.d/network.conf
-  copy: src=network-client.conf dest=/etc/collectd.d/network.conf
+  template: src=network-client.conf.j2 dest=/etc/collectd.d/network.conf
   tags:
   - collectd
   notify:
@@ -56,6 +56,37 @@
   - restart collectd
   when: collectd_apache is defined
 
+- name: /etc/collectd/graphite.conf
+  template: src=graphite.conf dest=/etc/collectd.d/graphite.conf
+  tags:
+  - collectd
+  - graphite
+  - graphite-collectd
+  notify:
+  - restart collectd
+  when: collectd_graphite is defined and ansible_distribution_major_version != '6'
+
+- name: Install libsemanage-python so we can set an sebool below
+  yum: name=libsemanage-python state=present
+  tags:
+  - collectd
+  when: collectd_apache is defined
+
+- name: Let collectd talk to things over tcp
+  seboolean: name=collectd_tcp_network_connect state=yes persistent=yes
+  tags:
+  - collectd
+  ignore_errors: True
+  notify:
+  - restart collectd
+  when: collectd_apache is defined or collectd_graphite is defined
+
+- name: enable collectd nfs module
+  copy: src=nfs.conf dest=/etc/collectd.d/nfs.conf
+  tags:
+  - collectd
+  notify:
+  - restart collectd
 
 # Three tasks for handling our (two) custom selinux modules.
 - name: ensure a directory exists for our custom selinux module
@@ -89,7 +120,7 @@
 
 - name: copy over our pstorefs/collectd selinux module (rhel6 has no pstorefs)
   copy: src=selinux/fi-pstorefs.pp dest=/usr/share/collectd/fi-pstorefs.pp
-  when: ansible_distribution_major_version != '6'
+  when: ansible_distribution_major_version|int != 6
   register: ficpstorefs_module
   tags:
   - collectd
@@ -97,7 +128,7 @@
 
 - name: check to see if its even installed yet
   shell: semodule -l | grep fi-pstorefs | wc -l
-  when: ansible_distribution_major_version != '6'
+  when: ansible_distribution_major_version|int != 6
   register: ficpstorefs_grep
   always_run: true
   changed_when: "'0' in ficpstorefs_grep.stdout"
@@ -107,7 +138,7 @@
 
 - name: install our pstorefs/collectd selinux module
   command: semodule -i /usr/share/collectd/fi-pstorefs.pp
-  when: ansible_distribution_major_version != '6' and (ficpstorefs_module|changed or ficpstorefs_grep|changed)
+  when: ansible_distribution_major_version|int != 6 and (ficpstorefs_module|changed or ficpstorefs_grep|changed)
   tags:
   - collectd
   - selinux

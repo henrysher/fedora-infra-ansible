@@ -32,7 +32,7 @@
   roles:
   - base
   - rkhunter
-  - { role: denyhosts, when: ansible_distribution_major_version != '7' }
+  - { role: denyhosts, when: ansible_distribution_major_version|int != 7 }
   - nagios_client
   - hosts
   - fas_client
@@ -40,12 +40,12 @@
   - sudo
   - { role: openvpn/client,
       when: env != "staging" }
+  - apache
 
   tasks:
   - include: "{{ tasks }}/yumrepos.yml"
   - include: "{{ tasks }}/2fa_client.yml"
   - include: "{{ tasks }}/motd.yml"
-  - include: "{{ tasks }}/apache.yml"
   - include: "{{ tasks }}/mod_wsgi.yml"
 
   handlers:

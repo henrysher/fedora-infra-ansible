@@ -1,6 +1,7 @@
 # This playboook updates a virthost and all it's guests. 
 #
 # requires --extra-vars="target=somevhostname yumcommand=update"
+# Might add nodns=true or nonagios=true at extra-vars
 #
 
 - name: find instances
@@ -18,7 +19,7 @@
     with_items: vmlist.list_vms
 
 # Call out to another playbook.  Disable any proxies that may live here
-- include: update-proxy-dns.yml status=disable proxies=myvms_new:&proxies
+#- include: update-proxy-dns.yml status=disable proxies=myvms_new:&proxies
 
 - name: update the system
   hosts: "{{ target }}:myvms_new"
@@ -27,16 +28,10 @@
 
   tasks:
   - name: schedule regular host downtime
-    nagios: action=downtime minutes=30 service=host host={{ inventory_hostname_short }}
+    nagios: action=downtime minutes=30 service=host host={{ inventory_hostname_short }}{{ env_suffix }}
     delegate_to: noc01.phx2.fedoraproject.org
     ignore_errors: true
-    when: inventory_hostname.find('.stg.') == -1
-
-  - name: schedule stg host downtime
-    nagios: action=downtime minutes=30 service=host host={{ inventory_hostname_short }}.stg
-    delegate_to: noc01.phx2.fedoraproject.org
-    ignore_errors: true
-    when: inventory_hostname.find('.stg.') != -1
+    when: nonagios is not defined or not "true" in nonagios
 
   - name: expire-caches
     command: yum clean expire-cache

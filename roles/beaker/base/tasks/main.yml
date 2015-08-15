@@ -1,0 +1,27 @@
+#
+# This is the base beaker role - mostly installing repos for beaker
+#
+---
+
+- name: put beaker server repos on Rhel systems
+  template:
+    src: "{{ item }}"
+    dest: "/etc/yum.repos.d/{{ item }}"
+    owner: root
+    group: root
+    mode: 0644
+  with_items:
+    - beaker-server-rhel.repo
+  when: ansible_distribution == 'RedHat'
+
+- name: put beaker server repos on Fedora systems
+  copy:
+    src: "{{ item }}"
+    dest: "/etc/yum.repos.d/{{ item }}"
+    owner: root
+    group: root
+    mode: 0644
+  with_items:
+    - beaker-server-fedora.repo
+  when: ansible_distribution == 'Fedora'
+

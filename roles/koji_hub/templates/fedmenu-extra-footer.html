@@ -1,0 +1,27 @@
+{% if env == 'staging' %}
+<script src="https://apps.stg.fedoraproject.org/fedmenu/js/jquery-1.11.2.min.js"></script>
+<script src="https://apps.stg.fedoraproject.org/fedmenu/js/fedora-libravatar.js"></script>
+<script src="https://apps.stg.fedoraproject.org/fedmenu/js/fedmenu.js"></script>
+{% else %}
+<script src="https://apps.fedoraproject.org/fedmenu/js/jquery-1.11.2.min.js"></script>
+<script src="https://apps.fedoraproject.org/fedmenu/js/fedora-libravatar.js"></script>
+<script src="https://apps.fedoraproject.org/fedmenu/js/fedmenu.js"></script>
+{% endif %}
+
+<script>
+  {% if env == 'staging' %}
+  var base = 'https://apps.stg.fedoraproject.org/';
+  {% else %}
+  var base = 'https://apps.fedoraproject.org/';
+  {% endif %}
+  fedmenu({
+      'url': base + 'js/data.js',
+      'mimeType': 'application/javascript',
+      'position': 'bottom-right',
+      #if $varExists('build')
+      'package': '$build.package_name',
+      'user': '$build.owner_name',
+      #end if
+  });
+</script>
+

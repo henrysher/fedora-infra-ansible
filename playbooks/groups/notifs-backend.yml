@@ -32,7 +32,7 @@
   roles:
   - base
   - rkhunter
-  - { role: denyhosts, when: ansible_distribution_major_version != '7' }
+  - { role: denyhosts, when: ansible_distribution_major_version|int != 7 }
   - hosts
   - fas_client
   - nagios_client
@@ -56,6 +56,15 @@
   hosts: notifs-backend;notifs-backend-stg
   user: root
   gather_facts: True
+
+  pre_tasks:
+  - name: tell nagios to shush w.r.t. the backend since it usually complains
+    nagios: action=downtime minutes=20 service=host host={{ inventory_hostname_short }}{{ env_suffix }}
+    delegate_to: noc01.phx2.fedoraproject.org
+    ignore_errors: true
+    tags:
+    - fedmsgdconfig
+    - notifs/backend
 
   roles:
   - fedmsg/hub

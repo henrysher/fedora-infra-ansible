@@ -27,25 +27,23 @@
   roles:
   - base
   - rkhunter
-  - { role: denyhosts, when: ansible_distribution_major_version != '7' }
+  - { role: denyhosts, when: ansible_distribution_major_version|int != 7 }
   - nagios_client
   - hosts
   - fas_client
   - collectd/base
   - { role: bodhi/base, when: "inventory_hostname.startswith('bodhi01') or inventory_hostname.startswith('bodhi02.phx2')" }
-  - { role: bodhi/masher, jobrunner: true, when: "inventory_hostname.startswith('releng04')" }
-  - { role: bodhi/masher, epelmasher: true, when: "inventory_hostname.startswith('relepel01')" }
   - { role: fedmsg/base,  when: "inventory_hostname.startswith('bodhi01') or inventory_hostname.startswith('bodhi02.phx2')" }
   - rsyncd
   - sudo
   - { role: openvpn/client,
       when: env != "staging" }
+  - apache
 
   tasks:
   - include: "{{ tasks }}/yumrepos.yml"
   - include: "{{ tasks }}/2fa_client.yml"
   - include: "{{ tasks }}/motd.yml"
-  - include: "{{ tasks }}/apache.yml"
   - include: "{{ tasks }}/mod_wsgi.yml"
 
   handlers:

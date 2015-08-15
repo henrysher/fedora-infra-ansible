@@ -1,31 +1,29 @@
 ---
-- name: update all
-  command: yum -y update creates=/etc/sysconfig/global-update-applied
-  register: updated
-  tags:
-  - packages
 
 - name: ntp pkgs
-  action: yum state=present pkg={{ item }}
+  yum: state=present pkg={{ item }}
   with_items:
   - ntpdate
   - ntp
   - libsemanage-python
   - libselinux-python
+  when: ansible_distribution_major_version|int < 22
   tags:
   - packages
 
-- name: write out global-update-applied file if we updated
-  copy: content="updated" dest=/etc/sysconfig/global-update-applied 
-  when: updated is defined
+- name: ntp pkgs
+  command: dnf install -y ntpdate ntp libsemanage-python libselinux-python
+  when: ansible_distribution_major_version|int > 21 and ansible_cmdline.ostree is not defined
   tags:
   - packages
 
 - name: put step-tickers in place
   action: copy src="{{ files }}/common/step-tickers" dest=/etc/ntp/step-tickers
+  when: ansible_cmdline.ostree is not defined
 
 - name: enable the service
   action: service name=ntpd state=running enabled=true
+  when: ansible_cmdline.ostree is not defined
 
 #- name: edit hostname to be instance name - prefix hostbase var if it exists
 #  action: shell hostname  {{ hostbase }}`curl -s http://169.254.169.254/latest/meta-data/instance-id`
@@ -38,12 +36,14 @@
   - /srv/web/infra/ansible/roles/base/files/ansible-pub-key
   tags:
   - config
+  - sshkeys
   
 - name: add root keys for sysadmin-main and other allowed users
   authorized_key: user=root key="{{ item }}"
   with_lines: "/srv/web/infra/ansible/scripts/auth-keys-from-fas @sysadmin-main {{ root_auth_users }}"
   tags:
   - config
+  - sshkeys
   ignore_errors: true
 
 - name: enable ssh_sysadm_login sebool
@@ -55,3 +55,22 @@
   tags:
   - config
 
+- name: update all
+  command: yum -y update creates=/etc/sysconfig/global-update-applied
+  register: updated
+  when: ansible_distribution_major_version|int < 22
+  tags:
+  - packages
+
+- name: update all
+  command: dnf -y update creates=/etc/sysconfig/global-update-applied
+  register: updated
+  when: ansible_distribution_major_version|int > 21 and ansible_cmdline.ostree is not defined
+  tags:
+  - packages
+
+- name: write out global-update-applied file if we updated
+  copy: content="updated" dest=/etc/sysconfig/global-update-applied 
+  when: updated is defined
+  tags:
+  - packages

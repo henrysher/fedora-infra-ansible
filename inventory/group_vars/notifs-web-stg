@@ -7,10 +7,11 @@ num_cpus: 2
 # for systems that do not match the above - specify the same parameter in
 # the host_vars/$hostname file
 
-tcp_ports: [ 80, 443,
-    # These 16 ports are used by fedmsg.  One for each wsgi thread.
-    3000, 3001, 3002, 3003, 3004, 3005, 3006, 3007,
-    3008, 3009, 3010, 3011, 3012, 3013, 3014, 3015]
+wsgi_fedmsg_service: fmn
+wsgi_procs: 2
+wsgi_threads: 2
+
+tcp_ports: [ 80 ]
 
 fas_client_groups: sysadmin-noc,sysadmin-datanommer
 
@@ -22,3 +23,8 @@ fedmsg_certs:
 - service: fmn
   owner: root
   group: apache
+  can_send:
+  - fmn.filter.update
+  - fmn.preference.update
+  - fmn.rule.update
+  - fmn.confirmation.update

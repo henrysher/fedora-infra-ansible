@@ -12,31 +12,67 @@
     - php-devel
     - php-gd
     - php-mbstring
+    - php-opcache
+    - python-pygments
     - libphutil
     - arcanist
     - phabricator
+    - libsemanage-python
+    - libselinux-python
+    - policycoreutils-python
 
 - name: create mariadb user for phabricator
-  delegate_to: "{{ mariadb_host }}"
-  mysql_user: name={{ mariadb_user }} host={{ eth0_ip }} password={{ mariadb_password }} priv=*.*:ALL state=present
+  mysql_user:
+    name: "{{ mariadb_user }}"
+    host: 'localhost'
+    password: "{{ mariadb_password }}"
+    priv: "*.*:ALL"
+    state: present
+    login_user: root
+    login_password: "{{ mariadb_root_password }}"
+    login_host: "127.0.0.1"
+  delegate_to: "{{ inventory_hostname }}"
+
+- name: ensure backup directory exists
+  file: path={{ backup_dir }} state=directory owner=root group=root mode=1755
+
+- name: generate phabricator mysql backup cronjob
+  template: src=phabricator-mariadb-dump.cron.j2 dest=/etc/cron.d/phabricator-mariadb-dump.cron owner=root group=root mode=0644
 
 - name: create phabricator daemon user
   user: name={{ phabricator_daemon_user }}
 
+- name: add apache user to daemon user group
+  user: name=apache groups={{ phabricator_daemon_user }}
+
 - name: create vcs user
-  user: name={{ phabricator_vcs_user }} password={{ phabricator_vcs_password }}
+  user: name={{ phabricator_vcs_user }} password={{ phabricator_vcs_user_password }} groups={{ phabricator_daemon_user }}
   when: enable_phabricator_git
 
 - name: add vcs user to sudoers to write as daemon user with restrictions for git
-  lineinfile: "dest=/etc/sudoers state=present line='{{ phabricator_vcs_user }} ALL=({{ phabricator_daemon_user }}) SETENV: NOPASSWD: /usr/bin/git-upload-pack, /usr/bin/git-receive-pack'"
+  lineinfile: "dest=/etc/sudoers state=present line='{{ phabricator_vcs_user }} ALL=({{ phabricator_daemon_user }}) SETENV: NOPASSWD: /usr/libexec/git-core/git-upload-pack, /usr/libexec/git-core/git-receive-pack'"
 
 - name: remove tty requirement for sudo by git user
   lineinfile: "dest=/etc/sudoers state=present line='Defaults:{{phabricator_vcs_user }} !requiretty'"
+
+- name: add apache user to sudoers to write as daemon user with restrictions for git
+  lineinfile: "dest=/etc/sudoers state=present line='apache ALL=({{ phabricator_daemon_user }}) SETENV: NOPASSWD: /usr/libexec/git-core/git-http-backend'"
+
+- name: remove tty requirement for sudo by git user
+  lineinfile: "dest=/etc/sudoers state=present line='Defaults:apache !requiretty'"
 
 - name: update php.ini
   copy: src=php.ini dest=/etc/php.d/php.ini owner=root group=root mode=0644
   notify:
   - restart httpd
+
+- name: update php-opcache config
+  copy:
+    src: "10-opcache.ini"
+    dest: /etc/php.d/10-opcache.ini
+    owner: root
+    group: root
+    mode: 0644
 
 - name: create git repo root for phabricator
   file: path={{ phabricator_repodir }} state=directory owner={{ phabricator_daemon_user }} group={{ phabricator_daemon_user }} mode=1755
@@ -46,7 +82,7 @@
   file: path={{ phabricator_filedir }} state=directory owner=apache group=apache mode=1755
 
 - name: create log directory for phabricator
-  file: path=/var/log/phabricator state=directory owner={{ phabricator_daemon_user }} group=apache mode=1775
+  file: path=/var/log/phabricator state=directory owner={{ phabricator_daemon_user }} group={{ phabricator_daemon_user }} mode=1775
 
 # disabling phabricator env
 #- name: generate phabricator environment
@@ -54,6 +90,8 @@
 
 - name: copy phabricator configuration settings
   template: src=local.json.j2 dest={{ phabroot }}/phabricator/conf/local/local.json owner=apache group=apache mode=0644
+  notify:
+   - restart phd
 
 # this isn't well supported upstream right now, disabling
 #- name: generate chatbot config
@@ -78,6 +116,14 @@
   service: name=phabricator-sshd enabled=yes state=started
   when: enable_phabricator_git
 
+- name: check to see if sshd port is already known by selinux
+  shell: semanage port -l | grep ssh
+  register: sshd_selinux_port
+
+- name: allow alternate sshd port
+  command: semanage port -a -t ssh_port_t -p tcp {{ sshd_port }}
+  when: sshd_selinux_port.stdout.find('{{ sshd_port }}') == -1
+
 - name: generate phabricator phd service file
   template: src=phd.service.j2 dest=/lib/systemd/system/phd.service owner=root group=root mode=0644
 
@@ -86,6 +132,32 @@
 
 - name: start and enable phabricator phd service
   service: name=phd enabled=yes state=started
+
+- name: Install the SSL cert
+  copy:
+      src: "{{ private}}/files/httpd/{{ sslcertfile }}"
+      dest: /etc/pki/tls/certs/{{ sslcertfile }}
+      owner: root
+      group: root
+      mode: 0600
+
+- name: Install the SSL key
+  copy:
+      src: "{{ private}}/files/httpd/{{ sslkeyfile }}"
+      dest: /etc/pki/tls/private/{{ sslkeyfile }}
+      owner: root
+      group: root
+      mode: 0600
+
+- name: Install the SSL intermediate cert
+  copy:
+      src: "{{ private}}/files/httpd/{{ sslintermediatecertfile }}"
+      dest: /etc/pki/tls/certs/{{ sslintermediatecertfile }}
+      owner: root
+      group: root
+      mode: 0600
+  when: sslintermediatecertfile != ''
+
 
 - name: copy phabricator httpd config
   template: src=phabricator.conf.j2 dest=/etc/httpd/conf.d/phabricator.conf owner=root group=root mode=0644

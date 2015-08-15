@@ -4,7 +4,7 @@
 # NOTE: most of these vars_path come from group_vars/backup_server or from hostvars
 
 - name: make backup server system
-  hosts: backup03.phx2.fedoraproject.org
+  hosts: backup01.phx2.fedoraproject.org
   user: root
   gather_facts: True
 
@@ -22,6 +22,11 @@
   - fas_client
   - sudo
   - collectd/base
+  - { role: nfs/client,
+      mnt_dir: '/fedora_backups',
+      nfs_mount_opts: "rw,hard,bg,intr,noatime,nodev,nosuid,nfsvers=3",
+      nfs_src_dir: 'fedora_backups' }
+  - openvpn/client
 
   tasks:
   - include: "{{ tasks }}/yumrepos.yml"
@@ -33,7 +38,7 @@
     user: name=gnomebackup state=present home=/fedora_backups/gnome/ createhome=yes shell=/sbin/nologin
 
   - name:  Add a Directory for the Excludes list for each of the backed up GNOME machines
-    file: dest=/fedora/backups/gnome/excludes owner=gnomebackup group=gnomebackup state=directory
+    file: dest=/fedora_backups/gnome/excludes owner=gnomebackup group=gnomebackup state=directory
 
   - name: Install the GNOME SSH configuration file
     copy: src="{{ files }}/gnome/ssh_config" dest=/usr/local/etc/gnome_ssh_config mode=0600 owner=gnomebackup

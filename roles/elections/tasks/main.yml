@@ -13,6 +13,7 @@
   - python-alembic
   tags:
   - packages
+  - elections
 
 - name: replace the fedora-elections configuration file by the one with the normal user
   template: src={{ item.file }}
@@ -25,6 +26,7 @@
   - { file: alembic.ini, location: /etc/fedora-elections }
   tags:
   - config
+  - elections
   notify:
   - restart apache
 
@@ -35,6 +37,7 @@
   changed_when: "1 != 1"
   tags:
   - config
+  - elections
   notify:
   - restart apache
 
@@ -44,6 +47,7 @@
                     persistent=true
   tags:
   - selinux
+  - elections
 
 - name: apply selinux type to static files
   file: >
@@ -53,6 +57,7 @@
     recurse=yes
   tags:
   - selinux
+  - elections
 
 - name: apply selinux type to the wsgi file
   file: >
@@ -60,6 +65,7 @@
     setype=httpd_sys_content_t
   tags:
   - selinux
+  - elections
 
 - name: set sebooleans so apache can talk to memcached0*
   action: seboolean name=httpd_can_network_memcache
@@ -67,3 +73,4 @@
                     persistent=true
   tags:
   - selinux
+  - elections

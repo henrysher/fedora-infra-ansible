@@ -12,6 +12,7 @@
   - mod_wsgi
   tags:
   - packages
+  - fas
 
 - name: enable httpd_can_network_connect selinux boolean
   seboolean: name={{ item }} state=yes persistent=yes
@@ -20,16 +21,19 @@
   - allow_ypbind
   tags:
   - config
+  - fas
 
 - name: setup /var/www/.python-eggs directory
   file: path=/var/www/.python-eggs owner=apache group=apache mode=0700 state=directory
   tags:
   - config
+  - fas
 
 - name: setup /etc/fas-gpg directory
   file: path=/etc/fas-gpg owner=fas group=fas mode=0700 state=directory setype=httpd_sys_rw_content_t
   tags:
   - config
+  - fas
 
 - name: install /etc/httpd/conf.d/accounts.conf file
   template: > 
@@ -42,11 +46,13 @@
   - restart httpd
   tags:
   - config
+  - fas
 
 - name: setup /etc/pki/fas directory
   file: path=/etc/pki/fas owner=fas group=fas mode=0755 state=directory
   tags:
   - config
+  - fas
 
 - name: install pythonsitelib/fas/config/log.cfg 
   copy: >
@@ -59,6 +65,7 @@
   - restart httpd
   tags:
   - config
+  - fas
 
 #  $bugzillaUser = "fedora-admin-xmlrpc@redhat.com"
 
@@ -71,6 +78,7 @@
     mode=0600
   tags:
   - config
+  - fas
 
 - name: install /etc/pki/fas/fedora-server-ca.cert file
   copy: >
@@ -81,6 +89,7 @@
     mode=0644
   tags:
   - config
+  - fas
 
 - name: install /etc/pki/fas/fedora-upload-ca.cert file
   copy: >
@@ -91,6 +100,7 @@
     mode=0644
   tags:
   - config
+  - fas
 
 - name: install /usr/share/fas/static/fedora-server-ca.cert file
   copy: >
@@ -101,6 +111,7 @@
     mode=0644
   tags:
   - config
+  - fas
 
 - name: install /usr/share/fas/static/fedora-upload-ca.cert file
   copy: >
@@ -111,6 +122,7 @@
     mode=0644
   tags:
   - config
+  - fas
 
 - name: install /etc/fas.cfg file
   template: > 
@@ -123,6 +135,7 @@
   - restart httpd
   tags:
   - config
+  - fas
 
 - name: install /usr/local/bin/yubikey-remove.py file 
   template: > 
@@ -133,6 +146,7 @@
     mode=0750
   tags:
   - config
+  - fas
 
 # $gen_cert = "True"
 
@@ -148,36 +162,42 @@
   - restart httpd
   tags:
   - config
+  - fas
 
 - name: setup /var/lock/fedora-ca directory
   file: path=/var/lock/fedora-ca owner=fas group=fas mode=0700 state=directory setype=var_lock_t
   when: master_fas_node == True
   tags:
   - config
+  - fas
 
 - name: setup /var/lib/fedora-ca directory
   file: path=/var/lib/fedora-ca owner=fas group=fas mode=0771 state=directory setype=httpd_sys_content_t
   when: master_fas_node == True
   tags:
   - config
+  - fas
 
 #- name: install /var/lib/fedora-ca/.rnd file
 #  file: path=/var/lib/fedora-ca/.rnd owner=fas group=fas mode=0600 setype=httpd_sys_content_t
 #  when: master_fas_node == True
 #  tags:     
 #  - config
+#  - fas
 
 - name: setup /var/lib/fedora-ca/newcerts directory
   file: path=/var/lib/fedora-ca/newcerts owner=fas group=fas mode=0700 state=directory
   when: master_fas_node == True
   tags:     
   - config
+  - fas
 
 - name: setup /var/lib/fedora-ca/private directory
   file: path=/var/lib/fedora-ca/private owner=fas group=fas mode=0700 state=directory 
   when: master_fas_node == True
   tags:
   - config
+  - fas
 
 - name: install /var/lib/fedora-ca/private/cakey.pem file
   copy: >
@@ -189,6 +209,7 @@
   when: master_fas_node == True
   tags:
   - config
+  - fas
 
 - name: install /var/lib/fedora-ca/Makefile file
   copy: >
@@ -200,6 +221,7 @@
   when: master_fas_node == True
   tags:
   - config
+  - fas
 
 - name: install /var/lib/fedora-ca/openssl.cnf file
   copy: >
@@ -211,6 +233,7 @@
   when: master_fas_node == True
   tags:
   - config
+  - fas
 
 - name: install /var/lib/fedora-ca/certhelper.py file
   copy: >
@@ -222,6 +245,7 @@
   when: master_fas_node == True
   tags:
   - config
+  - fas
 
 - name: install /var/lib/fedora-ca/cacert.pem file
   copy: >
@@ -233,6 +257,7 @@
   when: master_fas_node == True
   tags:
   - config
+  - fas
 
 #For publishing the crl
 - name: setup /srv/web/ca directory
@@ -240,6 +265,7 @@
   when: master_fas_node == True
   tags:
   - config
+  - fas
 
 - name: twice every month, force a new crl to be created
   cron: >
@@ -252,11 +278,14 @@
   when: master_fas_node == True
   tags:
   - config
+  - fas
 
 - name: create directory /var/lib/fedora-ca/crl/
   file: path={{ item }} state=directory
   with_items:
   - /var/lib/fedora-ca/crl/
+  tags:
+  - fas
 
 - name: touch /var/lib/fedora-ca/crl/crl.pem and /var/lib/fedora-ca/cacert.pem
   command: touch /var/lib/fedora-ca/cacert.pem /var/lib/fedora-ca/crl/crl.pem
@@ -264,18 +293,21 @@
   changed_when: "1 != 1"
   tags:
   - config
+  - fas
 
 - name: create /srv/web/ca/crl.pem link
   file: path="/srv/web/ca/crl.pem" state=link src="/var/lib/fedora-ca/crl/crl.pem"
   when: master_fas_node == True
   tags:
   - config
+  - fas
 
 - name: create /srv/web/ca/cacert.pem link
   file: path="/srv/web/ca/cacert.pem" state=link src="/var/lib/fedora-ca/cacert.pem"
   when: master_fas_node == True
   tags: 
   - config
+  - fas
 
 - name: install /etc/export-bugzilla.cfg file
   template: >
@@ -287,6 +319,7 @@
   when: master_fas_node == True
   tags:
   - config
+  - fas
 
 
 - name: HOTFIX fix the export-bugzilla cron to not store bugzilla token
@@ -299,6 +332,7 @@
   tags:
   - config
   - hotfix
+  - fas
 
 
 - name: run export-bugzilla program
@@ -310,3 +344,23 @@
   when: master_fas_node == True
   tags:
   - config
+  - fas
+
+- name: HOTFIX fas2.py in python-bugzilla to add a bugzilla override for ticket 4827
+  copy: src={{ roles }}/pkgdb2/files/fas2.py
+        dest=/usr/lib/python2.6/site-packages/fedora/client/fas2.py
+        mode=644 owner=root group=root
+  when: master_fas_node == True
+  tags:
+  - config
+  - fas
+  - hotfixfas
+
+- name: HOTFIX make sure only fas01 cleans up sessions
+  copy: src={{ roles }}/fas_server/files/controllers.py
+        dest=/usr/lib/python2.6/site-packages/fas/controllers.py
+        mode=644 owner=root group=root
+  tags:
+  - config
+  - fas
+  - hotfixfas

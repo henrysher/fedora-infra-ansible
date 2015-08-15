@@ -1,14 +1,3 @@
-
-{% if env == 'staging' %}
-suffix = "stg.phx2.fedoraproject.org"
-topic_prefix = "org.fedoraproject.stg."
-{% else %}
-suffix = "phx2.fedoraproject.org"
-topic_prefix = "org.fedoraproject.prod."
-{% endif %}
-
-vpn_suffix = "vpn.fedoraproject.org"
-
 config = dict(
     sign_messages=True,
     validate_signatures=True,
@@ -22,164 +11,32 @@ config = dict(
     crl_cache="/var/run/fedmsg/crl.pem",
     crl_cache_expiry=86400,  # Daily
 
-    certnames=dict(
-    [
-        ("bugzilla.bugzilla2fedmsg01", "bugzilla2fedmsg-bugzilla2fedmsg01.%s" % suffix)
+    certnames=dict([
+    # This is the set of certs for this host, dynamically generated from the
+    # ``fedmsg_certs`` host vars
+    {% for cert in fedmsg_certs %}
+    ("{{cert.get('alias', cert['service'])}}.{{inventory_hostname_short}}", "{{cert['service']}}-{{fedmsg_fqdn | default(ansible_fqdn)}}"),
+    {% endfor %}
+] + [
+        # This is the beginning of the static list.  We should eventually remove
+        # this.
+        ("git.hosted03", "git-hosted03.vpn.fedoraproject.org"),
+        ("git.hosted04", "git-hosted04.vpn.fedoraproject.org"),
+        ("trac.hosted03", "trac-hosted03.vpn.fedoraproject.org"),
+        ("trac.hosted04", "trac-hosted04.vpn.fedoraproject.org"),
+        ("shell.hosted03", "shell-hosted03.vpn.fedoraproject.org"),
+        ("shell.hosted04", "shell-hosted04.vpn.fedoraproject.org"),
     ] + [
-        ("shell.bugzilla2fedmsg01", "shell-bugzilla2fedmsg01.%s" % suffix)
-    ] + [
-        ("github2fedmsg.github2fedmsg0%i" % i, "github2fedmsg-github2fedmsg0%i.%s" % (i, suffix))
-        for i in range(1, 3)
-    ] + [
-        ("shell.github2fedmsg0%i" % i, "shell-github2fedmsg0%i.%s" % (i, suffix))
-        for i in range(1, 3)
-    ] + [
-        ("fedimg.fedimg01", "fedimg-fedimg01.%s" % suffix),
-        ("shell.fedimg01", "shell-fedimg01.%s" % suffix),
-    ] + [
-        ("kerneltest.kerneltest0%i" % i, "kerneltest-kerneltest0%i.%s" % (i, suffix))
-        for i in range(1, 3)
-    ] + [
-        ("shell.kerneltest0%i" % i, "shell-kerneltest0%i.%s" % (i, suffix))
-        for i in range(1, 3)
-    ] + [
-        ("shell.notifs-web0%i" % i, "shell-notifs-web0%i.%s" % (i, suffix))
-        for i in range(1, 3)
-    ] + [
-        ("fmn.notifs-web0%i" % i, "fmn-notifs-web0%i.%s" % (i, suffix))
-        for i in range(1, 3)
-    ] + [
-        ("shell.notifs-backend01", "shell-notifs-backend01.%s" % suffix),
-    ] + [
-        ("fmn.notifs-backend01", "fmn-notifs-backend01.%s" % suffix),
-    ] + [
-        ("shell.pkgdb0%i" % i, "shell-pkgdb0%i.%s" % (i, suffix))
-        for i in range(1, 3)
-    ] + [
-        ("pkgdb2.pkgdb0%i" % i, "pkgdb-pkgdb0%i.%s" % (i, suffix))
-        for i in range(1, 3)
-    ] + [
-        ("mediawiki.wiki0%i" % i, "mediawiki-wiki0%i.%s" % (i, suffix))
-        for i in range(1, 3)
-    ] + [
-        ("shell.fas0%i" % i, "shell-fas0%i.%s" % (i, suffix))
-        for i in range(1, 4)
-    ] + [
-        ("fas.fas0%i" % i, "fas-fas0%i.%s" % (i, suffix))
-        for i in range(1, 4)
-    ] + [
-        ("shell.packages0%i" % i, "shell-packages0%i.%s" % (i, suffix))
-        for i in range(3, 5)
-    ] + [
-        ("fedoratagger.tagger0%i" % i, "fedoratagger-tagger0%i.%s" % (i, suffix))
-        for i in range(1, 3)
-    ] + [
-        ("shell.tagger0%i" % i, "shell-tagger0%i.%s" % (i, suffix))
-        for i in range(1, 3)
-    ] + [
-        ("shell.pkgs0%i" % i, "shell-pkgs0%i.%s" % (i, suffix))
-        for i in range(1, 3)
-    ] + [
-        ("scm.pkgs0%i" % i, "scm-pkgs0%i.%s" % (i, suffix))
-        for i in range(1, 3)
-    ] + [
-        ("lookaside.pkgs0%i" % i, "lookaside-pkgs0%i.%s" % (i, suffix))
-        for i in range(1, 3)
-    ] + [
-        ("shell.relepel01", "shell-relepel01.%s" % suffix),
-        ("shell.branched-composer", "shell-branched-composer.%s" % suffix),
-        ("shell.rawhide-composer", "shell-rawhide-composer.%s" % suffix),
-        ("shell.composer", "shell-composer.%s" % suffix),
-        ("shell.releng03", "shell-releng03.%s" % suffix),
-        ("shell.releng04", "shell-releng04.%s" % suffix),
-        ("bodhi.relepel01", "bodhi-relepel01.%s" % suffix),
-        ("bodhi.branched-composer", "bodhi-branched-composer.%s" % suffix),
-        ("bodhi.rawhide-composer", "bodhi-rawhide-composer.%s" % suffix),
-        ("bodhi.composer", "bodhi-composer.%s" % suffix),
-        ("bodhi.releng03", "bodhi-releng03.%s" % suffix),
-        ("bodhi.releng04", "bodhi-releng04.%s" % suffix),
-    ] + [
-        ("ftpsync.relepel01", "ftpsync-relepel01.%s" % suffix),
-        ("ftpsync.releng04", "ftpsync-releng04.%s" % suffix),
-    ] + [
-        ("shell.busgateway01", "shell-busgateway01.%s" % suffix),
-    ] + [
-        ("shell.value01", "shell-value01.%s" % suffix),
-        ("supybot.value01", "supybot-value01.%s" % suffix),
-    ] + [
-        ("koji.koji04", "koji-koji04.%s" % suffix),
-        ("koji.koji01", "koji-koji01.%s" % suffix),
-        ("koji.koji03", "koji-koji03.%s" % suffix),
-        ("shell.koji04", "shell-koji04.%s" % suffix),
-        ("shell.koji01", "shell-koji01.%s" % suffix),
-        ("shell.koji03", "shell-koji03.%s" % suffix),
-    ] + [
-        ("nagios.noc01", "nagios-noc01.%s" % suffix),
-        ("shell.noc01", "shell-noc01.%s" % suffix),
-    ] + [
-        ("git.hosted03", "git-hosted03.%s" % vpn_suffix),
-        ("git.hosted04", "git-hosted04.%s" % vpn_suffix),
-        ("trac.hosted03", "trac-hosted03.%s" % vpn_suffix),
-        ("trac.hosted04", "trac-hosted04.%s" % vpn_suffix),
-        ("shell.hosted03", "shell-hosted03.%s" % vpn_suffix),
-        ("shell.hosted04", "shell-hosted04.%s" % vpn_suffix),
-    ] + [
-        ("shell.lockbox01", "shell-lockbox01.%s" % suffix),
-        ("announce.lockbox01", "announce-lockbox01.%s" % suffix),
-    ] + [
-        # These first two entries are here to placate a bug in
-        # python-askbot-fedmsg-0.0.4.  They can be removed once
-        # python-askbot-fedmsg-0.0.5 hits town.
-        ("askbot.ask01.phx2.fedoraproject.org", "askbot-ask01.%s" % suffix),
-        ("askbot.ask01.stg.phx2.fedoraproject.org", "askbot-ask01.%s" % suffix),
+        ("shell.anitya-frontend01", "shell-anitya-frontend01.vpn.fedoraproject.org"),
+        ("anitya.anitya-frontend01", "anitya-anitya-frontend01.vpn.fedoraproject.org"),
+        ("shell.anitya-backend01", "shell-anitya-backend01.vpn.fedoraproject.org"),
+        ("anitya.anitya-backend01", "anitya-anitya-backend01.vpn.fedoraproject.org"),
 
-        ("askbot.ask01", "askbot-ask01.%s" % suffix),
-        ("shell.ask01", "shell-ask01.%s" % suffix),
-
-        ("askbot.ask02", "askbot-ask02.%s" % suffix),
-        ("shell.ask02", "shell-ask02.%s" % suffix),
-
-        ("fedbadges.badges-backend01", "fedbadges-badges-backend01.%s" % suffix),
-        ("shell.badges-backend01", "shell-badges-backend01.%s" % suffix),
-
-        ("hotness.hotness01", "hotness-hotness01.%s" % suffix),
-        ("shell.hotness01", "shell-hotness01.%s" % suffix),
-
-        ("summershum.summershum01", "summershum-summershum01.%s" % suffix),
-        ("shell.summershum01", "shell-summershum01.%s" % suffix),
-
-        ("tahrir.badges-web01", "tahrir-badges-web01.%s" % suffix),
-        ("shell.badges-web01", "shell-badges-web01.%s" % suffix),
-        ("tahrir.badges-web02", "tahrir-badges-web02.%s" % suffix),
-        ("shell.badges-web02", "shell-badges-web02.%s" % suffix),
-
-        ("shell.nuancier01", "shell-nuancier01.%s" % suffix),
-        ("shell.nuancier02", "shell-nuancier02.%s" % suffix),
-        ("nuancier.nuancier01", "nuancier-nuancier01.%s" % suffix),
-        ("nuancier.nuancier02", "nuancier-nuancier02.%s" % suffix),
-
-        ("shell.fedocal01", "shell-fedocal01.%s" % suffix),
-        ("shell.fedocal02", "shell-fedocal02.%s" % suffix),
-        ("fedocal.fedocal01", "fedocal-fedocal01.%s" % suffix),
-        ("fedocal.fedocal02", "fedocal-fedocal02.%s" % suffix),
-
-        ("shell.mailman01", "shell-mailman01.%s" % suffix),
-        ("mailman.mailman01", "mailman-mailman01.%s" % suffix),
-
-        ("shell.bodhi01", "shell-bodhi01.%s" % suffix),
-        ("shell.bodhi02", "shell-bodhi02.%s" % suffix),
-        ("bodhi.bodhi01", "bodhi-bodhi01.%s" % suffix),
-        ("bodhi.bodhi02", "bodhi-bodhi02.%s" % suffix),
-
-        ("shell.elections01", "shell-elections01.%s" % suffix),
-        ("shell.elections02", "shell-elections02.%s" % suffix),
-        ("fedora_elections.elections01", "fedora_elections-elections01.%s" % suffix),
-        ("fedora_elections.elections02", "fedora_elections-elections02.%s" % suffix),
-
-        ("shell.anitya-frontend01", "shell-anitya-frontend01.fedoraproject.org"),
-        ("anitya.anitya-frontend01", "anitya-anitya-frontend01.fedoraproject.org"),
-        ("shell.anitya-backend01", "shell-anitya-backend01.fedoraproject.org"),
-        ("anitya.anitya-backend01", "anitya-anitya-backend01.fedoraproject.org"),
+        # FAF/retrace is on the qa network and talks to an inbound relay.
+        ("shell.retrace01", "shell-retrace01.qa.fedoraproject.org"),
+        ("shell.retrace02", "shell-retrace02.qa.fedoraproject.org"),
+        ("faf.retrace01", "faf-retrace01.qa.fedoraproject.org"),
+        ("faf.retrace02", "faf-retrace02.qa.fedoraproject.org"),
 
         # This is for the copr backend, which is a little different.  The
         # "cert-prefix" is just "copr", and is hardcoded in
@@ -193,10 +50,6 @@ config = dict(
         # Jenkins, also being a cloud node, is weird.  Like copr.
         ("shell.jenkins-master-unknown", "shell-jenkins.cloud.fedoraproject.org"),
         ("jenkins.jenkins-master-unknown", "jenkins-jenkins.cloud.fedoraproject.org"),
-
-        # Koschei, also a cloud node, is the most weird.  Weirdest.
-        ("shell.server-3a4eddb8-c754-4f32-969b-3bf4751732b3", "shell-koschei.cloud.fedoraproject.org"),
-        ("koschei.server-3a4eddb8-c754-4f32-969b-3bf4751732b3", "koschei-koschei.cloud.fedoraproject.org"),
     ]),
 )
 

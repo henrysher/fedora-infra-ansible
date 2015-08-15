@@ -1,0 +1,78 @@
+<!--
+# This script is for rendering ambassadors map.
+#
+# Copyright (C) 2009, Susmit Shannigrahi, Susmit AT fedoraproject DOT org
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+# Openlayer.js, Openstreetmap.js, and the map data are copyrighted by their respective 
+# copyright owners.
+
+-->
+
+<html>
+
+  <head>
+
+    <script src="OpenLayers.js"></script>
+    <script type="text/javascript">
+
+        var lat=88.360000
+        var lon=22.50000
+        var zoom=2
+
+        var map;
+
+        function init() {
+            map = new OpenLayers.Map ("map", {
+                controls:[
+                    new OpenLayers.Control.Navigation(),
+                    new OpenLayers.Control.PanZoomBar(),
+                    new OpenLayers.Control.LayerSwitcher(),
+//                    new OpenLayers.Control.MousePosition(),
+                    new OpenLayers.Control.Attribution()],
+//                units: 'm',
+//                projection: new OpenLayers.Projection("EPSG:4326"),
+//                displayProjection: new OpenLayers.Projection("EPSG:4326")
+            });
+
+            Osm = new OpenLayers.Layer.OSM("Open Street Map");
+            map.addLayer(Osm);
+
+            var center = new OpenLayers.LonLat(lon, lat)
+            map.setCenter (center, zoom);
+
+            var text = new OpenLayers.Layer.Text( "Ambassadors", {location: "./ambassadors_location.txt"} );
+            map.addLayer(text);
+        }
+    </script>
+  </head>
+
+  <body onload="init()">
+    <center>    <h4 id="title"><a href=http://fedoraproject.org/wiki/fedora_ambassadors_map>Fedora Ambassadors Map</a></h4></center>
+    <div id="map"></div>
+
+    <script src="https://apps.fedoraproject.org/fedmenu/js/jquery-1.11.2.min.js"></script>
+    <script src="https://apps.fedoraproject.org/fedmenu/js/fedmenu.js"></script>
+    <script>
+      fedmenu({
+        'url': 'https://apps.fedoraproject.org/js/data.js',
+        'mimeType': 'application/javascript',
+        'position': 'bottom-right',
+      });
+    </script>
+  </body>
+
+</html>
+

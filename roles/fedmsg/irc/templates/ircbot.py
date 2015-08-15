@@ -13,15 +13,84 @@ config = dict(
             {% endif %}
             channel='fedora-fedmsg',
 
-            # Ignore some of the koji spamminess
             filters=dict(
                 topic=[
+                    # Ignore some of the koji spamminess
                     'buildsys.repo.init',
                     'buildsys.repo.done',
                     'buildsys.untag',
                     'buildsys.tag',
+                    # And some of the FAF/ABRT spamminess
+                    'faf.report.threshold1',
+                    'faf.problem.threshold1',
                 ],
                 body=[],
+            ),
+        ),
+
+        # For fedora-apps
+        dict(
+            network='chat.freenode.net',
+            port=6667,
+            make_pretty=True,
+            make_terse=True,
+
+            {% if env == 'staging' %}
+            nickname='fedmsg-apps-s',
+            {% else %}
+            nickname='fedmsg-apps',
+            {% endif %}
+            channel='fedora-apps',
+            filters=dict(
+                topic=[
+                    '^((?!(github\.create|github\.issue\.|github\.pull_request|github\.commit_comment|github\.star|pagure)).)*$',
+                ],
+                body=[
+                    "^((?!(fedora-infra|u'name': u'pagure')).)*$",
+                ],
+            ),
+        ),
+
+        # For fedora-hubs (not fedora-apps)
+        dict(
+            network='chat.freenode.net',
+            port=6667,
+            make_pretty=True,
+            make_terse=True,
+
+            {% if env == 'staging' %}
+            nickname='fedmsg-hubs-s',
+            {% else %}
+            nickname='fedmsg-hubs',
+            {% endif %}
+            channel='fedora-hubs',
+            filters=dict(
+                topic=[
+                    '^((?!(github\.create|github\.issue\.|github\.pull_request\.|github\.commit_comment|github\.star|pagure)).)*$',
+                ],
+                body=[
+                    "^((?!(fedora-hubs)).)*$",
+                ],
+            ),
+        ),
+
+        # For that commops crew!
+        dict(
+            network='chat.freenode.net',
+            port=6667,
+            make_pretty=True,
+            make_terse=True,
+
+            {% if env == 'staging' %}
+            nickname='commopsbot-s',
+            {% else %}
+            nickname='commopsbot',
+            {% endif %}
+            channel='fedora-commops',
+            filters=dict(
+                topic=[
+                    '^((?!(planet|fedora_elections|meetbot\.meeting\.item\.help|meetbot\.meeting\.complete|github\.star|github\.fork|github\.release|fedocal\.meeting\.new|fedocal\.meeting\.update|fedocal\.meeting\.delete|fedocal\.calendar|fas\.group\.member\.sponsor|fedbadges\.person\.login\.first|pagure\.project\.new|askbot\.post\.flag_offensive|anitya\.distro\.add|anitya\.project\.map\.new)).)*$',
+                ],
             ),
         ),
 
@@ -102,6 +171,25 @@ config = dict(
             # If the word fedora-latam appears in any message, forward it.
             filters=dict(
                 body=['^((?!fedora-latam).)*$'],
+            ),
+        ),
+
+        # And for #fedora-g11n
+        dict(
+            network='chat.freenode.net',
+            port=6667,
+            make_pretty=True,
+            make_terse=True,
+
+            {% if env == 'staging' %}
+            nickname='fedmsg-g11n-stg',
+            {% else %}
+            nickname='fedmsg-g11n',
+            {% endif %}
+            channel='#fedora-g11n',
+            # If the word G11N appears in any message, forward it.
+            filters=dict(
+                body=['^((?!G11N).)*$'],
             ),
         ),
 

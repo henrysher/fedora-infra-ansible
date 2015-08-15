@@ -1,0 +1,122 @@
+- name: check/create instance
+  hosts: artboard.fedorainfracloud.org
+  gather_facts: False
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - /srv/private/ansible/vars.yml
+   - /srv/web/infra/ansible/vars/fedora-cloud.yml
+   - /srv/private/ansible/files/openstack/passwords.yml
+
+  tasks:
+  - include: "{{ tasks }}/persistent_cloud_new.yml"
+
+- name: setup all the things
+  hosts: artboard.fedorainfracloud.org
+  gather_facts: True
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - /srv/private/ansible/vars.yml
+   - /srv/private/ansible/files/openstack/passwords.yml
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  pre_tasks:
+  - include: "{{ tasks }}/cloud_setup_basic.yml"
+  - name: set hostname (required by some services, at least postfix need it)
+    shell: "hostname {{inventory_hostname}}"
+
+  tasks:
+
+  - name: Install common scripts
+    copy: src={{ item }} dest=/usr/local/bin/ owner=root group=root mode=0755
+    with_fileglob:
+    - "{{ roles }}/base/files/common-scripts/*"
+    tags:
+    - config
+    - base
+    - artboard
+
+  - name: set sebooleans so artboard can talk to the db
+    seboolean: name=httpd_can_network_connect_db state=true persistent=true
+    tags:
+    - selinux
+    - artboard
+
+  - name: mount up disk of persistent storage
+    mount: name=/srv/persist src='LABEL=artboard' fstype=ext4 state=mounted
+    tags:
+    - artboard
+
+  - name: check the selinux context of the artboard dirs
+    command: matchpathcon "/srv/persist/artboard/(.*)"
+    register: webcontext
+    always_run: yes
+    changed_when: false
+    tags:
+    - config
+    - selinux
+    - artboard
+
+  - name: set the SELinux policy for the artboard web dir
+    command: semanage fcontext -a -t httpd_sys_content_t "/srv/persist/artboard/(.*)"
+    when: webcontext.stdout.find('httpd_sys_content_t') == -1
+    tags:
+    - config
+    - selinux
+    - artboard
+
+  # packages needed
+  - name: add packages
+    yum: state=present name={{ item }}
+    with_items:
+    - rsync
+    - openssh-clients
+    - httpd
+    - httpd-tools
+    - php
+    - php-gd
+    - php-mysql
+    - cronie-noanacron
+    - mod_ssl
+    tags:
+    - artboard
+
+  # packages needed to be gone
+  - name: erase packages
+    yum: state=absent name={{ item }}
+    with_items:
+    - cronie-anacron
+    tags:
+    - artboard
+
+  - name: artboard backup thing
+    copy: src="{{ files }}/artboard/artboard-backup" dest=/etc/cron.daily/artboard-backup mode=0755
+    tags:
+    - artboard
+
+  - name: make artboard subdir 
+    file: path=/srv/persist/artboard mode=0755 state=directory
+    tags:
+    - artboard
+
+  - name: link artboard into /var/www/html
+    file: state=link src=/srv/persist/artboard path=/var/www/html/artboard
+    tags:
+    - artboard
+
+  - name: add apache confs
+    copy: src="{{ files }}/artboard/{{ item }}" dest="/etc/httpd/conf.d/{{ item }}"  backup=true
+    with_items:
+    - artboard.conf
+    - redirect.conf
+    notify: restart httpd
+    tags:
+    - artboard
+    
+  - name: startup apache
+    service: name=httpd state=started
+    tags:
+    - artboard
+
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"

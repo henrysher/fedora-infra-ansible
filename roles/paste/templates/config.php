@@ -7,7 +7,7 @@
 /// Unless you are absolutely sure what you're doing ;-)
 
 {% if env == "staging" %}                                             
-$db_host = "db02.stg";
+$db_host = "db03.stg";
 {% else %}
 $db_host = "db-paste";
 {% endif %}
@@ -40,6 +40,7 @@ $sg_php_days = 90;
 $sg_php_score = 50;
 $sg_php_type = 2;
 $sg_censor = "vipshare.me
+bubbajeen.com
 http://bit.ly/
 tinyurl.com
 freepremium.info.tm

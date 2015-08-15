@@ -1,0 +1,94 @@
+---
+# Configuration for the mote webapp
+
+- name: install needed packages
+  yum: pkg={{ item }} state=present
+  with_items:
+  - mote
+  tags:
+  - packages
+  - mote
+
+- name: replace the mote configuration file by the one with the normal user
+  template: src={{ item.file }}
+            dest="{{ item.location }}/{{ item.file }}"
+            owner=apache group=apache mode=0600
+  with_items:
+  - { file: config.py, location: /etc/mote }
+  - { file: mote.conf, location: /etc/httpd/conf.d }
+  - { file: mote.wsgi, location: /usr/share/mote }
+  - { file: category_mappings.json, location: /usr/share/mote }
+  - { file: name_mappings.json, location: /usr/share/mote }
+  tags:
+  - config
+  - mote
+  notify:
+  - nuke mote json cache
+  - restart apache
+
+- name: Create /usr/share/httpd/.local for mote-updater to store the fedmsg CRL
+  file: dest=/usr/share/httpd/.local owner=apache group=apache state=directory
+  tags:
+  - mote
+
+- name: start mote-updater service
+  service: name=mote-updater state=started enabled=yes
+  tags:
+  - services
+  - mote
+
+- name: apply selinux type to static files
+  file: >
+    dest=/usr/lib/python2.7/site-packages/mote/static/
+    setype=httpd_sys_content_t
+    state=directory
+    recurse=yes
+  tags:
+  - mote
+  - selinux
+
+- name: apply selinux type to meetbot files
+  file: >
+    dest=/srv/web/meetbot/
+    setype=httpd_sys_content_t
+    state=directory
+    recurse=yes
+  tags:
+  - mote
+  - selinux
+
+- name: set sebooleans so apache can use memcached
+  action: seboolean name=httpd_can_network_memcache
+                    state=true
+                    persistent=true
+  tags:
+  - mote
+  - selinux
+
+- name: apply selinux type to the wsgi file
+  file: >
+    dest=/usr/share/mote/mote.wsgi
+    setype=httpd_sys_content_t
+  tags:
+  - mote
+  - selinux
+
+- name: apply selinux type to the name mappings file
+  file: >
+    dest=/usr/share/mote/name_mappings.json
+    setype=httpd_sys_content_t
+  notify:
+  - nuke mote json cache
+  tags:
+  - mote
+  - selinux
+
+- name: apply selinux type to the category mappings file
+  file: >
+    dest=/usr/share/mote/category_mappings.json
+    setype=httpd_sys_content_t
+  notify:
+  - nuke mote json cache
+  tags:
+  - mote
+  - selinux

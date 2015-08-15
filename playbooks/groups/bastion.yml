@@ -1,5 +1,5 @@
 - name: make the servers
-  hosts: bastion:!bastion-comm01.qa.fedoraproject.org
+  hosts: bastion
   user: root
   gather_facts: False
 
@@ -15,7 +15,7 @@
   - include: "{{ handlers }}/restart_services.yml"
 
 - name: make the boxen be real for real
-  hosts: bastion:!bastion-comm01.qa.fedoraproject.org
+  hosts: bastion
   user: root
   gather_facts: True
 
@@ -27,14 +27,13 @@
   roles:
   - base
   - rkhunter
-  - { role: denyhosts, when: ansible_distribution_major_version != '7' }
   - nagios_client
   - hosts
   - fas_client
   - sudo
   - collectd/base
-  - openvpn/server
-  - packager_alias
+  - { role: openvpn/server, when: not inventory_hostname.startswith('bastion-comm01') }
+  - { role: packager_alias, when: not inventory_hostname.startswith('bastion-comm01') }
 
   tasks:
   - include: "{{ tasks }}/yumrepos.yml"
@@ -43,3 +42,14 @@
 
   handlers:
   - include: "{{ handlers }}/restart_services.yml"
+
+- name: configure bastion-qa
+  hosts: bastion-comm01.qa.fedoraproject.org
+  user: root
+  gather_facts: True
+
+  tasks:
+  - name: install needed packages
+    yum: pkg={{ item }} state=present
+    with_items:
+    - ipmitool

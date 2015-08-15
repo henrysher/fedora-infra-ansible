@@ -1,0 +1,158 @@
+---
+# tasklist for setting up bodhi
+# This is the base set of files needed for bodhi
+
+- name: setup the bodhi2 copr repo
+  copy: >
+    src="lmacken-bodhi2-epel-7.repo"
+    dest="/etc/yum.repos.d/lmacken-bodhi2-epel-7.repo"
+    owner=root
+    group=root
+    mode=0644
+  tags:
+  - config
+  - bodhi
+
+
+- name: install needed packages
+  yum: pkg={{ item }} state=present
+  with_items:
+  - bodhi-server
+  - libsemanage-python
+  tags:
+  - packages
+  - bodhi
+
+- name: setup /etc/bodhi/ directory
+  file: path=/etc/bodhi owner=root group=root mode=0755 state=directory
+  tags:
+  - config
+  - bodhi
+
+- name: setup basic /etc/bodhi/ contents
+  template: > 
+    src="staging.ini.j2" 
+    dest="/etc/bodhi/production.ini" 
+    owner=bodhi 
+    group=bodhi 
+    mode=0600
+  when: inventory_hostname.startswith('bodhi') and env == 'staging'
+  notify:
+  - restart httpd
+  tags:
+  - config
+  - bodhi
+
+- name: setup basic /etc/bodhi/ contents
+  template: > 
+    src="production.ini.j2" 
+    dest="/etc/bodhi/production.ini" 
+    owner=bodhi 
+    group=bodhi 
+    mode=0600
+  when: inventory_hostname.startswith('bodhi') and env == 'production'
+  notify:
+  - restart httpd
+  tags:
+  - config
+  - bodhi
+
+
+- name: setup basic /etc/httpd/conf.d/ bodhi contents
+  copy: >
+    src="bodhi-app.conf"  
+    dest="/etc/httpd/conf.d/bodhi.conf"
+    owner=root
+    group=root
+    mode=0644
+  when: inventory_hostname.startswith('bodhi0')
+  notify:
+  - restart httpd
+  tags:
+  - config
+  - bodhi
+
+- name: setup /etc/pki/bodhi directory
+  file: path=/etc/pki/bodhi owner=root group=root mode=0755 state=directory
+  tags:
+  - config
+  - bodhi
+
+- name: install bodhi.pem file
+  copy: >
+    src="{{ puppet_private }}/bodhi_key_and_cert.pem"
+    dest="/etc/pki/bodhi/bodhi.pem"
+    owner=bodhi
+    group=bodhi
+    mode=0400
+  when: inventory_hostname.startswith('bodhi')
+  tags:
+  - config
+  - bodhi
+
+- name: install bodhi certificates
+  copy: >
+    src="{{ puppet_private }}/fedora-ca.cert"
+    dest="/etc/pki/bodhi/{{ item }}"
+    owner=root
+    group=root
+    mode=0644
+  with_items:
+  - fedora-server-ca.cert
+  - fedora-upload-ca.cert
+  tags:
+  - config
+  - bodhi
+
+#- name: setup /var/log/bodhi directory
+#  file: path=/var/log/bodhi owner=bodhi group=bodhi mode=0755 state=directory
+#  when: inventory_hostname.startswith('bodhi0')
+#  tags:
+#  - config
+#  - bodhi
+
+#- name: check the selinux context of the bugzilla cookie
+#  command: matchpathcon /var/tmp/bodhi-bz.cookie
+#  register: cookiecontext
+#  always_run: yes
+#  changed_when: "1 != 1"
+#  tags:
+#  - config
+#  - bodhi
+#  - selinux
+#
+#- name: set the SELinux policy for the bugzilla cookie
+#  command: semanage fcontext -a -t httpd_tmp_t "/var/tmp/bodhi-bz.cookie"
+#  when: cookiecontext.stdout.find('httpd_tmp_t') == -1
+#  tags:
+#  - config
+#  - bodhi
+#  - selinux
+
+- name: enable httpd_tmp_exec SELinux boolean 
+  seboolean: name=httpd_tmp_exec state=yes persistent=yes
+  tags:
+  - config
+  - bodhi
+  - selinux
+
+- name: enable httpd_can_network_connect_db SELinux boolean 
+  seboolean: name=httpd_can_network_connect_db state=yes persistent=yes
+  tags:
+  - config
+  - bodhi
+  - selinux
+
+- name: enable httpd_can_network_connect SELinux boolean
+  seboolean: name=httpd_can_network_connect state=yes persistent=yes
+  tags:
+  - config
+  - bodhi
+  - selinux
+
+- name: enable httpd_execmem SELinux boolean
+  seboolean: name=httpd_execmem state=yes persistent=yes
+  tags:
+  - config
+  - bodhi
+  - selinux

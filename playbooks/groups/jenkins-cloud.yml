@@ -58,7 +58,7 @@
     - java-1.8.0-openjdk
     tags:
     - packages
-    when: ansible_distribution_major_version != '7'
+    when: ansible_distribution_major_version|int != 7
 
   - name: add jenkins proxy config file for apache
     action: copy src="{{ files }}/jenkins/master/jenkins-apache.conf"
@@ -98,14 +98,14 @@
     tags:
     - config
 
-  - name: make sure jenkins is stopped
-    action: service name=jenkins state=stopped
+#  - name: make sure jenkins is stopped
+#    action: service name=jenkins state=stopped
 
-  - name: clean any previous plugin deployments
-    action: file state=absent path=/var/lib/jenkins/plugins
+#  - name: clean any previous plugin deployments
+#    action: file state=absent path=/var/lib/jenkins/plugins
 
-  - name: mkdir dir for jenkins data
-    action: file state=directory path=/var/lib/jenkins/plugins/ owner=jenkins group=jenkins
+#  - name: mkdir dir for jenkins data
+#    action: file state=directory path=/var/lib/jenkins/plugins/ owner=jenkins group=jenkins
 
 #  - name: Download jenkins plugins
 #    get_url: url=https://updates.jenkins-ci.org/download/plugins/{{ item.name }}/{{ item.version }}/{{ item.name }}.hpi
@@ -203,35 +203,7 @@
 #     - config
 
   - name: Install custom jenkins plugins (from ansible bigfiles)
-    action: copy src="{{ bigfiles }}/jenkins/{{ item }}.hpi" dest=/var/lib/jenkins/plugins/{{ item }}.hpi
-    with_items:
-    - fedmsg
-    - bazaar
-    - chucknorris
-    - cobertura
-    - cvs
-    - external-monitor-job
-    - git
-    - git-client
-    - instant-messaging
-    - ldap
-    - matrix-auth
-    - maven-plugin
-    - mercurial
-    - openid
-    - python
-    - scm-api
-    - ssh-agent
-    - subversion
-    - translation
-    - violations
-    - xunit
-    - multiple-scms
-    - credentials
-    - mailer
-    - javadoc
-    - warnings
-    - ghprb
+    synchronize: src="{{ bigfiles }}/jenkins/" dest=/var/lib/jenkins/plugins/ delete=yes
     notify:
       - restart jenkins
     tags:
@@ -244,10 +216,6 @@
     tags:
      - config
 
-  - name: Give the user jenkins the ownership of the /var/lib/jenkins
-    file: path=/var/lib/jenkins/
-          owner=jenkins group=jenkins recurse=yes
-
   - name: add jenkins ssh priv key so it can connect to clients
     action: copy src="{{ private }}/files/jenkins/ssh/jenkins_master" dest=/var/tmp/jenkins_master_id_rsa mode=600 owner=jenkins group=jenkins
     tags:
@@ -258,18 +226,17 @@
     tags:
     - config
 
-  - name: start jenkins itself
-    action: service name=jenkins state=running
+  - meta: flush_handlers
 
-  - name: wait for a dir to exist - this is just ugly
-    shell: while `true`; do [ -d /var/lib/jenkins/plugins/openid/WEB-INF/lib/ ] && break; sleep 5; done
-    async: 1800
-    poll: 20
+# 
+# We have to wait here because if jenkins is restarting it takes a while to unpack all the 
+# plugins and create the directory we use below to sync the hotfix versions over the plugin versions
+# for the openid pluin.
+#
+  - wait_for: path=/var/lib/jenkins/plugins/openid/WEB-INF/lib/
 
   - name: jenkins hotfix big file
-    copy: src={{ item }} dest=/var/lib/jenkins/plugins/openid/WEB-INF/lib/ group=jenkins mode=655
-    with_fileglob:
-     - "{{ bigfiles }}/hotfixes/jenkins/openid/*.jar"
+    synchronize: src="{{ bigfiles }}/hotfixes/jenkins/openid/" dest=/var/lib/jenkins/plugins/openid/WEB-INF/lib/
     notify:
       - restart jenkins
 
@@ -289,8 +256,7 @@
    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
 
   roles:
-   - role: fedmsg/base
-     fedmsg_fqdn: jenkins.cloud.fedoraproject.org
+   - fedmsg/base
 
   handlers:
   - include: "{{ handlers }}/restart_services.yml"
@@ -298,6 +264,7 @@
 ###################################################
 # jenkins slaves
 
+# old cloud instance setup
 - name: check/create instance for jenkins-slaves
   hosts: jenkins-slaves
   user: root
@@ -316,8 +283,22 @@
   - include: "{{ tasks }}/persistent_cloud.yml"
   - include: "{{ tasks }}/growroot_cloud.yml"
 
+# new cloud instance setup
+- name: check/create instance
+  hosts: jenkins-slaves-newcloud
+  gather_facts: False
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - /srv/private/ansible/vars.yml
+   - /srv/web/infra/ansible/vars/fedora-cloud.yml
+   - /srv/private/ansible/files/openstack/passwords.yml
+
+  tasks:
+  - include: "{{ tasks }}/persistent_cloud_new.yml"
+
 - name: provision workers
-  hosts: jenkins-slaves
+  hosts: jenkins-slaves:jenkins-slaves-newcloud
   user: root
   gather_facts: True
   tags:
@@ -380,6 +361,12 @@
     - openssl-devel      # Required by bodhi/cffi/cryptography
     - redis              # Required by copr
     - createrepo_c       # Required by bodhi2
+    - python-createrepo_c       # Required by bodhi2
+    - koji               # Required by koschei (ticket #4852)
+    - python-hawkey      # Required by koschei (ticket #4852)
+    - python-librepo     # Required by koschei (ticket #4852)
+    - rpm-python         # Required by koschei (ticket #4852)
+    - osbs               # Required by pyrpkg (ticket 4838)
     tags:
     - packages
 
@@ -391,13 +378,22 @@
     - python-straight-plugin
     - pyflakes           # Requested by user rholy (ticket #4175)
     #- dia                # Required by javapackages-tools ticket #4279
-    when: ansible_distribution_version != "7.0"
+    when: ansible_distribution_version[0] != "7"
+    tags:
+    - packages
+
+  - name: install packages available on el7 builder
+    action: yum state=present pkg={{ item }}
+    with_items:
+    - python-pygit2     # Required for pagure
+    - python-webob1.4   # Required by bodhi2
+    when: ansible_distribution_version[0] == "7"
     tags:
     - packages
 
   - name: install pkgs for jenkins for fedora systems > F19
     action: yum state=present pkg={{ item }}
-    when: is_fedora is defined and ansible_distribution_major_version > 20
+    when: is_fedora is defined and ansible_distribution_major_version|int >= 20
     with_items:
     - sbt-extras
 
@@ -480,23 +476,58 @@
     - pwgen             # Required for mpi4py
     - openmpi-devel     # Required for mpi4py
     - mpich2-devel      # Required for mpi4py
-    - python-openid      # Required by Ipsilon
-    - python-openid-teams  # Required by Ipsilon
-    - python-openid-cla  # Required by Ipsilon
-    - python-cherrypy    # Required by Ipsilon
-    - m2crypto           # Required by Ipsilon
-    - lasso-python       # Required by Ipsilon
-    - python-sqlalchemy  # Required by Ipsilon
-    - python-ldap        # Required by Ipsilon
-    - python-pam         # Required by Ipsilon
-    - freeipa-python     # Required by Ipsilon
-    - httpd              # Required by Ipsilon
-    - mod_auth_mellon    # Required by Ipsilon
-    - postgresql-server  # Required by Ipsilon
-    - mod_wsgi           # Required by Ipsilon
-    - python-jinja2      # Required by Ipsilon
+    - pylint            # Required by Ipsilon
+    - python-pep8
+    - nodejs-less
+    - python-openid
+    - python-openid-teams
+    - python-openid-cla
+    - python-cherrypy
+    - m2crypto
+    - lasso-python
+    - python-sqlalchemy
+    - python-ldap
+    - python-pam
+    - python-fedora
+    - freeipa-python
+    - httpd
+    - mod_auth_mellon
+    - postgresql-server
+    - openssl
+    - mod_wsgi
+    - python-jinja2
+    - python-psycopg2
+    - sssd
+    - libsss_simpleifp
+    - openldap-servers
+    - mod_auth_gssapi
+    - krb5-server
+    - socket_wrapper
+    - nss_wrapper
+    - python-requests-kerberos
+    - python-lesscpy     # End requires for Ipsilon
+    - libxml2-python     # Required by gimp-docs
+    - createrepo         # Required by dnf
     tags:
     - packages
+
+  - name: setup jenkins_slave user
+    action: user name=jenkins_slave state=present createhome=yes system=no
+    tags:
+    - jenkinsuser
+
+  - name: setup jenkins_slave ssh key
+    action: authorized_key user=jenkins_slave key="{{ item }}"
+    with_file:
+    - "{{ private }}/files/jenkins/ssh/jenkins_master.pub"
+
+  - name: jenkins_slave to mock group
+    action: user name=jenkins_slave groups=mock
+
+  - name: add .gitconfig for jenkins_slave user
+    action: copy src="{{ files }}/jenkins/gitconfig" dest=/home/jenkins_slave/.gitconfig owner=jenkins_slave group=jenkins_slave mode=664
+    tags:
+     - config
 
   - name: drop current android SDK
     when: is_fedora is defined
@@ -530,24 +561,6 @@
     action: command hostname jenkins-{{ dist_tag }}
     tags:
     - config
-
-  - name: setup jenkins_slave user
-    action: user name=jenkins_slave state=present createhome=yes system=no
-    tags:
-    - jenkinsuser
-
-  - name: setup jenkins_slave ssh key
-    action: authorized_key user=jenkins_slave key="{{ item }}"
-    with_file:
-    - "{{ private }}/files/jenkins/ssh/jenkins_master.pub"
-
-  - name: jenkins_slave to mock group
-    action: user name=jenkins_slave groups=mock
-
-  - name: add .gitconfig for jenkins_slave user
-    action: copy src="{{ files }}/jenkins/gitconfig" dest=/home/jenkins_slave/.gitconfig owner=jenkins_slave group=jenkins_slave mode=664
-    tags:
-     - config
 
   - name: template sshd_config
     copy: src="{{ item }}" dest=/etc/ssh/sshd_config mode=0600 owner=root group=root

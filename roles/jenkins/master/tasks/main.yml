@@ -1,0 +1,100 @@
+- name: install jenkins-binary-plugins copr repo
+  copy: >
+    src="jenkins-binary-plugins.repo"
+    dest="/etc/yum.repos.d/"
+  tags:
+  - jenkins
+  - jenkins/master
+  - config
+  - packages
+  - yumrepos
+
+- name: install packages
+  dnf: name={{ item }} state=installed
+  with_items:
+  - jenkins
+  - jenkins-openid-plugin
+  # binary plugins from copr repo
+  - jenkins-bazaar-plugin
+  - jenkins-chucknorris-plugin
+  - jenkins-cobertura-plugin
+  - jenkins-cvs-plugin
+  - jenkins-external-monitor-job-plugin
+  - jenkins-git-client-plugin
+  - jenkins-git-plugin
+  - jenkins-instant-messaging-plugin
+  - jenkins-ldap-plugin
+  - jenkins-maven-plugin-plugin
+  - jenkins-mercurial-plugin
+  - jenkins-python-plugin
+  - jenkins-scm-api-plugin
+  - jenkins-ssh-agent-plugin
+#  - jenkins-subversion-plugin
+  - jenkins-translation-plugin
+  - jenkins-violations-plugin
+  - jenkins-xunit-plugin
+  tags:
+  - jenkins
+  - jenkins/master
+  - packages
+
+- name: install jenkins launcher config file
+  copy: >
+    src="jenkins.conf"
+    dest="/etc/sysconfig/jenkins"
+  notify:
+  - restart jenkins
+  tags:
+  - jenkins
+  - jenkins/master
+  - config
+
+- name: install jenkins master config files
+  copy: >
+    src="{{ item }}"
+    dest="/var/lib/jenkins/{{ item }}"
+  with_items:
+  - config.xml
+  - credentials.xml
+  notify:
+  - restart jenkins
+  tags:
+  - jenkins
+  - jenkins/master
+  - config
+
+- name: create directories for jenkins slaves config files
+  file: >
+    path="/var/lib/jenkins/nodes/{{ item.name }}"
+    state=directory
+  with_items: "{{ slaves }}"
+  tags:
+  - jenkins
+  - jenkins/master
+  - config
+
+- name: install jenkins slaves config files
+  template: >
+    src="slave-config.xml.j2"
+    dest="/var/lib/jenkins/nodes/{{ item.name }}/config.xml"
+  with_items: "{{ slaves }}"
+  notify:
+  - restart jenkins
+  tags:
+  - jenkins
+  - jenkins/master
+  - config
+
+- name: install private ssh key
+  action: copy src="{{ private }}/files/jenkins/ssh/jenkins_master" dest=/etc/jenkins/id_rsa mode=400 owner=jenkins group=jenkins
+  tags:
+  - jenkins
+  - jenkins/master
+  - config
+
+- name: enable jenkins service to start on boot
+  action: service name=jenkins state=running enabled=true
+  tags:
+  - jenkins
+  - jenkins/master
+  - service

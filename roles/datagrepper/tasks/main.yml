@@ -49,14 +49,6 @@
   - config
   - datagrepper
 
-#- name: adding fedmsg-hub binary
-#  file: src=fedmsg-hub dest=/usr/bin/fedmsg-hub owner=root group=root mode=755
-#  notify:
-#  - restart fedmsg-hub
-#  tags:
-#  - config
-#  - datagrepper
-
 - name: ensure selinux lets httpd talk to the database
   seboolean: name=httpd_can_network_connect_db persistent=yes state=yes
   tags:
@@ -64,21 +56,6 @@
 
 - name: ensure selinux lets httpd talk to the memcache
   seboolean: name=httpd_can_network_memcache persistent=yes state=yes
-  tags:
-  - datagrepper
-
-- name: check the selinux context of cache dir
-  command: matchpathcon /var/cache/datagrepper
-  register: cachedir
-  always_run: yes
-  changed_when: "1 != 1"
-  tags:
-  - config
-  - selinux
-
-- name: adding datagrepper dir in httpd context
-  command: semanage fcontext -a -t httpd_cache_t "/var/cache/datagrepper(/.*)?"
-  when: cachedir.stdout.find('httpd_cache_t') == -1
   tags:
   - datagrepper
 

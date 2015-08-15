@@ -1,21 +1,22 @@
 - name: check/create instance
   hosts: copr-front-stg:copr-front
-  #hosts: copr-front
-  user: root
+  # hosts: copr-front
   gather_facts: False
 
   vars_files:
    - /srv/web/infra/ansible/vars/global.yml
    - "/srv/private/ansible/vars.yml"
+   - /srv/web/infra/ansible/vars/fedora-cloud.yml
+   - /srv/private/ansible/files/openstack/passwords.yml
 
   tasks:
-  - include: "{{ tasks }}/persistent_cloud.yml"
+  - include: "{{ tasks }}/persistent_cloud_new.yml"
   - include: "{{ tasks }}/growroot_cloud.yml"
-
 
 - name: cloud basic setup
   hosts: copr-front-stg:copr-front
-  #hosts: copr-front
+  # hosts: copr-front
+  gather_facts: True
   vars_files:
    - /srv/web/infra/ansible/vars/global.yml
    - "/srv/private/ansible/vars.yml"
@@ -27,8 +28,7 @@
 
 - name: provision instance
   hosts: copr-front:copr-front-stg
-  #hosts: copr-front
-  user: root
+  # hosts: copr-front
   gather_facts: True
 
   vars_files:

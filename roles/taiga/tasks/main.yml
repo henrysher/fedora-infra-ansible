@@ -1,0 +1,203 @@
+# This is mostly following
+# http://taigaio.github.io/taiga-doc/dist/setup-production.html#circus-and-gunicorn
+#
+# It is just for dev/testing.. we're installing stuff from git/pip, etc..
+#
+
+- yum: name={{item}} state=present
+  with_items:
+  - postfix
+
+  - nginx
+  - libsemanage-python
+  - postgresql-server
+
+  - python3-gunicorn
+  - python3-psycopg2
+  - gettext
+
+  - git
+  - python3
+  - python3-devel
+  - python3-pip
+  - gcc
+  - freetype-devel
+  - libxml2-devel
+  - libxslt-devel
+  tags: taiga
+
+- user: name=taiga comment="Taiga System Account"
+  tags: taiga
+
+### Real quick, let's setup postfix for mail on the side.
+### if we ever move this internally, we'll just use bastion.
+- name: Set postfix to run on boot
+  service: name=postfix state=running enabled=yes
+  tags: taiga
+
+### FIRST, there is a lot of postgres db stuff to setup ###
+- name: Initialize postgres if necessary
+  command: /usr/bin/postgresql-setup initdb
+           creates=/var/lib/pgsql/data/base
+  notify: restart postgresql
+  tags: taiga
+
+- name: Add our postgres config file.
+  copy: >
+    src=pg_hba.conf
+    dest=/var/lib/pgsql/data/pg_hba.conf
+    owner=postgres
+  notify: restart postgresql
+  tags: taiga
+
+# No need to let postgres talk to the world, right?
+#- name: Let postgresql listen to '*'
+#  command: sed -i -e "s|#listen_addresses = 'localhost'|listen_addresses = '*'|" /var/lib/pgsql/data/postgresql.conf
+#  notify: restart postgresql
+#  tags: taiga
+
+- name: Ensure postgres has a place to backup to
+  file: dest=/backups state=directory owner=postgres
+  tags: taiga
+
+- name: Copy over backup scriplet
+  copy: src=backup-database dest=/usr/local/bin/backup-database mode=0755
+  tags: taiga
+
+- name: Set up some cronjobs to backup databases as configured
+  template: >
+    src=cron-backup-database
+    dest=/etc/cron.d/cron-backup-database-{{ item }}
+  with_items:
+  - taiga
+  tags: taiga
+
+- name: Set postgresql-server to run on boot
+  service: name=postgresql state=running enabled=yes
+  tags: taiga
+
+# Make sure we have db users
+- postgresql_user: name=taiga
+  # password={{ taiga_db_pass }}
+  tags: taiga
+
+- postgresql_db: name=taiga owner=taiga encoding=UTF-8
+  tags: taiga
+### DONE with db stuff
+
+### NEXT, Install our plugin for the backend first
+- command: sudo -u taiga git clone https://github.com/fedora-infra/taiga-contrib-fas-openid-auth.git
+           chdir=/home/taiga/
+           creates=/home/taiga/taiga-contrib-fas-openid-auth
+  tags: taiga
+
+- command: python3 setup.py develop
+           chdir=/home/taiga/taiga-contrib-fas-openid-auth/back
+  tags: taiga
+### DONE with our plugin
+
+### THEN, setup taiga-back from git
+- name: copy systemd service file in for taiga
+  copy: src=taiga-back.service dest=/usr/lib/systemd/system/taiga-back.service
+  notify: reload systemd service files
+  tags: taiga
+
+- command: sudo -u taiga git clone https://github.com/taigaio/taiga-back.git
+           chdir=/home/taiga/
+           creates=/home/taiga/taiga-back
+  tags: taiga
+
+- command: sudo -u taiga git checkout 1.6.0
+           chdir=/home/taiga/taiga-back
+  tags: taiga
+
+- command: pip3 install -r requirements.txt
+           chdir=/home/taiga/taiga-back
+           creates=/usr/lib/python3.4/site-packages/django/
+  tags: taiga
+
+## TODO -- make these idempotent with creates=...
+- command: sudo -u taiga python3 manage.py migrate --noinput
+           chdir=/home/taiga/taiga-back
+  tags: taiga
+- command: sudo -u taiga python3 manage.py loaddata initial_user
+           chdir=/home/taiga/taiga-back
+  tags: taiga
+- command: sudo -u taiga python3 manage.py loaddata initial_project_templates
+           chdir=/home/taiga/taiga-back
+  tags: taiga
+- command: sudo -u taiga python3 manage.py loaddata initial_role
+           chdir=/home/taiga/taiga-back
+  tags: taiga
+- command: sudo -u taiga python3 manage.py compilemessages
+           chdir=/home/taiga/taiga-back
+  tags: taiga
+- command: sudo -u taiga python3 manage.py collectstatic --noinput
+           chdir=/home/taiga/taiga-back
+  tags: taiga
+
+- name: copy in our taiga backend config
+  template: src=local.py dest=/home/taiga/taiga-back/settings/local.py
+            mode=0640 owner=taiga group=taiga
+  notify: restart taiga-back
+  tags: taiga
+
+- name: set taiga-back to start
+  service: name=taiga-back state=running enabled=yes
+  tags: taiga
+
+### DONE with taiga-back
+
+### Getting close to the end.. setup taiga-front-dist from git
+- command: sudo -u taiga git clone https://github.com/taigaio/taiga-front-dist.git
+           chdir=/home/taiga/
+           creates=/home/taiga/taiga-front-dist
+  tags: taiga
+
+- command: sudo -u taiga git checkout fa161e8
+           chdir=/home/taiga/taiga-front-dist
+  tags: taiga
+
+- copy: src=conf.json dest=/home/taiga/taiga-front-dist/dist/js/conf.json
+        mode=0644 owner=taiga group=taiga
+  tags: taiga
+
+# Link our plugin pieces in place
+- file: src=/home/taiga/taiga-contrib-fas-openid-auth/front/dist/fas_openid_auth.js
+        dest=/home/taiga/taiga-front-dist/dist/js/fas_openid_auth.js
+        state=link
+  tags: taiga
+
+- file: dest=/home/taiga/taiga-front-dist/dist/images/contrib state=directory
+  tags: taiga
+
+- file: src=/home/taiga/taiga-contrib-fas-openid-auth/front/images/contrib/fedora-logo.png
+        dest=/home/taiga/taiga-front-dist/dist/images/contrib/fedora-logo.png
+        state=link
+  tags: taiga
+### DONE with taiga-front
+
+### FINALLY, nginx to serve/proxy it all
+
+- copy: src=taiga.nginx dest=/etc/nginx/conf.d/taiga.conf
+        mode=0644 owner=nginx group=nginx
+  notify: restart nginx
+  tags: taiga
+
+# Add nginx to the taiga group so it gets rights to read all our static stuff
+- user: name=nginx groups=taiga append=yes
+  tags: taiga
+- file: dest=/home/taiga mode=0750
+  tags: taiga
+- seboolean: name="{{item}}" state=true persistent=true
+  with_items:
+  # So we can read static content at all
+  - httpd_read_user_content
+  # So we can follow the symlink to our FAS plugin
+  - httpd_enable_homedirs
+  # So we can reverse proxy stuff locally to gunicorn
+  - httpd_can_network_connect
+  tags: taiga
+
+- service: name=nginx state=running enabled=yes
+  tags: taiga

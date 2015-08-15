@@ -1,16 +1,28 @@
 ---
-instance_type: m1.small
-image: "{{ f20_qcow_id }}"
+instance_type: ms1.small
+image: "{{ fedora21_x86_64 }}"
 keypair: fedora-admin-20130801
 zone: nova
 hostbase: copr-keygen-
-public_ip: 209.132.184.159
+# public_ip: 209.132.184.159
+public_ip: 209.132.184.49
 root_auth_users: msuchy vgologuz
 description: copr key gen instance
-volumes: ['-d /dev/vdc vol-0000002e']
-security_group: default
+# volumes: ['-d /dev/vdc vol-0000002e']
+volumes: []
+# security_group: default
+security_group: web-80-anywhere-persistent,ssh-anywhere-persistent,default,allow-nagios-persistent,keygen-persistent
+
+inventory_tenant: persistent
+# name of machine in OpenStack
+inventory_instance_name: copr-keygen
+cloud_networks:
+  # persistent-net
+  - net-id: "67b77354-39a4-43de-b007-bb813ac5c35f"
+
 
 host_backup_targets: ['/backup/']
-
-copr_hostbase: copr-keygen
 datacenter: cloud
+
+# Copr vars
+copr_hostbase: copr-keygen

@@ -26,8 +26,17 @@ fedmsg_certs:
 - service: koji
   owner: root
   group: apache
+  can_send:
+  - buildsys.build.state.change
+  - buildsys.package.list.change
+  - buildsys.repo.done
+  - buildsys.repo.init
+  - buildsys.rpm.sign
+  - buildsys.tag
+  - buildsys.task.state.change
+  - buildsys.untag
 
-nfs_mount_opts: "rw,hard,bg,intr,noatime,nodev,nosuid"
+nfs_mount_opts: "rw,hard,bg,intr,noatime,nodev,nosuid,nfsvers=3"
 
 virt_install_command: virt-install -n {{ inventory_hostname }} -r {{ mem_size }}
                  --disk bus=virtio,path={{ volgroup }}/{{ inventory_hostname }}
@@ -38,3 +47,5 @@ virt_install_command: virt-install -n {{ inventory_hostname }} -r {{ mem_size }}
                   ip={{ eth1_ip }}:::{{ nm }}:{{ inventory_hostname }}-nfs:eth1:none"
                  --network=bridge=br0,model=virtio --network=bridge=br1,model=virtio
                  --autostart --noautoconsole
+
+sudoers: "{{ private }}/files/sudo/arm-releng-sudoers"

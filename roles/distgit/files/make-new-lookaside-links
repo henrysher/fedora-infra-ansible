@@ -1,0 +1,199 @@
+#!/usr/bin/python
+
+
+# Copyright (c) 2015 - Mathieu Bridon <bochecha@daitauha.fr>
+#
+# This script is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This script is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this script.  If not, see <http://www.gnu.org/licenses/>.
+
+
+import argparse
+import errno
+from grp import getgrnam
+import hashlib
+import os
+from pwd import getpwnam
+import sys
+
+
+def get_args():
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument('--perform', action='store_true', default=False,
+                        help="Actually do the hardlinking (default is to "
+                             "report only)")
+    parser.add_argument('--link-hashtype', default='md5',
+                        choices=('md5', 'sha512'),
+                        help='The hash type to use in the new path of the'
+                             'hardlink. (default: "md5")')
+    parser.add_argument('lookasideroot',
+                        help="The full path to the root of the lookaside "
+                             "cache")
+
+    return parser.parse_args()
+
+
+def info(msg):
+    sys.stdout.write("%s\n" % msg)
+
+
+def error(msg):
+    sys.stderr.write("ERROR: %s\n" % msg)
+
+
+def die(msg):
+    sys.stderr.write("FATAL: %s\n" % msg)
+    sys.exit(1)
+
+
+def get_file_hash(full_path, hashtype):
+    hash = hashlib.new(hashtype)
+
+    with open(full_path, 'rb') as f:
+        chunk = f.read(4096)
+
+        while chunk:
+            hash.update(chunk)
+            chunk = f.read(4096)
+
+    return hash.hexdigest()
+
+
+def verify_source(dir, expected_name, expected_hash, hashtype):
+    sources = list(listdir(dir))
+
+    if len(sources) == 0:
+        raise Exception("No source file in %s" % dir)
+
+    if len(sources) > 1:
+        raise Exception("Multiple source files in %s: %s" % (dir, sources))
+
+    if sources[0] != expected_name:
+        raise Exception("Badly named source file in %s: %s"
+                        % (dir, sources[0]))
+
+    source_path = os.path.join(dir, expected_name)
+    hash = get_file_hash(source_path, hashtype)
+
+    if hash != expected_hash:
+        die("Invalid %s for %s: %s" % (hashtype.upper(), source_path, hash))
+
+    return source_path
+
+
+def listdir(dir):
+    try:
+        for f in os.listdir(dir):
+            yield f
+
+    except OSError as e:
+        if e.errno == errno.ENOTDIR:
+            error("%s is not a directory" % dir)
+
+        else:
+            raise
+
+
+def makedirs(dir):
+    try:
+        os.makedirs(dir)
+
+    except OSError as e:
+        if e.errno != errno.EEXIST:
+            raise e
+
+
+def hardlink(src, dst):
+    makedirs(os.path.dirname(dst))
+
+    try:
+        os.link(src, dst)
+
+    except OSError as e:
+        if e.errno != errno.EEXIST:
+            raise e
+
+        # The file already exists at the new-style path?
+        # Overwrite it with a hardlink.
+        os.unlink(dst)
+        os.link(src, dst)
+
+
+def main(root, link_hashtype, perform=False):
+    ownerid = getpwnam('apache').pw_uid
+    groupid = getgrnam('apache').gr_gid
+
+    try:
+        os.chdir(root)
+        info("All future paths relative to %s" % root)
+
+    except OSError as e:
+        die(e)
+
+    for pkg_name in listdir(root):
+        for source_name in listdir(pkg_name):
+            source_dir = os.path.join(pkg_name, source_name)
+
+            for hash in listdir(source_dir):
+                if hash in ('md5', 'sha512'):
+                    # This is not a hash, but a new-style path containing the
+                    # hashtype. Let's just verify what it contains
+                    hashtype = hash
+                    hashtype_dir = os.path.join(source_dir, hash)
+
+                    for hash in listdir(hashtype_dir):
+                        try:
+                            verify_source(os.path.join(hashtype_dir, hash),
+                                          source_name, hash, hashtype)
+                        except Exception as e:
+                            error(e)
+                            continue
+
+                    continue
+
+                else:
+                    # This is what is used for hashes which are not under a
+                    # hashtype folder
+                    hashtype = 'md5'
+
+                try:
+                    source_path = verify_source(
+                        os.path.join(source_dir, hash), source_name, hash,
+                        hashtype)
+                except Exception as e:
+                    error(e)
+                    continue
+
+                if link_hashtype != hashtype:
+                    new_hash = get_file_hash(source_path, link_hashtype)
+
+                else:
+                    new_hash = hash
+
+                new_path = os.path.join(source_dir, link_hashtype, new_hash,
+                                        source_name)
+                info("Hardlinking: %s to %s" % (source_path, new_path))
+
+                if perform:
+                    hardlink(source_path, new_path)
+                    segments = new_path.split('/')
+
+                    for i in range(1, len(segments) + 1):
+                        os.chown('/'.join(segments[:i], ownerid, groupid)
+
+
+if __name__ == '__main__':
+    args = get_args()
+
+    main(args.lookasideroot, args.link_hashtype, perform=args.perform)
+    sys.exit(0)

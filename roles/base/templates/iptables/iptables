@@ -40,6 +40,13 @@
 {% endfor %}
 {% endif %}
 
+# if the host declares a fedmsg-enabled wsgi app, open ports for it
+{% if wsgi_fedmsg_service is defined %}
+{% for i in range(wsgi_procs * wsgi_threads) %}
+-A INPUT -p tcp -m tcp --dport 30{{ '%02d' % i }} -j ACCEPT
+{% endfor %}
+{% endif %}
+
 # if the host/group defines incoming tcp_ports - allow them
 {% if tcp_ports is defined %}
 {% for port in tcp_ports %}

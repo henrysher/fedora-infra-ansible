@@ -1,0 +1,26 @@
+{% if env == 'staging' %}
+<script src="https://apps.stg.fedoraproject.org/fedmenu/js/jquery-1.11.2.min.js"></script>
+<script src="https://apps.stg.fedoraproject.org/fedmenu/js/fedmenu.js"></script>
+{% else %}
+<script src="https://apps.fedoraproject.org/fedmenu/js/jquery-1.11.2.min.js"></script>
+<script src="https://apps.fedoraproject.org/fedmenu/js/fedmenu.js"></script>
+{% endif %}
+
+<script>
+  {% if env == 'staging' %}
+  var base = 'https://apps.stg.fedoraproject.org/';
+  {% else %}
+  var base = 'https://apps.fedoraproject.org/';
+  {% endif %}
+  var tokens = window.location.href.split('/');
+  var repo = null;
+  if (tokens.length > 4 && tokens[4] != '') {
+    repo = tokens[4].split('.')[0];
+  }
+  fedmenu({
+      'url': base + 'js/data.js',
+      'mimeType': 'application/javascript',
+      'position': 'bottom-right',
+      'package': repo,
+  });
+</script>

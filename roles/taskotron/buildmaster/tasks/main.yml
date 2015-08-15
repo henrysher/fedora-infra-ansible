@@ -8,7 +8,7 @@
 
 - name: ensure packages required for buildmaster are installed
   action: yum name={{ item }} state=latest
-  when: deployment_type == 'qadevel-prod' or deployment_type == 'qadevel-stg'
+  when: deployment_type == 'qadevel-prod' or deployment_type == 'qa-stg'
   with_items:
     - python-novaclient
 
@@ -24,14 +24,14 @@
     - restart httpd
 
 - name: copy artifacts httpd config
-  when: deployment_type == 'dev' or deployment_type == 'stg'
   template: src=artifacts.conf.j2 dest=/etc/httpd/conf.d/artifacts.conf owner=root group=root
+  when: deployment_type == 'prod' or deployment_type == 'stg' or deployment_type == 'dev' or deployment_type == 'local'
   notify:
     - restart httpd
 
 - name: create artifacts directory
-  when: deployment_type == 'dev' or deployment_type == 'stg'
   file: path={{ item }} state=directory owner=buildmaster group=buildmaster mode=0775 setype=httpd_sys_content_t
+  when: deployment_type == 'prod' or deployment_type == 'stg' or deployment_type == 'dev' or deployment_type == 'local'
   with_items:
   - /srv/taskotron
   - /srv/taskotron/artifacts
@@ -71,3 +71,6 @@
   sudo_user: postgres
   action: postgresql_user db={{ buildmaster_db_name }} user={{ local_buildmaster_db_user }} password={{ local_buildmaster_db_password }} role_attr_flags=NOSUPERUSER
 
+- name: put robots.txt at web root of external hostname
+  when: robots_path is defined
+  template: src=robots.txt.j2 dest={{ robots_path }}/robots.txt owner=apache group=apache mode=0644

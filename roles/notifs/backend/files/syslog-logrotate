@@ -1,0 +1,20 @@
+/var/log/cron
+/var/log/maillog
+/var/log/messages
+/var/log/secure
+/var/log/spooler
+{
+    sharedscripts
+    postrotate
+	/bin/kill -HUP `cat /var/run/syslogd.pid 2> /dev/null` 2> /dev/null || true
+    endscript
+    daily
+    rotate 7
+    missingok
+    ifempty
+    compress
+    compresscmd /usr/bin/xz
+    uncompresscmd /usr/bin/xz
+    compressext .xz
+    dateext
+}

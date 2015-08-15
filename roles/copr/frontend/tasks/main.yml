@@ -6,7 +6,7 @@
 
 - name: update selinux context for postgress db dir if it's wrong
   command: "restorecon -vvRF /var/lib/pgsql"
-  when: "'postgresql_db_t' not in  pgsql_ls.stdout "
+  when: pgsql_ls.stdout is defined and 'postgresql_db_t' not in  pgsql_ls.stdout
 
 - name: install pkgs for copr-frontend
   action: yum state=present pkg={{ item }}
@@ -23,6 +23,9 @@
   - restart httpd
   tags:
   - config
+
+- name: disable firewalld
+  service: name=firewalld enabled=no state=stopped
 
 - name: enable and start redis  # TODO: .service in copr-backend should depend on redis
   service: name=redis enabled=yes state=started
@@ -89,6 +92,7 @@
   service: state=running enabled=yes name={{ item }}
   with_items:
   - httpd
+  - logstash
 
 - name: set acl for logstash to access httpd logs
   acl: name=/var/log/httpd entity=logstash etype=user permissions=rx state=present

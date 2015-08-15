@@ -30,6 +30,16 @@
   tags:
   - koji_hub
 
+- name: fedmenu shim
+  template: src=fedmenu-extra-footer.html dest=/usr/share/koji-web/static/extra-footer.html
+  tags: koji_hub
+  notify: restart httpd
+  # XXX - we only want to do this in staging for now because it requires a patch
+  # to koji itself to include the extra-footer.html file in a sufficiently
+  # advanced way.
+  # https://lists.fedoraproject.org/pipermail/buildsys/2015-April/004636.html
+  when: env == 'staging'
+
 - name: hub config
   template: src=hub.conf.j2 dest=/etc/koji-hub/hub.conf owner=apache group=apache mode=600
   tags:
@@ -59,13 +69,16 @@
   - koji_hub
 
 - name: koji fedmsg plugin
-  copy: src=fedmsg-koji-plugin.py dest=/usr/lib/koji-hub-plugins/fedmsg-koji-plugin.py
+  template: src=fedmsg-koji-plugin.py dest=/usr/lib/koji-hub-plugins/fedmsg-koji-plugin.py
   notify:
   - restart httpd
   tags:
   - config
   - koji_hub
 
+#
+# install production certs and keys
+#
 - name: install kojiweb_cert_key.pem
   copy: src={{ puppet_private }}/koji/kojiweb_cert_key.pem dest=/etc/pki/tls/private/kojiweb_cert_key.pem owner=apache mode=600
   notify:
@@ -73,7 +86,7 @@
   tags:
   - config
   - koji_hub
-  when: env != 'staging'
+  when: env != 'staging' and ansible_hostname.startswith('koji')
 
 - name: install production koji_cert.pem
   copy: src={{ puppet_private }}/koji/koji_cert.pem dest=/etc/pki/tls/certs/koji_cert.pem owner=apache mode=600
@@ -82,7 +95,7 @@
   tags:
   - config
   - koji_hub
-  when: env != 'staging'
+  when: env != 'staging' and ansible_hostname.startswith('koji')
 
 - name: install production koji_key.pem
   copy: src={{ puppet_private }}/koji/koji_key.pem dest=/etc/pki/tls/private/koji_key.pem owner=apache mode=600
@@ -91,8 +104,41 @@
   tags:
   - config
   - koji_hub
-  when: env != 'staging'
+  when: env != 'staging' and ansible_hostname.startswith('koji')
 
+#
+# install production s390 certs and keys
+#
+- name: install s390 kojiweb_cert_key.pem
+  copy: src={{ private }}/files/koji/s390.koji.fedoraproject.org_key_and_cert.pem dest=/etc/pki/tls/private/kojiweb_cert_key.pem owner=apache mode=600
+  notify:
+  - restart httpd
+  tags:
+  - config
+  - koji_hub
+  when: ansible_hostname.startswith('s390')
+
+- name: install s390 production koji_cert.pem
+  copy: src={{ private }}/files/koji/s390_koji_cert.pem dest=/etc/pki/tls/certs/koji_cert.pem owner=apache mode=600
+  notify:
+  - restart httpd
+  tags:
+  - config
+  - koji_hub
+  when: ansible_hostname.startswith('s390')
+
+- name: install s390 production koji_key.pem
+  copy: src={{ private }}/files/koji/s390_koji_key.pem dest=/etc/pki/tls/private/koji_key.pem owner=apache mode=600
+  notify:
+  - restart httpd
+  tags:
+  - config
+  - koji_hub
+  when: ansible_hostname.startswith('s390')
+
+#
+# install staging certs and keys
+#
 - name: Install staging koji ssl cert
   copy: src={{ puppet_private }}/koji/koji.stg_cert.pem dest=/etc/pki/tls/certs/koji.stg_cert.pem
   notify:
@@ -127,6 +173,14 @@
   tags:
   - config
   - koji_hub
+  when: ansible_hostname.startswith('koji')
+
+- name: install s390 kojira_cert_key
+  copy: src={{ private }}/files/koji/s390_kojira_cert_key.pem dest=/etc/kojira/kojira_cert_key.pem owner=apache mode=600
+  tags:
+  - config
+  - koji_hub
+  when: ansible_hostname.startswith('s390')
 
 - name: updatecrl script
   copy: src=updatecrl.sh dest=/usr/local/bin/updatecrl.sh owner=root mode=755
@@ -191,10 +245,35 @@
   - config
   - koji_hub
 
+- name: make an empty /mnt/fedora_koji for stg.
+  file: state=directory path=/mnt/fedora_koji/koji owner=root group=root
+  tags:
+  - koji_hub
+  when: env == "staging" and ansible_hostname.startswith('koji')
+
 - name: make mnt/koji directory
   file: state=link src=/mnt/fedora_koji/koji dest=/mnt/koji owner=root group=root
   tags:
   - koji_hub
+  when: ansible_hostname.startswith('koji')
+
+- name: check selinux default context for /mnt/fedora_koji in staging
+  command: matchpathcon /mnt/fedora_koji
+  register: mnt_fedora_koji_context
+  when: env == "staging"
+  always_run: yes
+  changed_when: "1 != 1"
+  tags:
+  - koji_hub
+  - selinux
+
+- name: /mnt/fedora_koji selinux file context
+  command: semanage fcontext -a -t httpd_sys_rw_content_t "/mnt/fedora_koji(/.*)?"
+  when: env == "staging" and
+        mnt_fedora_koji_context.stdout.find('httpd_sys_rw_content_t') == -1
+  tags:
+  - koji_hub
+  - selinux
 
 - name: set sebooleans so koji can talk to the db
   seboolean: name=httpd_can_network_connect_db state=true persistent=true
@@ -207,14 +286,14 @@
   tags:
   - selinux
   - koji_hub
-  when: ansible_distribution == "RedHat" and ansible_distribution_major_version == "6"
+  when: ansible_distribution == "RedHat" and ansible_distribution_major_version|int == 6
 
 - name: set sebooleans so koji can anon write
   seboolean: name=httpd_anon_write state=true persistent=true
   tags:
   - selinux
   - koji_hub
-  when: ansible_distribution == "RedHat" and ansible_distribution_major_version == "7"
+  when: ansible_distribution == "RedHat" and ansible_distribution_major_version|int == 7
 
 - name: Set httpd to run on boot
   service: name=httpd enabled=yes
@@ -230,21 +309,25 @@
   tags:
   - service
   - koji_hub
+  when: env != 'staging' and ansible_hostname.startswith('koji')
 
 - name: install cert for oscar (garbage collector) user
   copy: src={{ puppet_private }}/koji/gc/oscar_key_and_cert.pem dest=/etc/koji-gc/client.crt
   tags:
   - koji_hub
+  when: env != 'staging' and ansible_hostname.startswith('koji')
 
 - name: install serverca cert for oscar (garbage collector) user
   copy: src={{ puppet_private }}/fedora-ca.cert dest=/etc/koji-gc/serverca.crt
   tags:
   - koji_hub
+  when: env != 'staging' and ansible_hostname.startswith('koji')
 
 - name: install clientca cert for oscar (garbage collector) user
   copy: src={{ puppet_private }}/fedora-ca.cert dest=/etc/koji-gc/clientca.crt
   tags:
   - koji_hub
+  when: env != 'staging' and ansible_hostname.startswith('koji')
 
 - name: install koji-gc.conf
   copy: src=koji-gc.conf dest=/etc/koji-gc/koji-gc.conf

@@ -47,6 +47,18 @@
 - name: restart kojid
   action: service name=kojid state=restarted
 
+- name: restart koschei-polling
+  action: service name=koschei-polling state=restarted
+
+- name: restart koschei-resolver
+  action: service name=koschei-resolver state=restarted
+
+- name: restart koschei-scheduler
+  action: service name=koschei-scheduler state=restarted
+
+- name: restart koschei-watcher
+  action: service name=koschei-watcher state=restarted
+
 - name: restart libvirtd
   action: service name=libvirtd state=restarted
 
@@ -73,11 +85,11 @@
   action: service name=openvpn@openvpn state=restarted
 
 - name: restart openvpn (RHEL6)
-  when: ansible_distribution == "RedHat" and ansible_distribution_major_version == "6"
+  when: ansible_distribution == "RedHat" and ansible_distribution_major_version|int == 6
   action: service name=openvpn state=restarted
 
 - name: restart openvpn (RHEL7)
-  when: ansible_distribution == "RedHat" and ansible_distribution_major_version == "7"
+  when: ansible_distribution == "RedHat" and ansible_distribution_major_version|int == 7
   action: service name=openvpn@openvpn state=restarted
 
 - name: restart postfix
@@ -137,10 +149,10 @@
 - name: restart bridge
   shell: /usr/lib/systemd/systemd-sysctl --prefix=/proc/sys/net/bridge
 
-- name: hup libvirtd
-  command: pkill -HUP libvirtd
+- name: reload libvirtd
+  service: name=libvirtd state=reloaded
   ignore_errors: true
-  when: inventory_hostname.startswith('buildhw')
+  when: ansible_virtualization_role == 'host'
 
 - name: restart fcomm-cache-worker
   service: name=fcomm-cache-worker state=restarted
@@ -168,3 +180,8 @@
 
 - name: restart stunnel
   service: name=stunnel state=restarted
+
+- name: restart cinder
+  service: name=openstack-cinder-api state=restarted
+  service: name=openstack-cinder-scheduler state=restarted
+  service: name=openstack-cinder-volume state=restarted

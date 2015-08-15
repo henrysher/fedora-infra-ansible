@@ -10,7 +10,7 @@
   - haproxy
 
 - name: install haproxy/cfg in prod
-  copy: src={{ item.file }}
+  template: src={{ item.file }}
         dest={{ item.dest }}
         owner=root group=root mode=0600
   with_items:
@@ -22,7 +22,7 @@
   - haproxy
 
 - name: install haproxy.cfg in stg
-  copy: src={{ item.file }}
+  template: src={{ item.file }}
         dest={{ item.dest }}
         owner=root group=root mode=0600
   with_items:
@@ -30,6 +30,22 @@
   when: env == 'staging'
   notify:
   - restart haproxy
+  tags:
+  - haproxy
+
+- name: check haproxy cfg to make sure it is valid (prod)
+  command: haproxy -c -f /etc/haproxy/haproxy.cfg
+  always_run: true
+  register: haproxyconfigcheck
+  changed_when: haproxyconfigcheck.rc != 0
+  tags:
+  - haproxy
+
+- name: check haproxy cfg to make sure it is valid (prod)
+  command: haproxy -c -f /etc/haproxy/haproxy.cfg
+  always_run: true
+  register: haproxyconfigcheck
+  changed_when: haproxyconfigcheck.rc != 0
   tags:
   - haproxy
 

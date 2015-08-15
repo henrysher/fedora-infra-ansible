@@ -1,0 +1,20 @@
+#!/bin/bash
+
+# currently runs on releng2.fedora.phx.redhat.com
+
+MOD=$1
+[ -z "$MOD" ] && {
+	echo "usage: $0 <module>"
+	exit 1
+}
+
+TMPFILE=$(mktemp -p /tmp/)
+pushd /pub/$MOD > /dev/null
+find * -print > $TMPFILE
+if diff $TMPFILE fullfilelist > /dev/null; then
+	rm -f $TMPFILE
+else
+	mv $TMPFILE fullfilelist
+fi
+chmod 0644 fullfilelist
+popd > /dev/null

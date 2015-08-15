@@ -2,6 +2,7 @@
 
 # All of these modules are just used by the ContextInjector below.
 import inspect
+import hashlib
 import logging
 import os
 import socket
@@ -17,6 +18,14 @@ except (OSError, ImportError):
     pass
 
 
+radio_silence = """
+*** %i instances of this error seen.  No more mail will be sent. ***
+""".strip()
+
+seen_errors = {}  # This could be a default dict.
+error_limit = 100
+
+
 class ContextInjector(logging.Filter):
     """ Logging filter that adds context to log records.
 
@@ -24,12 +33,15 @@ class ContextInjector(logging.Filter):
     method that can return True or False.  Only records with 'True' will
     actually be logged.
 
-    Here, we somewhat abuse the concept of a filter.  We always return true,
-    but we use the opportunity to hang important contextual information on the
-    log record to later be used by the logging Formatter.  We don't normally
-    want to see all this stuff in normal log records, but we *do* want to see
-    it when we are emailed error messages.  Seeing an error, but not knowing
-    which host it comes from, is not that useful.
+    Here, we somewhat abuse the concept of a filter.  We for the most part
+    return true, but we use the opportunity to hang important contextual
+    information on the log record to later be used by the logging Formatter.  We
+    don't normally want to see all this stuff in normal log records, but we *do*
+    want to see it when we are emailed error messages.  Seeing an error, but not
+    knowing which host it comes from, is not that useful.
+
+    After we've seen an error ~100 times, we stop sending email to avoid choking
+    the world.
 
     http://docs.python.org/2/howto/logging-cookbook.html#filters-contextual
     """
@@ -44,6 +56,20 @@ class ContextInjector(logging.Filter):
         record.proc_name = current_process.name
         record.command_line = " ".join(current_process.cmdline)
         record.callstack = self.format_callstack()
+        record.farewell = ""
+
+        key = hashlib.sha256(record.callstack).hexdigest()
+        if not key in seen_errors:
+            seen_errors[key] = 0
+
+        if seen_errors[key] > error_limit:
+            return False
+
+        seen_errors[key] += 1
+
+        if seen_errors[key] > error_limit:
+            record.farewell = radio_silence % error_limit
+
         return True
 
     @staticmethod
@@ -86,6 +112,7 @@ hefty_format = """Message
 -------
 [%(asctime)s][%(name)10s %(levelname)7s]
 %(message)s
+%(farewell)s
 
 Process Details
 ---------------

@@ -1,0 +1,67 @@
+- name: install common slave packages (dnf)
+  dnf: name={{ item }} state=installed
+  with_items: "{{ slave_packages_common }}"
+  when: ansible_distribution_major_version|int > 21
+  tags:
+  - jenkins
+  - jenkins/slave
+  - packages
+
+- name: install common slave packages (yum)
+  yum: name={{ item }} state=installed
+  with_items: "{{ slave_packages_common }}"
+  when: ansible_distribution_major_version|int < 22
+  tags:
+  - jenkins
+  - jenkins/slave
+  - packages
+
+- name: install distro-specific slave packages (fedora, dnf)
+  dnf: name={{ item }} state=installed
+  with_items: "{{ slave_packages_fedora }}"
+  when: is_fedora is defined and ansible_distribution_major_version|int > 21
+  tags:
+  - jenkins
+  - jenkins/slave
+  - packages
+
+- name: install distro-specific slave packages (fedora, yum)
+  yum: name={{ item }} state=installed
+  with_items: "{{ slave_packages_fedora }}"
+  when: is_fedora is defined and ansible_distribution_major_version|int < 22
+  tags:
+  - jenkins
+  - jenkins/slave
+  - packages
+
+- name: install distro-specific slave packages (centos, yum)
+  yum: name={{ item }} state=installed
+  with_items: "{{ slave_packages_centos }}"
+  when: is_fedora is not defined
+  tags:
+  - jenkins
+  - jenkins/slave
+  - packages
+
+- name: create jenkins user
+  action: user name=jenkins state=present createhome=yes system=no groups=mock
+  tags:
+  - jenkins
+  - jenkins/slave
+  - config
+
+- name: add jenkins ssh public key to authorized keys
+  action: authorized_key user=jenkins key="{{ item }}"
+  with_file:
+  - "{{ private }}/files/jenkins/ssh/jenkins_master.pub"
+  tags:
+  - jenkins
+  - jenkins/slave
+  - config
+
+- name: create workspace directory
+  action: file state=directory path=/srv/jenkins owner=jenkins group=jenkins
+  tags:
+  - jenkins
+  - jenkins/slave
+  - config

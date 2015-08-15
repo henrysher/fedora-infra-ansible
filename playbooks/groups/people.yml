@@ -2,11 +2,9 @@
 #
 #
 - name: make the people server
-  hosts: people02.fedoraproject.org
+  hosts: people01.fedoraproject.org
   user: root
   gather_facts: False
-  accelerate: "{{ accelerated }}"
-
 
   vars_files: 
    - /srv/web/infra/ansible/vars/global.yml
@@ -20,15 +18,55 @@
   - include: "{{ handlers }}/restart_services.yml"
 
 - name: make the box be real
-  hosts: people02.fedoraproject.org
+  hosts: people01.fedoraproject.org
   user: root
   gather_facts: True
-  accelerate: "{{ accelerated }}"
 
   vars_files: 
    - /srv/web/infra/ansible/vars/global.yml
    - "/srv/private/ansible/vars.yml"
    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  pre_tasks:
+
+  - name: mount project volume
+    mount: >
+        name=/project
+        src=/dev/mapper/GuestVolGroup00-project
+        fstype=xfs
+        opts="noatime,noexec,nosuid,nodev"
+        passno=0
+        dump=0
+        state=mounted
+    tags:
+    - mount
+
+  - name: mount srv volume
+    mount: >
+        name=/srv
+        src=/dev/mapper/GuestVolGroup00-srv
+        fstype=xfs
+        opts="usrquota,gqnoenforce,noatime,noexec,nosuid,nodev"
+        passno=0
+        dump=0
+        state=mounted
+    tags:
+    - mount
+
+  - name: create /srv/home directory
+    file: path=/srv/home state=directory owner=root group=root
+
+  - name: bind mount home volume
+    mount: >
+        name=/home
+        src=/srv/home
+        fstype=none
+        opts=bind
+        passno=0
+        dump=0
+        state=mounted
+    tags:
+    - mount
 
   roles:
   - base
@@ -39,43 +77,29 @@
   - rkhunter
   - rsyncd
   - sudo
-  - { role: denyhosts, when: ansible_distribution_major_version != '7' }
   - { role: openvpn/client, when: env != "staging" }
-  - { role: collectd/fedmsg-service, process: fedmsg-hub }
-  - git/hooks
-  - git/make_checkout_seed
-  - git/server
-  - gitolite/base
-  - gitolite/check_fedmsg_hooks
   - cgit/base
   - cgit/clean_lock_cron
   - cgit/make_pkgs_list
   - clamav
-  - distgit
+  - planet
+  - fedmsg/base
+  - git/server
 
+  - role: apache
+
+  - role: httpd/mod_ssl
+
+  - role: httpd/certificate
+    name: wildcard-2014.fedorapeople.org
+    SSLCertificateChainFile: wildcard-2014.fedorapeople.org.intermediate.cert
+
+  - people
  
   tasks:
   - include: "{{ tasks }}/yumrepos.yml"
   - include: "{{ tasks }}/2fa_client.yml"
   - include: "{{ tasks }}/motd.yml"
-  - include: "{{ tasks }}/apache.yml"
-
-  handlers:
-  - include: "{{ handlers }}/restart_services.yml"
- 
-- name: setup fedmsg on people
-  hosts: people02.fedoraproject.org
-  user: root
-  gather_facts: True
-
-  vars_files:
-  - /srv/web/infra/ansible/vars/global.yml
-  - "/srv/private/ansible/vars.yml"
-  - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
-
-  roles:
-  - fedmsg/base
-  - fedmsg/hub
 
   handlers:
   - include: "{{ handlers }}/restart_services.yml"

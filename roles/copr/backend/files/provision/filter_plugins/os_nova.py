@@ -1,4 +1,10 @@
 from novaclient.v1_1.client import Client
+import re
+
+def extract_ip_from_stdout(output):
+    match = re.search(r'IP=([^\{\}\n"]+)', output, re.MULTILINE)
+    if match:
+        return match.group(1)
 
 
 def nova_result_to_builder_ip(nova_result, network_name):
@@ -29,6 +35,7 @@ class FilterModule(object):
             # "image_id_to_name": image_id_to_name,
             "image_name_to_id": image_name_to_id,
             "network_name_to_id": network_name_to_id,
+            "extract_ip_from_stdout": extract_ip_from_stdout,
             # "network_id_to_name": network_id_to_name,
         }
 

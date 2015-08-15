@@ -27,7 +27,6 @@ def main(args):
         help="list the updates needed", default=False)
     options, args = parser.parse_args(args)
     list_updates=options.listupdates
-    del options.listupdates
     options.module_name = 'yum' 
     options.module_args = 'list=updates'
         
@@ -48,12 +47,13 @@ def main(args):
         module_name=options.module_name, module_path=options.module_path,
         module_args=options.module_args,
         remote_user=options.remote_user, 
-        host_list=options.inventory, timeout=options.timeout, 
-        forks=options.forks, 
+        host_list=options.inventory, 
+        timeout=300, 
+        forks=100, 
         pattern=options.pattern, 
-        callbacks=mycallback,
-        transport=options.connection
+        callbacks=mycallback
     )
+    print "Checking for updates on %s" % (options.pattern)
     
     updates = ""
     needsupdate = []
@@ -75,8 +75,8 @@ def main(args):
                  if msg:
                      print >> sys.stderr, 'Error: %s said %s' % (host, msg)
              
-    for host in results['dark']:
-        print >> sys.stderr, 'Error: Could not reach: %s' % host
+    for (host,d) in results['dark'].items():
+        print "%s failed because (%s)" % (host,d)
 
     for host in sorted(needsupdate):
         print host

@@ -1,11 +1,6 @@
 ---
 # Configuration for the torrent tracker
 
-- name: clean yum metadata
-  command: yum clean all
-  tags:
-  - packages
-
 - name: install needed packages
   yum: pkg={{ item }} state=present
   with_items:
@@ -19,40 +14,80 @@
   tags:
   - packages
 
- name: Create the required directories
+- name: install systemd unit for btseed
+  copy: src=btseed.service dest=/etc/systemd/system/btseed.service
+  notify:
+  - reload systemd
+  tags:
+  - packages
+
+- name: Create the required directories
   file: path={{ item.file }} owner={{ item.owner }}
-        group={{ item.group }} mode={{ item.mode }}
+        group={{ item.group }} mode={{ item.mode }} state=directory
   with_items:
-  - { file: /srv/torrent/, owner: root, group: root, mode: 0775}
-  - { file: /srv/torrent/www/, owner: root, group: torrent, mode: 2775}
-  - { file: /srv/torrent/www/stats/, owner: opentracker, group: torrent, mode: 2775}
-  - { file: /srv/torrent/www/stats/daily/, owner: opentracker, group: torrent, mode: 2775}
-  - { file: /srv/torrent/www/stats/hourly/, owner: opentracker, group: torrent, mode: 2775}
-  - { file: /srv/torrent/www/stats/raw/, owner: opentracker, group: torrentadmin, mode: 2775}
-  - { file: /srv/torrent/www/stats/raw/evertyhing/, owner: opentracker, group: torrentadmin, mode: 2775}
-  - { file: /srv/torrent/www/stats/raw/torrent/, owner: opentracker, group: torrentadmin, mode: 2775}
+  - { file: /srv/web/stats/daily/, owner: opentracker, group: torrent, mode: 2775}
+  - { file: /srv/web/stats/hourly/, owner: opentracker, group: torrent, mode: 2775}
+  - { file: /srv/web/stats/raw/, owner: opentracker, group: torrentadmin, mode: 2775}
+  - { file: /srv/web/stats/raw/evertyhing/, owner: opentracker, group: torrentadmin, mode: 2775}
+  - { file: /srv/web/stats/raw/torrent/, owner: opentracker, group: torrentadmin, mode: 2775}
   tags:
   - config
 
 - name: install the files for the tracker
-  copy: src={{ item.file }} dest={{ item.dest }}
+  copy: src={{ item.file }} dest={{ item.dest }} mode={{ item.mode }}
   with_items:
-  - { file: torrent_generator.conf, dest: /etc/torrent_generator.conf }
-  - { file: spins_generator.conf, dest: /etc/spins_generator.conf }
-  - { file: opentracker-ipv4.conf, dest: /etc/opentracker/opentracker-ipv4.conf }
-  - { file: opentracker-ipv6.conf, dest: /etc/opentracker/opentracker-ipv6.conf }
-  - { file: torrent-httpd.conf, dest: /etc/httpd/conf.d/torrent.conf }
-  - { file: spins-httpd.conf, dest: /etc/httpd/conf.d/spins.conf }
-  - { file: torrent-web-generate.cron, dest: /etc/cron.d/torrent-web-generate }
-  - { file: torrent-hash.cron, dest: /etc/cron.d/torrent-hash.cron }
-  - { file: bittorrent.logrotate, dest: /etc/logrotate.d/bittorrent }
-  - { file: torrent-data.py, dest: /usr/local/bin/torrent-data.py }
-  - { file: torrentjsonstats.py, dest: /usr/local/bin/torrentjsonstats.py }
-  - { file: torrent-hashes.py, dest: /usr/local/bin/torrent-hashes.py }
-  - { file: pull_opentracker_data.sh, dest: /usr/local/bin/pull_opentracker_data.sh }
+  - { file: torrent_generator.conf, dest: /etc/torrent_generator.conf, mode: 644 }
+  - { file: spins_generator.conf, dest: /etc/spins_generator.conf, mode: 644 }
+  - { file: opentracker-ipv4.conf, dest: /etc/opentracker/opentracker-ipv4.conf, mode: 644 }
+  - { file: opentracker-ipv6.conf, dest: /etc/opentracker/opentracker-ipv6.conf, mode: 644 }
+  - { file: torrent-httpd.conf, dest: /etc/httpd/conf.d/torrent.conf, mode: 644 }
+  - { file: spins-httpd.conf, dest: /etc/httpd/conf.d/spins.conf, mode: 644 }
+  - { file: torrent-web-generate.cron, dest: /etc/cron.d/torrent-web-generate, mode: 644 }
+  - { file: torrent-hash.cron, dest: /etc/cron.d/torrent-hash.cron, mode: 644 }
+  - { file: bittorrent.logrotate, dest: /etc/logrotate.d/bittorrent, mode: 644 }
+  - { file: torrent-data.py, dest: /usr/local/bin/torrent-data.py, mode: 755 }
+  - { file: torrentjsonstats.py, dest: /usr/local/bin/torrentjsonstats.py, mode: 755 }
+  - { file: torrent-hashes.py, dest: /usr/local/bin/torrent-hashes.py, mode: 755 }
+  - { file: pull_opentracker_data.sh, dest: /usr/local/bin/pull_opentracker_data.sh, mode: 755 }
+  - { file: bittorrent-sysconfig, dest: /etc/sysconfig/bittorrent, mode: 644 }
   # Directory
-  - { file: torrent-generator, dest: /srv/torrent/torrent-generator }
-  - { file: spins-generator, dest: /srv/torrent/spins-generator/ }
-  - { file: , dest:  }
+  - { file: torrent-generator, dest: /srv/torrent/, mode: 755 }
+  - { file: spins-generator, dest: /srv/torrent/, mode: 755 }
   tags:
   - config
+
+- name: set btseed to start
+  service: name=btseed state=started enabled=yes
+  tags:
+  - config
+
+- name: set opentracker-ivp4 to start
+  service: name=opentracker-ipv4 state=started enabled=yes
+  tags:
+  - config
+
+- name: set opentracker-ivp6 to start
+  service: name=opentracker-ipv6 state=started enabled=yes
+  tags:
+  - config
+
+- name: check the selinux context of webdir
+  command: matchpathcon /srv/web
+  register: webdir
+  always_run: yes
+  changed_when: "1 != 1"
+  tags:
+  - config
+  - selinux
+  - httpd
+  - httpd/website
+
+- name: /srv/web file contexts
+  command: semanage fcontext -a -t httpd_sys_content_t "/srv/web(/.*)?"
+  when: webdir.stdout.find('httpd_sys_content_t') == -1
+  tags:
+  - config
+  - selinux
+  - httpd
+  - httpd/website
+

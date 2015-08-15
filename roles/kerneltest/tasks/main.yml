@@ -5,6 +5,7 @@
   command: yum clean all
   tags:
   - packages
+  - kerneltest
 
 - name: install needed packages
   yum: pkg={{ item }} state=present
@@ -17,11 +18,14 @@
   - libsemanage-python
   tags:
   - packages
+  - kerneltest
 
 - name: Create the folder to store the logs
   action: file state=directory
                path=/var/www/logs
                owner=apache group=apache mode=0755
+  tags:
+  - kerneltest
 
 - name: Install all the configuration file of kerneltest
   template: src={{ item.file }}
@@ -33,6 +37,7 @@
   - { file: kerneltest.wsgi, location: /var/www/ }
   tags:
   - config
+  - kerneltest
   notify:
   - restart apache
 
@@ -41,9 +46,14 @@
   command: /usr/bin/python2 /usr/share/kerneltest/kerneltest_createdb.py
   environment:
       KERNELTEST_CONFIG: /etc/kerneltest/kerneltest.cfg
+  tags:
+  - kerneltest
 
 - name: set sebooleans so the app can talk to the db and send emails
   seboolean: name=httpd_can_network_connect state=true persistent=true
+  tags:
+  - kerneltest
+  - selinux
 
 - name: apply selinux type to log files
   file: >
@@ -51,3 +61,6 @@
     setype=httpd_sys_rw_content_t
     state=directory
     recurse=yes
+  tags:
+  - kerneltest
+  - selinux

@@ -1,0 +1,148 @@
+[global]
+# This defines the URL prefix under which the Beaker web application will be 
+# served. This must match the prefix used in the Alias and WSGIScriptAlias 
+# directives in /etc/httpd/conf.d/beaker-server.conf.
+# The default configuration places the application at: http://example.com/bkr/
+# server.webpath = "/"
+
+# Database connection URI for Beaker's database, in the form:
+#   <driver>://<user>:<password>@<hostname>:<port>/<database>?<options>
+# The charset=utf8 option is required for proper Unicode support.
+# The pool_recycle setting is required for MySQL, which will (by default) 
+# terminate idle client connections after 10 hours.
+sqlalchemy.dburi="mysql://{{beaker_db_user}}:{{beaker_db_password}}@{{beaker_db_host}}/{{beaker_db_name}}?charset=utf8"
+sqlalchemy.pool_recycle = 3600
+
+# If you want to send read-only report queries to a separate slave 
+# database, configure it here. If not configured, report queries will 
+# fall back to using the main Beaker database (above).
+#reports_engine.dburi = "mysql://beaker_ro:beaker_ro@dbslave/beaker?charset=utf8"
+#reports_engine.pool_recycle = 3600
+
+# Set to True to enable sending emails.
+#mail.on = False
+
+# TurboMail transport to use. The default 'smtp' sends mails over SMTP to the 
+# server configured below. Other transports may be available as TurboMail 
+# extension packages.
+#mail.transport = "smtp"
+# SMTP server where mails should be sent. By default we assume there is an 
+# SMTP-capable MTA running on the local host.
+#mail.smtp.server = "127.0.0.1"
+
+# The address which will appear as the From: address in emails sent by Beaker.
+#beaker_email = "root@localhost.localdomain"
+
+# If this is set to a value greater than zero, Beaker will enforce a limit on 
+# the number of concurrently running power/provision commands in each lab. Set 
+# this option if you have a lab with many machines and are concerned about 
+# a flood of commands overwhelming your lab controller.
+#beaker.max_running_commands = 10
+
+# Timeout for authentication tokens. After this many minutes of inactivity 
+# users will be required to re-authenticate.
+#visit.timeout = 360
+
+# Secret key for encrypting authentication tokens. Set this to a very long 
+# random string and DO NOT disclose it. Changing this value will invalidate all 
+# existing tokens and force users to re-authenticate.
+# If not set, a secret key will be generated and stored in /var/lib/beaker, 
+# however this configuration impacts performance therefore you should supply 
+# a secret key here.
+#visit.token_secret_key = ""
+
+# Enable LDAP for user account lookup and password authentication.
+#identity.ldap.enabled = False
+# URI of LDAP directory.
+#identity.soldapprovider.uri = "ldaps://ldap.domain.com"
+# Base DN for looking up user accounts.
+#identity.soldapprovider.basedn = "dc=domain,dc=com"
+# If set to True, Beaker user acounts will be automatically created on demand 
+# if they exist in LDAP. Account attributes are populated from LDAP.
+#identity.soldapprovider.autocreate = False
+# Timeout (seconds) for LDAP lookups.
+#identity.soldapprovider.timeout = 20
+# Server principal and keytab for Kerberos authentication. If using Kerberos 
+# authentication, this must match the mod_auth_kerb configuration in 
+# /etc/httpd/conf.d/beaker-server.conf.
+#identity.krb_auth_principal = "HTTP/hostname@EXAMPLE.COM"
+#identity.krb_auth_keytab = "/etc/krb5.keytab"
+
+# These are used when generating absolute URLs (e.g. in e-mails sent by Beaker)
+# You should only have to set this if socket.gethostname() returns the wrong
+# name, for example if you are using CNAMEs.
+tg.url_domain = '{{beaker_server_cname}}'
+tg.url_scheme = "https"
+# If your scheduler is multi-homed and has a different hostname for your test
+# machines you can use the tg.lab_domain variable here to specify it.
+# If tg.lab_domain is not set it will fall back to tg.url_domain, and if that's
+# not set it will fall back to socket.gethostname().
+tg.lab_domain = '{{beaker_server_hostname}}'
+
+# Tag for distros which are considered "reliable".
+# Broken system detection logic will be activated for distros with this tag 
+# (see the bkr.server.model:System.suspicious_abort method). Leave this unset 
+# to deactivate broken system detection.
+#beaker.reliable_distro_tag = "RELEASED"
+
+# The contents of this file will be displayed to users on every page in Beaker. 
+# If it exists, it must contain a valid HTML fragment (e.g. <span>...</span>).
+#beaker.motd = "/etc/beaker/motd.xml"
+
+# The URL of a page describing your organisation's policies for reserving 
+# Beaker machines. If configured, a message will appear on the reserve workflow 
+# page, warning users to adhere to the policy with a hyperlink to this URL. By 
+# default no message is shown.
+#beaker.reservation_policy_url = "http://example.com/reservation-policy"
+
+# If both of these options are set, the Piwik tracking javascript snippet will
+# be embedded in all pages, reporting statistics back to the given Piwik
+# installation.
+# Make sure that piwik.base_url is a protocol-relative URL starting with //
+#piwik.base_url = "//analytics.example.invalid/piwik/"
+#piwik.site_id = 123
+
+# These install options are used as global defaults for every provision. They
+# can be overriden by options on the distro tree, the system, or the recipe.
+#beaker.ks_meta = ""
+#beaker.kernel_options = "ksdevice=bootif"
+#beaker.kernel_options_post = ""
+
+# See BZ#1000861
+#beaker.deprecated_job_group_permissions.on = True
+
+# When generating MAC addresses for virtual systems, Beaker will always pick 
+# the lowest free address starting from this base address.
+#beaker.base_mac_addr = "52:54:00:00:00:00"
+
+# Beaker increases the priority of recipes when it detects that they match only 
+# one candidate system. You can disable this behaviour here.
+#beaker.priority_bumping_enabled = True
+
+# When generating RPM repos, we can configure what utility
+# to use. So far, only 'createrepo' and 'createrepo_c' have been
+# tested. See https://github.com/Tojaj/createrepo_c
+#beaker.createrepo_command = "createrepo"
+
+# If you have set up a log archive server (with beaker-transfer) and it 
+# requires HTTP digest authentication for deleting old logs, set the username 
+# and password here.
+#beaker.log_delete_user = "log-delete"
+#beaker.log_delete_password = "examplepassword"
+
+# If carbon.address is set, Beaker will send various metrics to carbon 
+# (collection daemon for Graphite) at the given address. The address must be 
+# a tuple of (hostname, port).
+# The value of carbon.prefix is prepended to all names used by Beaker.
+#carbon.address = ('graphite.example.invalid', 2023)
+#carbon.prefix = 'beaker.'
+
+# Use OpenStack for running recipes on dynamically created guests.
+#openstack.identity_api_url = 'https://openstack.example.com:5000/v2.0'
+#openstack.dashboard_url = 'https://openstack.example.com/dashboard/'
+
+# Set this to limit the Beaker web application's address space to the given 
+# size (in bytes). This may be helpful to catch excessive memory consumption by 
+# Beaker. On large deployments 1500000000 is a reasonable value.
+# By default no address space limit is enforced.
+#rlimit_as=

@@ -58,7 +58,7 @@
 
 - name: install our custom selinux module
   command: semodule -i /usr/share/nrpe/fi-nrpe.pp
-  when: ansible_distribution_major_version == '7' and selinux_module|changed
+  when: ansible_distribution_major_version|int == 7 and selinux_module|changed
 
 
 # Set up our base config.
@@ -98,6 +98,10 @@
   - check_datanommer_history.cfg
   - check_memcache.cfg
   - check_lock_file_age.cfg
+  - check_koschei_polling_proc.cfg
+  - check_koschei_resolver_proc.cfg
+  - check_koschei_scheduler_proc.cfg
+  - check_koschei_watcher_proc.cfg
   notify:
   - restart nrpe
   tags:
@@ -133,6 +137,17 @@
 - name: install nrpe merged log check script on log01
   template: src=check_merged_file_age.cfg.j2 dest=/etc/nrpe.d/check_merged_file_age.cfg
   when: inventory_hostname.startswith('log0')
+  notify:
+  - restart nrpe
+  tags:
+  - nagios_client
+#
+# The actual items files here end in .j2 (they are templates)
+# So when adding or modifying them change the .j2 version in git.
+#
+- name: install nrpe check_mysql config for mariadb servers
+  template: src=check_mysql.cfg.j2 dest=/etc/nrpe.d/check_mysql.cfg
+  when: inventory_hostname.startswith('db03')
   notify:
   - restart nrpe
   tags:

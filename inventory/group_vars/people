@@ -1,0 +1,40 @@
+---
+clamscan_mailto: admin@fedoraproject.org
+clamscan_paths:
+- /srv/
+
+# Neeed for rsync from log01 for logs.
+custom_rules: [ '-A INPUT -p tcp -m tcp -s 192.168.1.59 --dport 873 -j ACCEPT' ]
+
+git_port: 9418
+git_server: /usr/libexec/git-core/git-daemon
+git_server_args: --export-all --syslog --inetd --verbose
+git_basepath: /
+git_daemon_user: nobody
+
+fas_client_groups: "@all"
+
+fedmsg_certs:
+- service: shell
+  owner: root
+  group: sysadmin
+- service: planet
+  owner: root
+  group: planet-user
+  can_send:
+  - planet.post.new
+
+# For the MOTD
+csi_security_category: Low
+csi_primary_contact: Fedora admins - adminfedoraproject.org
+csi_purpose: Provide hosting space for Fedora contributors and Fedora Planet
+
+csi_relationship: |
+ - shell accounts and web space for fedora contributors
+ - web space for personal yum repos
+ - shared space for small group/personal git repos
+
+  Please be aware that this is a shared server, and you should not upload
+  Private/Secret SSH or GPG keys onto this system. Any such keys found
+  will be deleted.
+

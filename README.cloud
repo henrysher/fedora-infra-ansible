@@ -1,0 +1,181 @@
+== Cloud information ==
+
+The dashboard for the production cloud instance is: 
+https://fedorainfracloud.org/dashboard/
+
+You can download credentials via the dashboard (under security and access)
+
+=== Transient instances ===
+
+Transient instances are short term use instances for Fedora 
+contributors. They can be terminated at any time and shouldn't be
+relied on for any production use.  If you have an application 
+or longer term item that should always be around
+please create a persistent playbook instead. (see below)
+
+to startup a new transient cloud instance and configure for basic 
+server use run (as root):
+
+sudo -i ansible-playbook /srv/web/infra/ansible/playbooks/transient_cloud_instance.yml -e 'name=somename'
+
+The -i is important - ansible's tools need access to root's sshagent as well
+as the cloud credentials to run the above playbooks successfully.
+
+This will setup a new instance, provision it and email sysadmin-main that
+the instance was created and it's ip address.
+
+You will then be able to login, as root if you are in the sysadmin-main group.
+(If you are making the instance for another user, see below)
+
+You MUST pass a name to it, ie: -e 'name=somethingdescriptive'
+You can optionally override defaults by passing any of the following: 
+image=imagename (default is centos70_x86_64)
+instance_type=some instance type (default is m1.small)
+root_auth_users='user1 user2 user3 @group1' (default always includes sysadmin-main group)
+
+Note: if you run this playbook with the same name= multiple times
+openstack is smart enough to just return the current ip of that instance
+and go on. This way you can re-run if you want to reconfigure it without
+reprovisioning it.
+
+
+Sizes options
+-------------
+
+Name        Memory_MB  Disk   VCPUs
+m1.tiny     512        0      1
+m1.small    2048       20     1
+m1.medium   4096       40     2
+m1.large    8192       80     4
+m1.xlarge   16384      160    8
+m1.builder  5120       50     3
+
+
+=== Persistent cloud instances ===
+
+Persistent cloud instances are ones that we want to always have up and 
+configured. These are things like dev instances for various applications, 
+proof of concept servers for evaluating something, etc. They will be 
+reprovisioned after a reboot/maint window for the cloud. 
+
+Setting up a new persistent cloud host:
+
+1) Select an available floating IP
+
+    source /srv/private/ansible/files/openstack/novarc
+    nova floating-ip-list
+
+Note that an "available floating IP" is one that has only a "-" in the Fixed IP
+column of the above `nova` command. Ignore the fact that the "Server Id" column 
+is completely blank for all instances. If there are no ip's with -, use: 
+
+    nova floating-ip-create
+
+and retry the list. 
+
+2) Add that IP addr to dns (typically as foo.fedorainfracloud.org)
+
+3) Create persistent storage disk for the instance (if necessary.. you might not
+   need this).
+
+    nova volume-create --display-name SOME_NAME SIZE_IN_GB
+
+4) Add to ansible inventory in the persistent-cloud group.
+   You should use the FQDN for this and not the IP.  Names are good.
+
+5) setup the host_vars file.  It should looks something like this::
+
+        instance_type: m1.medium
+        image: 
+        keypair: fedora-admin-20130801
+        security_group: default  # NOTE: security_group MUST contain default.
+        zone: nova
+        tcp_ports: [22, 80, 443]
+
+        inventory_tenant: persistent
+        inventory_instance_name: taiga
+        hostbase: taiga
+        public_ip: 209.132.184.50
+        root_auth_users:  ralph maxamillion
+        description: taiga frontend server
+
+        volumes:
+          - volume_id: VOLUME_UUID_GOES_HERE
+            device: /dev/vdc
+
+        cloud_networks:
+          # persistent-net
+          - net-id: "67b77354-39a4-43de-b007-bb813ac5c35f"
+
+6) setup the host playbook
+
+7) run the playbook:
+   sudo -i ansible-playbook /srv/web/infra/ansible/playbooks/hosts/$YOUR_HOSTNAME_HERE.yml
+
+You should be able to run that playbook over and over again safely, it will
+only setup/create a new instance if the ip is not up/responding.
+
+=== SECURITY GROUPS ===
+
+FIXME: needs work for new cloud. 
+
+- to edit security groups you must either have your own cloud account or
+  be a member of sysadmin-main
+
+This gives you the credential to change things in the persistent tenant
+- source /srv/private/ansible/files/openstack/persistent-admin/ec2rc.sh
+
+This lists all security groups in that tenant:
+- euca-describe-groups | grep GROUP
+
+the output will look like this:
+euca-describe-groups  | grep GROU
+GROUP	d4e664a10e2c4210839150be09c46e5e	default	default
+GROUP	d4e664a10e2c4210839150be09c46e5e	jenkins	jenkins instance group
+GROUP	d4e664a10e2c4210839150be09c46e5e	logstash	logstash security group
+GROUP	d4e664a10e2c4210839150be09c46e5e	smtpserver	list server group. needs web and smtp
+GROUP	d4e664a10e2c4210839150be09c46e5e	webserver	webserver security group
+GROUP	d4e664a10e2c4210839150be09c46e5e	wideopen	wideopen
+
+
+This lets you list the rules in a specific group:
+- euca-describe-group groupname
+
+the output will look like this:
+
+euca-describe-group wideopen
+GROUP	d4e664a10e2c4210839150be09c46e5e	wideopen	wideopen
+PERMISSION	d4e664a10e2c4210839150be09c46e5e	wideopen ALLOWS	tcp	1	65535	FROM	CIDR	0.0.0.0/0
+PERMISSION	d4e664a10e2c4210839150be09c46e5e	wideopen ALLOWS	icmp	-1	-1	FROM	CIDR	0.0.0.0/0
+
+
+To create a new group:
+euca-create-group -d "group description here" groupname
+
+To add a rule to a group:
+euca-authorize -P tcp -p 22 groupname
+euca-authorize -P icmp -t -1:-1 groupname
+
+To delete a rule from a group:
+euca-revoke -P tcp -p 22 groupname
+
+Notes:
+- Be careful removing or adding rules to existing groups b/c you could be
+impacting other instances using that security group.
+
+- You will almost always want to allow 22/tcp (sshd) and icmp -1 -1 (ping
+and traceroute and friends).
+
+=== TERMINATING INSTANCES === 
+
+For transient:
+1. source /srv/private/ansible/files/openstack/transient-admin/keystonerc.sh
+
+  - OR -
+
+For persistent:
+1. source /srv/private/ansible/files/openstack/novarc
+
+2. nova list | grep <ip of your instance or name of your instance>
+
+3. nova delete <name of instance or ID of instance>

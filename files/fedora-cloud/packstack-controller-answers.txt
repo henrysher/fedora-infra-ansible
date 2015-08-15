@@ -96,11 +96,11 @@ CONFIG_AMQP_SSL_PORT=5671
 
 # The filename of the certificate that the AMQP service is going to
 # use
-CONFIG_AMQP_SSL_CERT_FILE=/etc/pki/tls/certs/fed-cloud09.pem
+CONFIG_AMQP_SSL_CERT_FILE=/etc/pki/tls/certs/fedorainfracloud.org.pem
 
 # The filename of the private key that the AMQP service is going to
 # use
-CONFIG_AMQP_SSL_KEY_FILE=/etc/pki/tls/private/fed-cloud09.key
+CONFIG_AMQP_SSL_KEY_FILE=/etc/pki/tls/private/fedorainfracloud.org.key
 
 # Auto Generates self signed SSL certificate and key
 CONFIG_AMQP_SSL_SELF_SIGNED=n
@@ -198,10 +198,10 @@ CONFIG_NOVA_COMPUTE_PRIVIF=lo
 CONFIG_NOVA_NETWORK_MANAGER=nova.network.manager.FlatDHCPManager
 
 # Public interface on the Nova network server
-CONFIG_NOVA_NETWORK_PUBIF={{ controller_public_ip }}
+CONFIG_NOVA_NETWORK_PUBIF=eth0
 
 # Private interface for network manager on the Nova network server
-CONFIG_NOVA_NETWORK_PRIVIF=lo
+CONFIG_NOVA_NETWORK_PRIVIF=eth1
 
 # IP Range for network manager
 CONFIG_NOVA_NETWORK_FIXEDRANGE={{ internal_interface_cidr }}
@@ -214,7 +214,7 @@ CONFIG_NOVA_NETWORK_FLOATRANGE={{ public_interface_cidr }}
 CONFIG_NOVA_NETWORK_DEFAULTFLOATINGPOOL=external
 
 # Automatically assign a floating IP to new instances
-CONFIG_NOVA_NETWORK_AUTOASSIGNFLOATINGIP=y
+CONFIG_NOVA_NETWORK_AUTOASSIGNFLOATINGIP=n
 
 # First VLAN for private networks
 CONFIG_NOVA_NETWORK_VLAN_START=100
@@ -257,6 +257,16 @@ CONFIG_NEUTRON_L2_PLUGIN=ml2
 # A comma separated list of IP addresses on which to install Neutron
 # metadata agent
 CONFIG_NEUTRON_METADATA_PW={{ NEUTRON_PASS }}
+
+# Set to 'y' if you would like Packstack to install Neutron LBaaS
+CONFIG_LBAAS_INSTALL=y
+
+# Set to 'y' if you would like Packstack to install Neutron L3
+# Metering agent
+CONFIG_NEUTRON_METERING_AGENT_INSTALL=y
+
+# Whether to configure neutron Firewall as a Service
+CONFIG_NEUTRON_FWAAS=y
 
 # A comma separated list of network type driver entrypoints to be
 # loaded from the neutron.ml2.type_drivers namespace.
@@ -350,14 +360,14 @@ CONFIG_HORIZON_SSL=y
 # PEM encoded certificate to be used for ssl on the https server,
 # leave blank if one should be generated, this certificate should not
 # require a passphrase
-CONFIG_SSL_CERT=/etc/pki/tls/certs/fed-cloud09.pem
+CONFIG_SSL_CERT=/etc/pki/tls/certs/fedorainfracloud.org.pem
 
 # PEM encoded CA certificates from which the certificate chain of the
 # # server certificate can be assembled.
-CONFIG_SSL_CACHAIN=/etc/pki/tls/certs/fed-cloud09.pem
+CONFIG_SSL_CACHAIN=/etc/pki/tls/certs/fedorainfracloud.org.digicert.pem
 
 # Keyfile corresponding to the certificate if one was entered
-CONFIG_SSL_KEY=/etc/pki/tls/private/fed-cloud09.key
+CONFIG_SSL_KEY=/etc/pki/tls/private/fedorainfracloud.key
 
 # The password to use for the Swift to authenticate with Keystone
 CONFIG_SWIFT_KS_PW={{ SWIFT_PASS }}
@@ -443,7 +453,7 @@ CONFIG_CEILOMETER_SECRET={{ CEILOMETER_SECRET }}
 CONFIG_CEILOMETER_KS_PW={{ CEILOMETER_PASS }}
 
 # The IP address of the server on which to install mongodb
-CONFIG_MONGODB_HOST={{ controller_public_ip }}
+CONFIG_MONGODB_HOST=127.0.0.1
 
 # The password of the nagiosadmin user on the Nagios server
 CONFIG_NAGIOS_PW=

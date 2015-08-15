@@ -1,20 +1,28 @@
 - name: route config for netapp network
   copy: src=route-eth1.{{ datacenter }} dest=/etc/sysconfig/network-scripts/route-eth1
   when: datacenter == 'phx2' or datacenter == 'rdu2'
+  tags:
+  - nfs/client
 
 - name: check for netapp route
   command: ip route show
   register: netapproute
   always_run: yes
   changed_when: "1 != 1"
+  tags:
+  - nfs/client
 
 - name: run netapp route if needed in phx2
   command: /etc/sysconfig/network-scripts/ifup-routes eth1
   when: netapproute.stdout.find("10.5.88.0") == -1 and datacenter == 'phx2'
+  tags:
+  - nfs/client
 
 - name: run netapp route if needed in rdu
   command: /etc/sysconfig/network-scripts/ifup-routes eth1
   when: netapproute.stdout.find("172.31.1.0") == -1 and datacenter == 'rdu'
+  tags:
+  - nfs/client
 
 # 
 # Install needed packages
@@ -24,20 +32,26 @@
   with_items: 
   - nfs-utils
   - rpcbind
+  tags:
+  - nfs/client
 
 - name: enable nfs-related services and run them (fedora20 only)
   service: name={{ item }}  enabled=true state=started
   with_items:
   - rpcbind
   - nfs-lock
-  when: ansible_distribution == 'Fedora' and ansible_distribution_major_version == '20'
+  when: ansible_distribution == 'Fedora' and ansible_distribution_major_version|int == 20
+  tags:
+  - nfs/client
 
 - name: enable nfs-related services and run them (rhel7)
   service: name={{ item }}  enabled=true state=started
   with_items:
   - rpcbind
   - nfs-lock
-  when: ansible_distribution == 'RedHat' and ansible_distribution_major_version == '7'
+  when: ansible_distribution == 'RedHat' and ansible_distribution_major_version|int == 7
+  tags:
+  - nfs/client
 
 - name: enable nfs-related services and run them (rhel6)
   action: service name={{ item }}  enabled=true state=started
@@ -46,33 +60,39 @@
   - rpcbind
   - nfs
   - nfslock
-  when: ansible_distribution == 'RedHat' and ansible_distribution_major_version == '6'
+  when: ansible_distribution == 'RedHat' and ansible_distribution_major_version|int == 6
+  tags:
+  - nfs/client
 
 - name: nfs mount points (phx2)
   mount: >
-        name=/{{ mnt_dir }} 
-        src=vtap-fedora-nfs01.storage.phx2.redhat.com:/vol/{{ nfs_src_dir }} 
+        name={{ mnt_dir }} 
+        src=ntap-phx2-c01-fedora01-nfs.storage.phx2.redhat.com:/{{ nfs_src_dir }} 
         fstype=nfs 
         opts={{nfs_mount_opts}}
         passno=0 
         dump=0
         state=mounted
   when: datacenter == 'phx2'
+  tags:
+  - nfs/client
 
 - name: nfs mount points (rdu)
   mount: >
-        name=/{{ mnt_dir }} 
-        src=172.31.1.10:/vol/{{ nfs_src_dir }} 
+        name={{ mnt_dir }} 
+        src=172.31.1.11:/{{ nfs_src_dir }} 
         fstype=nfs 
         opts={{nfs_mount_opts}}
         passno=0 
         dump=0
         state=mounted
   when: datacenter == 'rdu'
+  tags:
+  - nfs/client
 
 - name: nfs mount points (stg)
   mount: >
-        name=/{{ mnt_dir }} 
+        name={{ mnt_dir }} 
         src=10.5.126.87:/mnt/{{ nfs_src_dir }}
         fstype=nfs4
         opts={{nfs_mount_opts}}
@@ -80,3 +100,5 @@
         dump=0
         state=mounted
   when: datacenter == 'staging'
+  tags:
+  - nfs/client

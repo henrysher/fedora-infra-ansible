@@ -102,39 +102,37 @@
   tags:
   - koji_builder
 
-- name: /etc/kojid/kojid.conf
-  copy: src=kojid.conf dest=/etc/kojid/kojid.conf
-  when: not inventory_hostname.startswith(('arm01','arm03','aarch64','koji01.stg','buildvm-01.stg'))
+- name: build /etc/kojid/kojid.conf from group vars
+  template: src=kojid.conf dest=/etc/kojid/kojid.conf
   notify:
   - restart kojid
   tags:
   - koji_builder
 
-- name: arm /etc/kojid/kojid.conf
-  copy: src=arm-kojid.conf dest=/etc/kojid/kojid.conf
-  when: inventory_hostname.startswith(('arm01','arm03','aarch64'))
+- name: build /etc/koji/koji.conf from group vars
+  template: src=koji.conf dest=/etc/koji.conf
+  tags:
+  - koji_builder
+
+- name: config for the kojid runroot plugin (only some builders)
+  copy: src=runroot.conf dest=/etc/kojid/runroot.conf
+  when: "'runroot' in group_names"
   notify:
   - restart kojid
   tags:
   - koji_builder
 
-- name: staging /etc/kojid/kojid.conf
-  copy: src=stg-kojid.conf dest=/etc/kojid/kojid.conf
-  when: inventory_hostname.startswith(('koji01.stg','buildvm-01.stg'))
+- name: Create a directory for plugins.
+  file: dest=/usr/lib/koji-hub-plugins state=directory
+  when: "'runroot' in group_names"
+  tags:
+  - koji_builder
+
+- name: Copy in the kojid runroot plugin itself.
+  copy: src=runroot.py dest=/usr/lib/koji-hub-plugins/runroot.py
+  when: "'runroot' in group_names"
   notify:
   - restart kojid
-  tags:
-  - koji_builder
-
-- name: /etc/koji/koji.conf
-  copy: src=koji.conf dest=/etc/koji.conf
-  when: not inventory_hostname.startswith(('arm01','arm03','aarch64'))
-  tags:
-  - koji_builder
-
-- name: /etc/koji/koji.conf
-  copy: src=arm-koji.conf dest=/etc/koji.conf
-  when: inventory_hostname.startswith(('arm01','arm03','aarch64'))
   tags:
   - koji_builder
 
@@ -177,7 +175,13 @@
 
 - name: make a mnt/koji link
   file: state=link src=/mnt/fedora_koji/koji dest=/mnt/koji
-  when: inventory_hostname.startswith(('build','aarch64'))
+  when: inventory_hostname.startswith(('build')) or inventory_hostname.startswith(('arm04-builder00')) or inventory_hostname.startswith(('arm04-builder01'))
+  tags:
+  - koji_builder
+
+- name: make a mnt/koji link
+  file: state=link src=/mnt/fedora_koji dest=/mnt/koji
+  when: inventory_hostname.startswith(('aarch64','ppc8'))
   tags:
   - koji_builder
 
@@ -206,7 +210,7 @@
   - koji_builder
 
 - name: ntp.conf
-  copy: src="{{ files }}/common/ntp.conf" dest=/etc/ntp.conf
+  copy: src="{{ roles }}/base/files/ntp/ntp.conf" dest=/etc/ntp.conf
   tags:
   - koji_builder
 
@@ -219,7 +223,7 @@
   register: max_loop
   always_run: yes
   changed_when: '1 != 1'
-  when: ansible_distribution_major_version != '6' and ansible_architecture == 'x86_64'
+  when: ansible_distribution_major_version|int != 6 and ansible_architecture == 'x86_64'
   tags:
   - koji_builder
 
@@ -228,7 +232,7 @@
   register: max_loop
   always_run: yes
   changed_when: '1 != 1'
-  when: ansible_distribution == 'RedHat' and ansible_architecture == 'x86_64' and ansible_distribution_major_version == '6'
+  when: ansible_distribution == 'RedHat' and ansible_architecture == 'x86_64' and ansible_distribution_major_version|int == 6
   tags:
   - koji_builder
 
@@ -247,7 +251,7 @@
   yum: state=present pkg={{ item }}
   with_items:
   - kmod-hfsplus    
-  when: is_rhel is defined and ansible_architecture == 'x86_64' and ansible_distribution_major_version == '6'
+  when: is_rhel is defined and ansible_architecture == 'x86_64' and ansible_distribution_major_version|int == '6'
   tags:
   - koji_builder
 

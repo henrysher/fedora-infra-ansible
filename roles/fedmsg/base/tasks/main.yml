@@ -5,13 +5,23 @@
 - name: install needed packages
   yum: pkg={{ item }} state=present
   with_items:
-  - fedmsg
   - libsemanage-python
   - python-psutil
   - policycoreutils-python  # This is in the kickstart now.  Here for old hosts.
   tags:
   - packages
   - fedmsg/base
+
+- name: install python2 fedmsg package
+  yum: pkg=fedmsg state=present
+  when: "'python34-fedmsg' not in group_names"
+  tags: fedmsg/base
+
+- name: install the python34 fedmsg package
+  yum: pkg=python34-fedmsg-core state=present
+  when: "'python34-fedmsg' in group_names"
+  tags: fedmsg/base
+
 
 # We only need this on el6.  On el7, the fedmsg package uses systemd-tempfiles
 # to generate this effect for us.  Note that at the bottom of this role we add
@@ -24,7 +34,7 @@
     owner=fedmsg
     group=fedmsg
     state=directory
-  when: ansible_distribution_major_version == '6'
+  when: ansible_distribution_major_version|int == 6
   tags:
   - fedmsg/base
 
@@ -32,6 +42,20 @@
   file: path=/etc/fedmsg.d owner=root group=root mode=0755 state=directory
   tags:
   - config
+  - fedmsg/base
+
+- name: remove any old static endpoints files
+  file: dest="/etc/fedmsg.d/{{item}}" state=absent
+  with_items:
+  - endpoints-nuancier.py
+  - endpoints-kerneltest.py
+  - endpoints-github2fedmsg.py
+  - endpoints-elections.py
+  - endpoints-fmn-web.py
+  - pkgdb.py
+  tags:
+  - config
+  - fedmsgdconfig
   - fedmsg/base
 
 # Any files that change need to restart any services that depend on them.  A
@@ -51,23 +75,39 @@
   - ssl.py
   - endpoints.py
   - endpoints-anitya.py
+  - endpoints-pagure.py
   - endpoints-fedocal.py
-  - endpoints-elections.py
   - endpoints-fedbadges.py
-  - endpoints-fmn-web.py
   - endpoints-fmn-backend.py
   - endpoints-hotness.py
-  - endpoints-nuancier.py
   - endpoints-mailman.py
   - endpoints-summershum.py
-  - endpoints-kerneltest.py
   - endpoints-fedimg.py
-  - endpoints-github2fedmsg.py
   - endpoints-bugzilla2fedmsg.py
   - relay.py
-  - pkgdb.py
   - logging.py
   - base.py
+  when: "'persistent-cloud' not in group_names"
+  tags:
+  - config
+  - fedmsgdconfig
+  - fedmsg/base
+  notify:
+  - restart httpd
+  - restart fedmsg-gateway
+  - restart fedmsg-hub
+  - restart fedmsg-irc
+  - restart fedmsg-relay
+
+- name: dynamically generate policy from group/host vars.
+  template: >
+    src="{{ item }}.j2"
+    dest="/etc/fedmsg.d/{{ item }}"
+    owner=root
+    group=root
+    mode=644
+  with_items:
+  - policy.py
   when: "'persistent-cloud' not in group_names"
   tags:
   - config

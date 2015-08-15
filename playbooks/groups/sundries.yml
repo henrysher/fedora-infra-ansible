@@ -37,6 +37,7 @@
   - hosts
   - fas_client
   - collectd/base
+  - apache
   - geoip
   - geoip-city-wsgi/app
   - role: koji_reminder
@@ -46,18 +47,26 @@
   - role: fedora_owner_change
     when: master_sundries_node and env != "staging"
   - rsyncd
-  - mirrormanager/frontend
   - freemedia
   - sudo
   - pager_server
   - { role: openvpn/client,
       when: env != "staging" }
+  - role: review-stats/build
+    when: master_sundries_node
+  - role: zanata
+    when: master_sundries_node
+  - role: fedora-web/build
+    when: master_sundries_node
+  - role: fedora-docs/build
+    when: master_sundries_node
+  - role: membership-map/build
+    when: master_sundries_node
 
   tasks:
   - include: "{{ tasks }}/yumrepos.yml"
   - include: "{{ tasks }}/2fa_client.yml"
   - include: "{{ tasks }}/motd.yml"
-  - include: "{{ tasks }}/apache.yml"
   - include: "{{ tasks }}/mod_wsgi.yml"
 
   handlers:

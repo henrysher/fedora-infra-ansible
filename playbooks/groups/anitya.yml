@@ -32,7 +32,7 @@
   roles:
   - base
   - rkhunter
-  - { role: denyhosts, when: ansible_distribution_major_version != '7' }
+  - { role: denyhosts, when: ansible_distribution_major_version|int != 7 }
   - nagios_client
   - hosts
   - fas_client
@@ -58,10 +58,8 @@
    - "/srv/private/ansible/vars.yml"
    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
 
-  pre_tasks:
-  - include: "{{ tasks }}/apache.yml"
-
   roles:
+  - apache
   - anitya/fedmsg
   - anitya/frontend
   - role: collectd/fedmsg-service

@@ -1,0 +1,187 @@
+- name: make osbs server
+  hosts: osbs-stg
+  user: root
+  gather_facts: False
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  tasks:
+  - include: "{{ tasks }}/virt_instance_create.yml"
+
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"
+
+# Once the instance exists, configure it. 
+
+- name: make osbs server system
+  hosts: osbs-stg
+  user: root
+  gather_facts: True
+
+  vars_files: 
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  roles:
+  - base
+  - rkhunter
+  - nagios_client
+  - hosts
+  - fas_client
+  - collectd/base
+  - sudo
+
+  tasks:
+  - include: "{{ tasks }}/yumrepos.yml"
+  - include: "{{ tasks }}/2fa_client.yml"
+  - include: "{{ tasks }}/motd.yml"
+
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"
+
+- include: ../openshift_common/openshift-cluster/config.yml
+  vars:
+    g_etcd_group: "{{ 'etcd' }}"
+    g_masters_group: "{{ 'openshift_masters' }}"
+    g_nodes_group: "{{ 'openshift_nodes' }}"
+    openshift_cluster_id: "{{ cluster_id | default('default') }}"
+    openshift_debug_level: 0
+    openshift_deployment_type: "{{ deployment_type }}"
+  tags:
+    - osbs-openshift
+
+- name: OpenShift post-install config
+  hosts: openshift_masters
+  user: root
+  gather_facts: True
+
+  tasks:
+  # This is technically idempotent via the 'oc create' command, it will just
+  # exit 1 if the service account already exists
+  - name: add OpenShift router service account
+    shell: echo '{"kind":"ServiceAccount","apiVersion":"v1","metadata":{"name":"router"}}' | /usr/bin/oc create -f -
+    ignore_errors: true
+
+  - name: add OpenShift router
+    shell: /usr/bin/oadm router --create=true --credentials=/etc/openshift/master/openshift-router.kubeconfig --service-account=router
+
+  - name: Create storage location for OpenShift internal registry
+    file: 
+      path: /var/lib/openshift/docker-registry
+      state: directory
+
+  # This is technically idempotent via the 'oc create' command, it will just
+  # exit 1 if the service account already exists
+  - name: add OpenShift internal registry
+    shell: echo '{"kind":"ServiceAccount","apiVersion":"v1","metadata":{"name":"registry"}}' | /usr/bin/oc create -f -
+    ignore_errors: true
+
+  - name: add OpenShift internal registry
+    shell: /usr/bin/oadm registry --create=true --credentials=/etc/openshift/master/openshift-registry.kubeconfig --mount-host=/var/lib/openshift/docker-registry --service-account=registry
+
+  tags:
+    - osbs-openshift
+    - osbs-openshift-postinstall
+
+- name: docker-registry 
+  hosts: openshift_masters
+  user: root
+  gather_facts: True
+
+  tasks:
+  - name: Install docker-registry
+    yum: pkg=docker-registry state=installed
+  - name: Start/enable docker-registry service
+    service: 
+      name: docker-registry
+      state: started
+      enabled: yes
+
+  tags:
+    - osbs-openshift
+    - osbs-openshift-postinstall
+    
+- name: atomic-reactor install and config
+  hosts: openshift_masters
+  user: root
+  gather_facts: False
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+
+  tasks:
+  - name: Configure the atomic-reactor COPR
+    copy:
+      src: "{{ files }}/osbs/atomic-reactor.repo"
+      dest: /etc/yum.repos.d/atomic-reactor.repo
+
+  - name: Install atomic-reactor
+    yum: pkg=atomic-reactor state=present
+
+  - name: Build atomic-reactor base image
+    shell: atomic-reactor create-build-image --reactor-tarball-path /usr/share/atomic-reactor/atomic-reactor.tar.gz /usr/share/atomic-reactor/images/dockerhost-builder buildroot
+
+  tags:
+    - osbs-openshift
+    - osbs-openshift-postinstall
+
+- name: atomic-reactor install and config
+  hosts: openshift_masters
+  user: root
+  gather_facts: False
+
+  tasks:
+  - name: Tag the buildroot for builder local registry
+    shell: docker tag buildroot localhost:5000/buildroot
+
+  - name: Push the buildroot to builder local registry
+    shell: docker push localhost:5000/buildroot
+
+  - name: Pull fedora docker image
+    shell: docker pull fedora
+
+  - name: Tag fedora for builder local registry
+    shell: docker tag fedora localhost:5000/fedora
+
+  - name: Push the fedora image to builder local registry
+    shell: docker push localhost:5000/fedora
+
+  tags:
+    - osbs-openshift
+    - osbs-openshift-postinstall
+
+- name: OSBS Configuration - OpenShift Auth
+  hosts: openshift_masters
+  user: root
+  gather_facts: False
+
+  tasks:
+    - name: Set role-to-group for OSBS system:unauthenticated
+      shell: oadm policy add-role-to-group edit system:unauthenticated system:authenticated
+    - name: Set role-to-group for OSBS system:authenticated
+      shell: oadm policy add-role-to-group edit system:authenticated
+
+  tags:
+    - osbs-openshift
+    - osbs-openshift-postinstall
+
+- name: OSBS Client tools config
+  hosts: openshift_masters:openshift_nodes
+  user: root
+  gather_facts: False
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+
+  tasks:
+    - copy:
+        src: "{{ files }}/osbs/osbs.conf"
+        dest: /etc/osbs.conf
+  tags:
+    - osbs-openshift
+    - osbs-openshift-postinstall
+

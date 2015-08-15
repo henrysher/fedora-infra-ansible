@@ -1,0 +1,174 @@
+- name: check/create instance
+  hosts: lists-dev.fedorainfracloud.org
+  gather_facts: False
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - /srv/private/ansible/vars.yml
+   - /srv/web/infra/ansible/vars/fedora-cloud.yml
+   - /srv/private/ansible/files/openstack/passwords.yml
+
+  tasks:
+  - include: "{{ tasks }}/persistent_cloud_new.yml"
+
+- name: setup all the things
+  hosts: lists-dev.fedorainfracloud.org
+  gather_facts: True
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - /srv/private/ansible/vars.yml
+   - /srv/private/ansible/files/openstack/passwords.yml
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+  vars:
+  - tcp_ports: [22, 25, 80, 443]
+  - udp_ports: []
+  - postfix_maincf: "{{ roles }}/base/files/postfix/main.cf/main.cf.{{ inventory_hostname }}"
+
+  pre_tasks:
+  - include: "{{ tasks }}/cloud_setup_basic.yml"
+  - name: set hostname (required by some services, at least postfix need it)
+    shell: "hostname {{inventory_hostname}}"
+
+  roles:
+  - sudo
+  - hosts
+  - apache
+  - base
+
+  tasks:
+  - include: "{{ tasks }}/postfix_basic.yml"
+  - include: "{{ tasks }}/yumrepos.yml"
+  - include: "{{ tasks }}/motd.yml"
+  - include: "{{ tasks }}/mod_wsgi.yml"
+
+  # Basic Apache config
+  - name: install mod_ssl
+    yum: name=mod_ssl  state=present
+
+  - name: copy ssl.conf
+    copy: src="{{ files }}/lists-dev/ssl.conf" dest=/etc/httpd/conf.d/ssl.conf
+          owner=root group=root mode=0644
+    notify:
+    - restart httpd
+
+  - name: basic apache virtualhost config
+    template: src="{{ files }}/lists-dev/apache.conf.j2" dest=/etc/httpd/conf.d/lists-dev.conf
+              owner=root group=root mode=0644
+    notify:
+    - restart httpd
+
+  # Database
+  - name: install postgresql server packages
+    yum: name={{ item }}  state=present
+    with_items:
+    - postgresql-server
+    - postgresql-contrib
+    - python-psycopg2
+
+  - name: initialize postgresql
+    command: /usr/bin/postgresql-setup initdb
+             creates=/var/lib/pgsql/data/postgresql.conf
+
+  - name: copy pg_hba.conf
+    copy: src="{{ files }}/lists-dev/pg_hba.conf" dest=/var/lib/pgsql/data/pg_hba.conf
+          owner=postgres group=postgres
+    notify:
+    - restart postgresql
+
+  - name: start postgresql
+    service: state=started enabled=yes name=postgresql
+
+  - name: allow running sudo commands as postgresql for ansible
+    copy: src="{{ files }}/lists-dev/sudoers-norequiretty-postgres" dest=/etc/sudoers.d/norequiretty-postgres
+          owner=root group=root mode=0440
+
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"
+  - name: restart postgresql
+    service: name=postgresql state=restarted
+
+
+
+#
+# Database setup
+#
+
+- name: setup db users/passwords for mailman and hyperkitty
+  hosts: lists-dev.fedorainfracloud.org
+  gather_facts: no
+  sudo: yes
+  sudo_user: postgres
+  vars_files: 
+  - /srv/web/infra/ansible/vars/global.yml
+  - "/srv/private/ansible/vars.yml"
+  - "{{ vars_path }}/{{ ansible_distribution }}.yml"
+
+
+  tasks:
+  # mailman auto-updates its schema, there can only be one admin user
+  - name: mailman DB user
+    postgresql_user: name=mailmanadmin password={{ lists_dev_mm_db_pass }}
+  - name: hyperkitty DB admin user
+    postgresql_user: name=hyperkittyadmin password={{ lists_dev_hk_db_pass }}
+  - name: hyperkitty DB user
+    postgresql_user: name=hyperkittyapp password={{ lists_dev_hk_db_pass }}
+  - name: databases creation
+    postgresql_db: name={{ item }} owner="{{ item }}admin" encoding=UTF-8
+    with_items:
+    - mailman
+    - hyperkitty
+  - name: test database creation
+    postgresql_db: name=test_hyperkitty owner=hyperkittyadmin encoding=UTF-8
+
+
+- name: setup mailman and hyperkitty
+  hosts: lists-dev.fedorainfracloud.org
+  gather_facts: True
+  vars_files: 
+  - /srv/web/infra/ansible/vars/global.yml
+  - "/srv/private/ansible/vars.yml"
+  - "{{ vars_path }}/{{ ansible_distribution }}.yml"
+
+  roles:
+  - role: mailman
+    mailman_db_server: localhost
+    mailman_mailman_db_pass: "{{ lists_dev_mm_db_pass }}"
+    mailman_hyperkitty_admin_db_pass: "{{ lists_dev_hk_db_pass }}"
+    mailman_hyperkitty_db_pass: "{{ lists_dev_hk_db_pass }}"
+    mailman_hyperkitty_cookie_key: "randomstringusedasacookiesecurekey-yesthisshouldbeinaprivaterepo_butidonthaveaccesstoit"
+    mailman_url: "{{ ansible_fqdn }}"
+  - collectd/base
+
+  tasks:
+
+  - name: install more needed packages
+    yum: pkg={{ item }} state=present
+    with_items:
+    - tar
+    - vim
+    - tmux
+    - patch
+    tags:
+    - packages
+
+  #- name: easy access to the postgresql databases
+  #  template: src="{{ files }}/lists-dev/pgpass.j2" dest=/root/.pgpass
+  #            owner=root group=root mode=0600
+
+  - name: send root mail to abompard
+    lineinfile: dest=/etc/aliases regexp='^root:' line="root:abompard@fedoraproject.org"
+    notify:
+    - reload aliases
+
+  - name: start services
+    service: state=started enabled=yes name={{ item }}
+    with_items:
+    - httpd
+    - mailman3
+    - postfix
+
+
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"
+  - name: reload aliases
+    command: newaliases 

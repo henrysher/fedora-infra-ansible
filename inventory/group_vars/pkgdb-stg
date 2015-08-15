@@ -7,10 +7,11 @@ num_cpus: 2
 # for systems that do not match the above - specify the same parameter in
 # the host_vars/$hostname file
 
-tcp_ports: [ 80, 443,
-    # These 16 ports are used by fedmsg.  One for each wsgi thread.
-    3000, 3001, 3002, 3003, 3004, 3005, 3006, 3007,
-    3008, 3009, 3010, 3011, 3012, 3013, 3014, 3015]
+wsgi_fedmsg_service: pkgdb2
+wsgi_procs: 2
+wsgi_threads: 2
+
+tcp_ports: [ 80 ]
 
 fas_client_groups: sysadmin-noc,sysadmin-web,sysadmin-releng,sysadmin-cvs
 
@@ -22,3 +23,24 @@ fedmsg_certs:
 - service: pkgdb
   owner: root
   group: apache
+  alias: pkgdb2
+  can_send:
+  - pkgdb.acl.delete
+  - pkgdb.acl.update
+  - pkgdb.admin.action.status.update
+  - pkgdb.branch.complete
+  - pkgdb.branch.start
+  - pkgdb.collection.new
+  - pkgdb.collection.update
+  - pkgdb.owner.update
+  - pkgdb.package.branch.delete
+  - pkgdb.package.branch.new
+  - pkgdb.package.branch.request
+  - pkgdb.package.critpath.update
+  - pkgdb.package.delete
+  - pkgdb.package.monitor.update
+  - pkgdb.package.new
+  - pkgdb.package.new.request
+  - pkgdb.package.unretire.request
+  - pkgdb.package.update
+  - pkgdb.package.update.status

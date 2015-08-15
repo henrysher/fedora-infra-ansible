@@ -1,0 +1,46 @@
+---
+# common items for the releng-* boxes
+lvm_size: 100000
+mem_size: 4096
+num_cpus: 2
+nm: 255.255.255.0
+gw: 10.5.126.254
+dns: 10.5.126.21
+
+ks_url: http://10.5.126.23/repo/rhel/ks/kvm-rhel-7
+ks_repo: http://10.5.126.23/repo/rhel/RHEL7-x86_64/
+
+virt_install_command: virt-install -n {{ inventory_hostname }} -r {{ mem_size }}
+                 --disk bus=virtio,path={{ volgroup }}/{{ inventory_hostname }}
+                 --vcpus={{ num_cpus }}  -l {{ ks_repo }} -x
+                 "ksdevice=eth0 ks={{ ks_url }} console=tty0 console=ttyS0
+                  hostname={{ inventory_hostname }} nameserver={{ dns }}
+                  ip={{ eth0_ip }} netmask={{ nm }} gateway={{ gw }} dns={{ dns }}"
+                 --network=bridge=br0,model=virtio --network=bridge=br1,model=virtio
+                 --autostart --noautoconsole
+
+# With 16 cpus, theres a bunch more kernel threads
+nrpe_procs_warn: 900
+nrpe_procs_crit: 1000
+
+host_group: releng
+
+# These are consumed by a task in roles/fedmsg/base/main.yml
+fedmsg_certs:
+- service: shell
+  owner: root
+  group: root
+#- service: bodhi
+#  owner: root
+#  group: masher
+#  can_send:
+#  - bodhi.mashtask.complete
+#  - bodhi.mashtask.mashing
+#  - bodhi.mashtask.start
+#  - bodhi.mashtask.sync.done
+#  - bodhi.mashtask.sync.wait
+#  - bodhi.errata.publish
+#  - bodhi.update.eject
+#  # The ftp sync messages get run here too.
+#  - bodhi.updates.epel.sync
+#  - bodhi.updates.fedora.sync

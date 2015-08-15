@@ -68,7 +68,7 @@
 
   pre_tasks:
   - name: tell nagios to shush w.r.t. the frontend
-    nagios: action=downtime minutes=15 service=host host={{ inventory_hostname }}
+    nagios: action=downtime minutes=15 service=host host={{ inventory_hostname_short }}{{ env_suffix }}
     delegate_to: noc01.phx2.fedoraproject.org
     ignore_errors: true
 
@@ -90,7 +90,7 @@
 
   pre_tasks:
   - name: tell nagios to shush w.r.t. the backend
-    nagios: action=downtime minutes=15 service=host host={{ inventory_hostname }}
+    nagios: action=downtime minutes=15 service=host host={{ inventory_hostname_short }}{{ env_suffix }}
     delegate_to: noc01.phx2.fedoraproject.org
     ignore_errors: true
 
@@ -105,13 +105,14 @@
     command: /usr/bin/alembic -c /usr/share/tahrir_api/alembic.ini upgrade head
     args:
       chdir: /usr/share/tahrir_api/
+    ignore_errors: true
 
   - name: And... start the backend again
     service: name="fedmsg-hub" state=started
 
   post_tasks:
   - name: tell nagios to unshush w.r.t. the backend
-    nagios: action=unsilence service=host host={{ inventory_hostname }}
+    nagios: action=unsilence service=host host={{ inventory_hostname_short }}{{ env_suffix }}
     delegate_to: noc01.phx2.fedoraproject.org
     ignore_errors: true
 
@@ -130,6 +131,6 @@
 
   post_tasks:
   - name: tell nagios to unshush w.r.t. the frontend
-    nagios: action=unsilence service=host host={{ inventory_hostname }}
+    nagios: action=unsilence service=host host={{ inventory_hostname_short }}{{ env_suffix }}
     delegate_to: noc01.phx2.fedoraproject.org
     ignore_errors: true

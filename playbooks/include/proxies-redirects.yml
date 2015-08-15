@@ -23,13 +23,13 @@
     name: community
     website: admin.fedoraproject.org
     path: /community
-    target: http://apps.fedoraproject.org/packages
+    target: https://apps.fedoraproject.org/packages
 
   - role: httpd/redirect
     name: docs
     website: fedoraproject.org
     path: /docs
-    target: http://docs.fedoraproject.org/
+    target: https://docs.fedoraproject.org/
 
   - role: httpd/redirect
     name: elections
@@ -55,19 +55,31 @@
   - role: httpd/redirect
     name: get-fedora
     website: get.fedoraproject.org
-    target: http://fedoraproject.org/get-fedora
+    target: https://getfedora.org/
+    status: 302
+
+  - role: httpd/redirect
+    name: flocktofedora
+    website: flocktofedora.org
+    target: http://www.flocktofedora.org/
+    status: 302
+
+  - role: httpd/redirect
+    name: fedoramy
+    website: fedora.my
+    target: http://www.fedora.my/
     status: 302
 
   - role: httpd/redirect
     name: join-fedora
     website: join.fedoraproject.org
-    target: http://fedoraproject.org/wiki/Join
+    target: https://fedoraproject.org/wiki/Join
     status: 302
 
   - role: httpd/redirect
     name: get-help
     website: help.fedoraproject.org
-    target: http://fedoraproject.org/get-help
+    target: https://fedoraproject.org/get-help
     status: 302
 
   - role: httpd/redirect
@@ -119,6 +131,25 @@
     path: /static/js/release-counter-ext.js
     target: https://getfedora.org/static/js/release-counter-ext.js
 
+#
+# When there is no prerelease we redirect the prerelease urls
+# back to the main release. 
+# This should be disabled when there is a prerelease
+#
+#  - role: httpd/redirectmatch
+#    name: prerelease-to-final
+#    website: getfedora.org
+#    regex: /(.*)/prerelease.*$
+#    target: https://stg.getfedora.org/$1
+#    when: env == 'staging'
+
+#  - role: httpd/redirectmatch
+#    name: prerelease-to-final
+#    website: getfedora.org
+#    regex: /(.*)/prerelease.*$
+#    target: https://getfedora.org/$1
+#    when: env != 'staging'
+
   - role: httpd/redirect
     name: store
     website: store.fedoraproject.org
@@ -143,7 +174,7 @@
   - role: httpd/redirect
     name: site
     website: fedoraproject.com
-    target: http://fedoraproject.org/
+    target: https://getfedora.org/
 
 
   # Planet/people convenience
@@ -151,19 +182,19 @@
     name: infofeed
     website: fedoraproject.org
     path: /infofeed
-    target: http://planet.fedoraproject.org/infofeed
+    target: http://fedoraplanet.org/infofeed
 
   - role: httpd/redirect
     name: people
     website: fedoraproject.org
     path: /people
-    target: http://planet.fedoraproject.org/
+    target: http://fedoraplanet.org/
 
   - role: httpd/redirect
     name: fedorapeople
     website: fedoraproject.org
     path: /fedorapeople
-    target: http://planet.fedoraproject.org/
+    target: http://fedoraplanet.org/
 
 
   # QA
@@ -191,7 +222,7 @@
   - role: httpd/redirect
     name: kde
     website: kde.fedoraproject.org
-    target: http://spins.fedoraproject.org/kde/
+    target: https://spins.fedoraproject.org/kde/
     status: 302
 
 
@@ -211,7 +242,7 @@
   - role: httpd/redirect
     name: cloud-front-page
     website: cloud.fedoraproject.org
-    target: http://fedoraproject.org/en/get-fedora#clouds
+    target: https://getfedora.org/cloud/
 
   - role: httpd/redirectmatch
     name: redirect-cloudstart
@@ -220,117 +251,149 @@
     target: https://$1
 
   ## Cloud image redirects
+
+  # Redirects/pointers for fedora 22 BASE cloud images
+  - role: httpd/redirect
+    name: cloud-base-64bit-22
+    website: cloud.fedoraproject.org
+    path: /fedora-22.x86_64.qcow2
+    target: https://download.fedoraproject.org/pub/fedora/linux/releases/22/Cloud/x86_64/Images/Fedora-Cloud-Base-22-20150521.x86_64.qcow2
+
+  - role: httpd/redirect
+    name: cloud-base-64bit-22-raw
+    website: cloud.fedoraproject.org
+    path: /fedora-22.x86_64.raw.xz
+    target: https://download.fedoraproject.org/pub/fedora/linux/releases/22/Cloud/x86_64/Images/Fedora-Cloud-Base-22-20150521.x86_64.raw.xz
+
+  - role: httpd/redirect
+    name: cloud-base-32bit-22-raw
+    website: cloud.fedoraproject.org
+    path: /fedora-22.i386.raw.xz
+    target: https://download.fedoraproject.org/pub/fedora/linux/releases/22/Cloud/i386/Images/Fedora-Cloud-Base-22-20150521.i386.raw.xz
+
+  - role: httpd/redirect
+    name: cloud-base-32bit-22
+    website: cloud.fedoraproject.org
+    path: /fedora-22.i386.qcow2
+    target: https://download.fedoraproject.org/pub/fedora/linux/releases/22/Cloud/i386/Images/Fedora-Cloud-Base-22-20150521.i386.qcow2
+
+  # Redirects/pointers for fedora 22 ATOMIC cloud images
+  - role: httpd/redirect
+    name: cloud-atomic-64bit-22
+    website: cloud.fedoraproject.org
+    path: /fedora-atomic-22.x86_64.qcow2
+    target: https://download.fedoraproject.org/pub/fedora/linux/releases/22/Cloud/x86_64/Images/Fedora-Cloud-Atomic-22-20150521.x86_64.qcow2
+
+  - role: httpd/redirect
+    name: cloud-atomic-64bit-22-raw
+    website: cloud.fedoraproject.org
+    path: /fedora-atomic-22.x86_64.raw.xz
+    target: https://download.fedoraproject.org/pub/fedora/linux/releases/22/Cloud/x86_64/Images/Fedora-Cloud-Atomic-22-20150521.x86_64.raw.xz
+
   # Redirects/pointers for fedora 21 BASE cloud images
   - role: httpd/redirect
     name: cloud-base-64bit-21
     website: cloud.fedoraproject.org
     path: /fedora-21.x86_64.qcow2
-    target: http://download.fedoraproject.org/pub/fedora/linux/releases/21/Cloud/Images/x86_64/Fedora-Cloud-Base-20141203-21.x86_64.qcow2
+    target: https://download.fedoraproject.org/pub/fedora/linux/releases/21/Cloud/Images/x86_64/Fedora-Cloud-Base-20141203-21.x86_64.qcow2
 
   - role: httpd/redirect
     name: cloud-base-64bit-21-raw
     website: cloud.fedoraproject.org
     path: /fedora-21.x86_64.raw.xz
-    target: http://download.fedoraproject.org/pub/fedora/linux/releases/21/Cloud/Images/x86_64/Fedora-Cloud-Base-20141203-21.x86_64.raw.xz
+    target: https://download.fedoraproject.org/pub/fedora/linux/releases/21/Cloud/Images/x86_64/Fedora-Cloud-Base-20141203-21.x86_64.raw.xz
 
   - role: httpd/redirect
     name: cloud-base-32bit-21-raw
     website: cloud.fedoraproject.org
     path: /fedora-21.i386.raw.xz
-    target: http://download.fedoraproject.org/pub/fedora/linux/releases/21/Cloud/Images/i386/Fedora-Cloud-Base-20141203-21.i386.raw.xz
+    target: https://download.fedoraproject.org/pub/fedora/linux/releases/21/Cloud/Images/i386/Fedora-Cloud-Base-20141203-21.i386.raw.xz
 
   - role: httpd/redirect
     name: cloud-base-32bit-21
     website: cloud.fedoraproject.org
     path: /fedora-21.i386.qcow2
-    target: http://download.fedoraproject.org/pub/fedora/linux/releases/21/Cloud/Images/i386/Fedora-Cloud-Base-20141203-21.i386.qcow2
+    target: https://download.fedoraproject.org/pub/fedora/linux/releases/21/Cloud/Images/i386/Fedora-Cloud-Base-20141203-21.i386.qcow2
 
   # Redirects/pointers for fedora 21 ATOMIC cloud images
   - role: httpd/redirect
     name: cloud-atomic-64bit-21
     website: cloud.fedoraproject.org
     path: /fedora-atomic-21.x86_64.qcow2
-    target: http://download.fedoraproject.org/pub/fedora/linux/releases/21/Cloud/Images/x86_64/Fedora-Cloud-Atomic-20141203-21.x86_64.qcow2
+    target: https://download.fedoraproject.org/pub/fedora/linux/releases/21/Cloud/Images/x86_64/Fedora-Cloud-Atomic-20141203-21.x86_64.qcow2
 
   - role: httpd/redirect
     name: cloud-atomic-64bit-21-raw
     website: cloud.fedoraproject.org
     path: /fedora-atomic-21.x86_64.raw.xz
-    target: http://download.fedoraproject.org/pub/fedora/linux/releases/21/Cloud/Images/x86_64/Fedora-Cloud-Atomic-20141203-21.x86_64.raw.xz
+    target: https://download.fedoraproject.org/pub/fedora/linux/releases/21/Cloud/Images/x86_64/Fedora-Cloud-Atomic-20141203-21.x86_64.raw.xz
 
   # Except, there are no 32bit atomic images atm.
   #- role: httpd/redirect
   #  name: cloud-atomic-32bit-21-raw
   #  website: cloud.fedoraproject.org
   #  path: /fedora-atomic-21.i386.raw.xz
-  #  target: http://download.fedoraproject.org/pub/fedora/linux/releases/21/Cloud/Images/i386/Fedora-Cloud-Atomic-20141203-21.i386.raw.xz
+  #  target: https://download.fedoraproject.org/pub/fedora/linux/releases/21/Cloud/Images/i386/Fedora-Cloud-Atomic-20141203-21.i386.raw.xz
 
   #- role: httpd/redirect
   #  name: cloud-atomic-32bit-21
   #  website: cloud.fedoraproject.org
   #  path: /fedora-atomic-21.i386.qcow2
-  #  target: http://download.fedoraproject.org/pub/fedora/linux/releases/21/Cloud/Images/i386/Fedora-Cloud-Atomic-20141203-21.i386.qcow2
+  #  target: https://download.fedoraproject.org/pub/fedora/linux/releases/21/Cloud/Images/i386/Fedora-Cloud-Atomic-20141203-21.i386.qcow2
 
   # Redirects/pointers for fedora 20 cloud images
   - role: httpd/redirect
     name: cloud-64bit-20
     website: cloud.fedoraproject.org
     path: /fedora-20.x86_64.qcow2
-    target: http://download.fedoraproject.org/pub/fedora/linux/updates/20/Images/x86_64/Fedora-x86_64-20-20140407-sda.qcow2
+    target: https://download.fedoraproject.org/pub/fedora/linux/updates/20/Images/x86_64/Fedora-x86_64-20-20140407-sda.qcow2
 
   - role: httpd/redirect
     name: cloud-32bit-20
     website: cloud.fedoraproject.org
     path: /fedora-20.i386.qcow2
-    target: http://download.fedoraproject.org/pub/fedora/linux/updates/20/Images/i386/Fedora-i386-20-20140407-sda.qcow2
+    target: https://download.fedoraproject.org/pub/fedora/linux/updates/20/Images/i386/Fedora-i386-20-20140407-sda.qcow2
 
   - role: httpd/redirect
     name: cloud-64bit-20-raw
     website: cloud.fedoraproject.org
     path: /fedora-20.x86_64.raw.xz
-    target: http://download.fedoraproject.org/pub/fedora/linux/updates/20/Images/x86_64/Fedora-x86_64-20-20140407-sda.raw.xz
+    target: https://download.fedoraproject.org/pub/fedora/linux/updates/20/Images/x86_64/Fedora-x86_64-20-20140407-sda.raw.xz
 
   - role: httpd/redirect
     name: cloud-32bit-20-raw
     website: cloud.fedoraproject.org
     path: /fedora-20.i386.raw.xz
-    target: http://download.fedoraproject.org/pub/fedora/linux/updates/20/Images/i386/Fedora-i386-20-20140407-sda.raw.xz
+    target: https://download.fedoraproject.org/pub/fedora/linux/updates/20/Images/i386/Fedora-i386-20-20140407-sda.raw.xz
 
   # Redirects/pointers for fedora 19 cloud images
   - role: httpd/redirect
     name: cloud-64bit-19
     website: cloud.fedoraproject.org
     path: /fedora-19.x86_64.qcow2
-    target: http://download.fedoraproject.org/pub/fedora/linux/updates/19/Images/x86_64/Fedora-x86_64-19-20140407-sda.qcow2
+    target: https://download.fedoraproject.org/pub/fedora/linux/updates/19/Images/x86_64/Fedora-x86_64-19-20140407-sda.qcow2
 
   - role: httpd/redirect
     name: cloud-32bit-19
     website: cloud.fedoraproject.org
     path: /fedora-19.i386.qcow2
-    target: http://download.fedoraproject.org/pub/fedora/linux/updates/19/Images/i386/Fedora-i386-19-20140407-sda.qcow2
+    target: https://download.fedoraproject.org/pub/fedora/linux/updates/19/Images/i386/Fedora-i386-19-20140407-sda.qcow2
 
   # Redirects/pointers for latest fedora cloud images.
   - role: httpd/redirect
     name: cloud-64bit-latest
     website: cloud.fedoraproject.org
     path: /fedora-latest.x86_64.qcow2
-    target: http://download.fedoraproject.org/pub/fedora/linux/releases/21/Cloud/Images/x86_64/Fedora-Cloud-Base-20141203-21.x86_64.qcow2
+    target: https://download.fedoraproject.org/pub/fedora/linux/releases/22/Cloud/x86_64/Images/Fedora-Cloud-Base-22-20150521.x86_64.qcow2
 
   - role: httpd/redirect
     name: cloud-32bit-latest
     website: cloud.fedoraproject.org
     path: /fedora-latest.i386.qcow2
-    target: http://download.fedoraproject.org/pub/fedora/linux/releases/21/Cloud/Images/i386/Fedora-Cloud-Base-20141203-21.i386.qcow2
+    target: https://download.fedoraproject.org/pub/fedora/linux/releases/22/Cloud/i386/Images/Fedora-Cloud-Base-22-20150521.i386.qcow2
 
   - role: httpd/redirect
     name: cloud-atomic-64bit-latest
     website: cloud.fedoraproject.org
     path: /fedora-atomic-latest.x86_64.qcow2
-    target: http://download.fedoraproject.org/pub/fedora/linux/releases/21/Cloud/Images/x86_64/Fedora-Cloud-Atomic-20141203-21.x86_64.qcow2
-
-  # At this time, we are not producing 32bit atomic images.
-  #- role: httpd/redirect
-  #  name: cloud-atomic-32bit-latest
-  #  website: cloud.fedoraproject.org
-  #  path: /fedora-atomic-latest.i386.qcow2
-  #  target: http://download.fedoraproject.org/pub/fedora/linux/releases/21/Cloud/Images/i386/Fedora-Cloud-Atomic-20141203-21.i386.qcow2
+    target: https://download.fedoraproject.org/pub/fedora/linux/releases/22/Cloud/x86_64/Images/Fedora-Cloud-Atomic-22-20150521.x86_64.qcow2

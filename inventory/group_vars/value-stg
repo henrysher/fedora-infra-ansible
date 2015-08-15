@@ -15,7 +15,7 @@ tcp_ports: [ 80, 443, 5050,
 # Neeed for rsync from log01 for logs.
 custom_rules: [ '-A INPUT -p tcp -m tcp -s 10.5.126.13 --dport 873 -j ACCEPT', '-A INPUT -p tcp -m tcp -s 192.168.1.59 --dport 873 -j ACCEPT' ]
 
-fas_client_groups: sysadmin-noc,fi-apprentice
+fas_client_groups: sysadmin-noc,fi-apprentice,sysadmin-web,sysadmin-mote
 
 # These are consumed by a task in roles/fedmsg/base/main.yml
 fedmsg_certs:
@@ -25,3 +25,19 @@ fedmsg_certs:
 - service: supybot
   owner: root
   group: daemon
+  can_send:
+  # cookies!
+  - irc.karma
+  # standard meetbot stuff
+  - meetbot.meeting.complete
+  - meetbot.meeting.start
+  - meetbot.meeting.topic.update
+  # meetbot line items
+  - meeting.item.agreed
+  - meeting.item.accepted
+  - meeting.item.rejected
+  - meeting.item.action
+  - meeting.item.info
+  - meeting.item.idea
+  - meeting.item.help
+  - meeting.item.link

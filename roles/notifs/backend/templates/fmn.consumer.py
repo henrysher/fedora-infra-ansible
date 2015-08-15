@@ -32,6 +32,10 @@ class MutexLock(AbstractFileLock):
     def release_write_lock(self):
         return self.mutex.release_write_lock()
 
+    @classmethod
+    def __json__(cls):
+        return repr(cls)
+
 
 config = {
     {% if env == 'staging' %}
@@ -63,6 +67,8 @@ config = {
         '.buildsys.repo.init',
         '.buildsys.repo.done',
         '.buildsys.rpm.sign',
+        '.faf.report.threshold1',
+        '.github.status',
     ],
 
     # This sets up four threads to handle incoming messages.  At the time of

@@ -1,0 +1,16 @@
+- name: Copy in /usr/local/bin/fedmsg-map
+  copy: src=fedmsg-map.py dest=/usr/local/bin/fedmsg-map mode=0755
+  tags:
+  - collectd
+  notify: restart collectd
+
+- name: Copy in /etc/collectd.d/fedmsg-activation/conf
+  copy: src=fedmsg-activation.conf dest=/etc/collectd.d/fedmsg-activation.conf
+  tags:
+  - collectd
+  notify: restart collectd
+
+- seboolean: name=collectd_tcp_network_connect persistent=yes state=yes
+  tags:
+  - collectd
+  - selinux

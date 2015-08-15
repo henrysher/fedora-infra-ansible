@@ -1,7 +1,7 @@
 ---
 
 - name: put builder-repo on system
-  action: copy src="{{ files }}/sign/{{ item }}" dest="/etc/yum.repos.d/{{ item }}"
+  copy: src="{{ files }}/sign/{{ item }}" dest="/etc/yum.repos.d/{{ item }}"
   with_items:
   - builder-rpms.repo
   when: is_rhel is defined
@@ -10,7 +10,7 @@
   - packages
 
 - name: install sigul
-  action: yum state=present name={{ item }}
+  yum: state=present name={{ item }}
   with_items:
   - sigul
   - ntp
@@ -22,18 +22,43 @@
   - packages
 
 - name: setup /etc/sigul/bridge.conf file
-  action: template src="{{ files }}/sign/bridge.conf.j2" dest=/etc/sigul/bridge.conf owner=root group=sigul mode=640
+  template: src="{{ files }}/sign/bridge.conf.j2" dest=/etc/sigul/bridge.conf owner=root group=sigul mode=640
   tags:
   - config
+  when: inventory_hostname.startswith('sign')
 
 - name: setup /etc/sigul/server.conf file
-  action: copy src="{{ files }}/sign/server.conf" dest=/etc/sigul/server.conf owner=root group=sigul mode=640
+  copy: src="{{ files }}/sign/server.conf.primary" dest=/etc/sigul/server.conf owner=root group=sigul mode=640
+  when: inventory_hostname.startswith('sign')
+
+- name: setup secondary /etc/sigul/bridge.conf file
+  template: src="{{ files }}/sign/bridge.conf.secondary.j2" dest=/etc/sigul/bridge.conf owner=root group=sigul mode=640
+  tags:
+  - config
+  when: inventory_hostname.startswith('secondary')
+
+- name: Install secondary arch koji configs
+  template: src="{{ files }}/sign/bridge.conf.secondary.j2" dest=/etc/sigul/bridge.conf owner=root group=sigul mode=640
+  tags:
+  - config
+  when: inventory_hostname.startswith('secondary')
+
+- name: setup secondary koji config files
+  copy: src="{{ files }}/sign/{{ item }}" dest=/etc/{{ item }} owner=root group=root mode=644
+  with_items:
+  - koji-arm.conf
+  - koji-ppc.conf
+  - koji-s390.conf
+  when: inventory_hostname.startswith('secondary')
+
+- name: setup gpg link
+  file: state=link src=/usr/bin/gpg1 dest=/usr/bin/gpg
 
 - name: ntp steptickers
-  action: copy src="{{ files }}/common/step-tickers" dest=/etc/ntp/step-tickers
+  copy: src="{{ files }}/common/step-tickers" dest=/etc/ntp/step-tickers
 
 - name: ntp.conf
-  action: copy src="{{ files }}/common/ntp.conf" dest=/etc/ntp.conf
+  copy: src="{{ roles }}/base/files/ntp/ntp.conf" dest=/etc/ntp.conf
 
 - name: enable ntpd
-  action: service name=ntpd enabled=true state=started
+  service: name=ntpd enabled=true state=started

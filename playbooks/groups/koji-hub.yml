@@ -3,7 +3,7 @@
 # NOTE: most of these vars_path come from group_vars/koji-hub or from hostvars
 
 - name: make koji hub
-  hosts: koji-stg:koji01.phx2.fedoraproject.org:koji02.phx2.fedoraproject.org
+  hosts: koji-stg:koji01.phx2.fedoraproject.org:koji02.phx2.fedoraproject.org:s390-koji01.qa.fedoraproject.org
   user: root
   gather_facts: False
 
@@ -21,7 +21,7 @@
 # Once the instance exists, configure it. 
 
 - name: make koji_hub server system
-  hosts: koji-stg:koji01.phx2.fedoraproject.org:koji02.phx2.fedoraproject.org
+  hosts: koji-stg:koji01.phx2.fedoraproject.org:koji02.phx2.fedoraproject.org:s390-koji01.qa.fedoraproject.org
   user: root
   gather_facts: True
 
@@ -29,9 +29,6 @@
    - /srv/web/infra/ansible/vars/global.yml
    - "/srv/private/ansible/vars.yml"
    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
-
-  pre_tasks:
-  - include: "{{ tasks }}/apache.yml"
 
   roles:
   - base
@@ -41,18 +38,37 @@
   - fas_client
   - builder_repo
   - collectd/base
+  - apache
   - fedmsg/base
   - koji_hub
-  - { role: koji_builder, when: env == "staging" }
+  - { role: rsyncd, when: inventory_hostname.startswith('s390') }
+  - { role: koji_builder, when: env == "staging" or inventory_hostname.startswith('s390') }
   - { role: nfs/server, when: env == "staging" }
-  - { role: keepalived, when: env != "staging" }
+  - { role: keepalived, when: env == "production" and inventory_hostname.startswith('koji') }
   - role: nfs/client
     mnt_dir: '/mnt/fedora_koji'
     nfs_src_dir: 'fedora_koji'
-    when: env != 'staging'
+    when: env == 'production' and inventory_hostname.startswith('koji')
+  - role: nfs/client
+    mnt_dir: '/mnt/koji'
+    nfs_src_dir: 'fedora_s390/data'
+    when: env == 'production' and inventory_hostname.startswith('s390')
+    # In staging, we mount fedora_koji as read only (see nfs_mount_opts)
+  - role: nfs/client
+    mnt_dir: '/mnt/fedora_koji_prod'
+    nfs_src_dir: 'fedora_koji'
+    when: env == 'staging' and inventory_hostname.startswith('koji')
   - sudo
 
   tasks:
+  - name: create secondary volume dir for stg koji
+    file: dest=/mnt/koji/vol state=directory owner=apache group=apache mode=0755
+    tags: koji_hub
+    when: env == 'staging'
+  - name: create symlink for stg/prod secondary volume
+    file: src=/mnt/fedora_koji_prod/koji dest=/mnt/koji/vol/prod state=link
+    tags: koji_hub
+    when: env == 'staging'
   - include: "{{ tasks }}/yumrepos.yml"
   - include: "{{ tasks }}/2fa_client.yml"
   - include: "{{ tasks }}/motd.yml"
@@ -61,19 +77,19 @@
   - include: "{{ handlers }}/restart_services.yml"
 
 
-- name: Start the kojid builder daemon, but only on staging.
-  # Really -- this should never be set for prod.
-  hosts: koji-stg
-  user: root
-  gather_facts: True
-
-  # XXX - should these just be included in koji_builder and koji_hub roles?
-  tasks:
-  - name: make sure kojid is running
-    service: name=kojid state=running
-    tags:
-    - kojid
-  - name: make sure kojira is running
-    service: name=kojira state=running
-    tags:
-    - kojira
+#- name: Start the kojid builder daemon, but only on staging.
+#  # Really -- this should never be set for prod.
+#  hosts: koji-stg:s390-koji01.qa.fedoraproject.org
+#  user: root
+#  gather_facts: True
+#
+#  # XXX - should these just be included in koji_builder and koji_hub roles?
+#  tasks:
+#  - name: make sure kojid is running
+#    service: name=kojid state=running
+#    tags:
+#    - kojid
+#  - name: make sure kojira is running
+#    service: name=kojira state=running
+#    tags:
+#    - kojira

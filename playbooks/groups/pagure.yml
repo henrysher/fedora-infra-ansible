@@ -1,5 +1,5 @@
 - name: make the servers
-  hosts: pagure-stg
+  hosts: pagure:pagure-stg
   user: root
   gather_facts: False
 
@@ -15,7 +15,7 @@
   - include: "{{ handlers }}/restart_services.yml"
 
 - name: make the boxen be real for real
-  hosts: pagure-stg
+  hosts: pagure:pagure-stg
   user: root
   gather_facts: True
 
@@ -34,7 +34,6 @@
   - collectd/base
   - openvpn/client
   - postgresql_server
-  - git/server
 
   tasks:
   - include: "{{ tasks }}/yumrepos.yml"
@@ -45,7 +44,7 @@
   - include: "{{ handlers }}/restart_services.yml"
 
 - name: deploy pagure itself
-  hosts: pagure-stg
+  hosts: pagure:pagure-stg
   user: root
   gather_facts: True
 
@@ -54,8 +53,21 @@
    - "/srv/private/ansible/vars.yml"
    - "{{ vars_path }}/{{ ansible_distribution }}.yml"
 
+  pre_tasks:
+  - name: install fedmsg-relay
+    yum: pkg=fedmsg-relay state=present
+    tags:
+    - pagure
+    - pagure/fedmsg
+  - name: and start it
+    service: name=fedmsg-relay state=started
+    tags:
+    - pagure
+    - pagure/fedmsg
+
   roles:
-  - pagure
+  - pagure/frontend
+  - pagure/fedmsg
 
   handlers:
   - include: "{{ handlers }}/restart_services.yml"

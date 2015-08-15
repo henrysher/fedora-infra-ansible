@@ -1,0 +1,85 @@
+- include: "mount_fs.yml"
+
+
+- copy: src="dist-git-epel-7.repo" dest="/etc/yum.repos.d/"
+
+- name: install packages
+  yum: state=present name={{ item }}
+  with_items:
+  - epel-release
+  - cgit
+  - dist-git
+  - dist-git-selinux
+  - copr-dist-git
+
+- name: ensure git storage path exists
+  file: path="/var/lib/dist-git/git" state=directory group=packager mode=0775
+#- file: path="/var/lib/dist-git/git/pkgs-git-repos-list" state=file group=packager
+# - file: path="/var/lib/dist-git/git/rpms/" state=directory group=packager
+
+- name: install packages which should be added as requirements
+  yum: state=present name={{ item }}
+  with_items:
+  - pyrpkg
+
+# TODO: remove, this should be done by `dist-git` package
+- group: name="cvsadmin" state=present
+
+- name: create user for git repos
+  user: name="copr-dist-git" groups=cvsadmin,packager
+
+- name: create user for copr-git service
+  user: name="copr-service" groups=apache,packager generate_ssh_key=yes ssh_key_bits=2048 ssh_key_file=.ssh/id_rsa
+
+# set ssh key, so that copr-service could access gitolite
+- name: read pub key into var
+  command: cat /home/copr-service/.ssh/id_rsa.pub
+  register: cat_pubkey
+
+- set_fact: pubkey="{{cat_pubkey.stdout|join('')}}"
+
+- debug: msg={{pubkey}}
+
+- name: prepare authorized key, so copr-service could interact with gitolite
+  authorized_key: user="copr-dist-git" key="{{pubkey}}" key_options="command=\"HOME=/var/lib/dist-git/git/ /usr/share/gitolite3/gitolite-shell $USER \"'"
+## keys done
+
+- name: install config for copr-dist-git
+  template: src=copr-dist-git.conf.j2 dest=/etc/copr/copr-dist-git.conf mode=0644
+
+- name: set git variables for copr-service user
+  copy: src=".gitconfig" dest="/home/copr-service/.gitconfig"
+
+- command: 'git config --global user.name "Copr dist git"'
+
+- name: install config for httpd to serve lookaside openly
+  copy: src="httpd/{{ item }}" dest="/etc/httpd/conf.d/dist-git/{{ item }}"
+  with_items:
+  - lookaside.conf
+  - lookaside-copr.conf
+  tags:
+  - config
+  notify:
+  - restart httpd
+
+- copy: src="dist-git.conf" dest="/etc/dist-git/dist-git.conf" mode=0644
+
+- copy: src="ssh_config" dest="/home/copr-service/.ssh/config" owner=copr-service group=copr-service mode=0600
+
+- lineinfile: dest=/etc/cgitrc state=absent regexp="^cache-size"
+- lineinfile: dest=/etc/cgitrc regexp="^project-list=" line="project-list=/var/lib/copr-dist-git/cgit_pkg_list"
+- lineinfile: dest=/etc/cgitrc regexp="^scan-path=" line="scan-path=/var/lib/dist-git/git/rpms"
+
+- name: install systemd unit
+  copy: src="systemd/copr_distgit_updater.service" dest="/etc/systemd/system/"
+
+- command: "systemctl daemon-reload"
+- command: "/usr/share/dist-git/dist_git_sync.sh"
+
+- name: ensure that services are enabled and started
+  service: name="{{ item }}" enabled=yes state=started
+  with_items:
+  - "httpd"
+  - "dist-git.socket"
+  - "copr_distgit_updater"
+

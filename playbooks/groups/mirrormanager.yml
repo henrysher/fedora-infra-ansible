@@ -1,5 +1,5 @@
 - name: make the servers
-  hosts: mm-stg
+  hosts: mm;mm-stg
   user: root
   gather_facts: False
 
@@ -15,7 +15,7 @@
   - include: "{{ handlers }}/restart_services.yml"
 
 - name: make the boxe be real for real
-  hosts: mm-stg
+  hosts: mm;mm-stg
   user: root
   gather_facts: True
 
@@ -32,7 +32,7 @@
   - fas_client
   - sudo
   - collectd/base
-  - { role: openvpn/client, when: env != "staging" }
+  - { role: openvpn/client, when: env != "staging" and inventory_hostname.startswith('mm-frontend')  }
   - { role: nfs/client, when: inventory_hostname.startswith('mm-backend01'), mnt_dir: '/srv/pub',  nfs_src_dir: 'fedora_ftp/fedora.redhat.com/pub' }
 
   tasks:
@@ -44,7 +44,7 @@
   - include: "{{ handlers }}/restart_services.yml"
 
 - name: Deploy the backend
-  hosts: mm-backend01.stg.phx2.fedoraproject.org
+  hosts: mm-backend;mm-backend-stg
   user: root
   gather_facts: True
 
@@ -55,12 +55,13 @@
 
   roles:
   - mirrormanager/backend
+  - s3-mirror
 
   handlers:
   - include: "{{ handlers }}/restart_services.yml"
 
 - name: Deploy the crawler
-  hosts: mm-crawler01.stg.phx2.fedoraproject.org
+  hosts: mm-crawler;mm-crawler-stg
   user: root
   gather_facts: True
 
@@ -71,12 +72,14 @@
 
   roles:
   - mirrormanager/crawler
+  - { role: rsyncd,
+      when: env != "staging" }
 
   handlers:
   - include: "{{ handlers }}/restart_services.yml"
 
 - name: Deploy the frontend (web-app)
-  hosts: mm-frontend01.stg.phx2.fedoraproject.org
+  hosts: mm-frontend;mm-frontend-stg
   user: root
   gather_facts: True
 
@@ -87,6 +90,24 @@
 
   roles:
   - mirrormanager/frontend2
+
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"
+
+# Do this one last, since the mirrormanager user needs to exist so that it can
+# own the fedmsg certs we put in place here.
+- name: Put fedmsg stuff in place
+  hosts: mm;mm-stg
+  user: root
+  gather_facts: True
+
+  vars_files:
+  -  /srv/web/infra/ansible/vars/global.yml
+  - "/srv/private/ansible/vars.yml"
+  - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  roles:
+  - fedmsg/base
 
   handlers:
   - include: "{{ handlers }}/restart_services.yml"

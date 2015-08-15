@@ -1,10 +1,23 @@
 config = dict(
     # Set this to dev if you're hacking on fedmsg or an app locally.
     # Set to stg or prod if running in the Fedora Infrastructure.
-    {% if env == 'staging' %}
-    environment="stg",
-    {% else %}
-    environment="prod",
+    environment="{{ fedmsg_env }}",
+
+    # Most hosts will be "false" here indicating that if they publish messages,
+    # they will passively bind to ports and have other consuming services
+    # actively connect to them.  If this flag is set to True, then the service
+    # will actively connect out to a fedmsg-relay to have its messages forwarded
+    # on.
+    active={{fedmsg_active}},
+
+    {% if fedmsg_cert_prefix is defined %}
+    # Most fedmsg enabled services dynamically guess their cert_prefix by
+    # looking at the namespace of the python code that they're running in.  For
+    # instance, bodhi's code is in the 'bodhi' python module, so fedmsg grabs
+    # that and uses it for its cert prefix.  Some code, however, runs in an
+    # oddly-namespaced module, and so we allow the option here to override that
+    # at the host level.
+    cert_prefix='{{fedmsg_cert_prefix}}',
     {% endif %}
 
     {% if not ansible_hostname.startswith('busgateway') %}
@@ -68,7 +81,7 @@ config = dict(
     #   - https://github.com/fedora-infra/fedmsg/issues/305
     #   - http://api.zeromq.org/3-2:zmq-setsockopt
     zmq_reconnect_ivl=100,
-    zmq_reconnect_ivl_max=800,
+    zmq_reconnect_ivl_max=500,
 )
 
 # This option adds an IPC socket by which we can monitor hub health.

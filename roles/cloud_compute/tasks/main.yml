@@ -18,7 +18,10 @@
     - restart network
 - meta: flush_handlers
 
-- yum: state=present name=https://repos.fedorapeople.org/repos/openstack/openstack-icehouse/rdo-release-icehouse-4.noarch.rpm
+# this two step can be done in one, but Ansible will then always show the action as changed
+- name: download RDO release package
+  get_url: url=https://repos.fedorapeople.org/repos/openstack/openstack-icehouse/rdo-release-icehouse-4.noarch.rpm dest=/root/
+- yum: state=present name=/root/rdo-release-icehouse-4.noarch.rpm
 - yum: state=present pkg=openstack-nova-common
 - name: create logical volume for ephemeral storage
   lvol: vg=vg_guests lv=nova size=100%FREE
@@ -38,10 +41,6 @@
   - networks
   - tmp
 
-- name: add cert to ca-bundle.crt so plain curl works
-  copy: src={{ private }}/files/openstack/fed-cloud09.pem dest=/etc/pki/ca-trust/source/anchors/ mode=600 owner=root group=root
-  notify:
-    - update ca-trust
 - meta: flush_handlers
 
 # http://docs.openstack.org/icehouse/install-guide/install/yum/content/nova-compute.html
@@ -53,7 +52,7 @@
   - openstack-utils
   - openstack-selinux
 - name: add ssl cert for keystone
-  copy: src={{ private }}/files/openstack/fed-cloud09.pem dest=/etc/pki/tls/certs/fed-cloud09-keystone.pem mode=644 owner=root group=root
+  copy: src={{ private }}/files/openstack/fedorainfracloud.org.digicert.pem dest=/etc/pki/tls/certs/fedorainfracloud.org.digicert.pem mode=644 owner=root group=root
 
 - name: Set up db connection to controller
   ini_file: dest=/etc/nova/nova.conf section=database option=connection value=mysql://nova:{{NOVA_DBPASS}}@{{controller_private_ip}}/nova
@@ -62,10 +61,10 @@
 - ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=auth_strategy value=keystone
   notify:
     - restart openstack-nova-compute
-- ini_file: dest=/etc/nova/nova.conf section=keystone_authtoken option=auth_uri value=https://{{controller_hostname}}:5000
+- ini_file: dest=/etc/nova/nova.conf section=keystone_authtoken option=auth_uri value=https://{{controller_publicname}}:5000
   notify:
     - restart openstack-nova-compute
-- ini_file: dest=/etc/nova/nova.conf section=keystone_authtoken option=auth_host value={{controller_hostname}}
+- ini_file: dest=/etc/nova/nova.conf section=keystone_authtoken option=auth_host value={{controller_publicname}}
   notify:
     - restart openstack-nova-compute
 - ini_file: dest=/etc/nova/nova.conf section=keystone_authtoken option=auth_protocol value=https
@@ -74,7 +73,7 @@
 - ini_file: dest=/etc/nova/nova.conf section=keystone_authtoken option=auth_port value=35357
   notify:
     - restart openstack-nova-compute
-- ini_file: dest=/etc/nova/nova.conf section=keystone_authtoken option=cafile value=/etc/pki/tls/certs/fed-cloud09-keystone.pem
+- ini_file: dest=/etc/nova/nova.conf section=keystone_authtoken option=cafile value=/etc/pki/tls/certs/fedorainfracloud.org.digicert.pem
   notify:
     - restart openstack-nova-compute
 - ini_file: dest=/etc/nova/nova.conf section=keystone_authtoken option=admin_user value=nova
@@ -122,17 +121,17 @@
 - ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=vncserver_proxyclient_address value={{compute_private_ip}}
   notify:
     - restart openstack-nova-compute
-- ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=novncproxy_base_url value=https://{{controller_hostname}}:6080/vnc_auto.html
+- ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=novncproxy_base_url value=https://{{controller_publicname}}:6080/vnc_auto.html
   notify:
     - restart openstack-nova-compute
 
-- ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=glance_host value={{controller_hostname}}
+- ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=glance_host value={{controller_publicname}}
   notify:
     - restart openstack-nova-compute
 - ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=glance_protocol value=https
   notify:
     - restart openstack-nova-compute
-- ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=glance_api_servers value=https://{{ controller_hostname }}:9292
+- ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=glance_api_servers value=https://{{ controller_publicname }}:9292
   notify:
     - restart openstack-nova-compute
 - name: set up storage for ephemeral disks
@@ -158,10 +157,10 @@
 - ini_file: dest=/etc/neutron/neutron.conf section=DEFAULT option=auth_strategy value=keystone
   notify:
     - restart neutron-openvswitch-agent
-- ini_file: dest=/etc/neutron/neutron.conf section=keystone_authtoken option=auth_uri value=https://{{controller_hostname}}:5000
+- ini_file: dest=/etc/neutron/neutron.conf section=keystone_authtoken option=auth_uri value=https://{{controller_publicname}}:5000
   notify:
     - restart neutron-openvswitch-agent
-- ini_file: dest=/etc/neutron/neutron.conf section=keystone_authtoken option=auth_host value={{controller_hostname}}
+- ini_file: dest=/etc/neutron/neutron.conf section=keystone_authtoken option=auth_host value={{controller_publicname}}
   notify:
     - restart neutron-openvswitch-agent
 - ini_file: dest=/etc/neutron/neutron.conf section=keystone_authtoken option=auth_protocol value=https
@@ -170,7 +169,7 @@
 - ini_file: dest=/etc/neutron/neutron.conf section=keystone_authtoken option=auth_port value=35357
   notify:
     - restart neutron-openvswitch-agent
-- ini_file: dest=/etc/neutron/neutron.conf section=keystone_authtoken option=cafile value=/etc/pki/tls/certs/fed-cloud09-keystone.pem
+- ini_file: dest=/etc/neutron/neutron.conf section=keystone_authtoken option=cafile value=/etc/pki/tls/certs/fedorainfracloud.org.digicert.pem
   notify:
     - restart neutron-openvswitch-agent
 - ini_file: dest=/etc/neutron/neutron.conf section=keystone_authtoken option=admin_user value=neutron
@@ -259,7 +258,7 @@
 - ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=network_api_class value=nova.network.neutronv2.api.API
   notify:
     - restart openstack-nova-compute
-- ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=neutron_url value=https://{{controller_hostname}}:9696
+- ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=neutron_url value=https://{{controller_publicname}}:9696
   notify:
     - restart openstack-nova-compute
 - ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=neutron_auth_strategy value=keystone
@@ -275,7 +274,7 @@
   ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=neutron_admin_password value={{NEUTRON_PASS}}
   notify:
     - restart openstack-nova-compute
-- ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=neutron_admin_auth_url value=https://{{controller_hostname}}:35357/v2.0
+- ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=neutron_admin_auth_url value=https://{{controller_publicname}}:35357/v2.0
   notify:
     - restart openstack-nova-compute
 - ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=linuxnet_interface_driver value=nova.network.linux_net.LinuxOVSInterfaceDriver

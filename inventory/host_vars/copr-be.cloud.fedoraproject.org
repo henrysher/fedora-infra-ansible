@@ -1,14 +1,22 @@
 ---
-instance_type: m1.xlarge
-image: "{{ f20_qcow_id }}"
+
+instance_type: ms1.xlarge
+image: "{{ fedora21_x86_64 }}"
 keypair: fedora-admin-20130801
-security_group: webserver
+security_group: web-80-anywhere-persistent,web-443-anywhere-persistent,ssh-anywhere-persistent,default,allow-nagios-persistent
 zone: nova
 hostbase: copr-be-
-public_ip: 209.132.184.142
-root_auth_users:  bkabrda msuchy pingou msuchy sgallagh nb asamalik vgologuz
+public_ip: 209.132.184.48
+root_auth_users:  msuchy pingou msuchy sgallagh nb asamalik vgologuz
 description: copr dispatcher and repo server
-volumes: ['-d /dev/vdc vol-00000028']
+volumes: [ {volume_id: '63c3a40c-e228-417a-97a2-e2c34730bf3b', device: '/dev/vdc'} ]
+inventory_tenant: persistent
+inventory_instance_name: copr-be
+cloud_networks:
+  # persistent-net
+  - net-id: "67b77354-39a4-43de-b007-bb813ac5c35f"
+  # copr-net
+  - net-id: "24699649-0e05-4fd3-98a3-86a75ec49f6e"
 
 tcp_ports: [ 22, 80, 443,
 # These 8 ports are used by fedmsg.  One for each wsgi thread.
@@ -22,6 +30,11 @@ fedmsg_certs:
 - service: copr
   owner: root
   group: copr
+  can_send:
+  - copr.build.start
+  - copr.build.end
+  - copr.chroot.start
+  - copr.worker.create
 
 # Copr vars
 

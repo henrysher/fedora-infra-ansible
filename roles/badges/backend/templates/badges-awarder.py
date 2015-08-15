@@ -28,6 +28,9 @@ config = {
         ),
     },
 
+    'badges.consume_delay': 1.5,
+    'badges.delay_limit': 25,
+
     # The badges backend (fedmsg-hub) uses this to build a fas cache of ircnicks
     # to fas usernames so it can act appropriately on certain message types.
     "fas_credentials": {

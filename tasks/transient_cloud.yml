@@ -1,16 +1,55 @@
----
-- name: spin it up
-  local_action: ec2 keypair={{ keypair }} image={{ image }} type={{ instance_type }} wait=true group={{ security_group }} ec2_access_key={{ transient_access_key }} ec2_secret_key={{ transient_secret_key }} ec2_url={{ os_ec2_url }} region={{ region }}
-  register: inst_res
+# New tasks to spin up instance in https://fedorainfracloud.org
+
+- name: spin UP VM using nova_compute
+  sudo: False
+  local_action:
+      security_groups: all-icmp-transient,web-80-anywhere-transient,web-443-anywhere-transient,ssh-anywhere-transient,default
+      nics:
+      # transient-net
+      - net-id: "96e0590b-e572-4340-9408-ce4d4e4f4536"
+      name: "{{ name }}"
+      module: nova_compute
+      auth_url: "{{os_auth_url}}"
+      login_username: "admin"
+      login_password: "{{ADMIN_PASS}}"
+      login_tenant_name: transient
+      image_id: "{{ image|image_name_to_id('admin', ADMIN_PASS, 'transient', os_auth_url) }}"
+      wait_for: 300
+      flavor_id: "{{ instance_type|flavor_name_to_id('admin', ADMIN_PASS, 'transient', os_auth_url) }}"
+      key_name: fedora-admin-20130801
+      auto_floating_ip: true
+      user_data: "#cloud-config\ndisable_root: 0"
+  register: nova_result
 
 - name: add it to the special group
-  local_action: add_host hostname={{ inst_res.instances[0].public_ip }} groupname=tmp_just_created
-
+  local_action: add_host hostname="{{ nova_result.public_ip }}" groupname=tmp_just_created
 
 - name: mail off about where it is
-  local_action: mail to=sysadmin-main-members@fedoraproject.org from=ansible-create@fedoraproject.org subject={{ inst_res.instances[0].public_ip }} msg="cloud instance created on {{ inst_res.instances[0].public_ip }}\n instance id - {{ inst_res.instances[0].id }} - {{ hostbase }} {{ root_auth_users }} "
+  local_action: mail 
+    to=sysadmin-main-members@fedoraproject.org 
+    from=ansible-create@fedoraproject.org
+    subject="{{ nova_result.public_ip }}"
+    body="transient cloud instance created on {{ nova_result.public_ip }}
+          name = {{ name }}
+          root_auth_users = {{ root_auth_users }}
+          image = {{ image }}"
 
-- name: wait for the host to be hot
-  local_action: wait_for host={{ inst_res.instances[0].public_ip }} port=22 delay=2 timeout=300
+- name: wait for he host to be hot
+  local_action: wait_for host={{ nova_result.public_ip }} port=22 delay=1 timeout=600
 
+- name: gather ssh host key from new instance
+  local_action: command ssh-keyscan -t rsa {{ nova_result.public_ip }}
+  ignore_errors: True
+  register: hostkey
 
+- name: add new ssh host key (you still need to add it to official ssh_host_keys later)
+  local_action: known_hosts path={{item}} key="{{ hostkey.stdout }}" host={{ nova_result.public_ip }} state=present
+  ignore_errors: True
+  with_items:
+  - /root/.ssh/known_hosts
+  - /etc/ssh/ssh_known_hosts
+
+# SSH is up and running, however cloud-init still did not deployed ssh keypair
+# we have to wait some time. 10 sec is usually enough, but not always.
+- name: waiting for cloud-init
+  pause: seconds=30

@@ -14,6 +14,20 @@
   vars:
   - varnish_url: http://localhost:6081
 
+  pre_tasks:
+
+  - name: Remove some crusty files from bygone eras
+    file: dest=/etc/httpd/conf.d/{{item}} state=absent
+    with_items:
+    - meetbot.fedoraproject.org/reversepassproxy.conf
+    - meetbot.fedoraproject.org/meetbot.conf
+    notify:
+    - restart apache
+    tags:
+    - httpd
+    - httpd/reverseproxy
+
+
   roles:
 
   - role: httpd/reverseproxy
@@ -50,10 +64,19 @@
     destname: mailman3
     when: env == "staging"
 
+  # The place for the raw originals
   - role: httpd/reverseproxy
-    website: meetbot.fedoraproject.org
+    website: meetbot-raw.fedoraproject.org
     destname: meetbot
     remotepath: /meetbot/
+    # Talk directly to the app server, not haproxy
+    proxyurl: http://value01
+
+  # The place for the fancy mote view
+  - role: httpd/reverseproxy
+    website: meetbot.fedoraproject.org
+    destname: mote
+    #remotepath: /mote/
     # Talk directly to the app server, not haproxy
     proxyurl: http://value01
 
@@ -214,13 +237,22 @@
     remotepath: /updates
     localpath: /updates
     proxyurl: http://localhost:10009
+    when: env != "staging"
+
+  - role: httpd/reverseproxy
+    website: admin.fedoraproject.org
+    destname: bodhi
+    remotepath: /
+    localpath: /updates
+    proxyurl: http://localhost:10010
+    when: env == "staging"
 
   - role: httpd/reverseproxy
     website: admin.fedoraproject.org
     destname: mirrormanager
     remotepath: /mirrormanager
     localpath: /mirrormanager
-    proxyurl: http://localhost:10008
+    proxyurl: "{{ varnish_url }}"
 
   - role: httpd/reverseproxy
     website: mirrors.fedoraproject.org
@@ -233,12 +265,11 @@
     proxyurl: http://localhost:10002
 
   - role: httpd/reverseproxy
-    website: admin.fedoraproject.org
-    destname: mirrormanager2
-    localpath: /mirrormanager2
-    remotepath: /mirrormanager2
-    proxyurl: http://localhost:10039
-    when: env == "staging"
+    website: apps.fedoraproject.org
+    destname: koschei
+    localpath: /koschei
+    remotepath: /koschei
+    proxyurl: "{{ varnish_url }}"
 
   - role: httpd/reverseproxy
     website: admin.fedoraproject.org
@@ -301,7 +332,7 @@
     # Talk directly to the app server, not haproxy
     proxyurl: http://log01
 
-  ### Three entries for taskotron for production
+  ### Four entries for taskotron for production
   - role: httpd/reverseproxy
     website: taskotron.fedoraproject.org
     destname: taskotron
@@ -324,7 +355,15 @@
     # Talk directly to the app server, not haproxy
     proxyurl: http://resultsdb01.vpn.fedoraproject.org
 
-  ### And three entries for taskotron for staging
+  - role: httpd/reverseproxy
+    website: taskotron.fedoraproject.org
+    destname: taskotron-execdb
+    localpath: /execdb
+    remotepath: /execdb
+    # Talk directly to the app server, not haproxy
+    proxyurl: http://resultsdb01.vpn.fedoraproject.org
+
+  ### And four entries for taskotron for staging
   - role: httpd/reverseproxy
     website: taskotron.stg.fedoraproject.org
     destname: taskotron
@@ -358,6 +397,15 @@
     # Talk directly to the app server, not haproxy
     proxyurl: http://resultsdb-stg01.qa.fedoraproject.org
     when: env == "staging"
+
+  ### Beaker staging
+  - role: httpd/reverseproxy
+    website: beaker.stg.fedoraproject.org
+    destname: beaker-stg
+    # Talk directly to the app server, not haproxy
+    proxyurl: http://beaker-stg01.qa.fedoraproject.org
+    when: env == "staging"
+
 
   # This one gets its own role (instead of httpd/reverseproxy) so that it can
   # copy in some silly static resources (globe.png, index.html)

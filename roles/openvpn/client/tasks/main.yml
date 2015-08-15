@@ -33,29 +33,14 @@
 
 - name: enable openvpn service for rhel 6
   service: name=openvpn state=running enabled=true
-  when: ansible_distribution_major_version == '6'
-  tags:
-  - service
-  - openvpn
-
-#
-# this is a workaround for a rhel7.1 bug: 
-# https://bugzilla.redhat.com/show_bug.cgi?id=1206007
-# Go back to using the service module when thats fixed. 
-#
-
-- name: enable openvpn service for rhel 7.1
-  file: state=link src=/usr/lib/systemd/system/openvpn@.service dest=/etc/systemd/system/multi-user.target.wants/openvpn@.service owner=root group=root
-  when: ansible_distribution_major_version == '7'
-  notify:
-  - reload systemd
+  when: ansible_distribution_major_version|int == 6
   tags:
   - service
   - openvpn
 
 - name: Make sure openvpn is running in rhel 7.1
-  service: name=openvpn@openvpn state=running
-  when: ansible_distribution_major_version == '7'
+  service: name=openvpn@openvpn state=running enabled=true
+  when: ansible_distribution_major_version|int == 7
   tags:
   - service
   - openvpn

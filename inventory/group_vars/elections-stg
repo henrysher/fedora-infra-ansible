@@ -4,10 +4,11 @@ lvm_size: 20000
 mem_size: 1024
 num_cpus: 2
 
-tcp_ports: [ 80,
-    # These 16 ports are used by fedmsg.  One for each wsgi thread.
-    3000, 3001, 3002, 3003, 3004, 3005, 3006, 3007,
-    3008, 3009, 3010, 3011, 3012, 3013, 3014, 3015]
+wsgi_fedmsg_service: fedora_elections
+wsgi_procs: 2
+wsgi_threads: 2
+
+tcp_ports: [ 80 ]
 
 # Neeed for rsync from log01 for logs.
 custom_rules: [ '-A INPUT -p tcp -m tcp -s 10.5.126.13 --dport 873 -j ACCEPT', '-A INPUT -p tcp -m tcp -s 192.168.1.59 --dport 873 -j ACCEPT' ]
@@ -24,4 +25,9 @@ fedmsg_certs:
 - service: fedora_elections
   owner: root
   group: apache
-
+  can_send:
+  - fedora_elections.candidate.delete
+  - fedora_elections.candidate.edit
+  - fedora_elections.candidate.new
+  - fedora_elections.election.edit
+  - fedora_elections.election.new

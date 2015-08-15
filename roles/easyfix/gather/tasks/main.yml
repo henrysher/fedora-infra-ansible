@@ -6,11 +6,15 @@
   action: file state=directory
                path=/srv/web/easyfix
                owner=apache group=apache mode=0755
+  tags:
+  - easyfix
 
 - name: Create the easyfix configuration folder
   action: file state=directory
           path=/etc/fedora-gather-easyfix/
           owner=root group=root mode=0755
+  tags:
+  - easyfix
 
 
 ## Install packages
@@ -23,6 +27,7 @@
   - python-bugzilla
   tags:
   - packages
+  - easyfix
 
 
 ## Install all files
@@ -37,6 +42,7 @@
   - jquery.ui.widget.js
   tags:
   - files
+  - easyfix
 
 - name: Install the easyfix template
   copy: >
@@ -44,13 +50,15 @@
     owner=root group=root mode=0644
   tags:
   - files
+  - easyfix
 
 - name: Install the easyfix script
-  copy: >
+  template: >
     src=gather_easyfix.py dest=/usr/local/bin/gather_easyfix.py
     owner=root group=root mode=0755
   tags:
   - files
+  - easyfix
 
 
 ## Install the cron job
@@ -60,3 +68,4 @@
     owner=root group=root mode=0644
   tags:
   - files
+  - easyfix

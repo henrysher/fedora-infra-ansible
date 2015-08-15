@@ -1,13 +1,26 @@
 MAILTO=root
 
-# refresh the mirrorlist cache at the top of the hour
-55 * * * * root /usr/bin/mm2_update-mirrorlist-server
+# Refresh the mirrorlist cache at the top of the hour and sync it to the
+# mirrorlist servers
+55 * * * * mirrormanager /usr/bin/mm2_update-mirrorlist-server && /usr/local/bin/sync_pkl_to_mirrorlists.sh
 
-# update master directory list
+# update master directory
 # logs sent to /var/log/mirrormanager/umdl.log by default
-0 */2 * * * root /usr/local/bin/lock-wrapper umdl /usr/bin/mm2_update-master-directory-list
+# check if category Fedora EPEL needs updating every 30 minutes
+0,30 * * * * mirrormanager /usr/local/bin/umdl-required EPEL /var/log/mirrormanager/umdl-required.log
+# check if category Fedora Linux needs updating every 30 minutes
+10,40 * * * * mirrormanager /usr/local/bin/umdl-required Linux /var/log/mirrormanager/umdl-required.log
+# check if category Fedora Secondary Arches needs updating every 30 minutes
+20,50 * * * * mirrormanager /usr/local/bin/umdl-required Secondary /var/log/mirrormanager/umdl-required.log
+# the remaining categories are updated once a day
+15 0 * * * mirrormanager /usr/bin/mm2_update-master-directory-list --category="Fedora Archive"
+15 12  * * * mirrormanager /usr/bin/mm2_update-master-directory-list --category="Fedora Other"
 
 # Sync netblocks list once a day
-30 0 * * * root cd /usr/share/mirrormanager2 && /usr/bin/mm2_get_global_netblocks /var/lib/mirrormanager/global_netblocks.txt
-0 1 * * * root cd /usr/share/mirrormanager2 && /usr/bin/mm2_get_internet2_netblocks /var/lib/mirrormanager/internet2_netblocks.txt
-30 1 * * * root /usr/bin/mm2_update-EC2-netblocks
+30 0 * * * mirrormanager cd /usr/share/mirrormanager2 && /usr/bin/mm2_get_global_netblocks /var/lib/mirrormanager/global_netblocks.txt
+# Run the script for Internet2 netblocks very late to
+# make sure the files are all there. The script is
+# looking in date dependent directories and depending
+# on the timezone of the remote server the files appear late.
+0 23 * * * mirrormanager cd /usr/share/mirrormanager2 && /usr/bin/mm2_get_internet2_netblocks /var/lib/mirrormanager/i2_netblocks.txt
+30 1 * * * mirrormanager /usr/bin/mm2_update-EC2-netblocks

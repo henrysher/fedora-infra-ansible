@@ -32,6 +32,8 @@
 - name: allow httpd to access the files on NFS
   seboolean: name=httpd_use_nfs state=yes persistent=yes
 
+- name: allow httpd to access git user content
+  seboolean: name=httpd_read_user_content state=yes persistent=yes
 
 # -- Dist Git --------------------------------------------
 # This is the Git setup itself: group, root directory, scripts,...
@@ -205,11 +207,21 @@
 
 # -- CGit ------------------------------------------------
 # This is the pretty web view of the repositories, using CGit.
-- name: install the cgitrc file
+- name: install the prod cgitrc file
   copy: src=cgitrc dest=/etc/cgitrc
+  tags: distgit
+  notify:
+  - restart httpd
+
+- name: install our custom header for cgit
+  template: src=cgit-header.html dest=/usr/share/cgit/cgit-header-fedora.html
+  tags: distgit
+  notify:
+  - restart httpd
 
 - name: install the CGit-related httpd config
   copy: src=redirect.conf dest=/etc/httpd/conf.d/pkgs.fedoraproject.org/redirect.conf
+  tags: distgit
   notify:
   - restart httpd
 
@@ -223,10 +235,14 @@
   - lookaside-upload.conf
   notify:
   - restart httpd
+  tags:
+  - distgit
 
 - name: create the Lookaside Cache root directory
   file: dest=/srv/cache/lookaside/pkgs state=directory
         owner=apache group=apache
+  tags:
+  - distgit
 
 - name: set the selinux boolean nis_enabled
   seboolean: name=nis_enabled persistent=yes state=yes
@@ -242,6 +258,14 @@
   - config
   - selinux
 
+# Not sure why, but fixes https://fedorahosted.org/fedora-infrastructure/ticket/4825
+- name: set the selinux boolean git_system_enable_homedirs
+  seboolean: name=git_system_enable_homedirs persistent=yes state=yes
+  tags:
+  - distgit
+  - config
+  - selinux
+
 - name: check the selinux context of the Lookaside Cache root directory
   command: matchpathcon /srv/cache
   register: lcachecontext
@@ -251,27 +275,47 @@
   - config
   - lookaside
   - selinux
+  - distgit
+
+- name: set the SELinux policy for the Lookaside Cache root directory
+  command: semanage fcontext -a -t nfs_t "/srv/cache(/.*)?"
+  when: lcachecontext.stdout.find('nfs_t') == -1 and env != "staging"
+  tags:
+  - config
+  - lookaside
+  - selinux
+  - distgit
 
 - name: install the fedora-ca.cert
   copy: src={{private}}/files/fedora-ca.cert dest=/etc/httpd/conf/cacert.pem
+  tags:
+  - distgit
 
 - name: install the pkgs cert
   copy: src={{private}}/files/pkgs.fedoraproject.org_key_and_cert.pem
         dest=/etc/httpd/conf/pkgs.fedoraproject.org_key_and_cert.pem
         owner=apache mode=0400
   when: env != "staging"
+  tags:
+  - distgit
 
 - name: install the pkgs.stg cert
   copy: src={{private}}/files/pkgs.stg.fedoraproject.org_key_and_cert.pem
         dest=/etc/httpd/conf/pkgs.fedoraproject.org_key_and_cert.pem
         owner=apache mode=0400
   when: env == "staging"
+  tags:
+  - distgit
 
 - name: install the updatecrl.sh script
   copy: src=updatecrl.sh dest=/usr/local/bin/updatecrl.sh owner=root mode=755
+  tags:
+  - distgit
 
 - name: run the updatecrl script
   command: /usr/local/bin/updatecrl.sh creates=/etc/pki/tls/crl.pem
+  tags:
+  - distgit
 
 - name: schedule cron job to run the updatectl script
   cron: >
@@ -279,6 +323,8 @@
     minute=0
     user=root
     job="/usr/local/bin/updatecrl.sh"
+  tags:
+  - distgit
 
 - name: create /srv/web directory
   file: dest=/srv/web state=directory
@@ -287,6 +333,8 @@
   copy: src=dist-git-upload.cgi dest=/srv/web/upload.cgi owner=root group=root mode=0755
   notify:
   - restart httpd
+  tags:
+  - distgit
 
 - name: check the selinux context of the upload CGI script
   command: matchpathcon /srv/web/upload.cgi
@@ -318,3 +366,10 @@
   command: semodule -i /usr/local/share/selinux/upload_cgi.pp
   when: selinux_module|changed
 
+- name: copy over our custom nfs selinux policy
+  copy: src=cgi-nfs.pp dest=/usr/local/share/selinux/cgi-nfs.pp
+  register: nfs_selinux_module
+
+- name: install our custom nfs selinux policy
+  command: semodule -i /usr/local/share/selinux/cgi-nfs.pp
+  when: nfs_selinux_module|changed

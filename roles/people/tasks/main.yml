@@ -1,0 +1,173 @@
+---
+#
+# Install packages needed for fedora people
+#
+- name: install packages needed for fedora people
+  yum: name={{ item }} state=present
+  with_items:
+  - cvs
+  - git
+  - bzr
+  - mercurial
+  - lftp
+  - quota
+  - nano
+  - pyliblzma
+  - libxml2-python
+  tags:
+  - packages
+  - people
+
+- name: install httpd config
+  copy: src={{item}} dest=/etc/httpd/conf.d/{{item}}
+  with_items:
+  - cgit.conf
+  - people.conf
+  - ssl.conf
+  tags:
+  - people
+
+- name: Empty default welcome.conf
+  copy: dest=/etc/httpd/conf.d/welcome.conf content=""
+  tags:
+  - people
+
+- name: start httpd
+  service: name="httpd" state=started
+  tags:
+  - people
+
+- name: set selinux booleans needed for people
+  seboolean: name={{ item }} state=true persistent=true
+  with_items:
+  - httpd_enable_homedirs
+  - git_cgi_enable_homedirs
+  - git_system_enable_homedirs
+  - antivirus_can_scan_system
+  tags:
+  - people
+
+- name: check the selinux context of the users home git dirs
+  command: matchpathcon "/home/fedora/(/.*)/public_git(/.*)?"
+  register: gitcontext
+  always_run: yes
+  changed_when: false
+  tags:
+  - config
+  - selinux
+
+- name: set the SELinux policy for the users home git dirs
+  command: semanage fcontext -a -t git_user_content_t "/home/fedora/(.*)/public_git(.*)"
+  when: gitcontext.stdout.find('git_user_content_t') == -1
+  tags:
+  - config
+  - selinux
+
+- name: check the selinux context of the project dirs
+  command: matchpathcon "/project(.*)?"
+  register: gitcontext
+  always_run: yes
+  changed_when: false
+  tags:
+  - config
+  - selinux
+
+- name: set the SELinux policy for the project dirs
+  command: semanage fcontext -a -t httpd_sys_content_t "/project(.*)"
+  when: gitcontext.stdout.find('httpd_sys_content_t') == -1
+  tags:
+  - config
+  - selinux
+
+
+- name: check the selinux context of the web dir
+  command: matchpathcon "/srv/web(/.*)?"
+  register: gitcontext
+  always_run: yes
+  changed_when: false
+  tags:
+  - config
+  - selinux
+
+- name: set the SELinux policy for the web dir
+  command: semanage fcontext -a -t httpd_sys_content_t "/srv/web(/.*)?"
+  when: gitcontext.stdout.find('httpd_sys_content_t') == -1
+  tags:
+  - config
+  - selinux
+#
+# This sets the default, it's safe to always run. 
+# Default quota for users is 2gb
+#
+- name: set default xfs quotas on /srv
+  command: xfs_quota -x -c 'limit bsoft=2g bhard=2g -d' /srv
+  always_run: true
+  register: xfs_quotaoutput
+  changed_when: "xfs_quotaoutput.rc != 0"
+  tags:
+  - people
+  - peoplequotas
+
+#
+# This sets quotas for people who requested more than default
+# It's also safe to aways run.
+#
+- name: set quotas for people who have more set
+  command: xfs_quota -x -c 'limit bsoft={{ item.quota }} bhard={{ item.quota }} {{ item.user }}' /srv
+  with_items:
+  - { user: apache, quota: 1000g }
+  - { user: dmarlin, quota: 5g }
+  - { user: duffy, quota: 10g }
+  - { user: dwalsh, quota: 5g }
+  - { user: hadess, quota: 5g }
+  - { user: jdulaney, quota: 5g }
+  - { user: jnovy, quota: 5g }
+  - { user: kashyapc, quota: 5g }
+  - { user: lupinix, quota: 8g }
+  - { user: mimccune, quota: 3g }
+  - { user: nobody, quota: 1000g }
+  - { user: npmccallum, quota: 5g }
+  - { user: parasense, quota: 5g }
+  - { user: planet-user, quota: 1000g }
+  - { user: ppisar, quota: 4g }
+  - { user: pulpadmin, quota: 10g }
+  - { user: sapnetweavergatewayonfedora, quota: 5g }
+  - { user: slagle, quota: 7g }
+  - { user: spot, quota: 15g }
+  - { user: spstarr, quota: 4g }
+  - { user: steved, quota: 5g }
+  - { user: tekkamanninja, quota: 5g }
+  - { user: tflink, quota: 10g }
+  - { user: thunderbirdtr, quota: 3g }
+  - { user: zpericic, quota: 5g }
+  always_run: true
+  register: xfs_quotaoutput
+  changed_when: "xfs_quotaoutput.rc != 0"
+  tags:
+  - people
+  - peoplequotas
+
+- name: create repos directory
+  file: path=/project/repos state=directory owner=root group=cla_done mode=0775
+  tags:
+  - people
+
+- name: create repos link
+  file: state=link src=/project/repos dest=/srv/repos
+  tags:
+  - people
+
+- name: create groups link
+  file: state=link src=/project dest=/srv/groups
+  tags:
+  - people
+
+- name: setup script to grab download stats for some groups. 
+  copy: src=grab-daily-logs.sh dest=/usr/local/bin/grab-daily-logs.sh mode=0755
+  tags:
+  - people
+
+- name: setup cron job to gather download stats
+  copy: src=grab-daily-logs.cron dest=/etc/cron.daily/grab-daily-logs mode=0755
+  tags:
+  - people

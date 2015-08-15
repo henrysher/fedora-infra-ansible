@@ -1,0 +1,32 @@
+#
+# simple playbook to check all hosts and see how many updates they have pending. 
+# It could be a lot faster if we didn't gather facts, but we need that for yum vs dnf checking
+#
+# If you want a pretty sorted list, you need to post process the output here with something
+# like: 
+#
+# time ansible-playbook check-for-updates.yml | grep msg\": | awk -F: '{print $2}' | sort 
+#
+
+- name: check for updates
+  hosts: all
+  gather_facts: true
+  user: root
+
+  tasks:
+
+  - name: check for updates (yum)
+    yum: list=updates update_cache=true
+    register: yumoutput
+    when: ansible_distribution_major_version|int < 22
+
+  - name: check for updates (dnf)
+    dnf: list=updates
+    register: dnfoutput
+    when: ansible_distribution_major_version|int > 21
+
+  - debug: msg="{{ inventory_hostname}} {{ yumoutput.results|length }}"
+    when: yumoutput is defined and yumoutput.results|length > 0
+
+  - debug: msg="{{ inventory_hostname}} {{ dnfoutput.results|length }}"
+    when: dnfoutput is defined and dnfoutput.results|length > 0

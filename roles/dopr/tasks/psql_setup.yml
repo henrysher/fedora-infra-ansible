@@ -1,0 +1,46 @@
+- name: install postresql
+  action: yum state=present pkg={{ item }}
+  with_items:
+  - "postgresql-server"
+  - "postgresql-contrib"
+
+- name: mount up disk of postgres
+  mount: name=/srv/ src='LABEL=cdic-db' fstype=ext4 state=mounted
+
+- name: mount up bind mount for postgres
+  mount: src=/srv/pgsqldb name=/var/lib/pgsql fstype=auto opts=bind state=mounted
+
+- command: "ls -dZ /var/lib/pgsql"
+  register: pgsql_ls
+
+- name: update selinux context for postgress db dir if it's wrong
+  command: "restorecon -vvRF /var/lib/pgsql"
+  when: pgsql_ls.stdout is defined and 'postgresql_db_t' not in  pgsql_ls.stdout
+
+- name: See if postgreSQL is installed
+  stat: path=/var/lib/pgsql/initdb.log
+  register: pgsql_installed
+
+- name: init postgresql
+  shell: "postgresql-setup initdb"
+  when: not pgsql_installed.stat.exists
+
+- name: copy pg_hba.conf
+  copy: src="pg_hba.conf" dest=/var/lib/pgsql/data/pg_hba.conf owner=postgres group=postgres mode=0600
+  notify:
+  - restart postgresql
+  tags:
+  - config
+
+- name: enable Pg service
+  service: state=running enabled=yes name=postgresql
+
+- name: Create db
+  postgresql_db: name="cdicdb" encoding='UTF-8'
+  sudo: yes
+  sudo_user: postgres
+
+- name: Create db user
+  postgresql_user: db="cdicdb" name="cdic" password="{{ dopr_db_passwd }}" role_attr_flags=SUPERUSER,NOCREATEDB,NOCREATEROLE
+  sudo: yes
+  sudo_user: postgres

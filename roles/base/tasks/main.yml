@@ -19,19 +19,29 @@
   - resolvconf
   - base
 
-- name: global default packages to install
+- name: global default packages to install (yum)
   yum: state=present name={{ item }}
   with_items:
    - "{{ global_pkgs_inst }}"
   tags:
   - packages
   - base
+  when: ansible_distribution_major_version|int < 22
 
-- debug: msg="{{ansible_nodename}}  {{inventory_hostname}} {{ansible_distribution_major_version}}"
+- name: global default packages to install (dnf)
+  dnf: state=present name={{ item }}
+  with_items:
+   - "{{ global_pkgs_inst }}"
+  tags:
+  - packages
+  - base
+  when: ansible_distribution_major_version|int > 21 and ansible_cmdline.ostree is not defined
+
+- debug: msg="{{ansible_nodename}}  {{inventory_hostname}} {{ansible_distribution_major_version|int}}"
 
 - name: make sure hostname is set right on rhel7 hosts
   command: hostnamectl set-hostname {{ inventory_hostname }}
-  when: ( ansible_nodename != inventory_hostname ) and ansible_distribution_major_version == '7'
+  when: ( ansible_nodename != inventory_hostname ) and ansible_distribution_major_version|int == 7
 
 - name: sshd_config
   copy: src={{ item }} dest=/etc/ssh/sshd_config mode=600
@@ -56,7 +66,7 @@
   tags:
   - rootpw
   - base
-  when: not (inventory_hostname.startswith('rawhide') or inventory_hostname.startswith('branched') or inventory_hostname.startswith('compose') or inventory_hostname.startswith('build') or inventory_hostname.startswith('arm') or inventory_hostname.startswith('bkernel') or inventory_hostname.startswith('koji01.stg') or inventory_hostname.startswith('aarch64'))
+  when: not (inventory_hostname.startswith('rawhide') or inventory_hostname.startswith('branched') or inventory_hostname.startswith('compose') or inventory_hostname.startswith('build') or inventory_hostname.startswith('arm') or inventory_hostname.startswith('bkernel') or inventory_hostname.startswith('koji01.stg') or inventory_hostname.startswith('aarch64') or inventory_hostname.startswith('s390') or inventory_hostname.startswith('fed-cloud09'))
 
 - name: add ansible root key
   authorized_key: user=root key="{{ item }}"
@@ -72,21 +82,41 @@
   - config
   - base
 
-- name: dist pkgs to remove
+- name: dist pkgs to remove (yum)
   yum: state=absent name={{ item }}
   with_items:
    - "{{ base_pkgs_erase }}"
   tags:
   - packages
   - base
+  when: ansible_distribution_major_version|int < 22
 
-- name: dist pkgs to install
+- name: dist pkgs to install (yum)
   yum: state=present name={{ item }}
   with_items:
    - "{{ base_pkgs_inst }}"
   tags:
   - packages
   - base
+  when: ansible_distribution_major_version|int < 22
+
+- name: dist pkgs to remove (dnf)
+  dnf: state=absent name={{ item }}
+  with_items:
+   - "{{ base_pkgs_erase }}"
+  tags:
+  - packages
+  - base
+  when: ansible_distribution_major_version|int > 21 and ansible_cmdline.ostree is not defined
+
+- name: dist pkgs to install (dnf)
+  dnf: state=present name={{ item }}
+  with_items:
+   - "{{ base_pkgs_inst }}"
+  tags:
+  - packages
+  - base
+  when: ansible_distribution_major_version|int > 21 and ansible_cmdline.ostree is not defined
 
 - name: dist disabled services
   service: state=stopped enabled=false name={{ item }}
@@ -114,9 +144,10 @@
    - ../templates/iptables/iptables.{{ host_group }}
    - ../templates/iptables/iptables.{{ env }}
    - ../templates/iptables/iptables
+  when: not inventory_hostname.startswith('fed-cloud09')
   notify:
   - restart iptables
-  - hup libvirtd
+  - reload libvirtd
   tags:
   - iptables
   - config
@@ -137,9 +168,10 @@
    - ../templates/iptables/ip6tables.{{ host_group }}
    - ../templates/iptables/ip6tables.{{ env }}
    - ../templates/iptables/ip6tables
+  when: not inventory_hostname.startswith('fed-cloud09')
   notify:
   - restart ip6tables
-  - hup libvirtd
+  - reload libvirtd
   tags:
   - ip6tables
   - config

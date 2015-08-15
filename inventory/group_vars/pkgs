@@ -19,6 +19,7 @@ git_port: 9418
 git_server: /usr/libexec/git-core/git-daemon
 git_server_args: --export-all --syslog --inetd --verbose
 git_basepath: /srv/git/rpms
+git_daemon_user: nobody
 
 clamscan_mailto: admin@fedoraproject.org
 clamscan_paths:
@@ -41,9 +42,19 @@ fedmsg_certs:
 - service: shell
   owner: root
   group: sysadmin
+  can_send:
+  - git.branch
+  - git.mass_branch.complete
+  - git.mass_branch.start
+  - git.pkgdb2branch.complete
+  - git.pkgdb2branch.start
 - service: scm
   owner: root
   group: packager
+  can_send:
+  - git.receive
 - service: lookaside
   owner: root
   group: apache
+  can_send:
+  - git.lookaside.new

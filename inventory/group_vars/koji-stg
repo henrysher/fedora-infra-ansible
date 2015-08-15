@@ -1,7 +1,7 @@
 ---
 # Define resources for this group of hosts here. 
 lvm_size: 30000
-mem_size: 2048
+mem_size: 4096
 num_cpus: 2
 
 # for systems that do not match the above - specify the same parameter in
@@ -22,5 +22,20 @@ fedmsg_certs:
 - service: koji
   owner: root
   group: apache
+  can_send:
+  - buildsys.build.state.change
+  - buildsys.package.list.change
+  - buildsys.repo.done
+  - buildsys.repo.init
+  - buildsys.rpm.sign
+  - buildsys.tag
+  - buildsys.task.state.change
+  - buildsys.untag
 
-nfs_mount_opts: "rw,hard,bg,intr,noatime,nodev,nosuid"
+# NOTE -- staging mounts read-only
+nfs_mount_opts: "ro,hard,bg,intr,noatime,nodev,nosuid"
+sudoers: "{{ private }}/files/sudo/arm-releng-sudoers"
+
+koji_server_url: "http://koji.stg.fedoraproject.org/kojihub"
+koji_weburl: "http://koji.stg.fedoraproject.org/koji"
+koji_topurl: "http://kojipkgs.fedoraproject.org/"

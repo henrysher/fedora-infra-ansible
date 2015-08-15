@@ -1,0 +1,293 @@
+---
+# Configuration for the pagure webapp
+
+- name: install needed packages
+  yum: pkg={{ item }} state=present
+  with_items:
+  - pagure
+  - pagure-milters
+  - pagure-ev
+  - python-psycopg2
+  - redis
+  - libsemanage-python
+  - mod_ssl
+  - stunnel
+  tags:
+  - pagure
+  - packages
+
+- name: Initialize postgres if necessary
+  command: /usr/bin/postgresql-setup initdb
+           creates=/var/lib/pgsql/data
+  notify:
+  - restart postgresql
+  tags:
+  - pagure
+
+
+# Set-up gitolite
+
+- name: install needed packages
+  yum: pkg=gitolite3 state=present
+  tags:
+  - pagure
+  - gitolite
+  - packages
+
+- name: Rename the user gitolite into git
+  command: usermod --move-home --login git --home /srv/git/ gitolite3
+           creates=/srv/git/
+  tags:
+  - gitolite
+  - pagure
+
+- name: Rename the group gitolite into git
+  command: groupmod --new-name git gitolite3
+           creates=/srv/git/.gitolite/conf
+  tags:
+  - gitolite
+  - pagure
+
+- name: create the /srv/git/.gitolite/conf folder
+  action: file state=directory
+               path=/srv/git/.gitolite/conf
+               owner=git group=git mode=0775
+  tags:
+  - gitolite
+  - pagure
+
+- name: create the /srv/git/.gitolite/keydir folder
+  action: file state=directory
+               path=/srv/git/.gitolite/keydir
+               owner=git group=git mode=0775
+  tags:
+  - gitolite
+  - pagure
+
+- name: create the /srv/git/.gitolite/logs folder
+  action: file state=directory
+               path=/srv/git/.gitolite/logs
+               owner=git group=git mode=0775
+  tags:
+  - gitolite
+  - pagure
+
+- name: Adjust owner of /srv/git
+  file: name=/srv/git state=directory recurse=yes owner=git group=git
+  tags:
+  - gitolite
+  - pagure
+
+- name: Adjust permissions of /srv/git/.gitolite
+  file: name=/srv/git/.gitolite state=directory recurse=yes owner=git group=git
+  tags:
+  - gitolite
+  - pagure
+
+- name: install our own gitolite configuration
+  template: src=gitolite.rc
+            dest=/srv/git/.gitolite.rc
+            owner=git group=git mode=0755
+  tags:
+  - gitolite
+  - pagure
+
+- name: create all the directories where we store the git repos
+  action: file state=directory
+               path={{ item }}
+               owner=git group=git mode=0775
+  with_items:
+  - /srv/git/repositories/
+  - /srv/git/repositories/forks
+  - /srv/git/repositories/docs
+  - /srv/git/repositories/tickets
+  - /srv/git/repositories/requests
+  - /srv/git/repositories/remotes
+  tags:
+  - gitolite
+  - pagure
+
+- name: create the /srv/tmp folder where to clone repos
+  action: file state=directory
+               path=/srv/tmp
+               owner=git group=git mode=0775
+  tags:
+  - gitolite
+  - pagure
+
+
+# Set-up postfix and the milter for postfix
+
+- name: Add the /etc/aliases file
+  copy: src=aliases dest=/etc/aliases owner=root mode=644
+  tags:
+  - config
+  - pagure
+  - postfix
+  notify:
+  - restart postfix
+  - restart pagure_milter
+
+
+# Set-up stunnel for the event source server
+
+- name: install stunnel service definition
+  copy: src=stunnel.service
+        dest=/usr/lib/systemd/system/stunnel.service
+        owner=root group=root mode=0755
+  notify:
+  - reload systemd
+  - restart stunnel
+  tags:
+  - pagure
+  - stunnel
+
+- name: ensure old stunnel init file is gone
+  file: dest=/etc/init.d/stunnel/stunnel.init state=absent
+  tags:
+  - pagure
+  - stunnel
+  - config
+
+- name: install stunnel.conf
+  template: src={{ item.file }}
+            dest={{ item.dest }}
+            owner=root group=root mode=0600
+  with_items:
+  - { file: stunnel-conf.j2, dest: /etc/stunnel/stunnel.conf }
+  notify: restart stunnel
+  tags:
+  - pagure
+  - stunnel
+  - config
+
+
+# Set-up Pagure
+
+- name: create the /var/www/releases folder
+  action: file state=directory
+               path=/var/www/releases
+               owner=git group=git mode=0775
+  tags:
+  - pagure
+  - web
+
+- name: copy sundry pagure configuration
+  template: src={{ item.file }}
+            dest={{ item.location }}/{{ item.file }}
+            owner=git group=postfix mode=0640
+  with_items:
+  - { file: pagure.cfg, location: /etc/pagure }
+  - { file: alembic.ini, location: /etc/pagure }
+  changed_when: "1 != 1"
+  tags:
+  - config
+  - web
+  - pagure
+  notify:
+  - restart apache
+
+- name: create the database scheme
+  command: /usr/bin/python2 /usr/share/pagure/pagure_createdb.py
+  changed_when: "1 != 1"
+  environment:
+      PAGURE_CONFIG: /etc/pagure/pagure.cfg
+  tags:
+  - web
+  - pagure
+
+- name: Install the SSL cert so that we can use https
+  copy: >
+      src={{ private}}/files/httpd/{{ item }} dest=/etc/pki/tls/certs/{{ item }}
+      owner=root group=root mode=0600
+  notify: restart stunnel
+  with_items:
+  - pagure.io.cert
+  - pagure.io.key
+  - pagure.io.intermediate.cert
+  - docs.pagure.org.crt
+  - docs.pagure.org.intermediate.crt
+  - docs.pagure.org.key
+  tags:
+  - config
+  - pagure
+
+- name: Install the configuration file to activate https
+  template: src={{ item }} dest=/etc/httpd/conf.d/{{ item }}
+            owner=root group=root mode=0644
+  with_items:
+  - 0_pagure.conf
+  tags:
+  - files
+  - config
+  - pagure
+  notify:
+  - restart apache
+
+- name: Install the wsgi file
+  template: src={{ item }}
+            dest=/var/www/{{ item }}
+            owner=git group=git mode=0644
+  with_items:
+  - pagure.wsgi
+  - docs_pagure.wsgi
+  tags:
+  - config
+  - web
+  - pagure
+  notify:
+  - restart apache
+
+- name: Add default facl so apache can read git repos
+  acl: default=yes etype=user entity=apache permissions="rx" name=/srv/git state=present
+  register: acl_updates
+  tags:
+  - pagure
+
+- name: Manually fix current default ACLs since Ansible doesnt know recursive acls
+  when: acl_updates.changed
+  command: /usr/bin/setfacl -Rdm user:apache:rx /srv/git
+  tags:
+  - pagure
+
+- name: Manually fix current ACLs since Ansible doesnt know recursive acls
+  when: acl_updates.changed
+  command: /usr/bin/setfacl -Rm user:apache:rx /srv/git
+  tags:
+  - pagure
+
+- name: set sebooleans so pagure can talk to the db
+  action: seboolean name=httpd_can_network_connect_db
+                    state=true
+                    persistent=true
+  tags:
+  - selinux
+  - web
+  - pagure
+
+- name: set sebooleans so apache can send emails
+  action: seboolean name=httpd_can_sendmail
+                    state=true
+                    persistent=true
+  tags:
+  - selinux
+  - web
+  - pagure
+
+
+# Ensure all the services are up and running
+
+- name: Start and enable httpd, postfix, pagure_milter
+  service: name={{ item }} enabled=yes state=started
+  with_items:
+  - httpd
+  - postfix
+  - stunnel
+  - pagure_milter
+  - redis
+  - pagure_ev
+  ignore_errors: true
+  tags:
+  - pagure
+  - service
+  - postfix

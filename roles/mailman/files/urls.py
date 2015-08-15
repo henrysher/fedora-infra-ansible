@@ -18,6 +18,8 @@ urlpatterns = patterns('',
     #url(r'^$', 'postorius.views.list_index'),
     url(r'^admin/', include('postorius.urls')),
     url(r'^archives/', include('hyperkitty.urls')),
+    # Social Auth
     url(r'', include('social.apps.django_app.urls', namespace='social'), {"SSL": True}),
+    # BrowserID
     url(r'', include('django_browserid.urls'), {"SSL": True}),
 )

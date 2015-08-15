@@ -1,0 +1,99 @@
+# NB: dopr was initially called cdic
+
+- name: install basic packages
+  dnf: state=present pkg={{ item }}
+  with_items:
+  - "tmux"
+  - "bash-completion"
+  - "dnf-plugins-core"
+  - "yum-utils"
+  tags:
+  - packages
+
+- name: enable our copr
+  command: "dnf copr enable -y msuchy/copr"
+  args:
+    creates: "/etc/yum.repos.d/_copr_msuchy-copr.repo"
+
+- name: create cdic user
+  user: name="cdic"
+
+- name: install dopr specific packages
+  dnf: state=present pkg={{ item }}
+  with_items:
+  - python3
+  - python3-pip
+  - python3-gunicorn
+  - git
+  - redis
+  - vim
+  - wget
+  - dnf-plugins-core
+  - python3-copr
+  - python3-psycopg2
+  - python-psycopg2  # for psql utils
+  - phantomjs
+  - nginx
+
+- name: git clone casperjs
+  git: repo=git://github.com/n1k0/casperjs.git
+       dest=/opt/casperjs/
+       accept_hostkey=True
+
+- name: install casperjs
+  file: src=/opt/casperjs/bin/casperjs
+        dest=/usr/bin/casperjs state=link mode=0755
+
+- name: git clone cdic into the cdic home
+  git: repo=git://github.com/evilkost/cdic.git
+       dest=/home/cdic/server/cdic/
+       accept_hostkey=True
+
+- name: install python requirements
+  pip: requirements=/home/cdic/server/cdic/requirements.txt executable=/usr/bin/pip3
+
+- name: install systemd units
+  copy: src="systemd/{{ item }}" dest="/etc/systemd/system/"
+  with_items:
+  - "cdic_async.service"
+  - "cdic_gunicorn.service"
+
+- command: "systemctl daemon-reload"
+
+- name: install systemd tmpfiles
+  copy: src="tmpfiles.d/cdic_gunicorn.conf" dest="/etc/tmpfiles.d/"
+
+#   name: create working dirs
+-  file: path=/var/log/cdic state=directory mode=0755 owner=cdic group=cdic
+-  file: path=/var/lib/cdic state=directory mode=0755 owner=cdic group=cdic
+-  file: path=/var/lib/cdic/openid state=directory mode=0755 owner=cdic group=cdic
+-  file: path=/var/lib/cdic/wp state=directory mode=0755 owner=cdic group=cdic
+-  file: path=/var/run/cdic state=directory mode=0755 owner=cdic group=cdic
+-  file: path=/home/cdic/.config state=directory mode=0755 owner=cdic group=cdic
+
+- name: copy cdic config
+  template: src="cdic.py" dest="/home/cdic/.config/cdic.py"
+
+- copy: src="cdic_update_db.sh" dest="/usr/local/bin/" mode=0755
+
+- file: path=/home/cdic/.ssh state=directory mode=0700 owner=cdic group=cdic
+- name: copy ssh key for github
+  copy: src="{{private}}/files/dopr/github-testing" dest="/home/cdic/.ssh/id_rsa"
+
+- copy: src="ssh_config" dest="/home/cdic/.ssh/config" owner=cdic group=cdic mode=0600
+
+- include: "psql_setup.yml"
+
+- name: Allow nginx to connect to upstream
+  seboolean: name=httpd_can_network_connect state=yes persistent=yes
+
+# copy nginx config
+- copy: src="nginx.conf" dest="/etc/nginx/nginx.conf"
+- copy: src="nginx/cdic.conf" dest="/etc/nginx/conf.d/"
+
+- name: enables services
+  service: state=running enabled=yes name={{ item }}
+  with_items:
+  - redis
+  - cdic_async
+  - cdic_gunicorn
