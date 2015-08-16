@@ -24,3 +24,20 @@
   - include: "{{ tasks }}/cloud_setup_basic.yml"
   - name: set hostname (required by some services, at least postfix need it)
     shell: "hostname {{inventory_hostname}}"
+
+- tasks:
+  - name: add packages
+    yum: state=present name={{ item }}
+    with_items:
+    - httpd
+    - php
+    - php-mysql
+    - mariadb-server
+    - mariadb
+    - mod_ssl
+    - php-mcrypt
+
+  - name: set the SELinux policy for the Wordpress web dir
+    command: semanage fcontext -a -t httpd_sys_content_t "/var/www/html/(.*)"
+    when: webcontext.stdout.find('httpd_sys_content_t') == -1
+
