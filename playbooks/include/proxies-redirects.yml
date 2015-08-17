@@ -53,8 +53,22 @@
     target: https://admin.fedoraproject.org/updates/
     when: env != 'staging'
 
+  - role: httpd/redirectmatch
+    name: 00-bodhi2-cutover-users
+    website: admin.fedoraproject.org
+    regex: /updates/user/(.*)\?.*$
+    target: https://bodhi.stg.fedoraproject.org/users/$1
+    when: env == 'staging'
+
+  - role: httpd/redirectmatch
+    name: 01-bodhi2-cutover-updates
+    website: admin.fedoraproject.org
+    regex: /updates/(.*)\?.*$
+    target: https://bodhi.stg.fedoraproject.org/updates/$1
+    when: env == 'staging'
+
   - role: httpd/redirect
-    name: bodhi2
+    name: 99-bodhi2-cutover-base
     website: admin.fedoraproject.org
     path: /updates
     target: https://bodhi.stg.fedoraproject.org/
