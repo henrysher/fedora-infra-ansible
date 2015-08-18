@@ -3,21 +3,7 @@
 # NOTE: make sure there is room/space for this server on the vmhost
 # NOTE: most of these vars_path come from group_vars/mirrorlist or from hostvars
 
-- name: ensure qadevel instance is created
-  hosts: qadevel
-  user: root
-  gather_facts: False
-
-  vars_files:
-   - /srv/web/infra/ansible/vars/global.yml
-   - "/srv/private/ansible/vars.yml"
-   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
-
-  tasks:
-  - include: "{{ tasks }}/virt_instance_create.yml"
-
-  handlers:
-  - include: "{{ handlers }}/restart_services.yml"
+- include: "/srv/web/infra/ansible/playbooks/include/virt-create.yml myhosts=qadevel"
 
 - name: make the box be real
   hosts: qadevel

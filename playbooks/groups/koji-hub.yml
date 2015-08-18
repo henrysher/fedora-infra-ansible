@@ -2,21 +2,7 @@
 # NOTE: should be used with --limit most of the time
 # NOTE: most of these vars_path come from group_vars/koji-hub or from hostvars
 
-- name: make koji hub
-  hosts: koji-stg:koji01.phx2.fedoraproject.org:koji02.phx2.fedoraproject.org:s390-koji01.qa.fedoraproject.org
-  user: root
-  gather_facts: False
-
-  vars_files:
-   - /srv/web/infra/ansible/vars/global.yml
-   - "/srv/private/ansible/vars.yml"
-   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
-
-  tasks:
-  - include: "{{ tasks }}/virt_instance_create.yml"
-
-  handlers:
-  - include: "{{ handlers }}/restart_services.yml"
+- include: "/srv/web/infra/ansible/playbooks/include/virt-create.yml myhosts=koji-stg:koji01.phx2.fedoraproject.org:koji02.phx2.fedoraproject.org:s390-koji01.qa.fedoraproject.org"
 
 # Once the instance exists, configure it. 
 

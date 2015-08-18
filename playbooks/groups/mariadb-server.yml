@@ -2,21 +2,7 @@
 # NOTE: should be used with --limit most of the time
 # NOTE: most of these vars_path come from group_vars/backup_server or from hostvars
 
-- name: make mariadb-server instance
-  hosts: db03.phx2.fedoraproject.org:db03.stg.phx2.fedoraproject.org
-  user: root
-  gather_facts: False
-
-  vars_files:
-   - /srv/web/infra/ansible/vars/global.yml
-   - "/srv/private/ansible/vars.yml"
-   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
-
-  tasks:
-  - include: "{{ tasks }}/virt_instance_create.yml"
-
-  handlers:
-  - include: "{{ handlers }}/restart_services.yml"
+- include: "/srv/web/infra/ansible/playbooks/include/virt-create.yml myhosts=db03.phx2.fedoraproject.org:db03.stg.phx2.fedoraproject.org"
 
 # Once the instance exists, configure it. 
 

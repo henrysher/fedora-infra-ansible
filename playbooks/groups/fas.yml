@@ -1,23 +1,6 @@
 # create a new fas server
-#
-#
 
-- name: make fas server
-  hosts: fas-stg:fas
-  user: root
-  gather_facts: False
-  accelerate: "{{ accelerated }}"
-
-  vars_files: 
-   - /srv/web/infra/ansible/vars/global.yml
-   - "/srv/private/ansible/vars.yml"
-   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
-
-  tasks:
-  - include: "{{ tasks }}/virt_instance_create.yml"
-
-  handlers:
-  - include: "{{ handlers }}/restart_services.yml"
+- include: "/srv/web/infra/ansible/playbooks/include/virt-create.yml myhosts=fas:fas-stg"
 
 - name: make the box be real
   hosts: fas-stg:fas
