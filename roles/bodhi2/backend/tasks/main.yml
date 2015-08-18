@@ -4,12 +4,18 @@
 
 - name: add ftpsync group
   group: name=ftpsync gid=263 system=yes state=present
+  tags:
+  - bodhi
 
 - name: add ftpsync user
   user: name=ftpsync uid=263 group=ftpsync createhome=yes system=yes state=present
+  tags:
+  - bodhi
 
 - name: add the ftpsync update-fullfilelist script
   copy: src=update-fullfilelist dest=/usr/local/bin/update-fullfilelist owner=ftpsync group=ftpsync mode=555
+  tags:
+  - bodhi
 
 - name: install needed packages
   yum: pkg={{ item }} state=present
@@ -20,13 +26,18 @@
   - fedmsg-relay
   tags:
   - packages
+  - bodhi
 
 - name: add masher group
   group: name=masher gid=751 system=yes state=present
+  tags:
+  - bodhi
 
 # masher user 751
 - name: add masher user as 751 - and group
   user: name=masher uid=751 group=masher home=/home/masher groups=mock,ftpsync,bodhi
+  tags:
+  - bodhi
 
 - name: install bodhi-masher /etc/httpd/conf.d/bodhi.conf file
   copy: >
@@ -38,6 +49,7 @@
   notify:
   - restart httpd
   tags:
+  - bodhi
   - config
 
 - name: change owner and group attributes of bodhi.pem file
@@ -47,12 +59,14 @@
     group=masher
   when: inventory_hostname.startswith('bodhi-backend')
   tags:
+  - bodhi
   - config
 
 - name: change owner and group attributes of /var/log/bodhi directory
   file: path=/var/log/bodhi owner=masher group=masher
   when: inventory_hostname.startswith('bodhi-backend')
   tags:
+  - bodhi
   - config
   
 - name: setup /etc/bodhi/mash.conf file...
@@ -64,6 +78,7 @@
     mode=0640
   tags:
   - config
+  - bodhi
 
 - name: change type part of SELinux file context
   file: >
@@ -73,6 +88,7 @@
     recurse=yes
   tags:
   - config
+  - bodhi
 
 #- name: change owner attribute of /var/tmp/bodhi-bz.cookie file
 #  file: >
@@ -80,6 +96,7 @@
 #    owner=masher 
 #  tags:
 #  - config
+#  - bodhi
 
 - name: install /etc/bodhi/*.mash files
   copy: >
@@ -100,6 +117,7 @@
   - epel7-testing.mash
   tags:
   - config
+  - bodhi
 
 # tasks for setting up epelmasher
 
@@ -109,6 +127,7 @@
   - repoview
   tags:
   - packages
+  - bodhi
 
 - name: install bodhi-epel-masher /etc/bodhi/bodhi.cfg file
   template: >
@@ -122,6 +141,7 @@
   - restart httpd
   tags:
   - config
+  - bodhi
 
 # tasklist for setting up jobrunner
 
@@ -137,6 +157,7 @@
   - restart httpd
   tags:
   - config
+  - bodhi
 
 #
 # cron job that syncs packages to koji
@@ -145,6 +166,7 @@
 #  template: src=owner-sync-pkgdb.j2 dest=/usr/local/bin/owner-sync-pkgdb mode=0755
 #  tags:
 #  - config
+#  - bodhi
 
 - name: sync packages from pkgdb2 to koji (el5)
   cron: name="owner-sync-el5" minute="7,17,27,37,47,57" user="root" 
@@ -152,6 +174,8 @@
         cron_file=update-koji-owner-EL-5
         state=absent
   when: inventory_hostname.startswith('bodhi-backend01') and env == "production"
+  tags:
+  - bodhi
 
 - name: sync packages from pkgdb2 to koji (el6)
   cron: name="owner-sync-el5" minute="7,17,27,37,47,57" user="root" 
@@ -159,6 +183,8 @@
         cron_file=update-koji-owner-EL-6
         state=absent
   when: inventory_hostname.startswith('bodhi-backend01') and env == "production"
+  tags:
+  - bodhi
   
 - name: sync packages from pkgdb2 to koji (epel7)
   cron: name="owner-sync-el5" minute="7,17,27,37,47,57" user="root" 
@@ -166,6 +192,8 @@
         cron_file=update-koji-owner-epel7
         state=absent
   when: inventory_hostname.startswith('bodhi-backend01') and env == "production"
+  tags:
+  - bodhi
   
 - name: sync packages from pkgdb2 to koji (f20)
   cron: name="owner-sync-el5" minute="7,17,27,37,47,57" user="root" 
@@ -173,6 +201,8 @@
         cron_file=update-koji-owner-f20
         state=absent
   when: inventory_hostname.startswith('bodhi-backend01')
+  tags:
+  - bodhi
 
 #
 # cron job that syncs updates to master mirror
@@ -183,18 +213,24 @@
 #  tags:
 #  - config
 #  when: inventory_hostname.startswith('bodhi-backend01') and env == "production"
+#  tags:
+#  - bodhi
 #
 ##- name: put fedora-epel-push in place
 #  copy: src=fedora-epel-push dest=/usr/local/bin/fedora-epel-push mode=0755
 #  tags:
 #  - config
 #  when: inventory_hostname.startswith('bodhi-backend02') and env == "production"
+#  tags:
+#  - bodhi
 #
 #- name: put update-fullfilelist in place
 #  copy: src=update-fullfilelist dest=/usr/local/bin/update-fullfilelist mode=0755
 #  tags:
 #  - config
 #  when: inventory_hostname.startswith('bodhi-backend01') and env == "production"
+#  tags:
+#  - bodhi
 #
 #- name: Updates sync cron job. 
 #  cron: name="updates-sync" minute="15,45" user="ftpsync"
@@ -203,6 +239,7 @@
 #  when: inventory_hostname.startswith('bodhi-backend01') and env == "production"
 #  tags:
 #  - config
+#  - bodhi
 #
 #- name: epel Updates sync cron job. 
 #  cron: name="epel-updates-sync" minute="15,45" user="ftpsync"
@@ -211,6 +248,7 @@
 #  when: inventory_hostname.startswith('bodhi-backend02') and env == "production"
 #  tags:
 #  - config
+#  - bodhi
 #
 #- name: directory sizes update cron job. 
 #  cron: name="directory-sizes-update" minute="30" hour="19" user="ftpsync"
@@ -219,6 +257,7 @@
 #  when: inventory_hostname.startswith('bodhi-backend02') and env == "production"
 #  tags:
 #  - config
+#  - bodhi
 #
 - name: have the masher own the bodhi config
   file: >
