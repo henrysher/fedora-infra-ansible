@@ -8,7 +8,7 @@ config = dict(
                 "propagate": False,
                 "handlers": ["console", "mailer"],
             },
-            bodhi={
+            sqlalchemy={
                 "level": "WARN",
                 "propagate": False,
                 "handlers": ["console", "mailer"],
