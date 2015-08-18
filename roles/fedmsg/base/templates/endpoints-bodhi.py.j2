@@ -1,0 +1,21 @@
+{% if env == 'staging' %}
+suffix  = 'stg.phx2.fedoraproject.org'
+{% else %}
+suffix = 'phx2.fedoraproject.org'
+{% endif %}
+
+
+config = dict(
+    endpoints={
+        "bodhi.bodhi-backend01.%s" % suffix: [
+            "tcp://bodhi-backend01.%s:30%0.2i" % (suffix, i)
+            for i in range(10)
+        ],
+        {% if env != 'staging' %}
+        "bodhi.bodhi-backend01.%s" % suffix: [
+            "tcp://bodhi-backend01.%s:30%0.2i" % (suffix, i)
+            for i in range(10)
+        ],
+        {% endif %}
+    }
+)

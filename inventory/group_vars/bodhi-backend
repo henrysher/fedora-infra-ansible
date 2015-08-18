@@ -20,6 +20,14 @@ virt_install_command: virt-install -n {{ inventory_hostname }} -r {{ mem_size }}
                  --network=bridge=br0,model=virtio --network=bridge=br1,model=virtio
                  --autostart --noautoconsole
 
+# These are for fedmsg publication from the bodhi backend.
+# If you change these iptables rules, you also need to changes the endpoints
+# list in roles/fedmsg/base/templates/endpoints-bodhi.py
+tcp_ports: [
+    3000, 3001, 3002, 3003, 3004,
+    3005, 3006, 3007, 3008, 3009,
+]
+
 # With 16 cpus, theres a bunch more kernel threads
 nrpe_procs_warn: 900
 nrpe_procs_crit: 1000
