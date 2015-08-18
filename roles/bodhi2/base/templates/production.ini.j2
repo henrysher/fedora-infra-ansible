@@ -1,5 +1,11 @@
+[filter:proxy-prefix]
+use = egg:PasteDeploy#prefix
+prefix = /
+scheme = https
+
 [app:main]
 use = egg:bodhi
+filter-with = proxy-prefix
 
 ##
 ## Messages
@@ -29,13 +35,12 @@ fedmsg_enabled = True
 # Captcha - if 'captcha.secret' is not None, then it will be used for comments
 # captcha.secret must be 32 url-safe base64-encoded bytes
 # you can generate afresh with >>> cryptography.fernet.Fernet.generate_key()
-captcha.secret = CHANGEME
+captcha.secret = {{ bodhi2CaptchaSecret }}
 # Dimensions
 captcha.image_width = 300
 captcha.image_height = 80
 # Any truetype font will do.
-# This font lives in pcaro-hermit-fonts package
-captcha.font_path = /usr/share/fonts/pcaro-hermit/Hermit-medium.otf
+captcha.font_path = /usr/share/fonts/liberation/LiberationMono-Regular.ttf
 captcha.font_size = 36
 # Colors
 captcha.font_color = #000000
@@ -80,12 +85,12 @@ message_id_email_domain = admin.fedoraproject.org
 #masher = None
 
 # Where to initially mash repositories
-mash_dir = %(here)s/masher/mash/
+mash_dir = /var/cache/bodhi/mashing
 
 # Where to symlink the latest repos by their tag name
-mash_stage_dir = %(here)s/masher/
+mash_stage_dir = /var/cache/bodhi/mashed
 
-mash_conf = /etc/mash/mash.conf
+mash_conf = /etc/bodhi/mash.conf
 
 createrepo_cache_dir = /var/cache/createrepo
 
@@ -94,19 +99,19 @@ createrepo_cache_dir = /var/cache/createrepo
 jobs = cache_release_data refresh_metrics approve_testing_updates
 
 ## Comps configuration
-comps_dir = /usr/share/bodhi/
+comps_dir = /var/cache/bodhi/comps
 comps_url = git://git.fedorahosted.org/comps.git
 
 ##
 ## Mirror settings
 ##
 file_url = http://download.fedoraproject.org/pub/fedora/linux/updates
-master_repomd = http://download.fedora.redhat.com/pub/fedora/linux/updates/%d/i386/repodata/repomd.xml
-fedora_master_repomd = http://download.fedora.redhat.com/pub/fedora/linux/updates/%d/i386/repodata/repomd.xml
-fedora_epel_master_repomd = http://download.fedora.redhat.com/pub/epel/%d/i386/repodata/repomd.xml
+master_repomd = 'http://download01.phx2.fedoraproject.org/pub/fedora/linux/updates/%s/%s/repodata/repomd.xml'
+fedora_master_repomd = 'http://download01.phx2.fedoraproject.org/pub/fedora/linux/updates/%s/%s/repodata/repomd.xml'
+fedora_epel_master_repomd = 'http://download01.phx2.fedoraproject.org/pub/epel/%s/%s/repodata/repomd.xml'
 
 ## The base url of this application
-base_address = https://bodhi.fedoraproject.org/updates/
+base_address = https://bodhi.fedoraproject.org/
 
 ## Supported update types
 update_types = bugfix enhancement security newpackage
@@ -194,13 +199,13 @@ exclude_mail = autoqa taskotron
 # What buildsystem do we want to use?  For development, we'll use a fake
 # buildsystem that always does what we tell it to do.  For production, we'll
 # want to use 'koji'.
-buildsystem = dev
+buildsystem = koji
 
 # Koji's XML-RPC hub
-koji_hub = https://koji.stg.fedoraproject.org/kojihub
+koji_hub = https://koji.fedoraproject.org/kojihub
 
 # Root url of the Koji instance to point to. No trailing slash
-koji_url = http://koji.stg.fedoraproject.org
+koji_url = http://koji.fedoraproject.org
 
 # URL of where users should go to set up their notifications
 fmn_url = https://apps.fedoraproject.org/notifications/
@@ -213,9 +218,9 @@ fedmenu.url = https://apps.fedoraproject.org/fedmenu
 fedmenu.data_url = https://apps.fedoraproject.org/js/data.js
 
 # Koji certs
-#client_cert =
-#clientca_cert =
-#serverca_cert =
+client_cert = /etc/pki/bodhi/bodhi.pem
+clientca_cert = /etc/pki/bodhi/fedora-upload-ca.cert
+serverca_cert = /etc/pki/bodhi/fedora-server-ca.cert
 
 ##
 ## ACL system
@@ -346,15 +351,24 @@ updateinfo_rights = Copyright (C) 2015 Red Hat, Inc. and others.
 # pyramid.openid
 openid.success_callback = bodhi.security:remember_me
 openid.provider = https://id.fedoraproject.org/openid/
+openid.url = https://id.fedoraproject.org/
 openid_template = {username}.id.fedoraproject.org
+
+# CORS allowed origins for cornice services
+# This can be wide-open.  read-only, we don't care as much about.
+cors_origins_ro = *
+# This should be more locked down to avoid cross-site request forgery.
+cors_origins_rw = bodhi.fedoraproject.org
+cors_connect_src = https://*.fedoraproject.org/ wss://hub.fedoraproject.org:9939/
+
 
 ##
 ## Pyramid settings
 ##
-pyramid.reload_templates = true
-pyramid.debug_authorization = true
-pyramid.debug_notfound = true
-pyramid.debug_routematch = true
+pyramid.reload_templates = false
+pyramid.debug_authorization = false
+pyramid.debug_notfound = false
+pyramid.debug_routematch = false
 pyramid.default_locale_name = en
 
 pyramid.includes =
@@ -365,8 +379,7 @@ debugtoolbar.hosts = 127.0.0.1 ::1
 ##
 ## Database
 ##
-# XXX - you should really change this to postgres
-sqlalchemy.url = sqlite:////var/cache/bodhi.db
+sqlalchemy.url = postgresql://bodhi2:{{ bodhi2Password }}@db-bodhi/bodhi2
 
 ##
 ## Templates
@@ -384,9 +397,9 @@ authtkt.secure = false
 
 # pyramid_beaker
 session.type = file
-session.data_dir = %(here)s/data/sessions/data
-session.lock_dir = %(here)s/data/sessions/lock
-session.key = mykey
+session.data_dir = /var/cache/bodhi/sessions/data
+session.lock_dir = /var/cache/bodhi/sessions/lock
+session.key = {{ bodhi2SessionKey }}
 session.cookie_on_exception = true
 cache.regions = default_term, second, short_term, long_term
 cache.type = memory
@@ -426,7 +439,7 @@ handlers =
 qualname = bodhi
 
 [logger_sqlalchemy]
-level = INFO
+level = WARN
 handlers =
 qualname = sqlalchemy.engine
 # "level = INFO" logs SQL queries.
