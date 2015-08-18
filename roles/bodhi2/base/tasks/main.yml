@@ -58,13 +58,17 @@
   - config
   - bodhi
 
-- name: Copy a logging configuration in for the fedmsg-hub
-  copy: >
-      src=bodhi-logging.py
-      dest=/etc/fedmsg.d/bodhi-logging.py
+- name: Copy some fedmsg configuration of our own for fedmsg-hub
+  template: >
+      src={{item}}
+      dest=/etc/fedmsg.d/{{item}}
       owner=root
       group=root
       mode=0644
+  with_items:
+  - bodhi-logging.py
+  - bodhi.py
+  - masher.py
   notify:
   - restart fedmsg-hub
   tags:
