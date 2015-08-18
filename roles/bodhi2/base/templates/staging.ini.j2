@@ -35,7 +35,7 @@ fedmsg_enabled = True
 # Captcha - if 'captcha.secret' is not None, then it will be used for comments
 # captcha.secret must be 32 url-safe base64-encoded bytes
 # you can generate afresh with >>> cryptography.fernet.Fernet.generate_key()
-captcha.secret = {{ bodhi2CaptchaSecret }}
+captcha.secret = {{ bodhi2CaptchaSecretSTG }}
 # Dimensions
 captcha.image_width = 300
 captcha.image_height = 80
@@ -383,7 +383,7 @@ debugtoolbar.hosts = 127.0.0.1 ::1
 ##
 ## Database
 ##
-sqlalchemy.url = postgresql://bodhi2:{{ bodhi2Password }}@db-bodhi/bodhi2
+sqlalchemy.url = postgresql://bodhi2:{{ bodhi2PasswordSTG }}@db-bodhi/bodhi2
 
 ##
 ## Templates
@@ -394,16 +394,15 @@ mako.directories = bodhi:templates
 ## Authentication & Sessions
 ##
 
-# CHANGE THESE IN PRODUCTION!
-authtkt.secret = changethisinproduction!
-session.secret = ChangeThisSecret!!1
-authtkt.secure = false
+authtkt.secret = {{ bodhi2AuthTktSTG }}
+session.secret = {{ bodhi2SessionSecretSTG }}
+authtkt.secure = true
 
 # pyramid_beaker
 session.type = file
 session.data_dir = /var/cache/bodhi/sessions/data
 session.lock_dir = /var/cache/bodhi/sessions/lock
-session.key = {{ bodhi2SessionKey }}
+session.key = {{ bodhi2SessionKeySTG }}
 session.cookie_on_exception = true
 cache.regions = default_term, second, short_term, long_term
 cache.type = memory
