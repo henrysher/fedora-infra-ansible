@@ -34,7 +34,14 @@ class Importer(object):
         self.existing_lists = [ l.strip() for l in
                 cmdget(["sudo", "-u", "mailman",
                 MAILMAN_BIN, "lists", "-q"]).split("\n") ]
-        self.excluded = opts.exclude.strip().split(",")
+        if opts.exclude:
+            self.excluded = opts.exclude.strip().split(",")
+        else:
+            self.excluded = []
+        if opts.include:
+            self.included = opts.include.strip().split(",")
+        else:
+            self.included = []
 
     def _get_index_path(self):
         return None
@@ -49,9 +56,14 @@ class Importer(object):
                           if not d.startswith(".") ]
         all_listnames.sort()
         for index, listname in enumerate(all_listnames):
-            listaddr = "%s@%s" % (listname, self.config["domain"])
+            listaddr = "%s@%s" % (listname, self.opts.domain.strip())
             if listname in self.excluded or listaddr in self.excluded:
                 print("Skipping excluded list %s" % listaddr)
+                continue
+            if self.included and (
+                    listname not in self.included and
+                    listaddr not in self.included):
+                print("Skipping not included list %s" % listaddr)
                 continue
             print(listaddr, "(%d/%d)" % (index+1, len(all_listnames)))
             confpickle = os.path.join(mm2libdir, 'lists', listname,
@@ -97,11 +109,20 @@ def main():
                   help="Don't import the archives, only import the list config")
     parser.add_option("-c", "--config", default="/etc/mailman-migration.conf",
                   help="Configuration file (default: %defaults)")
+    parser.add_option("-d", "--domain",
+                  help="Domain for the mailing-lists")
     parser.add_option("-x", "--exclude", default="",
                   help="Comma-separated list of lists to exclude")
+    parser.add_option("-i", "--include", default="",
+                  help="Comma-separated list of lists to include, no other "
+                       "list will be imported")
     opts, args = parser.parse_args()
     if len(args) != 1:
         parser.error("Only one arg: the Mailman 2.1 lib dir to import")
+    if opts.include and opts.exclude:
+        parser.error("Only one of 'include' or 'exclude' may be used")
+    if not opts.domain:
+        parser.error("You must provide a domain name for the lists (--domain)")
 
     mm2libdir = args[0]
     if not os.path.exists(mm2libdir):
