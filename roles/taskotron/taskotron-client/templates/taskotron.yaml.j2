@@ -33,11 +33,7 @@ reporting_enabled: True
 ## If True, test results (for selected tests) will be sent as comments to
 ## Fedora Update System (Bodhi). This requires that you have Bodhi
 ## credentials filled in secrets.conf.
-{% if deployment_type == 'dev' or deployment_type == 'stg'%}
-report_to_bodhi: False
-{% else %}
-report_to_bodhi: True
-{% endif %}
+report_to_bodhi: {{ client_report_to_bodhi }}
 
 ## Whether to send test results to the configured ResultsDB server.
 report_to_resultsdb: True
@@ -59,11 +55,9 @@ bodhi_server: {{ bodhi_server }}
 ## URL of ResultsDB server API interface, which can store all test results
 resultsdb_server: {{ resultsdb_server }}
 
-{% if deployment_type == 'dev' or deployment_type == 'stg' %}
 ## URL of ResultsDB frontend, which displays results from ResultsDB.
 ## Please make sure the URL doesn't have a trailing slash.
 resultsdb_frontend: {{ resultsdb_external_url }}
-{% endif %}
 
 ## URL of ExecDB server API interface, which tracks task execution status
 execdb_server: {{ execdb_external_url }}
@@ -71,11 +65,9 @@ execdb_server: {{ execdb_external_url }}
 ## URL of taskotron buildmaster
 taskotron_master: {{ taskotron_master }}
 
-{% if deployment_type == 'dev' or deployment_type == 'stg' %}
 ## URL of artifacts base directory, to construct artifacts URLs from.
 ## Please make sure the URL doesn't have a trailing slash.
 artifacts_baseurl: {{ artifacts_base_url }}
-{% endif %}
 
 ## name of step in buildbot that executes the task
 buildbot_task_step: 'runtask'
@@ -104,15 +96,5 @@ buildbot_task_step: 'runtask'
 ## FAS (Fedora Accounts System) credentials
 ## These credentials are used when reporting results into Bodhi.
 fas_username: '{{ taskotron_fas_user }}'
-{% if deployment_type == 'dev' %}
-#fas_password: '{{ dev_taskotron_fas_password}}'
-fas_password: ''
-{% endif %}
-{% if deployment_type == 'stg' %}
-#fas_password: '{{ stg_taskotron_fas_password}}'
-fas_password: ''
-{% endif %}
-{% if deployment_type == 'prod' %}
-fas_password: '{{ taskotron_fas_password }}'
-{% endif %}
+fas_password: '{{ taskotron_fas_password}}'
 
