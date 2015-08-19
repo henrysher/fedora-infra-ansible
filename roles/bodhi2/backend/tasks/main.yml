@@ -305,7 +305,7 @@
   - config
   - bodhi
 
-- name: ensure that nrpe has rights to monitor us
+- name: ensure that nrpe has rights to monitor us (dir)
   file: >
     dest=/var/run/fedmsg
     mode=0775
@@ -315,6 +315,18 @@
   ignore_errors: true
   notify:
   - restart fedmsg-hub
+  tags:
+  - fedmsgmonitor
+  - bodhi
+
+- name: ensure that nrpe has rights to monitor us (file)
+  file: >
+    dest=/var/run/fedmsg/monitoring-fedmsg-hub.socket
+    mode=0775
+    owner=masher
+    group=nrpe
+    state=file
+  ignore_errors: true
   tags:
   - fedmsgmonitor
   - bodhi
