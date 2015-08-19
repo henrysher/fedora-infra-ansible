@@ -40,19 +40,6 @@
   tags:
   - bodhi
 
-- name: install bodhi-masher /etc/httpd/conf.d/bodhi.conf file
-  copy: >
-    src="bodhi-masher.conf"
-    dest="/etc/httpd/conf.d/bodhi.conf"
-    owner=root
-    group=root
-    mode=0644
-  notify:
-  - restart httpd
-  tags:
-  - bodhi
-  - config
-
 - name: change owner and group attributes of bodhi.pem file
   file: >
     path="/etc/pki/bodhi/bodhi.pem"
@@ -130,35 +117,6 @@
   - packages
   - bodhi
 
-- name: install bodhi-epel-masher /etc/bodhi/bodhi.cfg file
-  template: >
-    src="bodhi-epel-masher.cfg.j2" 
-    dest="/etc/bodhi/bodhi.cfg" 
-    owner=masher 
-    group=masher 
-    mode=0600
-  when: inventory_hostname.startswith('bodhi-backend02')
-  notify:
-  - restart httpd
-  tags:
-  - config
-  - bodhi
-
-# tasklist for setting up jobrunner
-
-- name: install bodhi-masher-jobrunner /etc/bodhi/bodhi.cfg file
-  template: >
-    src="bodhi-masher-jobrunner.cfg.j2" 
-    dest="/etc/bodhi/bodhi.cfg" 
-    owner=masher 
-    group=masher 
-    mode=0600
-  when: inventory_hostname.startswith('bodhi-backend01')
-  notify:
-  - restart httpd
-  tags:
-  - config
-  - bodhi
 
 #
 # cron job that syncs packages to koji
