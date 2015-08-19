@@ -9,6 +9,12 @@
 
   tasks:
      - name: update grokmirror repos
+       when: deployment_type == 'stg' or deployment_type == 'dev'
+       command: chdir={{ grokmirror_basedir }}/{{ item.name }} git fetch origin master:master
+       with_items: grokmirror_repos
+
+     - name: update grokmirror repos
+       when: deployment_type == 'prod'
        command: chdir={{ grokmirror_basedir }}/{{ item.name }} git fetch origin master:master
        with_items: grokmirror_repos
 
