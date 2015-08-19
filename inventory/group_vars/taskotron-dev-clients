@@ -3,8 +3,38 @@ lvm_size: 20000
 mem_size: 4096
 num_cpus: 2
 
+############################################################
+# general config
+############################################################
+
+deployment_type: dev
+tcp_ports: [ "{{ buildslave_port }}" ]
+sudoers: "{{ private }}/files/sudo/qavirt-sudoers"
+freezes: false
+
+
+############################################################
+# buildslave config
+############################################################
+
 slave_user: buildslave
+slave_home: /home/buildslave/
+slave_dir: /home/buildslave/slave
+slave_user: buildslave
+buildmaster: 10.5.124.181
+buildslave_port: 9989
+taskotron_admin_email: taskotron-admin-members@fedoraproject.org
+
+
+############################################################
+# taskotron config
+############################################################
+
 taskotron_fas_user: taskotron
+# stuff is kinda not working for stg bodhi right now. workaround by having empty fas password
+#taskotron_fas_password: '{{ dev_taskotron_fas_password}}'
+taskotron_fas_password: ''
+
 execdb_external_url: http://taskotron-dev.fedoraproject.org/execdb
 resultsdb_server: http://resultsdb-dev01.qa.fedoraproject.org/resultsdb_api/api/v1.0
 bodhi_server: https://bodhi.stg.fedoraproject.org/
@@ -12,16 +42,12 @@ kojihub_url: http://koji.fedoraproject.org/kojihub
 taskotron_master: http://taskotron-dev.fedoraproject.org/taskmaster
 resultsdb_external_url: https://taskotron-dev.fedoraproject.org/resultsdb
 artifacts_base_url: http://taskotron-dev.fedoraproject.org/artifacts
-deployment_type: dev
-slave_home: /home/buildslave/
-slave_dir: /home/buildslave/slave
-slave_user: buildslave
-buildmaster: 10.5.124.181
-buildslave_port: 9989
-tcp_ports: [ "{{ buildslave_port }}" ]
+
+
+############################################################
+# task git mirror config
+############################################################
+
 buildslave_private_sshkey_file: dev-buildslave-sshkey/dev_buildslave
 buildslave_public_sshkey_file: dev-buildslave-sshkey/dev_buildslave.pub
-taskotron_admin_email: taskotron-admin-members@fedoraproject.org
-sudoers: "{{ private }}/files/sudo/qavirt-sudoers"
 buildmaster_pubkey: "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCvKJQa9MCUXhnqv/MQrc22Th6WnTS9oWQK3nbic8U5fCssM7FMCbsNnaJtKEFw40TyVGTje14ETLLocN6wPZhS2rSN/QNclSawV9R1JUA9NyA8gqNGTkpZU0bLf8LK2frpr7WvmaKBPC9aFTMHJzIe8ppmoRKGfVneHpqbFUmRyf8Ks+TtEOAk38LFnlqnWWttiHs7AIutcBvdaCkBAkFxZCPh/FDLg2S29UyqJ5JWNHlAocDblYetmjsnWwhWnL8Fsi2hpfJrXLaF6J99oXqVeZivC+5LFGjCwhT+QBSvoniKGPM1ZeqPmQsvWFbFRBPZdNcNvqz9piUxQhd45+Nb"
-freezes: false

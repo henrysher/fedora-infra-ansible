@@ -3,25 +3,52 @@ lvm_size: 20000
 mem_size: 4096
 num_cpus: 2
 
-slave_user: buildslave
-taskotron_fas_user: taskotron
-execdb_external_url: https://taskotron.stg.fedoraproject.org/execdb/
-resultsdb_server: http://resultsdb-stg01.qa.fedoraproject.org/resultsdb_api/api/v1.0/
-bodhi_server: http://10.5.124.232/fakefedorainfra/bodhi/
-kojihub_url: http://koji.fedoraproject.org/kojihub
-taskotron_master: https://taskotron.stg.fedoraproject.org/taskmaster/
-resultsdb_external_url: https://taskotron.stg.fedoraproject.org/resultsdb
-artifacts_base_url: http://taskotron.stg.fedoraproject.org/artifacts
+############################################################
+# general config
+############################################################
+
 deployment_type: stg
+tcp_ports: [ "{{ buildslave_port }}" ]
+sudoers: "{{ private }}/files/sudo/qavirt-sudoers"
+freezes: false
+
+
+############################################################
+# buildslave config
+############################################################
+
+slave_user: buildslave
 slave_home: /home/buildslave/
 slave_dir: /home/buildslave/slave
 slave_user: buildslave
 buildmaster: 10.5.124.232
 buildslave_port: 9989
-tcp_ports: [ "{{ buildslave_port }}" ]
+taskotron_admin_email: taskotron-admin-members@fedoraproject.org
+
+
+############################################################
+# taskotron config
+############################################################
+
+taskotron_fas_user: taskotron
+# stuff is kinda not working for stg bodhi right now. workaround by having empty fas password
+#taskotron_fas_password: {{ stg_taskotron_fas_password }}
+taskotron_fas_password: ''
+
+execdb_external_url: https://taskotron.stg.fedoraproject.org/execdb/
+resultsdb_server: http://resultsdb-stg01.qa.fedoraproject.org/resultsdb_api/api/v1.0/
+# this should be proxy01.stg through /etc/hosts
+bodhi_server: http://bodhi.stg.fedoraproject.org/
+kojihub_url: http://koji.fedoraproject.org/kojihub
+taskotron_master: https://taskotron.stg.fedoraproject.org/taskmaster/
+resultsdb_external_url: https://taskotron.stg.fedoraproject.org/resultsdb
+artifacts_base_url: http://taskotron.stg.fedoraproject.org/artifacts
+
+
+############################################################
+# task git mirror config
+############################################################
+
 buildslave_private_sshkey_file: stg-buildslave-sshkey/stg_buildslave
 buildslave_public_sshkey_file: stg-buildslave-sshkey/stg_buildslave.pub
-taskotron_admin_email: taskotron-admin-members@fedoraproject.org
-sudoers: "{{ private }}/files/sudo/qavirt-sudoers"
 buildmaster_pubkey: 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCuQEcpLRlXo1deywQsJVoLiPbdlUplQ3f+6WBIoWh5FjGu3t79fLyJqNX9ebuMw8HRG/5os/6COqxxin/rFRKYWT260lqxoj77wTWn9ZRNrYu42ualfgyYdE2zII8h7Of26x64AmYT5ZJpGoudic9II3nrm39osoQ7UzfCz4KzYxvi2YCCVStk3vq7k7yxt+k3W6DOu2RpQryOsimCtv2hacD2kYrH+nCtRovUmlAD3RlEAKTCfudmalsfKwaZRcgtNDJGMjgrTB7Y5XNe3GjbkYT+2M/MvIkZDXUNZ2WYGjPsXzknqe6sL9JAO/DGGCAxvKiMk6kxfHc1ERdWVOal'
-freezes: false

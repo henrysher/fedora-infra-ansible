@@ -3,23 +3,50 @@ lvm_size: 60000
 mem_size: 8096
 num_cpus: 2
 
-slave_user: buildslave
-taskotron_fas_user: taskotron
-execdb_external_url: https://taskotron.fedoraproject.org/execdb/
-resultsdb_server: http://resultsdb01.qa.fedoraproject.org/resultsdb_api/api/v1.0/
-# this is proxy01.phx2
-bodhi_server: https://admin.fedoraproject.org/updates
-kojihub_url: http://koji.fedoraproject.org/kojihub
-taskotron_master: https://taskotron.fedoraproject.org/taskmaster/
+############################################################
+# general config
+############################################################
+
 deployment_type: prod
+tcp_ports: [ "{{ buildslave_port }}" ]
+sudoers: "{{ private }}/files/sudo/qavirt-sudoers"
+freezes: true
+
+
+############################################################
+# buildslave config
+############################################################
+
+slave_user: buildslave
 slave_home: /home/buildslave/
 slave_dir: /home/buildslave/slave
 slave_user: buildslave
 buildmaster: 10.5.124.206
 buildslave_port: 9989
-tcp_ports: [ "{{ buildslave_port }}" ]
+taskotron_admin_email: taskotron-admin-members@fedoraproject.org
+
+
+############################################################
+# taskotron config
+############################################################
+
+taskotron_fas_user: taskotron
+taskotron_fas_password: '{{ taskotron_fas_password}}'
+
+execdb_external_url: https://taskotron.fedoraproject.org/execdb/
+resultsdb_server: http://resultsdb01.qa.fedoraproject.org/resultsdb_api/api/v1.0/
+# this should be proxy01.phx2 through /etc/hosts
+bodhi_server: https://bodhi.fedoraproject.org/
+kojihub_url: http://koji.fedoraproject.org/kojihub
+taskotron_master: https://taskotron.fedoraproject.org/taskmaster/
+resultsdb_external_url: https://taskotron.fedoraproject.org/resultsdb
+artifacts_base_url: http://taskotron.fedoraproject.org/artifacts
+
+
+############################################################
+# task git mirror config
+############################################################
+
 buildslave_private_sshkey_file: prod-buildslave-sshkey/prod_buildslave
 buildslave_public_sshkey_file: prod-buildslave-sshkey/prod_buildslave.pub
-taskotron_admin_email: taskotron-admin-members@fedoraproject.org
-sudoers: "{{ private }}/files/sudo/qavirt-sudoers"
 buildmaster_pubkey: 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCtxF0c0WKY/awWpDyTsN9WLXKthHpKiT1gWfbJ6yNCXXwgC0r7B77kxvMUnr8SMnlrTk0+GHTx9XACMDdOcctBnnH0dGqq1k9ux6egRBSY4X9PG1udiNHzKfVU7CIghHJf9JaXr7k1DoyVj4MAXgGVQocBZqXkULieGYAOcHfBqnrf477wrljQUx2Unso1xqGhigJoIIO848fEAK0b87OXlxDdiRYhqLcHXelAE0RhUhr4Vkuot8bhVqtANJBzc4/whRKSyrTMPbRwQdIK8Sclp3sEZE1NgtYKr8GhTXd9IEsudz1i4vYB94fw7gSYoVAbpRw5JRVw0iJOOFDZLojr'
