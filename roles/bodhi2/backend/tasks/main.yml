@@ -168,57 +168,60 @@
 # cron job that syncs updates to master mirror
 #
 
-#- name: put fedora-updates-push in place
-#  copy: src=fedora-updates-push dest=/usr/local/bin/fedora-updates-push mode=0755
-#  tags:
-#  - config
-#  when: inventory_hostname.startswith('bodhi-backend01') and env == "production"
-#  tags:
-#  - bodhi
-#
-##- name: put fedora-epel-push in place
-#  copy: src=fedora-epel-push dest=/usr/local/bin/fedora-epel-push mode=0755
-#  tags:
-#  - config
-#  when: inventory_hostname.startswith('bodhi-backend02') and env == "production"
-#  tags:
-#  - bodhi
-#
-#- name: put update-fullfilelist in place
-#  copy: src=update-fullfilelist dest=/usr/local/bin/update-fullfilelist mode=0755
-#  tags:
-#  - config
-#  when: inventory_hostname.startswith('bodhi-backend01') and env == "production"
-#  tags:
-#  - bodhi
-#
-#- name: Updates sync cron job. 
-#  cron: name="updates-sync" minute="15,45" user="ftpsync"
-#        job="/usr/local/bin/lock-wrapper fedora-updates-push '/usr/local/bin/fedora-updates-push && /usr/local/bin/update-fullfilelist fedora"
-#        cron_file=updates-sync
-#  when: inventory_hostname.startswith('bodhi-backend01') and env == "production"
-#  tags:
-#  - config
-#  - bodhi
-#
-#- name: epel Updates sync cron job. 
-#  cron: name="epel-updates-sync" minute="15,45" user="ftpsync"
-#        job="/usr/local/bin/lock-wrapper fedora-epel-push '/usr/local/bin/fedora-epel-push && /usr/local/bin/update-fullfilelist epel"
-#        cron_file=updates-sync
-#  when: inventory_hostname.startswith('bodhi-backend02') and env == "production"
-#  tags:
-#  - config
-#  - bodhi
-#
-#- name: directory sizes update cron job. 
-#  cron: name="directory-sizes-update" minute="30" hour="19" user="ftpsync"
-#        job="/usr/bin/find /srv/pub/alt/ /srv/pub/archive/ /srv/pub/fedora-secondary/ /srv/pub/fedora/ /srv/pub/epel/ -type d ! -path '/srv/pub/fedora/.snapshot*' ! -path '/srv/pub/epel/.snapshot*' ! -path '/srv/pub/alt/.snapshot*' ! -path '/srv/pub/archive/.snapshot*' ! -path '/srv/pub/fedora-secondary/.snapshot*' ! -path '/srv/pub/alt/stage*' ! -path '/srv/pub/alt/tmp' ! -path '/srv/pub/alt/screenshots/f21/source' | grep -v snapshot | /usr/bin/xargs -n 1 /usr/bin/du --exclude=.snapshot --exclude=stage -sh > /tmp/DIRECTORY_SIZES.txt 2> /dev/null; cp /tmp/DIRECTORY_SIZES.txt /srv/pub/"
-#        cron_file=directory-sizes-update
-#  when: inventory_hostname.startswith('bodhi-backend02') and env == "production"
-#  tags:
-#  - config
-#  - bodhi
-#
+- name: put fedora-updates-push in place
+  copy: src=fedora-updates-push dest=/usr/local/bin/fedora-updates-push mode=0755
+  when: inventory_hostname.startswith('bodhi-backend01') and env == "production"
+  tags:
+  - config
+  - bodhi
+  - cron
+
+- name: put fedora-epel-push in place
+  copy: src=fedora-epel-push dest=/usr/local/bin/fedora-epel-push mode=0755
+  when: inventory_hostname.startswith('bodhi-backend01') and env == "production"
+  tags:
+  - config
+  - bodhi
+  - cron
+
+- name: put update-fullfilelist in place
+  copy: src=update-fullfilelist dest=/usr/local/bin/update-fullfilelist mode=0755
+  when: inventory_hostname.startswith('bodhi-backend01') and env == "production"
+  tags:
+  - config
+  - bodhi
+  - cron
+
+- name: Updates sync cron job. 
+  cron: name="updates-sync" minute="15,45" user="ftpsync"
+        job="/usr/local/bin/lock-wrapper fedora-updates-push '/usr/local/bin/fedora-updates-push && /usr/local/bin/update-fullfilelist fedora"
+        cron_file=updates-sync
+  when: inventory_hostname.startswith('bodhi-backend01') and env == "production"
+  tags:
+  - config
+  - bodhi
+  - cron
+
+- name: epel Updates sync cron job. 
+  cron: name="epel-updates-sync" minute="15,45" user="ftpsync"
+        job="/usr/local/bin/lock-wrapper fedora-epel-push '/usr/local/bin/fedora-epel-push && /usr/local/bin/update-fullfilelist epel"
+        cron_file=updates-sync
+  when: inventory_hostname.startswith('bodhi-backend01') and env == "production"
+  tags:
+  - config
+  - bodhi
+  - cron
+
+- name: directory sizes update cron job. 
+  cron: name="directory-sizes-update" minute="30" hour="19" user="ftpsync"
+        job="/usr/bin/find /srv/pub/alt/ /srv/pub/archive/ /srv/pub/fedora-secondary/ /srv/pub/fedora/ /srv/pub/epel/ -type d ! -path '/srv/pub/fedora/.snapshot*' ! -path '/srv/pub/epel/.snapshot*' ! -path '/srv/pub/alt/.snapshot*' ! -path '/srv/pub/archive/.snapshot*' ! -path '/srv/pub/fedora-secondary/.snapshot*' ! -path '/srv/pub/alt/stage*' ! -path '/srv/pub/alt/tmp' ! -path '/srv/pub/alt/screenshots/f21/source' | grep -v snapshot | /usr/bin/xargs -n 1 /usr/bin/du --exclude=.snapshot --exclude=stage -sh > /tmp/DIRECTORY_SIZES.txt 2> /dev/null; cp /tmp/DIRECTORY_SIZES.txt /srv/pub/"
+        cron_file=directory-sizes-update
+  when: inventory_hostname.startswith('bodhi-backend01') and env == "production"
+  tags:
+  - config
+  - bodhi
+  - cron
+
 - name: have the masher own the bodhi config
   file: >
     path="/etc/bodhi/production.ini"
