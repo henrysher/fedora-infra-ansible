@@ -215,7 +215,7 @@
 
 - name: directory sizes update cron job. 
   cron: name="directory-sizes-update" minute="30" hour="19" user="ftpsync"
-        job="/usr/bin/find /srv/pub/alt/ /srv/pub/archive/ /srv/pub/fedora-secondary/ /srv/pub/fedora/ /srv/pub/epel/ -type d ! -path '/srv/pub/fedora/.snapshot*' ! -path '/srv/pub/epel/.snapshot*' ! -path '/srv/pub/alt/.snapshot*' ! -path '/srv/pub/archive/.snapshot*' ! -path '/srv/pub/fedora-secondary/.snapshot*' ! -path '/srv/pub/alt/stage*' ! -path '/srv/pub/alt/tmp' ! -path '/srv/pub/alt/screenshots/f21/source' | grep -v snapshot | /usr/bin/xargs -n 1 /usr/bin/du --exclude=.snapshot --exclude=stage -sh > /tmp/DIRECTORY_SIZES.txt 2> /dev/null; cp /tmp/DIRECTORY_SIZES.txt /srv/pub/"
+        job="/usr/bin/find /pub/alt/ /pub/archive/ /pub/fedora-secondary/ /pub/fedora/ /pub/epel/ -type d ! -path '/pub/fedora/.snapshot*' ! -path '/pub/epel/.snapshot*' ! -path '/pub/alt/.snapshot*' ! -path '/pub/archive/.snapshot*' ! -path '/pub/fedora-secondary/.snapshot*' ! -path '/pub/alt/stage*' ! -path '/pub/alt/tmp' ! -path '/pub/alt/screenshots/f21/source' | grep -v snapshot | /usr/bin/xargs -n 1 /usr/bin/du --exclude=.snapshot --exclude=stage -sh > /tmp/DIRECTORY_SIZES.txt 2> /dev/null; cp /tmp/DIRECTORY_SIZES.txt /pub/"
         cron_file=directory-sizes-update
   when: inventory_hostname.startswith('bodhi-backend01') and env == "production"
   tags:
