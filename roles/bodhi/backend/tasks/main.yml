@@ -18,6 +18,11 @@
 - name: add masher user as 751 - and group
   user: name=masher uid=751 group=masher home=/home/masher groups=mock,ftpsync
 
+- name: add nrpe to the masher group so it can talk to the monitoring socket
+  user: name=nrpe groups=masher append=yes
+  tags:
+  - fedmsgdmonitor
+
 - name: install needed packages
   yum: pkg={{ item }} state=present
   with_items:
