@@ -146,6 +146,17 @@
   tags:
   - config
 
+- name: create pki dir
+  file: path=/root/.koji mode=700 state=directory
+
+- name: install koji config for root to run owner-sync
+  copy: >
+    src=koji-config
+    dest=/root/.koji/config
+    mode=0644
+  tags:
+  - config
+
 #
 # cron job that syncs packages to koji
 #
@@ -179,10 +190,10 @@
   tags:
   - bodhi
   
-- name: sync packages from pkgdb2 to koji (f20)
+- name: sync packages from pkgdb2 to koji (f21)
   cron: name="owner-sync-el5" minute="7,17,27,37,47,57" user="root" 
-        job="/usr/local/bin/owner-sync-pkgdb f20"
-        cron_file=update-koji-owner-f20
+        job="/usr/local/bin/owner-sync-pkgdb f21"
+        cron_file=update-koji-owner-f21
   when: inventory_hostname.startswith('bodhi-backend01')
   tags:
   - bodhi
