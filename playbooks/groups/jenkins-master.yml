@@ -1,5 +1,5 @@
 - name: check/create instance
-  hosts: jenkins-dev
+  hosts: jenkins-master
   gather_facts: False
 
   vars_files:
@@ -12,7 +12,7 @@
   - include: "{{ tasks }}/persistent_cloud_new.yml"
 
 - name: setup all the things
-  hosts: jenkins-dev
+  hosts: jenkins-master
   gather_facts: True
   vars_files:
    - /srv/web/infra/ansible/vars/global.yml
@@ -27,7 +27,7 @@
   - include: "{{ tasks }}/yumrepos.yml"
 
 - name: provision instance
-  hosts: jenkins-dev
+  hosts: jenkins-master
   vars_files:
    - /srv/web/infra/ansible/vars/global.yml
    - "/srv/private/ansible/vars.yml"
@@ -35,8 +35,7 @@
 
   roles:
   - base
-  - { role: jenkins/master, when: jenkins_master is defined }
-  - { role: jenkins/slave, when: jenkins_master is not defined }
+  - jenkins/master
 
   handlers:
   - include: "{{ handlers }}/restart_services.yml"
