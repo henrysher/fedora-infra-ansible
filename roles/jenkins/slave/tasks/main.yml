@@ -43,6 +43,15 @@
   - jenkins/slave
   - packages
 
+- name: install el7 specific slave packages
+  yum: name={{ item }} state=installed
+  with_items: "{{ el7_only }}"
+  when: ansible_distribution_major_version|int == 7
+  tags:
+  - jenkins
+  - jenkins/slave
+  - packages
+
 - name: create jenkins user
   action: user name=jenkins state=present createhome=yes system=no groups=mock
   tags:
