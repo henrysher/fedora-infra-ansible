@@ -1,0 +1,29 @@
+# .bashrc
+
+# User specific aliases and functions
+
+alias rm='rm -i'
+alias cp='cp -i'
+alias mv='mv -i'
+
+# Source global definitions
+if [ -f /etc/bashrc ]; then
+	. /etc/bashrc
+fi
+
+
+if [ -f /root/sshagent ]; then
+      source /root/sshagent >>/dev/null 
+      working=`ps $SSH_AGENT_PID`
+      if [ "$?" != 0 ]; then
+        if [ ${TERM} != "dumb" ]; then
+         echo "No ssh-agent running, you will need to run one:"
+         echo "ssh-agent -s > /root/sshagent"
+         echo "source /root/sshagent"
+         echo "ssh-add /srv/privatekeys/ssh/ansible_root.private"
+         echo "ssh-add /srv/privatekeys/ssh/fedora-admin.private"
+        fi
+      fi
+     
+fi
+

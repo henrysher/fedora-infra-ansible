@@ -1,0 +1,91 @@
+#
+# This role sets up the various packages and scripts needed for a batcave
+#
+
+#
+# make directory for nfs mounts to live in
+#
+
+- name: create /srv/web/pub for nfs mounts
+  file: dest=/srv/web/pub state=directory mode=755
+  tags:
+  - batcave
+  - config
+
+- name: install packages needed
+  yum: pkg={{ item }} state=present
+  with_items:
+  - srm                       # secure rm to delete sensitive files.
+  - ansible                   # This is our ansible master, needs ansible installed.
+  - ansible-openstack-modules # Needed to manage cloud with ansible
+  tags:
+  - batcave
+  - config
+
+# 
+# This is our ansible master, setup ansible
+#
+
+- name: use our ansible.cfg
+  copy: src=ansible.cfg dest=/etc/ansible/ansible.cfg
+  tags:
+  - batcave
+  - config
+
+- name: setup roots bashrc to note about agents
+  copy: src=root_bashrc dest=/root/.bashrc
+  tags:
+  - batcave
+  - config
+
+- name: run daily logview report for ansible actions. 
+  copy: src=logview.cron dest=/etc/cron.daily/logview.cron
+  tags:
+  - batcave
+  - config
+ 
+#
+# Set selinux booleans we need
+#
+
+- name: set selinux booleans
+  seboolean: name={{ item }} persistent=yes state=yes
+  with_items:
+  - httpd_can_network_connect
+  - httpd_use_nfs
+  - httpd_can_network_relay
+  tags:
+  - batcave
+  - config
+
+# still to convert from puppet:
+#    include scripts::check-sshkeys
+#    include scripts::git-notifier
+#    include scripts::retrieve-security-question
+#    include scripts::sync-openshift-keys
+#    include scripts::zodbotAnnounceCommits
+#    include scripts::fedmsgAnnounceCommits
+#    include scripts::ansible-playbook-check-diff
+#    include scripts::public-db-copy
+#
+#    include cgit::cgit
+#    include cgit::clean-lock-cron
+#    include ansible_utils::ansible_utils
+#
+#    include repo2json
+#
+#    include scripts::sync-rhn
+#    include scripts::vmdiff
+#    include rsync::server
+#    include scripts::geoip-retriever
+#    include geoip-retriever
+#    include git::package
+#    include git::mail-hooks
+#    include git-email-package
+#
+#    httpd::site { "infrastructure.fedoraproject.org": }
+#
+#    httpd::mime-type { "restructured text docs":
+#        website => "infrastructure.fedoraproject.org",
+#        mimetype => "text/plain",
+#        extensions => [ ".rst" ],
