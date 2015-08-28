@@ -1,9 +1,9 @@
 #!/bin/bash
 tmpdir=`mktemp -d`
 
-outfile=$tmpdir/index.html
+outfile=${tmpdir}/index.html
 finalfile=/srv/people/site/index.html
-cat <<EOM>>$outfile
+cat << EOM>> ${outfile}
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
@@ -70,38 +70,36 @@ cat <<EOM>>$outfile
 EOM
 
 users=`getent passwd | sort| cut -d: -f1,6 | grep '/home/fedora/'`
-for useranddir in $users
+for useranddir in ${users}
    do
-    user=`echo $useranddir| cut -d: -f1`
-    homedir=`echo $useranddir| cut -d: -f2`
-    name="`getent passwd $user | cut -d: -f5`"
+    user=`echo ${useranddir}| cut -d: -f1`
+    homedir=`echo ${useranddir}| cut -d: -f2`
+    name="`getent passwd ${user} | cut -d: -f5`"
     homepage=""
     cgit=""
-    [ -d $homedir/public_html/ ] && homepage="<a href=\"https://${user}.fedorapeople.org\">$user's homepage</a>"
-    [ -d $homedir/public_git/ ] && cgit="<a href=\"https://fedorapeople.org/cgit/$user/\">Git repositories</a>"
-    [ -z ${homepage} -a -z ${cgit} ] && continue
-    cat <<EOM>> $outfile
+    [ -d ${homedir}/public_html/ ] && homepage="<a href=\"https://${user}.fedorapeople.org\">${user}'s homepage</a>"
+    [ -d ${homedir}/public_git/ ] && cgit="<a href=\"https://fedorapeople.org/cgit/${user}/\">Git repositories</a>"
+    [ -z "${homepage}" -a -z "${cgit}" ] && continue
+    cat << EOM>> ${outfile}
  <tr class="userinfo">
-    <td>$name</td>
+    <td>${name}</td>
     <td>
 EOM
-    [ ! -z ${homepage} ] && echo "    ${homepage}" >> $outfile
-    [ ! -z ${homepage} -a ! -z ${cgit} ] && echo "    <br />" >> $outfile
-    [ ! -z ${cgit} ] && echo "    ${cgit}" >> $outfile
-    cat <<EOM>> $outfile
+    [ ! -z "${homepage}" ] && echo "    ${homepage}" >> ${outfile}
+    [ ! -z "${homepage}" -a ! -z "${cgit}" ] && echo "    <br />" >> ${outfile}
+    [ ! -z "${cgit}" ] && echo "    ${cgit}" >> ${outfile}
+    cat << EOM>> ${outfile}
     </td>
  </tr>
 EOM
-    fi
    done
-   
-cat << EOM>> $outfile
+
+cat << EOM>> ${outfile}
         </table>
         <div id="admincontact">
           Contact: <a href="mailto:admin at fedoraproject.org">admin at fedoraproject.org</a><br />
           <ul id="sponsors">
-            <li><a href="http://linux.dell.com"><img src="http://torrent.fedoraproject.org/images/poweredby_horizontal_lr.gif" alt="Powered by Dell" width="106" height="35"/></a></li>
-            <li><a href="http://www.internetx.com/"><img src="http://fedoraproject.org/static/images/sponsors/internetx.png" width="122" height="47" alt="InterNet X" /></a></li>
+          <li style="width: 150px;"><a href="http://ibiblio.org/"><img src="https://fedoraproject.org/static/images/sponsors/ibiblio.png" alt="ibiblio" /></a></li>
           </ul>
         </div>
       </div>
@@ -125,7 +123,7 @@ cat << EOM>> $outfile
 </html>
 EOM
 
-cp -f $outfile  $finalfile
-chgrp web $finalfile
-chmod g+w $finalfile
+cp -f ${outfile}  ${finalfile}
+chgrp web ${finalfile}
+chmod g+w ${finalfile}
 
