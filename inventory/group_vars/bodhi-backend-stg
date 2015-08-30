@@ -68,3 +68,27 @@ fedmsg_certs:
 
 fas_client_groups: sysadmin-releng
 sudoers: "{{ private }}/files/sudo/arm-releng-sudoers"
+
+
+# For the MOTD
+csi_security_category: Medium
+csi_primary_contact: Releng Admins sysadmin-releng-members@fedoraproject.org
+csi_purpose: Run the Bodhi masher.
+csi_relationship: |
+    The mashing of repos here happens as part of the 'fedmsg-hub' daemon.  Check
+    logs with 'journalctl -u fedmsg-hub'.  Check the bodhi masher docs/code for
+    more detail on what it does:
+    https://github.com/fedora-infra/bodhi/blob/develop/bodhi/consumers/masher.py
+
+    * This host relies on:
+      * db01 for its database, which is shares with the bodhi2 frontend nodes.
+      * An NFS mount of koji data in /mnt/koji/
+      * The fedmsg bus for triggering mashes.
+      * XMLRPC calls to koji for tagging and untagging updates.
+      * bugzilla for posting comments about status changes
+      * the wiki for getting information about QA "Test Cases"
+      * taksotron (resultsdb) for getting status-check results (gating updates).
+
+    * No other systems rely directly on this host.  Everything depends on it
+      indirectly for the creation of new updates repos (which get synced out to
+      the master mirror for distribution.

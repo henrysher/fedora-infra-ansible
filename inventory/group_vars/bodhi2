@@ -62,3 +62,40 @@ fedmsg_certs:
   # Rsync messages that get run from somewhere else entirely.
   #- bodhi.updates.epel.sync
   #- bodhi.updates.fedora.sync
+
+
+# For the MOTD
+csi_security_category: Medium
+csi_primary_contact: Bodhi Admins bodhiadmin-members@fedoraproject.org
+csi_purpose: Run the Bodhi mod_wsgi app for bodhi.fedoraproject.org
+csi_relationship: |
+    The apache/mod_wsgi app is the only thing really running here.
+    The mashing of repos is handled by the bodhi-backend node(s).
+
+    * This host relies on:
+      * db01 for its database.
+      * it doesn't have a networked cache of its own.. but it keeps a local
+        cache in /var/cache/bodhi/
+      * taksotron (resultsdb) for getting status-check results (gating updates).
+
+    * It also depends on these things, but we're trying to move them exclusively
+      to the backend.
+      * koji for tagging and untagging updates and listing candidate builds
+      * bugzilla, for getting bug title information and for posting comments
+        about status changes
+      * the wiki for getting information about QA "Test Cases"
+
+    * It provides a website that, on the client side depends on:
+      * datagrepper queries to show the newfeed on the frontpage
+      * the websocket server for popup notifications of others' activity.
+      * the fedora-packages JSON api for suggesting package search results
+
+    * Quite a few things rely on this webapp
+      * Taskotron historically would comment on updates about the status of
+        their checks.
+      * Blockerbugs checks bodhi for lists of updates.
+      * fedora-packages will try to query bodhi for the release status of
+        updates.
+      * fedora-hubs has some widgets that display bodhi update information.
+      * fedora-easy-karma, abrt, 'fedpkg update', an eclipse plugin and other
+        client tools make queries to the bodhi webapp here.
