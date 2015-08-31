@@ -1,0 +1,24 @@
+#
+#  Setup darkserver packages
+#
+
+- name: setup darkserver
+  yum: name={{ item }} state=present
+  with_items:
+    - darkserver
+    - darkserver-importer
+
+- name: mail.json file
+  copy: src=mail.json dest=/etc/darkserver/email.json owner=root group=root mode=0644
+
+- name: darkserverweb.conf
+  template: src=darkserverweb.conf.j2 dest=/etc/darkserver/darkserverweb.conf owner=apache group=apache mode=0640
+  notify: restart httpd
+
+- name: darkjobworker.conf
+  template: src=darkjobworker.conf.j2 dest=/etc/darkserver/darkjobworker.conf owner=apache group=apache mode=640
+  notify: restart httpd
+
+- name: darkserver.conf
+  template: src=darkserver.conf.j2 dest=/etc/httpd/conf.d/darkserver.fedoraproject.org/darkserver.conf owner=root group=root mode=0644
+  notify: restart httpd

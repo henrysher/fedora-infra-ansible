@@ -1,0 +1,47 @@
+- include: "/srv/web/infra/ansible/playbooks/include/virt-create.yml myhosts=darkserver02.phx2.fedoraproject.org"
+
+- name: make the box be real
+  hosts: darkserver02.phx2.fedoraproject.org
+  user: root
+  gather_facts: True
+
+  vars_files: 
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  pre_tasks:
+
+  - name: "Add koji to hosts file"
+    lineinfile: dest=/etc/hosts line="10.5.125.36	koji koji.fedoraproject.org" state=present  
+
+  - name: "Set SElinux booleans"
+    seboolean: name=httpd_can_network_connect_db state=yes persistent=yes 
+
+  roles:
+  - base
+  - collectd/base
+  - fas_client
+  - hosts
+  - nagios_client
+  - rsyncd
+  - sudo
+  - { role: openvpn/client, when: env != "staging" }
+
+  - role: apache
+
+  - role: httpd/mod_ssl
+
+  - role: httpd/certificate
+    name: wildcard-2014.fedorapeople.org
+    SSLCertificateChainFile: wildcard-2014.fedorapeople.org.intermediate.cert
+
+  - darkserver
+ 
+  tasks:
+  - include: "{{ tasks }}/yumrepos.yml"
+  - include: "{{ tasks }}/2fa_client.yml"
+  - include: "{{ tasks }}/motd.yml"
+
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"
