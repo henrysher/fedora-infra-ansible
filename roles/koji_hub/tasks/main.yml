@@ -209,6 +209,16 @@
   - koji_hub
   notify: restart httpd
 
+- name: koji web staging config files
+  copy: src={{ item }} dest=/etc/httpd/conf.d/{{ item }} owner=root group=root
+  with_items:
+  - kojiweb.conf.stg
+  tags:
+  - config
+  - koji_hub
+  notify: restart httpd
+  when: env == "staging"
+
 - name: koji staging ssl config
   copy: src=koji-ssl.conf.stg dest=/etc/httpd/conf.d/ssl.conf
   tags:
