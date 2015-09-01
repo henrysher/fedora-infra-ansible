@@ -5,8 +5,6 @@
 :OUTPUT ACCEPT [3:224]
 :POSTROUTING ACCEPT [428:23328]
 # dnat and snat everything to the internal virt host
--A PREROUTING -d 66.135.62.187/32 -j DNAT --to-destination 192.168.122.2
--A POSTROUTING -s 192.168.122.2/32 -j SNAT --to-source 66.135.62.187
 -A POSTROUTING -s 192.168.122.0/24 ! -d 192.168.122.0/24 -p tcp -j MASQUERADE --to-ports 1024-65535
 -A POSTROUTING -s 192.168.122.0/24 ! -d 192.168.122.0/24 -p udp -j MASQUERADE --to-ports 1024-65535
 -A POSTROUTING -s 192.168.122.0/24 ! -d 192.168.122.0/24 -j MASQUERADE
@@ -77,7 +75,5 @@ COMMIT
 -A INPUT -j REJECT --reject-with icmp-host-prohibited
 
 # source and dest of the guest ip we forward into the guest
--A FORWARD -d 66.135.62.187/32 -j ACCEPT
--A FORWARD -s 66.135.62.187/32 -j ACCEPT
 -A FORWARD -j REJECT --reject-with icmp-host-prohibited
 COMMIT
