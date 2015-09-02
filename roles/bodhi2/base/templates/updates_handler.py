@@ -1,6 +1,7 @@
 config = dict(
-    # TODO -- we're thinking about moving this to bodhi-backend02
-    {% if inventory_hostname.startswith('bodhi-backend01') %}
+    # Note, the masher runs on bodhi-backend01, but this
+    # runs on bodhi-backend02 (separation of concerns).
+    {% if inventory_hostname.startswith('bodhi-backend02') %}
     updates_handler=True,
     {% else %}
     updates_handler=False,
