@@ -1,0 +1,119 @@
+- name: check to see if a mash is going on before we do anything...
+  hosts: bodhi-backend;bodhi-backend-stg
+  user: root
+  vars_files: 
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  tasks:
+  - name: Check for the existance of a mashing lock.
+    shell: "ls -alh /mnt/koji/mash/updates/MASHING*"
+    register: lockfile
+    ignore_errors: true
+
+  - name: Fail if we found that a mash was in progress
+    fail: msg="Presence of lockfile indicates that a mash is in progress."
+    any_errors_fatal: true
+    when: lockfile.rc == 0
+
+- name: push packages out
+  hosts: bodhi-backend;bodhi-backend-stg;bodhi2;bodhi2-stg
+  user: root
+  vars_files: 
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+  vars:
+    testing: False
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"
+
+  tasks:
+  - name: clean all metadata {%if testing%}(with infrastructure-testing on){%endif%}
+    command: yum clean all {%if testing%} --enablerepo=infrastructure-testing {%endif%}
+    always_run: yes
+  - name: yum update bodhi-server packages from main repo
+    yum: name="bodhi-server" state=latest
+    when: not testing
+  - name: yum update bodhi-server packages from testing repo
+    yum: name="bodhi-server" state=latest enablerepo=infrastructure-testing
+    when: testing
+
+- name: verify the frontend and stop it
+  hosts: bodhi2;bodhi2-stg
+  user: root
+  vars_files: 
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"
+
+  pre_tasks:
+  - name: tell nagios to shush w.r.t. the frontend
+    nagios: action=downtime minutes=15 service=host host={{ inventory_hostname_short }}{{ env_suffix }}
+    delegate_to: noc01.phx2.fedoraproject.org
+    ignore_errors: true
+
+  roles:
+  - bodhi2/base
+
+  post_tasks:
+  - service: name="httpd" state=stopped
+
+- name: verify the backends, stop them, and then upgrade the db
+  hosts: bodhi-backend;bodhi-backend-stg
+  user: root
+  vars_files: 
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"
+
+  pre_tasks:
+  - name: tell nagios to shush w.r.t. the backend
+    nagios: action=downtime minutes=15 service=host host={{ inventory_hostname_short }}{{ env_suffix }}
+    delegate_to: noc01.phx2.fedoraproject.org
+    ignore_errors: true
+
+  roles:
+  - bodhi2/backend
+
+  tasks:
+  - name: Stop the fedmsg-hub backend
+    service: name="fedmsg-hub" state=stopped
+
+  - name: Upgrade the database
+    command: /usr/bin/alembic -c /usr/share/bodhi/alembic.ini upgrade head
+    args:
+      chdir: /usr/share/bodhi/
+
+  - name: And... start the backend again
+    service: name="fedmsg-hub" state=started
+
+  post_tasks:
+  - name: tell nagios to unshush w.r.t. the backend
+    nagios: action=unsilence service=host host={{ inventory_hostname_short }}{{ env_suffix }}
+    delegate_to: noc01.phx2.fedoraproject.org
+    ignore_errors: true
+
+- name: restart the frontend
+  hosts: bodhi2;bodhi2-stg
+  user: root
+  vars_files: 
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"
+
+  tasks:
+  - service: name="httpd" state=started
+
+  post_tasks:
+  - name: tell nagios to unshush w.r.t. the frontend
+    nagios: action=unsilence service=host host={{ inventory_hostname_short }}{{ env_suffix }}
+    delegate_to: noc01.phx2.fedoraproject.org
+    ignore_errors: true
