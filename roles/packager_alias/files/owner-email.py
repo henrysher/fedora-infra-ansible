@@ -24,7 +24,7 @@ fas = BaseClient('https://admin.fedoraproject.org/accounts',
 
 try:
     pkgdb_data = requests.get('%s/api/notify/?format=json' % pkgdb_url,
-        verify=False).json()
+        verify=True).json()
     fas_data = fas.send_request('/user/email_list', auth=True)
     fas_groups = fas.send_request(
         '/group/type_list', auth=True, req_params={'grptype': 'pkgdb'})
