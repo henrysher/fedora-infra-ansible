@@ -44,6 +44,17 @@
   - jenkins
   - jenkins/master
 
+- name: Install custom jenkins plugins (from ansible bigfiles)
+  action: copy src="{{ bigfiles }}/jenkins/{{ item }}.hpi" dest=/var/lib/jenkins/plugins/{{ item }}.hpi
+  with_items:
+  - fedmsg
+  notify:
+    - restart jenkins
+  tags:
+   - jenkins
+   - jenkins/master
+   - config
+
 - name: install jenkins launcher config file
   copy: >
     src="jenkins.conf"
