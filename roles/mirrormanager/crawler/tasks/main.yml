@@ -51,8 +51,10 @@
   cron: name="propagation-rawhide" minute="45" hour="*/2" user="mirrormanager"
         job="/usr/bin/mm2_crawler --propagation --threads 50 2>&1 | grep SHA256 > /var/log/mirrormanager/propagation/propagation.log.$( date +\%s )"
         cron_file=propagation-rawhide
+  when: inventory_hostname.startswith('mm-crawler01')
 
 - name: propagation cronjob f22-updates
   cron: name="propagation-f22-updates" minute="15" hour="*/2" user="mirrormanager"
         job="/usr/bin/mm2_crawler --propagation --threads 50 --proppath updates/22/x86_64/repodata 2>&1 | grep SHA256 > /var/log/mirrormanager/propagation/f22-updates-propagation.log.$( date +\%s )"
         cron_file=propagation-f22-updates
+  when: inventory_hostname.startswith('mm-crawler01')
