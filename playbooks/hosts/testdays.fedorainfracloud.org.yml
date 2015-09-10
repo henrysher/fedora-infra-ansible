@@ -26,8 +26,18 @@
   - name: set hostname (required by some services, at least postfix need it)
     shell: "hostname {{inventory_hostname}}"
 
-  roles:
-   - postgresql_server
+  tasks:
+  - name: add infrastructure repo
+    action: copy src="{{ files }}/common/{{ item }}" dest="/etc/yum.repos.d/{{ item }}"
+    with_items:
+    - infrastructure.repo
+    - infrastructure-testing.repo
+    tags:
+    - config
+    - packages
+    - yumrepos
+    roles:
+     - postgresql_server
 
 - name: configure resultsdb and testdays
   hosts: testdays.fedorainfracloud.org
