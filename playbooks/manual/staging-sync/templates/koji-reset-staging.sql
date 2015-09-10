@@ -82,6 +82,16 @@ insert into host_channels (host_id, channel_id) values (
 {% endfor %}
 {% endfor %}
 
+{% for host in groups['arm-stg'] %}
+insert into users (name, usertype, status) values ('{{ host }}', 1, 0);
+insert into host (user_id, name, arches) values (
+    (select id from users where name='{{host}}'), '{{host}}', 'armhfp');
+{% for channel in [ 'default', 'createrepo', 'maven', 'appliance', 'livecd', 'vm', 'secure-boot', 'compose', 'eclipse', 'images', 'image'] %}
+insert into host_channels (host_id, channel_id) values (
+    (select id from host where name='{{host}}'), (select id from channels where name='{{channel}}'));
+{% endfor %}
+{% endfor %}
+
 -- Add some people to be admins, only in staging.  Feel free to grow this list..
 select now() as time, 'adding staging admin(s)' as msg;
 
