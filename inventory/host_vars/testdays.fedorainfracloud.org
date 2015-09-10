@@ -17,6 +17,8 @@ cloud_networks:
   # persistent-net
   - net-id: "67b77354-39a4-43de-b007-bb813ac5c35f"
 
+freezes: false
+
 ############################################################
 # postgresql_server
 ############################################################
@@ -29,6 +31,14 @@ dbs_to_backup:
 
 
 ############################################################
+# standard qa-app-style settings
+############################################################
+
+external_hostname: testdays.fedorainfracloud.org
+deployment_type: 'local'
+
+
+############################################################
 # resultsdb
 ############################################################
 
@@ -38,11 +48,23 @@ resultsdb_endpoint: 'resultsdb_api'
 resultsdb_fe_endpoint: 'resultsdb'
 resultsdb_db_name: resultsdb_testdays
 
+# the names for this needs to be fixed - for now it's just a hacky workaround to avoid a freeze break request
+local_resultsdb_db_user: "{{ testdays_testdays_db_user }}"
+local_resultsdb_db_password: "{{ testdays_testdays_db_password }}"
+local_resultsdb_secret_key: "{{ testdays_resultsdb_secretkey }}"
+
 allowed_hosts:
     - 127.0.0.1
 
-external_hostname: testdays.fedorainfracloud.org
-deployment_type: 'local'
+resultsdb_endpoint: "resultsdb-api"
+
+
+############################################################
+# resultsdb_frontend
+############################################################
+
+local_resultsdb_frontend_secret_key: "{{ testdays_resultsdb_frontend_secretkey }}"
+resultsdb_fe_endpoint: "resultsdb"
 
 ############################################################
 # testdays
@@ -53,6 +75,6 @@ testdays_db_port: 5432
 testdays_endpoint: 'testdays'
 testdays_db_name: testdays
 
-
-
-freezes: false
+testdays_db_user: "{{ testdays_testdays_db_user }}"
+testdays_db_user: "{{ testdays_testdays_db_password }}"
+testdays_secret_key: "{{ testdays_testdays_secretkey }}"
