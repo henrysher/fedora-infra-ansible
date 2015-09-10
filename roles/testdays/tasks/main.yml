@@ -1,0 +1,33 @@
+---
+- name: ensure packages required for testdays  are installed
+  action: yum name={{ item }} state=latest
+  with_items:
+    - testdays
+    - mod_wsgi
+    - python-psycopg2
+
+- name: ensure database is created
+  delegate_to: "{{ testdays_db_host }}"
+  sudo_user: postgres
+  sudo: true
+  action: postgresql_db db={{ testdays_db_name }}
+
+- name: ensure testdays db user has access to database
+  delegate_to: "{{ testdays_db_host }}"
+  sudo_user: postgres
+  sudo: true
+  action: postgresql_user db={{ testdays_db_name }} user={{ testdays_db_user }} password={{ testdays_db_password }} role_attr_flags=NOSUPERUSER
+
+- name: ensure selinux lets httpd talk to postgres
+  seboolean: name=httpd_can_network_connect_db persistent=yes state
+
+- name: generate testdays config
+  template: src=settings.py.j2 dest=/etc/testdays/settings.py owner=root group=root mode=0644
+  notify:
+    - restart httpd
+
+- name: generate testdays apache config
+  template: src=testdays.conf.j2 dest=/etc/httpd/conf.d/testdays.conf owner=root group=root mode=0644
+  notify:
+    - restart httpd
+
