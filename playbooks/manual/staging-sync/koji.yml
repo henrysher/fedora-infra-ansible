@@ -9,34 +9,6 @@
 #   https://lists.fedoraproject.org/pipermail/buildsys/2015-June/004779.html
 
 
-- name: grab the latest production backup
-  hosts: db-koji01.phx2.fedoraproject.org
-  user: root
-  vars_files:
-   - /srv/web/infra/ansible/vars/global.yml
-   - "/srv/private/ansible/vars.yml"
-   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
-  handlers:
-  - include: "{{ handlers }}/restart_services.yml"
-
-  tasks:
-  - fetch: src=/backups/koji-{{ansible_date_time['date']}}.dump.xz
-           dest=/var/tmp/prod-koji-dump/
-           fail_on_missing=yes
-
-- name: sync config and sql migration script
-  hosts: koji-stg
-  user: root
-  vars_files:
-   - /srv/web/infra/ansible/vars/global.yml
-   - "/srv/private/ansible/vars.yml"
-   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
-  handlers:
-  - include: "{{ handlers }}/restart_services.yml"
-
-  roles:
-  - koji_hub
-
 - name: bring staging services down
   hosts: koji-stg
   user: root
@@ -69,15 +41,17 @@
 
   tasks:
   - template: src=templates/koji-reset-staging.sql dest=/var/lib/pgsql/koji-reset-staging.sql
-  - copy: src=/var/tmp/prod-koji-dump/db-koji01.phx2.fedoraproject.org/backups/koji-{{ansible_date_time['date']}}.dump.xz
-          dest=/var/tmp/koji-{{ansible_date_time['date']}}.dump.xz
-          owner=postgres group=postgres
-  - command: unxz /var/tmp/koji-{{ansible_date_time['date']}}.dump.xz
-             creates=/var/tmp/koji-{{ansible_date_time['date']}}.dump
+  - copy:
+      src=/srv/web/infra/db-dumps/koji.dump.xz
+      dest=/var/tmp/koji.dump.xz
+      owner=postgres
+      group=postgres
+  - command: unxz /var/tmp/koji.dump.xz
+             creates=/var/tmp/koji.dump
   - command: dropdb koji
   - command: createdb -O koji koji
   - name: Import the prod db.  This will take quite a while.  Go get a snack!
-    shell: cat /var/tmp/koji-{{ansible_date_time['date']}}.dump | psql koji
+    shell: cat /var/tmp/koji.dump | psql koji
   - name: repoint all the prod rpm entries at the secondary volume (and other stuff)
     shell: psql koji < /var/lib/pgsql/koji-reset-staging.sql
 
