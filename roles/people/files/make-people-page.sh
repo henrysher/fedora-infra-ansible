@@ -8,7 +8,7 @@ cat << EOM>> ${outfile}
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <title>Fedora Project</title>
-    <link rel="stylesheet" type="text/css" media="all" href="http://fedoraproject.org/static/css/fedora.css" />
+    <link rel="stylesheet" type="text/css" media="all" href="https://fedoraproject.org/static/css/fedora.css" />
     <!--[if lt IE 7]>
     <style type="text/css">
         #wrapper
