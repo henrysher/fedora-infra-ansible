@@ -67,12 +67,12 @@ update repo set state = 3 where state in (0, 1, 2);
 COMMIT;
 
 
-BEGIN;
 
 -- add our staging builders, dynamically pulled from ansible inventory
-select now() as time, 'adding staging host(s)' as msg;
 
 {% for host in groups['buildvm-stg'] + groups['koji-stg'] %}
+BEGIN;
+select now() as time, 'adding staging host {{ host }}' as msg;
 insert into users (name, usertype, status) values ('{{ host }}', 1, 0);
 insert into host (user_id, name, arches) values (
     (select id from users where name='{{host}}'), '{{host}}', 'i386 x86_64');
@@ -80,9 +80,12 @@ insert into host (user_id, name, arches) values (
 insert into host_channels (host_id, channel_id) values (
     (select id from host where name='{{host}}'), (select id from channels where name='{{channel}}'));
 {% endfor %}
+COMMIT;
 {% endfor %}
 
 {% for host in groups['arm-stg'] %}
+BEGIN;
+select now() as time, 'adding staging host {{ host }}' as msg;
 insert into users (name, usertype, status) values ('{{ host }}', 1, 0);
 insert into host (user_id, name, arches) values (
     (select id from users where name='{{host}}'), '{{host}}', 'armhfp');
@@ -90,19 +93,20 @@ insert into host (user_id, name, arches) values (
 insert into host_channels (host_id, channel_id) values (
     (select id from host where name='{{host}}'), (select id from channels where name='{{channel}}'));
 {% endfor %}
+COMMIT;
 {% endfor %}
 
 -- Add some people to be admins, only in staging.  Feel free to grow this list..
-select now() as time, 'adding staging admin(s)' as msg;
 
 {% for username in ['ralph', 'imcleod'] %}
+BEGIN;
+select now() as time, 'adding staging admin {{username}}' as msg;
 insert into user_perms (user_id, perm_id, active, creator_id) values (
     (select id from users where name='{{username}}'),
     (select id from permissions where name='admin'),
     True,
     (select id from users where name='{{username}}'));
-{% endfor %}
-
 COMMIT;
+{% endfor %}
 
 VACUUM ANALYZE;
