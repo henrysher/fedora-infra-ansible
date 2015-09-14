@@ -12,11 +12,18 @@
 
 - name: install the script
   copy: src=make-cgit-pkgs-list.sh dest=/usr/local/bin/make-cgit-pkgs-list.sh mode=0755
-  when: not inventory_hostname.startswith('people')
+  when: inventory_hostname.startswith('pkgs')
 
 - name: install the script for fedorapeople
   copy: src=make-people-git.sh dest=/usr/local/bin/make-people-git.sh mode=0755
   when: inventory_hostname.startswith('people')
+
+#
+# For the batcave we just have a small static list 
+#
+- name: install the file for batcave
+  copy: src=cgit-projects-batcave dest=/etc/cgit-projects-batcave mode=0644
+  when: inventory_hostname.startswith('batcave')
 
 - name: install the cron job
   cron: >
@@ -24,7 +31,7 @@
     minute=*/10
     user=root
     job="/usr/local/bin/lock-wrapper make-cgit-pkgs-list '/usr/local/bin/make-cgit-pkgs-list.sh | /usr/local/bin/nag-once make-cgit-pkgs-list 1d 2>&1'"
-  when: not inventory_hostname.startswith('people')
+  when: inventory_hostname.startswith('pkgs')
 
 - name: install the cron job for fedora people cgit
   cron: >
