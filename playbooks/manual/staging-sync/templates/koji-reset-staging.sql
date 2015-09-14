@@ -65,7 +65,8 @@ update repo set state = 3 where state in (0, 1, 2);
 
 -- add our staging builders, dynamically pulled from ansible inventory
 
-{% for host in groups['buildvm-stg'] + groups['koji-stg'] %}
+-- The koji hub is x86_64 and i386 and has createrepo ability
+{% for host in groups['koji-stg'] %}
 select now() as time, 'adding staging host {{ host }}' as msg;
 insert into users (name, usertype, status) values ('{{ host }}', 1, 0);
 insert into host (user_id, name, arches) values (
@@ -76,6 +77,19 @@ insert into host_channels (host_id, channel_id) values (
 {% endfor %}
 {% endfor %}
 
+-- The buildvms are x86_64 and i386 and do not have createrepo ability
+{% for host in groups['buildvm-stg'] %}
+select now() as time, 'adding staging host {{ host }}' as msg;
+insert into users (name, usertype, status) values ('{{ host }}', 1, 0);
+insert into host (user_id, name, arches) values (
+    (select id from users where name='{{host}}'), '{{host}}', 'i386 x86_64');
+{% for channel in [ 'default', 'maven', 'appliance', 'livecd', 'vm', 'secure-boot', 'compose', 'eclipse', 'images', 'image'] %}
+insert into host_channels (host_id, channel_id) values (
+    (select id from host where name='{{host}}'), (select id from channels where name='{{channel}}'));
+{% endfor %}
+{% endfor %}
+
+-- The arm builders  are armhfp and do not have createrepo ability
 {% for host in groups['arm-stg'] %}
 select now() as time, 'adding staging host {{ host }}' as msg;
 insert into users (name, usertype, status) values ('{{ host }}', 1, 0);
