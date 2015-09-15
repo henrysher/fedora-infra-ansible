@@ -259,8 +259,8 @@ class AccountSystem(BaseClient):
             149140: 'jdulaney@fedoraproject.org',
             # Niels de Vos: niels@nixpanic.net
             102792: 'ndevos@redhat.com',
-            # Shawn Wells: shawn@redhat.com
-            156515: 'swells@redhat.com',
+            # Shawn Wells: swells@redhat.com
+            156515: 'shawn@redhat.com',
         }
         # A few people have an email account that is used in owners.list but
         # have setup a bugzilla account for their primary account system email
