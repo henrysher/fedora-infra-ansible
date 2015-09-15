@@ -1,0 +1,10 @@
+#!/bin/bash
+mailto='admin@fedoraproject.org'
+source /root/sshagent >>/dev/null
+export ANSIBLE_HOST_KEY_CHECKING=False
+export HOME=/root/
+#export ANSIBLE_SSH_PIPELINING=False
+/srv/web/infra/ansible/scripts/ansible-playbook-check-diff |& grep ok=
+
+# Send a email with failed or changed from the above check/diff run
+/srv/web/infra/ansible/scripts/logview -d today -s CHECK_DIFF:CHANGED -s CHECK_DIFF:FAILED | mailx -s "ansible changed/failed actions from check/diff daily run" sysadmin-logs-members@fedoraproject.org
