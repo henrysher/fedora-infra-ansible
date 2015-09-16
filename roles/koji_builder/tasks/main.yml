@@ -173,6 +173,14 @@
   - configs
   - koji_builder
 
+# oz.cfg  upstream ram and cpu definitions are not enough
+- name: oz.cfg
+  copy: src=oz.cfg dest=/etc/oz/oz.cfg
+  notify:
+  - restart kojid
+  tags:
+  - koji_builder
+
 - name: make a mnt/koji link
   file: state=link src=/mnt/fedora_koji/koji dest=/mnt/koji
   when: inventory_hostname.startswith(('build')) or inventory_hostname.startswith(('arm04-builder00')) or inventory_hostname.startswith(('arm04-builder01'))
