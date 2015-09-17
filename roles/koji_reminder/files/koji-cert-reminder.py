@@ -52,6 +52,8 @@ one_week = 604800
 window_delta = one_week
 window_max = six_months
 window_min = window_max - window_delta
+start = now - window_max
+end = now - window_min
 
 # Use a requests session to minimize tcp setup/teardown.
 session = requests.session()
@@ -74,6 +76,8 @@ def cert_changes(user):
             topic='org.fedoraproject.prod.fas.user.update',
             user=user,
             page=page,
+            start=start,
+            end=end,
         )
         return session.get(datagrepper_url, params=params).json()
 
