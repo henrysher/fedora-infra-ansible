@@ -19,6 +19,7 @@ import fedora.client.fas2
 import getpass
 import smtplib
 import requests
+import operator
 
 # This is a flag used to turn off email to the actual users
 DEVELOPMENT = False
@@ -142,7 +143,7 @@ def main(credentials):
     print "* Querying FAS for a list of users"
     users = fedora_users(credentials)
     print "* Found %r people" % len(users)
-    for user in users:
+    for user in sorted(users, key=operator.itemgetter('username')):
         #print "* Querying datagrepper for %r." % user['username'],
         changes = cert_changes(user['username'])
 
