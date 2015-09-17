@@ -5,6 +5,9 @@
   - python-fedora
   - python-requests
   - fedmsg
+  tags:
+  - packages
+  - koji_reminder
 
 - name: check log file
   command: stat /var/log/koji-cert-reminder.log
@@ -12,6 +15,8 @@
   always_run: yes
   changed_when: "1 != 1"
   ignore_errors: true
+  tags:
+  - koji_reminder
 
 - name: Ensure we can write to our own log file
   file: >
@@ -21,6 +26,8 @@
     owner=fedmsg
     group=fedmsg
   when: logstat.rc == 1
+  tags:
+  - koji_reminder
 
 - name: Copy the scripts over
   copy: >
@@ -29,6 +36,8 @@
     mode=0755
     owner=root
     group=root
+  tags:
+  - koji_reminder
 
 - name: Copy over the cron definition
   copy: >
@@ -37,6 +46,8 @@
     mode=0644
     owner=root
     group=root
+  tags:
+  - koji_reminder
 
 - name: Provide some fas credentials to make the query
   template: >
@@ -45,3 +56,5 @@
     mode=0640
     owner=fedmsg
     group=fedmsg
+  tags:
+  - koji_reminder
