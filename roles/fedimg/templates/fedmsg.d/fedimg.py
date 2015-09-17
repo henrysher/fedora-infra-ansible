@@ -22,12 +22,4 @@
 
 config = dict(
     kojiconsumer=True,
-    {% if env == 'staging' %}
-    # Establish a loop from production back into the staging instance.
-    endpoints = {
-        "production-loopback": [
-            "tcp://hub.fedoraproject.org:9940",
-        ],
-    },
-    {% endif %}
 )
