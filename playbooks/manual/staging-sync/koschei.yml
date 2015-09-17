@@ -1,0 +1,79 @@
+# This playbook is used to rebuild staging Koschei database from
+# scratch.  Useful to be ran after synchronization of staging Koji DB
+# with production, which breaks Koschei - old builds from before sync
+# have conflicting IDs with post-sync builds.
+#
+# In future, this playbook may be extended to sync content from
+# production Koschei database dump, but this is not needed for now.
+
+- name: stop koschei staging services
+  hosts: koschei-stg
+  user: root
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - /srv/private/ansible/vars.yml
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"
+
+  tasks:
+  - service: name=koschei-polling state=stopped
+  - service: name=koschei-resolver state=stopped
+  - service: name=koschei-scheduler state=stopped
+  - service: name=koschei-watcher state=stopped
+  - service: name=httpd state=stopped
+
+
+- name: drop and re-create koschei staging database
+  hosts: db01.stg.phx2.fedoraproject.org
+  user: root
+  become: yes
+  become_user: postgres
+  become_method: sudo
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - /srv/private/ansible/vars.yml
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"
+
+  tasks:
+  - command: dropdb koschei
+  - command: createdb -O koscheiadmin koschei
+
+
+- name: import koschei staging database schema
+  hosts: koschei-stg
+  user: root
+  become: yes
+  become_user: koschei
+  become_method: sudo
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - /srv/private/ansible/vars.yml
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"
+
+  tasks:
+  - command: koschei-admin createdb
+
+
+- name: bring koschei staging services up
+  hosts: koschei-stg
+  user: root
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - /srv/private/ansible/vars.yml
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"
+
+  tasks:
+  - service: name=httpd state=started
+  - service: name=koschei-polling state=started
+  - service: name=koschei-resolver state=started
+  - service: name=koschei-scheduler state=started
+  - service: name=koschei-watcher state=started
