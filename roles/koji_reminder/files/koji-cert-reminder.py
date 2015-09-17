@@ -20,6 +20,7 @@ import getpass
 import smtplib
 import requests
 import operator
+import sys
 
 # This is a flag used to turn off email to the actual users
 DEVELOPMENT = False
@@ -118,6 +119,7 @@ def to_address(user):
 def send_email(user, last_change):
     print "send an email to %r since they last changed on %r" % (
         user, last_change.format('YYYY-MM-DD'))
+    sys.stdout.flush()
 
     message = email.Message.Message()
     message.add_header('To', to_address(user))
@@ -143,10 +145,13 @@ def send_email(user, last_change):
 
 def main(credentials):
     print "* Querying FAS for a list of users"
+    sys.stdout.flush()
     users = fedora_users(credentials)
     print "* Found %r people" % len(users)
+    sys.stdout.flush()
     for user in sorted(users, key=operator.itemgetter('username')):
         #print "* Querying datagrepper for %r." % user['username'],
+        #sys.stdout.flush()
         changes = cert_changes(user['username'])
 
         try:
@@ -154,10 +159,12 @@ def main(credentials):
         except StopIteration:
             # Then the user has no changes in the fedmsg history.
             #print "No record of %r changing a cert." % user['username']
+            #sys.stdout.flush()
             continue
 
         print user['username'], "changed", latest.humanize(),
         print "on", latest.format('YYYY-MM-DD')
+        sys.stdout.flush()
 
         delta = total_seconds(now - latest)
         if delta >= window_min and delta <= window_max:
@@ -170,6 +177,7 @@ if __name__ == '__main__':
 
     if 'fas_credentials' not in config:
         print "No 'fas_credentials' found in `fedmsg-config`..."
+        sys.stdout.flush()
         username = raw_input("Enter your fas username: ")
         password = getpass.getpass("Enter your fas password: ")
         config['fas_credentials'] = dict(username=username, password=password)
