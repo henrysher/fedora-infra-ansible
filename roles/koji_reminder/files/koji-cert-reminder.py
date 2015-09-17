@@ -52,6 +52,8 @@ window_delta = one_week
 window_max = six_months
 window_min = window_max - window_delta
 
+# Use a requests session to minimize tcp setup/teardown.
+session = requests.session()
 
 def cert_changes(user):
     """ Generator that returns all the koji cert changes for a user.
@@ -72,7 +74,7 @@ def cert_changes(user):
             user=user,
             page=page,
         )
-        return requests.get(datagrepper_url, params=params).json()
+        return session.get(datagrepper_url, params=params).json()
 
     data = get_page(1)
     pages = data['pages']
