@@ -59,6 +59,78 @@
   - config
 
 #
+# Scripts
+#
+
+#
+# Hook to notify on git commits used in git repos
+#
+
+- name: setup git-notifier script
+  copy: src=git-notifier dest=/usr/local/bin/git-notifier mode=0755
+  tags:
+  - batcave
+  - config
+
+#
+# Script used to gather encrypted security questions from fas
+#
+
+- name: setup /usr/local/bin/retrieve-security-question.py
+  copy: src=retrieve-security-question.py dest=/usr/local/bin/retrieve-security-question.py mode=0755
+  tags:
+  - batcave
+  - config
+
+#
+# Script to sync ssh keys from fas to openshift instances.
+#
+
+- name: setup python module for openshift sync script
+  copy: src=oshift_mod.py dest=/usr/local/bin/oshift_mod.py mode=0644
+  tags:
+  - batcave
+  - config
+
+- name: setup setup sync-openshift-keys config
+  template: src=sync-openshift-keys.conf.j2 dest=/etc/sync-openshift-keys.conf mode=0600
+  tags:
+  - batcave
+  - config
+
+- name: setup setup sync-openshift-keys script
+  copy: src=sync-openshift-keys.py dest=/usr/local/bin/sync-openshift-keys.py mode=0755
+  tags:
+  - batcave
+  - config
+
+# The zodbot server must allow TCP on whatever port zodbot is listening on
+# for this to work (currently TCP port 5050).
+# Once that is done, you can symlink /usr/local/bin/zodbot-announce-commits.py
+# to the 'hooks' directory of the bare repo you're wishing to receive commits
+# for, then add a hooks.zodbotchannel to the repo's config file.
+# Lastly, add the following lines to your 'update' hook:
+# reposource=$(git config hooks.reposource)
+# zodbot_channel=$(git config hooks.zodbotchannel)
+# python $reposource/hooks/zodbot-announce-commits.py $reposource $zodbot_channel $oldrev $newrev ${1#refs/heads/}
+
+- name: install zodbot-announce-commits script
+  copy: src=zodbot-announce-commits.py dest=/usr/local/bin/zodbot-announce-commits.py mode=0755
+  tags:
+  - batcave
+  - config
+
+#
+# This is another script to announce commits, this time to the fedmsg bus
+#
+
+- name: install fedmsg-announce-commits script
+  copy: src=fedmsg-announce-commits.py dest=/usr/local/bin/fedmsg-announce-commits.py mode=0755
+  tags:
+  - batcave
+  - config
+
+#
 # This script checks all the virthosts and logs what guests they are running. 
 #
 
@@ -88,26 +160,34 @@
 #  - batcave
 #  - config
 
+#
+# Setup web server config
+#
+- name: install web server config for batcave (mimetypes)
+  copy: src=mime-typesconf dest=/etc/httpd/conf.d/mime-types.conf mode=0644
+  tags:
+  - batcave
+  - config
+  - httpd
+
+- name: install web server config for batcave (access rules)
+  copy: src=allows dest=/etc/httpd/conf.d/allows mode=0644
+  tags:
+  - batcave
+  - config
+  - httpd
+
+- name: install web server config for batcave (main config)
+  copy: src=infrastructure.fedoraproject.org.conf dest=/etc/httpd/conf.d/infrastructure.fedoraproject.org.conf mode=0644
+  tags:
+  - batcave
+  - config
+  - httpd
 
 # still to convert from puppet:
 #    include scripts::check-sshkeys
-#    include scripts::git-notifier
-#    include scripts::retrieve-security-question
-#    include scripts::sync-openshift-keys
-#    include scripts::zodbotAnnounceCommits
-#    include scripts::fedmsgAnnounceCommits
 #    include scripts::sync-rhn
-#
 #    include repo2json
 #    include ansible_utils::ansible_utils
-#
-#    include rsync::server
 #    include scripts::geoip-retriever
 #    include geoip-retriever
-#
-#    httpd::site { "infrastructure.fedoraproject.org": }
-#
-#    httpd::mime-type { "restructured text docs":
-#        website => "infrastructure.fedoraproject.org",
-#        mimetype => "text/plain",
-#        extensions => [ ".rst" ],
