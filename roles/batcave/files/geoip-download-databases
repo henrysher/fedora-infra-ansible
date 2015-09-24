@@ -1,0 +1,49 @@
+#!/bin/bash
+BASE_URL='http://geolite.maxmind.com/download/geoip/database/'
+GEOLITE_COUNTRY_DB='GeoLiteCountry/GeoIP.dat'
+GEOLITE_COUNTRY_IPV6_DB='GeoIPv6.dat'
+GEOLITE_CITY_DB='GeoLiteCity.dat'
+GEOLITE_CITY_IPV6_DB='GeoLiteCityv6-beta/GeoLiteCityv6.dat'
+
+if [ $# -eq 0 ]; then
+    echo "usage: geoip-download-databases <output_directory>" >&2
+    exit 1
+fi
+
+outdir="$1"
+tmpdir=$(mktemp -d) || exit 1
+trap "rm -rf ${tmpdir}" EXIT QUIT HUP KILL TERM
+
+pushd $tmpdir
+wget "${BASE_URL}${GEOLITE_COUNTRY_DB}.gz" || exit 1
+wget "${BASE_URL}${GEOLITE_COUNTRY_IPV6_DB}.gz" || exit 1
+wget "${BASE_URL}${GEOLITE_CITY_DB}.gz" || exit 1
+wget "${BASE_URL}${GEOLITE_CITY_IPV6_DB}.gz" || exit 1
+gunzip *
+
+function file_size()
+{
+    local size
+    size=$(stat -c "%s" $1 2>/dev/null)
+    if [ -n "${size}" ]; then
+	echo ${size}
+    else
+	echo 0
+    fi
+}
+
+# 200KB.  The country database should be just over 1MB, while the city database is presently 43MB.
+# This is big enough to notice a seriously corrupted download.
+MIN_SIZE=$((1024*200))
+IPV6_MIN_SIZE=$((1024*40))
+
+if [ $(file_size $(basename ${GEOLITE_COUNTRY_DB})) -gt ${MIN_SIZE} -a \
+     $(file_size $(basename ${GEOLITE_CITY_DB}))    -gt ${MIN_SIZE} -a \
+     $(file_size $(basename ${GEOLITE_COUNTRY_IPV6_DB})) -gt ${IPV6_MIN_SIZE} -a \
+     $(file_size $(basename ${GEOLITE_CITY_IPV6_DB})) -gt ${IPV6_MIN_SIZE} ]; then
+    cp -a $(basename ${GEOLITE_COUNTRY_DB}) $(basename ${GEOLITE_CITY_DB}) $(basename ${GEOLITE_COUNTRY_IPV6_DB}) $(basename ${GEOLITE_CITY_IPV6_DB}) "${outdir}"
+else
+    echo "unable to retrieve databases." >&2
+    exit 1
+fi
+exit 0

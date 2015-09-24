@@ -21,6 +21,10 @@
   - yum-metadata-parser       # Needed for rhn sync
   - yum-rhn-plugin            # Needed for rhn sync
   - createrepo_c              # Needed for rhn sync
+  - python-sqlalchemy         # Needed for repo2json
+  - pyliblzma                 # Needed for repo2json
+  - ansible_utils             # Needed for rbac-playbook
+  - python-GeoIP              # Needed for geoip scripts
   tags:
   - batcave
   - config
@@ -142,7 +146,7 @@
 #
 
 #- name: setup public db copy script
-#  copy: src=public-db-copy.cron dest=/etc/cron.daily/public-db-copy.cron mode=0755
+#  copy: src=public-db-copy.cron dest=/etc/cron.daily/public-db-copy.cron mode=0644
 #  tags:
 #  - batcave
 #  - config
@@ -152,10 +156,20 @@
 #
 
 #- name: setup checkdiff ansible job
-#  copy: src=ansible-playbook-check-diff.cron dest=/etc/cron.daily/ansible-playbook-check-diff.cron mode=0755
+#  copy: src=ansible-playbook-check-diff.cron dest=/etc/cron.daily/ansible-playbook-check-diff.cron mode=0644
 #  tags:
 #  - batcave
 #  - config
+
+#
+# sync-rhn cron job
+#
+#- name: setup sync-rhn cron
+#  copy: src=sync-rhn dest=/etc/cron.d/sync-rhn mode=0644
+#  tags:
+#  - batcave
+#  - config
+#
 
 #
 # Setup web server config
@@ -181,10 +195,45 @@
   - config
   - httpd
 
-# still to convert from puppet:
-#    include scripts::check-sshkeys
-#    include scripts::sync-rhn
-#    include repo2json
-#    include ansible_utils::ansible_utils
-#    include scripts::geoip-retriever
-#    include geoip-retriever
+#
+# this cron job creates a json file from the rhel repos
+#
+
+- name: create repo2json directory
+  file: dest=/srv/web/repo/json mode=0755 state=directory owner=apache group=apache
+  tags:
+  - batcave
+  - config
+
+#- name: create repo2json cron job
+#  copy: src=repo2json.cron dest=/etc/cron.d/repo2json.cron mode=0644
+#  tags:
+#  - batcave
+#  - config
+
+#
+# ansible utils includes our rbac-playbook
+#
+
+- name: install ansible_utils config
+  copy: src={{ puppet_private }}/rbac.yml dest=/etc/ansible_utils/rbac.yml mode=0500
+  tags:
+  - batcave
+  - config
+
+#
+# Setup geoip scripts. 
+# Other machines pull current geoip data from here. 
+#
+
+- name: Install geoip download databases script
+  copy: src=geoip-download-databases dest=/usr/local/bin/geoip-download-databases mode=0755
+  tags:
+  - batcave
+  - config
+
+- name: Install geoip download cron
+  copy: src=geoip-download-databases.cron dest=/etc/cron.d/geoip-download-databases.cron mode=0644
+  tags:
+  - batcave
+  - config
