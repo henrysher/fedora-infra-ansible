@@ -274,3 +274,95 @@
   - selinux
   - httpd
   - httpd/website
+
+#
+# set selinux context for public git repos
+#
+
+- name: check the selinux context of ansible
+  command: matchpathcon /git/ansible
+  register: webdir
+  always_run: yes
+  changed_when: "1 != 1"
+  tags:
+  - config
+  - batcave
+  - selinux
+  - httpd
+  - httpd/website
+
+- name: /git/ansible file contexts
+  command: semanage fcontext -a -t httpd_git_content_t "/git/ansible(/.*)?"
+  when: webdir.stdout.find('httpd_git_content_t') == -1
+  tags:
+  - config
+  - batcave
+  - selinux
+  - httpd
+  - httpd/website
+
+- name: check the selinux context of badges
+  command: matchpathcon /git/badges
+  register: webdir
+  always_run: yes
+  changed_when: "1 != 1"
+  tags:
+  - config
+  - batcave
+  - selinux
+  - httpd
+  - httpd/website
+
+- name: /git/badges file contexts
+  command: semanage fcontext -a -t httpd_git_content_t "/git/badges(/.*)?"
+  when: webdir.stdout.find('httpd_git_content_t') == -1
+  tags:
+  - config
+  - batcave
+  - selinux
+  - httpd
+  - httpd/website
+
+- name: check the selinux context of dns
+  command: matchpathcon /git/dns
+  register: webdir
+  always_run: yes
+  changed_when: "1 != 1"
+  tags:
+  - config
+  - batcave
+  - selinux
+  - httpd
+  - httpd/website
+
+- name: /git/dns file contexts
+  command: semanage fcontext -a -t httpd_git_content_t "/git/dns(/.*)?"
+  when: webdir.stdout.find('httpd_git_content_t') == -1
+  tags:
+  - config
+  - batcave
+  - selinux
+  - httpd
+  - httpd/website
+
+- name: check the selinux context of infra-docs
+  command: matchpathcon /git/infra-docs
+  register: webdir
+  always_run: yes
+  changed_when: "1 != 1"
+  tags:
+  - config
+  - batcave
+  - selinux
+  - httpd
+  - httpd/website
+
+- name: /git/infra-docs file contexts
+  command: semanage fcontext -a -t httpd_git_content_t "/git/infra-docs(/.*)?"
+  when: webdir.stdout.find('httpd_git_content_t') == -1
+  tags:
+  - config
+  - batcave
+  - selinux
+  - httpd
+  - httpd/website
