@@ -1,0 +1,45 @@
+- name: upgrade koschei
+  # Only on stg for now
+  hosts: koschei-stg
+  vars_files:
+  - /srv/web/infra/ansible/vars/global.yml
+  - /srv/private/ansible/vars.yml
+  - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+  vars:
+    jenkins: True
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"
+  roles:
+  - koschei
+
+  pre_tasks:
+  - name: schedule nagios downtime
+    nagios: action=downtime minutes=20 service=host host={{ inventory_hostname_short }}{{ env_suffix }}
+    delegate_to: noc01.phx2.fedoraproject.org
+    ignore_errors: true
+  - name: stop services
+    service: name="{{ item }}" state=stopped
+    with_items:
+    - koschei-scheduler
+    - koschei-polling
+    - koschei-resolver
+    - koschei-watcher
+    - httpd
+  - name: clean yum metadata
+    command: yum clean all {% if jenkins %} enablerepo="koschei-jenkins" {% endif %}
+  - name: upgrade koschei package from jenkins
+    yum: name="koschei" state=latest enablerepo="koschei-jenkins"
+    when: jenkins
+  - name: upgrade koschei from main repo
+    yum: name="koschei" state=latest
+    when: not jenkins
+  - name: run db migration
+    become: yes
+    become_user: koschei
+    command: alembic -c /usr/share/koschei/alembic.ini upgrade head
+
+  post_tasks:
+  - name: unsilence nagios
+    nagios: action=unsilence service=host host={{ inventory_hostname_short }}{{ env_suffix }}
+    delegate_to: noc01.phx2.fedoraproject.org
+    ignore_errors: true
