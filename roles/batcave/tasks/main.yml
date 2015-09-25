@@ -27,10 +27,31 @@
   - python-GeoIP              # Needed for geoip scripts
   - python-fedmsg-fasclient   # fasClient fedmsg job
   - bind                      # named-checkzone for dns repo
-  - python-novaclient         # For general openstack cloud administration
   tags:
   - batcave
   - config
+
+- name: Set up RHOS repo for cloud client stuff
+  copy: src=rhel7-rhos.repo dest=/etc/yum.repos.d/rhel7-rhos.repo
+  tags:
+  - cloud
+  - batcave
+  - config
+
+- name: install cloud client packages
+  yum: pkg={{ item }} state=present
+  with_items:
+  - python-novaclient
+  - python-neutronclient
+  - python-oslo-config
+  - python-six
+  - python-keystoneclient
+  - python-glanceclient
+  tags:
+  - cloud
+  - batcave
+  - config
+
 
 # 
 # This is our ansible master, setup ansible
