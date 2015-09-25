@@ -46,7 +46,7 @@ class CallbackModule(object):
         # It seems like recursive playbooks call this over and over again and
         # fedmsg doesn't like to be initialized more than once.  So, here, just
         # catch that and ignore it.
-        failed = False
+        self.failed = False
         try:
             fedmsg.init(**config)
         except ValueError:
