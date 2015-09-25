@@ -48,7 +48,7 @@ def construct_url(slug):
 
     repo = repodir + ".git"
 
-    with open('/etc/cgit-projects-lockbox01', 'r') as f:
+    with open('/etc/cgit-projects-batcave', 'r') as f:
         lines = [line.strip() for line in f.readlines()]
 
     if repo in lines and slug:
