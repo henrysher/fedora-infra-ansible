@@ -80,7 +80,7 @@
 # install production certs and keys
 #
 - name: install kojiweb_cert_key.pem
-  copy: src={{ puppet_private }}/koji/kojiweb_cert_key.pem dest=/etc/pki/tls/private/kojiweb_cert_key.pem owner=apache mode=600
+  copy: src={{ private }}/files/koji/kojiweb_cert_key.pem dest=/etc/pki/tls/private/kojiweb_cert_key.pem owner=apache mode=600
   notify:
   - restart httpd
   tags:
@@ -89,7 +89,7 @@
   when: env != 'staging' and ansible_hostname.startswith('koji')
 
 - name: install production koji_cert.pem
-  copy: src={{ puppet_private }}/koji/koji_cert.pem dest=/etc/pki/tls/certs/koji_cert.pem owner=apache mode=600
+  copy: src={{ private }}/files/koji/koji_cert.pem dest=/etc/pki/tls/certs/koji_cert.pem owner=apache mode=600
   notify:
   - restart httpd
   tags:
@@ -98,7 +98,7 @@
   when: env != 'staging' and ansible_hostname.startswith('koji')
 
 - name: install production koji_key.pem
-  copy: src={{ puppet_private }}/koji/koji_key.pem dest=/etc/pki/tls/private/koji_key.pem owner=apache mode=600
+  copy: src={{ private }}/files/koji/koji_key.pem dest=/etc/pki/tls/private/koji_key.pem owner=apache mode=600
   notify:
   - restart httpd
   tags:
@@ -140,7 +140,7 @@
 # install staging certs and keys
 #
 - name: Install staging koji ssl cert
-  copy: src={{ puppet_private }}/koji/koji.stg_cert.pem dest=/etc/pki/tls/certs/koji.stg_cert.pem
+  copy: src={{ private }}/files/koji/koji.stg_cert.pem dest=/etc/pki/tls/certs/koji.stg_cert.pem
   notify:
   - restart httpd
   tags:
@@ -149,7 +149,7 @@
   when: env == 'staging'
 
 - name: install staging koji ssl key
-  copy: src={{ puppet_private }}/koji/koji.stg_key.pem dest=/etc/pki/tls/private/koji.stg_key.pem
+  copy: src={{ proivate }}/files/koji/koji.stg_key.pem dest=/etc/pki/tls/private/koji.stg_key.pem
   notify:
   - restart httpd
   tags:
@@ -158,7 +158,7 @@
   when: env == 'staging'
 
 - name: instaall fedora-ca.cert in various places
-  copy: src={{ puppet_private }}/fedora-ca.cert dest={{ item }} owner=apache
+  copy: src={{ private }}/files/fedora-ca.cert dest={{ item }} owner=apache
   with_items: 
   - /etc/kojira/extras_cacert.pem
   - /etc/pki/tls/certs/extras_cacert.pem
@@ -169,7 +169,7 @@
   - koji_hub
 
 - name: install kojira_cert_key
-  copy: src={{ puppet_private }}/koji/kojira_cert_key.pem dest=/etc/kojira/kojira_cert_key.pem owner=apache mode=600
+  copy: src={{ private }}/files/koji/kojira_cert_key.pem dest=/etc/kojira/kojira_cert_key.pem owner=apache mode=600
   tags:
   - config
   - koji_hub
@@ -313,19 +313,19 @@
   when: env != 'staging' and ansible_hostname.startswith('koji')
 
 - name: install cert for oscar (garbage collector) user
-  copy: src={{ puppet_private }}/koji/gc/oscar_key_and_cert.pem dest=/etc/koji-gc/client.crt
+  copy: src={{ private }}/files/koji/gc/oscar_key_and_cert.pem dest=/etc/koji-gc/client.crt
   tags:
   - koji_hub
   when: env != 'staging' and ansible_hostname.startswith('koji')
 
 - name: install serverca cert for oscar (garbage collector) user
-  copy: src={{ puppet_private }}/fedora-ca.cert dest=/etc/koji-gc/serverca.crt
+  copy: src={{ private }}/files/fedora-ca.cert dest=/etc/koji-gc/serverca.crt
   tags:
   - koji_hub
   when: env != 'staging' and ansible_hostname.startswith('koji')
 
 - name: install clientca cert for oscar (garbage collector) user
-  copy: src={{ puppet_private }}/fedora-ca.cert dest=/etc/koji-gc/clientca.crt
+  copy: src={{ private }}/files/fedora-ca.cert dest=/etc/koji-gc/clientca.crt
   tags:
   - koji_hub
   when: env != 'staging' and ansible_hostname.startswith('koji')
