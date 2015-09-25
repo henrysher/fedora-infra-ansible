@@ -4,7 +4,7 @@
 
 set +e
 
-HOST=lockbox01.vpn.fedoraproject.org
+HOST=batcave01
 
 function cleanlock()
 {
