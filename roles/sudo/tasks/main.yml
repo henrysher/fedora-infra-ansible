@@ -6,23 +6,32 @@
 #
 # Put in place the default sysadmin-main sudoers file. 
 #
-- name: setup /etc/sudoers.d/sysadmin-main
-  copy: src="{{ private }}/files/sudo/sysadmin-main" dest=/etc/sudoers.d/ owner=root group=root mode=0600
+- name: setup /etc/sudoers.d/01-sysadmin-main
+  copy: src="{{ private }}/files/sudo/sysadmin-main" dest=/etc/sudoers.d/01-sysadmin-main owner=root group=root mode=0600
   when: sudoers_main is not defined
   tags:
   - config
   - sudo
   - sudoers
+
 #
 # Put in place the default sysadmin-main sudoers file. (nopasswd edition)
 #
-- name: setup /etc/sudoers.d/sysadmin-main (nopasswd)
-  copy: src="{{ private }}/files/sudo/sysadmin-main-nopasswd" dest=/etc/sudoers.d/ owner=root group=root mode=0600
+- name: setup /etc/sudoers.d/01-sysadmin-main (nopasswd)
+  copy: src="{{ private }}/files/sudo/sysadmin-main-nopasswd" dest=/etc/sudoers.d/01-sysadmin-main owner=root group=root mode=0600
   when: sudoers_main is defined and sudoers_main == 'nopasswd'
   tags:
   - config
   - sudo
   - sudoers
+
+- name: remove old sysadmin-main file if its still around
+  file: dest=/etc/sudoers.d/sysadmin-main state=absent
+  tags:
+  - config
+  - sudo
+  - sudoers
+
 #
 # This will move a /etc/sudoers.d/ file in place 
 #
