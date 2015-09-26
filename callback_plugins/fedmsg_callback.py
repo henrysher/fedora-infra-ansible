@@ -46,19 +46,13 @@ class CallbackModule(object):
         # It seems like recursive playbooks call this over and over again and
         # fedmsg doesn't like to be initialized more than once.  So, here, just
         # catch that and ignore it.
-        self.failed = False
         try:
             fedmsg.init(**config)
         except ValueError:
-            import traceback
-            traceback.print_exc()
-            self.failed = True
             pass
 
 
     def playbook_on_play_start(self, pattern):
-        if self.failed:
-            return
         # This gets called once for each play.. but we just issue a message once
         # for the first one.  One per "playbook"
         play = getattr(self, 'play', None)
@@ -85,8 +79,6 @@ class CallbackModule(object):
                 self.playbook_path = path
 
     def playbook_on_stats(self, stats):
-        if self.failed:
-            return
         if not self.playbook_path:
             return
 
