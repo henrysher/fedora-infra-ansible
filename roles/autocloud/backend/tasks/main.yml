@@ -45,6 +45,19 @@
   - autocloud
   - autocloud/backend
 
+- name: copy autocloud fedmsg configuration
+  template: >
+    src={{ item }} dest=/etc/fedmsg.d/{{ item }}
+    owner=root group=fedmsg mode=0640
+  with_items:
+  - autocloud.py
+  notify:
+  - restart fedmsg-hub
+  - restart autocloud
+  tags:
+  - autocloud
+  - autocloud/backend
+
 - name: install vagrant-libvirt for the libvirt host
   dnf: pkg={{ item }} state=present
   with_items:
