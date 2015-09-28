@@ -18,7 +18,7 @@
   - autocloud/backend
 
 - name: Check for the existance of a 'tunirports' redis entry
-  command: redis-cli get tunirports
+  command: redis-cli --scan --pattern tunirports
   register: tunirports
   tags:
   - autocloud
@@ -26,7 +26,7 @@
 
 - name: Run createports.py, but only if we never have done so.
   command: python /usr/share/tunir/createports.py
-  when: tunirports.stdout != '(nil)'
+  when: tunirports.stdout.find('tunirports') != -1
   tags:
   - autocloud
   - autocloud/backend
