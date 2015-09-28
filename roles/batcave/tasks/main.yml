@@ -25,9 +25,43 @@
   - pyliblzma                 # Needed for repo2json
   - ansible_utils             # Needed for rbac-playbook
   - python-GeoIP              # Needed for geoip scripts
+  - python-fedmsg-fasclient   # fasClient fedmsg job
+  - bind                      # named-checkzone for dns repo
+  - emacs-nox                 # because smooge is weak
+  - rpm-sign                  # for the sign-and-import playbook
+  - createrepo                # for the sign-and-import playbook
   tags:
   - batcave
   - config
+
+- name: setup ssh_known_hosts file
+  copy: src=ssh_known_hosts dest=/etc/ssh/ssh_known_hosts mode=0644
+  tags:
+  - batcave
+  - config
+  - fingerprints
+
+- name: Set up RHOS repo for cloud client stuff
+  copy: src=rhel7-rhos.repo dest=/etc/yum.repos.d/rhel7-rhos.repo
+  tags:
+  - cloud
+  - batcave
+  - config
+
+- name: install cloud client packages
+  yum: pkg={{ item }} state=present
+  with_items:
+  - python-novaclient
+  - python-neutronclient
+  - python-oslo-config
+  - python-six
+  - python-keystoneclient
+  - python-glanceclient
+  tags:
+  - cloud
+  - batcave
+  - config
+
 
 # 
 # This is our ansible master, setup ansible
@@ -40,7 +74,7 @@
   - config
 
 - name: run daily logview report for ansible actions. 
-  copy: src=logview.cron dest=/etc/cron.daily/logview.cron
+  copy: src=logview.cron dest=/etc/cron.daily/logview.cron mode=0755
   tags:
   - batcave
   - config
@@ -72,6 +106,15 @@
   tags:
   - batcave
   - config
+
+
+# Hook to republish our bare repos for web viewing.
+- name: setup syncgittree.sh script
+  copy: src=syncgittree.sh dest=/usr/local/bin/syncgittree.sh mode=0755
+  tags:
+  - batcave
+  - config
+
 
 #
 # Script used to gather encrypted security questions from fas
@@ -135,41 +178,40 @@
 # This script checks all the virthosts and logs what guests they are running. 
 #
 
-#- name: install vmdiff.sh cron
-#  copy: src=vmdiff.sh dest=/etc/cron.hourly/vmdiff.sh mode=0755
-#  tags:
-#  - batcave
-#  - config
+- name: install vmdiff.sh cron
+  copy: src=vmdiff.sh dest=/etc/cron.hourly/vmdiff.sh mode=0755
+  tags:
+  - batcave
+  - config
 
 #
 # Setup public db copy script.
 #
 
-#- name: setup public db copy script
-#  copy: src=public-db-copy.cron dest=/etc/cron.daily/public-db-copy.cron mode=0644
-#  tags:
-#  - batcave
-#  - config
+- name: setup public db copy script
+  copy: src=public-db-copy.cron dest=/etc/cron.daily/public-db-copy.cron mode=0755
+  tags:
+  - batcave
+  - config
 
 #
 # Setup job that runs a check/diff ansible run over all playbooks each night.
 #
 
-#- name: setup checkdiff ansible job
-#  copy: src=ansible-playbook-check-diff.cron dest=/etc/cron.daily/ansible-playbook-check-diff.cron mode=0644
-#  tags:
-#  - batcave
-#  - config
+- name: setup checkdiff ansible job
+  copy: src=ansible-playbook-check-diff.cron dest=/etc/cron.daily/ansible-playbook-check-diff.cron mode=0755
+  tags:
+  - batcave
+  - config
 
 #
 # sync-rhn cron job
 #
-#- name: setup sync-rhn cron
-#  copy: src=sync-rhn dest=/etc/cron.d/sync-rhn mode=0644
-#  tags:
-#  - batcave
-#  - config
-#
+- name: setup sync-rhn cron
+  copy: src=sync-rhn dest=/etc/cron.d/sync-rhn mode=0644
+  tags:
+  - batcave
+  - config
 
 #
 # Setup web server config
@@ -205,18 +247,18 @@
   - batcave
   - config
 
-#- name: create repo2json cron job
-#  copy: src=repo2json.cron dest=/etc/cron.d/repo2json.cron mode=0644
-#  tags:
-#  - batcave
-#  - config
+- name: create repo2json cron job
+  copy: src=repo2json.cron dest=/etc/cron.d/repo2json.cron mode=0644
+  tags:
+  - batcave
+  - config
 
 #
 # ansible utils includes our rbac-playbook
 #
 
 - name: install ansible_utils config
-  copy: src={{ puppet_private }}/rbac.yaml dest=/etc/ansible_utils/rbac.yaml mode=0500
+  copy: src={{ private }}/files/rbac/rbac.yaml dest=/etc/ansible_utils/rbac.yaml mode=0500
   tags:
   - batcave
   - config
@@ -237,3 +279,131 @@
   tags:
   - batcave
   - config
+
+#
+# fasClient fedmsg job
+#
+
+- name: Install config for fedmsg tigger for fasClient runs
+  copy: src=fedmsg-fasclient.py dest=/etc/fedmsg.d/fasclient.py mode=0644
+  tags:
+  - batcave
+  - config
+
+#
+# set selinux context for /srv/web/infra
+#
+
+- name: check the selinux context of webdir
+  command: matchpathcon /srv/web
+  register: webdir
+  always_run: yes
+  changed_when: "1 != 1"
+  tags:
+  - config
+  - batcave
+  - selinux
+  - httpd
+  - httpd/website
+
+- name: /srv/web file contexts
+  command: semanage fcontext -a -t httpd_sys_content_t "/srv/web(/.*)?"
+  when: webdir.stdout.find('httpd_sys_content_t') == -1
+  tags:
+  - config
+  - batcave
+  - selinux
+  - httpd
+  - httpd/website
+
+#
+# set selinux context for public git repos
+#
+
+- name: check the selinux context of ansible
+  command: matchpathcon /git/ansible
+  register: webdir
+  always_run: yes
+  changed_when: "1 != 1"
+  tags:
+  - config
+  - batcave
+  - selinux
+  - httpd
+  - httpd/website
+
+- name: /git/ansible file contexts
+  command: semanage fcontext -a -t git_content_t "/git/ansible(/.*)?"
+  when: webdir.stdout.find('git_content_t') == -1
+  tags:
+  - config
+  - batcave
+  - selinux
+  - httpd
+  - httpd/website
+
+- name: check the selinux context of badges
+  command: matchpathcon /git/badges
+  register: webdir
+  always_run: yes
+  changed_when: "1 != 1"
+  tags:
+  - config
+  - batcave
+  - selinux
+  - httpd
+  - httpd/website
+
+- name: /git/badges file contexts
+  command: semanage fcontext -a -t git_content_t "/git/badges(/.*)?"
+  when: webdir.stdout.find('git_content_t') == -1
+  tags:
+  - config
+  - batcave
+  - selinux
+  - httpd
+  - httpd/website
+
+- name: check the selinux context of dns
+  command: matchpathcon /git/dns
+  register: webdir
+  always_run: yes
+  changed_when: "1 != 1"
+  tags:
+  - config
+  - batcave
+  - selinux
+  - httpd
+  - httpd/website
+
+- name: /git/dns file contexts
+  command: semanage fcontext -a -t git_content_t "/git/dns(/.*)?"
+  when: webdir.stdout.find('git_content_t') == -1
+  tags:
+  - config
+  - batcave
+  - selinux
+  - httpd
+  - httpd/website
+
+- name: check the selinux context of infra-docs
+  command: matchpathcon /git/infra-docs
+  register: webdir
+  always_run: yes
+  changed_when: "1 != 1"
+  tags:
+  - config
+  - batcave
+  - selinux
+  - httpd
+  - httpd/website
+
+- name: /git/infra-docs file contexts
+  command: semanage fcontext -a -t git_content_t "/git/infra-docs(/.*)?"
+  when: webdir.stdout.find('git_content_t') == -1
+  tags:
+  - config
+  - batcave
+  - selinux
+  - httpd
+  - httpd/website

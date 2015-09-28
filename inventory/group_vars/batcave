@@ -10,9 +10,22 @@ custom_rules: [ '-A INPUT -p tcp -m tcp -s 10.5.126.13 --dport 873 -j ACCEPT', '
 
 fas_client_groups: sysadmin-ask,sysadmin-build,sysadmin-cvs,sysadmin-main,sysadmin-web,sysadmin-noc,sysadmin-hosted,sysadmin-releng,sysadmin-qa,sysadmin-tools,sysadmin-cloud,sysadmin-bot,sysadmin-centos,sysadmin-koschei,fi-apprentice
 
-ansible_base: /srv/web/infra/ansible
+ansible_base: /srv/web/infra
 freezes: false
 nfs_mount_opts: "rw,hard,bg,intr,noatime,nodev,nosuid,nfsvers=3"
+
+fedmsg_certs:
+- service: shell
+  owner: root
+  group: sysadmin
+  can_send:
+  - ansible.playbook.complete
+  - ansible.playbook.start
+- service: scm
+  owner: root
+  group: sysadmin
+  can_send:
+  - infragit.receive
 
 # For the MOTD
 csi_security_category: High
@@ -33,3 +46,5 @@ csi_relationship: |
     If this host is down, ansible runs cannot be made to update other hosts.
     If this host is down, crime may go up in gotham city.
 
+nrpe_procs_warn: 900
+nrpe_procs_crit: 1000

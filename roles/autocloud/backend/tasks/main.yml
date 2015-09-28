@@ -1,0 +1,118 @@
+---
+# Configuration for the Fedora Notifications webapp
+
+- name: install needed packages
+  dnf: pkg={{ item }} state=present
+  with_items:
+  - autocloud-common
+  - autocloud-backend
+  - tunir
+  - python-sqlalchemy
+  - python-sqlalchemy-utils
+  - libsemanage-python
+  notify:
+  - restart fedmsg-hub
+  - restart autocloud
+  tags:
+  - autocloud
+  - autocloud/backend
+
+- name: Check for the existance of a 'tunirports' redis entry
+  command: redis-cli --scan --pattern tunirports
+  changed_when: False
+  register: tunirports
+  tags:
+  - autocloud
+  - autocloud/backend
+
+- name: Run createports.py, but only if we never have done so.
+  command: python /usr/share/tunir/createports.py
+  when: tunirports.stdout.find('tunirports') == -1
+  tags:
+  - autocloud
+  - autocloud/backend
+
+- name: copy autocloud backend configuration
+  template: >
+    src={{ item }} dest=/etc/autocloud/{{ item }}
+    owner=root group=fedmsg mode=0640
+  with_items:
+  - autocloud.cfg
+  notify:
+  - restart fedmsg-hub
+  - restart autocloud
+  tags:
+  - autocloud
+  - autocloud/backend
+
+- name: copy autocloud fedmsg configuration
+  template: >
+    src={{ item }} dest=/etc/fedmsg.d/{{ item }}
+    owner=root group=fedmsg mode=0640
+  with_items:
+  - autocloud.py
+  notify:
+  - restart fedmsg-hub
+  - restart autocloud
+  tags:
+  - autocloud
+  - autocloud/backend
+
+- name: install vagrant-libvirt for the libvirt host
+  dnf: pkg={{ item }} state=present
+  with_items:
+  - vagrant-libvirt
+  when: autocloud_specialization == 'libvirt'
+  notify:
+  - restart fedmsg-hub
+  - restart autocloud
+  tags:
+  - autocloud
+  - autocloud/backend
+
+- name: Setup virtualbox requirements where needed
+  copy: src=virtualbox.repo dest=/etc/yum.repos.d/virtualbox.repo
+  when: autocloud_specialization == 'virtualbox'
+  tags:
+  - autocloud
+  - autocloud/backend
+
+- name: install virtualbox basics where needed
+  dnf: pkg={{ item }} state=present
+  with_items:
+  - VirtualBox-4.3
+  - kernel-devel
+  - vagrant
+  register: virtualbox_installed
+  when: autocloud_specialization == 'virtualbox'
+  notify:
+  - restart fedmsg-hub
+  - restart autocloud
+  tags:
+  - autocloud
+  - autocloud/backend
+
+- name: setup vbox if it was just installed.
+  command: /etc/init.d/vboxdrv setup
+  when: virtualbox_installed|changed
+  notify:
+  - restart fedmsg-hub
+  - restart autocloud
+  tags:
+  - autocloud
+  - autocloud/backend
+
+- name: Copy the correct tunir job details
+  copy: src=fedora.txt dest=/etc/autocloud/fedora.txt
+  notify:
+  - restart fedmsg-hub
+  - restart autocloud
+  tags:
+  - autocloud
+  - autocloud/backend
+
+- name: start autocloud
+  service: name=autocloud enabled=yes state=started
+  tags:
+  - autocloud
+  - autocloud/backend

@@ -55,7 +55,7 @@
 
 - name: install koji ca cert
   copy: >
-    src="{{ puppet_private }}/fedora-ca.cert"
+    src="{{ private }}/files/fedora-ca.cert"
     dest="/etc/koschei/fedora-ca.cert"
     owner=root
     group=root
@@ -108,18 +108,11 @@
   - koschei
   - config
 
-# See https://github.com/msimacek/koschei/issues/16
-- name: HOTFIX koschei resolver.py
-  copy: >
-    src=resolver.py
-    dest=/usr/lib/python2.7/site-packages/koschei/resolver.py
-    owner=root group=root mode=0644
-  when: env == "production"
-  notify:
-  - restart koschei-resolver
+- name: Install jenkins repo on stg
+  copy: src=jenkins.repo dest=/etc/yum.repos.d/jenkins.repo
+  when: env == "staging"
   tags:
   - koschei
-  - hotfix
 
 - name: access to postgres for scripts
   template: src=pgpass.j2 dest=/var/cache/koschei/.pgpass
@@ -127,58 +120,3 @@
   tags:
   - koschei
   - config
-
-- name: Create libexec/koschei dir
-  file: path=/usr/libexec/koschei state=directory
-  when: env == "production"
-  tags:
-  - koschei
-  - hotfix
-
-- name: Create symlinks to python to get specific executable names
-  file: path="/usr/libexec/koschei/koschei-{{ item }}"
-        src=/usr/bin/python
-        state=link
-  when: env == "production"
-  with_items:
-  - polling
-  - resolver
-  - scheduler
-  - watcher
-  tags:
-  - koschei
-  - hotfix
-
-- name: Run using specific symlinks
-  lineinfile: dest="/usr/lib/systemd/system/koschei-{{ item }}.service"
-              regexp="^ExecStart"
-              line="ExecStart=/usr/libexec/koschei/koschei-{{ item }} -m koschei.main {{ item }}"
-  when: env == "production"
-  with_items:
-  - polling
-  - resolver
-  - scheduler
-  - watcher
-  tags:
-  - koschei
-  - hotfix
-  notify:
-  - reload systemd
-  - restart koschei-polling
-  - restart koschei-resolver
-  - restart koschei-scheduler
-  - restart koschei-watcher
-
-- name: HOTFIX datetime error on unfinished tasks with finished parent
-  lineinfile: dest="/usr/lib/python2.7/site-packages/koschei/backend.py"
-              regexp="finished=datetime\.fromtimestamp\(task\['completion_ts'\]\)"
-              line="finished=datetime.fromtimestamp(task['completion_ts']) if task['completion_ts'] else None,"
-  when: env == "production"
-  tags:
-  - koschei
-  - hotfix
-  notify:
-  - restart koschei-polling
-  - restart koschei-resolver
-  - restart koschei-watcher
-  - restart koschei-scheduler
