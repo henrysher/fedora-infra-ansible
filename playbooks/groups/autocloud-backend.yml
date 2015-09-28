@@ -30,24 +30,22 @@
   handlers:
   - include: "{{ handlers }}/restart_services.yml"
 
-#- name: dole out the service-specific config
-#  hosts: autocloud-backend;autocloud-backend-stg
-#  user: root
-#  gather_facts: True
-#
-#  roles:
-#  - fedmsg/hub
-#  - autocloud/backend
-#  - redis?
-#  - role: collectd/fedmsg-service
-#    process: fedmsg-hub
+- name: dole out the service-specific config
+  hosts: autocloud-backend;autocloud-backend-stg
+  user: root
+  gather_facts: True
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"
+
+  roles:
+  - redis
+  - autocloud/backend
 #  - role: collectd/redis-something?
 #    process: fedmsg-hub
-#
-#  vars_files: 
-#   - /srv/web/infra/ansible/vars/global.yml
-#   - "/srv/private/ansible/vars.yml"
-#   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
-#
-#  handlers:
-#  - include: "{{ handlers }}/restart_services.yml"
+#  - fedmsg/hub
+#  - role: collectd/fedmsg-service
+#    process: fedmsg-hub
