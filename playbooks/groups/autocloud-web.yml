@@ -5,7 +5,7 @@
   user: root
   gather_facts: True
 
-  vars_files: 
+  vars_files:
    - /srv/web/infra/ansible/vars/global.yml
    - "/srv/private/ansible/vars.yml"
    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
@@ -23,7 +23,6 @@
   - collectd/base
   - apache
   - fedmsg/base
-  #- autocloud/frontend
   - sudo
   - role: openvpn/client
     when: env != "staging"
@@ -35,3 +34,18 @@
 
   handlers:
   - include: "{{ handlers }}/restart_services.yml"
+
+- name: dole out the app-specific configuration
+  hosts: autocloud-web;autocloud-web-stg
+  user: root
+  gather_facts: True
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"
+
+  roles:
+  - autocloud/frontend
