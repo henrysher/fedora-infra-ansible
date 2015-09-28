@@ -24,8 +24,13 @@ try:
     pid = os.getpid()
     proc = [p for p in psutil.process_iter() if p.pid == pid][0]
 
+    # proc.name is a method on modern versions of psutil.
+    name = proc.name
+    if callable(name):
+        name = name()
+
     config['moksha.monitoring.socket'] = \
-        'ipc:///var/run/fedmsg/monitoring-%s.socket' % proc.name
+        'ipc:///var/run/fedmsg/monitoring-%s.socket' % name
     config['moksha.monitoring.socket.mode'] = '770'
 except (OSError, ImportError):
     # We run into issues when trying to import psutil from mod_wsgi on rhel7

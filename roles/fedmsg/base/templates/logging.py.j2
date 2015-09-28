@@ -54,7 +54,13 @@ class ContextInjector(logging.Filter):
         record.proc = current_process
         record.pid = current_process.pid
         record.proc_name = current_process.name
-        record.command_line = " ".join(current_process.cmdline)
+        record.command_line = current_process.cmdline
+        # These are callabls on more modern versions of psutil.
+        if callable(record.proc_name):
+            record.proc_name = record.proc_name()
+        if callable(record.command_line):
+            record.command_line = record.command_line()
+        record.command_line = " ".join(record.command_line)
         record.callstack = self.format_callstack()
         record.farewell = ""
 
