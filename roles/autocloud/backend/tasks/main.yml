@@ -71,6 +71,9 @@
   - vagrant
   register: virtualbox_installed
   when: autocloud_specialization == 'virtualbox'
+  notify:
+  - restart fedmsg-hub
+  - restart autocloud
   tags:
   - autocloud
   - autocloud/backend
@@ -78,15 +81,6 @@
 - name: setup vbox if it was just installed.
   command: /etc/init.d/vboxdrv setup
   when: virtualbox_installed|changed
-  tags:
-  - autocloud
-  - autocloud/backend
-
-- name: install vagrant-virtualbox for the virtualbox host
-  dnf: pkg={{ item }} state=present
-  with_items:
-  - vagrant-virtualbox
-  when: autocloud_specialization == 'virtualbox'
   notify:
   - restart fedmsg-hub
   - restart autocloud
