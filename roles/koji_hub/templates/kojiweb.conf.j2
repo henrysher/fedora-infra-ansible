@@ -64,9 +64,17 @@ Alias /buildgroups "/mnt/koji/buildgroups/"
 </Directory>
 
 {% if inventory_hostname.startswith('koji') %}
-# use a redirect for packages location
+# use redirects for compose and packages locations
+RewriteRule ^/compose(.+) https://kojipkgs.fedoraproject.org/compose$1  [R=301,L]
 RewriteRule ^/packages(.+) https://kojipkgs.fedoraproject.org/packages$1  [R=301,L]
 {% else %}
+Alias /compose "/mnt/koji/compose/"
+
+<Directory "/mnt/koji/compose/">
+    Options Indexes FollowSymLinks
+    Require all granted
+</Directory>
+
 Alias /packages "/mnt/koji/packages/"
 
 <Directory "/mnt/koji/packages/">
@@ -74,8 +82,9 @@ Alias /packages "/mnt/koji/packages/"
     Require all granted
 </Directory>
 
-# use a redirect for packages location to be consistent with primary hub
+# use redirects for compose and packages locations to be consistent with primary hub
 {% if inventory_hostname == 's390-koji01.qa.fedoraproject.org' %}
+RewriteRule ^/compose(.+) https://s390pkgs.fedoraproject.org/compose$1  [R=301,L]
 RewriteRule ^/packages(.+) https://s390pkgs.fedoraproject.org/packages$1  [R=301,L]
 {% endif %}
 {% endif %}
