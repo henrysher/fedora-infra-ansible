@@ -84,7 +84,7 @@ REST_API_VERSION = 'v1'
 
 BROWSABLE_DOCUMENT_MACROS = {
     # need to be rewrite with the real host name when deploy.
-    'HOST_NAME': 'http://{{ansible_ssh_host}}:80',
+    'HOST_NAME': 'http://{{ hostbase }}:80',
     # make consistent with rest api root.
     'API_PATH': '%s%s' % (REST_API_URL, REST_API_VERSION),
 }
