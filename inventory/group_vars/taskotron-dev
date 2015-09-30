@@ -1,5 +1,24 @@
 ---
+############################################################
+# general information
+############################################################
+
 fas_client_groups: sysadmin-qa,sysadmin-main,fi-apprentice
+tcp_ports: [ 80, 443, "{{ buildslave_port }}" ]
+freezes: false
+
+external_hostname: taskotron-dev.fedoraproject.org
+deployment_type: dev
+robots_path: /var/www/html
+
+# this enables extra repos during dnf install but that's broken right now, remember to re-enable
+# extra_enablerepos: 'infrastructure-testing'
+extra_enablerepos: ''
+
+
+############################################################
+# task repo details
+############################################################
 
 grokmirror_basedir: /var/lib/git/mirror
 grokmirror_user: grokmirror
@@ -9,8 +28,38 @@ grokmirror_repos:
   - { name: fedoraqa/examplelong, url: 'https://bitbucket.org/fedoraqa/task-examplelong.git'}
   - { name: fedoraqa/examplebodhi, url: 'https://bitbucket.org/fedoraqa/task-examplebodhi.git'}
   - { name: fedoraqa/upgradepath, url: 'https://bitbucket.org/fedoraqa/task-upgradepath.git'}
-buildslave_ssh_pubkey: 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDqNpJlS14KKQQ8gAaXo0untJRccLJSrdUt/hWlpZ9Oad5KKYoRNznsGK3j9WCO4YDFXKGGxBrpqdyegPLO4J9zHmtlUPNfM4kbXVlVtIMGGKmBi9rQPNRpeclUpsjlo3uF9IqIIUSS1IMcx1X1oz60kmrAWO9+Z7mYs/AuCCeomlET3OU7paQYxL5Dgs2n6/IjhvoCitN9T9bBf91nLuRh+EtEbBL5ztZ1kVJxj5oTQN7iGKw2V0tW0MJ1WtnK2/j4v9MivnZPSPPKDysveNze2Vy9kioQACvrvjyHMIQrc+2YS/38D/fv7e4WhhuoOGT5Tip20PPspiCQRiSUBDN1 buildslave@taskotron-stg.fedoraproject.org'
+
+
+############################################################
+# urls and endpoints
+############################################################
+
+execdb_endpoint: execdb
+execdb_statuspush: http://resultsdb-dev01.qa.fedoraproject.org/execdb/buildbottest
+execdb_server: http://resultsdb-dev01.qa.fedoraproject.org/execdb
+resultsdb_api_endpoint: resultsdb_api
+resultsdb_host: http://resultsdb-dev01.qa.fedoraproject.org/resultsdb_api/
+resultsdb_external_url: https://taskotron-dev.fedoraproject.org/resultsdb/
+resultsdb_fe_endpoint: resultsdb
+resultsdb_frontend_url: http://resultsdb-dev01.qa.fedoraproject.org/resultsdb/
+resultsdb_url: http://resultsdb-dev01.qa.fedoraproject.org/resultsdb_api/api/v1.0
+taskotron_docs_url: https://docs.qadevel.cloud.fedoraproject.org/libtaskotron/latest/
+
+
+############################################################
+# taskotron details
+############################################################
+
 settings_dir: /etc/taskotron
+landingpage_title: "Taskotron Development"
+public_artifacts_dir: /srv/taskotron/artifacts
+
+
+############################################################
+# buildbot details
+############################################################
+
+buildslave_ssh_pubkey: 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDqNpJlS14KKQQ8gAaXo0untJRccLJSrdUt/hWlpZ9Oad5KKYoRNznsGK3j9WCO4YDFXKGGxBrpqdyegPLO4J9zHmtlUPNfM4kbXVlVtIMGGKmBi9rQPNRpeclUpsjlo3uF9IqIIUSS1IMcx1X1oz60kmrAWO9+Z7mYs/AuCCeomlET3OU7paQYxL5Dgs2n6/IjhvoCitN9T9bBf91nLuRh+EtEbBL5ztZ1kVJxj5oTQN7iGKw2V0tW0MJ1WtnK2/j4v9MivnZPSPPKDysveNze2Vy9kioQACvrvjyHMIQrc+2YS/38D/fv7e4WhhuoOGT5Tip20PPspiCQRiSUBDN1 buildslave@taskotron-stg.fedoraproject.org'
 buildmaster_db_host: db-qa01.qa.fedoraproject.org
 buildmaster_db_name: buildmaster_dev
 buildmaster_template: taskotron.master.cfg.j2
@@ -22,24 +71,13 @@ buildmaster_dir: /home/buildmaster/master
 buildslave_dir: /home/buildslave/slave
 master_dir: /home/buildmaster/master
 master_user: buildmaster
-external_hostname: taskotron-dev.fedoraproject.org
-execdb_server: http://resultsdb-dev01.qa.fedoraproject.org/execdb
-execdb_statuspush: http://resultsdb-dev01.qa.fedoraproject.org/execdb/buildbottest
-execdb_endpoint: execdb
-resultsdb_url: http://resultsdb-dev01.qa.fedoraproject.org/resultsdb_api/api/v1.0
-resultsdb_host: http://resultsdb-dev01.qa.fedoraproject.org/resultsdb_api/
-resultsdb_frontend_url: http://resultsdb-dev01.qa.fedoraproject.org/resultsdb/
-resultsdb_external_url: https://taskotron-dev.fedoraproject.org/resultsdb/
-resultsdb_fe_endpoint: resultsdb
-resultsdb_api_endpoint: resultsdb_api
-landingpage_title: "Taskotron Development"
-deployment_type: dev
-tcp_ports: [ 80, 443, "{{ buildslave_port }}" ]
+
+
+############################################################
+# fakefedorainfra stuff (shouldn't need this anymore)
+############################################################
+
 fakefedorainfra_db_host: db-qa01.qa.fedoraproject.org
 fakefedorainfra_db_name: dev_fakefedorainfra
 fakefedorainfra_endpoint: fakefedorainfra
 fakefedorainfra_url: https://taskotron-dev.fedoraproject.org/fakefedorainfra
-taskotron_docs_url: https://docs.qadevel.cloud.fedoraproject.org/libtaskotron/latest/
-freezes: false
-public_artifacts_dir: /srv/taskotron/artifacts
-robots_path: /var/www/html

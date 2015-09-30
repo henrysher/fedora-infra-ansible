@@ -1,23 +1,22 @@
 ---
-# common items for the releng-* boxes
-lvm_size: 50000
-mem_size: 4096
-num_cpus: 4
-# for systems that do not match the above - specify the same parameter in
-# the host_vars/$hostname file
+############################################################
+# general information
+############################################################
 
+freezes: false
 tcp_ports: [ 80, 443, "{{ resultsdb_db_port }}", "{{ execdb_db_port }}" ]
-fas_client_groups: sysadmin-qa,sysadmin-main,fi-apprentice
-nrpe_procs_warn: 250
-nrpe_procs_crit: 300
 
-virt_install_command: /usr/sbin/virt-install -n {{ inventory_hostname }} -r {{ mem_size }}
-                 --disk bus=virtio,path={{ volgroup }}/{{ inventory_hostname }}
-                 --vcpus={{ num_cpus }}  -l {{ ks_repo }} -x
-                 "ksdevice=eth0 ks={{ ks_url }} console=tty0 console=ttyS0
-                  hostname={{ inventory_hostname }} nameserver={{ dns }}
-                  ip={{ eth0_ip }}::{{ gw }}:{{ nm }}:{{ inventory_hostname }}:eth0:none"
-                 --network=bridge=br0,model=virtio --autostart --noautoconsole
+external_hostname: taskotron-dev.fedoraproject.org
+deployment_type: dev
+
+# this enables extra repos during dnf install but that's broken right now, remember to re-enable
+# extra_enablerepos: 'infrastructure-testing'
+extra_enablerepos: ''
+
+
+############################################################
+# resultsdb details
+############################################################
 
 # the db_host_machine bits are so that delegation continues to work, even if
 # that db is localhost relative to resultsdb
@@ -30,6 +29,13 @@ resultsdb_db_name: resultsdb_dev
 resultsdb_db_user: "{{ dev_resultsdb_db_user }}"
 resultsdb_db_password: "{{ dev_resultsdb_db_password }}"
 
+allowed_hosts:
+    - 10.5.124
+
+############################################################
+# execdb details
+############################################################
+
 execdb_db_host_machine: db-qa01.qa.fedoraproject.org
 execdb_db_host: "{{ execdb_db_host_machine }}"
 execdb_db_port: 5432
@@ -38,13 +44,4 @@ execdb_db_name: execdb_dev
 execdb_db_user: "{{ dev_execdb_db_user }}"
 execdb_db_password: "{{ dev_execdb_db_password }}"
 
-external_hostname: taskotron-dev.fedoraproject.org
 
-allowed_hosts:
-    - 10.5.124
-
-# this enables extra repos during dnf install but that's broken right now, remember to re-enable
-# extra_enablerepos: 'infrastructure-testing'
-extra_enablerepos: ''
-
-freezes: false

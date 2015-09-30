@@ -1,12 +1,44 @@
 ---
+############################################################
+# networking
+############################################################
+
 nm: 255.255.255.0
 gw: 10.5.124.254
 dns: 10.5.126.21
+eth0_ip: 10.5.124.205
+
+
+############################################################
+# install
+############################################################
+
 ks_url: http://10.5.126.23/repo/rhel/ks/kvm-fedora-22
 ks_repo: http://10.5.126.23/pub/fedora/linux/releases/22/Server/x86_64/os/
+
 volgroup: /dev/VirtGuests
-eth0_ip: 10.5.124.205
 vmhost: virthost-comm02.qa.fedoraproject.org
 datacenter: phx2
 
-deployment_type: dev
+
+############################################################
+# virtual machine
+############################################################
+
+fas_client_groups: sysadmin-qa,sysadmin-main,fi-apprentice
+
+lvm_size: 50000
+mem_size: 4096
+num_cpus: 4
+
+nrpe_procs_warn: 250
+nrpe_procs_crit: 300
+
+virt_install_command: /usr/sbin/virt-install -n {{ inventory_hostname }} -r {{ mem_size }}
+                 --disk bus=virtio,path={{ volgroup }}/{{ inventory_hostname }}
+                 --vcpus={{ num_cpus }}  -l {{ ks_repo }} -x
+                 "ksdevice=eth0 ks={{ ks_url }} console=tty0 console=ttyS0
+                  hostname={{ inventory_hostname }} nameserver={{ dns }}
+                  ip={{ eth0_ip }}::{{ gw }}:{{ nm }}:{{ inventory_hostname }}:eth0:none"
+                 --network=bridge=br0,model=virtio --autostart --noautoconsole
+
