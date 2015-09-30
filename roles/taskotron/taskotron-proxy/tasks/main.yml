@@ -4,9 +4,16 @@
 # closer to stg/prod
 
 - name: ensure packages required for proxying are installedc
-  action: yum name={{ item }} state=latest
+  yum: name={{ item }} state=latest enablerepo={{ extra_enablerepos }}
   with_items:
     - libsemanage-python
+  when: ansible_distribution_major_version|int < 22
+
+- name: ensure packages required for proxying are installedc
+  dnf: name={{ item }} state=latest enablerepo={{ extra_enablerepos }}
+  with_items:
+    - libsemanage-python
+  when: ansible_distribution_major_version|int > 21 and ansible_cmdline.ostree is not defined
 
 - name: allow httpd tcp connections with selinux
   seboolean: name=httpd_can_network_connect state=true persistent=yes

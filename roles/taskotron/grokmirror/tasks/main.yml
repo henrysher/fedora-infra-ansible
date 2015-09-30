@@ -1,8 +1,16 @@
 - name: ensure grokmirror packages are installed
-  action: yum name={{ item }} state=latest
+  yum: name={{ item }} state=latest enablerepo={{ extra_enablerepos }}
   with_items:
       - git
       - python-grokmirror
+  when: ansible_distribution_major_version|int < 22
+
+- name: ensure grokmirror packages are installed
+  dnf: name={{ item }} state=latest enablerepo={{ extra_enablerepos }}
+  with_items:
+      - git
+      - python-grokmirror
+  when: ansible_distribution_major_version|int > 21 and ansible_cmdline.ostree is not defined
 
 - name: create grokmirror user
   user: name={{ grokmirror_user }}

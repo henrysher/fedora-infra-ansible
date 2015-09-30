@@ -1,5 +1,5 @@
 - name: ensure packages required for resultsdb are installed
-  action: yum name={{ item }} state=latest
+  yum: name={{ item }} state=latest
   when: deployment_type == 'prod' or deployment_type == 'local'
   with_items:
     - resultsdb
@@ -8,8 +8,8 @@
     - libsemanage-python
 
 - name: ensure packages required for resultsdb are installed (infra-testing)
-  action: yum name={{ item }} state=latest enablerepo=infrastructure-testing
-  when: deployment_type == 'dev' or deployment_type == 'stg'
+  dnf: name={{ item }} state=latest enablerepo={{ extra_enablerepos }}
+  when: ansible_distribution_major_version|int > 21 and ansible_cmdline.ostree is not defined
   with_items:
     - resultsdb
     - mod_wsgi
@@ -17,17 +17,17 @@
     - libsemanage-python
 
 - name: ensure database is created
-  delegate_to: "{{ resultsdb_db_host }}"
+  delegate_to: "{{ resultsdb_db_host_machine }}"
   sudo_user: postgres
   sudo: true
   action: postgresql_db db={{ resultsdb_db_name }}
 
 - name: ensure dev resultsdb db user has access to dev database
   when: deployment_type == 'dev'
-  delegate_to: "{{ resultsdb_db_host }}"
+  delegate_to: "{{ resultsdb_db_host_machine }}"
   sudo_user: postgres
   sudo: true
-  action: postgresql_user db={{ resultsdb_db_name }} user={{ dev_resultsdb_db_user }} password={{ dev_resultsdb_db_password }} role_attr_flags=NOSUPERUSER
+  action: postgresql_user db={{ resultsdb_db_name }} user={{ resultsdb_db_user }} password={{ resultsdb_db_password }} role_attr_flags=NOSUPERUSER
 
 - name: ensure stg resultsdb db user has access to stg database
   when: deployment_type == 'stg'

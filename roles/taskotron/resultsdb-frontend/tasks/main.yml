@@ -1,16 +1,16 @@
 - name: ensure packages required for resultsdb_frontend are installed
-  action: yum name={{ item }} state=latest
+  yum: name={{ item }} state=latest enablerepo={{ extra_enablerepos }}
   when: deployment_type == 'prod' or deployment_type == 'local'
   with_items:
     - resultsdb_frontend
     - mod_wsgi
 
-- name: ensure packages required for resultsdb_frontend are installed (infra-testing)
-  action: yum name={{ item }} state=latest enablerepo=infrastructure-testing
-  when: deployment_type == 'dev' or deployment_type == 'stg'
+- name: ensure packages required for resultsdb_frontend are installed (f22+)
+  dnf: name={{ item }} state=latest enablerepo={{ extra_enablerepos }}
   with_items:
     - resultsdb_frontend
     - mod_wsgi
+  when: ansible_distribution_major_version|int > 21 and ansible_cmdline.ostree is not defined
 
 - name: generate resultsdb_frontend config
   template: src=settings.py.j2 dest=/etc/resultsdb_frontend/settings.py owner=root group=root mode=0644

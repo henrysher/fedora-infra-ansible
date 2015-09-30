@@ -1,7 +1,14 @@
 - name: ensure packages required for taskotron-frontend are installed
-  action: yum name={{ item }} state=latest
+  yum: name={{ item }} state=latest enablerepo={{ extra_enablerepos }}
   with_items:
     - httpd
+  when: ansible_distribution_major_version|int < 22
+
+- name: ensure packages required for taskotron-frontend are installed (f22+)
+  dnf: name={{ item }} state=latest enablerepo={{ extra_enablerepos }}
+  with_items:
+    - httpd
+  when: ansible_distribution_major_version|int > 21 and ansible_cmdline.ostree is not defined
 
 - name: create dirs for static files
   file: path=/var/www/html/{{ item }} state=directory owner=apache group=apache mode=1755

@@ -1,22 +1,22 @@
 - name: ensure packages required for taskotron-trigger are installed
-  action: yum name={{ item }} state=latest
-  when: deployment_type == 'prod' or deployment_type == 'local'
+  yum: name={{ item }} state=latest enablerepo={{ extra_enablerepos }}
   with_items:
     - fedmsg
     - fedmsg-hub
     - taskotron-trigger
     # needed for cron script
     - resultsdb_api
+  when: deployment_type == 'prod' or deployment_type == 'local'
 
 - name: ensure packages required for taskotron-trigger are installed (infra-testing)
-  action: yum name={{ item }} state=latest enablerepo=infrastructure-testing
-  when: deployment_type == 'dev' or deployment_type == 'stg'
+  dnf: name={{ item }} state=latest enablerepo={{ extra_enablerepos }}
   with_items:
     - fedmsg
     - fedmsg-hub
     - taskotron-trigger
     # needed for cron script
     - resultsdb_api
+  when: ansible_distribution_major_version|int > 21 and ansible_cmdline.ostree is not defined
 
 - name: generate trigger configuration
   template: src=trigger.cfg.j2 dest=/etc/taskotron/trigger.cfg owner=root group=root mode=0744

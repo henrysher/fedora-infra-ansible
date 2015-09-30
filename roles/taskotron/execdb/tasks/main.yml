@@ -1,5 +1,5 @@
 - name: ensure packages required for execdb are installed
-  action: yum name={{ item }} state=latest
+  yum: name={{ item }} state=latest
   when: deployment_type == 'prod' or deployment_type == 'local'
   with_items:
     - execdb
@@ -7,14 +7,14 @@
     - python-psycopg2
     - libsemanage-python
 
-- name: ensure packages required for execdb are installed (testing)
-  action: yum name={{ item }} state=latest enablerepo=infrastructure-testing
-  when: deployment_type == 'dev' or deployment_type == 'stg'
+- name: ensure packages required for execdb are installed (f22+)
+  dnf: name={{ item }} state=latest enablerepo={{ extra_enablerepos }}
   with_items:
     - execdb
     - mod_wsgi
     - python-psycopg2
     - libsemanage-python
+  when: ansible_distribution_major_version|int > 21 and ansible_cmdline.ostree is not defined
 
 - name: ensure database is created
   delegate_to: "{{ execdb_db_host }}"
@@ -27,7 +27,7 @@
   delegate_to: "{{ execdb_db_host }}"
   sudo_user: postgres
   sudo: true
-  action: postgresql_user db={{ execdb_db_name }} user={{ dev_execdb_db_user }} password={{ dev_execdb_db_password }} role_attr_flags=NOSUPERUSER
+  action: postgresql_user db={{ execdb_db_name }} user={{ execdb_db_user }} password={{ execdb_db_password }} role_attr_flags=NOSUPERUSER
 
 - name: ensure stg execdb db user has access to stg database
   when: deployment_type == 'stg'
