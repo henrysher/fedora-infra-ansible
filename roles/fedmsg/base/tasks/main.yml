@@ -149,7 +149,7 @@
 
 - name: install fedmsg-relay in case we're in debug mode.
   yum: name=fedmsg-relay state=present
-  when: fedmsg_debug_loopback is true
+  when: fedmsg_debug_loopback == true
   tags:
   - fedmsg_loopback
   - fedmsg/base
@@ -165,7 +165,7 @@
   with_items:
   - relay.py
   - policy.py
-  when: fedmsg_debug_loopback is true
+  when: fedmsg_debug_loopback == true
   tags:
   - fedmsg_loopback
   - fedmsg/base
@@ -178,7 +178,7 @@
 
 - name: overwrite standard config with local fedmsg debugging loopback
   copy: src=relay-debug-loopback.py dest=/etc/fedmsg.d/relay.py
-  when: fedmsg_debug_loopback is true
+  when: fedmsg_debug_loopback == true
   tags:
   - fedmsg_loopback
   - fedmsg/base
@@ -191,7 +191,7 @@
 
 - name: start fedmsg-relay, only for loopback testing
   service: name=fedmsg-relay state=started
-  when: fedmsg_debug_loopback is true
+  when: fedmsg_debug_loopback == true
   tags:
   - fedmsg_loopback
   - fedmsg/base
