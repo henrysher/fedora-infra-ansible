@@ -95,9 +95,12 @@ def get_setting(setting):
 
 # ======== Email configuration =========
 # Email addresses who would like to receive email
-ADMINS = (('PDC Admins', 'ralph@fedoraproject.org'),)
+ADMINS = (
+    ('PDC Admins', 'ralph@fedoraproject.org'),
+    ('PDC Admins', 'pingou@fedoraproject.org'),
+)
 # Email SMTP HOST configuration
-EMAIL_HOST = 'bastion.fedoraproject.org'
+EMAIL_HOST = 'localhost'
 # Email sender's address
 SERVER_EMAIL = 'nobody@fedoraproject.org'
 EMAIL_SUBJECT_PREFIX = '[PDC]'
