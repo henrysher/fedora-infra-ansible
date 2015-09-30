@@ -60,8 +60,7 @@ DEBUG = False
 
 # NOTE: this is needed when DEGUB is False.
 #       https://docs.djangoproject.com/en/1.8/ref/settings/#allowed-hosts
-#ALLOWED_HOSTS = ['pdc.fedoraproject.org']
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['{{ hostname }}']
 
 # ADMINS and MANAGERS
 # ADMINS = ()
