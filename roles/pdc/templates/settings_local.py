@@ -103,8 +103,8 @@ SERVER_EMAIL = 'nobody@fedoraproject.org'
 EMAIL_SUBJECT_PREFIX = '[PDC]'
 
 # un-comment below 4 lines if enable email notification as meet any error
-get_setting('LOGGING').get('loggers').update({'pdc.apps.common.handlers': {
-    'handlers': ['mail_admins'],
-    'level': 'ERROR',
-}})
+#get_setting('LOGGING').get('loggers').update({'pdc.apps.common.handlers': {
+#    'handlers': ['mail_admins'],
+#    'level': 'ERROR',
+#}})
 
