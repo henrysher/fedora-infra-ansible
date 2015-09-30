@@ -73,6 +73,30 @@
         owner=ipsilon group=ipsilon mode=0644
   when: env == "staging"
 
+- name: create SAML2 dir
+  file: path=/etc/ipsilon/saml2 state=directory mode=0700
+        owner=ipsilon group=ipsilon
+
+- name: copy SAML2 private key
+  copy: src={{ private }}/files/ipsilon/saml2.key dest=/etc/ipsilon/saml2/certificate.key
+        owner=ipsilon group=ipsilon mode=0600
+  when: env != "staging"
+
+- name: copy SAML2 public key
+  copy: src=saml2.pem dest=/etc/ipsilon/saml2/certificate.pem
+        owner=ipsilon group=ipsilon mode=0644
+  when: env != "staging"
+
+- name: copy SAML2 STG private key
+  copy: src={{ private }}/files/ipsilon/saml2.stg.key dest=/etc/ipsilon/certificate.stg.key
+        owner=ipsilon group=ipsilon mode=0600
+  when: env == "staging"
+
+- name: copy SAML STG public key
+  copy: src=saml2.stg.pem dest=/etc/ipsilon/ipsilon/saml2/certificate.stg.pem
+        owner=ipsilon group=ipsilon mode=0644
+  when: env == "staging"
+
 - name: set sebooleans so ipsilon can talk to the db
   action: seboolean name=httpd_can_network_connect_db
                     state=true
