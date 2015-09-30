@@ -147,6 +147,55 @@
   - restart fedmsg-irc
   - restart fedmsg-relay
 
+- name: install fedmsg-relay in case we're in debug mode.
+  yum: name=fedmsg-relay state=present
+  when: fedmsg_debug_loopback is true
+  tags:
+  - fedmsg_loopback
+  - fedmsg/base
+  notify:
+  - restart httpd
+  - restart fedmsg-gateway
+  - restart fedmsg-hub
+  - restart fedmsg-irc
+  - restart fedmsg-relay
+
+- name: destroy standard config to make way for debug loopback.
+  file: dest=/etc/fedmsg.d/{{item}} state=absent
+  with_items:
+  - relay.py
+  - policy.py
+  when: fedmsg_debug_loopback is true
+  tags:
+  - fedmsg_loopback
+  - fedmsg/base
+  notify:
+  - restart httpd
+  - restart fedmsg-gateway
+  - restart fedmsg-hub
+  - restart fedmsg-irc
+  - restart fedmsg-relay
+
+- name: overwrite standard config with local fedmsg debugging loopback
+  copy: src=relay-debug-loopback.py dest=/etc/fedmsg.d/relay.py
+  when: fedmsg_debug_loopback is true
+  tags:
+  - fedmsg_loopback
+  - fedmsg/base
+  notify:
+  - restart httpd
+  - restart fedmsg-gateway
+  - restart fedmsg-hub
+  - restart fedmsg-irc
+  - restart fedmsg-relay
+
+- name: start fedmsg-relay, only for loopback testing
+  service: name=fedmsg-relay state=started
+  when: fedmsg_debug_loopback is true
+  tags:
+  - fedmsg_loopback
+  - fedmsg/base
+
 - name: setup /etc/pki/fedmsg directory
   file: path=/etc/pki/fedmsg owner=root group=root mode=0755 state=directory
   tags:
