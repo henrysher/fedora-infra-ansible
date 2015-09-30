@@ -1,18 +1,17 @@
 {% if env == 'staging' %}
 suffix  = 'stg.phx2.fedoraproject.org'
+machines = ['autocloud-backend01', 'autocloud-backend02']
 {% else %}
 suffix = 'phx2.fedoraproject.org'
+machines = ['autocloud-backend-libvirt', 'autocloud-backend-vbox']
 {% endif %}
 
-config = dict(
-    endpoints={
-        "autocloud.autocloud-backend01": [
-            "tcp://autocloud-backend01.%s:30%0.2i" % (suffix, i)
-            for i in range(4)
-        ],
-        "autocloud.autocloud-backend02": [
-            "tcp://autocloud-backend02.%s:30%0.2i" % (suffix, i)
-            for i in range(4)
-        ],
-    },
-)
+endpoints = {}
+for machine in machines:
+    endpoint = [
+        "tcp://%s.%s:30%0.2i" % (machine, suffix, i)
+        for i in range(4)
+    ]
+    endpoints['autocloud.%s' % machine] = endpoint
+
+config = dict(endpoints=endpoints)
