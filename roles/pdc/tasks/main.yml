@@ -39,3 +39,20 @@
   notify: restart httpd
   tags:
   - pdc
+
+- name: create /etc/httpd/saml2
+  action: file state=directory
+               path=/etc/httpd/saml2
+               owner=apache group=apache mode=0775
+  tags:
+  - pdc
+
+- name: Install saml2 xml files
+  copy: >
+    src="{{ item }}" dest="/etc/httpd/saml2/{{ item }}"
+    owner="apache" group="apache" mode=0600
+  with_items:
+    - metadata.xml
+    - idp-metadata.xml
+  tags:
+  - pdc
