@@ -12,7 +12,7 @@ tcp_ports: [
     3000, 3001, 3002, 3003,
 ]
 
-fas_client_groups: sysadmin-noc,sysadmin-fedimg
+fas_client_groups: sysadmin-noc,sysadmin-fedimg,sysadmin-releng
 
 # These are consumed by a task in roles/fedmsg/base/main.yml
 fedmsg_certs:
@@ -24,3 +24,25 @@ fedmsg_certs:
   group: fedmsg
   can_send:
   - autocloud.image
+
+# For the MOTD
+csi_security_category: Moderate
+csi_primary_contact: Cloudmeisters - sysadmin-fedimg-members@fedoraproject.org
+csi_purpose: Run the autocloud testing backend
+csi_relationship: |
+    This runs one of the two autocloud testing backends
+
+    This host relies on:
+    - A postgres db server running on db01.  The db is called 'autocloud'.
+      The two autocloud-backend nodes populate that database with results.
+    - fedmsg messages produced by koji indicating that new images were built.
+    - queries to koji directly to download that content.
+
+    Running locally we have:
+    - fedmsg-hub which receives the initial notification from koji via fedmsg.
+    - redis, which stores a work queue populated by fedmsg
+    - the autocloud daemon, which pulls work from the redis queue and uses tunir
+      to test images in vagrant.
+
+    There's a cronjob that kills vagrant every 10 minutes if it got stuck on the
+    last test.
