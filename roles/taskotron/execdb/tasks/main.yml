@@ -17,14 +17,14 @@
   when: ansible_distribution_major_version|int > 21 and ansible_cmdline.ostree is not defined
 
 - name: ensure database is created
-  delegate_to: "{{ execdb_db_host }}"
+  delegate_to: "{{ execdb_db_host_machine }}"
   sudo_user: postgres
   sudo: true
   action: postgresql_db db={{ execdb_db_name }}
 
 - name: ensure dev execdb db user has access to dev database
   when: deployment_type == 'dev'
-  delegate_to: "{{ execdb_db_host }}"
+  delegate_to: "{{ execdb_db_host_machine }}"
   sudo_user: postgres
   sudo: true
   action: postgresql_user db={{ execdb_db_name }} user={{ execdb_db_user }} password={{ execdb_db_password }} role_attr_flags=NOSUPERUSER
