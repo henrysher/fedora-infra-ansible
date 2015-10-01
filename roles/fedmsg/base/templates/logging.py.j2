@@ -140,7 +140,15 @@ config = dict(
         formatters=dict(
             bare={
                 "datefmt": "%Y-%m-%d %H:%M:%S",
+                {% if inventory_hostname.startswith('bodhi-backend01') %}
+                # Here we use a different format just so we can include
+                # threadName.  We set the threadName in the bodhi masher to some
+                # useful strings that will tell us which branch is doing what.
+                # See https://github.com/fedora-infra/bodhi/commit/66d94094
+                "format": "[%(asctime)s][%(name)10s %(levelname)7s]%(threadName)s %(message)s"
+                {% else %}
                 "format": "[%(asctime)s][%(name)10s %(levelname)7s] %(message)s"
+                {% endif %}
             },
             hefty={
                 "datefmt": "%Y-%m-%d %H:%M:%S",
