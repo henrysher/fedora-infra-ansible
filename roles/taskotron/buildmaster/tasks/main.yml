@@ -84,3 +84,7 @@
 - name: put robots.txt at web root of external hostname
   when: robots_path is defined
   template: src=robots.txt.j2 dest={{ robots_path }}/robots.txt owner=apache group=apache mode=0644
+
+- name: ensure buildmaster user can use buildmaster dir
+  file: path={{ buildmaster_dir }} state=directory owner=buildmaster group=buildmaster mode=0775
+  when: deployment_type == 'prod' or deployment_type == 'stg' or deployment_type == 'dev' or deployment_type == 'local'
