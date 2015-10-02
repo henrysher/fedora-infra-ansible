@@ -1,3 +1,12 @@
+- name: Install jenkins repo on stg
+  copy: src=jenkins.repo dest=/etc/yum.repos.d/jenkins.repo
+  when: env == "staging"
+  tags:
+  - koschei
+  - config
+  - packages
+  - yumrepos
+
 - name: install packages
   yum: name={{ item }} state=installed
   with_items:
@@ -107,12 +116,6 @@
   tags:
   - koschei
   - config
-
-- name: Install jenkins repo on stg
-  copy: src=jenkins.repo dest=/etc/yum.repos.d/jenkins.repo
-  when: env == "staging"
-  tags:
-  - koschei
 
 - name: access to postgres for scripts
   template: src=pgpass.j2 dest=/var/cache/koschei/.pgpass
