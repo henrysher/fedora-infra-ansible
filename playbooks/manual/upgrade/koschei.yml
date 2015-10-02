@@ -4,8 +4,6 @@
   - /srv/web/infra/ansible/vars/global.yml
   - /srv/private/ansible/vars.yml
   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
-  vars:
-    jenkins: False
   handlers:
   - include: "{{ handlers }}/restart_services.yml"
   roles:
@@ -25,13 +23,13 @@
     - koschei-watcher
     - httpd
   - name: clean yum metadata
-    command: yum clean all {% if jenkins %} --enablerepo="koschei-jenkins" {% endif %}
+    command: yum clean all {% if env == 'staging' %} --enablerepo="koschei-jenkins" {% endif %}
   - name: upgrade koschei package from jenkins
     yum: name="koschei" state=latest enablerepo="koschei-jenkins"
-    when: jenkins
+    when: env == 'staging'
   - name: upgrade koschei from main repo
     yum: name="koschei" state=latest
-    when: not jenkins
+    when: env != 'staging'
   - name: run db migration
     become: yes
     become_user: koschei
