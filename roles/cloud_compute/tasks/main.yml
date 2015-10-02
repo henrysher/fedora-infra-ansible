@@ -4,6 +4,10 @@
 - authorized_key: user=root key="{{ lookup('file', files + '/fedora-cloud/fed09-ssh-key.pub') }}"
 - template: src={{ files }}/fedora-cloud/hosts dest=/etc/hosts owner=root mode=0644
 
+- name: Enable nested virtualization
+  copy: content="options kvm_intel nested=1" dest=/etc/modprobe.d/nested_virt.conf
+  owned=root group=root mode=0644
+
 - lineinfile: dest=/etc/sysconfig/network-scripts/ifcfg-eth1 regexp="^ONBOOT=" line="ONBOOT=yes"
   notify:
     - restart network
@@ -18,7 +22,6 @@
     - restart network
 - meta: flush_handlers
 
-# this two step can be done in one, but Ansible will then always show the action as changed
 - name: copy RHOS repo file
   copy: src=rhos-5.repo dest=/etc/yum.repos.d/rhos-5.repo
         owner=root group=root mode=0644
