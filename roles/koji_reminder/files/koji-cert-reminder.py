@@ -29,7 +29,7 @@ datagrepper_url = 'https://apps.fedoraproject.org/datagrepper/raw'
 
 from_address = 'admin@fedoraproject.org'
 mail_server = 'bastion.phx2.fedoraproject.org'
-message_template = """{human_name}/{username}:
+message_template = u"""{human_name}/{username}:
 
 This is an automated email sent to inform you that your Fedora Project Koji
 certificate is about to expire.  Koji certificates are valid for 6 months and
@@ -134,7 +134,7 @@ def send_email(user, last_change):
         change_date=last_change.format('YYYY-MM-DD'),
         **user
     )
-    message.set_payload(content)
+    message.set_payload(content.encode('utf-8'))
 
     server = smtplib.SMTP(mail_server)
     server.sendmail(
