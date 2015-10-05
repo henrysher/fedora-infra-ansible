@@ -15,20 +15,10 @@
 
   tasks:
 
-  - name: clean all metadata
-    command: yum clean all
-    always_run: yes
-    when: not testing
-
-  - name: clean all metadata (w/ infrastructure-testing enabled)
-    command: yum clean all --enablerepo=infrastructure-testing
-    always_run: yes
-    when:  testing
-
   - name: yum update {{ package }} from main repo
-    yum: name="{{ package }}" state=latest
+    yum: name="{{ package }}" state=latest update_cache=yes
     when: not testing
 
   - name: yum update {{ package }} from testing repo
-    yum: name="{{ package }}" state=latest enablerepo=infrastructure-testing
+    yum: name="{{ package }}" state=latest enablerepo=infrastructure-testing update_cache=yes
     when: testing
