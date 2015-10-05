@@ -17,9 +17,15 @@
     - python-psycopg2
   when: ansible_distribution_major_version|int > 21 and ansible_cmdline.ostree is not defined
 
-- name: ensure packages required for buildmaster are installed
-  action: dnf name={{ item }} state=latest
-  when: deployment_type == 'qadevel-prod' or deployment_type == 'qa-stg'
+- name: ensure additional packages required for CI buildmaster are installed
+  yum: name={{ item }} state=latest enablerepo={{ extra_enablerepos }}
+  when: ansible_distribution_majorVersion|int < 22 and (deployment_type == 'qadevel-prod' or deployment_type == 'qa-stg')
+  with_items:
+    - python-novaclient
+
+- name: ensure additional packages required for CI buildmaster are installed
+  dnf: name={{ item }} state=latest enablerepo={{ extra_enablerepos }}
+  when: ansible_distribution_majorVersion|int > 21 and (deployment_type == 'qadevel-prod' or deployment_type == 'qa-stg')
   with_items:
     - python-novaclient
 
