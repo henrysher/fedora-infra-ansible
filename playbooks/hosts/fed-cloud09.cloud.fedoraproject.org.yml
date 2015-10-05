@@ -159,17 +159,17 @@
   - service: name=ntpd state=started enabled=yes
 
   # this two step can be done in one, but Ansible will then always show the action as changed
-  - name: make sure epel-release is installed
-    get_url: url=http://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm dest=/root/
-  - yum: state=present name=/root/epel-release-latest-7.noarch.rpm
+  #- name: make sure epel-release is installed
+  #  get_url: url=http://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm dest=/root/
+  #- yum: state=present name=/root/epel-release-latest-7.noarch.rpm
 
-  - name: make sure latest openvswitch is installed
-    get_url: url=http://people.redhat.com/~lkellogg/rpms/openvswitch-2.3.1-2.git20150113.el7.x86_64.rpm dest=/root/
-  - yum: state=present name=/root/openvswitch-2.3.1-2.git20150113.el7.x86_64.rpm
+  #- name: make sure latest openvswitch is installed
+  #  get_url: url=http://people.redhat.com/~lkellogg/rpms/openvswitch-2.3.1-2.git20150113.el7.x86_64.rpm dest=/root/
+  #- yum: state=present name=/root/openvswitch-2.3.1-2.git20150113.el7.x86_64.rpm
 
-  - name: make sure latest openstack-utils is installed
-    get_url: url=https://repos.fedorapeople.org/repos/openstack/openstack-juno/epel-7/openstack-utils-2014.2-1.el7.centos.noarch.rpm dest=/root/
-  - yum: state=present name=/root/openstack-utils-2014.2-1.el7.centos.noarch.rpm
+  #- name: make sure latest openstack-utils is installed
+  #  get_url: url=https://repos.fedorapeople.org/repos/openstack/openstack-juno/epel-7/openstack-utils-2014.2-1.el7.centos.noarch.rpm dest=/root/
+  #- yum: state=present name=/root/openstack-utils-2014.2-1.el7.centos.noarch.rpm
 
   - name: install basic openstack packages
     action: yum state=present name={{ item }}
@@ -510,9 +510,9 @@
   - file: path=/etc/haproxy/fedorainfracloud.org.combined owner=haproxy mode=644 
   - copy: src={{ files }}/fedora-cloud/haproxy.cfg dest=/etc/haproxy/haproxy.cfg mode=644 owner=root group=root
   # first OS have to free ports so haproxy can bind it, then we start OS on modified ports
-  - shell: openstack-service stop
-  - service: name=haproxy state=started enabled=yes
-  - shell: openstack-service start
+  #- shell: openstack-service stop
+  #- service: name=haproxy state=started enabled=yes
+  #- shell: openstack-service start
 
   - lineinfile: dest=/etc/openstack-dashboard/local_settings regexp="^OPENSTACK_KEYSTONE_URL " line="OPENSTACK_KEYSTONE_URL = 'https://{{controller_publicname}}:5000/v2.0'"
     notify:
