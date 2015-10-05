@@ -18,9 +18,13 @@
     - libsemanage-python
     - yum
     - scl-utils-build
+    - ethtool
 #    - fedpkg-copr
 # BZ 1241507
 - shell: yum-deprecated install -y fedpkg-copr || yum install -y fedpkg-copr
+
+- name: disable offloading
+  command: ethtool -K eth0 tso off gro off gso off
 
 - get_url: url=https://kojipkgs.fedoraproject.org//packages/mock/1.2.12/1.fc21/noarch/mock-1.2.12-1.fc21.noarch.rpm dest=/tmp/
 - yum: state=present name=/tmp/mock-1.2.12-1.fc21.noarch.rpm

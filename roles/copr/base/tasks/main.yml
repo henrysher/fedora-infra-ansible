@@ -46,6 +46,17 @@
   tags:
   - packages
 
+- name: install ethtool
+  yum: state=present pkg=ethtool
+  tags:
+  - packages
+- name: disable offloading
+  command: ethtool -K eth0 tso off gro off gso off
+- name: disable offloading (persitently)
+  lineinfile: dest=/etc/sysconfig/network-scripts/ifcfg-eth0 backup=yes state=present line='ETHTOOL_OPTS="-K ${DEVICE}  tso off gro off gso off"'
+  tags:
+  - config
+
 - name: make sure our resolv.conf is the one being used - set PEERDNS=no in /etc/sysconfig/network
   lineinfile: dest=/etc/sysconfig/network create=yes backup=yes state=present line='PEERDNS=no' regexp=^PEERDNS=
   tags:
