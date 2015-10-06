@@ -1,10 +1,10 @@
 from .common import *
 
-MEDIA_URL = "http://209.132.184.50/media/"
-STATIC_URL = "http://209.132.184.50/static/"
-ADMIN_MEDIA_PREFIX = "http://209.132.184.50/static/admin/"
+MEDIA_URL = "http://{{ inventory_hostname }}/media/"
+STATIC_URL = "http://{{ inventory_hostname }}/static/"
+ADMIN_MEDIA_PREFIX = "http://{{ inventory_hostname }}/static/admin/"
 SITES["front"]["scheme"] = "http"
-SITES["front"]["domain"] = "209.132.184.50"
+SITES["front"]["domain"] = "{{ inventory_hostname }}"
 
 SECRET_KEY = "{{ taiga_secret_key }}"
 
