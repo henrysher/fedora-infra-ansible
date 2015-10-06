@@ -118,6 +118,12 @@
            creates=/usr/lib/python3.4/site-packages/django/
   tags: taiga
 
+- name: copy in our taiga backend config
+  template: src=local.py dest=/home/taiga/taiga-back/settings/local.py
+            mode=0640 owner=taiga group=taiga
+  notify: restart taiga-back
+  tags: taiga
+
 ## TODO -- make these idempotent with creates=...
 - command: sudo -u taiga python3 manage.py migrate --noinput
            chdir=/home/taiga/taiga-back
@@ -136,12 +142,6 @@
   tags: taiga
 - command: sudo -u taiga python3 manage.py collectstatic --noinput
            chdir=/home/taiga/taiga-back
-  tags: taiga
-
-- name: copy in our taiga backend config
-  template: src=local.py dest=/home/taiga/taiga-back/settings/local.py
-            mode=0640 owner=taiga group=taiga
-  notify: restart taiga-back
   tags: taiga
 
 - name: set taiga-back to start
