@@ -1,0 +1,22 @@
+# Run `fasClient` on the hosts of interest for most of our users (ie: bastion
+# for the aliases, fedorapeople, fedorahosted and pkgs.fp.o
+#
+
+- name: run fasClient -a to make email aliases on bastion
+  hosts: bastion01.phx2.fedoraproject.org:bastion02.phx2.fedoraproject.org
+  user: root
+  gather_facts: False
+
+  tasks:
+  - name: actually run fasClient -a
+    command: fasClient -a
+    when: inventory_hostname_short.startswith('bastion0')
+
+- name: run fasClient on people and hosted and pkgs first as these are the ones most people want updated
+  hosts: people01.fedoraproject.org:pkgs02.phx2.fedoraproject.org:hosted03.fedoraproject.org
+  user: root
+  gather_facts: False
+
+  tasks:
+  - name: actually run fasClient -i
+    command: fasClient -i
