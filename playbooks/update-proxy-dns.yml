@@ -19,35 +19,46 @@
   - name: Make up a tempdir..
     local_action: command mktemp -p /var/tmp -d dns-checkout.XXXXXXXX
     register: tmp
+    when: nodns is not defined or not "true" in nodns
 
   - name: Clone the dns repo into /var/tmp/dns-checkout.....
     local_action: git repo=/git/dns/ dest={{tmp.stdout}}
+    when: nodns is not defined or not "true" in nodns
 
   - name: Run zone-template (fedoraproject.org)
     local_action: command {{tmp.stdout}}/zone-template {{tmp.stdout}}/fedoraproject.org.cfg {{status}} {{ansible_default_ipv4.address}} chdir={{tmp.stdout}}
+    when: nodns is not defined or not "true" in nodns
 
   - name: Run zone-template (getfedora.org)
     local_action: command {{tmp.stdout}}/zone-template {{tmp.stdout}}/getfedora.org.cfg {{status}} {{ansible_default_ipv4.address}} chdir={{tmp.stdout}}
+    when: nodns is not defined or not "true" in nodns
 
   - name: Commit once
     local_action: command git commit -a -m '{{status}} {{inventory_hostname}}' --author '{{userstring}}' chdir={{tmp.stdout}}
+    when: nodns is not defined or not "true" in nodns
 
   - name: Do domains
     local_action: command {{tmp.stdout}}/do-domains chdir={{tmp.stdout}}
+    when: nodns is not defined or not "true" in nodns
 
   - name: Commit second time
     local_action: command git commit -a -m 'done build' --author '{{userstring}}' chdir={{tmp.stdout}}
+    when: nodns is not defined or not "true" in nodns
 
   - name: Push our changes back
     local_action: command git push chdir={{tmp.stdout}}
+    when: nodns is not defined or not "true" in nodns
   
   - name: Destroy our temporary clone of /git/dns/ in /var/tmp/dns-checkout....
     local_action: file dest={{tmp.stdout}} state=absent
+    when: nodns is not defined or not "true" in nodns
 
   - name: Run update-dns on each nameserver
     command: /usr/local/bin/update-dns
     delegate_to: "{{item}}"
     with_items: groups.dns
+    when: nodns is not defined or not "true" in nodns
 
   - name: Wait for dns to percolate (1 minute)
     pause: minutes=1
+    when: nodns is not defined or not "true" in nodns
