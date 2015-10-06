@@ -169,6 +169,8 @@
     mode=0644 owner=taiga group=taiga
   tags: taiga
 
+- 
+
 # Link our plugin pieces in place
 - file: src=/home/taiga/taiga-contrib-fas-openid-auth/front/dist/fas_openid_auth.js
         dest=/home/taiga/taiga-front-dist/dist/js/fas_openid_auth.js
@@ -185,8 +187,11 @@
 ### DONE with taiga-front
 
 ### FINALLY, nginx to serve/proxy it all
-
 - copy: src=taiga.nginx dest=/etc/nginx/conf.d/taiga.conf
+        mode=0644 owner=nginx group=nginx
+  notify: restart nginx
+  tags: taiga
+- copy: src=nginx.conf dest=/etc/nginx/nginx.conf
         mode=0644 owner=nginx group=nginx
   notify: restart nginx
   tags: taiga
