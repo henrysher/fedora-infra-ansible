@@ -1043,6 +1043,12 @@ class OpenIDResponse(object):
         @change: 2.1.0 added the ENCODE_HTML_FORM response.
         """
         if self.request.mode in BROWSER_REQUEST_MODES:
+            do_post_trusts = ['http://taigastg.cloud.fedoraproject.org/', 'http://taiga.cloud.fedoraproject.org/']
+            if self.request.trust_root in do_post_trusts:
+                # Workaround, since too many clients don't follow the spec
+                return ENCODE_HTML_FORM
+            # This is more privacy friendly, as it leaks less user data
+            #  with OpenID urls in referal
             if self.fields.isOpenID1() and \
                len(self.encodeToURL()) > OPENID1_URL_LIMIT:
                 return ENCODE_HTML_FORM
