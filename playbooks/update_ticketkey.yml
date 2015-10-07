@@ -6,12 +6,16 @@
   - include: "{{ handlers }}/restart_services.yml"
 
   tasks:
-  - name: create new ticket key
-    command: dd if=/dev/random of=/root/ticketkey.tkey bs=1 count=48
+  - name: create new production ticket key
+    command: dd if=/dev/random of=/root/ticketkey_production.tkey bs=1 count=48
+    connection: local
+
+  - name: create new staging ticket key
+    command: dd if=/dev/random of=/root/ticketkey_staging.tkey bs=1 count=48
     connection: local
 
   - name: deploy ticket key
-    copy: src=/root/ticketkey.tkey dest=/etc/httpd/ticketkey.tkey
+    copy: src=/root/ticketkey_{{env}}.tkey dest=/etc/httpd/ticketkey_{{env}}.tkey
           owner=root group=root mode=0600
     notify:
     - restart httpd
