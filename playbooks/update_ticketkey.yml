@@ -1,0 +1,17 @@
+- name: Create and push out new ticket key
+  hosts: proxies
+  user: root
+
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"
+
+  tasks:
+  - name: create new ticket key
+    command: dd if=/dev/random of=/root/ticketkey.tkey bs=1 count=48
+    connection: local
+
+  - name: deploy ticket key
+    copy: src=/root/ticketkey.tkey dest=/etc/httpd/ticketkey.tkey
+          owner=root group=root mode=0600
+    notify:
+    - restart httpd
