@@ -212,7 +212,12 @@ class AuthenticateRequest(ProviderPageBase):
     def _respond(self, response):
         try:
             self.debug('Response: %s' % response)
-            webresponse = self.cfg.server.encodeResponse(response)
+            do_post_trusts = ['http://taigastg.cloud.fedoraproject.org/', 'http://taiga.cloud.fedoraproject.org/']
+            if response.request.trust_root in do_post_trusts:
+                webresponse = self.cfg.server.encoder.responseFactory(code=200,
+                                                                      body=response.toHTML())
+            else:
+                webresponse = self.cfg.server.encodeResponse(response)
             cherrypy.response.headers.update(webresponse.headers)
             cherrypy.response.status = webresponse.code
             return webresponse.body
