@@ -10,7 +10,9 @@
 # if not, write to the Free Software Foundation, Inc., 51 Franklin Street,
 # Fifth Floor, Boston, MA 02110-1301, USA.
 
-[ -f GeoIPCountryCSV.zip ] || wget -q -T 5 -t 1 http://geolite.maxmind.com/download/geoip/database/GeoIPCountryCSV.zip
+rm -f /root/GeoIPCountryCSV.zip
+
+wget -q -T 5 -t 1 http://geolite.maxmind.com/download/geoip/database/GeoIPCountryCSV.zip
 unzip -q GeoIPCountryCSV.zip || exit 1
 
 awk -F \" '{print $10","$6","$8}' GeoIPCountryWhois.csv > cbe.csv
