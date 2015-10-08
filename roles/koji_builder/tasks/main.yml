@@ -82,7 +82,7 @@
   tags:
   - koji_builder
 
-- name: add oz/imagefctory pkgs on x86 and arm only. 
+- name: add oz/imagefctory pkgs on all but PPC EPEL
   yum: state=present pkg={{ item }}
   with_items:
     - oz
@@ -98,7 +98,7 @@
     - python-psphere
     - VMDKstream
     - pykickstart
-  when: ansible_architecture != 'ppc64'
+  when: not inventory_hostname.startswith('buildppc-')
   tags:
   - koji_builder
 
