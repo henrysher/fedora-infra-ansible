@@ -1,4 +1,4 @@
-from ansible import errors, runner
+from ansible import errors
 from glanceclient  import Client as GlanceClient
 from keystoneclient import session
 from keystoneclient.auth.identity import v2 as identity
