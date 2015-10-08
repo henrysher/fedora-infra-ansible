@@ -80,3 +80,51 @@
   when: env != "staging"
   tags:
   - fedimg
+
+- name: ensure the fedmsg user has a homedir for cron to work in
+  file: >
+    state=directory
+    path=/usr/share/fedmsg
+    mode=700
+    owner=fedmsg
+    group=fedmsg
+  tags:
+  - cron
+  - fedimg
+
+- name: ensure fedimg cron directories exist
+  file: >
+    state=directory
+    path={{ item }}
+    mode=755
+    owner=root
+  with_items:
+  - /usr/share/fedimg/cronjobs/
+  - /etc/cron.d/
+  tags:
+  - cron
+  - fedimg
+
+- name: fedimg cron scripts
+  copy: >
+      src=cron/{{ item }}
+      dest=/usr/share/fedimg/cronjobs/{{ item }}
+      owner=fedmsg
+      mode=744
+  with_items:
+  - kill_ec2_nodes.py
+  tags:
+  - cron
+  - fedimg
+
+- name: fedimg cron definitions
+  copy: >
+      src=cron/{{ item }}
+      dest=/etc/cron.d/{{ item }}
+      owner=root
+      mode=644
+  with_items:
+  - kill_ec2_nodes.cron
+  tags:
+  - cron
+  - fedimg
