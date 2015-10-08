@@ -7,7 +7,7 @@
 # Once the instance exists, configure it. 
 
 - name: make koji_hub server system
-  hosts: koji-stg:koji01.phx2.fedoraproject.org:koji02.phx2.fedoraproject.org:s390-koji01.qa.fedoraproject.org
+  hosts: koji-stg:koji01.phx2.fedoraproject.org:koji02.phx2.fedoraproject.org:s390-koji01.qa.fedoraproject.org:arm-koji01.qa.fedoraproject.org
   user: root
   gather_facts: True
 
@@ -27,8 +27,8 @@
   - apache
   - fedmsg/base
   - koji_hub
-  - { role: rsyncd, when: inventory_hostname.startswith('s390') }
-  - { role: koji_builder, when: env == "staging" or inventory_hostname.startswith('s390') }
+  - { role: rsyncd, when: not inventory_hostname.startswith('koji') }
+  - { role: koji_builder, when: env == "staging" or inventory_hostname.startswith('s390') or inventory_hostname.startswith('arm') }
   - { role: nfs/server, when: env == "staging" }
   - { role: keepalived, when: env == "production" and inventory_hostname.startswith('koji') }
   - role: nfs/client
@@ -39,6 +39,10 @@
     mnt_dir: '/mnt/koji'
     nfs_src_dir: 'fedora_s390/data'
     when: env == 'production' and inventory_hostname.startswith('s390')
+  - role: nfs/client
+    mnt_dir: '/mnt/koji'
+    nfs_src_dir: 'fedora_arm/data'
+    when: env == 'production' and inventory_hostname.startswith('arm')
     # In staging, we mount fedora_koji as read only (see nfs_mount_opts)
   - role: nfs/client
     mnt_dir: '/mnt/fedora_koji_prod'
