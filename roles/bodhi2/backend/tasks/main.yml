@@ -275,6 +275,15 @@
   - bodhi
   - cron
 
+- name: bodhi-expire-overrides cron job.
+  cron: name="bodhi-expire-overrides" hour="*" minute=0 user="masher"
+        job="/usr/bin/bodhi-expire-overrides /etc/bodhi/production.ini"
+        cron_file=bodhi-expire-overrides-job
+  when: inventory_hostname.startswith('bodhi-backend02') and env == "production"
+  tags:
+  - config
+  - bodhi
+  - cron
 
 - name: have the masher own the bodhi config
   file: >
