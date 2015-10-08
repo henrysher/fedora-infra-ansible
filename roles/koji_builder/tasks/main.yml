@@ -182,13 +182,13 @@
 
 - name: make a mnt/koji link
   file: state=link src=/mnt/fedora_koji/koji dest=/mnt/koji
-  when: inventory_hostname.startswith(('build')) or inventory_hostname.startswith(('arm04-builder00')) or inventory_hostname.startswith(('arm04-builder01'))
+  when: inventory_hostname.startswith(('build','arm04-builder00','arm04-builder01')) and not inventory_hostname.startswith('buildvm-ppc64')
   tags:
   - koji_builder
 
 - name: make a mnt/koji link
   file: state=link src=/mnt/fedora_koji dest=/mnt/koji
-  when: inventory_hostname.startswith(('aarch64','ppc8'))
+  when: inventory_hostname.startswith(('aarch64','ppc8','buildvm-ppc64'))
   tags:
   - koji_builder
 
