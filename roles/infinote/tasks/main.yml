@@ -1,0 +1,29 @@
+#
+# This role sets up the various packages and scripts needed for a infinote server
+#
+
+
+
+#
+# make directory for nfs mounts to live in
+#
+
+- name: create /srv/web for web content
+  file: dest=/srv/web state=directory mode=755
+  tags:
+  - infinote
+  - config
+
+- name: create /srv/infinote for infinote content
+  file: dest=/srv/infinote state=directory mode=755
+  tags:
+  - infinote
+  - config
+
+- name: install packages needed
+  yum: pkg={{ item }} state=present
+  with_items:
+  - infinoted
+  tags:
+  - infinote
+  - config
