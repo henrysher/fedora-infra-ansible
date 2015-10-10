@@ -18,10 +18,17 @@
   roles:
   - base
   - hosts
-  - { role: nfs/client, when: not inventory_hostname.startswith('arm'), mnt_dir: '/mnt/fedora_koji',  nfs_src_dir: 'fedora_koji' }
-  - { role: nfs/client, when: inventory_hostname.startswith('aarch64') , mnt_dir: '/mnt/fedora_koji',  nfs_src_dir: 'fedora_arm/data' }
-  - { role: nfs/client, when: inventory_hostname.startswith('buildvm-ppc64') , mnt_dir: '/mnt/fedora_koji',  nfs_src_dir: 'fedora_ppc/data' }
-  - { role: nfs/client, when: datacenter == 'staging', mnt_dir: '/mnt/fedora_koji',  nfs_src_dir: 'fedora_koji' }
+  - { role: nfs/client, 
+      when: ansible_architecture is 'x86_64' and not inventory_hostname.startswith('bkernel'), 
+      mnt_dir: '/mnt/fedora_koji',  nfs_src_dir: 'fedora_koji' }
+  - { role: nfs/client, 
+      when: inventory_hostname.startswith('aarch64') , 
+      mnt_dir: '/mnt/fedora_koji',  nfs_src_dir: 'fedora_arm/data' }
+  - { role: nfs/client, 
+      when: inventory_hostname.startswith('buildvm-ppc64') , 
+      mnt_dir: '/mnt/fedora_koji',  nfs_src_dir: 'fedora_ppc/data' }
+  - { role: nfs/client, 
+      when: datacenter == 'staging', mnt_dir: '/mnt/fedora_koji',  nfs_src_dir: 'fedora_koji' }
   - { role: fas_client, when: not inventory_hostname.startswith('bkernel') }
   - { role: sudo, when: not inventory_hostname.startswith('bkernel') }
   - koji_builder
