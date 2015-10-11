@@ -13,7 +13,7 @@
   service: name=httpd enabled=yes
   ignore_errors: true
   notify:
-  - restart apache
+  - reload apache
   tags:
   - service
   - apache
@@ -23,7 +23,7 @@
   copy: src="{{ files }}/hotfix/httpd/httpd.init" dest=/etc/init.d/httpd
         owner=root group=root mode=0755
   notify:
-  - restart apache
+  - reload apache
   tags:
   - config
   - hotfix
@@ -33,7 +33,7 @@
   copy: src="{{ files }}/hotfix/httpd/httpd.sysconfig" dest=/etc/sysconfig/httpd
   when: ansible_distribution_major_version|int == 6
   notify:
-  - restart apache
+  - reload apache
   tags:
   - config
   - hotfix
@@ -43,7 +43,7 @@
   copy: src="{{ files }}/hotfix/httpd/httpd.sysconfig" dest=/etc/sysconfig/httpd
   when: ansible_distribution_major_version|int == 7
   notify:
-  - restart apache
+  - reload apache
   tags:
   - config
   - hotfix
@@ -52,7 +52,7 @@
 - name: add appserver headers.conf
   template: src="{{ files }}/httpd/headers.conf.j2" dest=/etc/httpd/conf.d/headers.conf
   notify:
-  - restart apache
+  - reload apache
   tags: 
   - config
   - apache
@@ -60,7 +60,7 @@
 - name: add apache_status location for collectd
   template: src="{{ files }}/httpd/apachestatus.conf" dest=/etc/httpd/conf.d/apachestatus.conf
   notify:
-  - restart apache
+  - reload apache
   tags: 
   - config
   - apache
