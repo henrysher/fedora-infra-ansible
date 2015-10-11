@@ -41,8 +41,24 @@
   - infinote
   - config
   
-- name: add config file for infinoted
-  template: src=infinoted.conf dest=/etc/xdg/infinoted.conf
-  tags:
-  - infinote
-  - config
+- name: setup vaules in infinoted section
+  ini_file: dest=/etc/xdg/infinoted.conf section=infinoted option=certificate-file value=/etc/pki/tls/certs/wildcard-2014.fedoraproject.org.cert
+  ini_file: dest=/etc/xdg/infinoted.conf section=infinoted option=key-file value=/etc/pki/tls/private/wildcard-2014.fedoraproject.org.key
+  ini_file: dest=/etc/xdg/infinoted.conf section=infinoted option=certificate-chain value=/etc/pki/tls/certs/wildcard-2014.fedoraproject.org.intermediate.cert
+  ini_file: dest=/etc/xdg/infinoted.conf section=infinoted option=port value=6522
+  ini_file: dest=/etc/xdg/infinoted.conf section=infinoted option=security-policy value=require-tls
+  ini_file: dest=/etc/xdg/infinoted.conf section=infinoted option=root-directory value=/srv/infinote
+  ini_file: dest=/etc/xdg/infinoted.conf section=infinoted option=plugins value=note-text,autosave,directory-sync,logging
+  ini_file: dest=/etc/xdg/infinoted.conf section=infinoted option=password value={{ infinote-password }}
+
+- name: setup vaules in autosave section
+  ini_file: dest=/etc/xdg/infinoted.conf section=autosave option=interval value=60
+
+- name: setup vaules in directory-sync section
+  ini_file: dest=/etc/xdg/infinoted.conf section=directory-synnc option=interval value=10
+
+- name: setup vaules in logging section
+  ini_file: dest=/etc/xdg/infinoted.conf section=logging option=log-connections value=true
+  ini_file: dest=/etc/xdg/infinoted.conf section=logging option=log-connection-errors value=true
+  ini_file: dest=/etc/xdg/infinoted.conf section=logging option=log-session-errors value=true
+  ini_file: dest=/etc/xdg/infinoted.conf section=logging option=log-session-request-extra value=true
