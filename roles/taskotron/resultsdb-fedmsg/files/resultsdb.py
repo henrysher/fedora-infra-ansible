@@ -6,4 +6,5 @@ config = {
     # fedora-infra proper bus from over in the QA network.
     'active': True,
     'name': 'relay_inbound',
+    'cert_prefix': 'resultsdb',
 }
