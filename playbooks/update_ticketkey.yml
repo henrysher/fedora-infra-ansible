@@ -1,5 +1,5 @@
-- name: Create and push out new ticket key
-  hosts: proxies:proxies-stg
+- name: make a new ssl ticketkey
+  hosts: batcave01.phx2.fedoraproject.org
   user: root
 
   vars_files:
@@ -13,14 +13,26 @@
   tasks:
   - name: create new production ticket key
     command: dd if=/dev/random of=/root/ticketkey_production.tkey bs=1 count=48
-    delegate_to: batcave01.phx2.fedoraproject.org
 
   - name: create new staging ticket key
     command: dd if=/dev/random of=/root/ticketkey_staging.tkey bs=1 count=48
-    delegate_to: batcave01.phx2.fedoraproject.org
+
+- name: Push out new ticket key
+  hosts: proxies:proxies-stg
+  user: root
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"
+
+  tasks:
 
   - name: deploy ticket key
     copy: src=/root/ticketkey_{{env}}.tkey dest=/etc/httpd/ticketkey_{{env}}.tkey
           owner=root group=root mode=0600
     notify:
-    - restart httpd
+    - reload httpd
