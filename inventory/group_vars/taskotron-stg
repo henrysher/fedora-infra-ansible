@@ -1,38 +1,69 @@
 ---
+############################################################
+# general information
+#
+###########################################################
+
+tcp_ports: [ 80, 443, "{{ buildslave_port }}" ]
+freezes: false
+
+external_hostname: taskotron.stg.fedoraproject.org
+deployment_type: stg
+robots_path: /var/www/html
+
+# this enables extra repos during dnf install but that's broken right now, remember to re-enable
+# extra_enablerepos: 'infrastructure-testing'
+extra_enablerepos: ''
+
+
+############################################################
+# task repo details
+############################################################
+
 grokmirror_basedir: /var/lib/git/mirror
 grokmirror_user: grokmirror
 grokmirror_repos:
   - { name: fedoraqa/rpmlint, url: 'https://bitbucket.org/fedoraqa/task-rpmlint.git'}
   - { name: fedoraqa/depcheck, url: 'https://bitbucket.org/fedoraqa/task-depcheck.git'}
   - { name: fedoraqa/upgradepath, url: 'https://bitbucket.org/fedoraqa/task-upgradepath.git'}
-settings_dir: /etc/taskotron
-buildmaster_db_host: db-qa01.qa.fedoraproject.org
-buildmaster_db_name: buildmaster_stg
-buildmaster_template: taskotron.master.cfg.j2
-buildmaster_endpoint: taskmaster
-buildslave_ssh_pubkey: 'ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAm+ClC0VWMBbRvTAzI+1H9jCnlB0xU+8jOKzemq9AdGThysaMPJA1OHSfcLPFvkOUTEj+xLrL3RN+z/XLozJAonTgh0uJmsTKwM/o5v5vxwY5oFENVYfGAEdDrDBFua0zGPHikV7mWTocmiIyYP2BMnNL9ugBTQZex5HQ4BVj6nFySE3ChQxvKTCv7TzJc3OiZuEng6eGN3SWa6kbmBe7eX+Nurw/suF2IwB7if/oTg2P+92zluLCjv0ERiU/ROmiqjUUHmD31dMnA01fqh+I5EMjHc8GOCC9D9CkoKPhbcQRyg4UTw5FGLVu3fqqHm16XQa7Nenwl0n9t+n8qz8Gdw== buildslave@taskotron-stg01.qa.fedoraproject.org'
-buildslave_port: 9989
-cgit_root_title: "Taskotron Stg Server Git Mirror"
-buildmaster_dir: /home/buildmaster/master
-buildslave_dir: /home/buildslave/slave
-buildmaster_home: /home/buildmaster/master
-buildmaster_dir: /home/buildmaster/master
-buildmaster_user: buildmaster
-external_hostname: taskotron.stg.fedoraproject.org
+
+############################################################
+# urls and endpoints
+############################################################
+
+execdb_server: http://resultsdb-stg01.qa.fedoraproject.org/execdb
+execdb_statuspush: http://resultsdb-stg01.qa.fedoraproject.org/execdb/buildbottest
+
 resultsdb_url: http://resultsdb-stg01.qa.fedoraproject.org/resultsdb_api/api/v1.0
 resultsdb_frontend_url: http://resultsdb-stg01.qa.fedoraproject.org/
 resultsdb_external_url: https://taskotron.stg.fedoraproject.org/resultsdb/
 resultsdb_fe_endpoint: resultsdb
-landingpage_title: "Taskotron Staging"
-deployment_type: stg
-tcp_ports: [ 80, 443, "{{ buildslave_port }}" ]
-fakefedorainfra_db_host: db-qa01.qa.fedoraproject.org
-fakefedorainfra_db_name: fakefedorainfra_stg
-fakefedorainfra_endpoint: fakefedorainfra
-fakefedorainfra_url: https://taskotron.stg.fedoraproject.org/fakefedorainfra
+
 taskotron_docs_url: https://docs.qadevel.cloud.fedoraproject.org/libtaskotron/latest/
-freezes: false
+
+
+
+############################################################
+# taskotron details
+############################################################
+
+settings_dir: /etc/taskotron
+landingpage_title: "Taskotron Staging"
 public_artifacts_dir: /srv/taskotron/artifacts
-execdb_server: http://resultsdb-stg01.qa.fedoraproject.org/execdb
-execdb_statuspush: http://resultsdb-stg01.qa.fedoraproject.org/execdb/buildbottest
-robots_path: /var/www/html
+cgit_root_title: "Taskotron Stg Server Git Mirror"
+
+############################################################
+# buildbot details
+############################################################
+
+buildmaster_db_host: db-qa01.qa.fedoraproject.org
+buildmaster_db_name: buildmaster_stg
+buildmaster_dir: /srv/buildmaster/master
+buildmaster_endpoint: taskmaster
+buildmaster_home: /srv/buildmaster
+buildmaster_template: taskotron.master.cfg.j2
+buildmaster_user: buildmaster
+
+buildslave_dir: /home/buildslave/slave
+buildslave_ssh_pubkey: 'ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAm+ClC0VWMBbRvTAzI+1H9jCnlB0xU+8jOKzemq9AdGThysaMPJA1OHSfcLPFvkOUTEj+xLrL3RN+z/XLozJAonTgh0uJmsTKwM/o5v5vxwY5oFENVYfGAEdDrDBFua0zGPHikV7mWTocmiIyYP2BMnNL9ugBTQZex5HQ4BVj6nFySE3ChQxvKTCv7TzJc3OiZuEng6eGN3SWa6kbmBe7eX+Nurw/suF2IwB7if/oTg2P+92zluLCjv0ERiU/ROmiqjUUHmD31dMnA01fqh+I5EMjHc8GOCC9D9CkoKPhbcQRyg4UTw5FGLVu3fqqHm16XQa7Nenwl0n9t+n8qz8Gdw== buildslave@taskotron-stg01.qa.fedoraproject.org'
+buildslave_port: 9989
