@@ -5,4 +5,5 @@ config = {
     # listeners.  We need this so that we can push our messages on to the
     # fedora-infra proper bus from over in the QA network.
     'active': True,
+    'name': 'relay_inbound',
 }
