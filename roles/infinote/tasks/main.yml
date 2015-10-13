@@ -8,14 +8,26 @@
 # make directory for nfs mounts to live in
 #
 
+- name: create an infinoted user
+  user: name=infinote state=present home=/home/infinote createhome=yes shell=/sbin/nologin
+  tags:
+  - infinote
+  - config
+
+- name: allow infinote user to read ssl certs
+  file: dest=/etc/pki/tls/private/wildcard-2014.fedoraproject.org.key mode=600 owner=infinote group=root
+  tags:
+  - infinote
+  - config
+
 - name: create /srv/web for web content
-  file: dest=/srv/web state=directory mode=755
+  file: dest=/srv/web state=directory mode=755 owner=infinote group=infinote
   tags:
   - infinote
   - config
 
 - name: create /srv/infinote for infinote content
-  file: dest=/srv/infinote state=directory mode=755
+  file: dest=/srv/infinote state=directory mode=755 owner=infinote group=infinote
   tags:
   - infinote
   - config
@@ -43,6 +55,12 @@
   
 - name: add config file for infinoted
   template: src=infinoted.conf dest=/etc/xdg/infinoted.conf
+  tags:
+  - infinote
+  - config
+  
+- name: add git commit script for infinote
+  template: src=infinoted-git-commit dest=/usr/local/bin/infinoted-git-commit mode=0755
   tags:
   - infinote
   - config
