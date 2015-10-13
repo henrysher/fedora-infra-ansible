@@ -38,6 +38,28 @@
   - infinote
   - config
 
+- name: check the selinux context of /srv/web
+  command: matchpathcon /srv/web
+  register: webdir
+  always_run: yes
+  changed_when: "1 != 1"
+  tags:
+  - infinote
+  - config
+  - selinux
+  - httpd
+  - httpd/website
+
+- name: /srv/web selinux context
+  command: semanage fcontext -a -t git_content_t "/srv/web(/.*)?"
+  when: webdir.stdout.find('git_content_t') == -1
+  tags:
+  - infinote
+  - config
+  - selinux
+  - httpd
+  - httpd/website
+
 - name: create /srv/infinote for infinote content
   file: dest=/srv/infinote state=directory mode=755 owner=infinote group=infinote
   tags:
