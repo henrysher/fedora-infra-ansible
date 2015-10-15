@@ -938,6 +938,7 @@ def sigterm_handler(signum, frame):
 
 class ForkingUnixStreamServer(ForkingMixIn, UnixStreamServer):
     request_queue_size = 300
+    max_children = 80
     def finish_request(self, request, client_address):
         signal.signal(signal.SIGHUP, signal.SIG_IGN)
         BaseServer.finish_request(self, request, client_address)
