@@ -6,6 +6,7 @@
 
 # standard library modules in alphabetical order
 from collections import defaultdict
+import copy
 import datetime
 import getopt
 import logging
@@ -234,11 +235,12 @@ def tree_lookup(tree, ip, field, maxResults=None):
     # and we'll get a new copy of the tree from our parent the next time it
     # fork()s.
     # returns a list of tuples (prefix, data)
+    ltree = copy.deepcopy(tree)
     result = []
     len_data = 0
     if ip is None:
         return result
-    node = tree.search_best(ip.strNormal())
+    node = ltree.search_best(ip.strNormal())
     while node is not None:
         prefix = node.prefix
         if type(node.data[field]) == list:
@@ -248,8 +250,8 @@ def tree_lookup(tree, ip, field, maxResults=None):
         t = (prefix, node.data[field],)
         result.append(t)
         if maxResults is None or len_data < maxResults:
-            tree.delete(prefix)
-            node = tree.search_best(ip.strNormal())
+            ltree.delete(prefix)
+            node = ltree.search_best(ip.strNormal())
         else:
             break
     return result
