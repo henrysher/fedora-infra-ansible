@@ -238,8 +238,7 @@ def tree_lookup(tree, ip, field, maxResults=None):
     len_data = 0
     if ip is None:
         return result
-    node = tree.search_best(ip.strNormal())
-    while node is not None:
+    for node in tree.search_covering(ip.strNormal()):
         prefix = node.prefix
         if type(node.data[field]) == list:
             len_data += len(node.data[field])
@@ -247,10 +246,7 @@ def tree_lookup(tree, ip, field, maxResults=None):
             len_data += 1
         t = (prefix, node.data[field],)
         result.append(t)
-        if maxResults is None or len_data < maxResults:
-            tree.delete(prefix)
-            node = tree.search_best(ip.strNormal())
-        else:
+        if maxResults is not None and len_data >= maxResults:
             break
     return result
 
