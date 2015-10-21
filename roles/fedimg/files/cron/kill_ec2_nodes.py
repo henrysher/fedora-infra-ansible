@@ -4,11 +4,14 @@
 # NOTE this is taken from the github repo
 # https://github.com/fedora-infra/fedimg/blob/develop/bin/kill_ec2_nodes.py
 
+import logging
+logging.basicConfig()
 
 from libcloud.compute.types import Provider
 from libcloud.compute.providers import get_driver
 import datetime
 import fedimg
+
 
 EC2_ACCESS_ID = fedimg.AWS_ACCESS_ID
 EC2_SECRET_KEY = fedimg.AWS_SECRET_KEY
