@@ -1,0 +1,15 @@
+- name: Copy in the sync-developer cronjob
+  copy: src=cron-sync-developer dest=/etc/cron.d/sync-developer
+  tags:
+  - developer
+
+- name: Copy some config files for {{website}}
+  copy: >
+    src={{item}} dest=/etc/httpd/conf.d/{{website}}/{{item}}
+    owner=root group=root mode=0644
+  with_items:
+  - developer.conf
+  notify:
+  - reload httpd
+  tags:
+  - developer

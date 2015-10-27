@@ -1,0 +1,36 @@
+- name: Create directories
+  file: state=directory
+        path=/srv/web/{{item}}
+        owner=apache group=apache mode=0755
+        setype=httpd_sys_content_t seuser=system_u
+  with_items:
+  - developer.fedoraproject.org
+  tags:
+  - developer.fedoraproject.org
+
+- name: Copy syncDeveloper script (stg)
+  when: env == "staging"
+  copy: >
+    src=syncDeveloper.stg.sh dest=/usr/local/bin/syncDeveloper owner=root group=root
+    mode=0755
+  tags:
+  - developer.fedoraproject.org
+
+#- name: Copy syncDeveloper script (prod)
+#  when: env == "production"
+#  copy: >
+#    src=syncDeveloper.sh dest=/usr/local/bin/syncDeveloper owner=root group=root
+#    mode=0755
+#  tags:
+#  - developer.fedoraproject.org
+
+- name: Install the syncDeveloper and rss feed update jobs
+  copy: >
+    src={{item}}.cron dest=/etc/cron.d/{{item}}.cron
+    owner=root group=root mode=0644
+  with_items:
+  - syncDeveloper
+  - developer-rss-update
+  tags:
+  - developer.fedoraproject.org
+  - cron
