@@ -1,0 +1,35 @@
+---
+# Configuration for the notifications consumer
+
+- name: install needed packages
+  yum: pkg={{ item }} state=present
+  with_items:
+  - statscache-consumer
+  - statscache-plugins
+  - python-psycopg2
+  - libsemanage-python
+  tags:
+  - notifs
+  - notifs/backend
+
+- name: copy database configuration
+  template: >
+    src={{ item }} dest=/etc/fedmsg.d/{{ item }}
+    owner=fedmsg group=fedmsg mode=0600
+  with_items:
+  - statscache.py
+  notify:
+  - restart fedmsg-hub
+  tags:
+  - notifs
+  - notifs/backend
+
+- name: copy the alembic configuration for DBAs
+  template: >
+    src=alembic.ini dest=/usr/share/statscache/alembic.ini
+    owner=root group=sysadmin-dba mode=0660
+  notify:
+  - restart fedmsg-hub
+  tags:
+  - notifs
+  - notifs/backend
