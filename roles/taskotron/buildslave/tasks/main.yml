@@ -35,3 +35,13 @@
 
 - name: add the buildslave user
   user: name=buildslave
+  when: deployment_type == 'prod' or deployment_type == 'stg' or deployment_type == 'local'
+
+- name: add buildslaves group
+  group: name={{ slaves_group }}
+  when: deployment_type == 'dev'
+
+- name: add buildslave users
+  user: name={{ item.user }} group={{ slaves_group }} home={{ item.home }}
+  with_items: slaves
+  when: deployment_type == 'dev'

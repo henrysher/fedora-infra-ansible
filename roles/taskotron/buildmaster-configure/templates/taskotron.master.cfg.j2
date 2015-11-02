@@ -151,11 +151,18 @@ from buildbot.steps.master import MasterShellCommand
 
 factory = BuildFactory()
 
+{% if deployment_type in ['prod', 'stg', 'local'] %}
 # clean out /var/tmp/taskotron (see T253)
 factory.addStep(ShellCommand(command="rm -rf /var/tmp/taskotron/*", name="rm_tmp", descriptionDone=['Clean tmp']))
 
 # clean the log (see T230)
 factory.addStep(ShellCommand(command=["rm", "-f", "/var/log/taskotron/taskotron.log"], name="rm_log", descriptionDone=['Clean log']))
+{% endif %}
+
+{% if deployment_type == 'dev' %}
+# clean out /var/tmp/taskotron (see T253)
+factory.addStep(ShellCommand(command=["rm", "-rf", Interpolate("/var/tmp/taskotron/%(prop:slavename)s/*")], name="rm_tmp", descriptionDone=['Clean tmp']))
+{% endif %}
 
 # check out the source
 factory.addStep(Git(repourl=Interpolate('{{ grokmirror_user }}@{{ buildmaster }}:/var/lib/git/mirror/fedoraqa/%(prop:taskname)s/'),
@@ -172,8 +179,12 @@ factory.addStep(ShellCommand(command=["runtask",
                              descriptionDone=[Interpolate('%(prop:taskname)s on %(prop:item)s')],
                              name='runtask',
                              timeout=2400,
+{% if deployment_type == 'dev' %}
+                             logfiles={'taskotron.log': {'filename': Interpolate('/var/lib/taskotron/artifacts/%(prop:uuid)s/taskotron.log'), }}))
+{% endif %}
+{% if deployment_type in ['prod', 'stg', 'local'] %}
                              logfiles={'taskotron.log': {'filename': '/var/log/taskotron/taskotron.log', }}))
-
+{% endif %}
 
 # create artifacts dir on master
 factory.addStep(MasterShellCommand(command=["mkdir", '-m', '0755', Interpolate('{{ public_artifacts_dir }}/%(prop:uuid)s')],
@@ -183,10 +194,14 @@ factory.addStep(MasterShellCommand(command=["mkdir", '-m', '0755', Interpolate('
 factory.addStep(DirectoryUpload(slavesrc=Interpolate('/var/lib/taskotron/artifacts/%(prop:uuid)s/'),
                                 masterdest=Interpolate('{{ public_artifacts_dir }}/%(prop:uuid)s/task_output')))
 
+
+{% if deployment_type in ['prod', 'stg', 'local'] %}
 # copy taskotron log to master
 factory.addStep(FileUpload(slavesrc='/var/log/taskotron/taskotron.log',
                            masterdest=Interpolate('{{ public_artifacts_dir }}/%(prop:uuid)s/taskotron.log'),
                            mode=0644))
+{% endif %}
+
 import datetime
 from buildbot.process.properties import renderer
 

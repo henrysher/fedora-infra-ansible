@@ -44,3 +44,8 @@
 
 - name: create /var/log/taskotron for task logfiles
   file: path=/var/log/taskotron state=directory owner={{ slave_user }} group={{ slave_user }} mode=1755
+  when: deployment_type == 'prod' or deployment_type == 'stg' or deployment_type == 'local'
+
+- name: create /var/log/taskotron for task logfiles
+  file: path=/var/log/taskotron state=directory owner=root group={{ slaves_group }} mode=1775
+  when: deployment_type == 'dev'

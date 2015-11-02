@@ -4,7 +4,12 @@ import os
 from twisted.application import service
 from buildslave.bot import BuildSlave
 
+{% if deployment_type in ['prod', 'stg', 'local'] %}
 basedir = r'/home/buildslave/slave'
+{% endif %}
+{% if deployment_type == 'dev' %}
+basedir = r'{{ item.dir }}'
+{% endif %}
 rotateLength = 10000000
 maxRotatedFiles = 10
 
@@ -29,7 +34,12 @@ except ImportError:
 
 buildmaster_host = '{{ buildmaster }}'
 port = 9989
+{% if deployment_type in ['prod', 'stg', 'local'] %}
 slavename = '{{ buildslave_name }}'
+{% endif %}
+{% if deployment_type == 'dev' %}
+slavename = '{{ item.user }}'
+{% endif %}
 {% if deployment_type == 'dev' %}
 passwd = '{{ dev_buildslave_password }}'
 {% endif %}
