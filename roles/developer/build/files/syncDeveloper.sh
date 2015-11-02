@@ -11,3 +11,6 @@ cd /srv/web/developer.fedoraproject.org
 /usr/bin/git reset -q --hard || exit 1
 /usr/bin/git checkout -q master || exit 1
 /usr/bin/git pull -q --ff-only || exit 1
+
+# Now we update the blog content 
+/usr/local/bin/rss.py /srv/web/developer.fedoraproject.org/index.html
