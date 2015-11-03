@@ -18,9 +18,9 @@ DATABASES = {
 }
 
 # Mailman API credentials for testing Postorius
-MAILMAN_API_URL = 'http://localhost:9001'
-MAILMAN_USER = 'restadmin'
-MAILMAN_PASS = 'restpass'
+MAILMAN_REST_API_URL = 'http://localhost:9001'
+MAILMAN_REST_API_USER = 'restadmin'
+MAILMAN_REST_API_PASS = 'restpass'
 
 VCR_RECORD_MODE = 'once'
 USE_SSL = False
