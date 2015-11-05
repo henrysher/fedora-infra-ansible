@@ -21,6 +21,16 @@
   when: not enable_websocket_server
   notify: restart fedmsg-hub
 
+- name: set fedmsg ownership on /var/run/fedmsg
+  file: >
+    dest=/var/run/fedmsg/
+    mode=0775
+    owner=fedmsg
+    group=fedmsg
+    state=directory
+  tags:
+  - fedmsgmonitor
+
 - name: ensure that nrpe has rights to monitor us
   file: >
     dest=/var/run/fedmsg/monitoring-fedmsg-hub.socket
