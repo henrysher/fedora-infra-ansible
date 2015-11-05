@@ -58,21 +58,21 @@
   - kojipkgs.conf
   - infrastructure.conf
   notify:
-  - restart httpd
+  - reload httpd
   tags:
   - kojipkgs
 
 - name: make sure httpd ssl.conf is not around (conflicts with squid)
   file: dest=/etc/httpd/conf.d/ssl.conf state=absent
   notify:
-  - restart httpd
+  - reload httpd
   tags:
   - kojipkgs
   
 - name: make sure httpd listens on port 8080
   lineinfile: dest=/etc/httpd/conf/httpd.conf state=present regexp="^Listen 80" line="Listen 8080"
   notify:
-  - restart httpd
+  - reload httpd
   tags:
   - kojipkgs
 
@@ -84,7 +84,7 @@
   tags:
   - kojipkgs
   notify:
-  - restart httpd
+  - reload httpd
 
 - name: Copy squid ssl key from puppet private
   copy: >
@@ -94,7 +94,7 @@
   tags:
   - kojipkgs
   notify:
-  - restart httpd
+  - reload httpd
 
 - name: set squid to start on boot
   service: name=squid enabled=true state=running

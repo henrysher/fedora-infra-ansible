@@ -516,10 +516,10 @@
 
   - lineinfile: dest=/etc/openstack-dashboard/local_settings regexp="^OPENSTACK_KEYSTONE_URL " line="OPENSTACK_KEYSTONE_URL = 'https://{{controller_publicname}}:5000/v2.0'"
     notify:
-      - restart httpd
+      - reload httpd
   - lineinfile: dest=/etc/openstack-dashboard/local_settings regexp="OPENSTACK_SSL_CACERT " line="OPENSTACK_SSL_CACERT = '/etc/pki/tls/certs/fedorainfracloud.org.digicert.pem'"
     notify:
-      - restart httpd
+      - reload httpd
 
   # configure cider with multi back-end
   # https://access.redhat.com/documentation/en-US/Red_Hat_Enterprise_Linux_OpenStack_Platform/5/html/Cloud_Administrator_Guide/section_manage-volumes.html
@@ -637,6 +637,8 @@
         copy_from: http://dl.fedoraproject.org/pub/fedora/linux/releases/22/Cloud/x86_64/Images/Fedora-Cloud-Atomic-22-20150521.x86_64.qcow2
       - name: Fedora-Cloud-Base-22-20150521.x86_64
         copy_from: http://dl.fedoraproject.org/pub/fedora/linux/releases/22/Cloud/x86_64/Images/Fedora-Cloud-Base-22-20150521.x86_64.qcow2
+      - name: Fedora-Cloud-Base-23-20151030.x86_64
+        copy_from: http://dl.fedoraproject.org/pub/fedora/linux/releases/23/Cloud/x86_64/Images/Fedora-Cloud-Base-23-20151030.x86_64.qcow2
       - name: CentOS-7-x86_64-GenericCloud-1503
         copy_from: http://cloud.centos.org/centos/7/images/CentOS-7-x86_64-GenericCloud-1503.qcow2
       - name: CentOS-6-x86_64-GenericCloud-20141129_01
@@ -1171,5 +1173,5 @@
     always_run: true
     changed_when: false
     register: TENANT_ID
-  - shell: source /root/keystonerc_admin && nova quota-update --instances 45 --cores 100 --ram 288300 --security-groups 20 {{ TENANT_ID.stdout }}
+  - shell: source /root/keystonerc_admin && nova quota-update --instances 45 --cores 150 --ram 288300 --security-groups 20 {{ TENANT_ID.stdout }}
 

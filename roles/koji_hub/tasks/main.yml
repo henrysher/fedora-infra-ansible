@@ -33,7 +33,7 @@
 - name: fedmenu shim
   template: src=fedmenu-extra-footer.html dest=/usr/share/koji-web/static/extra-footer.html
   tags: koji_hub
-  notify: restart httpd
+  notify: reload httpd
   # XXX - we only want to do this in staging for now because it requires a patch
   # to koji itself to include the extra-footer.html file in a sufficiently
   # advanced way.
@@ -45,14 +45,14 @@
   tags:
   - config
   - koji_hub
-  notify: restart httpd
+  notify: reload httpd
 
 - name: kojiweb config
   template: src=web.conf.j2 dest=/etc/kojiweb/web.conf owner=apache group=apache mode=600
   tags:
   - config
   - koji_hub
-  notify: restart httpd
+  notify: reload httpd
 
 - name: enable httpd_can_network_connect SELinux boolean for fedmsg
   seboolean: name=httpd_can_network_connect state=yes persistent=yes
@@ -71,7 +71,7 @@
 - name: koji fedmsg plugin
   template: src=fedmsg-koji-plugin.py dest=/usr/lib/koji-hub-plugins/fedmsg-koji-plugin.py
   notify:
-  - restart httpd
+  - reload httpd
   tags:
   - config
   - koji_hub
@@ -82,7 +82,7 @@
 - name: install kojiweb_cert_key.pem
   copy: src={{ private }}/files/koji/kojiweb_cert_key.pem dest=/etc/pki/tls/private/kojiweb_cert_key.pem owner=apache mode=600
   notify:
-  - restart httpd
+  - reload httpd
   tags:
   - config
   - koji_hub
@@ -91,7 +91,7 @@
 - name: install production koji_cert.pem
   copy: src={{ private }}/files/koji/koji_cert.pem dest=/etc/pki/tls/certs/koji_cert.pem owner=apache mode=600
   notify:
-  - restart httpd
+  - reload httpd
   tags:
   - config
   - koji_hub
@@ -100,7 +100,7 @@
 - name: install production koji_key.pem
   copy: src={{ private }}/files/koji/koji_key.pem dest=/etc/pki/tls/private/koji_key.pem owner=apache mode=600
   notify:
-  - restart httpd
+  - reload httpd
   tags:
   - config
   - koji_hub
@@ -112,7 +112,7 @@
 - name: install s390 kojiweb_cert_key.pem
   copy: src={{ private }}/files/koji/s390.koji.fedoraproject.org_key_and_cert.pem dest=/etc/pki/tls/private/kojiweb_cert_key.pem owner=apache mode=600
   notify:
-  - restart httpd
+  - reload httpd
   tags:
   - config
   - koji_hub
@@ -121,7 +121,7 @@
 - name: install s390 production koji_cert.pem
   copy: src={{ private }}/files/koji/s390_koji_cert.pem dest=/etc/pki/tls/certs/koji_cert.pem owner=apache mode=600
   notify:
-  - restart httpd
+  - reload httpd
   tags:
   - config
   - koji_hub
@@ -130,7 +130,7 @@
 - name: install s390 production koji_key.pem
   copy: src={{ private }}/files/koji/s390_koji_key.pem dest=/etc/pki/tls/private/koji_key.pem owner=apache mode=600
   notify:
-  - restart httpd
+  - reload httpd
   tags:
   - config
   - koji_hub
@@ -142,7 +142,7 @@
 - name: Install staging koji ssl cert
   copy: src={{ private }}/files/koji/koji.stg_cert.pem dest=/etc/pki/tls/certs/koji.stg_cert.pem
   notify:
-  - restart httpd
+  - reload httpd
   tags:
   - config
   - koji_hub
@@ -151,7 +151,7 @@
 - name: install staging koji ssl key
   copy: src={{ private }}/files/koji/koji.stg_key.pem dest=/etc/pki/tls/private/koji.stg_key.pem
   notify:
-  - restart httpd
+  - reload httpd
   tags:
   - config
   - koji_hub
@@ -199,21 +199,21 @@
   tags:
   - config
   - koji_hub
-  notify: restart httpd
+  notify: reload httpd
 
 - name: koji web hub specific config files
   template: src=kojiweb.conf.j2 dest=/etc/httpd/conf.d/kojiweb.conf owner=root group=root
   tags:
   - config
   - koji_hub
-  notify: restart httpd
+  notify: reload httpd
 
 - name: koji web staging config files
   copy: src=kojiweb.conf.stg dest=/etc/httpd/conf.d/kojiweb-stg.conf owner=root group=root
   tags:
   - config
   - koji_hub
-  notify: restart httpd
+  notify: reload httpd
   when: env == "staging"
 
 - name: koji staging ssl config
@@ -221,7 +221,7 @@
   tags:
   - config
   - koji_hub
-  notify: restart httpd
+  notify: reload httpd
   when: env == "staging"
 
 - name: koji ssl config
@@ -229,7 +229,7 @@
   tags:
   - config
   - koji_hub
-  notify: restart httpd
+  notify: reload httpd
   when: env != "staging"
 
 - name: koji robots.txt config
@@ -237,7 +237,7 @@
   tags:
   - config
   - koji_hub
-  notify: restart httpd
+  notify: reload httpd
 
 - name: kojira log dir
   file: dest=/var/log/kojira owner=root group=root mode=0750 state=directory
@@ -306,7 +306,7 @@
   service: name=httpd enabled=yes
   ignore_errors: true
   notify:
-  - restart httpd
+  - reload httpd
   tags:
   - service
   - koji_hub
