@@ -81,6 +81,7 @@
     - audit
   tags:
   - koji_builder
+  when: ansible_distribution_major_version|int < 22
 
 - name: add oz/imagefctory pkgs on all but PPC EPEL
   yum: state=present pkg={{ item }}
@@ -98,7 +99,43 @@
     - python-psphere
     - VMDKstream
     - pykickstart
-  when: not inventory_hostname.startswith('buildppc-')
+  when: not inventory_hostname.startswith('buildppc-') and ansible_distribution_major_version|int < 22
+  tags:
+  - koji_builder
+
+- name: add pkgs
+  dnf: state=present pkg={{ item }}
+  with_items:
+    - yum-utils
+    - koji-builder
+    - strace
+    - mock
+    - kernel-firmware
+    - ntp
+    - ntpdate
+    - rsyslog
+    - audit
+  tags:
+  - koji_builder
+  when: ansible_distribution_major_version|int > 21
+
+- name: add oz/imagefctory pkgs on all but PPC EPEL
+  dnf: state=present pkg={{ item }}
+  with_items:
+    - oz
+    - imagefactory
+    - imagefactory-plugins-TinMan
+    - imagefactory-plugins-Docker
+    - imagefactory-plugins-vSphere
+    - imagefactory-plugins-ovfcommon
+    - imagefactory-plugins
+    - imagefactory-plugins-OVA
+    - imagefactory-plugins-EC2
+    - imagefactory-plugins-RHEVM
+    - python-psphere
+    - VMDKstream
+    - pykickstart
+  when: not inventory_hostname.startswith('buildppc-') and ansible_distribution_major_version|int > 21
   tags:
   - koji_builder
 
