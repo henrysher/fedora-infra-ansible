@@ -1,6 +1,6 @@
 ---
 # install apache(httpd)
-- name: install apache
+- name: install apache (yum)
   yum: name={{ item }} state=present
   with_items:
   - httpd
@@ -8,6 +8,18 @@
   tags:
   - packages
   - apache
+  when: ansible_distribution_major_version|int < 22
+
+# install apache(httpd)
+- name: install apache (dnf)
+  dnf: name={{ item }} state=present
+  with_items:
+  - httpd
+  - httpd-tools
+  tags:
+  - packages
+  - apache
+  when: ansible_distribution_major_version|int > 22
 
 - name: set apache running/enabled
   service: name=httpd enabled=yes
