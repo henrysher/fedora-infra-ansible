@@ -15,6 +15,9 @@
    - "/srv/private/ansible/vars.yml"
    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
 
+  pre_tasks:
+  - include: "{{ tasks }}/yumrepos.yml"
+
   roles:
   - base
   - hosts
@@ -39,7 +42,6 @@
     when: not inventory_hostname.startswith('bkernel')
   - include: "{{ tasks }}/motd.yml"
     when: not inventory_hostname.startswith('bkernel')
-  - include: "{{ tasks }}/yumrepos.yml"
 
   - name: make sure kojid is running
     action: service name=kojid state=running
