@@ -1,0 +1,18 @@
+---
+#
+# Setup watchdog
+#
+- name: install needed packages
+  yum: pkg={{ item }} state=present
+  with_items:
+  - watchdog
+  tags:
+  - packages
+  - watchdog
+
+- name: watchdog device configuration
+  copy: src=watchdog-device dest=/etc/waatchdog.d/watchdog-device owner=root group=root mode=644
+  tags:
+  - config
+  - watchdog
+  notify: restart watchdog
