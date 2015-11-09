@@ -1,9 +1,16 @@
 ---
 #install denyhosts
-- name: install denyhosts
+- name: install denyhosts (yum)
   yum: name=denyhosts state=present
   tags:
   - packages
+  when: ansible_distribution_major_version|int < 22
+
+- name: install denyhosts (dnf)
+  dnf: name=denyhosts state=present
+  tags:
+  - packages
+  when: ansible_distribution_major_version|int > 21 and ansible_cmdline.ostree is not defined
 
 - name: /etc/denyhosts.conf
   copy: src=denyhosts.conf dest=/etc/denyhosts.conf
