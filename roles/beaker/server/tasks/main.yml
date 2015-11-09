@@ -17,8 +17,39 @@
     - beaker_server
     - MySQL-python
 
+- name: install mod_auth_mellon
+  yum: name=mod_auth_mellon state=present
+  tags:
+    - beaker-server
+
+- name: create /etc/httpd/saml2/{{ beaker_server_cname }}
+  file: >
+    path="/etc/httpd/saml2/{{ beaker_server_cname }}"
+    state=directory owner=apache group=apache mode=0700
+  tags:
+    - beaker-server
+
+- name: copy SAML files
+  copy: >
+    src="{{ item }}" dest="/etc/httpd/{{ item }}"
+    owner="apache" group="apache" mode=0644
+  with_items:
+    - "saml2/{{ beaker_server_cname }}/metadata.xml"
+    - "saml2/{{ beaker_server_cname }}/idp-metadata.xml"
+    - "saml2/{{ beaker_server_cname }}/certificate.pem"
+  tags:
+    - beaker-server
+
+- name: copy SAML private key
+  copy: >
+    src="{{ private}}/files/saml2/{{ beaker_server_cname }}/certificate.key"
+    dest="/etc/httpd/saml2/{{ beaker_server_cname }}/certificate.key"
+    owner="apache" group="apache" mode=0600
+  tags:
+    - beaker-server
+
 - name: Replace default apache beaker-server.conf
-  copy:
+  template:
     src: beaker-server.conf
     dest: /etc/httpd/conf.d/beaker-server.conf
     owner: root
