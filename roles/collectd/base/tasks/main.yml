@@ -6,6 +6,14 @@
   yum: name=collectd state=present
   tags:
   - collectd
+  when: ansible_distribution_major_version|int < 22
+
+# install pkg
+- name: install collectd
+  dnf: name=collectd state=present
+  tags:
+  - collectd
+  when: ansible_distribution_major_version|int > 21
 
 # enable collectd
 - name: enable collectd svc
@@ -41,7 +49,7 @@
 
 # apache - localhost only - pretty much any apache server
 - name: install collectd-apache
-  yum: state=present name=collectd-apache
+  yum: state=present name=collectd-apache and ansible_distribution_major_version|int < 22
   tags:
   - collectd
   notify:
@@ -70,7 +78,7 @@
   yum: name=libsemanage-python state=present
   tags:
   - collectd
-  when: collectd_apache is defined
+  when: collectd_apache is defined and ansible_distribution_major_version|int < 22
 
 - name: Let collectd talk to things over tcp
   seboolean: name=collectd_tcp_network_connect state=yes persistent=yes
