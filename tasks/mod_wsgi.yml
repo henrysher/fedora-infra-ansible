@@ -4,6 +4,13 @@
   yum: name=mod_wsgi state=present
   tags:
   - packages
+  when: ansible_distribution_major_version|int < 22
+
+- name: install mod_wsgi
+  dnf: name=mod_wsgi state=present
+  tags:
+  - packages
+  when: ansible_distribution_major_version|int > 21
 
 - name: wsgi.conf
   copy: src="{{ files }}/mod_wsgi/wsgi.conf" dest=/etc/httpd/conf.d/wsgi.conf
