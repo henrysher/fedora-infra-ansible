@@ -1,0 +1,21 @@
+---
+# Configuration for the mdapi webapp
+
+- name: install needed packages
+  yum: pkg={{ item }} state=present
+  with_items:
+  - mdapi
+  tags:
+  - mdapi
+  - packages
+
+- name: Install the meta-data fetch cron job
+  when: inventory_hostname.startswith(('mdapi01'))
+  template: src={{ item.file }}
+            dest={{ item.location }}/{{ item.file }}
+  with_items:
+  - { file: 'mdapi.cron', location: /etc/cron.d }
+  tags:
+  - mdapi
+  - config
+
