@@ -11,17 +11,38 @@
   tags:
   - packages
   - fedmsg/base
+  when: ansible_distribution_major_version|int < 22
 
 - name: install python2 fedmsg package
   yum: pkg=fedmsg state=present
-  when: "'python34-fedmsg' not in group_names"
+  when: "'python34-fedmsg' not in group_names" and ansible_distribution_major_version|int < 22
   tags: fedmsg/base
 
 - name: install the python34 fedmsg package
   yum: pkg=python34-fedmsg-core state=present
-  when: "'python34-fedmsg' in group_names"
+  when: "'python34-fedmsg' in group_names" and ansible_distribution_major_version|int < 22
   tags: fedmsg/base
 
+- name: install needed packages
+  dnf: pkg={{ item }} state=present
+  with_items:
+  - libsemanage-python
+  - python-psutil
+  - policycoreutils-python  # This is in the kickstart now.  Here for old hosts.
+  tags:
+  - packages
+  - fedmsg/base
+  when: ansible_distribution_major_version|int > 21
+
+- name: install python2 fedmsg package
+  dnf: pkg=fedmsg state=present
+  when: "'python34-fedmsg' not in group_names" and ansible_distribution_major_version|int > 21
+  tags: fedmsg/base
+
+- name: install the python34 fedmsg package
+  dnf: pkg=python34-fedmsg-core state=present
+  when: "'python34-fedmsg' in group_names" and ansible_distribution_major_version|int > 21
+  tags: fedmsg/base
 
 # We only need this on el6.  On el7, the fedmsg package uses systemd-tempfiles
 # to generate this effect for us.  Note that at the bottom of this role we add
@@ -149,7 +170,20 @@
 
 - name: install fedmsg-relay in case we're in debug mode.
   yum: name=fedmsg-relay state=present
-  when: fedmsg_debug_loopback == true
+  when: fedmsg_debug_loopback == true and ansible_distribution_major_version|int < 22
+  tags:
+  - fedmsg_loopback
+  - fedmsg/base
+  notify:
+  - reload httpd
+  - restart fedmsg-gateway
+  - restart fedmsg-hub
+  - restart fedmsg-irc
+  - restart fedmsg-relay
+
+- name: install fedmsg-relay in case we're in debug mode.
+  dnf: name=fedmsg-relay state=present
+  when: fedmsg_debug_loopback == true and ansible_distribution_major_version|int > 21
   tags:
   - fedmsg_loopback
   - fedmsg/base
