@@ -33,22 +33,6 @@
   handlers:
   - include: "{{ handlers }}/restart_services.yml"
 
-- name: set up fedmsg
-  hosts: mdapi-stg
-  user: root
-  gather_facts: True
-
-  vars_files: 
-   - /srv/web/infra/ansible/vars/global.yml
-   - "/srv/private/ansible/vars.yml"
-   - "{{ vars_path }}/{{ ansible_distribution }}.yml"
-
-  roles:
-  - fedmsg/base
-
-  handlers:
-  - include: "{{ handlers }}/restart_services.yml"
-
 - name: deploy mdapi itself
   hosts: mdapi-stg
   user: root
@@ -61,6 +45,22 @@
 
   roles:
   - mdapi
+
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"
+
+- name: set up fedmsg
+  hosts: mdapi-stg
+  user: root
+  gather_facts: True
+
+  vars_files: 
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - "{{ vars_path }}/{{ ansible_distribution }}.yml"
+
+  roles:
+  - fedmsg/base
 
   handlers:
   - include: "{{ handlers }}/restart_services.yml"
