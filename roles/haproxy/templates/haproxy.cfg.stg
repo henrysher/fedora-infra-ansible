@@ -191,6 +191,11 @@ listen  statscache 0.0.0.0:10042
     server  statscache-web02 statscache-web02:80 check inter 10s rise 1 fall 2
     option  httpchk GET /statscache/
 
+listen  mdapi 0.0.0.0:10043
+    balance hdr(appserver)
+    server  mdapi01 mdapi01:80 check inter 10s rise 1 fall 2
+    option  httpchk GET /
+
 # Apache doesn't handle the initial connection here like the other proxy
 # entries.  This proxy also doesn't use the http mode like the others.
 # stunnel should be sitting on port 9939 (public) and redirecting
