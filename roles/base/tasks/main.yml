@@ -346,3 +346,46 @@
   tags:
   - config
   - base
+
+#
+# Watchdog stuff
+#
+- name: install watchdog
+  yum: pkg={{ item }} state=present
+  with_items:
+  - watchdog
+  tags:
+  - packages
+  - watchdog
+  - base
+  when: ansible_distribution_major_version|int < 22 && env == 'staging'
+
+- name: install watchdog
+  dnf: pkg={{ item }} state=present
+  with_items:
+  - watchdog
+  tags:
+  - packages
+  - watchdog
+  - base
+  when: ansible_distribution_major_version|int > 21 && env == 'staging'
+
+- name: watchdog device configuration
+  copy: src=watchdog.conf dest=/etc/watchdog.conf owner=root group=root mode=644
+  when: env == 'staging'
+  tags:
+  - config
+  - watchdog
+  - base
+  notify: restart watchdog
+
+- name: Set watchdog to run on boot
+  service: name=watchdog enabled=yes
+  when: env == 'staging'
+  ignore_errors: true
+  notify:
+  - restart watchdog
+  tags:
+  - service
+  - watchdog
+  - base
