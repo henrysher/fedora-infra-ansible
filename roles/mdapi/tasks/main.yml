@@ -11,12 +11,19 @@
   - mdapi
   - packages
 
+- name: create all the directory for the configuration file
+  action: file state=directory path=/etc/mdapi
+  tags:
+  - mdapi
+  - config
+
 - name: Install the meta-data fetch cron job
   when: inventory_hostname.startswith(('mdapi01'))
   template: src={{ item.file }}
             dest={{ item.location }}/{{ item.file }}
   with_items:
   - { file: 'mdapi.cron', location: /etc/cron.d }
+  - { file: 'mdapi.cfg', location: /etc/mdapi }
   tags:
   - mdapi
   - config
