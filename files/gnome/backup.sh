@@ -37,5 +37,6 @@ LOGS_DIR='/fedora_backups/gnome/logs'
 
 for MACHINE in $MACHINES; do
       rsync -avz -e 'ssh -F /usr/local/etc/gnome_ssh_config' --bwlimit=2000 $MACHINE:/etc/rsyncd/backup.exclude $BACKUP_DIR/excludes/$MACHINE.exclude
-      rdiff-backup --remote-schema 'ssh -F /usr/local/etc/gnome_ssh_config %s rdiff-backup --server' --print-statistics --force --remove-older-than 6M --exclude-device-files --exclude /selinux --exclude /sys --exclude /proc --exclude-globbing-filelist $BACKUP_DIR/excludes/$MACHINE.exclude $MACHINE::/ $BACKUP_DIR/$MACHINE/ | mail -s "Daily backup: $MACHINE" backups@gnome.org
+      rdiff-backup --remote-schema 'ssh -F /usr/local/etc/gnome_ssh_config %s rdiff-backup --server' --print-statistics --exclude-device-files --exclude /selinux --exclude /sys --exclude /proc --exclude-globbing-filelist $BACKUP_DIR/excludes/$MACHINE.exclude $MACHINE::/ $BACKUP_DIR/$MACHINE/ | mail -s "Daily backup: $MACHINE" backups@gnome.org
+      rdiff-backup --remote-schema 'ssh -F /usr/local/etc/gnome_ssh_config %s rdiff-backup --server' --remove-older-than 6M --force $MACHINE::/
 done
