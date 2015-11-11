@@ -32,7 +32,11 @@ profile: production
 ## Local execution is the default mode for development profile and remote
 ## execution for production profile.
 ## [choices: local, libvirt; default: local for development, libvirt for production]
+{% if deployment_type == 'dev' %}
+runtask_mode: libvirt
+{% elif deployment_type in ['stg', 'prod', 'local'] %}
 runtask_mode: local
+{% endif %}
 
 
 ## ==== SCHEDULING section ====
@@ -141,6 +145,9 @@ artifacts_baseurl: {{ artifacts_base_url }}
 
 ## The location of images for disposable clients
 #imagesdir: /var/lib/taskotron/images
+
+## Temporary option to specify url of an image to download and use for disposable client
+#imageurl:
 
 
 ## ==== LOGGING section ====

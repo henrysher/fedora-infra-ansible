@@ -34,18 +34,20 @@
   handlers:
   - include: "{{ handlers }}/restart_services.yml"
 
-#- name: configure taskotron client host
-#  hosts: taskotron-dev-client-hosts:taskotron-stg-client-hosts:taskotron-prod-client-hosts
-#  user: root
-#  gather_facts: True
-#
-#  vars_files:
-#   - /srv/web/infra/ansible/vars/global.yml
-#   - "/srv/private/ansible/vars.yml"
-#   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
-#
-#  roles:
-#   - { role: taskotron/something, tags: ['something'] }
-#
-#  handlers:
-#   - include: "{{ handlers }}/restart_services.yml"
+- name: configure taskotron client host
+  hosts: taskotron-dev-client-hosts:taskotron-stg-client-hosts:taskotron-prod-client-hosts
+  user: root
+  gather_facts: True
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  roles:
+   - { role: taskotron/buildslave, tags: ['buildslave'] }
+   - { role: taskotron/taskotron-client, tags: ['taskotronclient'] }
+   - { role: taskotron/buildslave-configure, tags: ['buildslaveconfigure'] }
+
+  handlers:
+   - include: "{{ handlers }}/restart_services.yml"
