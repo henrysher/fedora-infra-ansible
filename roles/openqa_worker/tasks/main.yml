@@ -1,0 +1,45 @@
+# Required vars
+# - openqa_workers
+##      integer - number of worker instances to create/run
+
+# Required vars with defaults
+# - openqa_hostname
+##      string - hostname of openQA server to run jobs for
+##      default - localhost
+
+- name: Ensure DNF COPR plugin is available
+  dnf: pkg="dnf-command(copr)" state=present
+  tags:
+  - packages
+
+- name: Install openQA repo if needed
+  command: "dnf -y copr enable adamwill/openQA"
+  args:
+    creates: /etc/yum.repos.d/_copr_adamwill-openQA.repo
+  tags:
+  - config
+
+- name: Install packages
+  dnf: name={{ item }} state=present enablerepo=adamwill-openQA
+  with_items:
+  - openqa-worker
+  - libselinux-python
+  tags:
+  - packages
+
+- include: nfs-client.yml
+  when: openqa_hostname is defined and openqa_hostname != "localhost"
+
+- name: openQA client config
+  template: src=client.conf.j2 dest=/etc/openqa/client.conf owner=_openqa-worker group=root mode=0600
+  tags:
+  - config
+
+- name: openQA worker config
+  template: src=workers.ini.j2 dest=/etc/openqa/workers.ini owner=_openqa-worker group=root mode=0644
+  tags:
+  - config
+
+- name: Worker services
+  service: name=openqa-worker@{{ item }} enabled=yes state=started
+  with_sequence: "count={{ openqa_workers }}"

@@ -1,30 +1,23 @@
-# create a new openqa worker server system
-# NOTE: should be used with --limit most of the time
-# NOTE: most of these vars_path come from group_vars/backup_server or from hostvars
-# This has an extra role that configures the virthost to be used with beaker for
-# virtual machine clients
-
-- name: basic configuration
+- name: configure openQA workers
   hosts: openqa-workers:openqa-stg-workers
   user: root
   gather_facts: True
 
-  vars_files: 
+  vars_files:
    - /srv/web/infra/ansible/vars/global.yml
    - "/srv/private/ansible/vars.yml"
    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
 
   roles:
-  - base
-  - rkhunter
-  - { role: denyhosts, when: ansible_distribution_major_version|int != 7 }
-  - nagios_client
-  - hosts
-  - fas_client
-  - collectd/base
-  - { role: iscsi_client, when: datacenter == "phx2" }
-  - sudo
-  - { role: openvpn/client, when: datacenter != "phx2" }
+   - { role: base, tags: ['base'] }
+   - { role: rkhunter, tags: ['rkhunter'] }
+   - { role: nagios_client, tags: ['nagios_client'] }
+   - { role: hosts, tags: ['hosts']}
+   - { role: fas_client, tags: ['fas_client'] }
+   - { role: collectd/base, tags: ['collectd_base'] }
+   - { role: sudo, tags: ['sudo'] }
+   - { role: openqa_worker, tags: ['openqa_worker'] }
+   - apache
 
   tasks:
   - include: "{{ tasks }}/yumrepos.yml"
@@ -32,20 +25,4 @@
   - include: "{{ tasks }}/motd.yml"
 
   handlers:
-  - include: "{{ handlers }}/restart_services.yml"
-
-#- name: configure openqa workers
-#  hosts: openqa-workers:openqa-stg-workers
-#  user: root
-#  gather_facts: True
-#
-#  vars_files:
-#   - /srv/web/infra/ansible/vars/global.yml
-#   - "/srv/private/ansible/vars.yml"
-#   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
-#
-#  roles:
-#   - { role: openqa/something, tags: ['something'] }
-#
-#  handlers:
-#   - include: "{{ handlers }}/restart_services.yml"
+   - include: "{{ handlers }}/restart_services.yml"
