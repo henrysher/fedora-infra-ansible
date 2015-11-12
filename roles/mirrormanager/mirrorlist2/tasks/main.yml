@@ -80,5 +80,16 @@
         owner=root group=root mode=0755
   tags:
   - hotfix
+
+- name: make a /var/log/mirrormanager dir for logs
+  file: dest=/var/log/mirrormanager/ state=directory owner=mirrormanager group=mirrormanager mode=0755
+  tags:
+  - mirrorlist2
+
+- name: copy systemd service file in for mirrorlist-server
+  copy: src=mirrorlist-server.service dest=/etc/systemd/system/mirrorlist-server.service
   notify:
+  - reload systemd service files
   - restart mirrorlist-server
+  tags:
+  - mirrorlist2
