@@ -1,11 +1,4 @@
----
-# create a new taskotron staging server
-# NOTE: make sure there is room/space for this server on the vmhost
-# NOTE: most of these vars_path come from group_vars/mirrorlist or from hostvars
-
-- include: "/srv/web/infra/ansible/playbooks/include/virt-create.yml myhosts=openqa:openqa-stg"
-
-- name: make the box be real
+- name: configure openQA
   hosts: openqa:openqa-stg
   user: root
   gather_facts: True
@@ -22,31 +15,16 @@
    - { role: hosts, tags: ['hosts']}
    - { role: fas_client, tags: ['fas_client'] }
    - { role: collectd/base, tags: ['collectd_base'] }
-#   - { role: yum-cron, tags: ['yumcron'] }
    - { role: sudo, tags: ['sudo'] }
+   - { role: openqa/server, tags: ['openqa_server'] }
+   - { role: openqa/worker, tags: ['openqa_worker'] }
+   - { role: openqa/dispatcher, tags: ['openqa_dispatcher'] }
    - apache
 
   tasks:
-  # this is how you include other task lists
   - include: "{{ tasks }}/yumrepos.yml"
   - include: "{{ tasks }}/2fa_client.yml"
   - include: "{{ tasks }}/motd.yml"
 
   handlers:
    - include: "{{ handlers }}/restart_services.yml"
-
-#- name: configure openqa
-#  hosts: openqa:openqa-stg
-#  user: root
-#  gather_facts: True
-#
-#  vars_files:
-#   - /srv/web/infra/ansible/vars/global.yml
-#   - "/srv/private/ansible/vars.yml"
-#   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
-#
-#  roles:
-#   - { role: openqa/something, tags: ['something'] }
-#
-#  handlers:
-#   - include: "{{ handlers }}/restart_services.yml"

@@ -1,0 +1,167 @@
+# Required vars
+# - openqa_email
+##       string - Email address of admin user
+# - openqa_nickname
+##       string - Short name of admin user (shown in the web UI for e.g.)
+# - openqa_fullname
+##       string - Full name of admin user
+# - openqa_key
+# - openqa_secret
+##       string - MUST be 16-character hexadecimals, and are secrets
+# openqa_userid
+##       string - User ID of admin user: for Fedora should be a Fedora openID URL,
+##                http://fasname.id.fedoraproject.org
+
+# Required vars with defaults
+# - external_hostname
+##       string - The public hostname for the server (will be used as ServerName)
+##       default - ansible_nodename
+
+# Optional vars
+# - openqa_dbname
+##       string - The name of the database to use
+# - openqa_dbhost
+##       string - The hostname of the database server
+# - openqa_dbuser
+##       string - The database username
+# - openqa_dbpassword
+##       string - The database password
+#
+# If openqa_dbhost is set, the others must be too, and the server will be
+# configured to use a pgsql database accordingly. If openqa_dbhost is not
+# set, the server will use a local SQLite database and the other values
+# are ignored.
+
+- name: Ensure DNF COPR plugin is available
+  dnf: pkg="dnf-command(copr)" state=present
+  tags:
+  - packages
+
+- name: Install openQA repo if needed
+  command: "dnf -y copr enable adamwill/openQA"
+  args:
+    creates: /etc/yum.repos.d/_copr_adamwill-openQA.repo
+  tags:
+  - config
+
+- name: Install required packages
+  dnf: name={{ item }} state=present enablerepo=adamwill-openQA
+  with_items:
+  - libselinux-python
+  - openqa
+  - git
+  - libselinux-utils
+  - libsemanage-python
+  - nfs-utils
+  - perl(Class::DBI::Pg)
+  - perl(DateTime::Format::Pg)
+  - libguestfs-tools-c
+  tags:
+  - packages
+
+- name: Check out the tests
+  git:
+    repo: https://bitbucket.org/rajcze/openqa_fedora
+    dest: /var/lib/openqa/share/tests/fedora
+
+- name: Have tests owned by geekotest
+  file: path=/var/lib/openqa/share/tests/fedora owner=geekotest recurse=yes
+
+- name: Check out openqa_fedora_tools
+  git:
+    repo: https://bitbucket.org/rajcze/openqa_fedora_tools
+    dest: /root/openqa_fedora_tools
+
+- name: Create asset directories
+  file: path={{ item }} state=directory owner=geekotest group=root mode=0755
+  with_items:
+  - /var/lib/openqa/share/factory/iso
+  - /var/lib/openqa/share/factory/hdd
+  - /var/lib/openqa/share/factory/repo
+
+# NOTE: this is very hacky, but we can't do much better with the current
+# disk creation script, I will try and make it better. We'll have to bump
+# this hardcoded release number every so often.
+- name: Create hard disk images (this may take a long time!)
+  command: "/root/openqa_fedora_tools/tools/createhdds.sh 23"
+  args:
+    creates: /var/lib/openqa/share/factory/hdd/disk_full.img
+    chdir: /var/lib/openqa/share/factory/hdd/
+
+- name: Create exports file
+  copy: src=exports dest=/etc/exports.d/openqa.exports owner=root group=root mode=0644
+  tags:
+  - config
+
+- name: Enable and start NFS server
+  service: name=nfs-server enabled=yes state=started
+
+- name: Set up Apache config
+  template: src=openqa.conf.httpd.j2 dest=/etc/httpd/conf.d/openqa.conf owner=root group=root mode=0644
+  tags:
+  - config
+
+- name: OpenQA config
+  copy: src=openqa.ini dest=/etc/openqa/openqa.ini owner=geekotest group=root mode=0640
+  tags:
+  - config
+
+- name: Create database
+  delegate_to: "{{ openqa_dbhost }}"
+  sudo_user: postgres
+  sudo: true
+  action: postgresql_db db={{ openqa_dbname }}
+  when: "openqa_dbhost is defined"
+
+- name: Ensure db user has access to database
+  delegate_to: "{{ openqa_dbhost }}"
+  sudo_user: postgres
+  sudo: true
+  action: postgresql_user db={{ openqa_dbname }} user={{ openqa_dbuser }} password={{ openqa_dbpassword }} role_attr_flags=NOSUPERUSER
+  when: "openqa_dbhost is defined"
+
+- name: Database config
+  template: src=database.ini.pgsql.j2 dest=/etc/openqa/database.ini owner=geekotest group=root mode=0640
+  when: "openqa_dbhost is defined"
+  tags:
+  - config
+
+- name: Initialize database
+  command: "/usr/share/openqa/script/initdb --user geekotest --init_database"
+  register: initdb
+  changed_when: "initdb.rc == 0"
+  failed_when: "(initdb.rc > 0) and (initdb.stderr is not defined or initdb.stderr.find('already exists') == -1)"
+
+- name: Enable and start services
+  service: name={{ item }} enabled=yes state=started
+  register: services
+  with_items:
+  - openqa-scheduler
+  - openqa-webui
+  - openqa-websockets
+  - openqa-gru
+
+# This is using a big hammer until #1277312 is resolved
+- name: Allow Apache to connect to openQA
+  seboolean: name=httpd_can_network_connect state=yes persistent=yes
+
+- name: Wait for openQA to be fully started
+  pause: seconds=5
+  when: services|changed
+
+- name: openQA client config
+  template: src=client.conf.j2 dest=/etc/openqa/client.conf mode=0600
+  tags:
+  - config
+
+- name: Create admin user
+  command: "/var/lib/openqa/script/create_admin --email {{ openqa_email }} --nickname {{ openqa_nickname }} --fullname '{{ openqa_fullname }}' --key {{ openqa_key }} --secret {{ openqa_secret }} {{ openqa_userid }}"
+  register: admin
+  changed_when: "admin.rc == 0"
+  failed_when: "(admin.rc > 0) and (admin.stderr is not defined or admin.stderr.find('already exists') == -1)"
+
+- name: Load tests
+  shell: "/var/lib/openqa/share/tests/fedora/templates | grep 'added => [1-9]'"
+  register: templates
+  changed_when: "templates.rc == 0"
+  failed_when: "1 != 1"

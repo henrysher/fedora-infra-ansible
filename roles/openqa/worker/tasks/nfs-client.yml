@@ -1,0 +1,24 @@
+# Required vars
+# - openqa_hostname
+##      string - hostname of the openQA server (we assume it is hosting the NFS mount)
+
+- name: Install NFS client
+  dnf: name=nfs-utils state=present
+  tags:
+  - packages
+
+# We don't check ownership as, after mounting, it's owned by whatever the
+# UID of geekotest is on the server
+- name: Ensure mount target exists
+  file: path=/var/lib/openqa/share state=directory mode=0755
+
+- name: Create mount unit
+  template: src=var-lib-openqa-share.mount.j2 dest=/etc/systemd/system/var-lib-openqa-share.mount owner=root group=root mode=0644
+  tags:
+  - config
+
+- name: Enable and start mount
+  service: name={{ item }} enabled=yes state=started
+  with_items:
+  - var-lib-openqa-share.mount
+  - remote-fs.target
