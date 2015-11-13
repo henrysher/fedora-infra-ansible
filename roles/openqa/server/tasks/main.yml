@@ -140,16 +140,9 @@
   - openqa-websockets
   - openqa-gru
 
-- name: Check if SELinux policy is set
-  shell: "getsebool httpd_can_network_connect"
-  register: getsebool
-  always_run: true
-  changed_when: "1 != 1"
-
 # This is using a big hammer until #1277312 is resolved
 - name: Allow Apache to connect to openQA
-  command: "setsebool -P httpd_can_network_connect on"
-  when: getsebool.stdout.find('--> on') == -1
+  seboolean: name=httpd_can_network_connect state=yes persistent=yes
 
 - name: Wait for openQA to be fully started
   pause: seconds=5
