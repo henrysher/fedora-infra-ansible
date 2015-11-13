@@ -2,7 +2,7 @@
 # requires --extra-vars="target=hostspec"
 
 - name: update grokmirror repos
-  hosts: "{{ target }}"
+  hosts: taskotron-dev:taskotron-stg:taskotron-prod
   sudo: true
   sudo_user: "{{ grokmirror_user }}"
   gather_facts: false
@@ -10,7 +10,7 @@
   tasks:
      - name: update grokmirror repos to develop branches
        when: deployment_type == 'stg' or deployment_type == 'dev'
-       command: chdir={{ grokmirror_basedir }}/{{ item.name }} git fetch origin master:master
+       command: chdir={{ grokmirror_basedir }}/{{ item.name }} git fetch origin develop:develop
        with_items: grokmirror_repos
 
      - name: update grokmirror repos to master branches
