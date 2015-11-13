@@ -1,0 +1,99 @@
+# Required vars with defaults
+# - openqa_hostname
+##      string - hostname of openQA server to run jobs for
+##      default - localhost
+# - openqa_triggers
+##      list - the timers to enable - i.e. which scheduled runs
+##             will actually be triggered by this dispatcher
+##      default - ['current', 'branched', 'rawhide', 'stable']
+#
+# Optional vars
+# - wikitcms_user
+##      string - FAS username for reporting results to wiki
+# - wikitcms_password
+##      string - password for relval_user
+#
+# When both of the above are set, a wikitcms 'credentials' file will
+# be created and result submission to the wiki will be enabled.
+#
+# NOTE: At present, as the scheduler code downloads the ISOs, it only
+# really makes sense for openqa_server boxes to be their own
+# openqa_dispatchers. However, this should be fixed in the scheduler
+# code soon, so the roles are kept separate to give future flexibility.
+
+- name: Install required packages
+  dnf: name={{ item }} state=present
+  with_items:
+  - fedfind
+  - python-wikitcms
+  - python-requests
+  - python-setuptools
+  - python-six
+  tags:
+  - packages
+
+- name: Check out openQA-python-client
+  git:
+    repo: https://github.com/os-autoinst/openQA-python-client.git
+    dest: /root/openQA-python-client
+  register: gitclient
+
+- name: Check if python-client has ever been installed
+  command: "python -c 'import openqa_client'"
+  register: instclient
+  changed_when: "1 != 1"
+  failed_when: "1 != 1"
+  
+- name: Install openQA-python-client
+  command: "python setup.py install"
+  args:
+    chdir: /root/openQA-python-client
+  when: "gitclient|changed or instclient.rc > 0"
+
+- name: Check out openqa_fedora_tools
+  git:
+    repo: https://bitbucket.org/rajcze/openqa_fedora_tools
+    dest: /root/openqa_fedora_tools
+  register: gittools
+
+- name: Check if openqa_fedora_tools has ever been installed
+  stat: path=/usr/bin/fedora-openqa-schedule
+  register: insttools
+  changed_when: "1 != 1"
+  failed_when: "1 != 1"
+
+- name: Install openqa_fedora_tools
+  command: "python setup.py install"
+  args:
+    chdir: /root/openqa_fedora_tools
+  when: "gittools|changed or not insttools.stat.exists"
+
+- name: Reload systemd config to pick up installed units
+  command: "systemctl daemon-reload"
+  when: "gittools|changed or not insttools.stat.exists"
+
+- name: openQA client config
+  template: src=client.conf.j2 dest=/etc/openqa/client.conf mode=0600
+  tags:
+  - config
+
+- name: Create fedora-openqa-schedule config directory
+  file: path=/etc/fedora-qa state=directory owner=root group=root mode=0700
+
+- name: Write schedule.conf
+  template: src=schedule.conf.j2 dest=/etc/fedora-qa/schedule.conf owner=root group=root mode=0600
+  tags:
+  - config
+
+- name: Create /root/.fedora (credentials files location)
+  file: path=/root/.fedora state=directory owner=root group=root mode=0700
+
+- name: Write wikitcms credentials file
+  template: src=credentials.j2 dest=/root/.fedora/credentials owner=root group=root mode=0600
+  when: "wikitcms_user is defined and wikitcms_password is defined"
+  tags:
+  - config
+
+- name: Enable and start timers
+  service: name=openqa-trigger-{{ item }}.timer enabled=yes state=started
+  with_items: "{{ openqa_triggers }}"
