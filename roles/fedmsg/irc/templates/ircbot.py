@@ -94,6 +94,29 @@ config = dict(
             ),
         ),
 
+        # For that python3 porting fad.  AMAZING!
+        dict(
+            network='chat.freenode.net',
+            port=6667,
+            make_pretty=True,
+            make_terse=True,
+
+            {% if env == 'staging' %}
+            nickname='fedmsg-python-s',
+            {% else %}
+            nickname='fedmsg-python',
+            {% endif %}
+            channel='fedora-python',
+            filters=dict(
+                topic=[
+                    '^((?!(github)).)*$',
+                ],
+                body=[
+                    '^((?!(portingdb)).)*$',
+                ],
+            ),
+        ),
+
         # Just for the Ask Fedora crew in #fedora-ask
         dict(
             network='chat.freenode.net',
