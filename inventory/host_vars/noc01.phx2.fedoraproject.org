@@ -14,3 +14,16 @@ udp_ports: ['67','68','69']
 custom_rules: [ '-A INPUT -p tcp -m tcp -s 192.168.1.20 --dport 5666 -j ACCEPT', '-A INPUT -p tcp -m tcp -s 10.5.126.13 --dport 873 -j ACCEPT', '-A INPUT -p tcp -m tcp -s 192.168.1.59 --dport 873 -j ACCEPT' ]
 
 eth0_ip: 10.5.126.41
+csi_relationship: |
+    noc01 is the internal monitoring nagios instance to the phx datacenter.
+    it is also the dhcp server serving all computing nodes
+    
+    * This host relies on:
+    - the virthost it's hosted on (virthost17.phx2.fedoraproject.org)
+    - FAS to authenticate users
+    - VPN connectivity
+
+    * Things that rely on this host:
+    - Infrastructure team to be awair of the infra status. operations control process will fail
+    - if this host is down, it will be difficult to know the status of infra and provide reactive/proactive support
+    - if this host is down, dhcp/bootp leases/renew will fail. pxe booting will fail as well
