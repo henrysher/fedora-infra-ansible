@@ -8,32 +8,47 @@
     - pcsc-lite-libs
     - opensc
     - nss-tools
+  tags:
+  - bkernel
 
 - name: enable pcscd
   service: name=pcscd state=started enabled=true
+  tags:
+  - bkernel
 
 - name: setup opensc in pcscd
   shell: modutil -dbdir /etc/pki/pesign -list | grep -q Fedora ||  modutil -force -dbdir /etc/pki/pesign -add opensc -libfile /usr/lib64/pkcs11/opensc-pkcs11.so
   always_run: yes
   changed_when: "1 != 1"
+  tags:
+  - bkernel
+
+- name: setup pesign users config
+  copy: src=pesign-users dest=/etc/pesign/users mode=0600 owner=root group=root
+  tags:
+  - bkernel
 
 - name: enable pesign
   service: name=pesign state=started enabled=true
+  tags:
+  - bkernel
 
 - name: /var/run/pesign perms
   file: state=directory path=/var/run/pesign owner=pesign group=pesign mode=0770
+  tags:
+  - bkernel
 
 - name: when you awake you will remember nothing
   copy: src=history_off.sh dest=/etc/profile.d/history_off.sh mode=0644
+  tags:
+  - bkernel
 
 - name: mock site-defaults.cfg
   copy: src=bkernel-site-defaults.cfg dest=/etc/mock/site-defaults.cfg mode=0644 owner=root group=mock
+  tags:
+  - bkernel
 
 - name: make sure our bkernel boxes have static ip
   template: src=bkernel-eth0-network dest=/etc/sysconfig/network-scripts/ifcfg-eth0 
-
-- name: set pesign facls to allow mockbuild user to use the socket directory 
-  acl: name=/var/run/pesign entity=kojibuilder etype=user permissions='rx' state=present
-
-- name: set pesign facls to allow mockbuild user to use the socket. 
-  acl: name=/var/run/pesign/socket entity=kojibuilder etype=user permissions='rw' state=present
+  tags:
+  - bkernel
