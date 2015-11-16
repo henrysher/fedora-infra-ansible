@@ -11,16 +11,15 @@
     - selinux
     - beaker_server
 
-- name: install beaker-server package
-  yum: name=beaker-server state=present
+- name: install packages required for beaker-server
+  yum: pkg={{ item }} state=present
+  with_items:
+      - beaker-server
+      - mod_auth_mellon
+      - libvirt-client
   tags:
     - beaker_server
     - MySQL-python
-
-- name: install mod_auth_mellon
-  yum: name=mod_auth_mellon state=present
-  tags:
-    - beaker-server
 
 - name: create /etc/httpd/saml2/{{ beaker_server_cname }}
   file: >
