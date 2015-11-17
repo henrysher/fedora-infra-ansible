@@ -8,7 +8,6 @@
   - python-psycopg2
   - python-memcached
   - python-sqlalchemy0.8
-  - redis
   tags:
   - packages
   - packages/web
@@ -17,7 +16,6 @@
   file: path={{ item }} state=directory owner=apache group=apache mode=755
   with_items:
   - /etc/fedoracommunity
-  - /etc/fedoracommunity/yum_cache.repos.d
   - /var/cache/fedoracommunity  # the gluster role usually creates this one
   - /var/log/fedoracommunity
   tags:
@@ -39,7 +37,7 @@
     owner=apache group=apache mode=0600
   notify:
   - reload httpd
-  - restart fcomm-cache-worker
+  - restart fedmsg-hub
   tags:
   - packages
   - packages/web
@@ -55,14 +53,13 @@
   - packages
   - packages/web
 
-- name: Copy over the yum config
-  copy: >
-    src=packages-yum.conf
-    dest=/etc/fedoracommunity/yum-repo.conf
-    owner=root group=root mode=0644
+- name: Copy over the fedmsg consumer config
+  template: >
+    src=fedoracommunity.py
+    dest=/etc/fedmsg.d/fedoracommunity.py
+    owner=root group=root mode=644
   notify:
-  - reload httpd
-  - restart fcomm-cache-worker
+  - restart fedmsg-hub
   tags:
   - packages
   - packages/web
@@ -88,16 +85,7 @@
     owner=root group=root mode=0644
   notify:
   - reload httpd
-  - restart fcomm-cache-worker
-  tags:
-  - packages
-  - packages/web
-
-- name: start some helper services
-  service: name="{{item}}" state=started enabled=yes
-  with_items:
-  - redis
-  - fcomm-cache-worker
+  - restart fedmsg-hub
   tags:
   - packages
   - packages/web
@@ -117,14 +105,10 @@
   - packages/icons
   - packages/xapian
   - packages/xapian/search
-  - packages/xapian/versionmap
   - packages/tmp
   - packages/tmp/icons
-  - packages/tmp/rpms
   - packages/tmp/search
-  - packages/tmp/versionmap
   - packages/tmp/var
-  - packages/tmp/yum-cache
   when: install_packages_indexer
   tags:
   - packages
@@ -141,29 +125,17 @@
   - packages/web
   - icon
 
-- name: Copy some scripts for /usr/local
-  copy: src="{{item}}" dest="/usr/local/bin/{{item}}" mode=0755
-  with_items:
-  - sync-yum
-  when: install_packages_indexer
-  tags:
-  - packages
-  - packages/web
-
-- name: Copy the indexer cronjobs
-  copy: src="{{item}}" dest="/etc/cron.d/{{item}}"
-  with_items:
-  - cron-sync-yum
-  - cron-sync-latest-builds
-  - cron-sync-package-index
-  - cron-flush-pkgs-cache
-  when: install_packages_indexer
-  tags:
-  - packages
-  - packages/web
+# Our fedmsg updater should handle everything, no more need for cron.
+#- name: Copy the indexer cronjobs
+#  copy: src="{{item}}" dest="/etc/cron.d/{{item}}"
+#  with_items:
+#  - cron-sync-package-index
+#  when: install_packages_indexer
+#  tags:
+#  - packages
+#  - packages/web
 
 # Lastly, here's some selinux stuff.
-
 - name: set some selinux booleans
   seboolean: name={{item}} persistent=yes state=yes
   with_items:
