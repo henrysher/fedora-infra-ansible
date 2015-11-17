@@ -8,6 +8,16 @@
   tags:
   - packages
   - openvpn
+  when: ansible_distribution_major_version|int < 22
+
+- name: Install needed packages
+  dnf: pkg={{ item }} state=present
+  with_items:
+  - openvpn
+  tags:
+  - packages
+  - openvpn
+  when: ansible_distribution_major_version|int > 22
 
 - name: Install configuration files
   copy: src={{ item.file }}
