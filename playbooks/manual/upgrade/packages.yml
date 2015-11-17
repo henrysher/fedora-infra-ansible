@@ -38,14 +38,19 @@
     ignore_errors: true
 
   roles:
-  - packages/web
+  - role: packages/web
+    when: env != "staging"
+  - role: packages3/web
+    when: env == "staging"
 
   post_tasks:
   - service: name="fcomm-cache-worker" state=stopped
+    when: env != "staging"
   - service: name="httpd" state=stopped
   # TODO -- do any DB maintenance steps we need to do here..
   - service: name="httpd" state=started
   - service: name="fcomm-cache-worker" state=started
+    when: env != "staging"
 
   - name: tell nagios to unshush
     nagios: action=unsilence service=host host={{ inventory_hostname_short }}{{ env_suffix }}
