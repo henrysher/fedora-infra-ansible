@@ -44,6 +44,8 @@
     when: env == "staging"
 
   post_tasks:
+  - service: name="fedmsg-hub" state=stopped
+    when: env == "staging"
   - service: name="fcomm-cache-worker" state=stopped
     when: env != "staging"
   - service: name="httpd" state=stopped
@@ -51,6 +53,8 @@
   - service: name="httpd" state=started
   - service: name="fcomm-cache-worker" state=started
     when: env != "staging"
+  - service: name="fedmsg-hub" state=started
+    when: env == "staging"
 
   - name: tell nagios to unshush
     nagios: action=unsilence service=host host={{ inventory_hostname_short }}{{ env_suffix }}
