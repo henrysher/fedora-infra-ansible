@@ -1,6 +1,7 @@
 #!/usr/bin/python
-# doteast; base from skvidal
-# dump out the hosts with var=value
+# doteast; base from skvidal's freezelist
+# list hosts with ansible var[=value], Or
+# list all hosts with ansible vars
 
 import ansible.inventory
 import sys
@@ -12,7 +13,8 @@ parser.add_option('-i', dest='inventory', default=None,
                   help="Path to inventory file/dir")
 parser.add_option('-o', dest='variable', default=None,
                   help="variable name to check")
-
+parser.add_option('-a', action="store_true", dest='all_vars', default=None,
+                  help="get all vars")
 opts, args = parser.parse_args(sys.argv[1:])
 
 if opts.inventory:
@@ -20,25 +22,40 @@ if opts.inventory:
 else:
     inv = ansible.inventory.Inventory()
 
-if opts.variable.find("=") == -1:
-    print "Error -o requires var=value format argument"
-    sys.exit(-1)
+if ((opts.variable == None and opts.all_vars == None) or (opts.variable != None and opts.all_vars != None)):
+	print "Usage: hosts_with_var_set -o varname[=value] | -a"
+	sys.exit(-1)
 
-var_name, value = opts.variable.split('=')
-
-if value == "":
-   value="None"
+matching=True
+if opts.variable != None:
+   if opts.variable.find("=") == -1:
+ 	matching=False
+	var_name=opts.variable
+   else:
+	var_name,value = opts.variable.split('=') 
+	if value == "":
+   		value="None"
 
 var_set = []
 
 for host in sorted(inv.get_hosts()):
     vars = inv.get_variables(host.name)
-    if vars.has_key(var_name):
-      if str(vars.get(var_name)).find(value) != -1:
-        var_set.append(host.name)
-
-print 'hosts with %s:' % var_name
-for host in sorted(var_set):
-    print host
+    if opts.variable == None:
+	print "%s\n%s\n" % (host.name,vars)
+    else:
+	if vars.has_key(var_name):
+	   if not matching:
+		var_set.append(host.name)
+	   else:
+      		if str(vars.get(var_name)).find(value) != -1:
+        		var_set.append(host.name)
+		
+if opts.variable != None:
+	if not matching:
+		print 'hosts with variable %s:' % var_name
+	else:
+		print 'hosts with variable %s matching %s value' % (var_name,value)
+	for host in sorted(var_set):
+    		print host
 
 
