@@ -72,6 +72,10 @@ class Importer(object):
                 print("Missing configuration pickle:", confpickle)
                 continue
             list_is_new = bool(listaddr not in self.existing_lists)
+            if self.opts.recreate and not list_is_new:
+                call(["sudo", "-u", "mailman", MAILMAN_BIN, "remove",
+                      listaddr])
+                list_is_new = True
             if list_is_new:
                 call(["sudo", "-u", "mailman", MAILMAN_BIN, "create", "-d",
                       listaddr])
@@ -95,9 +99,10 @@ class Importer(object):
                 if self.index_path:
                     call(["sudo", "chown", "mailman:apache", "-R", self.index_path])
                     call(["sudo", "chmod", "g+w", self.index_path])
-        call(["sudo", "django-admin", "mailman_sync",
-              "--pythonpath", self.config["confdir"],
-              "--settings", "settings"])
+        if not self.opts.no_sync:
+            call(["sudo", "django-admin", "mailman_sync",
+                  "--pythonpath", self.config["confdir"],
+                  "--settings", "settings"])
 
 
 
@@ -116,6 +121,10 @@ def main():
     parser.add_option("-i", "--include", default="",
                   help="Comma-separated list of lists to include, no other "
                        "list will be imported")
+    parser.add_option("-R", "--recreate", action="store_true",
+                  help="Recreate the lists and re-import their configuration")
+    parser.add_option("-S", "--no-sync", action="store_true",
+                  help="Don't run the mailman_sync admin command")
     opts, args = parser.parse_args()
     if len(args) != 1:
         parser.error("Only one arg: the Mailman 2.1 lib dir to import")
