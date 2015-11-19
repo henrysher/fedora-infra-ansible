@@ -9,47 +9,30 @@
 # NOTE: For developers or others who want to extend the default
 #       settings, please remember to update your settings_local.py
 #       when the items you extended got updated in settings.py.
-#
-# Example 1: if you want to enable `debug_toolbar` and
-# `django_extensions` in INSTALLED_APPS, please remember
-# to also include all the other apps listed in the settings.py,
-# otherwise, the missed apps will not get installed.
-#
-#     INSTALLED_APPS = (
-#         ...
-#
-#         'django_extensions',
-#         'debug_toolbar',
-#     )
-#
-# Example 2: when you run PDC locally, you may not want to enable
-# the permission check system of the `REST_FRAMEWORK`, to do
-# this, just need to comment out the `DEFAULT_PERMISSION_CLASSES`
-# section.
-#
-#     REST_FRAMEWORK = {
-#         'DEFAULT_AUTHENTICATION_CLASSES': (
-#             'pdc.apps.auth.authentication.TokenAuthenticationWithChangeSet',
-#             'rest_framework.authentication.SessionAuthentication',
-#         ),
-#
-#     #    'DEFAULT_PERMISSION_CLASSES': [
-#     #        'rest_framework.permissions.DjangoModelPermissions'
-#     #    ],
-#
-#         'DEFAULT_FILTER_BACKENDS': ('rest_framework.filters.DjangoFilterBackend',),
-#
-#         'DEFAULT_METADATA_CLASS': 'contrib.bulk_operations.metadata.BulkMetadata',
-#
-#         'DEFAULT_RENDERER_CLASSES': (
-#             'rest_framework.renderers.JSONRenderer',
-#             'pdc.apps.common.renderers.ReadOnlyBrowsableAPIRenderer',
-#         ),
-#
-#         'EXCEPTION_HANDLER': 'pdc.apps.common.handlers.exception_handler',
-#
-#         'DEFAULT_PAGINATION_CLASS': 'pdc.apps.common.pagination.AutoDetectedPageNumberPagination',
-#     }
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'pdc.apps.auth.authentication.TokenAuthenticationWithChangeSet',
+        'rest_framework.authentication.SessionAuthentication',
+    ),
+
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly',
+    ],
+
+    'DEFAULT_FILTER_BACKENDS': ('rest_framework.filters.DjangoFilterBackend',),
+
+    'DEFAULT_METADATA_CLASS': 'contrib.bulk_operations.metadata.BulkMetadata',
+
+    'DEFAULT_RENDERER_CLASSES': (
+        'rest_framework.renderers.JSONRenderer',
+        'pdc.apps.common.renderers.ReadOnlyBrowsableAPIRenderer',
+    ),
+
+    'EXCEPTION_HANDLER': 'pdc.apps.common.handlers.exception_handler',
+
+    'DEFAULT_PAGINATION_CLASS': 'pdc.apps.common.pagination.AutoDetectedPageNumberPagination',
+}
 
 
 import os.path
