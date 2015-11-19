@@ -23,9 +23,17 @@
     yum: name="{{ package }}" state=latest enablerepo=infrastructure-testing update_cache=yes
     when: testing and ansible_distribution_major_version|int < 22
 
+  - name: dnf clean all (since we can't do it when updating)
+    command: dnf clean all
+    when: not testing and ansible_distribution_major_version|int < 22
+
   - name: dnf update {{ package }} from main repo
     dnf: name="{{ package }}" state=latest
     when: not testing and ansible_distribution_major_version|int > 22
+
+  - name: dnf clean all (since we can't do it when updating)
+    command: dnf clean all --enablerepo=infrastructure-testing
+    when: testing and ansible_distribution_major_version|int < 22
 
   - name: dnf update {{ package }} from testing repo
     dnf: name="{{ package }}" state=latest enablerepo=infrastructure-testing
