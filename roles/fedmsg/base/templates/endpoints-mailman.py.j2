@@ -11,6 +11,17 @@ config = dict(
         "mailman.mailman01": [
             "tcp://mailman01.%s:3000" % suffix,
             "tcp://mailman01.%s:3001" % suffix,
+
+            # On Nov 19th, we started getting tracebacks that mailman3 had run
+            # out of endpoints.  We're not sure what changed that required
+            # additional entries here, but we're adding them to try and make the
+            # error go away.
+            # One idea is that the mailman REST server grew the ability to list
+            # the archivers.  Postorius calls that, and it (under the hood)
+            # tries to initialize all the archivers, which would inadvertently
+            # try to force our fedmsg plugin to establish a socket.
+            "tcp://mailman01.%s:3002" % suffix,
+            "tcp://mailman01.%s:3003" % suffix,
         ],
     },
 )
