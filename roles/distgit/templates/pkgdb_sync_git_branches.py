@@ -150,14 +150,15 @@ def pkgdb_pkg_branch():
     data = req.json()
 
     output = {}
-    for pkg in data['packageAcls']:
+    key = 'packageAcls'
+    for pkg in data[key]:
         if pkg in output:
             if VERBOSE:
                 print 'Strange package: %s, it is present twice in the ' \
                     'pkgdb output' % pkg
-            output[pkg].updated(data['packageAcls'][pkg].keys())
+            output[pkg].updated(data[key][pkg].keys())
         else:
-            output[pkg] = set(data['packageAcls'][pkg].keys())
+            output[pkg] = set(data[key][pkg].keys())
 
     return output
 
