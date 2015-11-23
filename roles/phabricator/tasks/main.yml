@@ -1,5 +1,5 @@
-- name: ensure packages required for phabricator are installed (fedora)
-  action: yum name={{ item }} state=latest
+- name: ensure packages required for phabricator are installed (yum)
+  yum: name={{ item }} state=latest enablerepo={{ extra_enablerepos }}
   with_items:
     - MySQL-python
     - git
@@ -20,6 +20,31 @@
     - libsemanage-python
     - libselinux-python
     - policycoreutils-python
+  when: ansible_distribution_major_version|int < 22
+
+- name: ensure packages required for phabricator are installed (dnf)
+  dnf: name={{ item }} state=latest enablerepo={{ extra_enablerepos }}
+  with_items:
+    - MySQL-python
+    - git
+    - httpd
+    - mod_ssl
+    - php
+    - php-cli
+    - php-mysql
+    - php-process
+    - php-devel
+    - php-gd
+    - php-mbstring
+    - php-opcache
+    - python-pygments
+    - libphutil
+    - arcanist
+    - phabricator
+    - libsemanage-python
+    - libselinux-python
+    - policycoreutils-python
+  when: ansible_distribution_major_version|int > 21 and ansible_cmdline.ostree is not defined
 
 - name: create mariadb user for phabricator
   mysql_user:
