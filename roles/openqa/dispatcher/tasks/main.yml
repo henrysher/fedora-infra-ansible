@@ -50,10 +50,12 @@
     chdir: /root/openQA-python-client
   when: "gitclient|changed or instclient.rc > 0"
 
+# We check this out to a different place from the 'server' task, because
+# otherwise it's hard to make sure we install each time it changes.
 - name: Check out openqa_fedora_tools
   git:
     repo: https://bitbucket.org/rajcze/openqa_fedora_tools
-    dest: /root/openqa_fedora_tools
+    dest: /root/openqa_fedora_tools-dispatcher
   register: gittools
 
 - name: Check if openqa_fedora_tools has ever been installed
@@ -65,7 +67,7 @@
 - name: Install openqa_fedora_tools
   command: "python setup.py install"
   args:
-    chdir: /root/openqa_fedora_tools
+    chdir: /root/openqa_fedora_tools-dispatcher
   when: "gittools|changed or not insttools.stat.exists"
 
 - name: Reload systemd config to pick up installed units
