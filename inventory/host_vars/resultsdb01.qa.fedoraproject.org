@@ -1,14 +1,23 @@
 ---
+############################################################
+# networking
+############################################################
+
 nm: 255.255.255.0
 gw: 10.5.124.254
 dns: 10.5.126.21
-ks_url: http://10.5.126.23/repo/rhel/ks/kvm-fedora-21
-ks_repo: http://10.5.126.23/pub/fedora/linux/releases/21/Server/x86_64/os/
-volgroup: /dev/VirtGuests
 eth0_ip: 10.5.124.207
-vmhost: virthost-comm03.qa.fedoraproject.org
+
+############################################################
+# install
+############################################################
+
+ks_url: http://10.5.126.23/repo/rhel/ks/kvm-fedora-22
+ks_repo: http://10.5.126.23/pub/fedora/linux/releases/22/Server/x86_64/os/
+
+volgroup: /dev/VirtGuests
 datacenter: phx2
-sudoers: "{{ private }}/files/sudo/qavirt-sudoers"
+vmhost: virthost-comm03.qa.fedoraproject.org
 
 # default virt install command is for a single nic-device
 # define in another group file for more nics (see buildvm)
@@ -19,4 +28,15 @@ virt_install_command: /usr/bin/virt-install -n {{ inventory_hostname }} -r {{ me
                   gateway={{ gw }} dns={{ dns }} console=tty0 console=ttyS0
                   hostname={{ inventory_hostname }}"
                  --network=bridge=br0 --autostart --noautoconsole
+
+############################################################
+# virtual machine
+############################################################
+
+fas_client_groups: sysadmin-qa,sysadmin-main,fi-apprentice
+lvm_size: 50000
+mem_size: 4096
+num_cpus: 4
+sudoers: "{{ private }}/files/sudo/qavirt-sudoers"
+
 

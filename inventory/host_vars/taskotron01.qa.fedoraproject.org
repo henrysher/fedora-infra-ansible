@@ -1,16 +1,30 @@
 ---
+############################################################
+# general
+############################################################
+
+datacenter: phx2
+fas_client_groups: sysadmin-qa,sysadmin-main
+host_backup_targets: ['/home/buildmaster/master/']
+
+############################################################
+# networking
+############################################################
+
 nm: 255.255.255.0
 gw: 10.5.124.254
 dns: 10.5.126.21
-ks_url: http://10.5.126.23/repo/rhel/ks/kvm-fedora-21-taskotron-master
-ks_repo: http://10.5.126.23/pub/fedora/linux/releases/21/Server/x86_64/os/
-volgroup: /dev/VirtGuests
 eth0_ip: 10.5.124.206
-vmhost: virthost-comm03.qa.fedoraproject.org
-datacenter: phx2
-fas_client_groups: sysadmin-qa,sysadmin-main
+
+############################################################
+# install
+############################################################
+
+ks_url: http://10.5.126.23/repo/rhel/ks/kvm-fedora-22-taskotron-master
+ks_repo: http://10.5.126.23/pub/fedora/linux/releases/22/Server/x86_64/os/
 sudoers: "{{ private }}/files/sudo/qavirt-sudoers"
-lvm_size: 45000
+vmhost: virthost-comm03.qa.fedoraproject.org
+volgroup: /dev/VirtGuests
 
 # default virt install command is for a single nic-device
 # define in another group file for more nics (see buildvm)
@@ -21,6 +35,21 @@ virt_install_command: /usr/bin/virt-install -n {{ inventory_hostname }} -r {{ me
                   gateway={{ gw }} dns={{ dns }} console=tty0 console=ttyS0
                   hostname={{ inventory_hostname }}"
                  --network=bridge=br0 --autostart --noautoconsole
+
+############################################################
+# virtual machine
+############################################################
+
+lvm_size: 45000
+mem_size: 4096
+num_cpus: 4
+
+nrpe_procs_warn: 250
+nrpe_procs_crit: 300
+
+############################################################
+# taskotron master
+############################################################
 
 public_hostname: taskotron.fedoraproject.org
 buildmaster: 10.5.124.206
@@ -45,4 +74,3 @@ x86_64_buildslaves:
     - taskotron-client24
     - taskotron-client25
 
-host_backup_targets: ['/home/buildmaster/master/']
