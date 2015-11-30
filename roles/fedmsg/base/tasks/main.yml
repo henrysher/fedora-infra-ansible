@@ -39,6 +39,15 @@
   - fedmsg/base
   when: ansible_distribution_major_version|int > 21
 
+- name: install needed packages
+  dnf: pkg={{ item }} state=present
+  with_items:
+  - policycoreutils-python-utils
+  tags:
+  - packages
+  - fedmsg/base
+  when: ansible_distribution_major_version|int > 22
+
 # We only need this on el6.  On el7, the fedmsg package uses systemd-tempfiles
 # to generate this effect for us.  Note that at the bottom of this role we add
 # the nrpe user to the fedmsg group so that it has *write* permissions to a unix
