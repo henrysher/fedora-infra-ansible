@@ -14,7 +14,7 @@
   when: host_is_up|failed
 
 - name: clean out old known_hosts (IP based entries)
-  local_action: known_hosts path={{item}} host={{inventory_hostname | ipaddr}} state=absent
+  local_action: known_hosts path={{item}} host={{ lookup('dig', inventory_hostname, wantlist=False) }} state=absent
   ignore_errors: True
   with_items:
   - /root/.ssh/known_hosts
