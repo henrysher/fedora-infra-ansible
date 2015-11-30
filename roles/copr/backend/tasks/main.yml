@@ -5,10 +5,14 @@
 - name: setup networking
   include: "network.yml"
 
+# BZ 1241507
+- name: install copr-backend
+  shell: yum-deprecated install -y copr-backend || yum install -y copr-backend
+
 - name: add packages for copr backend
   yum: state=present name={{ item }} enablerepo="updates-testing"
   with_items:
-  - copr-backend
+  #- copr-backend
   - python-novaclient
   - python-glanceclient
   - python-neutronclient
