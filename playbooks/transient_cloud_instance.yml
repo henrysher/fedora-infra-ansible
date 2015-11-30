@@ -45,6 +45,20 @@
 
   - include: "{{ tasks }}/transient_cloud.yml"
 
+- name: Install python2 and dnf as needed
+  hosts: tmp_just_created
+  gather_facts: False
+
+  - name: gather facts
+    setup:
+    always_run: True
+    ignore_errors: True
+    register: facts
+
+  - name: install python2 and dnf stuff
+    raw: dnf -y install python-dnf libselinux-python
+    when: facts|failed
+
 - name: provision instance
   hosts: tmp_just_created
   gather_facts: True
