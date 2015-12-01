@@ -89,8 +89,28 @@ config = dict(
             channel='fedora-commops',
             filters=dict(
                 topic=[
-                    '^((?!(planet|fedora_elections|meetbot\.meeting\.item\.help|meetbot\.meeting\.complete|github\.star|github\.fork|github\.release|fedocal\.meeting\.new|fedocal\.meeting\.update|fedocal\.meeting\.delete|fedocal\.calendar|fas\.group\.member\.sponsor|fedbadges\.person\.login\.first|pagure\.project\.new|askbot\.post\.flag_offensive|anitya\.distro\.add)).)*$',
+                    '^((?!(planet|fedora_elections|meetbot\.meeting\.item\.help|meetbot\.meeting\.complete|fedocal\.meeting\.new|fedocal\.meeting\.update|fedocal\.meeting\.delete|fedocal\.calendar|fas\.group\.member\.sponsor|fedbadges\.person\.login\.first|pagure\.project\.new|askbot\.post\.flag_offensive|anitya\.distro\.add)).)*$',
                 ],
+            ),
+        ),
+        # A second bot for that commops crew that watches for the term "commops"
+        dict(
+            network='chat.freenode.net',
+            port=6667,
+            make_pretty=True,
+            make_terse=True,
+
+            {% if env == 'staging' %}
+            nickname='commopswatch-s',
+            {% else %}
+            nickname='commopswatch',
+            {% endif %}
+            channel='fedora-commops',
+            filters=dict(
+                topic=[
+                    '(planet|fedora_elections|meetbot\.meeting\.item\.help|meetbot\.meeting\.complete|fedocal\.meeting\.new|fedocal\.meeting\.update|fedocal\.meeting\.delete|fedocal\.calendar|fas\.group\.member\.sponsor|fedbadges\.person\.login\.first|pagure\.project\.new|askbot\.post\.flag_offensive|anitya\.distro\.add)',
+                ],
+                body=['^((?!commops).)*$'],
             ),
         ),
 
