@@ -251,6 +251,9 @@ config = dict(
             channel='#ipsilon',
             # If the word ipsilon appears in any message, forward it.
             filters=dict(
+                topic=[
+                    '^((?!(trac|pagure)).)*$',
+                ],
                 body=['^((?!ipsilon).)*$'],
             ),
         ),
