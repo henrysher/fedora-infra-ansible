@@ -216,6 +216,26 @@ config = dict(
             ),
         ),
 
+        # And #ipsilon
+        dict(
+            network='chat.freenode.net',
+            port=6667,
+            make_pretty=True,
+            make_terse=True,
+
+            {% if env == 'staging' %}
+            nickname='ipsilon-bot-stg',
+            {% else %}
+            nickname='ipsilon-bot',
+            {% endif %}
+            channel='#ipsilon',
+            # If the word ipsilon appears in any message, forward it.
+            filters=dict(
+                body=['^((?!ipsilon).)*$'],
+            ),
+        ),
+
+
         # Hook up the design-team with badges messages
         dict(
             network='chat.freenode.net',
