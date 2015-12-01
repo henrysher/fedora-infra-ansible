@@ -62,6 +62,11 @@ sub vcl_init {
   fas.add_backend(fas03);
 }
 
+backend nuancier {
+    .host = "localhost";
+    .port = "10035";
+}
+
 backend voting {
     .host = "localhost";
     .port = "10007";
@@ -284,6 +289,20 @@ sub vcl_recv {
             }
         }
     }
+
+    if (req.http.X-Forwarded-Server ~ "^apps.fedoraproject.org") { 
+        if (req.url ~ "^/nuancier") { 
+            set req.backend_hint = nuancier; 
+            if (req.url ~ "^/nuancier/static/") { 
+                unset req.http.cookie; 
+                set req.url = regsub(req.url, "\?.*", ""); 
+            } 
+            if (req.url ~ "^/nuancier/cache/") { 
+                unset req.http.cookie; 
+                set req.url = regsub(req.url, "\?.*", ""); 
+            } 
+        } 
+    } 
 
     # Pass any requests with the "If-None-Match" header directly.
     if (req.http.If-None-Match) {
