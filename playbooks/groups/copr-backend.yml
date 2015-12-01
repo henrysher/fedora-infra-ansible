@@ -11,16 +11,15 @@
    - /srv/private/ansible/files/openstack/passwords.yml
   tasks:
   - include: "{{ tasks }}/persistent_cloud_new.yml"
-  - include: "{{ tasks }}/growroot_cloud.yml"
   - name: gather facts
     setup:
     always_run: True
     ignore_errors: True
     register: facts
-
   - name: install python2 and dnf stuff
     raw: dnf -y install python-dnf libselinux-python
     when: facts|failed
+  - include: "{{ tasks }}/growroot_cloud.yml"
 
 - name: cloud basic setup
   hosts: copr-back-stg
