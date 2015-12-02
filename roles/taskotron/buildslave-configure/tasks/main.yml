@@ -57,7 +57,7 @@
   sudo_user: '{{ item.user }}'
   template: src=buildbot.tac.j2 dest={{ item.dir }}/buildbot.tac mode=0600 owner={{ item.user }} group={{ slaves_group }}
   with_items:
-    - '{{ slaves|default['','',''] }}'
+    - '{{ slaves|default([dict(user="", home="", dir="")]) }}'
   when: deployment_type == 'dev'
 
 - name: generate slave admin info
@@ -65,7 +65,7 @@
   sudo_user: '{{ item.user }}'
   template: src=admin.j2 dest={{ item.dir }}/info/admin mode=0644 owner={{ item.user }} group={{ slaves_group }}
   with_items:
-    - '{{ slaves|default['','',''] }}'
+    - '{{ slaves|default([dict(user="", home="", dir="")]) }}'
   when: deployment_type == 'dev'
 
 - name: generate slave host info
@@ -73,32 +73,32 @@
   sudo_user: '{{ item.user }}'
   template: src=host.j2 dest={{ item.dir }}/info/host mode=0644 owner={{ item.user }} group={{ slaves_group }}
   with_items:
-    - '{{ slaves|default['','',''] }}'
+    - '{{ slaves|default([dict(user="", home="", dir="")]) }}'
   when: deployment_type == 'dev'
 
 - name: create slave ssh directory
   when: buildslave_public_sshkey_file is defined and deployment_type == 'dev'
   file: path={{ item.home }}/.ssh owner={{ item.user }} group={{ slaves_group }} mode=0700 state=directory
   with_items:
-    - '{{ slaves|default['','',''] }}'
+    - '{{ slaves|default([dict(user="", home="", dir="")]) }}'
 
 - name: install slave ssh private key
   when: buildslave_private_sshkey_file is defined and deployment_type == 'dev'
   copy: src={{ private }}/files/taskotron/{{ buildslave_private_sshkey_file }} dest={{ item.home }}/.ssh/id_rsa owner={{ item.user }} group={{ slaves_group }} mode=0600
   with_items:
-    - '{{ slaves|default['','',''] }}'
+    - '{{ slaves|default([dict(user="", home="", dir="")]) }}'
 
 - name: install slave ssh public key
   when: buildslave_public_sshkey_file is defined and deployment_type == 'dev'
   copy: src={{ private }}/files/taskotron/{{ buildslave_public_sshkey_file }} dest={{ item.home }}/.ssh/id_rsa.pub owner={{ item.user }} group={{ slaves_group }} mode=0644
   with_items:
-    - '{{ slaves|default['','',''] }}'
+    - '{{ slaves|default([dict(user="", home="", dir="")]) }}'
 
 - name: make sure master is in known_hosts
   when: buildslave_public_sshkey_file is defined and deployment_type == 'dev'
   lineinfile: dest={{ item.home }}/.ssh/known_hosts regexp='{{ buildmaster }}' line='{{ buildmaster }} {{ buildmaster_pubkey }}' create=yes owner={{ item.user }} group={{ slaves_group }}
   with_items:
-    - '{{ slaves|default['','',''] }}'
+    - '{{ slaves|default([dict(user="", home="", dir="")]) }}'
 
 - name: generate buildslave service file
   template: src=buildslave@.service.j2 dest=/lib/systemd/system/buildslave@.service owner=root group=root mode=0744
@@ -107,5 +107,5 @@
 - name: start and enable buildslave services
   service: name=buildslave@{{ item.user }} enabled=yes state=started
   with_items:
-    - '{{ slaves|default['','',''] }}'
+    - '{{ slaves|default([dict(user="", home="", dir="")]) }}'
   when: deployment_type == 'dev'
