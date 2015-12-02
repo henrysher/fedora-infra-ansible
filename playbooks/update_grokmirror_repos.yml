@@ -1,8 +1,5 @@
 # update all mirrors currently served by grokmirror
 
-# XXX currently develop branches are too new to be running on stg,
-# remember to revert it once new rpms are on stg
-
 - name: update grokmirror repos
   hosts: taskotron-dev:taskotron-stg:taskotron-prod
   sudo: true
@@ -10,13 +7,7 @@
   gather_facts: false
 
   tasks:
-     - name: update grokmirror repos to develop branches
-       when: deployment_type == 'dev'
-       command: chdir={{ grokmirror_basedir }}/{{ item.name }} git fetch origin develop:develop
-       with_items: grokmirror_repos
-
-     - name: update grokmirror repos to master branches
-       when: deployment_type == 'stg' or deployment_type == 'prod'
-       command: chdir={{ grokmirror_basedir }}/{{ item.name }} git fetch origin master:master
+     - name: update grokmirror repos
+       command: chdir={{ grokmirror_basedir }}/{{ item.name }} git fetch origin {{ grokmirror_default_branch }}:{{ grokmirror_default_branch }}
        with_items: grokmirror_repos
 
