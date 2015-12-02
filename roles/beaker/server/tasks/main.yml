@@ -99,3 +99,9 @@
     - beakerd
   tags:
     - beaker-server
+
+- name: ensure beaker server has all relevant virthost ssh signatures in known_hosts
+  lineinfile: dest=/root/.ssh/known_hosts regexp='{{ item.hostname }}' line='{{ item.hostname }} {{ item.signature }}' create=yes owner={{ item.user }} group={{ slaves_group }}
+  with_items:
+    - '{{ beaker_virthost_signatures }}'
+
