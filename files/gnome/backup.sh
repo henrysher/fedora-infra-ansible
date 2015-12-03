@@ -18,6 +18,7 @@ MACHINES='signal.gnome.org
           bastion.gnome.org
           spinner.gnome.org
           master.gnome.org
+          combobox.gnome.org
           restaurant.gnome.org
           expander.gnome.org
           live.gnome.org
