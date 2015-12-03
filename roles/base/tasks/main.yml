@@ -5,6 +5,18 @@
 # Things in here are things we want to do to every machine no matter what.
 #
 
+# TODO: Remove hotfix
+# https://bugzilla.redhat.com/show_bug.cgi?id=1288076#c4
+- name: digicert cert hotfix
+  copy: src=digicert-intermediate.pem dest=/etc/pki/ca-trust-source/anchors/digicert-intermediate.pem
+  tags: digicert_hotfix
+  when: ansible_distribution_major_version|int == 7 || ansible_distribution_major_version|int >=20
+
+- name: update ca trust
+  shell: /bin/update-ca-trust
+  tags: digicert_hotfix
+  when: ansible_distribution_major_version|int == 7 || ansible_distribution_major_version|int >=20
+
 # XXX fixme # a datacenter 'fact' from setup
 - name: /etc/resolv.conf
   copy: src={{ item }} dest=/etc/resolv.conf
