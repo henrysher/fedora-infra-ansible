@@ -193,7 +193,12 @@
 # Crontab
 #
 - name: set the hyperkitty crontab
-  template: src=crontab.j2 dest=/etc/cron.d/hyperkitty
+  template: src=crontab-webui.j2 dest=/etc/cron.d/hyperkitty
+  tags:
+  - config
+  - mailman
+- name: set the mailman crontab
+  template: src=crontab-mailman3.j2 dest=/etc/cron.d/mailman3
   tags:
   - config
   - mailman
@@ -367,6 +372,7 @@
   - pg-give-rights.py
   - post-update.sh
   - import-mm2.py
+  - periodic.py
 
 - name: copy the initial user fixture
   copy: src=postorius.initial-user.json
