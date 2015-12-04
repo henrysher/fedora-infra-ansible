@@ -169,8 +169,12 @@
   changed_when: "admin.rc == 0"
   failed_when: "(admin.rc > 0) and (admin.stderr is not defined or admin.stderr.find('already exists') == -1)"
 
+- name: Patch repo URLs in templates
+  shell: "cp /var/lib/openqa/share/tests/fedora/templates /tmp && sed -i -e 's,dl.fedoraproject,dl.phx2.fedoraproject,g' /tmp/templates"
+  changed_when: "1 != 1"
+
 - name: Load tests
-  shell: "/var/lib/openqa/share/tests/fedora/templates | grep 'added => [1-9]'"
+  shell: "/tmp/templates | grep 'added => [1-9]'"
   register: templates
   changed_when: "templates.rc == 0"
   failed_when: "1 != 1"
