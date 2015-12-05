@@ -52,8 +52,14 @@
     dest: /root/fedora-qa
   register: gitqa
 
+- name: Build check-compose
+  command: "make prefix=/usr"
+  args:
+    chdir: /root/fedora-qa/check-compose
+  when: "gitqa|changed"
+
 - name: Install check-compose
-  command: "make install"
+  command: "make prefix=/usr install"
   args:
     chdir: /root/fedora-qa/check-compose
   when: "gitqa|changed"
