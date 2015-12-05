@@ -1,0 +1,70 @@
+# Optional vars
+# - check-compose_wait
+##      string - (digits) time in minutes to wait for openQA tests to complete
+##               before sending the report (defaults to 480)
+# - check-compose_email-from
+##      string - Email address to send report from (if not set, no report sent)
+# - check-compose_email-to
+##      string - Email address to send report to (if not set but email-from
+##               set, report will go to email-from, for testing usually)
+##               Split multiple addresses with spaces
+# - check-compose_smtp
+##      string - SMTP server to use for sending the report
+# - check-compose_json
+##      string - File to append JSON-formatted report summary to
+# - check-compose_loglevel
+##      string - log level
+#
+# NOTE: this is missing /etc/openqa/client.conf configuration, for now;
+# we're assuming it'll be deployed on the openqa server boxes and hence
+# client.conf will be in place (and localhost default would be correct
+# anyhow)
+
+- name: Install required packages
+  dnf: name={{ item }} state=present
+  with_items:
+  - fedfind
+  - python-six
+  tags:
+  - packages
+
+- name: Check out openQA-python-client
+  git:
+    repo: https://github.com/os-autoinst/openQA-python-client.git
+    dest: /root/openQA-python-client
+  register: gitclient
+
+- name: Check if python-client has ever been installed
+  command: "python -c 'import openqa_client'"
+  register: instclient
+  changed_when: "1 != 1"
+  failed_when: "1 != 1"
+
+- name: Install openQA-python-client
+  command: "python setup.py install"
+  args:
+    chdir: /root/openQA-python-client
+  when: "gitclient|changed or instclient.rc > 0"
+
+- name: Check out fedora-qa (where check-compose lives)
+  git:
+    repo: https://git.fedorahosted.org/git/fedora-qa.git
+    dest: /root/fedora-qa
+  register: gitqa
+
+- name: Install check-compose
+  command: "make install"
+  args:
+    chdir: /root/fedora-qa/check-compose
+  when: "gitqa|changed"
+
+- name: Install config file
+  template: src=check-compose.conf.j2 dest=/etc/check-compose.conf mode=0644
+  tags:
+  - config
+
+- name: Enable and start timers
+  service: name=check-compose-{{ item }}.timer enabled=yes state=started
+  with_items:
+  - branched
+  - rawhide
