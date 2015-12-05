@@ -45,10 +45,6 @@ DEBUG = False
 #       https://docs.djangoproject.com/en/1.8/ref/settings/#allowed-hosts
 ALLOWED_HOSTS = ['{{ hostname }}']
 
-# ADMINS and MANAGERS
-# ADMINS = ()
-# MANAGERS = ADMINS
-
 # Database settings
 DATABASES = {
     'default': {
@@ -78,9 +74,11 @@ def get_setting(setting):
 # ======== Email configuration =========
 # Email addresses who would like to receive email
 ADMINS = (
-    ('PDC Admins', 'ralph@fedoraproject.org'),
+    ('PDC Admins', 'rbean@redhat.com'),
     ('PDC Admins', 'pingou@fedoraproject.org'),
 )
+MANAGERS = ADMINS
+
 # Email SMTP HOST configuration
 EMAIL_HOST = 'localhost'
 # Email sender's address
