@@ -64,6 +64,10 @@
     chdir: /root/fedora-qa/check-compose
   when: "gitqa|changed"
 
+- name: Reload systemd config to pick up installed units
+  command: "systemctl daemon-reload"
+  when: "gitqa|changed"
+
 - name: Install config file
   template: src=check-compose.conf.j2 dest=/etc/check-compose.conf mode=0644
   tags:
