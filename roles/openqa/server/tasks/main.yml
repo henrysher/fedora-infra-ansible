@@ -65,6 +65,7 @@
   git:
     repo: https://bitbucket.org/rajcze/openqa_fedora
     dest: /var/lib/openqa/share/tests/fedora
+  register: gittests
 
 - name: Have tests owned by geekotest
   file: path=/var/lib/openqa/share/tests/fedora owner=geekotest recurse=yes
@@ -172,10 +173,11 @@
 
 - name: Patch repo URLs in templates
   shell: "cp /var/lib/openqa/share/tests/fedora/templates /tmp && sed -i -e 's,dl.fedoraproject,dl.phx2.fedoraproject,g' /tmp/templates"
+  when: "gittests|changed"
   changed_when: "1 != 1"
 
+# This will always show as changed, even when nothing in the templates
+# changed; this is a bit hard to fix
 - name: Load tests
-  shell: "/tmp/templates | grep 'added => [1-9]'"
-  register: templates
-  changed_when: "templates.rc == 0"
-  failed_when: "1 != 1"
+  shell: "/tmp/templates --clean"
+  when: "gittests|changed"
