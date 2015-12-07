@@ -137,7 +137,7 @@
   - base
 
 - name: iptables
-  template: src={{ item }} dest=/etc/sysconfig/iptables mode=600 backup=yes
+  template: src={{ item }} dest=/etc/sysconfig/iptables mode=600 backup=yes validate="/usr/sbin/iptables-restore --text %s"
   with_first_found:
    - ../templates/iptables/iptables.{{ datacenter }}
    - ../templates/iptables/iptables.{{ ansible_fqdn }}
@@ -145,7 +145,6 @@
    - ../templates/iptables/iptables.{{ env }}
    - ../templates/iptables/iptables
   when: not inventory_hostname.startswith('fed-cloud09')
-  validate: "/etc/sysconfig/iptables --text %s"
   notify:
   - restart iptables
   - reload libvirtd
