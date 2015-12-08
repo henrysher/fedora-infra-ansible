@@ -7,7 +7,7 @@
 #
 
 - name: install dnf-automatic
-  yum: name=dnf-automatic state=present
+  dnf: name=dnf-automatic state=present
   tags:
   - packages
   when: ansible_distribution == 'Fedora'
@@ -19,7 +19,18 @@
   when: ansible_distribution == 'Fedora'
 
 - name: enable and start dnf-automatic
-  command: systemctl enable dnf-automatic.timer --now creates=/etc/systemd/system/basic.target.wants/dnf-automatic.timer
+  command: systemctl enable dnf-automatic.timer creates=/etc/systemd/system/basic.target.wants/dnf-automatic.timer
   tags:
   - config
   when: ansible_distribution == 'Fedora'
+
+- name: check if dnf-automatic.timer is active
+  command: systemctl is-active dnf-automatic.timer
+  result: automaticative
+  always_run: yes
+  changed_when: 1 != 1
+  when: ansible_distribution == 'Fedora'
+
+- name: start dnf-automatic.timer if it is not active
+  command: systemctl start dnf-automatic.timer
+  when: automaticactive|failed and ansible_distribution == 'Fedora'
