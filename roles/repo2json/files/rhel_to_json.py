@@ -62,7 +62,17 @@ class Package(BASE):
 
 PATHS = {
     'el7': [
-        '/mnt/fedora/app/fi-repo/rhel/rhel7/',
+        '/mnt/fedora/app/fi-repo/rhel/rhel7/x86_64/rhel-7-server-extras-rpms',
+        '/mnt/fedora/app/fi-repo/rhel/rhel7/x86_64/rhel-7-server-optional-rpms',
+        '/mnt/fedora/app/fi-repo/rhel/rhel7/x86_64/rhel-7-server-rpms',
+        '/mnt/fedora/app/fi-repo/rhel/rhel7/x86_64/rhel-ha-for-rhel-7-server-rpms',
+        '/mnt/fedora/app/fi-repo/rhel/rhel7/ppc64/rhel-7-server-extras-rpms',
+        '/mnt/fedora/app/fi-repo/rhel/rhel7/ppc64/rhel-7-server-optional-rpms',
+        '/mnt/fedora/app/fi-repo/rhel/rhel7/ppc64/rhel-7-server-rpms',
+        '/mnt/fedora/app/fi-repo/rhel/rhel7/ppc64/rhel-ha-for-rhel-7-server-rpms',
+        '/mnt/fedora/app/fi-repo/rhel/rhel7/ppc64le/rhel-7-server-optional-rpms',
+        '/mnt/fedora/app/fi-repo/rhel/rhel7/ppc64le/rhel-7-server-rpms',
+        '/mnt/fedora/app/fi-repo/rhel/rhel7/ppc64le/rhel-ha-for-rhel-7-server-rpms',
     ],
     'el6': [
         '/mnt/fedora/app/fi-repo/rhel/rhel-i386-server-6',
