@@ -1,0 +1,25 @@
+---
+
+#
+# This role adds dnf automatic package and configuration. 
+# We want this on any public facing Fedora installs so we 
+# can pick up security updates. 
+#
+
+- name: install dnf-automatic
+  yum: name=dnf-automatic state=present
+  tags:
+  - packages
+  when: ansible_distribution == 'Fedora'
+
+- name: install /etc/dnf/automatic.conf
+  template: src=automatic.conf.j2 dest=/etc/dnf/automatic.conf mode=0644
+  tags:
+  - config
+  when: ansible_distribution == 'Fedora'
+
+- name: enable and start dnf-automatic
+  command: systemctl enable dnf-automatic.timer --now creates=/etc/systemd/system/basic.target.wants/dnf-automatic.timer
+  tags:
+  - config
+  when: ansible_distribution == 'Fedora'
