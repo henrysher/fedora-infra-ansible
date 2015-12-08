@@ -21,12 +21,37 @@
 ########################################################
 
 import sys
+from distutils.version import LooseVersion
+
 import yaml
 
 import ansible.constants as C
-from ansible import utils
 from ansible import errors
 from ansible import inventory
+from ansible import __version__
+
+try:
+    # ansible 2.0
+    from ansible.cli import SortedOptParser
+except ImportError:
+    # ansible 1.x
+    from ansible.utils import SortedOptParser
+
+try:
+    # ansible 2.0
+    from ansible.parsing.utils.jsonify import jsonify
+    from ansible.parsing.yaml.dumper import AnsibleDumper as Dumper
+except ImportError:
+    # ansible 1.x
+    from ansible.utils import jsonify
+    from yaml import SafeDumper as Dumper
+
+ANSIBLE2 = False
+if LooseVersion(__version__) >= LooseVersion('2'):
+    from ansible.vars import VariableManager
+    from ansible.parsing.dataloader import DataLoader
+    ANSIBLE2 = True
+
 
 ########################################################
 
@@ -51,7 +76,7 @@ class Cli(object):
     def parse(self):
         ''' create an options parser for bin/ansible '''
 
-        parser = utils.SortedOptParser(
+        parser = SortedOptParser(
             usage='%prog <host-pattern> [options]'
         )
         parser.add_option('-i', '--inventory-file', dest='inventory',
@@ -81,8 +106,15 @@ class Cli(object):
     def run(self, options, args):
 
         pattern = args[0]
-        
-        I = inventory.Inventory(options.inventory)
+
+        if ANSIBLE2:
+            loader = DataLoader()
+            variable_manager = VariableManager()
+            I = inventory.Inventory(loader=loader,
+                    variable_manager=variable_manager,
+                    host_list=options.inventory)
+        else:
+            I = inventory.Inventory(options.inventory)
         if options.subset:
             I.subset(options.subset)
         hosts = I.list_hosts(pattern)
@@ -95,7 +127,7 @@ class Cli(object):
             for host in hosts:
                 print '%s' % host
             sys.exit(0)
-        
+
         if options.listgroups:
             group_subset = []
             for host in hosts:
@@ -109,8 +141,13 @@ class Cli(object):
 
         results = { }
         for host in hosts:
-            vars = I.get_variables(host)
-            results.update({host: vars})
+            if ANSIBLE2:
+                name = host.get_name()
+                vars = variable_manager.get_vars(loader, host=host)['vars']
+            else:
+                name = host
+                vars = I.get_variables(host)
+            results.update({name: vars})
 
         return results
 
@@ -126,7 +163,7 @@ if __name__ == '__main__':
         print "ERROR: %s" % str(e)
         sys.exit(1)
     if options.json and not options.yaml:
-        print utils.jsonify(results, format=True)
+        print jsonify(results, format=True)
     else:
-        print yaml.safe_dump(results)
+        print yaml.dump(results, Dumper=Dumper, allow_unicode=True)
 
