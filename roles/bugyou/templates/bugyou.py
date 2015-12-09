@@ -11,5 +11,5 @@ config = {
                 "handlers": ['console'],
             },
         ),
-    },
+    ),
 }
