@@ -10,6 +10,7 @@ exec 2>&1
 
 CURDATE=`date +%s`
 LAST_SYNC_ARG=""
+ALWAYS_RUN=false
 
 if [ "${1}" ==  "Linux" ]; then
 	LAST_SYNC_ARG="-f -r"
@@ -20,6 +21,8 @@ elif [ "${1}" ==  "EPEL" ]; then
 elif [ "${1}" ==  "Secondary" ]; then
 	LAST_SYNC_ARG="-s"
 	CATEGORY="Secondary Arches"
+	# Skipping umdl check since we have no notifs for secondary
+	ALWAYS_RUN=true
 fi
 
 if [ "${LAST_SYNC_ARG}" == "" ]; then
@@ -38,7 +41,7 @@ let DELTA=CURDATE-LASTRUN
 
 /usr/local/bin/last-sync -d ${DELTA} -q ${LAST_SYNC_ARG}
 
-if [ "$?" -ne "0" ]; then
+if [ "$?" -ne "0" -a "$ALWAYS_RUN" = false ]; then
 	# no changes on the master mirror
 	# abort
 	exit 0
