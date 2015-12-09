@@ -62,7 +62,7 @@ config = dict(
 
 # Dynamically generate endpoint declarations from our wsgi app vars.
 # Eventually, replace *all* fedmsg endpoint definitions with this one loop
-{% for host in groups['all'] %}
+{% for host in groups['all']|sort %}
 {% if 'wsgi_fedmsg_service' in hostvars[host] and env == hostvars[host]['env'] %}
         "{{hostvars[host]['wsgi_fedmsg_service']}}.{{host.split('.')|first}}": [
 {% for i in range(hostvars[host]['wsgi_procs'] * hostvars[host]['wsgi_threads']) %}
