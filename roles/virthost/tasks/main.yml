@@ -51,3 +51,11 @@
   tags:
   - config
   when: ansible_distribution == 'RedHat' and ansible_distribution_major_version|int == 7
+
+#
+# Some virthosts we want to use nested virt (a tech preview in rhel 7.2)
+# We need this module option set and then need to tweak the libvirt xml to enable it
+#
+- name: setup nested virt on virthosts with nested=true variable
+  copy: src=kvm_intel.conf dest=/etc/modprobe.d/kvm_intel.conf
+  when: nested is true
