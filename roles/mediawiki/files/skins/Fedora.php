@@ -294,7 +294,7 @@ class FedoraTemplate extends QuickTemplate {
 		// Generate additional footer links
 ?>
       <p class="copy">
-      Copyright &copy; <?php echo date('Y');?> Red Hat, Inc. and others.  All Rights Reserved.  For comments or queries, please <a href="/contact">contact us</a>.
+      Copyright &copy; <?php echo date('Y');?> Red Hat, Inc. and others.  All Rights Reserved.  For comments or queries, please <a href="/wiki/Communicating_and_getting_help">contact us</a>.
       </p>
       <p class="disclaimer">
       The Fedora Project is maintained and driven by the community and sponsored by Red Hat.  This is a community maintained site.  Red Hat is not responsible for content.
