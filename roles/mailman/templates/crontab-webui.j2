@@ -2,6 +2,7 @@
 # Replace "apache" by your webserver user ("www-data" on Debian systems) and
 # set the path to the Django project directory
 
+{% if ansible_hostname == 'mailman01' %}
 @hourly  apache  django-admin runjobs hourly  --pythonpath {{ mailman_webui_confdir }} --settings settings
 @daily   apache  django-admin runjobs daily   --pythonpath {{ mailman_webui_confdir }} --settings settings
 @weekly  apache  django-admin runjobs weekly  --pythonpath {{ mailman_webui_confdir }} --settings settings
@@ -9,3 +10,13 @@
 @yearly  apache  django-admin runjobs yearly  --pythonpath {{ mailman_webui_confdir }} --settings settings
 2,17,32,47 * * * * apache  django-admin runjobs quarter_hourly --pythonpath {{ mailman_webui_confdir }} --settings settings
 * * * * *  apache  django-admin runjobs minutely  --pythonpath {{ mailman_webui_confdir }} --settings settings
+{% else %}
+# These are only active on mailman01 (primary) server
+#@hourly  apache  django-admin runjobs hourly  --pythonpath {{ mailman_webui_confdir }} --settings settings
+#@daily   apache  django-admin runjobs daily   --pythonpath {{ mailman_webui_confdir }} --settings settings
+#@weekly  apache  django-admin runjobs weekly  --pythonpath {{ mailman_webui_confdir }} --settings settings
+#@monthly apache  django-admin runjobs monthly --pythonpath {{ mailman_webui_confdir }} --settings settings
+#@yearly  apache  django-admin runjobs yearly  --pythonpath {{ mailman_webui_confdir }} --settings settings
+#2,17,32,47 * * * * apache  django-admin runjobs quarter_hourly --pythonpath {{ mailman_webui_confdir }} --settings settings
+#* * * * *  apache  django-admin runjobs minutely  --pythonpath {{ mailman_webui_confdir }} --settings settings
+{% endif %}
