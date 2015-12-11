@@ -117,7 +117,7 @@ def _invoke(program, args, cwd=None):
     return stdout.strip()
 
 
-def _create_branch(pkgname, branch, existing_branches):
+def _create_branch(ns, pkgname, branch, existing_branches):
     '''Create a specific branch for a package.
 
     :arg pkgname: Name of the package to branch
@@ -128,7 +128,7 @@ def _create_branch(pkgname, branch, existing_branches):
     branch = branch.replace('*', '').strip()
     if branch == 'master':
         print 'ERROR: Proudly refusing to create master branch. Invalid repo?'
-        print 'INFO: Please check %s repo' % pkgname
+        print 'INFO: Please check %s repo' % os.path.join(ns, pkgname)
         return
 
     if branch in existing_branches:
@@ -137,9 +137,11 @@ def _create_branch(pkgname, branch, existing_branches):
 
     try:
         if VERBOSE:
-            print 'Creating branch: %s for package: %s' % (branch, pkgname)
+            print 'Creating branch: %s for package: %s' % (
+                branch, os.path.join(ns, pkgname))
+
         if not TEST_ONLY:
-            _invoke(MKBRANCH, [branch, pkgname])
+            _invoke(MKBRANCH, [branch, os.path.join(ns, pkgname)])
             fedmsg.publish(
                 topic='branch',
                 modname='git',
@@ -147,6 +149,7 @@ def _create_branch(pkgname, branch, existing_branches):
                     agent='pkgdb',
                     name=pkgname,
                     branch=branch,
+                    namespace=ns,
                 ),
             )
     except ProcessError, e:
@@ -213,7 +216,7 @@ def branch_package(ns, pkgname, requested_branches, existing_branches):
     exists = os.path.exists(os.path.join(GIT_FOLDER, ns, '%s.git' % pkgname))
     if not exists or 'master' not in existing_branches:
         if not TEST_ONLY:
-            _invoke(SETUP_PACKAGE, [pkgname])
+            _invoke(SETUP_PACKAGE, [os.path.join(ns, pkgname)])
             # SETUP_PACKAGE creates master
             if 'master' in requested_branches:
                 requested_branches.remove('master')
@@ -224,13 +227,14 @@ def branch_package(ns, pkgname, requested_branches, existing_branches):
                     agent='pkgdb',
                     name=pkgname,
                     branch='master',
+                    namespace=ns,
                 ),
             )
 
     # Create all the required branches for the package
     # Use the translated branch name until pkgdb falls inline
     for branch in requested_branches:
-        _create_branch(pkgname, branch, existing_branches)
+        _create_branch(ns, pkgname, branch, existing_branches)
 
 
 def main():
