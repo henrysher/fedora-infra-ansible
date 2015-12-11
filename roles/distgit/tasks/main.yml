@@ -67,6 +67,9 @@
     - setup_git_package
     - mkbranch
     - pkgdb2-clone
+  tags:
+  - config
+  - distgit
 
 - name: install the Dist Git-related httpd config
   copy: src=git-smart-http.conf dest=/etc/httpd/conf.d/pkgs.fedoraproject.org/git-smart-http.conf
@@ -97,11 +100,11 @@
   group: name=gen-acls gid=417 state=present
 
 - name: create the gen-acls user
-  user: > 
-        name=gen-acls 
+  user: >
+        name=gen-acls
         comment="dummy system account for the gen-acls fedmsg job"
-        uid=417 
-        group=gen-acls 
+        uid=417
+        group=gen-acls
         groups=packager
         shell=/bin/bash
         home=/srv/git
@@ -152,6 +155,9 @@
   copy: src={{item}} dest=/usr/local/bin/{{item}} mode=0755
   with_items:
     - genacls.sh
+  tags:
+  - config
+  - distgit
 
 - name: install the genacls.pkgdb scripts
   template: src={{item}} dest=/usr/local/bin/{{item}}
