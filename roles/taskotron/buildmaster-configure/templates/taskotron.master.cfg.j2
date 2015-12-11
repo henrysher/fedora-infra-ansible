@@ -180,7 +180,12 @@ factory.addStep(ShellCommand(command=["runtask",
                              name='runtask',
                              timeout=2400,
 {% if deployment_type == 'dev' %}
-                             logfiles={'taskotron.log': {'filename': Interpolate('/var/lib/taskotron/artifacts/%(prop:uuid)s/taskotron.log'), }}))
+                             logfiles={
+                                 'taskotron-initiator.log': {'filename': Interpolate('/var/lib/taskotron/artifacts/%(prop:uuid)s/taskotron-initiator.log')},
+                                 'taskotron-stdio.log': {'filename': Interpolate('/var/lib/taskotron/artifacts/%(prop:uuid)s/taskotron-stdio.log')},
+                                 'taskotron.log': {'filename': Interpolate('/var/lib/taskotron/artifacts/%(prop:uuid)s/taskotron.log')}
+                             }
+))
 {% endif %}
 {% if deployment_type in ['prod', 'stg', 'local'] %}
                              logfiles={'taskotron.log': {'filename': '/var/log/taskotron/taskotron.log', }}))
