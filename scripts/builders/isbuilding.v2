@@ -1,0 +1,64 @@
+#!/usr/bin/python -tt
+# Author: Toshio Kuratomi <toshio@fedoraproject.org>
+# Copyright: December, 2015
+# License: LGPLv3+
+import sys
+
+from ansible import plugins
+from ansible.plugins.callback import CallbackBase
+from ansible.plugins.callback import default
+from ansible.cli.adhoc import AdHocCLI
+
+class ResultAccumulator(CallbackBase):
+    def __init__(self, *args, **kwargs):
+        super(ResultAccumulator, self).__init__(*args, **kwargs)
+        self.host_status = {}
+
+    def v2_runner_on_unreachable(self, result):
+        self.host_status[result._host.get_name()] = 'unreachable'
+
+    def v2_runner_on_ok(self, result, *args, **kwargs):
+        if result._result.get('stdout', '').strip() == 'none':
+            self.host_status[result._host.get_name()] = 'not building'
+        else:
+            self.host_status[result._host.get_name()] = 'building'
+
+    def v2_runner_on_failed(self, result, *args, **kwargs):
+        self.host_status[result._host.get_name()] = 'failed'
+
+
+class CallbackModule(CallbackBase):
+    def v2_runner_on_unreachable(self, result):
+        self._display.display("%s  down" % result._host.get_name())
+
+    def v2_runner_on_ok(self, result, *args, **kwargs):
+        if result._result.get('stdout', '').strip() == 'none':
+            self._display.display('%s  no' % result._host.get_name())
+        else:
+            self._display.display('%s  yes' % result._host.get_name())
+
+    def v2_runner_on_failed(self, result, *args, **kwargs):
+        self._display.display('%s: command failed on host' % result._host.get_name())
+
+
+if __name__ == '__main__':
+    pattern = 'builders'
+    if len(sys.argv) > 1:
+        pattern = ';'.join(sys.argv[1:])
+
+    args = [sys.argv[0], pattern, '-f', '30', '-T', '20', '-u', 'root']
+    args.extend(['-m', 'shell', '-a', 'ps -opid\\\\=  --ppid $(pidof -s -x kojid) || echo -n none || ps -u mock -u mockbuilder -opid\\\\='])
+    cb = ResultAccumulator()
+    cli = AdHocCLI(args, callback=cb)
+    cli.parse()
+    cli.run()
+
+    for host in sorted(cb.host_status):
+        if cb.host_status[host] == 'unreachable':
+            print('%s  down' % host)
+        if cb.host_status[host] == 'not building':
+            print('%s  no' % host)
+        if cb.host_status[host] == 'building':
+            print('%s  yes' % host)
+        if cb.host_status[host] == 'failed':
+            print('%s: command failed on host' % host)
