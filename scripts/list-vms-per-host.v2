@@ -1,0 +1,48 @@
+#!/usr/bin/python -tt
+# Author: Toshio Kuratomi <toshio@fedoraproject.org>
+# Copyright: December, 2015
+# License: LGPLv3+
+import sys
+import copy
+import itertools
+
+from ansible import plugins
+from ansible.errors import AnsibleOptionsError
+from ansible.plugins.callback import CallbackBase
+from ansible.plugins.callback import default
+from ansible.cli.adhoc import AdHocCLI
+
+
+class ResultAccumulator(CallbackBase):
+    def __init__(self, *args, **kwargs):
+        super(ResultAccumulator, self).__init__(*args, **kwargs)
+        self.unreachable = set()
+        self.host_status = {}
+
+    def v2_runner_on_unreachable(self, result):
+        self.unreachable.add(result._host.get_name())
+
+    def v2_runner_on_ok(self, result, *args, **kwargs):
+        for vm in (vm for vm in result._result.keys() if vm not in ('invocation', 'changed', '_ansible_no_log')):
+            self.host_status[(result._host.get_name(), vm)] = (result._result[vm]['state'], str(result._result[vm]['autostart']))
+
+
+if __name__ == '__main__':
+    args = copy.copy(sys.argv)
+    args.extend(['-m', 'virt', '-a', 'command=info'])
+    cb = ResultAccumulator()
+    cli = AdHocCLI(copy.copy(args), callback=cb)
+    try:
+        cli.parse()
+    except AnsibleOptionsError:
+        if len(cli.args) != 1:
+            cli.args = copy.copy(args)
+            cli.args.append('all')
+        cli.parse()
+    
+    cli.run()
+
+    for host in cb.unreachable:
+        sys.stderr.write('unreachable: %s\n' % host)
+    for host, status in sorted(cb.host_status.items()):
+        print(':'.join(itertools.chain(host, status)))
