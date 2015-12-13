@@ -22,7 +22,6 @@ import pwd
 import fedmsg
 import fedmsg.config
 
-from ansible.plugins.callback import CallbackBase
 
 def getlogin():
     try:

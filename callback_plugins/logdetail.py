@@ -20,7 +20,6 @@ import time
 import json
 import pwd
 from ansible import utils
-from ansible.plugins.callback import CallbackBase
 
 TIME_FORMAT="%b %d %Y %H:%M:%S"
 
