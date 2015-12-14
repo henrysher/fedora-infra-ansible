@@ -78,14 +78,22 @@
   - config
   - bodhi
 
-- name: change type part of SELinux file context
-  file: >
-    dest=/var/tmp/bodhi/comps/
-    setype=httpd_sys_script_rw_t
-    state=directory
-    recurse=yes
+- name: check the selinux context of comps
+  command: matchpathcon /var/tmp/bodhi/comps
+  register: compsdir
+  always_run: yes
+  changed_when: "1 != 1"
   tags:
   - config
+  - selinux
+  - bodhi
+
+- name: /var/tmp/bodhi/comps file contexts
+  command: semanage fcontext -a -t httpd_sys_script_rw_t "/var/tmp/bodhi/comps(/.*)?"
+  when: compsdir.stdout.find('httpd_sys_script_rw_t') == -1
+  tags:
+  - config
+  - selinux
   - bodhi
 
 #- name: change owner attribute of /var/tmp/bodhi-bz.cookie file
