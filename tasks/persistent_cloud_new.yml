@@ -69,9 +69,28 @@
 
 # SSH is up and running, however cloud-init still did not deployed ssh keypair
 # we have to wait some time. 10 sec is usually enough, but not always.
+
 - name: waiting for cloud-init
   pause: seconds=30
   when: host_is_up|failed
+
+#
+# Next we try and gather facts. If the host doesn't have python2 this will fail.
+#
+
+- name: gather facts
+  setup:
+  always_run: True
+  ignore_errors: True
+  register: facts
+
+#
+# If that failed, then we use the raw module to install things
+#
+
+- name: install python2 and dnf stuff
+  raw: dnf -y install python-dnf libselinux-python
+  when: facts|failed
 
 # TODO - somehow guess when keypair is finally deployed and return little bit earlier
 ## We need to specify user, here we trying with fedora or root
