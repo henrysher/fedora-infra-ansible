@@ -50,6 +50,7 @@
   - libselinux-python
   - openqa
   - git
+  - json_diff
   - libselinux-utils
   - libsemanage-python
   - nfs-utils
@@ -201,8 +202,23 @@
   when: "gittests|changed"
   changed_when: "1 != 1"
 
-# This will always show as changed, even when nothing in the templates
-# changed; this is a bit hard to fix
+- name: Dump existing config for checking changes
+  shell: "/usr/share/openqa/script/dump_templates --json > /tmp/tmpl-old.json"
+  when: "gittests|changed"
+  changed_when: "1 != 1"
+
+# Because of the boring details of how template loading works, getting
+# a correct 'changed' for this step is too difficult. Instead we have
+# the prior and following steps; when the templates actually changed,
+# the *following* step will register as changed.
 - name: Load tests
   shell: "/tmp/templates --clean"
   when: "gittests|changed"
+  changed_when: "1 != 1"
+
+- name: Check if the tests changed in previous step
+  command: "/usr/share/openqa/script/dump_templates --json > /tmp/tmpl-new.json && json_diff /tmp/tmpl-old.json /tmp/tmpl-new.json"
+  when: "gittests|changed"
+  register: testsdiff
+  changed_when: "testsdiff.rc > 0"
+  failed_when: "1 != 1"
