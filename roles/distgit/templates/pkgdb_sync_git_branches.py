@@ -217,6 +217,10 @@ def branch_package(ns, pkgname, requested_branches, existing_branches):
     if not exists or 'master' not in existing_branches:
         if not TEST_ONLY:
             _invoke(SETUP_PACKAGE, [os.path.join(ns, pkgname)])
+            if ns == 'rpms':
+                old_place = os.path.exists(os.path.join(
+                    GIT_FOLDER, '%s.git' % pkgname))
+                os.symlink(exists, old_place)
             # SETUP_PACKAGE creates master
             if 'master' in requested_branches:
                 requested_branches.remove('master')
