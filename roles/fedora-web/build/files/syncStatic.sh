@@ -68,3 +68,4 @@ build boot.fedoraproject.org
 build fedoracommunity.org
 build fudcon.fedoraproject.org
 build start.fedoraproject.org
+build fedoraproject.org
