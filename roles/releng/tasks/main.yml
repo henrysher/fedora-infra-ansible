@@ -59,7 +59,7 @@
     - /var/spool/rsyslog
 
 - name: add pkgs
-  action: yum  state=present pkg={{ item }}
+  yum: state=present pkg={{ item }}
   with_items:
     - yum-utils
     - koji
@@ -75,6 +75,26 @@
     - pykickstart
     - pyliblzma
     - httpd
+  when: ansible_distribution_major_version|int < 22
+
+- name: add pkgs
+  dnf: state=present pkg={{ item }}
+  with_items:
+    - yum-utils
+    - koji
+    - strace
+    - mock
+    - nfs-utils
+    - git
+    - mash
+    - intltool
+    - mutt
+    - koji
+    - createrepo
+    - pykickstart
+    - pyliblzma
+    - httpd
+  when: ansible_distribution_major_version|int > 21
 
 - name: copy over our mash.conf
   template: src=mash.conf dest=/etc/mash/mash.conf
@@ -95,6 +115,9 @@
     - fedora-22-compose-x86_64.cfg
     - fedora-branched-compose-x86_64.cfg
     - fedora-rawhide-compose-x86_64.cfg
+    - fedora-22-compose-aarch64.cfg
+    - fedora-branched-compose-aarch64.cfg
+    - fedora-rawhide-compose-aarch64.cfg
 
 
 # idmapd and make sure it's set to run
