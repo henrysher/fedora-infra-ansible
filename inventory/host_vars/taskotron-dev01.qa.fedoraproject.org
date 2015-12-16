@@ -12,8 +12,8 @@ eth0_ip: 10.5.124.181
 # install
 ############################################################
 
-ks_url: http://10.5.126.23/repo/rhel/ks/kvm-fedora-22-taskotron-master
-ks_repo: http://10.5.126.23/pub/fedora/linux/releases/22/Server/x86_64/os/
+ks_url: http://10.5.126.23/repo/rhel/ks/kvm-fedora-23-taskotron-master
+ks_repo: http://10.5.126.23/pub/fedora/linux/releases/23/Server/x86_64/os/
 volgroup: /dev/vg_guests
 vmhost: virthost-comm04.qa.fedoraproject.org
 datacenter: phx2
@@ -36,7 +36,8 @@ virt_install_command: /usr/bin/virt-install -n {{ inventory_hostname }} -r {{ me
                  --vcpus={{ num_cpus }}  -l {{ ks_repo }} -x
                  "ksdevice=eth0 ks={{ ks_url }} console=tty0 console=ttyS0
                   hostname={{ inventory_hostname }} nameserver={{ dns }}
-                  ip={{ eth0_ip }}::{{ gw }}:{{ nm }}:{{ inventory_hostname }}:eth0:none"
+                  ip={{ eth0_ip }}::{{ gw }}:{{ nm }}:{{ inventory_hostname }}:eth0:none
+                  net.ifnames=0"
                  --network=bridge=br0,model=virtio --autostart --noautoconsole
 
 ############################################################
