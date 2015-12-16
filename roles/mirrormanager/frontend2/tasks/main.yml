@@ -62,18 +62,32 @@
   - mm2_frontend
   - config
 
-- name: create /var/log/mirrormanager/crawler
-  file: path=/var/log/mirrormanager/crawler state=directory owner=mirrormanager group=mirrormanager mode=0755
+- name: create mirrormanager frontend directories
+  file: path={{ item }} state=directory owner=mirrormanager group=mirrormanager mode=0755
+  with_items:
+  - /var/log/mirrormanager
+  - /var/log/mirrormanager/crawler
+  - /var/www/mirrormanager-statistics
+  - /var/www/mirrormanager-statistics/data
+  - /var/www/mirrormanager-statistics/data/propagation
+  - /var/www/mirrormanager-statistics/map
   tags:
   - mm2_frontend
   - config
 
-- name: apply selinux type to crawler log files
+- name: apply selinux type to crawler log and statistics files
   file: >
-    dest=/var/log/mirrormanager/crawler
+    dest={{ item }}
     setype=httpd_sys_content_t
     state=directory
     recurse=yes
+  with_items:
+  - /var/log/mirrormanager
+  - /var/log/mirrormanager/crawler
+  - /var/www/mirrormanager-statistics
+  - /var/www/mirrormanager-statistics/data
+  - /var/www/mirrormanager-statistics/data/propagation
+  - /var/www/mirrormanager-statistics/map
   tags:
   - mm2_frontend
   - config
