@@ -13,6 +13,7 @@
   - languages.conf
   - cache.conf
   - persona.conf
+  - hotspot.conf
   - expires.conf
   - deflate.conf
   notify:
@@ -20,6 +21,7 @@
   tags:
   - fedora-web
   - fedora-web/main
+  - fedora-web/hotspot
 
 - name: And one template (for {{website}})
   template: >
@@ -32,6 +34,15 @@
   tags:
   - fedora-web
   - fedora-web/main
+
+- name: Create a file for hotspot
+  copy: dest=/srv/web/hotspot.txt content="OK"
+        owner=root group=root mode=0644
+        setype=httpd_sys_content_t
+  tags:
+  - fedora-web
+  - fedora-web/main
+  - fedora-web/hotspot
 
 - name: And, copy over a template for browserid
   template: >

@@ -50,6 +50,7 @@
   - libselinux-python
   - openqa
   - git
+  - json_diff
   - libselinux-utils
   - libsemanage-python
   - nfs-utils
@@ -66,9 +67,9 @@
     repo: https://bitbucket.org/rajcze/openqa_fedora
     dest: /var/lib/openqa/share/tests/fedora
   register: gittests
-
-- name: Have tests owned by geekotest
-  file: path=/var/lib/openqa/share/tests/fedora owner=geekotest recurse=yes
+  sudo: true
+  sudo_user: geekotest
+  always_run: true
 
 - name: Check out openqa_fedora_tools
   git:
@@ -82,38 +83,42 @@
   - /var/lib/openqa/share/factory/hdd
   - /var/lib/openqa/share/factory/repo
 
-- name: Start libvirt service
-  service: name=libvirtd state=started
-
 # NOTE: this is very hacky, but we can't do much better with the current
 # disk creation script, I will try and make it better. We'll have to bump
-# this hardcoded release number every so often.
+# this hardcoded release number every so often. Much better createhdds
+# is in review: https://phab.qadevel.cloud.fedoraproject.org/D687
+# LIBGUESTFS_BACKEND is to avoid the need to run libvirt just for this
 - name: Create hard disk images (this may take a long time!)
   command: "/root/openqa_fedora_tools/tools/createhdds.sh 23"
   args:
     creates: /var/lib/openqa/share/factory/hdd/disk_full_mbr.img
     chdir: /var/lib/openqa/share/factory/hdd/
+  environment:
+    LIBGUESTFS_BACKEND: direct
 
 - name: Create N-2 desktop x86_64 disk image (this may take a long time!)
   command: "/root/openqa_fedora_tools/tools/createhdds.sh 22 desktop_64bit"
   args:
     creates: /var/lib/openqa/share/factory/hdd/disk_f22_desktop_x86_64.img
     chdir: /var/lib/openqa/share/factory/hdd/
+  environment:
+    LIBGUESTFS_BACKEND: direct
 
 - name: Create N-2 desktop i686 disk image (this may take a long time!)
   command: "/root/openqa_fedora_tools/tools/createhdds.sh 22 desktop_32bit"
   args:
     creates: /var/lib/openqa/share/factory/hdd/disk_f22_desktop_i686.img
     chdir: /var/lib/openqa/share/factory/hdd/
+  environment:
+    LIBGUESTFS_BACKEND: direct
 
 - name: Create N-2 minimal x86_64 disk image (this may take a long time!)
   command: "/root/openqa_fedora_tools/tools/createhdds.sh 22 minimal_64bit"
   args:
     creates: /var/lib/openqa/share/factory/hdd/disk_f22_minimal_x86_64.img
     chdir: /var/lib/openqa/share/factory/hdd/
-
-- name: Stop libvirt service
-  service: name=libvirtd state=stopped
+  environment:
+    LIBGUESTFS_BACKEND: direct
 
 - name: Create exports file
   copy: src=exports dest=/etc/exports.d/openqa.exports owner=root group=root mode=0644
@@ -160,6 +165,7 @@
   register: initdb
   changed_when: "initdb.rc == 0"
   failed_when: "(initdb.rc > 0) and (initdb.stderr is not defined or initdb.stderr.find('already exists') == -1)"
+  always_run: true
 
 - name: Enable and start services
   service: name={{ item }} enabled=yes state=started
@@ -169,6 +175,7 @@
   - openqa-webui
   - openqa-websockets
   - openqa-gru
+  always_run: true
 
 # This is using a big hammer until #1277312 is resolved
 - name: Allow Apache to connect to openQA
@@ -188,14 +195,30 @@
   register: admin
   changed_when: "admin.rc == 0"
   failed_when: "(admin.rc > 0) and (admin.stderr is not defined or admin.stderr.find('already exists') == -1)"
+  always_run: true
 
 - name: Patch repo URLs in templates
   shell: "cp /var/lib/openqa/share/tests/fedora/templates /tmp && sed -i -e 's,dl.fedoraproject,dl.phx2.fedoraproject,g' /tmp/templates"
   when: "gittests|changed"
   changed_when: "1 != 1"
 
-# This will always show as changed, even when nothing in the templates
-# changed; this is a bit hard to fix
+- name: Dump existing config for checking changes
+  shell: "/usr/share/openqa/script/dump_templates --json > /tmp/tmpl-old.json"
+  when: "gittests|changed"
+  changed_when: "1 != 1"
+
+# Because of the boring details of how template loading works, getting
+# a correct 'changed' for this step is too difficult. Instead we have
+# the prior and following steps; when the templates actually changed,
+# the *following* step will register as changed.
 - name: Load tests
   shell: "/tmp/templates --clean"
   when: "gittests|changed"
+  changed_when: "1 != 1"
+
+- name: Check if the tests changed in previous step
+  command: "/usr/share/openqa/script/dump_templates --json > /tmp/tmpl-new.json && json_diff /tmp/tmpl-old.json /tmp/tmpl-new.json"
+  when: "gittests|changed"
+  register: testsdiff
+  changed_when: "testsdiff.rc > 0"
+  failed_when: "1 != 1"
