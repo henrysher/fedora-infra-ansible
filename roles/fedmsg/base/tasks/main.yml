@@ -15,7 +15,12 @@
 
 - name: install python2 fedmsg package
   yum: pkg=fedmsg state=present
-  when: "'python34-fedmsg' not in group_names"
+  when: "'python34-fedmsg' not in group_names and ansible_distribution_major_version|int < 22"
+  tags: fedmsg/base
+
+- name: install python2 fedmsg package
+  dnf: pkg=fedmsg state=present
+  when: "'python34-fedmsg' not in group_names and ansible_distribution_major_version|int > 21"
   tags: fedmsg/base
 
 - name: install the python34 fedmsg package (yum)
