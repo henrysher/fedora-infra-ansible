@@ -1,0 +1,37 @@
+{% extends "layout.html" %}
+{% block toptext %}
+<p><small><strong>{{trustroot}}</strong> requests to use the following details from your FAS Account</small></p>
+{% endblock %}
+{% block cardwidths %}col-md-10 col-md-offset-1{% endblock %}
+{% block maintitle %}Review the authorization details{% endblock %}
+{% block main %}
+    <div class="small">
+        <form method="post" action="{{action}}" enctype="application/x-www-form-urlencoded">
+            <input type="hidden" name="ipsilon_transaction_id" id="ipsilon_transaction_id" value="{{ ipsilon_transaction_id }}" />
+                    {% for entry in authz_details|dictsort %}
+                        <div class="row m-b">
+                            <div class="col-sm-5"><strong>{{ entry[0] }}</strong></div>
+                            {%- if entry[1] is iterable and not entry[1] is string -%}
+                            <div class="col-sm-7">{{ entry[1] | join(', ') }}</div>
+                            {%- else -%}
+                            <div class="col-sm-7">{{ entry[1] }}</div>
+                            {%- endif -%}
+                        </div>
+                    {% endfor %}
+
+                    <div class="row m-b">
+                        <div class="col-sm-5"><strong>Remember&nbsp;approval</strong></div>
+                        <div class="col-sm-7"><select name="remember_for_days" class="c-select-sm c-select">
+                                <option value="0">never</option>
+                                <option value="3">3 days</option>
+                                <option value="7">7 days</option>
+                            </select>
+                        </div>
+                    </div>
+            <p class="form_item">
+                <input class="btn btn-primary" name="decided_allow" type="submit" value="Approve" />
+                <input class="btn btn-link" name="decided_deny" type="submit" value="Reject" />
+            </p>
+        </form>
+    </div>
+{% endblock %}
