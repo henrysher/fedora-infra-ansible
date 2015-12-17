@@ -71,6 +71,9 @@
   - /var/www/mirrormanager-statistics/data
   - /var/www/mirrormanager-statistics/data/propagation
   - /var/www/mirrormanager-statistics/map
+  - /var/www/mirrormanager-statistics/map/img
+  - /var/www/mirrormanager-statistics/map/theme
+  - /var/www/mirrormanager-statistics/map/theme/default
   tags:
   - mm2_frontend
   - config
@@ -86,7 +89,6 @@
   - /var/log/mirrormanager/crawler
   - /var/www/mirrormanager-statistics
   - /var/www/mirrormanager-statistics/data
-  - /var/www/mirrormanager-statistics/data/propagation
   - /var/www/mirrormanager-statistics/map
   tags:
   - mm2_frontend
@@ -118,3 +120,31 @@
   - mm2_frontend
   - config
 
+- name: install interactive map file
+  copy: src={{ roles }}/membership-map/build/files/www/{{ item }}
+            dest=/var/www/mirrormanager-statistics/map/{{ item }}
+            owner=mirrormanager group=mirrormanager mode=0444
+  with_items:
+  - OpenLayers.js
+  - img/east-mini.png
+  - img/layer-switcher-maximize.png
+  - img/layer-switcher-minimize.png
+  - img/north-mini.png
+  - img/slider.png
+  - img/south-mini.png
+  - img/west-mini.png
+  - img/zoombar.png
+  - img/zoom-minus-mini.png
+  - img/zoom-plus-mini.png
+  - theme/default/style.css
+  tags:
+  - mm2_frontend
+
+- name: install interactive map file
+  copy: src={{ item }} dest=/var/www/mirrormanager-statistics/map/{{ item }}
+            owner=mirrormanager group=mirrormanager mode=0444
+  with_items:
+  - mirrors.html
+  - f-dot.png
+  tags:
+  - mm2_frontend
