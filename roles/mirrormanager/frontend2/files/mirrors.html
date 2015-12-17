@@ -1,0 +1,70 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"> 
+<!--
+# This script is for rendering ambassadors map.
+#
+# Copyright (C) 2009, Susmit Shannigrahi, Susmit AT fedoraproject DOT org
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+# Openlayer.js, Openstreetmap.js, and the map data are copyrighted by their respective 
+# copyright owners.
+
+-->
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
+    <title>Fedora Mirrors Map</title>
+    <style type="text/css">
+      html, body, #map { width 100%; height: 100%; }
+    </style>
+    <script src="OpenLayers.js" type="text/javascript"></script>
+  </head>
+  <body>
+    <h4 id="title" style="text-align: center;">Fedora Mirrors Map</h4>
+    <div id="map"></div>
+    <script defer="defer" type="text/javascript">
+
+      var map = new OpenLayers.Map ("map");
+      var Osm = new OpenLayers.Layer.OSM("Open Street Map",
+        // Official OSM tileset as protocol-independent URLs
+        [
+          '//a.tile.openstreetmap.org/${z}/${x}/${y}.png',
+          '//b.tile.openstreetmap.org/${z}/${x}/${y}.png',
+          '//c.tile.openstreetmap.org/${z}/${x}/${y}.png'
+        ], null);
+
+      map.addLayer(Osm);
+
+      var text = new OpenLayers.Layer.Text( "Fedora Mirrors", {location: "./mirrors_location.txt"} );
+      map.addLayer(text);
+      var lonlat = new OpenLayers.LonLat(-15, 25).transform(
+        new OpenLayers.Projection("EPSG:4326"), // transform from WGS 1984
+        new OpenLayers.Projection("EPSG:900913") // to Spherical Mercator
+      );
+
+      map.setCenter(lonlat, 3);  
+
+    </script>
+    <script src="https://apps.fedoraproject.org/fedmenu/js/jquery-1.11.2.min.js" type="text/javascript"></script>
+    <script src="https://apps.fedoraproject.org/fedmenu/js/fedmenu.js" type="text/javascript"></script>
+    <script type="text/javascript">
+      fedmenu({
+        'url': 'https://apps.fedoraproject.org/js/data.js',
+        'mimeType': 'application/javascript',
+        'position': 'bottom-right',
+      });
+    </script>
+  </body>
+</html>
