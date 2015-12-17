@@ -103,3 +103,11 @@
   - config
   - mm2_frontend
   when: env != "staging"
+
+# mirrormanager user ssh key(s) (used to transfer statistics from backend to frontends)
+- name: add authorized_keys for mirrormanager
+  authorized_key: key="{{ item }}" user=mirrormanager state=present
+  with_file:
+  - {{ roles }}/mirrormanager/mirrorlist2/files/mm-authorized_key
+  tags:
+  - mm2_frontend
