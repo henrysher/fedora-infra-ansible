@@ -13,6 +13,7 @@
   - python-psycopg2
   - fedmsg
   - python-GeoIP
+  - jq
   tags:
   - packages
 
@@ -36,25 +37,20 @@
   - config
   when: env != 'staging'
 
-- name: install the script to distribute the mirrors to crawl
-  copy: src=mm2_get-mirrors-to-crawl dest=/usr/local/bin/mm2_get-mirrors-to-crawl mode=0755
-
-- name: install the crawler distribute script
-  copy: src=run_crawler.sh dest=/usr/local/bin/run_crawler.sh mode=0755
+- name: install crawling helper scripts
+  copy: src={{ item }} dest=/usr/local/bin/{{ item }} mode=0755
+  with_items:
+  - mm2_get-mirrors-to-crawl
+  - run_crawler.sh
+  - check_propagation.sh
 
 # Directory used to store the result of the repomd.xml propagation test
 - name: create /var/log/mirrormanager/propagation
   file: path=/var/log/mirrormanager/propagation state=directory
           owner=mirrormanager group=mirrormanager mode=0755
 
-- name: propagation cronjob rawhide
-  cron: name="propagation-rawhide" minute="45" hour="*/2" user="mirrormanager"
-        job="/usr/bin/mm2_crawler --propagation --threads 50 2>&1 | grep SHA256 > /var/log/mirrormanager/propagation/propagation.log.$( date +\%s )"
-        cron_file=propagation-rawhide
-  when: inventory_hostname.startswith('mm-crawler01')
-
-- name: propagation cronjob f22-updates
-  cron: name="propagation-f22-updates" minute="15" hour="*/2" user="mirrormanager"
-        job="/usr/bin/mm2_crawler --propagation --threads 50 --proppath updates/22/x86_64/repodata 2>&1 | grep SHA256 > /var/log/mirrormanager/propagation/f22-updates-propagation.log.$( date +\%s )"
-        cron_file=propagation-f22-updates
-  when: inventory_hostname.startswith('mm-crawler01')
+- name: propagation cronjob
+  cron: name="propagation-check" minute="15,45" hour="*" user="mirrormanager"
+        job="/usr/local/bin/check_propagation.sh"
+        cron_file=propagation-check
+  when: inventory_hostname.startswith('mm-crawler01.phx2')
