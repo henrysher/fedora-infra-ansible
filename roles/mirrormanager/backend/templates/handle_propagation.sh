@@ -22,7 +22,7 @@ if [ $? -ne 0 ]; then
 fi
 
 for version in `jq -r ".collections[$i].version" < ${ACTIVE}`; do
-        ${PROPAGATION} --outdir ${OUTPUT} --logfiles "${LOGBASE}/f${version}*" --prefix ${version}_updates
+        ${PROPAGATION} --outdir ${OUTPUT} --logfiles "${LOGBASE}/f${version}*" --prefix f${version}_updates
 done
 
 ${PROPAGATION} --outdir ${OUTPUT} --logfiles "${LOGBASE}/development*"
