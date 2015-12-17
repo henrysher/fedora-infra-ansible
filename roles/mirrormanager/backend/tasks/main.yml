@@ -50,8 +50,16 @@
 - name: install the umdl-required logrotate file
   copy: src=mm2_umdl-required.logrotate dest=/etc/logrotate.d/mm2_umdl-required mode=644
 
-- name: install sync to mirrorlist servers script
-  template: src=sync_pkl_to_mirrorlists.sh dest=/usr/local/bin/sync_pkl_to_mirrorlists.sh mode=0755
+- name: install backend helper scripts
+  template: src={{ item }} dest=/usr/local/bin/{{ item }} mode=0755
+  with_items:
+  - sync_pkl_to_mirrorlists.sh
+  - handle_propagation.sh
+
+- name: handle propagation cronjob
+  cron: name="handle-propagation" minute="25,55" hour="*" user="mirrormanager"
+        job="/usr/local/bin/handle_propagation.sh"
+        cron_file=handle-propagation
 
 - name: setup /var/lib/mirrormanager/.ssh directory
   copy: >
