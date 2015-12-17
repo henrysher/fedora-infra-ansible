@@ -83,42 +83,25 @@
   - /var/lib/openqa/share/factory/hdd
   - /var/lib/openqa/share/factory/repo
 
-# NOTE: this is very hacky, but we can't do much better with the current
-# disk creation script, I will try and make it better. We'll have to bump
-# this hardcoded release number every so often. Much better createhdds
-# is in review: https://phab.qadevel.cloud.fedoraproject.org/D687
-# LIBGUESTFS_BACKEND is to avoid the need to run libvirt just for this
+- name: Check if any hard disk images need (re)building
+  command: "/root/openqa_fedora_tools/tools/createhdds.py check"
+  args:
+    chdir: /var/lib/openqa/share/factory/hdd/
+  register: diskcheck
+  failed_when: "1 != 1"
+  always_run: true
+
 - name: Create hard disk images (this may take a long time!)
-  command: "/root/openqa_fedora_tools/tools/createhdds.sh 23"
+  command: "/root/openqa_fedora_tools/tools/createhdds.py all --clean"
   args:
-    creates: /var/lib/openqa/share/factory/hdd/disk_full_mbr.img
     chdir: /var/lib/openqa/share/factory/hdd/
   environment:
     LIBGUESTFS_BACKEND: direct
-
-- name: Create N-2 desktop x86_64 disk image (this may take a long time!)
-  command: "/root/openqa_fedora_tools/tools/createhdds.sh 22 desktop_64bit"
-  args:
-    creates: /var/lib/openqa/share/factory/hdd/disk_f22_desktop_x86_64.img
-    chdir: /var/lib/openqa/share/factory/hdd/
-  environment:
-    LIBGUESTFS_BACKEND: direct
-
-- name: Create N-2 desktop i686 disk image (this may take a long time!)
-  command: "/root/openqa_fedora_tools/tools/createhdds.sh 22 desktop_32bit"
-  args:
-    creates: /var/lib/openqa/share/factory/hdd/disk_f22_desktop_i686.img
-    chdir: /var/lib/openqa/share/factory/hdd/
-  environment:
-    LIBGUESTFS_BACKEND: direct
-
-- name: Create N-2 minimal x86_64 disk image (this may take a long time!)
-  command: "/root/openqa_fedora_tools/tools/createhdds.sh 22 minimal_64bit"
-  args:
-    creates: /var/lib/openqa/share/factory/hdd/disk_f22_minimal_x86_64.img
-    chdir: /var/lib/openqa/share/factory/hdd/
-  environment:
-    LIBGUESTFS_BACKEND: direct
+  # This is disabled until we enable nested virt on the server VMs;
+  # image creation involves running VMs and takes *forever* without
+  # KVM acceleration. Once we turn it on, the condition should be
+  # "diskcheck.rc > 0".
+  when: "1 != 1"
 
 - name: Create exports file
   copy: src=exports dest=/etc/exports.d/openqa.exports owner=root group=root mode=0644
