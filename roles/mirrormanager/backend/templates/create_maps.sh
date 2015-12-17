@@ -11,5 +11,5 @@ trap "rm -f ${OUTPUT}/*; rmdir ${OUTPUT}" QUIT TERM INT HUP EXIT
 ${WORLDMAP} --output ${OUTPUT} > /dev/null
 
 for f in ${FRONTENDS}; do
-        rsync -aq   ${OUTPUT}/  ${f}:/var/www/mirrormanager-statistics/map
+        rsync -aq ${OUTPUT}/{map.png,mirrors_location.txt} ${f}:/var/www/mirrormanager-statistics/map/
 done
