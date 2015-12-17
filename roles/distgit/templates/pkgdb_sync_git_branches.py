@@ -66,6 +66,7 @@ PKGDB_URL = 'https://admin.stg.fedoraproject.org/pkgdb'
 {%- else -%}
 PKGDB_URL = 'https://admin.fedoraproject.org/pkgdb'
 {%- endif %}
+
 GIT_FOLDER = '/srv/git/repositories/'
 
 MKBRANCH = '/usr/local/bin/mkbranch'
