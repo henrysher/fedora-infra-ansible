@@ -10,7 +10,7 @@ newfile=`mktemp`
 ls > $newfile
 cd /srv/git/repositories/
 for d in `ls`; do
-  if [ ! -L $d ]; then
+  if [ ! -L $d ] && [ -d $d ]; then
     for f in `ls $d`; do
      echo $d/$f >> $newfile;
     done;
