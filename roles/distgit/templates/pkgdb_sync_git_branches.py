@@ -212,14 +212,15 @@ def branch_package(ns, pkgname, requested_branches, existing_branches):
         print 'Fixing package %s for branches %s' % (pkgname, requested_branches)
 
     # Create the devel branch if necessary
-    exists = os.path.exists(os.path.join(GIT_FOLDER, ns, '%s.git' % pkgname))
+    new_place = os.path.join(GIT_FOLDER, ns, '%s.git' % pkgname)
+    exists = os.path.exists(new_place)
     if not exists or 'master' not in existing_branches:
         if not TEST_ONLY:
             _invoke(SETUP_PACKAGE, [os.path.join(ns, pkgname)])
             if ns == 'rpms':
-                old_place = os.path.exists(os.path.join(
-                    GIT_FOLDER, '%s.git' % pkgname))
-                os.symlink(exists, old_place)
+                old_place = os.path.join(
+                    GIT_FOLDER, '%s.git' % pkgname)
+                os.symlink(new_place, old_place)
             # SETUP_PACKAGE creates master
             if 'master' in requested_branches:
                 requested_branches.remove('master')
