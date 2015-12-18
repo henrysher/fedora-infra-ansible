@@ -56,6 +56,7 @@
   - sync_pkl_to_mirrorlists.sh
   - handle_propagation.sh
   - create_maps.sh
+  - create_statistics.sh
 
 - name: handle propagation cronjob
   cron: name="handle-propagation" minute="45" hour="*/2" user="mirrormanager"
@@ -66,6 +67,16 @@
   cron: name="create-worldmap" minute="50" hour="20" user="mirrormanager"
         job="/usr/local/bin/create_maps.sh"
         cron_file=create-worldmap
+
+- name: create mirrorlist statistics cronjob
+  cron: name="create-statistics" minute="4" hour="*/2" user="mirrormanager"
+        job="/usr/local/bin/create_statistics.sh"
+        cron_file=create-statistics
+
+- name: create yesterdays mirrorlist statistics cronjob
+  cron: name="yesterdays-statistics" minute="15" hour="0" user="mirrormanager"
+        job="/usr/local/bin/create_statistics.sh yesterday"
+        cron_file=yesterdays-statistics
 
 - name: setup /var/lib/mirrormanager/.ssh directory
   copy: >
