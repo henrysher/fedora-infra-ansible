@@ -38,6 +38,7 @@ syncHttpLogs proxy07.vpn.fedoraproject.org
 syncHttpLogs proxy08.vpn.fedoraproject.org
 syncHttpLogs proxy10.phx2.fedoraproject.org
 syncHttpLogs proxy11.vpn.fedoraproject.org
+syncHttpLogs proxy12.vpn.fedoraproject.org
 syncHttpLogs proxy01.stg.phx2.fedoraproject.org
 syncHttpLogs fas01.phx2.fedoraproject.org
 syncHttpLogs fas02.phx2.fedoraproject.org
