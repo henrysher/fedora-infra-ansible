@@ -92,3 +92,24 @@
   copy: src=logrotate-syslog dest=/etc/logrotate.d/syslog
   tags:
   - mirrorlist2
+
+# Copy the mirrorlist log file every hour to be ready to be processed
+- name: mirrorlist copy cron
+  cron: name="copy-mirrorlist" minute="50" hour="*/2" user="mirrormanager"
+        job="cp /var/log/mirrormanager/mirrorlist.log /var/log/mirrormanager/mirrorlist.log.`date +\%Y-\%m-\%d`"
+        cron_file=copy-mirrorlist
+  - mirrorlist2
+
+# At the start of the day the mirrorlist log file is moved
+- name: mirrorlist move cron
+  cron: name="move-mirrorlist" minute="1" hour="0" user="mirrormanager"
+        job="mv /var/log/mirrormanager/mirrorlist.log /var/log/mirrormanager/mirrorlist.log.`date +\%Y-\%m-\%d --date='yesterday'`"
+        cron_file=move-mirrorlist
+  - mirrorlist2
+
+# Cleanup old mirrorlist logfile
+- name: mirrorlist clean cron
+  cron: name="clean-mirrorlist" minute="13" hour="13" user="mirrormanager"
+        job="/usr/sbin/tmpwatch --mtime 14d /var/log/mirrormanager"
+        cron_file=clean-mirrorlist
+  - mirrorlist2
