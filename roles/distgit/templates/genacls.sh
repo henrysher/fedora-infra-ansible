@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/sh -e
 
 python /usr/local/bin/pkgdb_sync_git_branches.py
 
