@@ -1,4 +1,4 @@
-#!/bin/sh -e
+#!/bin/bash -e
 
 python /usr/local/bin/pkgdb_sync_git_branches.py
 
@@ -16,11 +16,21 @@ if /usr/local/bin/genacls.pkgdb > gitolite.conf ; then
     # every repo so that gitolite will understand our symlinks from rpms/
     cd /srv/git/repositories
     for repodir in *.git; do
+        glconf=$repodir/gl-conf;
+
         # Strip off the '.git' on the end.
         repo=${repodir::-4}
-        glconf=$repodir/gl-conf;
-        echo '$one_config{"'$repo'"} = $one_config{"rpms/'$repo'"};' >> $repodir/gl-conf;
-        echo '$one_repo{"'$repo'"} = $one_repo{"rpms/'$repo'"};' >> $repodir/gl-conf;
+
+        # Check which repo from gitolite.conf won the gitolite race.
+        if grep --quiet rpms/ $glconf;  then
+            # ...and map things one way
+            echo '$one_config{"'$repo'"} = $one_config{"rpms/'$repo'"};' >> $glconf;
+            echo '$one_repo{"'$repo'"} = $one_repo{"rpms/'$repo'"};' >> $glconf;
+        else
+            # or map them the other way
+            echo '$one_config{"rpms/'$repo'"} = $one_config{"'$repo'"};' >> $glconf;
+            echo '$one_repo{"rpms/'$repo'"} = $one_repo{"'$repo'"};' >> $glconf;
+        fi
     done
 fi
 
