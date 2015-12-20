@@ -8,11 +8,8 @@
   - yumrepos
 
 - name: put epel repos on el systems
-  action: copy src="{{ item }}.repo" dest="/etc/yum.repos.d/epel{{ ansible_distribution_major_version }}.repo"
-  when: (ansible_distribution == 'RedHat' or ansible_distribution == 'CentOS')
-  with_first_found:
-  - {{ files }}/common/epel{{ epel_customization }}.repo
-  - {{ files }}/common/epel{{ ansible_distribution_major_version }}.repo
+  action: copy src="{{ files }}/common/epel{{ ansible_distribution_major_version }}.repo" dest="/etc/yum.repos.d/epel{{ ansible_distribution_major_version }}.repo"
+  when: ((ansible_distribution == 'RedHat' or ansible_distribution == 'CentOS') and use_default_epel)
   tags:
   - config
   - packages

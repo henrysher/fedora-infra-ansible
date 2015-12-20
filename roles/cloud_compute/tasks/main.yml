@@ -4,6 +4,10 @@
 - authorized_key: user=root key="{{ lookup('file', files + '/fedora-cloud/fed09-ssh-key.pub') }}"
 - template: src={{ files }}/fedora-cloud/hosts dest=/etc/hosts owner=root mode=0644
 
+- name: Copy customized EPEL7 repo
+  copy: src=cloud-epel7.repo dest=/etc/yum.repos.d/cloud-epel7.repo
+        owner=root group=root mode=0644
+
 - name: Enable nested virtualization
   copy: content="options kvm_intel nested=1" dest=/etc/modprobe.d/nested_virt.conf
         owner=root group=root mode=0644
