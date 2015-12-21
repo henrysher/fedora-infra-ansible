@@ -7,7 +7,7 @@
 # modified by alda
 
 # Where the git repos live.  These are bare repos
-ORIGIN_DIR=/srv/git/rpms
+ORIGIN_DIR=/srv/git/repositories
 
 # Where we'll create the repos to tar up
 WORK_DIR=/srv/git_seed

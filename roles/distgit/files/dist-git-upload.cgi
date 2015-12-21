@@ -22,7 +22,7 @@ import hashlib
 BUFFER_SIZE = 4096
 
 # We check modules exist from this dircetory
-GITREPO = '/srv/git/rpms'
+GITREPO = '/srv/git/repositories'
 
 # Lookaside cache directory
 CACHE_DIR = '/srv/cache/lookaside/pkgs'
