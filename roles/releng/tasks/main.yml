@@ -43,6 +43,11 @@
 - name: add masher koji ca upload cert
   action: copy src="{{ private }}/files/koji/buildercerts/fedora-ca.cert" dest=/home/masher/.fedora-upload-ca.cert
 
+- name: add koji ca cert to central system ca-trust
+  action: copy src="{{ private }}/files/koji/buildercerts/fedora-ca.cert" dest=/etc/pki/ca-trust/source/anchors/fedora-server-ca.cert
+- name: update ca-trust
+  command: /usr/bin/update-ca-trust
+
 # rawhide group
 - name: rawhide group
   action: group name=rawhide gid=265
