@@ -14,6 +14,7 @@ mv gitolite.conf /etc/gitolite/conf/
 chown gen-acls:gen-acls -R /etc/gitolite/conf/
 HOME=/srv/git /usr/bin/gitolite compile
 
+{% if env != 'staging' %}
 # After compiling, we have to stick some magic into the gl-conf files of
 # every repo so that gitolite will understand our symlinks from rpms/
 cd /srv/git/repositories
@@ -34,6 +35,7 @@ for repodir in *.git; do
         echo '$one_repo{"rpms/'$repo'"} = $one_repo{"'$repo'"};' >> $glconf;
     fi
 done
+{% endif %}
 
 cd /
 
