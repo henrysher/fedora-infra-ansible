@@ -10,8 +10,24 @@ cd $TEMPDIR
 # Then create the repos and branches on disk (if we need any new ones)
 python /usr/local/bin/pkgdb_sync_git_branches.py
 
+{% if env == 'staging' %}
+# Leverage gitolite's Alias.pm feature to build backwards compat links
+cat /etc/gitolite/RepoAliases.header > RepoAliases.pm
+# Get all repos.  Strip off 'rpms/'.  Convert to perl mapping.  Tack it on.
+grep rpms/ /etc/gitolite/conf/gitolite.conf | \
+        sed 's/repo rpms\///g' | \
+        sed "s/.*/'&' => 'rpms\/&',/g" \
+        >> RepoAliases.pm
+echo "};}1;" >> RepoAliases.pm
+{% endif %}
+
+# With that done, move the files into place and run compile
 mv gitolite.conf /etc/gitolite/conf/
 chown gen-acls:gen-acls -R /etc/gitolite/conf/
+{% if env == 'staging' %}
+mv RepoAliases.pm /etc/gitolite/RepoAliases.pm
+chown gen-acls:gen-acls -R /etc/gitolite/RepoAliases.pm
+{% endif %}
 HOME=/srv/git /usr/bin/gitolite compile
 
 {% if env != 'staging' %}
