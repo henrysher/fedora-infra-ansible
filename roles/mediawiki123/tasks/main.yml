@@ -1,0 +1,153 @@
+---
+- name: allow Apache to remotely connect to mysql
+  seboolean: name=httpd_can_network_connect_db state=yes persistent=yes
+  tags:
+  - mediawiki
+
+- name: allow Apache to remotely connect to wiki
+  seboolean: name=httpd_can_network_connect state=yes persistent=yes
+  tags:
+  - mediawiki
+
+- name: allow Apache to remotely connect to Memcached
+  seboolean: name=httpd_can_network_memcache state=yes persistent=yes
+  tags:
+  - mediawiki
+
+- name: allow Apache to talk to the wiki uploads dir over nfs
+  seboolean: name=httpd_use_nfs state=yes persistent=yes
+  tags:
+  - mediawiki
+
+- name: set sebooleans so apache can send emails
+  action: seboolean name=httpd_can_sendmail state=yes persistent=yes
+  tags:
+  - mediawiki
+
+- name: install needed packages
+  yum: pkg={{ item }} state=present
+  with_items:
+  - mediawiki123
+  #- mediawiki123-Lockdown
+  - librsvg2
+  - mediawiki123-HTTP302Found
+  - mediawiki123-intersection
+  - mediawiki123-RSS
+  - mediawiki123-openid
+  - mediawiki-FedoraBadges
+  - php-zmq
+  - php-pecl-uuid
+  tags:
+  - packages
+  - mediawiki
+
+- name: adding FAS auth
+  template: src=Auth_FAS.php.j2 dest=/usr/share/mediawiki123/extensions/Auth_FAS.php owner=root group=root mode=775
+  tags:
+  - config
+  - mediawiki
+
+- name: adding fedmsg emit
+  copy: src=fedmsg-emit.php dest=/usr/share/mediawiki123/extensions/fedmsg-emit.php owner=root group=root mode=775
+  tags:
+  - config
+  - mediawiki
+
+- name: creating attachments dir
+  file: path=/mnt/web/attachments owner=apache group=root mode=755 state=directory
+  tags:
+  - mediawiki
+
+- name: startup apache
+  service: name=httpd enabled=yes state=started
+  tags:
+  - mediawiki
+
+- name: Fedora branding
+  copy: src=skins/ dest=/usr/share/mediawiki123/skins owner=root group=root mode=775
+  tags:
+  - config
+  - mediawiki
+
+- name: creating wiki dir
+  file: path=/srv/web/{{wikiname}}-wiki owner=root group=root mode=755 state=directory
+  tags:
+  - mediawiki
+
+#- name: creating config dir
+#  file: src=/usr/share/mediawiki123/config dest=/srv/web/{{wikiname}}/config owner=apache group=apache mode=755 state=directory
+#  tags:
+#  - mediawiki
+
+# This doesn't seem to exist anymore in upstream....
+#- name: install utils
+#  file: src=/usr/share/mediawiki123/install-utils.inc dest=/srv/web/{{wikiname}}-wiki/install-utils.inc state=link
+#  tags:
+#  - mediawiki
+
+- name: install localsettings
+  template: src=LocalSettings.php.{{wikiname}}.j2 dest=/srv/web/{{wikiname}}-wiki/LocalSettings.php owner=apache group=apache mode=600 setype=httpd_sys_content_t
+  notify: reload httpd
+  tags:
+  - mediawiki
+
+- name: httpd conf
+  template: src=mediawiki-app.conf.j2 dest=/etc/httpd/conf.d/{{wikiname}}.conf
+  notify: reload httpd
+  tags:
+  - mediawiki
+
+- name: linking index.php
+  file: dest=/srv/web/{{wikiname}}-wiki/index.php src=/usr/share/mediawiki123/index.php state=link
+  tags:
+  - mediawiki
+
+- name: linkng api.php
+  file: dest=/srv/web/{{wikiname}}-wiki/api.php src=/usr/share/mediawiki123/api.php state=link
+  tags:
+  - mediawiki
+
+- name: linking opensearch
+  file: dest=/srv/web/{{wikiname}}-wiki/opensearch_desc.php src=/usr/share/mediawiki123/opensearch_desc.php state=link
+  tags:
+  - mediawiki
+
+- name: linking extensions
+  file: dest=/srv/web/{{wikiname}}-wiki/extensions src=/usr/share/mediawiki123/extensions state=link
+  tags:
+  - mediawiki
+
+- name: linking includes
+  file: dest=/srv/web/{{wikiname}}-wiki/includes src=/usr/share/mediawiki123/includes state=link
+  tags:
+  - mediawiki
+
+- name: linking languages
+  file: dest=/srv/web/{{wikiname}}-wiki/languages src=/usr/share/mediawiki123/languages state=link
+  tags:
+  - mediawiki
+
+- name: linking maintenance
+  file: dest=/srv/web/{{wikiname}}-wiki/maintenance src=/usr/share/mediawiki123/maintenance state=link
+  tags:
+  - mediawiki
+
+- name: linking serialized
+  file: dest=/srv/web/{{wikiname}}-wiki/serialized src=/usr/share/mediawiki123/serialized state=link
+  tags:
+  - mediawiki
+
+- name: linking skins
+  file: dest=/srv/web/{{wikiname}}-wiki/skins src=/usr/share/mediawiki123/skins state=link
+  tags:
+  - mediawiki
+
+- name: linking load
+  file: dest=/srv/web/{{wikiname}}-wiki/load.php src=/usr/share/mediawikie123/load.php state=link
+  tags:
+  - mediawiki
+
+- name: linking resources
+  file: dest=/srv/web/{{wikiname}}-wiki/resources src=/usr/share/mediawiki123/resources state=link
+  tags:
+  - mediawiki
