@@ -6,7 +6,7 @@
 # Looking for git repos. 
 #
 newfile=`mktemp`
-target=/srv/git/repositories
+target=/srv/git/repositories/rpms
 
 ls $target > $newfile
 for d in `ls $target`; do
