@@ -145,7 +145,6 @@
   register: initdb
   changed_when: "initdb.rc == 0"
   failed_when: "(initdb.rc > 0) and (initdb.stderr is not defined or initdb.stderr.find('already exists') == -1)"
-  always_run: true
 
 - name: Enable and start services
   service: name={{ item }} enabled=yes state=started
@@ -155,15 +154,15 @@
   - openqa-webui
   - openqa-websockets
   - openqa-gru
-  always_run: true
 
 # This is using a big hammer until #1277312 is resolved
 - name: Allow Apache to connect to openQA
   seboolean: name=httpd_can_network_connect state=yes persistent=yes
 
+# services is undefined in check mode
 - name: Wait for openQA to be fully started
   pause: seconds=5
-  when: services|changed
+  when: "services is defined and services|changed"
 
 - name: openQA client config
   template: src=client.conf.j2 dest=/etc/openqa/client.conf mode=0600
@@ -175,7 +174,6 @@
   register: admin
   changed_when: "admin.rc == 0"
   failed_when: "(admin.rc > 0) and (admin.stderr is not defined or admin.stderr.find('already exists') == -1)"
-  always_run: true
 
 - name: Patch repo URLs in templates
   shell: "cp /var/lib/openqa/share/tests/fedora/templates /tmp && sed -i -e 's,dl.fedoraproject,dl.phx2.fedoraproject,g' /tmp/templates"
