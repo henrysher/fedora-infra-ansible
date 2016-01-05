@@ -2,13 +2,14 @@
   sudo: true
   sudo_user: "{{ slave_user }}"
   command: creates={{ slave_dir }} buildslave create-slave {{ slave_dir }} {{ buildmaster }} buildslave passwd
-  when: deployment_type == 'prod' or deployment_type == 'stg' or deployment_type == 'local'
+  when: deployment_type in ['prod', 'stg', 'local', 'qa-stg']
 
 - name: generate slave config
   sudo: true
   sudo_user: "{{ slave_user }}"
   template: src=buildbot.tac.j2 dest={{ slave_dir }}/buildbot.tac mode=0600 owner={{ slave_user }} group={{ slave_user }}
-  when: deployment_type == 'prod' or deployment_type == 'stg' or deployment_type == 'local'
+  when: deployment_type in ['prod', 'stg', 'local', 'qa-stg']
+  #when: deployment_type == 'prod' or deployment_type == 'stg' or deployment_type == 'local'
 
 - name: generate slave info
   sudo: true
@@ -17,18 +18,19 @@
   with_items:
     - admin
     - host
-  when: deployment_type == 'prod' or deployment_type == 'stg' or deployment_type == 'local'
+  when: deployment_type in ['prod', 'stg', 'local', 'qa-stg']
 
 - name: create slave ssh directory
-  when: buildslave_public_sshkey_file is defined and (deployment_type == 'prod' or deployment_type == 'stg' or deployment_type == 'local')
+  when: buildslave_public_sshkey_file is defined and (deployment_type in ['prod', 'stg', 'local', 'qa-stg'])
   file: path={{ slave_home }}/.ssh owner={{ slave_user }} group={{ slave_user }} mode=0700 state=directory
+  #when: buildslave_public_sshkey_file is defined and (deployment_type in ['prod', 'stg', 'local', 'qa-stg'])
 
 - name: install slave ssh private key
-  when: buildslave_private_sshkey_file is defined and (deployment_type == 'prod' or deployment_type == 'stg' or deployment_type == 'local')
+  when: buildslave_public_sshkey_file is defined and (deployment_type in ['prod', 'stg', 'local', 'qa-stg'])
   copy: src={{ private }}/files/taskotron/{{ buildslave_private_sshkey_file }} dest={{ slave_home }}/.ssh/id_rsa owner={{ slave_user }} group={{ slave_user }} mode=0600
 
 - name: install slave ssh public key
-  when: buildslave_public_sshkey_file is defined and (deployment_type == 'prod' or deployment_type == 'stg' or deployment_type == 'local')
+  when: buildslave_public_sshkey_file is defined and (deployment_type in ['prod', 'stg', 'local', 'qa-stg'])
   copy: src={{ private }}/files/taskotron/{{ buildslave_public_sshkey_file }} dest={{ slave_home }}/.ssh/id_rsa.pub owner={{ slave_user }} group={{ slave_user }} mode=0644
 
 - name: make sure master is in known_hosts
@@ -37,11 +39,11 @@
 
 - name: generate buildslave service file
   template: src=buildslave.service.j2 dest=/lib/systemd/system/buildslave.service owner=root group=root mode=0744
-  when: deployment_type == 'prod' or deployment_type == 'stg' or deployment_type == 'local'
+  when: deployment_type in ['prod', 'stg', 'local', 'qa-stg']
 
 - name: start and enable buildslave service
   service: name=buildslave enabled=yes state=started
-  when: deployment_type == 'prod' or deployment_type == 'stg' or deployment_type == 'local'
+  when: deployment_type in ['prod', 'stg', 'local', 'qa-stg']
 
 
 - name: create slave
