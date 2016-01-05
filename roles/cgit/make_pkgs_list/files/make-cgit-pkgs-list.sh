@@ -6,9 +6,8 @@
 # Looking for git repos. 
 #
 newfile=`mktemp`
-target=/srv/git/repositories/rpms
+target=/srv/git/repositories
 
-ls $target > $newfile
 for d in `ls $target`; do
   if [ ! -L $target/$d ] && [ -d $target/$d ]; then
     for f in `ls $target/$d/`; do
