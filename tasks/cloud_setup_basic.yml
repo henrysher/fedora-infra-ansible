@@ -17,23 +17,23 @@
   - packages
 
 - name: put step-tickers in place
-  action: copy src="{{ files }}/common/step-tickers" dest=/etc/ntp/step-tickers
+  copy: src="{{ files }}/common/step-tickers" dest=/etc/ntp/step-tickers
   when: ansible_cmdline.ostree is not defined
   tags:
   - ntp
   - config
 
 - name: enable the service
-  action: service name=ntpd state=running enabled=true
+  service: name=ntpd state=running enabled=true
   when: ansible_cmdline.ostree is not defined
 
 #- name: edit hostname to be instance name - prefix hostbase var if it exists
-#  action: shell hostname  {{ hostbase }}`curl -s http://169.254.169.254/latest/meta-data/instance-id`
+#  shell: hostname  {{ hostbase }}`curl -s http://169.254.169.254/latest/meta-data/instance-id`
 #  tags:
 #  - config
 
 - name: add ansible root key 
-  action: authorized_key user=root key="{{ item }}"
+  authorized_key: user=root key="{{ item }}"
   with_file:
   - /srv/web/infra/ansible/roles/base/files/ansible-pub-key
   tags:
@@ -49,12 +49,12 @@
   ignore_errors: true
 
 - name: enable ssh_sysadm_login sebool
-  action: seboolean name=ssh_sysadm_login state=yes persistent=yes
+  seboolean: name=ssh_sysadm_login state=yes persistent=yes
   ignore_errors: true
 
 # note - kinda should be a handler - but handlers need args
 - name: restorecon
-  action: command restorecon -R /root/.ssh
+  command: restorecon -R /root/.ssh
   tags:
   - config
 

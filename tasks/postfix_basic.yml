@@ -1,11 +1,11 @@
 - name: install postfix
-  action: yum pkg=postfix state=present
+  yum: pkg=postfix state=present
   tags:
   - postfix
   - packages
 
 - name: /etc/postfix/main.cf
-  action: copy src={{ item }} dest=/etc/postfix/main.cf
+  copy: src={{ item }} dest=/etc/postfix/main.cf
   with_first_found:
     - "{{ postfix_maincf }}"
     - "{{ roles }}/base/files/postfix/main.cf/main.cf.{{ ansible_fqdn }}"
@@ -20,6 +20,6 @@
   - config
 
 - name: enable postfix to start
-  action: service name=postfix state=running enabled=true
+  service: name=postfix state=running enabled=true
   tags:
   - service
