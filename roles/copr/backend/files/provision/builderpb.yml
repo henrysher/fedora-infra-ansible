@@ -42,10 +42,10 @@
   
   tasks:
   - name: edit hostname to be instance name
-    action: shell hostname  `curl -s http://169.254.169.254/2009-04-04/meta-data/instance-id`
+    shell: hostname  `curl -s http://169.254.169.254/2009-04-04/meta-data/instance-id`
 
   - name: install pkgs
-    action: yum state=present pkg={{ item }}
+    yum: state=present pkg={{ item }}
     with_items:
     - rsync
     - openssh-clients
@@ -53,12 +53,12 @@
     - libsemanage-python
 
   - name: add repos
-    action: copy src={{ files }}/{{ item }} dest=/etc/yum.repos.d/{{ item }}
+    copy: src={{ files }}/{{ item }} dest=/etc/yum.repos.d/{{ item }}
     with_items:
     - epel6.repo
 
   - name: install additional pkgs
-    action: yum state=present pkg={{ item }}
+    yum: state=present pkg={{ item }}
     with_items:
     - mock
     - createrepo
@@ -66,7 +66,7 @@
     - pyliblzma
 
   - name: make sure newest rpm
-    action: yum name={{ item }} state=latest
+    yum: name={{ item }} state=latest
     with_items:
     - rpm
     - glib2
@@ -75,16 +75,16 @@
   #- yum: name=mock  enablerepo=epel-testing state=latest
 
   - name: mockbuilder user   
-    action: user name=mockbuilder groups=mock
+    user: name=mockbuilder groups=mock
 
   - name: mockbuilder .ssh
-    action: file state=directory path=/home/mockbuilder/.ssh mode=0700 owner=mockbuilder group=mockbuilder
+    file: state=directory path=/home/mockbuilder/.ssh mode=0700 owner=mockbuilder group=mockbuilder
 
   - name: mockbuilder authorized_keys
-    action: authorized_key user=mockbuilder key='{{ lookup('file', '/home/copr/provision/files/buildsys.pub') }}'
+    authorized_key: user=mockbuilder key='{{ lookup('file', '/home/copr/provision/files/buildsys.pub') }}'
 
   - name: put updated mock configs into /etc/mock
-    action: template src={{ files }}/mock/{{ item }} dest=/etc/mock
+    template: src={{ files }}/mock/{{ item }} dest=/etc/mock
     with_items:
     - site-defaults.cfg
 

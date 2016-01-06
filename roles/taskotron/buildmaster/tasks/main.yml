@@ -63,35 +63,35 @@
   delegate_to: "{{ buildmaster_db_host }}"
   sudo: true
   sudo_user: postgres
-  action: postgresql_db db={{ buildmaster_db_name }}
+  postgresql_db: db={{ buildmaster_db_name }}
 
 - name: ensure dev db user has access to dev database
   when: deployment_type == 'dev'
   delegate_to: "{{ buildmaster_db_host }}"
   sudo: true
   sudo_user: postgres
-  action: postgresql_user db={{ buildmaster_db_name }} user={{ dev_buildmaster_db_user }} password={{ dev_buildmaster_db_password }} role_attr_flags=NOSUPERUSER
+  postgresql_user: db={{ buildmaster_db_name }} user={{ dev_buildmaster_db_user }} password={{ dev_buildmaster_db_password }} role_attr_flags=NOSUPERUSER
 
 - name: ensure stg db user has access to stg database
   when: deployment_type == 'stg'
   delegate_to: "{{ buildmaster_db_host }}"
   sudo: true
   sudo_user: postgres
-  action: postgresql_user db={{ buildmaster_db_name }} user={{ stg_buildmaster_db_user }} password={{ stg_buildmaster_db_password }} role_attr_flags=NOSUPERUSER
+  postgresql_user: db={{ buildmaster_db_name }} user={{ stg_buildmaster_db_user }} password={{ stg_buildmaster_db_password }} role_attr_flags=NOSUPERUSER
 
 - name: ensure prod db user has access to prod database
   when: deployment_type == 'prod'
   delegate_to: "{{ buildmaster_db_host }}"
   sudo: true
   sudo_user: postgres
-  action: postgresql_user db={{ buildmaster_db_name }} user={{ prod_buildmaster_db_user }} password={{ prod_buildmaster_db_password }} role_attr_flags=NOSUPERUSER
+  postgresql_user: db={{ buildmaster_db_name }} user={{ prod_buildmaster_db_user }} password={{ prod_buildmaster_db_password }} role_attr_flags=NOSUPERUSER
 
 - name: ensure local db user has access to local database
   when: deployment_type == 'local'
   delegate_to: "{{ buildmaster_db_host }}"
   sudo: true
   sudo_user: postgres
-  action: postgresql_user db={{ buildmaster_db_name }} user={{ local_buildmaster_db_user }} password={{ local_buildmaster_db_password }} role_attr_flags=NOSUPERUSER
+  postgresql_user: db={{ buildmaster_db_name }} user={{ local_buildmaster_db_user }} password={{ local_buildmaster_db_password }} role_attr_flags=NOSUPERUSER
 
 - name: put robots.txt at web root of external hostname
   when: robots_path is defined

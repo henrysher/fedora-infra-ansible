@@ -39,13 +39,13 @@
   - packages
 
 - name: mount jenkins persistent storage
-  action: mount name=/var/lib/jenkins src='LABEL=jenkins' fstype=ext4 state=mounted
+  mount: name=/var/lib/jenkins src='LABEL=jenkins' fstype=ext4 state=mounted
   tags:
   - jenkins
   - jenkins/master
 
 - name: Install custom jenkins plugins (from ansible bigfiles)
-  action: copy src="{{ bigfiles }}/jenkins/{{ item }}.hpi" dest=/var/lib/jenkins/plugins/{{ item }}.hpi
+  copy: src="{{ bigfiles }}/jenkins/{{ item }}.hpi" dest=/var/lib/jenkins/plugins/{{ item }}.hpi
   with_items:
   - fedmsg
   notify:
@@ -104,14 +104,14 @@
   - config
 
 - name: install private ssh key
-  action: copy src="{{ private }}/files/jenkins/ssh/jenkins_master" dest=/etc/jenkins/id_rsa mode=400 owner=jenkins group=jenkins
+  copy: src="{{ private }}/files/jenkins/ssh/jenkins_master" dest=/etc/jenkins/id_rsa mode=400 owner=jenkins group=jenkins
   tags:
   - jenkins
   - jenkins/master
   - config
 
 - name: enable jenkins service to start on boot
-  action: service name=jenkins state=running enabled=true
+  service: name=jenkins state=running enabled=true
   tags:
   - jenkins
   - jenkins/master

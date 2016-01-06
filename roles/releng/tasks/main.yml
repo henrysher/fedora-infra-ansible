@@ -1,62 +1,62 @@
 - name: set root passwd
-  action: user name=root password={{ builder_rootpw }} state=present
+  user: name=root password={{ builder_rootpw }} state=present
 
 - name: add mock user as 425
-  action: user name=mock uid=425 state=present home=/var/lib/mock createhome=yes system=yes
+  user: name=mock uid=425 state=present home=/var/lib/mock createhome=yes system=yes
 - name: make mock homedir 2775
-  action: file state=directory path=/var/lib/mock mode=2775 owner=mock group=mock
+  file: state=directory path=/var/lib/mock mode=2775 owner=mock group=mock
 - name: add mock ssh dir
-  action: file state=directory path=/var/lib/mock/.ssh mode=700 owner=mock group=mock
+  file: state=directory path=/var/lib/mock/.ssh mode=700 owner=mock group=mock
 - name: add mock ssh keys
-  action: copy src="{{ files }}/../roles/koji_builder/files//mock_auth_keys" dest=/var/lib/mock/.ssh/authorized_keys mode=644 owner=mock group=mock
+  copy: src="{{ files }}/../roles/koji_builder/files//mock_auth_keys" dest=/var/lib/mock/.ssh/authorized_keys mode=644 owner=mock group=mock
 
 - name: add ftpsync group
-  action: group name=ftpsync gid=263 system=yes state=present
+  group: name=ftpsync gid=263 system=yes state=present
 
 - name: add ftpsync user
   user: name=ftpsync uid=263 group=ftpsync createhome=yes system=yes state=present
 
 - name: add the ftpsync update-fullfilelist script
-  action: copy src=update-fullfilelist dest=/usr/local/bin/update-fullfilelist owner=ftpsync group=ftpsync mode=555
+  copy: src=update-fullfilelist dest=/usr/local/bin/update-fullfilelist owner=ftpsync group=ftpsync mode=555
 
 - name: add masher group
-  action: group name=masher gid=751 system=yes state=present
+  group: name=masher gid=751 system=yes state=present
 # masher user 751
 - name: add masher user as 751 - and group
-  action: user name=masher uid=751 group=masher home=/home/masher groups=mock,ftpsync
+  user: name=masher uid=751 group=masher home=/home/masher groups=mock,ftpsync
 # masher ssh keys and config
 - name: add masher ssh dir
-  action: file state=directory path=/home/masher/.ssh mode=700 owner=masher group=masher
+  file: state=directory path=/home/masher/.ssh mode=700 owner=masher group=masher
 - name: add masher ssh keys
-  action: copy src="mash/masher.{{ item }}" dest="/home/masher/.ssh/{{ item }}" mode=600 owner=masher group=masher
+  copy: src="mash/masher.{{ item }}" dest="/home/masher/.ssh/{{ item }}" mode=600 owner=masher group=masher
   with_items:
     - id_rsa.pub
     - config
 
 - name: add masher ssh priv key
-  action: copy src="{{ private }}/files/mash/masher.id_rsa" dest=/home/masher/.ssh/id_rsa mode=600 owner=masher group=masher
+  copy: src="{{ private }}/files/mash/masher.id_rsa" dest=/home/masher/.ssh/id_rsa mode=600 owner=masher group=masher
 
 - name: add masher koji cert/key
-  action: copy src="{{ private }}/files/mash/masher.pem" dest=/home/masher/.fedora.cert mode=600 owner=masher group=masher
+  copy: src="{{ private }}/files/mash/masher.pem" dest=/home/masher/.fedora.cert mode=600 owner=masher group=masher
 - name: add masher koji ca cert
-  action: copy src="{{ private }}/files/koji/buildercerts/fedora-ca.cert" dest=/home/masher/.fedora-server-ca.cert
+  copy: src="{{ private }}/files/koji/buildercerts/fedora-ca.cert" dest=/home/masher/.fedora-server-ca.cert
 - name: add masher koji ca upload cert
-  action: copy src="{{ private }}/files/koji/buildercerts/fedora-ca.cert" dest=/home/masher/.fedora-upload-ca.cert
+  copy: src="{{ private }}/files/koji/buildercerts/fedora-ca.cert" dest=/home/masher/.fedora-upload-ca.cert
 
 - name: add koji ca cert to central system ca-trust
-  action: copy src="{{ private }}/files/koji/buildercerts/fedora-ca.cert" dest=/etc/pki/ca-trust/source/anchors/fedora-server-ca.cert
+  copy: src="{{ private }}/files/koji/buildercerts/fedora-ca.cert" dest=/etc/pki/ca-trust/source/anchors/fedora-server-ca.cert
 - name: update ca-trust
   command: /usr/bin/update-ca-trust
 
 # rawhide group
 - name: rawhide group
-  action: group name=rawhide gid=265
+  group: name=rawhide gid=265
 # rawhide user 265
 - name: add rawhide user
-  action: user name=rawhide uid=265 group=rawhide home=/tmp comment="rawhide compose account"
+  user: name=rawhide uid=265 group=rawhide home=/tmp comment="rawhide compose account"
  
 - name: make a bunch of dirs
-  action: file state=directory path={{ item }}
+  file: state=directory path={{ item }}
   with_items:
     - /pub
     - /epel
@@ -127,55 +127,55 @@
 
 # idmapd and make sure it's set to run
 - name: idmapd.conf
-  action: copy src="{{ files }}/../roles/koji_builder/files//idmapd.conf" dest=/etc/idmapd.conf
+  copy: src="{{ files }}/../roles/koji_builder/files//idmapd.conf" dest=/etc/idmapd.conf
   tags:
   - configs
 
 - name: make a mnt/koji link
-  action: file state=link src=/mnt/fedora_koji/koji dest=/mnt/koji
+  file: state=link src=/mnt/fedora_koji/koji dest=/mnt/koji
   when: inventory_hostname.startswith(('compose-x86-01'))
 
 - name: symlink /srv/pungi
-  action: file src=/mnt/fedora_koji/compose dest=/srv/pungi  state=link
+  file: src=/mnt/fedora_koji/compose dest=/srv/pungi  state=link
   when: not inventory_hostname.startswith('compose-aarch64-01')
 
 - name: add pkgs for nightly compose
-  action: yum  state=present pkg={{ item }}
+  yum:  state=present pkg={{ item }}
   with_items:
     - packagedb-cli
   when: inventory_hostname.startswith('branched-composer') or inventory_hostname.startswith('rawhide-composer') or inventory_hostname.startswith('composer.stg')
 
 # put cron job in for branched compose
 - name: branched compose cron
-  action: copy src="branched" dest=/etc/cron.d/branched
+  copy: src="branched" dest=/etc/cron.d/branched
   when: inventory_hostname.startswith('branched-composer')
 
 # put cron job in for rawhide compose
 - name: rawhide compose cron
-  action: copy src="rawhide" dest=/etc/cron.d/rawhide
+  copy: src="rawhide" dest=/etc/cron.d/rawhide
   when: inventory_hostname.startswith('rawhide-composer')
 
 # put cron job in for aarch64 branched compose
 - name: aarch64 branched compose cron
-  action: copy src="aarch64.branched" dest=/etc/cron.d/branched
+  copy: src="aarch64.branched" dest=/etc/cron.d/branched
   when: inventory_hostname.startswith('compose-aarch64-01')
 
 # put cron job in for aarch64 rawhide compose
 - name: aarch64 rawhide compose cron
-  action: copy src="aarch64.rawhide" dest=/etc/cron.d/rawhide
+  copy: src="aarch64.rawhide" dest=/etc/cron.d/rawhide
   when: inventory_hostname.startswith('compose-aarch64-01')
 
 # put cron job in for two-week nightly compose
 - name: twoweek compose cron
-  action: copy src="twoweek-updates" dest=/etc/cron.d/twoweek-updates
+  copy: src="twoweek-updates" dest=/etc/cron.d/twoweek-updates
   when: inventory_hostname.startswith('compose-x86-01')
 
 - name: sudoers defaults
-  action: copy src="{{ private }}/files/sudo/releng-sudoers" dest=/etc/sudoers mode=0440
+  copy: src="{{ private }}/files/sudo/releng-sudoers" dest=/etc/sudoers mode=0440
   tags:
   - configs
 - name: sudoers for ftpsync
-  action: copy src="{{ private }}/files/sudo/ftpsync-sudo" dest=/etc/sudoers.d/ftpsync mode=0440
+  copy: src="{{ private }}/files/sudo/ftpsync-sudo" dest=/etc/sudoers.d/ftpsync mode=0440
   tags:
   - configs
 

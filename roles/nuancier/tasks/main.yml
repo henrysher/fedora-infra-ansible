@@ -30,7 +30,7 @@
   - restart apache
 
 - name: create pictures folder where we upload the pictures
-  action: file state=directory
+  file: state=directory
                path=/var/cache/nuancier/pictures
                owner=apache group=apache mode=0700
   tags:
@@ -38,7 +38,7 @@
   - nuancier
 
 - name: create the cache folder where nuancier creates the thumbnails
-  action: file state=directory
+  file: state=directory
                path=/var/cache/nuancier/cache
                owner=apache group=apache mode=0700
   tags:
@@ -69,7 +69,7 @@
   - restart apache
 
 - name: set sebooleans so nuancier can talk to the db
-  action: seboolean name=httpd_can_network_connect_db
+  seboolean: name=httpd_can_network_connect_db
                     state=true
                     persistent=true
   tags:
@@ -87,7 +87,7 @@
   - selinux
 
 - name: set sebooleans so apache can use glusterfs
-  action: seboolean name=httpd_use_fusefs
+  seboolean: name=httpd_use_fusefs
                     state=true
                     persistent=true
   tags:
@@ -95,7 +95,7 @@
   - selinux
 
 - name: set sebooleans so apache can send emails
-  action: seboolean name=httpd_can_sendmail
+  seboolean: name=httpd_can_sendmail
                     state=true
                     persistent=true
   tags:

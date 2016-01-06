@@ -53,14 +53,14 @@
   - packages
 
 - name: create jenkins user
-  action: user name=jenkins state=present createhome=yes system=no groups=mock
+  user: name=jenkins state=present createhome=yes system=no groups=mock
   tags:
   - jenkins
   - jenkins/slave
   - config
 
 - name: add jenkins ssh public key to authorized keys
-  action: authorized_key user=jenkins key="{{ item }}"
+  authorized_key: user=jenkins key="{{ item }}"
   with_file:
   - "{{ private }}/files/jenkins/ssh/jenkins_master.pub"
   tags:
@@ -69,7 +69,7 @@
   - config
 
 - name: create workspace directory
-  action: file state=directory path=/srv/jenkins owner=jenkins group=jenkins
+  file: state=directory path=/srv/jenkins owner=jenkins group=jenkins
   tags:
   - jenkins
   - jenkins/slave

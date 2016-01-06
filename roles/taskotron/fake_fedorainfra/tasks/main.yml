@@ -1,12 +1,12 @@
 - name: ensure packages required for fakefedorainfra are installed
-  action: yum name={{ item }} state=latest
+  yum: name={{ item }} state=latest
   when: deployment_type == 'prod' or deployment_type == 'local'
   with_items:
     - mod_wsgi
     - fake_fedorainfra
 
 - name: ensure packages required for fakefedorainfra are installed (infra-testing)
-  action: yum name={{ item }} state=latest enablerepo=infrastructure-testing
+  yum: name={{ item }} state=latest enablerepo=infrastructure-testing
   when: deployment_type == 'dev' or deployment_type == 'stg'
   with_items:
     - mod_wsgi
@@ -16,28 +16,28 @@
   delegate_to: "{{ buildmaster_db_host }}"
   sudo: true
   sudo_user: postgres
-  action: postgresql_db db={{ fakefedorainfra_db_name }}
+  postgresql_db: db={{ fakefedorainfra_db_name }}
 
 - name: ensure stg fakefedorainfra user has access to stg database
   when: deployment_type == 'stg'
   delegate_to: "{{ buildmaster_db_host }}"
   sudo: true
   sudo_user: postgres
-  action: postgresql_user db={{ fakefedorainfra_db_name }} user={{ stg_fakefedorainfra_db_user }} password={{ stg_fakefedorainfra_db_password }} role_attr_flags=NOSUPERUSER
+  postgresql_user: db={{ fakefedorainfra_db_name }} user={{ stg_fakefedorainfra_db_user }} password={{ stg_fakefedorainfra_db_password }} role_attr_flags=NOSUPERUSER
 
 - name: ensure dev fakefedorainfra user has access to dev database
   when: deployment_type == 'dev'
   delegate_to: "{{ buildmaster_db_host }}"
   sudo: true
   sudo_user: postgres
-  action: postgresql_user db={{ fakefedorainfra_db_name }} user={{ dev_fakefedorainfra_db_user }} password={{ dev_fakefedorainfra_db_password }} role_attr_flags=NOSUPERUSER
+  postgresql_user: db={{ fakefedorainfra_db_name }} user={{ dev_fakefedorainfra_db_user }} password={{ dev_fakefedorainfra_db_password }} role_attr_flags=NOSUPERUSER
 
 - name: ensure local fakefedorainfra user has access to local database
   when: deployment_type == 'local'
   delegate_to: "{{ buildmaster_db_host }}"
   sudo: true
   sudo_user: postgres
-  action: postgresql_user db={{ fakefedorainfra_db_name }} user={{ local_fakefedorainfra_db_user }} password={{ local_fakefedorainfra_db_password }} role_attr_flags=NOSUPERUSER
+  postgresql_user: db={{ fakefedorainfra_db_name }} user={{ local_fakefedorainfra_db_user }} password={{ local_fakefedorainfra_db_password }} role_attr_flags=NOSUPERUSER
 
 - name: generate fakefedorainfra config
   template: src=settings.py.j2 dest=/etc/fake_fedorainfra/settings.py owner=root group=root mode=0644
