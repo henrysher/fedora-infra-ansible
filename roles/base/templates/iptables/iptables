@@ -40,6 +40,40 @@
 {% endfor %}
 {% endif %}
 
+{% if ansible_domain == 'qa.fedoraproject.org' and inventory_hostname not in groups['qa-isolated'] %}
+#
+# In the qa.fedoraproject.org network, we want machines not in the qa-isolated group 
+# to block all access from that group. This is to protect them from any possible attack 
+# vectors from qa-isolated machines.
+#
+# Here we hard code beaker client nodes. They are managed by beaker and are not in ansible.
+-A INPUT -s 10.5.131.31 -j REJECT --reject-with icmp-host-prohibited
+-A INPUT -s 10.5.131.32 -j REJECT --reject-with icmp-host-prohibited
+-A INPUT -s 10.5.131.33 -j REJECT --reject-with icmp-host-prohibited
+-A INPUT -s 10.5.131.34 -j REJECT --reject-with icmp-host-prohibited
+-A INPUT -s 10.5.131.35 -j REJECT --reject-with icmp-host-prohibited
+-A INPUT -s 10.5.131.36 -j REJECT --reject-with icmp-host-prohibited
+-A INPUT -s 10.5.131.37 -j REJECT --reject-with icmp-host-prohibited
+-A INPUT -s 10.5.131.38 -j REJECT --reject-with icmp-host-prohibited
+-A INPUT -s 10.5.131.39 -j REJECT --reject-with icmp-host-prohibited
+-A INPUT -s 10.5.131.40 -j REJECT --reject-with icmp-host-prohibited
+-A INPUT -s 10.5.131.41 -j REJECT --reject-with icmp-host-prohibited
+-A INPUT -s 10.5.131.42 -j REJECT --reject-with icmp-host-prohibited
+-A INPUT -s 10.5.131.43 -j REJECT --reject-with icmp-host-prohibited
+-A INPUT -s 10.5.131.44 -j REJECT --reject-with icmp-host-prohibited
+-A INPUT -s 10.5.131.45 -j REJECT --reject-with icmp-host-prohibited
+-A INPUT -s 10.5.131.46 -j REJECT --reject-with icmp-host-prohibited
+-A INPUT -s 10.5.131.47 -j REJECT --reject-with icmp-host-prohibited
+-A INPUT -s 10.5.131.48 -j REJECT --reject-with icmp-host-prohibited
+-A INPUT -s 10.5.131.49 -j REJECT --reject-with icmp-host-prohibited
+{% for host in groups['qa-isolated']|sort %}
+{% if 'eth0_ip' in hostvars[host] %}# {{ host }}
+-A INPUT -s {{ hostvars[host]['eth0_ip'] }} -j REJECT --reject-with icmp-host-prohibited
+{% else %}# {{ host }} has no 'eth0_ip' listed
+{% endif %}
+{% endfor %}
+{% endif %}
+
 # if the host declares a fedmsg-enabled wsgi app, open ports for it
 {% if wsgi_fedmsg_service is defined %}
 {% for i in range(wsgi_procs * wsgi_threads) %}
