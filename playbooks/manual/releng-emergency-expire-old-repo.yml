@@ -1,0 +1,34 @@
+# Expire old repo metadata from mirrormanager
+#
+# This playbook will mark all older versions of a distro version to be outdated
+# so that metalink will not serve <alternates> for old versions.
+# CAUTION: Until mirrors pick up the new content, this will mean that the master
+# mirror is the only one deemed respectable, and as such should be used very
+# sparingly!
+#
+# requires --extra-vars="product=Fedora version=23"
+#
+# Possible product: Fedora/EPEL/RHEL
+
+- name: Expire old repo files
+  hosts: mm-backend01.phx2.fedoraproject.org
+  user: root
+  gather_facts: False
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  tasks:
+  - name: Expire old files
+    command: /usr/bin/mm2_emergency-expire-repo {{product}} {{version}}
+
+  - name: Recreate pickle
+    command: /usr/bin/mm2_update-mirrorlist-server
+
+  - name: Sync the pickle
+    command: /usr/local/bin/sync_pkl_to_mirrorlists.sh
+
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"
