@@ -16,6 +16,17 @@
     - moreutils
   when: ansible_distribution_major_version|int > 21 and ansible_cmdline.ostree is not defined
 
+- name: ensure packages required for CI buildslave are installed (dnf)
+  dnf: name={{ item }} state=present enablerepo={{ extra_enablerepos }}
+  with_items:
+    - testcloud
+    - mash
+    - mock
+    - koji
+    - bodhi
+    - python-doit
+  when: deployment_type in ['qa-stg'] and ansible_distribution_major_version|int > 21 and ansible_cmdline.ostree is not defined
+
 - name: add the buildslave user
   user: name=buildslave
   when: deployment_type in ['prod', 'stg', 'local', 'qa-stg']

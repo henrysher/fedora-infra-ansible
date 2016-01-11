@@ -159,7 +159,7 @@ c['schedulers'].append(ForceScheduler(
 from buildbot.process.factory import BuildFactory
 from buildbot.steps.source.git import Git
 from buildbot.steps.shell import ShellCommand
-from buildbot.process.properties import Interpolate
+from buildbot.process.properties import Property, Interpolate
 
 
 {#
@@ -192,7 +192,8 @@ def create_test_factory(repo_name, func=True):
                     method='clobber'))
     factory.addStep(ShellCommand(command=['virtualenv', '--system-site-packages', 'env']))
     factory.addStep(ShellCommand(command=['bash', '-c', 'source env/bin/activate; pip install -r requirements.txt']))
-    factory.addStep(ShellCommand(command=['bash', '-c', 'source env/bin/activate; TEST="true" py.test %s testing/' % '-F' if func else ''], name=repo_name))
+    factory.addStep(ShellCommand(command=['doit', 'test'])
+    factory.addStep(ShellCommand(command=['doit', Interpolate('basedir=/srv/static/%(prop:Project)s']))
 
     return factory
 
