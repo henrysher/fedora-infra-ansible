@@ -4,7 +4,7 @@
 # one of the multiple packages nodes.  The cache that this rebuilds is shared
 # between nodes with gluster.
 
-- name: nuke xapian search index
+- name: enter maintenance mode
   hosts: packages;packages-stg
   user: root
   gather_facts: False
@@ -14,53 +14,22 @@
    - "{{ private }}/vars.yml"
    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
 
-  vars:
-    cache_root: /var/cache/fedoracommunity
-
   tasks:
-  - name: pause for 30s before nuking xapian search index
-    pause: seconds=30 prompt="Destroying xapian index.  Abort?"
-    when: install_packages_indexer
-
   - name: tell nagios to shush for these hosts
     nagios: action=downtime minutes=300 service=host host={{ inventory_hostname_short }}{{ env_suffix }}
     delegate_to: noc01.phx2.fedoraproject.org
     ignore_errors: true
 
-  - name: bring down the services that use it
+  - name: stop the cache warmer
     service: name={{item}} state=stopped
     with_items:
-    - httpd
     - fedmsg-hub
 
-  - name: Nuke the old xapian search index
-    file: path={{cache_root}}/packages/ state=absent
-    when: install_packages_indexer
-
-  - name: Recreate some structure for the search index
-    file: >
-        path={{cache_root}}/{{item}}
-        state=directory
-        owner=apache
-        group=apache
-        mode=0755
-    with_items:
-    - packages
-    - rpm_cache
-    - git.fedoraproject.org
-    - packages/icons
-    - packages/xapian
-    - packages/xapian/search
-    - packages/tmp
-    - packages/tmp/icons
-    - packages/tmp/search
-    - packages/tmp/var
-    when: install_packages_indexer
-
-- name: Rebuild that search idex that we just destroyed
-  hosts: packages;packages-stg
+- name: Rebuild that search index on the side and install it (just staging)
+  hosts: packages-stg
   user: root
-  sudo: apache
+  become: True
+  become_user: apache
   gather_facts: False
 
   vars_files: 
@@ -69,21 +38,48 @@
    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
 
   tasks:
-  - name: Pull in the list of packages from pkgdb.  Go get a snack. (40 minutes)
-    command: /usr/bin/fcomm-index-packages -p /var/cache/fedoracommunity/packages/tmp -y /etc/fedoracommunity/yum-repo.conf --index-db-dest /var/cache/fedoracommunity/packages/xapian --icons-dest /var/cache/fedoracommunity/packages/icons --tagger-url https://apps.fedoraproject.org/tagger/api/v1/tag/export/ --pkgdb-url https://admin.fedoraproject.org/pkgdb
-    async: 10000
-    poll: 60
-    when: install_packages_indexer
-  - name: Pull in all the latest builds from koji.  Go get another snack.
-    command: /usr/bin/fcomm-index-latest-builds -p /var/cache/fedoracommunity/packages/xapian --koji-url http://koji.fedoraproject.org/kojihub --action init
-    async: 20000
+  - name: Pull in the list of packages from pkgdb.  Go get a snack. (2 hours)
+    command: /usr/bin/fcomm-index-packages --index-db-dest /var/cache/fedoracommunity/packages/xapian --icons-dest /var/cache/fedoracommunity/packages/icons --tagger-url https://apps.stg.fedoraproject.org/tagger --pkgdb-url https://admin.stg.fedoraproject.org/pkgdb --mdapi-url https://apps.stg.fedoraproject.org/mdapi --icons-url http://download01.phx2.fedoraproject.org/pub/alt/screenshots/
+    async: 12000
     poll: 60
     when: install_packages_indexer
 
-  - name: Restart up the dependant services
+- name: Rebuild that search index on the side and install it. (just prod)
+  hosts: packages
+  user: root
+  become: True
+  become_user: apache
+  gather_facts: False
+
+  vars_files: 
+   - /srv/web/infra/ansible/vars/global.yml
+   - "{{ private }}/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  tasks:
+  - name: Pull in the list of packages from pkgdb.  Go get a snack. (2 hours)
+    command: /usr/bin/fcomm-index-packages --index-db-dest /var/cache/fedoracommunity/packages/xapian --icons-dest /var/cache/fedoracommunity/packages/icons --tagger-url https://apps.fedoraproject.org/tagger --pkgdb-url https://admin.fedoraproject.org/pkgdb --mdapi-url https://apps.fedoraproject.org/mdapi --icons-url http://download01.phx2.fedoraproject.org/pub/alt/screenshots/
+    async: 12000
+    poll: 60
+    when: install_packages_indexer
+
+- name: leave maintenance mode
+  hosts: packages;packages-stg
+  user: root
+  gather_facts: False
+
+  vars_files: 
+   - /srv/web/infra/ansible/vars/global.yml
+   - "{{ private }}/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  tasks:
+  - name: Make sure the perms are straight 
+    file: path=/var/cache/fedoracommunity/packages/ state=directory owner=apache group=fedmsg mode="g+rw" recursive=yes
+
+  - name: Restart the cache worker
     service: name={{item}} state=started
     with_items:
-    - httpd
     - fedmsg-hub
 
   - name: tell nagios to start bothering us again
