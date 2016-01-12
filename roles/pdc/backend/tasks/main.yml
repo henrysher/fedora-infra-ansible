@@ -1,0 +1,17 @@
+---
+# Configuration for the pdc-updater backend consumer
+
+- name: install needed packages
+  yum: pkg={{ item }} state=present
+  with_items:
+  - pdc-updater
+  tags: pdc
+
+- name: copy database configuration
+  template: >
+    src={{ item }} dest=/etc/fedmsg.d/{{ item }}
+    owner=fedmsg group=fedmsg mode=0600
+  with_items:
+  - pdcupdater.py
+  notify: restart fedmsg-hub
+  tags: pdc

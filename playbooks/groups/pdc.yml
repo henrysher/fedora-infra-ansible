@@ -1,0 +1,65 @@
+# PDC servers (both frontend and backend)
+
+- include: "/srv/web/infra/ansible/playbooks/include/virt-create.yml myhosts=pdc-web:pdc-web-stg:pdc-backend:pdc-backend-stg"
+
+- name: dole out the generic configuration
+  user: root
+  gather_facts: True
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"
+
+  roles:
+  - base
+  - rkhunter
+  - nagios_client
+  - collectd/base
+  - hosts
+  - fas_client
+  - sudo
+  - fedmsg/base
+
+  tasks:
+  - include: "{{ tasks }}/yumrepos.yml"
+  - include: "{{ tasks }}/2fa_client.yml"
+  - include: "{{ tasks }}/motd.yml"
+
+- name: stuff for the web nodes
+  hosts: notifs-web;notifs-web-stg
+  user: root
+  gather_facts: True
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"
+
+  roles:
+  - role: openvpn/client
+    when: env != "staging"
+  - apache
+  - pdc/frontend
+
+  tasks:
+  - include: "{{ tasks }}/mod_wsgi.yml"
+
+- name: stuff just for the backend nodes
+  hosts: pdc-backend;pdc-backend-stg
+  user: root
+  gather_facts: True
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"
+
+  roles:
+  - fedmsg/hub
+  - pdc/backend
+  - role: collectd/fedmsg-service
+    process: fedmsg-hub

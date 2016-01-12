@@ -25,27 +25,29 @@
   - patternfly1
   - pdc-server
   - xmlsec1
-  tags:
-  - pdc
+  tags: pdc
 
 - name: Copy over settings_local.py
   template: src=settings_local.py dest=/usr/lib/python2.7/site-packages/pdc/settings_local.py
   notify: reload httpd
-  tags:
-  - pdc
+  tags: pdc
 
 - name: Copy over httpd config
   template: src=pdc.conf dest=/etc/httpd/conf.d/pdc.conf
   notify: reload httpd
+  tags: pdc
+
+- name: ensure selinux lets httpd talk to postgres
+  seboolean: name=httpd_can_network_connect_db persistent=yes state=yes
   tags:
   - pdc
+  - selinux
 
 - name: create /etc/httpd/saml2
   file: state=directory
-               path=/etc/httpd/saml2
-               owner=apache group=apache mode=0775
-  tags:
-  - pdc
+        path=/etc/httpd/saml2
+        owner=apache group=apache mode=0775
+  tags: pdc
 
 - name: Install saml2 xml files
   copy: >
@@ -54,8 +56,7 @@
   with_items:
     - metadata.xml
     - idp-metadata.xml
-  tags:
-  - pdc
+  tags: pdc
 
 - name: Install saml2 certs
   copy: >
@@ -64,11 +65,4 @@
   with_items:
     - pdc.fedorainfracloud.org.pem
     - pdc.fedorainfracloud.org.key
-  tags:
-  - pdc
-
-- name: ensure selinux lets httpd talk to postgres
-  seboolean: name=httpd_can_network_connect_db persistent=yes state=yes
-  tags:
-  - pdc
-  - selinux
+  tags: pdc
