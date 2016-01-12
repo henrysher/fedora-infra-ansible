@@ -34,6 +34,12 @@ REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'pdc.apps.common.pagination.AutoDetectedPageNumberPagination',
 }
 
+# Because we don't want to kerberos, we want to ipsilon
+LOGIN_URL = '/auth/saml2login'
+AUTHENTICATION_BACKENDS = (
+    'pdc.apps.auth.backends.AuthMellonUserBackend',
+    'django.contrib.auth.backends.ModelBackend',
+)
 
 import os.path
 
