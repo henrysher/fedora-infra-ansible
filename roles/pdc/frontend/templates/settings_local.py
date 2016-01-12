@@ -37,9 +37,26 @@ REST_FRAMEWORK = {
 # Because we don't want to kerberos, we want to ipsilon
 LOGIN_URL = '/auth/saml2login'
 AUTHENTICATION_BACKENDS = (
-    'pdc.apps.auth.backends.AuthMellonUserBackend',
+    'pdc.apps.auth.backends.AuthMellonUserBackend',     # XXX - <- no kerb
     'django.contrib.auth.backends.ModelBackend',
 )
+MIDDLEWARE_CLASSES = (
+    'corsheaders.middleware.CorsMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.common.CommonMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
+    'pdc.apps.auth.middleware.RemoteUserMiddleware',    # XXX - <- no kerb
+    'django.contrib.messages.middleware.MessageMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'django.middleware.security.SecurityMiddleware',
+    'kobo.django.menu.middleware.MenuMiddleware',
+    'pdc.apps.usage.middleware.UsageMiddleware',
+    'pdc.apps.changeset.middleware.ChangesetMiddleware',
+    'pdc.apps.utils.middleware.MessagingMiddleware',
+)
+
 
 import os.path
 
@@ -104,4 +121,3 @@ EMAIL_SUBJECT_PREFIX = '[PDC]'
 #    'handlers': ['mail_admins'],
 #    'level': 'ERROR',
 #}})
-
