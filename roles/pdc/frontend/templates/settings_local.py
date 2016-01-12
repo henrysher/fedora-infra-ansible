@@ -53,11 +53,15 @@ ALLOWED_HOSTS = [
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': '{{ pdc_db_name }}',
-        'USER': '{{ pdc_db_user }}',
-        'PASSWORD': '{{ pdc_db_pass }}',
-        'HOST': '{{ pdc_db_host }}',
-        # 'PORT': '',
+        'NAME': 'pdc',
+        'USER': 'pdc',
+        {% if env == 'staging' %}
+        'PASSWORD': '{{ pdc_db_pass_stg }}',
+        'HOST': 'db01.stg',
+        {% else %}
+        'PASSWORD': '{{ pdc_db_pass_prod }}',
+        'HOST': 'db01',
+        {% endif %}
     }
 }
 
