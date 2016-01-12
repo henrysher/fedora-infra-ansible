@@ -43,7 +43,11 @@ DEBUG = False
 
 # NOTE: this is needed when DEGUB is False.
 #       https://docs.djangoproject.com/en/1.8/ref/settings/#allowed-hosts
-ALLOWED_HOSTS = ['{{ inventory_hostname }}']
+ALLOWED_HOSTS = [
+    '{{ inventory_hostname }}',
+    '{{ inventory_hostname_short }}',
+    'localhost',
+]
 
 # Database settings
 DATABASES = {
