@@ -43,7 +43,7 @@ DEBUG = False
 
 # NOTE: this is needed when DEGUB is False.
 #       https://docs.djangoproject.com/en/1.8/ref/settings/#allowed-hosts
-ALLOWED_HOSTS = ['{{ hostname }}']
+ALLOWED_HOSTS = ['{{ inventory_hostname }}']
 
 # Database settings
 DATABASES = {
@@ -62,7 +62,7 @@ REST_API_VERSION = 'v1'
 
 BROWSABLE_DOCUMENT_MACROS = {
     # need to be rewrite with the real host name when deploy.
-    'HOST_NAME': 'http://{{ hostname }}:80',
+    'HOST_NAME': 'http://{{ inventory_hostname }}:80',
     # make consistent with rest api root.
     'API_PATH': '%s%s' % (REST_API_URL, REST_API_VERSION),
 }

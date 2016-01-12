@@ -49,20 +49,18 @@
         owner=apache group=apache mode=0775
   tags: pdc
 
-- name: Install saml2 xml files
-  copy: >
-    src="{{ item }}" dest="/etc/httpd/saml2/{{ item }}"
-    owner="apache" group="apache" mode=0600
-  with_items:
-    - metadata.xml
-    - idp-metadata.xml
+- name: Install saml2 idp file (which describes our ipsilon instances).
+  copy: src="{{ private }}/files/saml2/idp-{{env}}"
+        dest="/etc/httpd/saml2/idp-metadata.xml"
+        owner="apache" group="apache" mode=0600
   tags: pdc
 
-- name: Install saml2 certs
-  copy: >
-    src="{{ private}}/files/httpd/{{ item }}" dest="/etc/httpd/saml2/{{ item }}"
-    owner="apache" group="apache" mode=0600
+- name: Install domain-specific saml2 certs and metadata
+  copy: src="{{ private }}/files/saml2/{{ pdc_domain }}/{{ item }}"
+        dest="/etc/httpd/saml2/{{ item }}"
+        owner="apache" group="apache" mode=0600
   with_items:
-    - pdc.fedorainfracloud.org.pem
-    - pdc.fedorainfracloud.org.key
+    - certificate.pem
+    - certificate.key
+    - metadata.xml
   tags: pdc
