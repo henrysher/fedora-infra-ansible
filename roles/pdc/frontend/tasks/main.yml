@@ -38,8 +38,13 @@
   notify: reload httpd
   tags: pdc
 
-- name: ensure selinux lets httpd talk to postgres
-  seboolean: name=httpd_can_network_connect_db persistent=yes state=yes
+- name: ensure selinux lets httpd do the stuff we need.
+  seboolean: name={{ item }} persistent=yes state=yes
+  with_items:
+  - httpd_can_network_connect_db
+  - httpd_can_sendmail
+  # XXX - Someday for fedmsg
+  #- httpd_can_network_connect
   tags:
   - pdc
   - selinux
