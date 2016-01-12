@@ -1,0 +1,30 @@
+---
+# Define resources for this group of hosts here.
+lvm_size: 20000
+mem_size: 1024
+num_cpus: 1
+
+# for systems that do not match the above - specify the same parameter in
+# the host_vars/$hostname file
+
+wsgi_fedmsg_service: pdc
+wsgi_procs: 2
+wsgi_threads: 2
+
+tcp_ports: [ 80 ]
+
+fas_client_groups: sysadmin-noc,sysadmin-releng
+
+# These are consumed by a task in roles/fedmsg/base/main.yml
+fedmsg_certs:
+- service: shell
+  owner: root
+  group: sysadmin
+  can_send:
+  - logger.log
+- service: pdc
+  owner: root
+  group: apache
+  # We don't have notifications from PDC yet, but when we do, add them here.
+  #can_send:
+  #- pdc.somethingorother
