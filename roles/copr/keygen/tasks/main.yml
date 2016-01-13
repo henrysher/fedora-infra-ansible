@@ -1,4 +1,11 @@
 ---
+- name: prepare mount point
+  file: state=directory path=/var/lib/copr-keygen
+
+- name: mount up disk of copr repo
+  mount: name=/var/lib/copr-keygen src='LABEL=copr-keygen' fstype=ext4 state=mounted
+  when: not devel
+
 - name: install keygen specific packages
   yum: name="{{ item }}" state=present
   with_items:
