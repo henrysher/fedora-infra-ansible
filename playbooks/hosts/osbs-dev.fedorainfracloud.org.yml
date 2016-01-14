@@ -3,10 +3,10 @@
   gather_facts: False
 
   vars_files:
-   - /srv/web/infra/ansible/vars/global.yml
-   - /srv/private/ansible/vars.yml
-   - /srv/web/infra/ansible/vars/fedora-cloud.yml
-   - /srv/private/ansible/files/openstack/passwords.yml
+    - /srv/web/infra/ansible/vars/global.yml
+    - /srv/private/ansible/vars.yml
+    - /srv/web/infra/ansible/vars/fedora-cloud.yml
+    - /srv/private/ansible/files/openstack/passwords.yml
 
   tasks:
   - include: "{{ tasks }}/persistent_cloud.yml"
@@ -14,12 +14,72 @@
 - name: setup all the things
   hosts: osbs-dev.fedorainfracloud.org
   vars_files:
-   - /srv/web/infra/ansible/vars/global.yml
-   - /srv/private/ansible/vars.yml
-   - /srv/private/ansible/files/openstack/passwords.yml
-   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+    - /srv/web/infra/ansible/vars/global.yml
+    - /srv/private/ansible/vars.yml
+    - /srv/private/ansible/files/openstack/passwords.yml
+    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
 
   pre_tasks:
-  - include: "{{ tasks }}/cloud_setup_basic.yml"
-  - name: set hostname (required by some services, at least postfix need it)
-    shell: "hostname {{inventory_hostname}}"
+    - include: "{{ tasks }}/cloud_setup_basic.yml"
+    - name: set hostname (required by some services, at least postfix need it)
+      shell: "hostname {{inventory_hostname}}"
+
+- name: setup osbs
+  hosts: osbs-dev.fedorainfracloud.org
+  vars_files:
+    - /srv/web/infra/ansible/vars/global.yml
+    - /srv/private/ansible/vars.yml
+    - /srv/private/ansible/files/openstack/passwords.yml
+    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  roles:
+    - osbs-atomic-reactor
+    - osbs-common
+    - osbs-install-openshift
+    - osbs-master
+    - {
+      role: osbs-client,
+        default.openshift_url: 'https://osbs-dev.fedorainfracloud.org:8443/',
+        default.registry_url: 'https://osbs-dev.fedorainfracloud.org:5000/v2',
+        default.source_registry_uri: 'https://osbs-dev.fedorainfracloud.org:5000/v2',
+        build_host: 'osbs-dev.fedorainfracloud.org'
+      }
+    - {
+      role: docker-distribution,
+        cert.private_path: "files/osbs/osbs-dev.certs",
+        cert.dir: "/etc/pki/docker/osbs-dev.fedorainfracloud.org:5000/",
+        cert.src_name: "osbs-dev.fedorainfracloud.org.crt",
+        cert.src_key_name: "osbs-dev.fedorainfracloud.org.key",
+        tls.enabled: True,
+        tls.certificate: "/etc/pki/docker/osbs-dev.fedorainfracloud.org:5000/ca.crt",
+        tls.key: "/etc/pki/docker/osbs-dev.fedorainfracloud.org:5000/ca.key",
+      }
+
+- name: post-install osbs tasks
+  hosts: osbs-dev.fedorainfracloud.org
+  vars_files:
+    - /srv/web/infra/ansible/vars/global.yml
+    - /srv/private/ansible/vars.yml
+    - /srv/private/ansible/files/openstack/passwords.yml
+    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  tasks:
+    - name: install docker
+      action: "{{ ansible_pkg_mgr }} name=docker-distribution state=installed"
+
+    - name: ensure docker daemon cert dir exists
+      file:
+        path: "/etc/docker/certs.d/"
+        state: directory
+
+    - name: create symlink for docker daemon cert
+      file:
+        src: "/etc/docker/certs.d/osbs.localdomain:5000"
+        dest: "/etc/pki/docker/osbs.localdomain:5000/"
+        state: "link"
+
+    - name: start and enable docker
+      service: name=docker state=started enabled=yes
+
+    - name: create fedora image stream for OpenShift
+      shell: 'cat <<"EOF" | oc create -f - { "apiVersion": "v1", "kind": "ImageStream", "metadata": { "name": "fedora" }, "spec": { "dockerImageRepository": "osbs-dev.fedorainfracloud.org:5000/fedora" } } EOF'

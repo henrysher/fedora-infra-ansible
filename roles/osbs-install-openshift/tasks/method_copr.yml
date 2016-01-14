@@ -1,0 +1,11 @@
+---
+- name: setup repository
+  template:
+    src: maxamillion-fedora-openshift.repo.j2
+    dest: /etc/yum.repos.d/maxamillion-fedora-openshift.repo
+
+- name: install openshift
+  action: "{{ ansible_pkg_mgr }} name={{ item }} state={{ osbs_update_packages | ternary('latest', 'present') }}"
+  with_items:
+  - origin-master
+  - origin-node

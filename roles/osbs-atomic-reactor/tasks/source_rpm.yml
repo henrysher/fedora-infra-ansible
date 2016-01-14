@@ -1,0 +1,11 @@
+---
+- name: setup COPR repository for atomic-reactor builds
+  copy:
+    src: maxamillion-atomic-reactor-fedora.repo
+    dest: /etc/yum.repos.d/maxamillion-atomic-reactor-fedora.repo
+  when: atomic_reactor_rpm.copr == True
+
+- name: install atomic-reactor package locally
+  action: "{{ ansible_pkg_mgr }} name=atomic-reactor state=latest"
+  notify:
+    - rebuild buildroot

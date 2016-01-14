@@ -1,0 +1,32 @@
+---
+# tasks file for docker-distribution
+
+- name: install docker-distribution
+  action: "{{ ansible_pkg_mgr }} name=docker-distribution state=installed"
+
+- name: start and enable docker-distribution
+  service: name=docker-distribution state=started enabled=yes
+
+- name: configure docker-distribution
+  template:
+    src: config.yml.j2
+    dest: "{{ conf_path }}"
+
+- name: ensure docker certs dir exists
+  file:
+    path: "{{ cert_dir }}"
+    state: directory
+  when: tls.enabled == True
+
+- name: install tls cert for docker
+  copy:
+    src: "{{ private  }}/{{ cert.private_path }}/{{ cert.src_name }}"
+    dest: "{{ cert.dir }}/{{ cert.dest_name }}"
+  when: tls.enabled == True
+
+- name: install tls key for docker
+  copy:
+    src: "{{ private  }}/{{ cert.private_path}}/{{ cert.src_key_name }}"
+    dest: "{{ cert.dir}}/{{ cert.dest_key_name }}"
+  when: tls.enabled == True
+
