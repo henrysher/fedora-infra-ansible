@@ -186,12 +186,10 @@ def create_test_factory(repo_name, func=True):
 #                    method='clobber'))
     factory.addStep(Git(repourl=Interpolate('https://bitbucket.org/fedoraqa/%s.git' % repo_name),
                     mode='full',method='clobber'))
-    factory.addStep(ShellCommand(command=['virtualenv', '--system-site-packages', 'env']))
-#    factory.addStep(ShellCommand(command=['bash', '-c', 'source env/bin/activate; pip install -r requirements.txt']))
-    factory.addStep(ShellCommand(command=['doit', 'envtype=ci', 'test']))
-    factory.addStep(ShellCommand(command=['doit', Interpolate('basedir=/srv/static/%(prop:Project)s'), 'envtype=ci', 'chainbuild']))
-    factory.addStep(ShellCommand(command=['doit', Interpolate('basedir=/srv/static/%(prop:Project)s'), 'envtype=ci', 'buildtype=release', 'releasedocs']))
-    factory.addStep(ShellCommand(command=['doit', Interpolate('basedir=/srv/static/%(prop:Project)s'), 'envtype=ci', 'buildtype=release', 'updatelatest']))
+    factory.addStep(ShellCommand(command=['doit', 'envtype=ci', 'test'], descriptionDone = ['run tests']))
+    factory.addStep(ShellCommand(command=['doit', Interpolate('basedir=/srv/static/%(prop:Project)s'), 'envtype=ci', 'chainbuild'], descriptionDone=['Chainbuild RPMs']))
+    factory.addStep(ShellCommand(command=['doit', Interpolate('basedir=/srv/static/%(prop:Project)s'), 'envtype=ci', 'buildtype=release', 'releasedocs'], descriptionDone=['Build Documentation']))
+    factory.addStep(ShellCommand(command=['doit', Interpolate('basedir=/srv/static/%(prop:Project)s'), 'envtype=ci', 'buildtype=release', 'updatelatest'], descriptionDone=['Update Release Symlinks']))
 
     return factory
 
