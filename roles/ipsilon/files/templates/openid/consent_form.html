@@ -1,39 +1,36 @@
 {% extends "layout.html" %}
 {% block toptext %}
-{{trustroot}} is asking to authenticate via OpenID using Ipsilon
+<p><small><strong>{{trustroot}}</strong> requests to use the following details from your FAS Account</small></p>
 {% endblock %}
+{% block cardwidths %}col-md-10 col-md-offset-1{% endblock %}
+{% block maintitle %}Review the authorization details{% endblock %}
 {% block main %}
-    Review the authorization details
-    <div>
+    <div class="small">
         <form method="post" action="{{action}}" enctype="application/x-www-form-urlencoded">
             <input type="hidden" name="ipsilon_transaction_id" id="ipsilon_transaction_id" value="{{ ipsilon_transaction_id }}" />
-            <p class="form_item">
-                <table class="details">
                     {% for entry in authz_details|dictsort %}
-                        <tr>
-                            <td>{{ entry[0] }}</td>
+                        <div class="row m-b">
+                            <div class="col-sm-5"><strong>{{ entry[0] }}</strong></div>
                             {%- if entry[1] is iterable and not entry[1] is string -%}
-                            <td>{{ entry[1] | join(', ') }}</td>
+                            <div class="col-sm-7">{{ entry[1] | join(', ') }}</div>
                             {%- else -%}
-                            <td>{{ entry[1] }}</td>
+                            <div class="col-sm-7">{{ entry[1] }}</div>
                             {%- endif -%}
-                        </tr>
+                        </div>
                     {% endfor %}
 
-                    <tr>
-                        <td>Remember approval for</td>
-                        <td><select name="remember_for_days">
+                    <div class="row m-b">
+                        <div class="col-sm-5"><strong>Remember&nbsp;approval</strong></div>
+                        <div class="col-sm-7"><select name="remember_for_days" class="c-select-sm c-select">
                                 <option value="0">never</option>
                                 <option value="3">3 days</option>
                                 <option value="7">7 days</option>
                             </select>
-                        </td>
-                    </tr>
-                </table>
-            </p>
+                        </div>
+                    </div>
             <p class="form_item">
-                <input type="submit" name="decided_deny" value="Reject">
-                <input type="submit" name="decided_allow" value="Allow">
+                <input class="btn btn-primary" name="decided_allow" type="submit" value="Approve" />
+                <input class="btn btn-link" name="decided_deny" type="submit" value="Reject" />
             </p>
         </form>
     </div>
