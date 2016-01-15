@@ -20,6 +20,7 @@
   vars:
    tempdir: /var/tmp/badges-tempdir
    upstream: "https://git.fedorahosted.org/cgit/badges.git"
+   workingdir: /srv/web/infra/badges/
 
   tasks:
   - name: clone the local bare repo
@@ -36,6 +37,9 @@
 
   - name: clean up that temporary {{tempdir}} dir
     file: dest={{tempdir}} state=absent
+
+  - name: and pull those commits from the bare repo to the working dir
+    command: git pull origin master chdir={{workingdir}}
 
   handlers:
   - include: "{{ handlers }}/restart_services.yml"
