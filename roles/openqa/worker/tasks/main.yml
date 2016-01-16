@@ -19,6 +19,14 @@
   tags:
   - config
 
+- name: Install openQA staging repo if needed
+  command: "dnf -y copr enable adamwill/openQA-stg"
+  args:
+    creates: /etc/yum.repos.d/_copr_adamwill-openQA-stg.repo
+  when: deployment_type == "stg"
+  tags:
+  - config
+
 - name: Install packages
   dnf: name={{ item }} state=present enablerepo=adamwill-openQA
   with_items:
