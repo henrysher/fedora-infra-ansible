@@ -28,9 +28,13 @@
     - python-rpmfluff
   when: deployment_type in ['qa-stg'] and ansible_distribution_major_version|int > 21 and ansible_cmdline.ostree is not defined
 
-- name: add the buildslave user
+- name: add the buildslave user for taskotron
+  user: name=buildslave
+  when: deployment_type in ['prod', 'stg', 'local']
+
+- name: add the buildslave user for ci
   user: name=buildslave groups=mock
-  when: deployment_type in ['prod', 'stg', 'local', 'qa-stg']
+  when: deployment_type in ['qa-stg']
 
 - name: add buildslaves group
   group: name={{ slaves_group }}
