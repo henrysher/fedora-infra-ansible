@@ -350,6 +350,11 @@
 #
 # Watchdog stuff
 #
+- name: See if there's a watchdog device
+  stat: path=/dev/watchdog
+  when: ansible_virtualization_role == 'guest'
+  register: watchdog_dev
+
 - name: install watchdog
   yum: pkg={{ item }} state=present
   with_items:
@@ -358,7 +363,7 @@
   - packages
   - watchdog
   - base
-  when: ansible_distribution_major_version|int < 22 and env == 'staging'
+  when: ansible_distribution_major_version|int < 22 and ansible_virtualization_role == 'guest' and watchdog_dev.stat.exists
 
 - name: install watchdog
   dnf: pkg={{ item }} state=present
@@ -368,11 +373,11 @@
   - packages
   - watchdog
   - base
-  when: ansible_distribution_major_version|int > 21 and env == 'staging'
+  when: ansible_distribution_major_version|int > 21 and ansible_virtualization_role == 'guest' and watchdog_dev.stat.exists
 
 - name: watchdog device configuration
   copy: src=watchdog.conf dest=/etc/watchdog.conf owner=root group=root mode=644
-  when: env == 'staging'
+  when: ansible_virtualization_role == 'guest' and watchdog_dev.stat.exists
   tags:
   - config
   - watchdog
@@ -381,7 +386,7 @@
 
 - name: Set watchdog to run on boot
   service: name=watchdog enabled=yes
-  when: env == 'staging'
+  when: ansible_virtualization_role == 'guest' and watchdog_dev.stat.exists
   ignore_errors: true
   notify:
   - restart watchdog
