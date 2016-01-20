@@ -32,6 +32,12 @@
   tasks:
   - name: Dumping the production db. This might take a minute. Go out to the lobby!
     shell: pg_dump -C fas2 |xz -c > /var/tmp/fas2.dump.xz
+#
+# pull dump from prod to batcave
+#
+  - fetch:
+       src: /var/tmp/fas2.dump.xz
+       dest: /var/tmp/
 
 - name: drop and re-create the staging db entirely
   hosts: db-fas01.stg.phx2.fedoraproject.org
@@ -48,13 +54,6 @@
   - include: "{{ handlers }}/restart_services.yml"
 
   tasks:
-#
-# pull dump from prod to batcave
-#
-  - fetch:
-       src: /var/tmp/fas2.dump.xz
-       dest: /var/tmp/fas2.dump.xz
-    delegate_to: db-fas01.phx2.fedoraproject.org
 #
 # push dump to stg from batcave
 #
