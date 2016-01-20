@@ -53,10 +53,6 @@
        dest: /var/tmp/fas2.dump.xz
     delegate_to: db-fas01.phx2.fedoraproject.org
 
-  - name: Remove the db dump on the prod server
-    command: rm -f /var/tmp/fas2.dump.xz
-    delegate_to: db-fas01.phx2.fedoraproject.org
-
   - command: unxz /var/tmp/fas2.dump.xz
              creates=/var/tmp/fas2.dump
 
@@ -77,3 +73,21 @@
 
   tasks:
   - service: name=httpd state=started
+
+- name: Remove the prod db dump now that we are done
+  hosts: db-fas01.phx2.fedoraproject.org
+  user: root
+  become: yes
+  become_user: postgres
+  become_method: sudo
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"
+
+  tasks:
+  - name: Remove the db dump on the prod server
+    command: rm -f /var/tmp/fas2.dump.xz
