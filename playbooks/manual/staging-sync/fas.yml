@@ -62,10 +62,6 @@
        src: /var/tmp/fas2.dump.xz
        dest: /var/tmp/fas2.dump.xz
 
-#
-# delete tmp dump on batcave01
-#
-  - local_action: command rm -f /var/tmp/fas2.dump.xz
 
   - command: unxz /var/tmp/fas2.dump.xz
              creates=/var/tmp/fas2.dump
@@ -105,3 +101,20 @@
   tasks:
   - name: Remove the db dump on the prod server
     command: rm -f /var/tmp/fas2.dump.xz
+
+- name: Remove the prod db dump on batcave
+  hosts: batcave01.phx2.fedoraproject.org
+  user: root
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"
+
+  tasks:
+#
+# delete tmp dump on batcave01
+#
+  - command: rm -f /var/tmp/fas2.dump.xz
