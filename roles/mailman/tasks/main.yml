@@ -71,8 +71,11 @@
 # Packages
 #
 - name: setup the hyperkitty repo
-  copy: src=hyperkitty.{{ansible_distribution}}.repo
-        dest=/etc/yum.repos.d/hyperkitty.repo
+  copy: src={{item}} dest=/etc/yum.repos.d/hyperkitty.repo
+  with_first_found:
+  - hyperkitty.{{ansible_hostname}}.repo
+  - hyperkitty.{{ansible_distribution}}.repo
+  - hyperkitty.repo
   tags: mailman
 
 - name: install GPG to validate the key
