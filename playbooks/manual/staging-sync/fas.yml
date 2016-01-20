@@ -48,10 +48,25 @@
   - include: "{{ handlers }}/restart_services.yml"
 
   tasks:
+#
+# pull dump from prod to batcave
+#
   - synchronize:
+       mode: pull
        src: /var/tmp/fas2.dump.xz
        dest: /var/tmp/fas2.dump.xz
     delegate_to: db-fas01.phx2.fedoraproject.org
+#
+# push dump to stg from batcave
+#
+  - synchronize:
+       src: /var/tmp/fas2.dump.xz
+       dest: /var/tmp/fas2.dump.xz
+
+#
+# delete tmp dump on batcave01
+#
+  - local_action: command rm -f /var/tmp/fas2.dump.xz
 
   - command: unxz /var/tmp/fas2.dump.xz
              creates=/var/tmp/fas2.dump
