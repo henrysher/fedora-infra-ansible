@@ -1,0 +1,89 @@
+# This playbook upgrades the firmwares on our different boxes
+##################### WARNING ##################################
+# !!!DO NOT STOP THIS PLAYBOOK ONCE STARTED!!!                 #
+# Given its very nature with firmware upgrades,this playbook   #
+# should NOT EVER be terminated after starting!!!              #
+# Even if it failed on some servers, do NOT abort the run!     #
+# When you do so, you risk bricking the servers it was still   #
+# working on!!                                                 #
+##################### WARNING ##################################
+#
+
+- name: Show warning
+  hosts: localhost
+  tasks:
+  - debug: msg="CAUTION! DO NOT STOP THIS PLAYBOOK ONCE STARTED!"
+  - pause: prompt="DO NOT ABORT THIS PLAYBOOK, IT WILL TAKE LONG!"
+  - pause: prompt="Giving you time to read the above warnings..." minutes=5
+  - pause: prompt="Hit enter one more time to confirm..."
+
+- name: Copy and apply firmware upgrades
+  hosts: all
+  user: root
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"
+
+  vars:
+  - updates:
+    - dirname: Dell-R630
+      vendor: "Dell Inc."
+      product: "PowerEdge R630"
+      files:
+      - iDRAC-with-Lifecycle-Controller_Firmware_1X82C_LN_2.21.21.21_A00.BIN
+      - BIOS_1RMMP_LN_1.5.4.BIN
+
+  tasks:
+  - name: Create drop place for upgrades
+    when: ansible_virtualization_role == "host"
+    file: path=/root/firmware-upgrades
+          state=directory
+
+  - name: Check which updates to copy
+    stat: path=/root/firmware-upgrades/{{ item.1}}.applied
+    register: copy_results
+    when: item.0.vendor == ansible_system_vendor and item.0.product == ansible_product_name
+    with_subelements:
+    - updates
+    - files
+
+  - name: Copy updates
+    copy: src={{ bigfiles }}/firmware/{{ item.item.0.dirname }}/{{ item.item.1}}
+          dest=/root/firmware-upgrades/
+          mode=0700
+    when: "'stat' in item and not item.stat.exists"
+    with_items: "{{copy_results.results}}"
+
+  - name: Check Dell updates
+    command: /root/firmware-upgrades/{{ item.item.1}} -qc
+    register: check_results
+    failed_when: "'System(s) supported by this package' in check_results.stdout"
+    changed_when: "'is the same' not in check_results.stdout"
+    when: ansible_system_vendor == "Dell Inc." and "'stat' in item and not item.stat.exists"
+    with_items: "{{copy_results.results}}"
+
+  - name: Apply Dell updates
+    command: /root/firmware-upgrades/{{ item.item.item.1}} -q
+    register: update_results
+    failed_when: "'System(s) supported by this package:' in update_results.stdout"
+    changed_when: "'should be restarted' in update_results.stdout or 'completed successfully' in update_results.stdout"
+    when: ansible_system_vendor == "Dell Inc." and item.changed
+    with_items: "{{check_results.results}}"
+
+  - debug: var=update_results
+
+  - name: Mark updates as done
+    file: path=/root/firmware-upgrades/{{ item.item.1 }}.applied
+          state=touch owner=root mode=644
+    when: "'stat' in item and not item.stat.exists"
+    with_items: "{{applied_results.results}}"
+
+  # We are cleaning up all files we copied, regardless of update result
+  - name: Delete update files
+    file: path=/root/firmware-upgrades/{{ item.item.1 }}
+          state=absent
+    when: "'stat' in item and not item.stat.exists"
+    with_items: "{{copy_results.results}}"
