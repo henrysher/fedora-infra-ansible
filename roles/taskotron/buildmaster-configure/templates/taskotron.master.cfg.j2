@@ -16,11 +16,8 @@ c = BuildmasterConfig = {}
 from buildbot.buildslave import BuildSlave
 c['slaves'] = [
                 {% for buildslave in buildslaves %}
-                {% if deployment_type == 'dev' %}
-                BuildSlave("{{ buildslave }}", "{{ dev_buildslave_password }}"),
-                {% endif %}
-                {% if deployment_type == 'stg' %}
-                BuildSlave("{{ buildslave }}", "{{ stg_buildslave_password }}"),
+                {% if deployment_type in ['dev', 'stg'] %}
+                BuildSlave("{{ buildslave }}", "{{ buildslave_password }}"),
                 {% endif %}
                 {% if deployment_type == 'prod' %}
                 BuildSlave("{{ buildslave }}", "{{ prod_buildslave_password }}"),
