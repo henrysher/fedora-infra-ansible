@@ -1,0 +1,64 @@
+---
+nrpe_procs_warn: 900
+nrpe_procs_crit: 1000
+
+
+############################################################
+# general config
+############################################################
+
+deployment_type: dev
+tcp_ports: [ "{{ buildslave_port }}" ]
+sudoers: "{{ private }}/files/sudo/qavirt-sudoers"
+freezes: false
+
+# this enables extra repos during dnf install but that's broken right now, remember to re-enable
+extra_enablerepos: 'infrastructure-testing'
+#extra_enablerepos: ''
+
+
+############################################################
+# buildslave config
+############################################################
+
+slaves_group: buildslaves
+buildmaster: 10.5.124.232
+buildslave_port: 9989
+taskotron_admin_email: taskotron-admin-members@fedoraproject.org
+
+
+############################################################
+# taskotron config
+############################################################
+
+taskotron_fas_user: taskotron
+# stuff is kinda not working for stg bodhi right now. workaround by having empty fas password
+#taskotron_fas_password: '{{ stg_taskotron_fas_password}}'
+taskotron_fas_password: ''
+
+execdb_external_url: https://taskotron.stg.fedoraproject.org/execdb/
+resultsdb_server: http://resultsdb-stg01.qa.fedoraproject.org/resultsdb_api/api/v1.0/
+# this should be proxy01.stg through /etc/hosts
+bodhi_server: http://bodhi.fedoraproject.org/
+kojihub_url: http://koji.fedoraproject.org/kojihub
+taskotron_master: https://taskotron.stg.fedoraproject.org/taskmaster/
+resultsdb_external_url: https://taskotron.stg.fedoraproject.org/resultsdb
+artifacts_base_url: https://taskotron.stg.fedoraproject.org/artifacts
+
+client_report_to_bodhi: 'False'
+
+
+############################################################
+# testcloud config
+############################################################
+
+buildslave_pubkey: "ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEA4EOTNfPIvIjCLNRYauVquS2LA8CZvCi6f87TASDZv4moFTv3mrCIdA3ycYLg+r+ODdPDjF9Cjpw1os/8L07XegTt9gAJVIpxzu3ZgQDkSQbx/hlDi+RG4EOIHL8nNJmu27dOVd1tb3k3aOkP5twO4uEq9RygrQBWMZTmOHdS/q8ZVUQG0d1sKv2J8EuBENgICjjIhhYvdvluu3G65jKxMgDbSXjkK6vZpbDbS2d6JI3VeLbVGlyFbHkTu7vH/vzTJZfOYgp0ZbvW9Wo3VSq/ia5qtrLKwRcBkpyCkP6uOQ14zqj4zJd/Hv7qhEcUhC8Jsb7d/Z6b3q5ID0s/9nuHdQ== tflink@lockbox01.phx2.fedoraproject.org"
+
+
+############################################################
+# task git mirror config
+############################################################
+
+buildslave_private_sshkey_file: dev-buildslave-sshkey/dev_buildslave
+buildslave_public_sshkey_file: dev-buildslave-sshkey/dev_buildslave.pub
+buildmaster_pubkey: 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC3cGfl2hdHA7PsP+ZrhhJDjrLnw8AdP3myMHb0/RHSCg7iPATR6CiljeU6oM0ZT0neKH4/DXtQr9zMT2OCrUXz/T94md8AzCbuLFrHPgSiJ5GciYyQ6E3edM7ATTU3qj1NsT/Uuiwqer/Sb7z1NrVWjzfyDXCSppHZfskQ3TDRVQFgAunrGmmUfbgOueftDXePHq8ozOf4v1bzR+9tCeqcfa0Xmzo/hpbav4IIhAoIJNknitw71BPFOd4ublNUzX7TLmi5zoxRxYU6F8rwm9kBMQ9+crpOpvHrY4qnk9Yq6TBt6UC/HbLwFhxCeU3s+cr2U4GmF/lk7sqo3Pz7Q3BR'
