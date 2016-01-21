@@ -26,11 +26,11 @@
     - python-fedora
     - python-doit
     - python-rpmfluff
-  when: deployment_type in ['qa-stg'] and ansible_distribution_major_version|int > 21 and ansible_cmdline.ostree is not defined
+  when: (deployment_type in ['qa-stg']) and (ansible_distribution_major_version|int > 21) and (ansible_cmdline.ostree is not defined)
 
 - name: add the buildslave user for taskotron
   user: name=buildslave
-  when: deployment_type in ['prod', 'stg', 'local']
+  when: deployment_type in ['prod', 'local']
 
 - name: add the buildslave user for ci
   user: name=buildslave groups=mock
@@ -38,9 +38,9 @@
 
 - name: add buildslaves group
   group: name={{ slaves_group }}
-  when: deployment_type == 'dev'
+  when: deployment_type in ['dev', 'stg']
 
 - name: add buildslave users
   user: name={{ item.user }} group={{ slaves_group }} groups=testcloud home={{ item.home }}
   with_items: slaves
-  when: deployment_type == 'dev'
+  when: deployment_type in ['dev', 'stg']
