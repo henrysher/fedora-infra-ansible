@@ -7,14 +7,6 @@
     - resultsdb_api
   when: deployment_type == 'prod' or deployment_type == 'local'
 
-# Note that this doesn't really need buildslave but there's a cyclical
-# dependency between this and the buildslave role. This role needs the
-# buildslave group and the buildslave role needs the testcloud group
-# for the Taskotron clients.
-#
-# In the interest of not putting more taskotron-specific stuff into the
-# buildbot roles, the buildslave package was added here.
-
 - name: ensure packages required for libtaskotron are installed (dnf)
   dnf: name={{ item }} state=present enablerepo={{ extra_enablerepos }}
   with_items:
@@ -22,7 +14,6 @@
     - libtaskotron
     - resultsdb_api
     - testcloud
-    - buildbot-slave
   when: deployment_type == 'dev' or deployment_type == 'stg'
 
 - name: ensure packages required for taskotron tasks are installed (yum)
@@ -45,7 +36,7 @@
   template: src=taskotron.yaml.j2 dest=/etc/taskotron/taskotron.yaml owner=root group=root mode=0644
 
 - name: generate testcloud config file
-  when: deployment_type == 'dev'
+  when: deployment_type in ['dev', 'stg']
   template: src=settings.py.testcloud.j2 dest=/etc/testcloud/settings.py owner=root group=root mode=0644
 
 # hotfixing correct yumrepoinfo until libtaskotron is updated
@@ -57,12 +48,16 @@
 
 - name: create /var/log/taskotron for task logfiles
   file: path=/var/log/taskotron state=directory owner={{ slave_user }} group={{ slave_user }} mode=1755
-  when: deployment_type == 'prod' or deployment_type == 'stg' or deployment_type == 'local'
+  when: deployment_type == 'prod' or deployment_type == 'local'
+
+- name: ensure buildslaves group exists
+  group: name={{ slaves_group }}
+  when: deployment_type in ['dev', 'stg']
 
 - name: create /var/log/taskotron for task logfiles
   file: path=/var/log/taskotron state=directory owner=root group={{ slaves_group }} mode=1775
-  when: deployment_type == 'dev'
+  when: deployment_type in ['dev', 'stg']
 
 - name: enable libvirtd
   service: name=libvirtd state=started enabled=yes
-  when: deployment_type == 'dev'
+  when: deployment_type in ['dev', 'stg']
