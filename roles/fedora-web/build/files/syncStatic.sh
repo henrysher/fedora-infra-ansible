@@ -63,6 +63,7 @@ popd > /dev/null
 /usr/bin/git pull -q --ff-only || exit 1
 
 build getfedora.org
+build flocktofedora.org
 build spins.fedoraproject.org
 build boot.fedoraproject.org
 build fedoracommunity.org

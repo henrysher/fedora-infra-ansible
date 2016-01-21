@@ -8,6 +8,7 @@ SITES="boot.fedoraproject.org \
        fedorahosted.org \
        fedoraproject.org \
        getfedora.org \
+       flocktofedora.org \
        spins.fedoraproject.org \
        labs.fedoraproject.org \
        arm.fedoraproject.org \

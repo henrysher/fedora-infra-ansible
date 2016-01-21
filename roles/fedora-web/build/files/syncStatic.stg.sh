@@ -52,6 +52,7 @@ build spins.fedoraproject.org
 build labs.fedoraproject.org
 build arm.fedoraproject.org
 build getfedora.org
+build flocktofedora.org
 
 pushd mirrors.fedoraproject.org > /dev/null
 rsync -qa --delete-after --delay-updates . /srv/web/mirrors.fedoraproject.org/
