@@ -40,6 +40,11 @@
       files:
       - iDRAC-with-Lifecycle-Controller_Firmware_1X82C_LN_2.21.21.21_A00.BIN
       - BIOS_1RMMP_LN_1.5.4.BIN
+    - dirname: IBM-x3680-M3
+      vendor: "IBM"
+      # This might be too specific
+      product: "System x3650 M3 -[7945AC1]-"
+      files:
 
   tasks:
   - name: Create drop place for upgrades
@@ -84,6 +89,10 @@
     changed_when: "'should be restarted' in update_results.stdout or 'completed successfully' in update_results.stdout"
     when: ansible_system_vendor == "Dell Inc." and item.changed
     with_items: "{{check_results.results}}"
+
+  # Note: IBM updates were considered, but IBM does not allow checking of
+  # downloaded firmware packages: at the moment of writing they do not
+  # publish a GPG signature or checksums of downloaded files. (2016-01-21)
 
 
   # Generic stuff continues here
