@@ -10,6 +10,8 @@ try:
 except ImportError:
     pass
 
+TESTING = True
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -24,3 +26,22 @@ MAILMAN_REST_API_PASS = 'restpass'
 
 VCR_RECORD_MODE = 'once'
 USE_SSL = False
+
+COMPRESS_ENABLED = False
+# Empty the precompilers mapping for testing: django-compressor will run them
+# even if compress_enabled is false, no idea why
+COMPRESS_PRECOMPILERS = ()
+
+#
+# Full-text search engine
+#
+HAYSTACK_CONNECTIONS = {
+    'default': {
+        'ENGINE': 'haystack.backends.whoosh_backend.WhooshEngine',
+        'PATH': ':memory:',
+        'STORAGE': 'ram',
+    },
+}
+HAYSTACK_SIGNAL_PROCESSOR = 'haystack.signals.RealtimeSignalProcessor'
+
+LOGGING = {}
