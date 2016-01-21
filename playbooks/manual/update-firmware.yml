@@ -12,8 +12,7 @@
 - name: Show warning
   hosts: localhost
   tasks:
-  - debug: msg="CAUTION! DO NOT STOP THIS PLAYBOOK ONCE STARTED!"
-  - pause: prompt="DO NOT ABORT THIS PLAYBOOK, IT WILL TAKE LONG!"
+  - pause: prompt="DO NOT ABORT THIS PLAYBOOK, IT WILL TAKE LONG! Press enter to confirm"
   - pause: prompt="Giving you time to read the above warnings..." minutes=5
   - pause: prompt="Hit enter one more time to confirm..."
 
@@ -44,7 +43,7 @@
 
   - name: Check which updates to copy
     stat: path=/root/firmware-upgrades/{{ item.1}}.applied
-    register: copy_results
+    register: is_applied_results
     when: item.0.vendor == ansible_system_vendor and item.0.product == ansible_product_name
     with_subelements:
     - updates
@@ -54,16 +53,19 @@
     copy: src={{ bigfiles }}/firmware/{{ item.item.0.dirname }}/{{ item.item.1}}
           dest=/root/firmware-upgrades/
           mode=0700
+    register: copy_results
     when: "'stat' in item and not item.stat.exists"
-    with_items: "{{copy_results.results}}"
+    with_items: "{{is_applied_results.results}}"
 
+
+  # Dell updates here
   - name: Check Dell updates
     command: /root/firmware-upgrades/{{ item.item.1}} -qc
     register: check_results
     failed_when: "'System(s) supported by this package' in check_results.stdout"
     changed_when: "'is the same' not in check_results.stdout"
-    when: ansible_system_vendor == "Dell Inc." and "'stat' in item and not item.stat.exists"
-    with_items: "{{copy_results.results}}"
+    when: "ansible_system_vendor == 'Dell Inc.' and 'stat' in item and not item.stat.exists"
+    with_items: "{{is_applied_results.results}}"
 
   - name: Apply Dell updates
     command: /root/firmware-upgrades/{{ item.item.item.1}} -q
@@ -73,17 +75,17 @@
     when: ansible_system_vendor == "Dell Inc." and item.changed
     with_items: "{{check_results.results}}"
 
-  - debug: var=update_results
 
+  # Generic stuff continues here
   - name: Mark updates as done
     file: path=/root/firmware-upgrades/{{ item.item.1 }}.applied
           state=touch owner=root mode=644
     when: "'stat' in item and not item.stat.exists"
-    with_items: "{{applied_results.results}}"
+    with_items: "{{is_applied_results.results}}"
 
   # We are cleaning up all files we copied, regardless of update result
   - name: Delete update files
     file: path=/root/firmware-upgrades/{{ item.item.1 }}
           state=absent
     when: "'stat' in item and not item.stat.exists"
-    with_items: "{{copy_results.results}}"
+    with_items: "{{is_applied_results.results}}"
