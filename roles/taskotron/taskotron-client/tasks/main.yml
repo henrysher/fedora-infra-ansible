@@ -7,14 +7,23 @@
     - resultsdb_api
   when: deployment_type == 'prod' or deployment_type == 'local'
 
+# Note that this doesn't really need buildslave but there's a cyclical
+# dependency between this and the buildslave role. This role needs the
+# buildslave group and the buildslave role needs the testcloud group
+# for the Taskotron clients.
+#
+# In the interest of not putting more taskotron-specific stuff into the
+# buildbot roles, the buildslave package was added here.
+
 - name: ensure packages required for libtaskotron are installed (dnf)
   dnf: name={{ item }} state=present enablerepo={{ extra_enablerepos }}
-  when: deployment_type == 'dev' or deployment_type == 'stg'
   with_items:
     - PyYAML
     - libtaskotron
     - resultsdb_api
     - testcloud
+    - buildslave
+  when: deployment_type == 'dev' or deployment_type == 'stg'
 
 - name: ensure packages required for taskotron tasks are installed (yum)
   yum: name={{ item }} state=present enablerepo={{ extra_enablerepos }}
