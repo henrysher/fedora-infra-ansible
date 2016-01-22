@@ -1,0 +1,34 @@
+---
+
+- name: install needed packages
+  yum: pkg={{ item }} state=present
+  with_items:
+  - git
+  - node
+  - npm
+  - postgresql
+  - posgresql-server
+  tags:
+  - packages
+
+# Todo: Create the database
+
+- name: Clone the regcfp flock2016 branch
+  git: repo=https://github.com/puiterwijk/regcfp.git
+       dest=/srv/regcfp
+       version=flock2016
+       clone=yes update=yes
+
+
+- name: copy over the server config
+  template: src=config.json dest=/srv/regcfp/config/config.json mode=0640
+  notify:
+  - restart regcfp
+  
+- name: copy over the systemd file
+  template: src=regcfp.service dest=/etc/systemd/system/regcfp.service mode=0640
+  notify:
+  - restart regcfp
+
+- name: glusterd service
+  service: name=glusterd state=started enabled=yes
