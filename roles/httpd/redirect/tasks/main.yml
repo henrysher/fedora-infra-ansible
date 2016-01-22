@@ -8,13 +8,16 @@
 # This is the only real work we do.
 - name: Copy over httpd redirect file for {{name}}
   template: >
-    src=redirect.conf
+    src={{conf}}
     dest=/etc/httpd/conf.d/{{website}}/{{name}}-redirect.conf
     mode=0644
     owner=root
     group=root
   notify:
   - reload httpd
+  with_first_found:
+  - redirect.{{name}}.conf
+  - redirect.conf
   tags:
   - httpd
   - httpd/redirect
