@@ -58,6 +58,18 @@
   file: path=/var/log/taskotron state=directory owner=root group={{ slaves_group }} mode=1775
   when: deployment_type in ['dev', 'stg']
 
+- name: upload custom selinux policy to allow buildslaves to use qemu-kvm
+  copy: path=service-virt-transition.te dest=/root/service-virt-transition.te owner=root group=root mode=0644
+  when: deployment_type in ['dev', 'stg']
+
+- name: compile selinux policy
+  command: chdir=/root/ creates/root/service-virt-transition.pp make -f /usr/share/selinux/devel/Makefile
+  when: deployment_type in ['dev', 'stg']
+
+- name: load custom selinux policy for qemu-kvm from buildslaves
+  command: chdir=/root/ semodule -i /root/service-virt-transition.pp
+  when: deployment_type in ['dev', 'stg']
+
 - name: enable libvirtd
   service: name=libvirtd state=started enabled=yes
   when: deployment_type in ['dev', 'stg']
