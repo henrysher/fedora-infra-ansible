@@ -29,12 +29,15 @@
   - name: add packages
     yum: state=present name={{ item }}
     with_items:
-    - httpd
+    - nodejs
+    - npm
     - postgresql
     - postgresql-server
-    - mod_ssl
     - wget
     - unzip
 
-  - name: enable httpd service
-    service: name=httpd enabled=yes state=started
+  - name: Clone the regcfp flock2016 branch
+    git: repo=https://github.com/puiterwijk/regcfp.git
+         dest=/srv/regcfp
+         version=flock2016
+         clone=yes update=yes
