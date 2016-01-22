@@ -11,7 +11,19 @@
   tags:
   - packages
 
-# Todo: Create the database
+- name: Initialize postgres if necessary
+  command: /usr/bin/postgresql-setup initdb
+           creates=/var/lib/pgsql/data
+  notify:
+  - restart postgresql
+
+- name: Create database
+  postgresql_db: name=regcfp
+
+- name: Create postgres db user
+  postgresql_user: db=regcfp name=regcfp
+                   password="{{ regcfp_db_password }}"
+                   priv=CONNECT/regcfp:ALL
 
 - name: Clone the regcfp flock2016 branch
   git: repo=https://github.com/puiterwijk/regcfp.git
