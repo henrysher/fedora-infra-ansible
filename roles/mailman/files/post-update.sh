@@ -12,8 +12,7 @@ INDEXDIR=$BASEDIR/fulltext_index
 
 django-admin collectstatic --clear --noinput --verbosity 0 --pythonpath $CONFDIR --settings settings
 django-admin compress --pythonpath $CONFDIR --settings settings
-django-admin syncdb --pythonpath $CONFDIR --settings settings_admin --noinput --migrate
-django-admin loaddata /etc/postorius/sites/default/initial-user.json --pythonpath $CONFDIR --settings settings_admin
+django-admin migrate --pythonpath $CONFDIR --settings settings_admin --noinput
 mkdir -p $INDEXDIR
 chown apache:apache -R $INDEXDIR
 
