@@ -1,0 +1,20 @@
+---
+- name: ensure packages required for buildmaster are installed (dnf)
+  dnf: name={{ item }} state=present enablerepo={{ extra_enablerepos }}
+  with_items:
+    - tmpwatch
+  when: ansible_distribution_major_version|int > 21 and ansible_cmdline.ostree is not defined
+
+- name: create artifacts directory
+  file: path={{ item }} state=directory owner=buildmaster group=buildmaster mode=0775 setype=httpd_sys_content_t
+  with_items:
+  - /srv/taskotron
+  - /srv/taskotron/artifacts
+
+- name: copy artifacts httpd config
+  template: src=artifacts.conf.j2 dest=/etc/httpd/conf.d/artifacts.conf owner=root group=root
+  notify:
+    - reload httpd
+
+- name: copy tmpwatch cronjob for taskotron artifacts and buildmaster
+  template: src=taskotron-tmpwatch.cron.jw dest=/etc/cron.d/taskotron-tmpwatch.cron owner=root group=root mode=0644

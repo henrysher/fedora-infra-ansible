@@ -45,19 +45,6 @@
   notify:
     - reload httpd
 
-- name: copy artifacts httpd config
-  template: src=artifacts.conf.j2 dest=/etc/httpd/conf.d/artifacts.conf owner=root group=root
-  when: deployment_type == 'prod' or deployment_type == 'stg' or deployment_type == 'dev' or deployment_type == 'local'
-  notify:
-    - reload httpd
-
-- name: create artifacts directory
-  file: path={{ item }} state=directory owner=buildmaster group=buildmaster mode=0775 setype=httpd_sys_content_t
-  when: deployment_type == 'prod' or deployment_type == 'stg' or deployment_type == 'dev' or deployment_type == 'local'
-  with_items:
-  - /srv/taskotron
-  - /srv/taskotron/artifacts
-
 - name: ensure buildmaster database is created
   when: buildmaster_db_host != 'localhost'
   delegate_to: "{{ buildmaster_db_host }}"
@@ -66,18 +53,11 @@
   postgresql_db: db={{ buildmaster_db_name }}
 
 - name: ensure dev db user has access to dev database
-  when: deployment_type == 'dev'
+  when: deployment_type in ['dev', 'stg']
   delegate_to: "{{ buildmaster_db_host }}"
   sudo: true
   sudo_user: postgres
-  postgresql_user: db={{ buildmaster_db_name }} user={{ dev_buildmaster_db_user }} password={{ dev_buildmaster_db_password }} role_attr_flags=NOSUPERUSER
-
-- name: ensure stg db user has access to stg database
-  when: deployment_type == 'stg'
-  delegate_to: "{{ buildmaster_db_host }}"
-  sudo: true
-  sudo_user: postgres
-  postgresql_user: db={{ buildmaster_db_name }} user={{ stg_buildmaster_db_user }} password={{ stg_buildmaster_db_password }} role_attr_flags=NOSUPERUSER
+  postgresql_user: db={{ buildmaster_db_name }} user={{ buildmaster_db_user }} password={{ buildmaster_db_password }} role_attr_flags=NOSUPERUSER
 
 - name: ensure prod db user has access to prod database
   when: deployment_type == 'prod'
