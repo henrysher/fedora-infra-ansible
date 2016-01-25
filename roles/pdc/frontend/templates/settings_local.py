@@ -67,6 +67,11 @@ DEBUG = False
 # NOTE: this is needed when DEGUB is False.
 #       https://docs.djangoproject.com/en/1.8/ref/settings/#allowed-hosts
 ALLOWED_HOSTS = [
+    {% if env == 'staging' %}
+    'pdc.stg.fedoraproject.org',
+    {% else %}
+    'pdc.fedoraproject.org',
+    {% endif %}
     '{{ inventory_hostname }}',
     '{{ inventory_hostname_short }}',
     'localhost',
