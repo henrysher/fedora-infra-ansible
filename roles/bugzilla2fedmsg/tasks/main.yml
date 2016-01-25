@@ -45,7 +45,7 @@
   tags:
   - bugzilla2fedmsg
 
-- name: Copy in the staging certificates
+- name: Copy in the certs and keys.
   copy: >
     src="{{ private }}/files/bugzilla2fedmsg/{{ item }}"
     dest="/etc/pki/fedmsg/{{ item }}"
@@ -53,21 +53,6 @@
   with_items:
   - msg-client-fedora-dev.crt
   - msg-client-fedora-dev.key
-  when: env == 'staging'
-  notify:
-  - restart moksha-hub
-  tags:
-  - bugzilla2fedmsg
-
-- name: Copy in the production certificates
-  copy: >
-    src="{{ private }}/files/bugzilla2fedmsg/{{ item }}"
-    dest="/etc/pki/fedmsg/{{ item }}"
-    mode=0640 owner=fedmsg group=fedmsg
-  with_items:
-  - fuse-fabric-fedoraproject.org.crt 
-  - fuse-fabric-fedoraproject.org.key
-  when: env != 'staging'
   notify:
   - restart moksha-hub
   tags:
