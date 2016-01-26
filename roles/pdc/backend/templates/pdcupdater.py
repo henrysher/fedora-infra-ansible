@@ -39,14 +39,14 @@ config = {
     {% if env == 'staging' %}
     'pdcupdater.koji_url': 'http://koji.stg.fedoraproject.org/kojihub',
     {% else %}
-    'pdcupdater.koji_url': 'http://koji.fedoraproject.org/kojihub',
+    'pdcupdater.koji_url': 'http://koji01.phx2.fedoraproject.org/kojihub',
     {% endif %}
 
     # Where to find composes
     {% if env == 'staging' %}
     'pdcupdater.old_composes_url': 'https://kojipkgs.stg.fedoraproject.org/compose/',
     {% else %}
-    'pdcupdater.old_composes_url': 'https://kojipkgs.fedoraproject.org/compose/',
+    'pdcupdater.old_composes_url': 'http://kojipkgs01.phx2.fedoraproject.org/compose/',
     {% endif %}
 
     # We have an explicit list of these in the config so we can turn them on
