@@ -53,6 +53,7 @@ config = {
     # and off individually in production if one is causing an issue.
     'pdcupdater.handlers': [
         'pdcupdater.handlers.compose:NewComposeHandler',
+        'pdcupdater.handlers.atomic:AtomicComponentGroupHandler',
         'pdcupdater.handlers.pkgdb:NewPackageHandler',
         'pdcupdater.handlers.pkgdb:NewPackageBranchHandler',
         'pdcupdater.handlers.rpms:NewRPMHandler',
