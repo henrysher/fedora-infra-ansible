@@ -52,13 +52,11 @@ config = {
     # We have an explicit list of these in the config so we can turn them on
     # and off individually in production if one is causing an issue.
     'pdcupdater.handlers': [
-        ## XXX - these all use bulk operations which time out behind our
-        ## proxies.  We need to rewrite them to do things one-by-one.
-        #'pdcupdater.handlers.pkgdb:NewPackageHandler',
-        #'pdcupdater.handlers.pkgdb:NewPackageBranchHandler',
-        #'pdcupdater.handlers.rpms:NewRPMHandler',
-        #'pdcupdater.handlers.persons:NewPersonHandler',
         'pdcupdater.handlers.compose:NewComposeHandler',
+        'pdcupdater.handlers.pkgdb:NewPackageHandler',
+        'pdcupdater.handlers.pkgdb:NewPackageBranchHandler',
+        'pdcupdater.handlers.rpms:NewRPMHandler',
+        'pdcupdater.handlers.persons:NewPersonHandler',
     ],
 
     'logging': dict(
