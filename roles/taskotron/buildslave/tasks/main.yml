@@ -30,7 +30,7 @@
 
 - name: add the buildslave user for taskotron
   user: name=buildslave
-  when: deployment_type in ['prod', 'local']
+  when: deployment_type in ['local']
 
 - name: add the buildslave user for ci
   user: name=buildslave groups=mock
@@ -38,9 +38,9 @@
 
 - name: ensure buildslaves group exists
   group: name={{ slaves_group }}
-  when: deployment_type in ['dev', 'stg']
+  when: deployment_type in ['dev', 'stg', 'prod']
 
 - name: add buildslave users
   user: name={{ item.user }} group={{ slaves_group }} groups=testcloud home={{ item.home }}
   with_items: slaves
-  when: deployment_type in ['dev', 'stg']
+  when: deployment_type in ['dev', 'stg', 'prod']
