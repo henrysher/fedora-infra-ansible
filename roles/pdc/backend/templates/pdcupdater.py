@@ -49,6 +49,9 @@ config = {
     'pdcupdater.old_composes_url': 'http://kojipkgs01.phx2.fedoraproject.org/compose/',
     {% endif %}
 
+    # Where to find the fedora-atomic json definitions.
+    'pdcupdater.fedora_atomic_git_url': 'https://git.fedorahosted.org/cgit/fedora-atomic.git/plain/',
+
     # We have an explicit list of these in the config so we can turn them on
     # and off individually in production if one is causing an issue.
     'pdcupdater.handlers': [
