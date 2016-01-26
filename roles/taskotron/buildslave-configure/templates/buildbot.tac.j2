@@ -34,23 +34,12 @@ except ImportError:
 
 buildmaster_host = '{{ buildmaster }}'
 port = 9989
-{% if deployment_type in ['prod', 'stg', 'local', 'qa-stg'] %}
+{% if deployment_type in ['local', 'qa-stg'] %}
 slavename = '{{ buildslave_name }}'
+passwd = '{{ buildslave_password }}'
 {% endif %}
-{% if deployment_type == 'dev' %}
+{% if deployment_type in ['dev', 'stg', 'prod'] %}
 slavename = '{{ item.user }}'
-{% endif %}
-{% if deployment_type == 'dev' %}
-passwd = '{{ dev_buildslave_password }}'
-{% endif %}
-{% if deployment_type == 'stg' %}
-passwd = '{{ stg_buildslave_password }}'
-{% endif %}
-{% if deployment_type == 'prod' %}
-passwd = '{{ prod_buildslave_password }}'
-{% endif %}
-{% if deployment_type == 'local' %}
-passwd = '{{ local_buildslave_password }}'
 {% endif %}
 
 {% if deployment_type == 'qadevel-prod' %}
