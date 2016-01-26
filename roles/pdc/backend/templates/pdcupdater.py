@@ -7,7 +7,7 @@ config = {
     # Credentials to talk to PDC
     'pdcupdater.pdc': {
         {% if env == 'staging' %}
-        'server': 'http://pdc-web01.phx2.stg.fedoraproject.org/rest_api/v1/',
+        'server': 'http://pdc-web01.stg.phx2.fedoraproject.org/rest_api/v1/',
         'insecure': True,
         'token': '{{pdc_updater_api_token_stg }}',
         {% else %}
