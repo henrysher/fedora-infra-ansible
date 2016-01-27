@@ -60,7 +60,7 @@ config = {
         'pdcupdater.handlers.pkgdb:NewPackageHandler',
         'pdcupdater.handlers.pkgdb:NewPackageBranchHandler',
         'pdcupdater.handlers.rpms:NewRPMHandler',
-        'pdcupdater.handlers.persons:NewPersonHandler',
+        #'pdcupdater.handlers.persons:NewPersonHandler',
     ],
 
     'logging': dict(
