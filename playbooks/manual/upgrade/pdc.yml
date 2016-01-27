@@ -1,18 +1,3 @@
-- name: push packages out
-  hosts: pdc-backend;pdc-backend-stg;pdc-web;pdc-web-stg
-  user: root
-  vars_files: 
-   - /srv/web/infra/ansible/vars/global.yml
-   - "/srv/private/ansible/vars.yml"
-   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
-
-  tasks:
-  - name: clean all metadata
-    command: yum clean all
-    always_run: yes
-  - name: yum update PDC packages
-    yum: name="pdc-*" state=latest
-
 - name: verify the backend, and stop it
   hosts: pdc-backend;pdc-backend-stg
   user: root
@@ -22,6 +7,16 @@
    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
   handlers:
   - include: "{{ handlers }}/restart_services.yml"
+
+  pre_tasks:
+  - name: clean all metadata
+    command: yum clean all
+    always_run: yes
+  - name: yum update PDC packages
+    yum: name="{{item}}" state=latest
+    with_items:
+    - pdc-client
+    - pdc-updater
 
   roles:
   - pdc/backend
@@ -44,6 +39,15 @@
   handlers:
   - include: "{{ handlers }}/restart_services.yml"
 
+  pre_tasks:
+  - name: clean all metadata
+    command: yum clean all
+    always_run: yes
+  - name: yum update PDC packages
+    yum: name="{{item}}" state=latest
+    with_items:
+    - python-pdc
+
   roles:
   - pdc/frontend
 
@@ -57,7 +61,7 @@
     command: python /usr/lib/python2.7/site-packages/pdc/manage.py syncdb --noinput
     args:
         chdir: /usr/lib/python2.7/site-packages/pdc/
-    when: inventory_shortname == 'pdc-web01'
+    when: inventory_hostname_short == 'pdc-web01'
   - service: name="httpd" state=started
   - name: tell nagios to unshush w.r.t. the frontend
     nagios: action=unsilence service=host host={{ inventory_hostname_short }}{{ env_suffix }}
