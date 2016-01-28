@@ -202,7 +202,9 @@ LOGIN_URL          = 'hk_user_login'
 LOGOUT_URL         = 'hk_user_logout'
 LOGIN_REDIRECT_URL = 'hk_root'
 
-BROWSERID_USERNAME_ALGO = lambda email: email # Use the email as identifier
+# Use the email as identifier, but truncate it because the User.username field
+# is only 30 chars long.
+BROWSERID_USERNAME_ALGO = lambda email: email[:30]
 BROWSERID_VERIFY_CLASS = "django_browserid.views.Verify"
 
 
@@ -230,8 +232,6 @@ if django.VERSION[:2] < (1, 7):
     SOUTH_MIGRATION_MODULES = {
         'default': 'social.apps.django_app.default.south_migrations'
     }
-
-SOCIAL_AUTH_USERNAME_IS_FULL_EMAIL = True
 
 # http://python-social-auth.readthedocs.org/en/latest/pipeline.html#authentication-pipeline
 SOCIAL_AUTH_PIPELINE = (
