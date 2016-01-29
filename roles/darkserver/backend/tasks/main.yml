@@ -1,0 +1,19 @@
+#
+#  Setup darkserver packages
+#
+
+- name: setup darkserver
+  yum: name={{ item }} state=present
+  with_items:
+    - darkserver-importer
+  notify:
+  - restart fedmsg-hub
+
+- name: email.json file
+  copy: src=email.json dest=/etc/darkserver/email.json owner=root group=root mode=0644
+
+- name: darkjobworker.conf
+  template: src=darkjobworker.conf.j2 dest=/etc/darkserver/darkjobworker.conf owner=root group=root mode=640
+  notify: reload darkserver
+
+
