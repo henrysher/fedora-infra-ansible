@@ -57,10 +57,12 @@ config = {
     'pdcupdater.handlers': [
         'pdcupdater.handlers.compose:NewComposeHandler',
         'pdcupdater.handlers.atomic:AtomicComponentGroupHandler',
-        'pdcupdater.handlers.pkgdb:NewPackageHandler',
-        'pdcupdater.handlers.pkgdb:NewPackageBranchHandler',
-        'pdcupdater.handlers.rpms:NewRPMHandler',
-        #'pdcupdater.handlers.persons:NewPersonHandler',
+        # The new version of PDC broke all of these.  There are different
+        # endpoints, etc.
+        ##'pdcupdater.handlers.pkgdb:NewPackageHandler',
+        ##'pdcupdater.handlers.pkgdb:NewPackageBranchHandler',
+        ##'pdcupdater.handlers.rpms:NewRPMHandler',
+        ##'pdcupdater.handlers.persons:NewPersonHandler',
     ],
 
     'logging': dict(
