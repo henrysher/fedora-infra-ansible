@@ -22,6 +22,11 @@ import pwd
 import fedmsg
 import fedmsg.config
 
+try:
+    from ansible.plugins.callback import CallbackBase
+except ImportError:
+    # Ansible v1 compat
+    CallbackBase = object
 
 def getlogin():
     try:
@@ -31,7 +36,7 @@ def getlogin():
     return user
 
 
-class CallbackModule(object):
+class CallbackModule(CallbackBase):
     """ Publish playbook starts and stops to fedmsg. """
 
     playbook_path = None

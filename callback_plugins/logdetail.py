@@ -21,6 +21,12 @@ import json
 import pwd
 from ansible import utils
 
+try:
+    from ansible.plugins.callback import CallbackBase
+except ImportError:
+    # Ansible v1 compat
+    CallbackBase = object
+
 TIME_FORMAT="%b %d %Y %H:%M:%S"
 
 MSG_FORMAT="%(now)s\t%(count)s\t%(category)s\t%(name)s\t%(data)s\n"
@@ -152,7 +158,7 @@ class LogMech(object):
 
 logmech = LogMech()
 
-class CallbackModule(object):
+class CallbackModule(CallbackBase):
     """
     logs playbook results, per host, in /var/log/ansible/hosts
     """
