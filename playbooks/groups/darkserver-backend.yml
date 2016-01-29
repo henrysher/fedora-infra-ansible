@@ -59,9 +59,16 @@
   user: root
   gather_facts: True
 
+  vars_files: 
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
   roles:
   - fedmsg/hub
   - darkserver/backend
   - role: collectd/fedmsg-service
     process: fedmsg-hub
 
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"
