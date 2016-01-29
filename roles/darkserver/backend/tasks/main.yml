@@ -9,6 +9,11 @@
   notify:
   - restart fedmsg-hub
 
+- name: install a loopback so we listen to the prod fedmsg bus (only in staging)
+  copy: src=loopback.py dest=/etc/fedmsg.d/loopback.py
+  notify: restart fedmsg-hub
+  when: environment == 'staging'
+
 - name: email.json file
   copy: src=email.json dest=/etc/darkserver/email.json owner=root group=root mode=0644
 
