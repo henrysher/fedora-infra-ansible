@@ -4,6 +4,9 @@
 - name: install packages required by osbs
   action: "{{ ansible_pkg_mgr }} name=docker state={{ osbs_update_packages | ternary('latest', 'present') }}"
 
+- name: install openssl for auth proxy cert generation
+  action: "{{ ansible_pkg_mgr }} name=openssl state=latest"
+
 - name: configure docker
   template: src=sysconfig-docker.j2 dest=/etc/sysconfig/docker backup=yes
   notify: restart docker
