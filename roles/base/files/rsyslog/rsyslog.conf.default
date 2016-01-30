@@ -6,7 +6,8 @@
 #### MODULES ####
 
 $ModLoad imuxsock # provides support for local system logging (e.g. via logger command)
-$ModLoad imklog   # provides kernel logging support (previously done by rklogd)
+$ModLoad imjournal # provides access to the systemd journal
+#$ModLoad imklog   # provides kernel logging support (previously done by rklogd)
 #$ModLoad immark  # provides --MARK-- message capability
 
 # Provides UDP syslog reception
@@ -19,6 +20,7 @@ $ModLoad imklog   # provides kernel logging support (previously done by rklogd)
 
 
 #### GLOBAL DIRECTIVES ####
+$WorkDirectory /var/lib/rsyslog
 
 # Use default timestamp format
 $ActionFileDefaultTemplate RSYSLOG_TraditionalFileFormat
@@ -30,6 +32,13 @@ $ActionFileDefaultTemplate RSYSLOG_TraditionalFileFormat
 # Include all config files in /etc/rsyslog.d/
 $IncludeConfig /etc/rsyslog.d/*.conf
 
+
+# Turn off message reception via local log socket;
+# local messages are retrieved through imjournal now.
+$OmitLocalLogging on
+
+# File to store the position in the journal
+$IMJournalStateFile imjournal.state
 
 #### RULES ####
 
@@ -52,7 +61,7 @@ mail.*                                                  -/var/log/maillog
 cron.*                                                  /var/log/cron
 
 # Everybody gets emergency messages
-*.emerg                                                 *
+*.emerg                                                 :omusrmsg:*
 
 # Save news errors of level crit and higher in a special file.
 uucp,news.crit                                          /var/log/spooler
