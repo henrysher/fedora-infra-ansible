@@ -61,18 +61,22 @@ class CallbackModule(CallbackBase):
         except ValueError:
             pass
         self.play = None
+        self.playbook = None
 
         super(CallbackModule, self).__init__()
+
+    def v2_playbook_on_start(self, playbook):
+        self.playbook = playbook
 
     def v2_playbook_on_play_start(self, play):
         # This gets called once for each play.. but we just issue a message once
         # for the first one.  One per "playbook"
-        if play:
+        if self.playbook:
             # figure out where the playbook FILE is
-            path = os.path.abspath(play.playbook.filename)
+            path = os.path.abspath(self.playbook.filename)
 
             # Bail out early without publishing if we're in --check mode
-            if play.playbook.check:
+            if self.playbook.check:
                 return
 
             if not self.playbook_path:
@@ -81,10 +85,10 @@ class CallbackModule(CallbackBase):
                     msg=dict(
                         playbook=path,
                         userid=getlogin(),
-                        extra_vars=play.playbook.extra_vars,
-                        inventory=play.playbook.inventory.host_list,
-                        playbook_checksum=play.playbook.check,
-                        check=play.playbook.check,
+                        extra_vars=self.playbook.extra_vars,
+                        inventory=self.playbook.inventory.host_list,
+                        playbook_checksum=self.playbook.check,
+                        check=self.playbook.check,
                     ),
                 )
                 self.playbook_path = path
