@@ -98,8 +98,8 @@ class LogMech(object):
     def task_to_json(self, task):
         res = {}
         res['task_name'] = task.name
-        res['task_module'] = task.module_name
-        res['task_args'] = task.module_args
+        res['task_module'] = task.action
+        res['task_args'] = task.args
         if self.playbook_id == 'ansible-cmd':
             res['task_userid'] = getlogin()
         for k in ("delegate_to", "environment", "with_first_found",
