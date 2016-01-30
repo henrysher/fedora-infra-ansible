@@ -67,10 +67,14 @@ class CallbackModule(CallbackBase):
 
     def v2_playbook_on_start(self, playbook):
         self.playbook = playbook
+        import q ; q.q(playbook)
+        import q ; q.q(dir(playbook))
 
     def v2_playbook_on_play_start(self, play):
         # This gets called once for each play.. but we just issue a message once
         # for the first one.  One per "playbook"
+        import q ; q.q(play)
+        import q ; q.q(dir(play))
         if self.playbook:
             # figure out where the playbook FILE is
             path = os.path.abspath(self.playbook.filename)
