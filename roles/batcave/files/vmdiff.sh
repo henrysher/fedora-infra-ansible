@@ -5,7 +5,7 @@ diffout=$(mktemp tmp.XXXXXXXXX)
 mailto='admin@fedoraproject.org'
 source /root/sshagent >>/dev/null
 export ANSIBLE_HOST_KEY_CHECKING=False
-/srv/web/infra/ansible/scripts/list-vms-per-host --host=virtservers 2>/dev/null  > "$output"
+/srv/web/infra/ansible/scripts/list-vms-per-host.v2 --host=virtservers 2>/dev/null  > "$output"
 chmod 644 "$output"
 diff -u "$dest" "$output" > $diffout
 rc=$?
