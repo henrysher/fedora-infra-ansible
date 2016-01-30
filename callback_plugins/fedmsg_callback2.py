@@ -79,15 +79,6 @@ class CallbackModule(CallbackBase):
     def v2_playbook_on_play_start(self, play):
         # This gets called once for each play.. but we just issue a message once
         # for the first one.  One per "playbook"
-	import q ; q.q(self.play_context)
-	import q ; q.q(type(self.play_context))
-	import q ; q.q(dir(self.play_context))
-	import q ; q.q(self.play_context.vars)
-	import q ; q.q(type(self.play_context.vars))
-	import q ; q.q(dir(self.play_context.vars))
-	import q ; q.q(play)
-	import q ; q.q(type(play))
-	import q ; q.q(dir(play))
         if self.playbook:
             # figure out where the playbook FILE is
             path = os.path.abspath(self.playbook._file_name)
@@ -102,8 +93,8 @@ class CallbackModule(CallbackBase):
                     msg=dict(
                         playbook=path,
                         userid=getlogin(),
-                        #extra_vars=play.vars.extra_vars,
-                        #inventory=play.vars._inventory.src(),
+                        extra_vars=play._variable_manager.extra_vars,
+                        inventory=play._variable_manager._inventory.src(),
                         playbook_checksum=secure_hash(path),
                         check=self.play_context.check_mode,
                     ),
