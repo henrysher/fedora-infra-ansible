@@ -162,7 +162,7 @@ class CallbackModule(CallbackBase):
     """
     logs playbook results, per host, in /var/log/ansible/hosts
     """
-    CALLBACK_NAME = 'logdetail'
+    CALLBACK_NAME = 'logdetail2'
     CALLBACK_TYPE = 'notification'
     CALLBACK_VERSION = 2.0
     CALLBACK_NEEDS_WHITELIST = True
@@ -171,6 +171,8 @@ class CallbackModule(CallbackBase):
         self._task_count = 0
         self._play_count = 0
         self.task = None
+
+        super(CallbackModule, self).__init__()
 
     def runner_on_failed(self, result, ignore_errors=False):
         category = 'FAILED'
