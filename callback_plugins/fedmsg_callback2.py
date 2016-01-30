@@ -82,9 +82,12 @@ class CallbackModule(CallbackBase):
 	import q ; q.q(self.play_context)
 	import q ; q.q(type(self.play_context))
 	import q ; q.q(dir(self.play_context))
-	import q ; q.q(play.vars)
-	import q ; q.q(type(play.vars))
-	import q ; q.q(dir(play.vars))
+	import q ; q.q(self.play_context.vars)
+	import q ; q.q(type(self.play_context.vars))
+	import q ; q.q(dir(self.play_context.vars))
+	import q ; q.q(play)
+	import q ; q.q(type(play))
+	import q ; q.q(dir(play))
         if self.playbook:
             # figure out where the playbook FILE is
             path = os.path.abspath(self.playbook._file_name)
