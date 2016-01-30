@@ -19,7 +19,11 @@ import os
 import time
 import json
 import pwd
-from ansible import utils
+
+try:
+    from ansible.utils.hashing import secure_hash
+except ImportError:
+    from ansible.utils import md5 as secure_hash
 
 try:
     from ansible.plugins.callback import CallbackBase
@@ -171,8 +175,12 @@ class CallbackModule(CallbackBase):
         self._task_count = 0
         self._play_count = 0
         self.task = None
+        self.playbook = None
 
         super(CallbackModule, self).__init__()
+
+    def set_play_context(self, play_context):
+        self.play_context = play_context
 
     def runner_on_failed(self, result, ignore_errors=False):
         category = 'FAILED'
@@ -198,6 +206,9 @@ class CallbackModule(CallbackBase):
         category = 'ASYNC_FAILED'
         logmech.log(result._host.get_name(), category, result._result, self.task, self._task_count)
 
+    def v2_playbook_on_start(self, playbook):
+        self.playbook = playbook
+
     def v2_playbook_on_task_start(self, task, is_conditional):
         self.task = task
         logmech._last_task_start = time.time()
@@ -221,7 +232,7 @@ class CallbackModule(CallbackBase):
 
         if play:
             # figure out where the playbook FILE is
-            path = os.path.abspath(play.playbook.filename)
+            path = os.path.abspath(self.playbook._file_name)
 
             # tel the logger what the playbook is
             logmech.playbook_id = path
@@ -233,11 +244,11 @@ class CallbackModule(CallbackBase):
                 pb_info['playbook_start'] = time.time()
                 pb_info['playbook'] = path
                 pb_info['userid'] = getlogin()
-                pb_info['extra_vars'] = play.playbook.extra_vars
-                pb_info['inventory'] = play.playbook.inventory.host_list
-                pb_info['playbook_checksum'] = utils.md5(path)
-                pb_info['check'] = play.playbook.check
-                pb_info['diff'] = play.playbook.diff
+                pb_info['extra_vars'] = play.vars.extra_vars
+                pb_info['inventory'] = play.vars._inventory.src()
+                pb_info['playbook_checksum'] = secure_hash(path)
+                pb_info['check'] = self.play_context.check_mode
+                pb_info['diff'] = self.play_context.diff
                 logmech.play_log(json.dumps(pb_info, indent=4))
 
             self._play_count += 1
@@ -245,10 +256,10 @@ class CallbackModule(CallbackBase):
             info = {}
             info['play'] = play.name
             info['hosts'] = play.hosts
-            info['transport'] = play.transport
+            info['transport'] = self.play_context.connection
             info['number'] = self._play_count
-            info['check'] = play.playbook.check
-            info['diff'] = play.playbook.diff
+            info['check'] = self.play_context.check_mode
+            info['diff'] = self.play_context.diff
             logmech.play_info = info
             logmech.play_log(json.dumps(info, indent=4))
 

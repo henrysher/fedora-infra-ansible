@@ -28,6 +28,11 @@ except ImportError:
     # Ansible v1 compat
     CallbackBase = object
 
+try:
+    from ansible.utils.hashing import secure_hash
+except ImportError:
+    from ansible.utils import md5 as secure_hash
+
 def getlogin():
     try:
         user = os.getlogin()
@@ -65,22 +70,21 @@ class CallbackModule(CallbackBase):
 
         super(CallbackModule, self).__init__()
 
+    def set_play_context(self, play_context):
+        self.play_context = play_context
+
     def v2_playbook_on_start(self, playbook):
         self.playbook = playbook
-        import q ; q.q(playbook)
-        import q ; q.q(dir(playbook))
 
     def v2_playbook_on_play_start(self, play):
         # This gets called once for each play.. but we just issue a message once
         # for the first one.  One per "playbook"
-        import q ; q.q(play)
-        import q ; q.q(dir(play))
         if self.playbook:
             # figure out where the playbook FILE is
-            path = os.path.abspath(self.playbook.filename)
+            path = os.path.abspath(self.playbook._file_name)
 
             # Bail out early without publishing if we're in --check mode
-            if self.playbook.check:
+            if self.play_context.check_mode:
                 return
 
             if not self.playbook_path:
@@ -89,10 +93,10 @@ class CallbackModule(CallbackBase):
                     msg=dict(
                         playbook=path,
                         userid=getlogin(),
-                        extra_vars=self.playbook.extra_vars,
-                        inventory=self.playbook.inventory.host_list,
-                        playbook_checksum=self.playbook.check,
-                        check=self.playbook.check,
+                        extra_vars=play.vars.extra_vars,
+                        inventory=play.vars._inventory.src(),
+                        playbook_checksum=secure_hash(path),
+                        check=self.play_context.check_mode,
                     ),
                 )
                 self.playbook_path = path
