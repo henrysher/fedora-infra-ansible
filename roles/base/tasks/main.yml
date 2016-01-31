@@ -227,30 +227,15 @@
   - config
   - base
 
-- name: log everything to log02 except on mirrorlist, do not log local4 there.
-  copy: src=rsyslog/rsyslog-log02 dest=/etc/rsyslog.d/rsyslog-log02.conf mode=644
-  when: not inventory_hostname.startswith('mirrorlist')
-  tags:
-  - rsyslogd
-  - config
-  - base
-
-- name: log everything to log02 except on mirrorlist, do not log local4 there.
-  copy: src=rsyslog/rsyslog-log02-nolocal4 dest=/etc/rsyslog.d/rsyslog-log02.conf mode=644
-  when: inventory_hostname.startswith('mirrorlist')
-  tags:
-  - rsyslogd
-  - config
-
 - name: log everything to log01 except on mirrorlist, do not log local4 there.
   copy: src=rsyslog/rsyslog-log01 dest=/etc/rsyslog.d/rsyslog-log01.conf mode=644
-  when: not inventory_hostname.startswith('mirrorlist') or not inventory_hostname.startswith('copr') or not inventory_hostname.startswith('jenkins')
+  when: not inventory_hostname.startswith('mirrorlist') or inventory_hostname.startswith('copr') or inventory_hostname.startswith('jenkins')
   tags:
   - rsyslogd
   - config
   - base
 
-- name: log everything to log01 except on mirrorlist, do not log local4 there.
+- name: log everything to log01 except on mirrorlist, do log local4 there.
   copy: src=rsyslog/rsyslog-log01-nolocal4 dest=/etc/rsyslog.d/rsyslog-log01.conf mode=644
   when: inventory_hostname.startswith('mirrorlist')
   tags:
