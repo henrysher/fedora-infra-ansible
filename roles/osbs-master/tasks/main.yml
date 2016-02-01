@@ -74,7 +74,7 @@
 
 - name: import the osbs-builder role
   command: oc replace --force=true --filename={{ osbs_openshift_home }}/role-osbs-builder.yml
-  environment: osbs_environment
+  environment: "{{ osbs_environment }}"
 
 - name: copy role bindings
   template: src=openshift-rolebinding.yml.j2 dest={{ osbs_openshift_home }}/rolebinding-{{ item.name }}.yml
@@ -94,7 +94,7 @@
 
 - name: import the role bindings
   command: oc replace --force=true --filename={{ osbs_openshift_home }}/rolebinding-{{ item }}.yml
-  environment: osbs_environment
+  environment: "{{ osbs_environment }}"
   with_items:
   - osbs-readonly
   - osbs-readwrite
@@ -105,7 +105,7 @@
 
 - name: import resource quotas
   command: oc replace --force=true --filename={{ osbs_openshift_home }}/resourcequota.yml
-  environment: osbs_environment
+  environment: "{{ osbs_environment }}"
 
 # Useful when using "oc" to inspect openshift state.
 - name: add KUBECONFIG to .bashrc
