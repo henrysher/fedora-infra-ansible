@@ -1,5 +1,5 @@
 - name: check to see if a mash is going on before we do anything...
-  hosts: bodhi-backend;bodhi-backend-stg
+  hosts: bodhi-backend:bodhi-backend-stg
   user: root
   vars_files: 
    - /srv/web/infra/ansible/vars/global.yml
@@ -18,7 +18,7 @@
     when: lockfile.rc == 0
 
 - name: push packages out
-  hosts: bodhi-backend;bodhi-backend-stg;bodhi2;bodhi2-stg
+  hosts: bodhi-backend:bodhi-backend-stg:bodhi2:bodhi2-stg
   user: root
   vars_files: 
    - /srv/web/infra/ansible/vars/global.yml
@@ -41,7 +41,7 @@
     when: testing
 
 - name: verify the frontend and stop it
-  hosts: bodhi2;bodhi2-stg
+  hosts: bodhi2:bodhi2-stg
   user: root
   vars_files: 
    - /srv/web/infra/ansible/vars/global.yml
@@ -63,7 +63,7 @@
   - service: name="httpd" state=stopped
 
 - name: verify the backends, stop them, and then upgrade the db
-  hosts: bodhi-backend;bodhi-backend-stg
+  hosts: bodhi-backend:bodhi-backend-stg
   user: root
   vars_files: 
    - /srv/web/infra/ansible/vars/global.yml
@@ -101,7 +101,7 @@
     ignore_errors: true
 
 - name: restart the frontend
-  hosts: bodhi2;bodhi2-stg
+  hosts: bodhi2:bodhi2-stg
   user: root
   vars_files: 
    - /srv/web/infra/ansible/vars/global.yml
