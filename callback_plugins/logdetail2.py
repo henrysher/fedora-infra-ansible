@@ -182,7 +182,7 @@ class CallbackModule(CallbackBase):
     def set_play_context(self, play_context):
         self.play_context = play_context
 
-    def runner_on_failed(self, result, ignore_errors=False):
+    def v2_runner_on_failed(self, result, ignore_errors=False):
         category = 'FAILED'
         logmech.log(result._host.get_name(), category, result._result, self.task, self._task_count)
 
