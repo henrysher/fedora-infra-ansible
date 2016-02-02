@@ -63,6 +63,15 @@ virt_install_command_two_nic: virt-install -n {{ inventory_hostname }}
                  --network bridge={{ main_bridge }},model=virtio --network=bridge={{ nfs_bridge }},model=virtio
                  --autostart --noautoconsole --watchdog default
 
+virt_install_command_rhel6: /usr/sbin/virt-install -n {{ inventory_hostname }}
+                 --memory={{ mem_size }},maxmemory={{ mem_size * 2 }}
+                 --disk bus=virtio,path={{ volgroup }}/{{ inventory_hostname }}
+                 --vcpus={{ num_cpus }},maxvcpus={{ num_cpus * 2 }}  -l {{ ks_repo }} -x 
+                 "ksdevice=eth0 ks={{ ks_url }} ip={{ eth0_ip }} netmask={{ nm }} 
+                  gateway={{ gw }} dns={{ dns }} console=tty0 console=ttyS0
+                  hostname={{ inventory_hostname }}" 
+                 --network=bridge=br0 --autostart --noautoconsole --watchdog default
+
 # This is the wildcard certname for our proxies.  It has a different name for
 # the staging group and is used in the proxies.yml playbook.
 wildcard_cert_name: wildcard-2014.fedoraproject.org
