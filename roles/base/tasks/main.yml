@@ -342,6 +342,17 @@
   - base
 
 #
+# Blacklist the cdc_ether module as we don't want it loading mgmt usb0 and spewing to logs. 
+#
+- name: Blacklist cdc_ether module
+  copy: src=blacklist-cdc_ether.conf dest=/etc/modprobe.d/blacklist-cdc_ether.conf
+  when: ansible_virtualization_role == 'host'
+  tags:
+  - config
+  - base
+  - cdc_ether
+
+#
 # Watchdog stuff
 #
 - name: See if there's a watchdog device
