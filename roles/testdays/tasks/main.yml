@@ -9,14 +9,14 @@
 
 - name: ensure database is created
   delegate_to: "{{ testdays_db_host }}"
-  sudo_user: postgres
-  sudo: true
+  become_user: postgres
+  become: true
   postgresql_db: db={{ testdays_db_name }}
 
 - name: ensure testdays db user has access to database
   delegate_to: "{{ testdays_db_host }}"
-  sudo_user: postgres
-  sudo: true
+  become_user: postgres
+  become: true
   postgresql_user: db={{ testdays_db_name }} user={{ testdays_db_user }} password={{ testdays_db_password }} role_attr_flags=NOSUPERUSER
 
 - name: ensure selinux lets httpd talk to postgres

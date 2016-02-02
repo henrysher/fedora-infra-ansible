@@ -33,14 +33,14 @@
 
 - name: clone initial git repos
   git: repo={{ item.url }} bare=yes dest={{ grokmirror_basedir }}/{{ item.name }} update=no
-  sudo: true
-  sudo_user: "{{ grokmirror_user }}"
+  become: true
+  become_user: "{{ grokmirror_user }}"
   with_items: grokmirror_repos
 
 - name: set up default branch
   command: chdir={{ grokmirror_basedir }}/{{ item.name }} git symbolic-ref HEAD refs/heads/{{ grokmirror_default_branch }}
-  sudo: true
-  sudo_user: "{{ grokmirror_user }}"
+  become: true
+  become_user: "{{ grokmirror_user }}"
   with_items: grokmirror_repos
 
 - name: generate grokmirror config

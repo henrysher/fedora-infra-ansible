@@ -77,8 +77,8 @@
     repo: https://bitbucket.org/rajcze/openqa_fedora
     dest: /var/lib/openqa/share/tests/fedora
   register: gittests
-  sudo: true
-  sudo_user: geekotest
+  become: true
+  become_user: geekotest
 
 - name: Check out openqa_fedora_tools
   git:
@@ -131,15 +131,15 @@
 
 - name: Create database
   delegate_to: "{{ openqa_dbhost }}"
-  sudo_user: postgres
-  sudo: true
+  become_user: postgres
+  become: true
   postgresql_db: db={{ openqa_dbname }}
   when: "openqa_dbhost is defined"
 
 - name: Ensure db user has access to database
   delegate_to: "{{ openqa_dbhost }}"
-  sudo_user: postgres
-  sudo: true
+  become_user: postgres
+  become: true
   postgresql_user: db={{ openqa_dbname }} user={{ openqa_dbuser }} password={{ openqa_dbpassword }} role_attr_flags=NOSUPERUSER
   when: "openqa_dbhost is defined"
 

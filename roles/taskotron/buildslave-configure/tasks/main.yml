@@ -1,19 +1,19 @@
 - name: create slave
-  sudo: true
-  sudo_user: "{{ slave_user }}"
+  become: true
+  become_user: "{{ slave_user }}"
   command: creates={{ slave_dir }} buildslave create-slave {{ slave_dir }} {{ buildmaster }} buildslave passwd
   when: deployment_type in ['local', 'qa-stg']
 
 - name: generate slave config
-  sudo: true
-  sudo_user: "{{ slave_user }}"
+  become: true
+  become_user: "{{ slave_user }}"
   template: src=buildbot.tac.j2 dest={{ slave_dir }}/buildbot.tac mode=0600 owner={{ slave_user }} group={{ slave_user }}
   when: deployment_type in ['local', 'qa-stg']
   #when: deployment_type == 'prod' or deployment_type == 'stg' or deployment_type == 'local'
 
 - name: generate slave info
-  sudo: true
-  sudo_user: "{{ slave_user }}"
+  become: true
+  become_user: "{{ slave_user }}"
   template: src={{ item }}.j2 dest={{ slave_dir }}/info/{{ item }} mode=0644 owner={{ slave_user }} group={{ slave_user }}
   with_items:
     - admin
@@ -47,32 +47,32 @@
 
 
 - name: create slave
-  sudo: true
-  sudo_user: '{{ item.user }}'
+  become: true
+  become_user: '{{ item.user }}'
   command: creates={{ item.dir }} buildslave create-slave {{ item.dir }} {{ buildmaster }} buildslave passwd
   with_items:
     - '{{ slaves|default([dict(user="", home="", dir="")]) }}'
   when: deployment_type in ['dev', 'stg', 'prod']
 
 - name: generate slave config
-  sudo: true
-  sudo_user: '{{ item.user }}'
+  become: true
+  become_user: '{{ item.user }}'
   template: src=buildbot.tac.j2 dest={{ item.dir }}/buildbot.tac mode=0600 owner={{ item.user }} group={{ slaves_group }}
   with_items:
     - '{{ slaves|default([dict(user="", home="", dir="")]) }}'
   when: deployment_type in ['dev', 'stg', 'prod']
 
 - name: generate slave admin info
-  sudo: true
-  sudo_user: '{{ item.user }}'
+  become: true
+  become_user: '{{ item.user }}'
   template: src=admin.j2 dest={{ item.dir }}/info/admin mode=0644 owner={{ item.user }} group={{ slaves_group }}
   with_items:
     - '{{ slaves|default([dict(user="", home="", dir="")]) }}'
   when: deployment_type in ['dev', 'stg', 'prod']
 
 - name: generate slave host info
-  sudo: true
-  sudo_user: '{{ item.user }}'
+  become: true
+  become_user: '{{ item.user }}'
   template: src=host.j2 dest={{ item.dir }}/info/host mode=0644 owner={{ item.user }} group={{ slaves_group }}
   with_items:
     - '{{ slaves|default([dict(user="", home="", dir="")]) }}'
