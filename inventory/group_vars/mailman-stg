@@ -26,16 +26,6 @@ fedmsg_certs:
   can_send:
   - mailman.receive
 
-# default virt install command is for a single nic-device
-# define in another group file for more nics (see buildvm)
-virt_install_command: virt-install -n {{ inventory_hostname }} -r {{ mem_size }}
-                 --disk bus=virtio,path={{ volgroup }}/{{ inventory_hostname }}
-                 --vcpus={{ num_cpus }}  -l {{ ks_repo }} -x
-                 "ksdevice=eth0 ks={{ ks_url }} ip={{ eth0_ip }} netmask={{ nm }}
-                  gateway={{ gw }} dns={{ dns }} console=tty0 console=ttyS0
-                  hostname={{ inventory_hostname }}"
-                 --network=bridge=br0 --autostart --noautoconsole
-
 # Postfix main.cf
 postfix_group: mailman-stg
 

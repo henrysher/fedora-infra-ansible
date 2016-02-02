@@ -10,15 +10,7 @@ nm: 255.255.255.0
 gw: 10.5.125.254
 eth1_gw: 10.5.127.254
 dns: 10.5.126.21
-virt_install_command: virt-install -n {{ inventory_hostname }} -r {{ mem_size }}
-                 --disk bus=virtio,path={{ volgroup }}/{{ inventory_hostname }}
-                 --vcpus={{ num_cpus }}  -l {{ ks_repo }} -x
-                 "net.ifnames=0 ksdevice=eth0 ks={{ ks_url }} console=tty0 console=ttyS0 
-                  hostname={{ inventory_hostname }} nameserver={{ dns }} 
-                  ip={{ eth0_ip }}::{{ gw }}:{{ nm }}:{{ inventory_hostname }}:eth0:none 
-                  ip={{ eth1_ip }}:::{{ nm }}:{{ inventory_hostname }}-nfs:eth1:none"
-                 --network=bridge=br0,model=virtio --network=bridge=br1,model=virtio
-                 --autostart --noautoconsole; sleep 5
+virt_install_command: "{{ virt_install_command_two_nic }}"
 
 # for systems that do not match the above - specify the same parameter in
 # the host_vars/$hostname file

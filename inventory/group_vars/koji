@@ -42,13 +42,4 @@ fedmsg_certs:
   - buildsys.untag
 
 nfs_mount_opts: "rw,hard,bg,intr,noatime,nodev,nosuid,nfsvers=3"
-
-virt_install_command: virt-install -n {{ inventory_hostname }} -r {{ mem_size }}
-                 --disk bus=virtio,path={{ volgroup }}/{{ inventory_hostname }}
-                 --vcpus={{ num_cpus }}  -l {{ ks_repo }} -x
-                 "ksdevice=eth0 ks={{ ks_url }} console=tty0 console=ttyS0
-                  hostname={{ inventory_hostname }} nameserver={{ dns }}
-                  ip={{ eth0_ip }}::{{ gw }}:{{ nm }}:{{ inventory_hostname }}:eth0:none
-                  ip={{ eth1_ip }}:::{{ nm }}:{{ inventory_hostname }}-nfs:eth1:none"
-                 --network=bridge=br0,model=virtio --network=bridge=br1,model=virtio
-                 --autostart --noautoconsole
+virt_install_command: "{{ virt_install_command_two_nic }}"
