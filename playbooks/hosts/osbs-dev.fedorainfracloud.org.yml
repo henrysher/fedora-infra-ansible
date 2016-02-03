@@ -46,20 +46,40 @@
     - osbs-master
     - {
       role: osbs-client,
-        default.openshift_url: 'https://osbs-dev.fedorainfracloud.org:8443/',
-        default.registry_url: 'https://osbs-dev.fedorainfracloud.org:5000/v2',
-        default.source_registry_uri: 'https://osbs-dev.fedorainfracloud.org:5000/v2',
-        build_host: 'osbs-dev.fedorainfracloud.org'
+        default: {
+          openshift_url: 'https://osbs-dev.fedorainfracloud.org:8443/',
+          registry_uri: 'https://osbs-dev.fedorainfracloud.org:5000/v2',
+          source_registry_uri: 'https://osbs-dev.fedorainfracloud.org:5000/v2',
+          build_host: 'osbs-dev.fedorainfracloud.org'
+          koji_root: http://koji.fedoraproject.org/koji
+          koji_hub: http://koji.fedoraproject.org/kojihub
+          sources_command: fedpkg sources
+          build_type: prod
+          authoritative_registry: registry.example.com
+          vendor: Fedora Project
+          verify_ssl: false
+          use_auth: false
+          builder_use_auth: true
+          distribution_scope: private
+          registry_api_versions: v2
+          builder_openshift_url: https://172.17.0.1:8443/
+        }
       }
     - {
       role: docker-distribution,
-        cert.private_path: "files/osbs/osbs-dev.certs",
-        cert.dir: "/etc/pki/docker/osbs-dev.fedorainfracloud.org:5000/",
-        cert.src_name: "osbs-dev.fedorainfracloud.org.crt",
-        cert.src_key_name: "osbs-dev.fedorainfracloud.org.key",
-        tls.enabled: True,
-        tls.certificate: "/etc/pki/docker/osbs-dev.fedorainfracloud.org:5000/ca.crt",
-        tls.key: "/etc/pki/docker/osbs-dev.fedorainfracloud.org:5000/ca.key",
+        cert: {
+          private_path: "files/osbs/osbs-dev.certs",
+          dir: "/etc/pki/docker/osbs-dev.fedorainfracloud.org:5000/",
+          src_name: "osbs-dev.fedorainfracloud.org.crt",
+          src_key_name: "osbs-dev.fedorainfracloud.org.key",
+          dest_name: "ca.crt",
+          dest_key_name: "ca.key"
+        },
+        tls: {
+          enabled: True,
+          certificate: "/etc/pki/docker/osbs-dev.fedorainfracloud.org:5000/ca.crt",
+          key: "/etc/pki/docker/osbs-dev.fedorainfracloud.org:5000/ca.key",
+        }
       }
 
 - name: post-install osbs tasks
