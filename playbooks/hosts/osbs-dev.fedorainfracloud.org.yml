@@ -89,6 +89,11 @@
     - /srv/private/ansible/vars.yml
     - /srv/private/ansible/files/openstack/passwords.yml
     - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+  vars:
+    osbs_kubeconfig_path: /etc/origin/master/admin.kubeconfig
+    osbs_environment:
+      KUBECONFIG: "{{ osbs_kubeconfig_path }}"
+
 
   tasks:
     - name: install docker
@@ -110,3 +115,4 @@
 
     - name: create fedora image stream for OpenShift
       shell: 'cat <<"EOF" | oc create -f - { "apiVersion": "v1", "kind": "ImageStream", "metadata": { "name": "fedora" }, "spec": { "dockerImageRepository": "osbs-dev.fedorainfracloud.org:5000/fedora" } } EOF'
+      environment: "{{ osbs_environment }}"
