@@ -23,33 +23,11 @@
   become: true
   postgresql_db: db={{ execdb_db_name }}
 
-- name: ensure dev execdb db user has access to dev database
-  when: deployment_type == 'dev'
+- name: ensure execdb db user has access to database
   delegate_to: "{{ execdb_db_host_machine }}"
   become_user: postgres
   become: true
   postgresql_user: db={{ execdb_db_name }} user={{ execdb_db_user }} password={{ execdb_db_password }} role_attr_flags=NOSUPERUSER
-
-- name: ensure stg execdb db user has access to stg database
-  when: deployment_type == 'stg'
-  delegate_to: "{{ execdb_db_host }}"
-  become_user: postgres
-  become: true
-  postgresql_user: db={{ execdb_db_name }} user={{ stg_execdb_db_user }} password={{ stg_execdb_db_password }} role_attr_flags=NOSUPERUSER
-
-- name: ensure prod execdb db user has access to prod database
-  when: deployment_type == 'prod'
-  delegate_to: "{{ execdb_db_host }}"
-  become_user: postgres
-  become: true
-  postgresql_user: db={{ execdb_db_name }} user={{ prod_execdb_db_user }} password={{ prod_execdb_db_password }} role_attr_flags=NOSUPERUSER
-
-- name: ensure local execdb db user has access to prod database
-  when: deployment_type == 'local'
-  delegate_to: "{{ execdb_db_host }}"
-  become_user: postgres
-  become: true
-  postgresql_user: db={{ execdb_db_name }} user={{ local_execdb_db_user }} password={{ local_execdb_db_password }} role_attr_flags=NOSUPERUSER
 
 - name: ensure selinux lets httpd talk to postgres
   seboolean: name=httpd_can_network_connect_db persistent=yes state=yes

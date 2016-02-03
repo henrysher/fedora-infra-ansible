@@ -24,25 +24,10 @@
   postgresql_db: db={{ resultsdb_db_name }}
 
 - name: ensure resultsdb db user has access to database
-  when: deployment_type == 'dev' or deployment_type == 'local'
   delegate_to: "{{ resultsdb_db_host_machine }}"
   become_user: postgres
   become: true
   postgresql_user: db={{ resultsdb_db_name }} user={{ resultsdb_db_user }} password={{ resultsdb_db_password }} role_attr_flags=NOSUPERUSER
-
-- name: ensure stg resultsdb db user has access to stg database
-  when: deployment_type == 'stg'
-  delegate_to: "{{ resultsdb_db_host }}"
-  become_user: postgres
-  become: true
-  postgresql_user: db={{ resultsdb_db_name }} user={{ stg_resultsdb_db_user }} password={{ stg_resultsdb_db_password }} role_attr_flags=NOSUPERUSER
-
-- name: ensure prod resultsdb db user has access to prod database
-  when: deployment_type == 'prod'
-  delegate_to: "{{ resultsdb_db_host }}"
-  become_user: postgres
-  become: true
-  postgresql_user: db={{ resultsdb_db_name }} user={{ prod_resultsdb_db_user }} password={{ prod_resultsdb_db_password }} role_attr_flags=NOSUPERUSER
 
 - name: ensure selinux lets httpd talk to postgres
   seboolean: name=httpd_can_network_connect_db persistent=yes state=yes
