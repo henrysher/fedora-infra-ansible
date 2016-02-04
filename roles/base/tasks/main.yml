@@ -19,6 +19,42 @@
   - resolvconf
   - base
 
+- name: disable resolv.conf control from NM
+  ini_file: dest=/etc/NetworkManager/NetworkManager.conf section=main option=dns value=none
+  notify:
+  - restart NetworkManager
+  when: ansible_distribution_major_version|int >=7
+  tags:
+   - config
+   - resolvconf
+   - base
+
+- name: get interface uuid
+  shell: nmcli -f "DEVICE,UUID" c show --active | grep -E '^eth|^br'
+  register: if_uuid
+  changed_when: false
+  failed_when: 'if_uuid.stdout == ""'
+  always_run: yes
+  when: ansible_distribution_major_version|int >=7
+  tags:
+   - config
+   - ifcfg
+   - base
+
+- name: copy ifcfg files - non virthost
+  template: src=ifcfg.j2 dest=/etc/sysconfig/network-scripts/ifcfg-{{item}} mode=644
+  with_items:
+  - "{{ ansible_interfaces }}"
+  notify:
+  - restart NetworkManager   
+  - reload NetworkManager
+  - apply interface-changes
+  when: (virthost is not defined) and (not item.startswith('tun')) and (hostvars[inventory_hostname]['ansible_' + item]['type'] == 'ether') and (ansible_distribution_major_version|int >=7) and hostvars[inventory_hostname]['ansible_' + item]['active']
+  tags:
+   - config
+   - ifcfg
+   - base
+
 - name: global default packages to install (yum)
   yum: state=present name={{ item }}
   with_items:
