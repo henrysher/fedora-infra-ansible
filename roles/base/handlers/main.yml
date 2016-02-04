@@ -1,3 +1,16 @@
 ---
 - name: restart watchdog
   service: name=watchdog state=restarted
+
+- name: restart NetworkManager
+  service: name=NetworkManager state=restarted
+
+- name: reload NetworkManager-connections
+  command: nmcli c reload
+
+- name: apply interface-changes
+  command: nmcli con up {{ item.split()[1] }}
+  async: 1
+  poll: 0
+  with_items:
+  - "{{ if_uuid.stdout_lines }}"
