@@ -24,9 +24,14 @@
   command: /usr/bin/test -f /usr/bin/nmcli
   register: nmclitest
   ignore_errors: true
-
-- name: debug some things
-  debug: var=ansible_ifcfg_blacklist
+  changed_when: false
+  failed_when: "1 != 1"
+  always_run: true
+  tags:
+   - config
+   - resolvconf
+   - base
+   - ifcfg
 
 - name: disable resolv.conf control from NM
   ini_file: dest=/etc/NetworkManager/NetworkManager.conf section=main option=dns value=none
