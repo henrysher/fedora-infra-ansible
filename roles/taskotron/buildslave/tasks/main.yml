@@ -38,9 +38,9 @@
 
 - name: ensure buildslaves group exists
   group: name={{ slaves_group }}
-  when: deployment_type in ['dev', 'stg', 'prod']
+  when: deployment_type == 'stg' or in ['dev', 'prod']
 
 - name: add buildslave users
   user: name={{ item.user }} group={{ slaves_group }} groups=testcloud home={{ item.home }}
   with_items: "{{ slaves }}"
-  when: deployment_type in ['dev', 'stg', 'prod']
+  when: deployment_type == 'stg' or in ['dev', 'prod']
