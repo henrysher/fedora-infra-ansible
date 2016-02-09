@@ -88,31 +88,21 @@
 - include: /srv/web/infra/ansible/playbooks/include/proxies-haproxy.yml
 - include: /srv/web/infra/ansible/playbooks/include/proxies-miscellaneous.yml
 
-#- name: Some after the after stuff for proxies.
-#  hosts: proxies-stg
-#  user: root
-#  gather_facts: False
 #
-#  vars_files:
-#   - /srv/web/infra/ansible/vars/global.yml
-#   - "/srv/private/ansible/vars.yml"
-#   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+# If this is an initial deployment, we need the initial ticketkey
+# If it's not, doesn't hurt to copy it over again
 #
-#  tasks:
+  - name: deploy ticket key
+    copy: src=/root/ticketkey_{{env}}.tkey dest=/etc/httpd/ticketkey_{{env}}.tkey
+          owner=root group=root mode=0600
+    notify:
+    - reload httpd
+
 #
-#  ## TODO - we should audit each one of these sebooleans to make sure they're
-#  ## really necessary.  The proxies are more forward-facing than other machines
-#  ## so we should take a little more care..
-#  ## Really, before we are generally allowing httpd to do stuff carte blanche,
-#  ## we should lock things down with 'semanage port' first.  See
-#  ## roles/fedmsg/base/ for an example.
-#  #
-#  #- name: Set some sebooleans
-#  #  seboolean: name={{item}} state=true persistent=true
-#  #  with_items:
-#  #  - httpd_can_network_connect_db
-#  #  - httpd_can_network_relay
-#  #  - httpd_can_network_connect
-#  #  - allow_ypbind
-#  #  tags:
-#  #  - selinux
+# If this is an initial deployment, make sure docs are synced over. 
+#
+  - name: make sure docs are synced. This could take a very very very logtime to finish
+    shell: /usr/local/bin/lock-wrapper docs-sync "/usr/local/bin/docs-sync" >& /dev/null
+    
+  - name: make sure selinux contexts are right on srv
+    command: restorecon -Rv /srv
