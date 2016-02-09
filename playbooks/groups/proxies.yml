@@ -79,30 +79,31 @@
 # out the proxy-specific configuration into a couple different sub-playbooks.
 # Othewise, this file would be unbearably long.
 
-  - include: /srv/web/infra/ansible/playbooks/include/proxies-certificates.yml
-  - include: /srv/web/infra/ansible/playbooks/include/proxies-websites.yml
-  - include: /srv/web/infra/ansible/playbooks/include/proxies-reverseproxy.yml
-  - include: /srv/web/infra/ansible/playbooks/include/proxies-rewrites.yml
-  - include: /srv/web/infra/ansible/playbooks/include/proxies-redirects.yml
-  - include: /srv/web/infra/ansible/playbooks/include/proxies-fedora-web.yml
-  - include: /srv/web/infra/ansible/playbooks/include/proxies-haproxy.yml
-  - include: /srv/web/infra/ansible/playbooks/include/proxies-miscellaneous.yml
+- include: /srv/web/infra/ansible/playbooks/include/proxies-certificates.yml
+- include: /srv/web/infra/ansible/playbooks/include/proxies-websites.yml
+- include: /srv/web/infra/ansible/playbooks/include/proxies-reverseproxy.yml
+- include: /srv/web/infra/ansible/playbooks/include/proxies-rewrites.yml
+- include: /srv/web/infra/ansible/playbooks/include/proxies-redirects.yml
+- include: /srv/web/infra/ansible/playbooks/include/proxies-fedora-web.yml
+- include: /srv/web/infra/ansible/playbooks/include/proxies-haproxy.yml
+- include: /srv/web/infra/ansible/playbooks/include/proxies-miscellaneous.yml
 
-#
-# If this is an initial deployment, we need the initial ticketkey
-# If it's not, doesn't hurt to copy it over again
-#
+  tasks:
+  #
+  # If this is an initial deployment, we need the initial ticketkey
+  # If it's not, doesn't hurt to copy it over again
+  #
   - name: deploy ticket key
     copy: src=/root/ticketkey_{{env}}.tkey dest=/etc/httpd/ticketkey_{{env}}.tkey
           owner=root group=root mode=0600
     notify:
     - reload httpd
 
-#
-# If this is an initial deployment, make sure docs are synced over. 
-#
+  #
+  # If this is an initial deployment, make sure docs are synced over. 
+  #
   - name: make sure docs are synced. This could take a very very very logtime to finish
     shell: /usr/local/bin/lock-wrapper docs-sync "/usr/local/bin/docs-sync" >& /dev/null
-    
+
   - name: make sure selinux contexts are right on srv
     command: restorecon -Rv /srv
