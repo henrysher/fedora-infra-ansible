@@ -88,6 +88,19 @@
 - include: /srv/web/infra/ansible/playbooks/include/proxies-haproxy.yml
 - include: /srv/web/infra/ansible/playbooks/include/proxies-miscellaneous.yml
 
+- name: Make sure we are deployed fully
+  hosts: proxies-stg:proxies
+  user: root
+  gather_facts: False
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"
+
   tasks:
   #
   # If this is an initial deployment, we need the initial ticketkey
