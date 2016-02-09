@@ -1,0 +1,22 @@
+---
+- name: ensure packages required for imagefactory are installed (dnf)
+  dnf: name={{ item }} state=present enablerepo={{ extra_enablerepos }}
+  with_items:
+    - imagefactory
+    - imagefactory-plugins
+    - imagefactory-plugins-TinMan
+
+- name: copy imagefactory.conf config file
+  copy: src=imagefactory.conf dest=/etc/imagefactory/imagefactory.conf owner=root group=root mode=0644
+
+- name: enable imagefactory
+  service: name=imagefactoryd state=started enabled=yes
+
+- name: create directory for shared built images
+  file: path={{ imagefactory_shared_dir }} state=directory owner={{ imagefactory_user }} group={{ imagefactory_user }} mode=1755
+
+- name: Check out our imagefactory tools
+  git:
+    repo: https://bitbucket.org/fedoraqa/base_images
+    dest: '{{imagefactory_user_home}}/base_images'
+    update: yes
