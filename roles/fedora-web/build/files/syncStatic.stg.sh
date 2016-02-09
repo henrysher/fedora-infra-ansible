@@ -45,7 +45,7 @@ cd /srv/web/fedora-web
 
 /usr/bin/git clean -q -fdx || exit 1
 /usr/bin/git reset -q --hard || exit 1
-/usr/bin/git checkout -q two-week-atomic || exit 1
+/usr/bin/git checkout -q flock2016 || exit 1
 
 /usr/bin/git pull -q --ff-only || exit 1
 build spins.fedoraproject.org
