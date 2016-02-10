@@ -89,7 +89,7 @@ config = dict(
             channel='fedora-commops',
             filters=dict(
                 topic=[
-                    '^((?!(planet|fedora_elections|meetbot\.meeting\.item\.help|meetbot\.meeting\.complete|fedocal\.meeting\.new|fedocal\.meeting\.update|fedocal\.meeting\.delete|fedocal\.calendar|fas\.group\.member\.sponsor|fedbadges\.person\.login\.first|pagure\.project\.new|askbot\.post\.flag_offensive|anitya\.distro\.add)).)*$',
+                    '^((?!(planet|fedora_elections|meetbot\.meeting\.item\.help|meetbot\.meeting\.complete|fedocal\.meeting\.new|fedocal\.meeting\.update|fedocal\.meeting\.delete|fedocal\.calendar|fas\.group\.member\.sponsor|pagure\.project\.new|askbot\.post\.flag_offensive|anitya\.distro\.add)).)*$',
                 ],
             ),
         ),
@@ -108,7 +108,7 @@ config = dict(
             channel='fedora-commops',
             filters=dict(
                 topic=[
-                    '(planet|fedora_elections|meetbot\.meeting\.item\.help|meetbot\.meeting\.complete|fedocal\.meeting\.new|fedocal\.meeting\.update|fedocal\.meeting\.delete|fedocal\.calendar|fas\.group\.member\.sponsor|fedbadges\.person\.login\.first|pagure\.project\.new|askbot\.post\.flag_offensive|anitya\.distro\.add)',
+                    '(planet|fedora_elections|meetbot\.meeting\.item\.help|meetbot\.meeting\.complete|fedocal\.meeting\.new|fedocal\.meeting\.update|fedocal\.meeting\.delete|fedocal\.calendar|fas\.group\.member\.sponsor|pagure\.project\.new|askbot\.post\.flag_offensive|anitya\.distro\.add)',
                 ],
                 body=['^((?!commops).)*$'],
             ),
