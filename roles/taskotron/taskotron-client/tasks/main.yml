@@ -78,3 +78,10 @@
 - name: enable libvirtd
   service: name=libvirtd state=started enabled=yes
   when: deployment_type in ['dev', 'stg', 'prod']
+
+- name: upload custom libvirt network config
+  copy: src=default.xml dest=/root/default.xml owner=root group=root mode=0644
+  when: deployment_type in ['dev', 'stg', 'prod']
+
+- name: define libvirt network config
+  command: virsh-define /root/default.xml
