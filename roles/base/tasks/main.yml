@@ -237,12 +237,14 @@
 
 - name: enable journald persistence
   file: path=/var/log/journal state=directory
-        owner=root group=root mode=0600
+        owner=root group=systemd-journal mode=0600
   when: ansible_distribution_major_version|int >= 7
   tags:
   - journald
   - config
   - base
+  notify:
+  - flush journald tmpfiles to persistent store
 
 - name: rsyslog.conf
   copy: src={{ item }} dest=/etc/rsyslog.conf mode=644
