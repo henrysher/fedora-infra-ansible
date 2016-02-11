@@ -6,6 +6,14 @@
   mount: name=/var/lib/copr-keygen src='LABEL=copr-keygen' fstype=ext4 state=mounted
   when: not devel
 
+- name: install obs-signd
+  yum: name="obs-signd" enablerepo="updates-testing" state=present
+
+- name: install copr-keygen
+  yum: name="copr-keygen" enablerepo="updates-testing" state=present
+  notify:
+  - restart haveged
+
 - name: change owner of data to copr-signer
   shell: "chown -R copr-signer:copr-signer /var/lib/copr-keygen"
 
@@ -18,15 +26,6 @@
 
 - name: make sure there is gnupg2 2.0.x as temporary workaround till we add support of v4 to obs-sign
   shell: rpm -Uvh --force https://kojipkgs.fedoraproject.org/work/tasks/164/12940164/gnupg2-2.0.29-1.fc22.x86_64.rpm
-
-
-- name: install obs-signd
-  yum: name="obs-signd" enablerepo="updates-testing" state=present
-
-- name: install copr-keygen
-  yum: name="copr-keygen" enablerepo="updates-testing" state=present
-  notify:
-  - restart haveged
 
 - name: put keygen vhost for httpd
   copy: src="httpd/copr-keygen.conf" dest="/etc/httpd/conf.d/copr-keygen.conf"
