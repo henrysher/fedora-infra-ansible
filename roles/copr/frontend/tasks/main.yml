@@ -8,6 +8,12 @@
   command: "restorecon -vvRF /var/lib/pgsql"
   when: pgsql_ls.stdout is defined and 'postgresql_db_t' not in  pgsql_ls.stdout
 
+# BZ 1241507
+ - name: install copr-frontend
+   shell: yum-deprecated install -y copr-frontend || yum install -y copr-frontend
+ - name: install copr-selinux
+   shell: yum-deprecated install -y copr-selinux || yum install -y copr-selinux
+
 - name: install pkgs for copr-frontend
   dnf: state=present pkg={{ item }}
   with_items:
