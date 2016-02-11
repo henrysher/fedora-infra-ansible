@@ -32,6 +32,9 @@
 - name: create user for copr-git service
   user: name="copr-service" groups=apache,packager generate_ssh_key=yes ssh_key_bits=2048 ssh_key_file=.ssh/id_rsa
 
+- name: make sure directories are owned by copr-service user
+  shell: chown -R copr-service:copr-service /var/log/copr-dist-git /var/lib/copr-dist-git
+
 # set ssh key, so that copr-service could access gitolite
 - name: read pub key into var
   command: cat /home/copr-service/.ssh/id_rsa.pub
