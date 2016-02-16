@@ -1,6 +1,9 @@
 - name: install copr repo
   copy: src="copr.repo" dest="/etc/yum.repos.d/copr.repo"
 
+- name: set bigger timeout for yum
+  ini_file: dest=/etc/yum.conf section=main option=timeout value=1000
+
 - name: install pkgs
   yum: state=present pkg={{ item }}
   with_items:
@@ -20,6 +23,10 @@
     - scl-utils-build
     - ethtool
 #    - fedpkg-copr
+
+- name: set bigger timeout for dnf
+  ini_file: dest=/etc/dnf/dnf.conf section=main option=timeout value=1000
+
 # BZ 1241507
 - shell: yum-deprecated install -y fedpkg-copr || yum install -y fedpkg-copr
 
