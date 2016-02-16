@@ -15,14 +15,23 @@
 - name: enable imagefactory
   service: name=imagefactoryd state=started enabled=yes
 
-- name: add the imgfac user
-  user: name={{imagefactory_user}}
-
-- name: create directory for shared built images
-  file: path={{ imagefactory_shared_dir }} state=directory owner={{ imagefactory_user }} group={{ imagefactory_user }} mode=1755
+- name: create directory for git clone
+  file: path=/var/lib/fedoraqa state=directory owner=root group=root mode=1755
 
 - name: Check out our imagefactory tools
   git:
     repo: https://bitbucket.org/fedoraqa/base_images
-    dest: '{{imagefactory_user_home}}/base_images'
+    dest: '/var/lib/fedoraqa/base_images'
     update: yes
+
+- name: Create cronjob to build new images
+  cron:
+    name: "Build new taskotron_cloud images in ImageFactory"
+    hour: "3"
+    job: '/var/lib/fedoraqa/base_images/trigger_build/trigger_build.py build --release 23 --arch x86_64 --flavor="taskotron_cloud" --disksize="3G"'
+
+- name: Create cronjob to prune old
+  cron:
+    name: "Prune old taskotron_cloud images in ImageFactory"
+    hour: "5"
+    job: '/var/lib/fedoraqa/base_images/trigger_build/trigger_build.py prune-old --keep 5'
