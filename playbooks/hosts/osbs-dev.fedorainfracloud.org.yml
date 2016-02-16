@@ -72,12 +72,12 @@
           dir: "/etc/pki/docker/osbs-dev.fedorainfracloud.org:5000/",
           src_name: "osbs-dev.fedorainfracloud.org.crt",
           src_key_name: "osbs-dev.fedorainfracloud.org.key",
-          dest_name: "ca.crt",
+          dest_name: "ca.cert",
           dest_key_name: "ca.key"
         },
         tls: {
           enabled: True,
-          certificate: "/etc/pki/docker/osbs-dev.fedorainfracloud.org:5000/ca.crt",
+          certificate: "/etc/pki/docker/osbs-dev.fedorainfracloud.org:5000/ca.cert",
           key: "/etc/pki/docker/osbs-dev.fedorainfracloud.org:5000/ca.key",
         }
       }
@@ -118,6 +118,9 @@
       environment: "{{ osbs_environment }}"
       args:
         creates: /etc/osbs_fedora_imagestream_created
+
+    - name: make sure latest fedora image is pulled and pushed to osbs registry
+      shell: docker pull fedora && docker tag -f fedora:latest osbs-dev.fedorainfracloud.org:5000/fedora:latest && docker push osbs-dev.fedorainfracloud.org:5000/fedora:latest
 
     - name: create buildroot container
       shell: atomic-reactor create-build-image --reactor-tarball-path /usr/share/atomic-reactor/atomic-reactor.tar.gz /usr/share/atomic-reactor/images/dockerhost-builder buildroot
