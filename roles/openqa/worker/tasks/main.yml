@@ -7,26 +7,6 @@
 ##      string - hostname of openQA server to run jobs for
 ##      default - localhost
 
-- name: Ensure DNF COPR plugin is available
-  dnf: pkg="dnf-command(copr)" state=present
-  tags:
-  - packages
-
-- name: Install openQA repo if needed
-  command: "dnf -y copr enable adamwill/openQA"
-  args:
-    creates: /etc/yum.repos.d/_copr_adamwill-openQA.repo
-  tags:
-  - config
-
-- name: Install openQA staging repo if needed
-  command: "dnf -y copr enable adamwill/openQA-stg"
-  args:
-    creates: /etc/yum.repos.d/_copr_adamwill-openQA-stg.repo
-  when: deployment_type == "stg"
-  tags:
-  - config
-
 - name: Install packages
   dnf: name={{ item }} state=present enablerepo=adamwill-openQA
   with_items:
