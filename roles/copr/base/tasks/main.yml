@@ -21,12 +21,18 @@
 
 - name: copy .forward file
   copy: src="{{ _forward_src }}" dest="/root/.forward" owner=root group=root
+  tags:
+  - config
 
 - name: deploy /etc/hosts file
   copy: src="hosts" dest=/etc/ owner=root group=root mode=644
+  tags:
+  - config
 
 - name: install copr repo
   copy: src="yum/copr.repo" dest="/etc/yum.repos.d/copr.repo"
+  tags:
+  - config
 
 - name: install common copr packages
   dnf: state=present pkg={{ item }}
