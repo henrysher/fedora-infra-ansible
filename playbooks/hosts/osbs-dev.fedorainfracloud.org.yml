@@ -46,6 +46,11 @@
     - osbs-master
     - {
       role: osbs-client,
+        general: {
+          verbose: 0,
+          build_json_dir: '/usr/share/osbs/',
+          openshift_required_version: 1.1.0,
+        },
         default: {
           openshift_url: 'https://osbs-dev.fedorainfracloud.org:8443/',
           registry_uri: 'https://osbs-dev.fedorainfracloud.org:5000/v2',
@@ -96,6 +101,11 @@
 
 
   tasks:
+    - name: override DNS for internal host network
+      lineinfile:
+        dest: /etc/hosts
+        line: "{{ ansible_default_ipv4.address }} osbs osbs-dev.fedorainfracloud.org"
+
     - name: install docker
       action: "{{ ansible_pkg_mgr }} name=docker state=installed"
 
