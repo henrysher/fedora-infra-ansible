@@ -1,5 +1,5 @@
 #
-# This is a base koji_builder role. 
+# This is a base koji_builder role.
 #
 - name: set root passwd
   user: name=root password={{ builder_rootpw }} state=present
@@ -27,7 +27,7 @@
   - koji_builder
 
 - name: add kojibuilder
-  user: name=kojibuilder groups=mock 
+  user: name=kojibuilder groups=mock
   tags:
   - koji_builder
 
@@ -72,6 +72,7 @@
   with_items:
     - yum-utils
     - koji-builder
+    - koji-containerbuild-builder
     - strace
     - mock
     - kernel-firmware
@@ -101,6 +102,7 @@
   with_items:
     - yum-utils
     - koji-builder
+    - koji-containerbuild-builder
     - strace
     - mock
     - kernel-firmware
@@ -187,7 +189,7 @@
   - koji_builder
 
 - name: copy over builder cert to /etc/kojid/kojibuilder.pem
-  copy: src="{{ private }}/files/koji/buildercerts/{{ inventory_hostname }}.pem" dest=/etc/kojid/kojibuilder.pem mode=600   
+  copy: src="{{ private }}/files/koji/buildercerts/{{ inventory_hostname }}.pem" dest=/etc/kojid/kojibuilder.pem mode=600
   tags:
   - koji_builder
 
@@ -277,20 +279,20 @@
   - koji_builder
 
 - name: set kernel params for more loops
-  command: /sbin/grubby --update-kernel=ALL --args=max_loop=64 
+  command: /sbin/grubby --update-kernel=ALL --args=max_loop=64
   when: max_loop is defined and max_loop.stdout.find("max_loop=64") == -1
   tags:
   - koji_builder
 
 #
 # x86_64 builders run pungify, that needs hfs module in order to make
-# The efi/mac images. This module is only needed on rhel. 
+# The efi/mac images. This module is only needed on rhel.
 #
 
 - name: special pkgs for the x86_64 builders
   yum: state=present pkg={{ item }}
   with_items:
-  - kmod-hfsplus    
+  - kmod-hfsplus
   when: is_rhel is defined and ansible_architecture == 'x86_64' and ansible_distribution_major_version|int == '6'
   tags:
   - koji_builder
