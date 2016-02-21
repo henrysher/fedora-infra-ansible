@@ -16,6 +16,9 @@ class URLShortener
 {
     public function shorten($long_url)
     {
+        if(preg_match('/^http(s)?:\/\/(.+).fedoraproject.org\/(\d+)\/(\d+)\/$/', $long_url)) {
+            return $long_url;
+        }
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL,"http://ur1.ca/");
         curl_setopt($ch, CURLOPT_POST, 1); 
