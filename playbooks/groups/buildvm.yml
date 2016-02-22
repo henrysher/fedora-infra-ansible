@@ -1,4 +1,4 @@
-# create a new koji builder
+# create a new koji builder 
 # NOTE: should be used with --limit most of the time
 # NOTE: make sure there is room/space for this builder on the buildvmhost
 # NOTE: most of these vars_path come from group_vars/buildvm or from hostvars
@@ -10,7 +10,7 @@
   user: root
   gather_facts: True
 
-  vars_files:
+  vars_files: 
    - /srv/web/infra/ansible/vars/global.yml
    - "/srv/private/ansible/vars.yml"
    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
@@ -22,47 +22,20 @@
   - base
   - hosts
   - apache
-  - { role: nfs/client,
-      when: ( ansible_architecture == 'x86_64' or ansible_architecture == 'ppc64le' or ansible_architecture == 'ppc64' ) and not inventory_hostname.startswith('buildvm-ppc64'),
+  - { role: nfs/client, 
+      when: ( ansible_architecture == 'x86_64' or ansible_architecture == 'ppc64le' or ansible_architecture == 'ppc64' ) and not inventory_hostname.startswith('buildvm-ppc64'), 
       mnt_dir: '/mnt/fedora_koji',  nfs_src_dir: 'fedora_koji' }
-  - { role: nfs/client,
-      when: inventory_hostname.startswith('aarch64') ,
+  - { role: nfs/client, 
+      when: inventory_hostname.startswith('aarch64') , 
       mnt_dir: '/mnt/fedora_koji',  nfs_src_dir: 'fedora_arm/data' }
-  - { role: nfs/client,
-      when: inventory_hostname.startswith('buildvm-ppc64') ,
+  - { role: nfs/client, 
+      when: inventory_hostname.startswith('buildvm-ppc64') , 
       mnt_dir: '/mnt/fedora_koji',  nfs_src_dir: 'fedora_ppc/data' }
-  - { role: nfs/client,
+  - { role: nfs/client, 
       when: datacenter == 'staging', mnt_dir: '/mnt/fedora_koji',  nfs_src_dir: 'fedora_koji' }
   - { role: fas_client, when: not inventory_hostname.startswith('bkernel') }
   - { role: sudo, when: not inventory_hostname.startswith('bkernel') }
   - koji_builder
-  - {
-      role: osbs-client,
-        when: env == "staging",
-        general: {
-          verbose: 0,
-          build_json_dir: '/usr/share/osbs/',
-          openshift_required_version: 1.1.0,
-        },
-        default: {
-          openshift_url: 'https://{{ osbs_fqdn }}:8443/',
-          registry_uri: 'https://{{ docker_registry }}:5000/v2',
-          source_registry_uri: 'https://{{ docker_registry }}:5000/v2',
-          build_host: '{{ osbs_fqdn }}',
-          koji_root: 'http://{{ koji_root }}',
-          koji_hub: 'http://{{ koji_hub }}',
-          sources_command: 'fedpkg sources',
-          build_type: 'prod',
-          authoritative_registry: 'registry.example.com',
-          vendor: 'Fedora Project',
-          verify_ssl: false,
-          use_auth: false,
-          builder_use_auth: true,
-          distribution_scope: 'private',
-          registry_api_versions: 'v2',
-          builder_openshift_url: 'https://172.17.0.1:8443/'
-        }
-    }
 
   tasks:
   - include: "{{ tasks }}/2fa_client.yml"
