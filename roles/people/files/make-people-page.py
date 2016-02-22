@@ -147,6 +147,7 @@ for user in users_list_array:
     username = user[0]
     user_homedir = user[1]
     user_name = subprocess.check_output("getent passwd {} | cut -d: -f5".format(username), shell=True)
+    user_name = user_name.decode('utf-8')
 
     prefix_length = len("{} : ".format(user[0]))
     user_groups = subprocess.check_output(["groups", user[0]])[prefix_length:-1]
