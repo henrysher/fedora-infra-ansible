@@ -3,14 +3,13 @@
 # mkdir /srv/git_seed
 # cron job to invoke file daily
 # Need to setup OUTPUT_DIR to be served by apache
-# modified by doteast
-# modified by alda
 
 # Where the git repos live.  These are bare repos
 ORIGIN_DIR=/srv/git/repositories
 
 # Where we'll create the repos to tar up
 WORK_DIR=/srv/git_seed
+
 # Subdirectory makes cleanup easier
 SEED_DIR=$WORK_DIR/git-checkout
 
@@ -31,26 +30,37 @@ DATE=`date +'%Y%m%d'`
 echo "$TIMESTAMP" > $SEED_DIR/TIMESTAMP
 
 
-for repo in $ORIGIN_DIR/*.git ; do 
-  working_tree=$SEED_DIR/$(basename $repo .git)
+for repo in $ORIGIN_DIR/*.git ; do
+  bname=$(basename $repo .git)
+  working_tree=$SEED_DIR/$bname
+# uncomment to skip processing dead.package repos
+#  if [ -e $working_tree/dead.package ]; then
+#  continue
+#  fi
   if [ -d $working_tree ] ; then
     pushd $working_tree &> /dev/null
-    sed -i "s@url = .*@url = $repo@" $working_tree/.git/config 
+    sed -i "s@url = .*@url = $repo@" $working_tree/.git/config
     git pull --all &> /dev/null
-    sed -i "s@url = .*@url = git://pkgs.fedoraproject.org/$(basename $repo .git)@" $working_tree/.git/config 
+    sed -i "s@url = .*@url = git://pkgs.fedoraproject.org/$bname@" $working_tree/.git/config
     popd &>/dev/null
-    if [ -e $working_tree/$(basename $repo .git).spec ]; then
-      cp $working_tree/$(basename $repo .git).spec $SPEC_DIR/
+    if [ -e $working_tree/dead.package ]; then
+      rm -f $working_tree/$bname.spec
+      rm -f $SPEC_DIR/$bname.spec
+    elif [ -e $working_tree/$bname.spec ]; then
+      cp $working_tree/$bname.spec $SPEC_DIR/
     fi
   else
     pushd $SEED_DIR &>/dev/null
     git clone $repo &> /dev/null
     popd &>/dev/null
-    sed -i "s@url = .*@url = git://pkgs.fedoraproject.org/$(basename $repo .git)@" $working_tree/.git/config
-    if [ -e $working_tree/$(basename $repo .git).spec ]; then
-      cp $working_tree/$(basename $repo .git).spec $SPEC_DIR/
+    sed -i "s@url = .*@url = git://pkgs.fedoraproject.org/$bname@" $working_tree/.git/config
+    if [ -e $working_tree/dead.package ]; then
+      rm -f $working_tree/$bname.spec
+      rm -f $SPEC_DIR/$bname.spec
+    elif [ -e $working_tree/$bname.spec ]; then
+      cp $working_tree/$bname.spec $SPEC_DIR/
     fi
-    fi
+  fi
 done
 
 tar -cf - -C$WORK_DIR $(basename $SEED_DIR)|xz -2 > $OUTPUT_DIR/.git-seed-$DATE.tar.xz
