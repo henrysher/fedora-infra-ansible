@@ -16,7 +16,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-import subprocess, os, hashlib
+import subprocess, os, hashlib, stat, grp
 from jinja2 import Template
 
 page_jinja_template = """
@@ -170,5 +170,18 @@ for user in users_list_array:
 page_jinja_template_obj = Template(page_jinja_template)
 page_output = page_jinja_template_obj.render(users=sorted(users.items()))
 
-with open('index.html', 'w') as handle:
+out_file = '/srv/people/site/index.html'
+
+# get gid for web group
+out_file_grp = grp.getgrnam("web").gr_gid;
+
+with open(out_file, 'w') as handle:
     handle.write(page_output.encode('utf-8'))
+
+# keep current owner uid
+out_file_uid = os.stat(out_file).st_uid
+
+# give write permissions to group
+os.chmod(out_file, stat.IWGRP)
+# chown out file to group
+os.chown(out_file, out_file_uid, out_file_grp)
