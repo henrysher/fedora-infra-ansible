@@ -184,6 +184,6 @@ with open(out_file, 'w') as handle:
 out_file_uid = os.stat(out_file).st_uid
 
 # give write permissions to group
-os.chmod(out_file, stat.IWGRP)
+os.chmod(out_file, stat.S_IWGRP)
 # chown out file to group
 os.chown(out_file, out_file_uid, out_file_grp)
