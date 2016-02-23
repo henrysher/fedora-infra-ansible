@@ -21,7 +21,7 @@ import subprocess, os, hashlib, stat, grp
 from jinja2 import Template
 
 page_jinja_template = """
-<DOCTYPE html>
+<!DOCTYPE html>
 <html>
 <head>
     <title>Fedora People</title>
