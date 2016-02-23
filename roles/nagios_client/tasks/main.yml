@@ -16,7 +16,7 @@
   - nagios-plugins-ping
   tags:
   - packages
-  - nagios_client
+  - nagios/client
   when: ansible_distribution_major_version|int < 22
 
 # install pkgs:
@@ -34,7 +34,7 @@
   - nagios-plugins-ping
   tags:
   - packages
-  - nagios_client
+  - nagios/client
   when: ansible_distribution_major_version|int > 21
 
 - name: install local nrpe check scripts that are not packaged
@@ -57,7 +57,7 @@
   - check_testcloud
   when: not inventory_hostname.startswith('noc')
   tags:
-  - nagios_client
+  - nagios/client
 
 # create dirs
 # puppet used to make /var/spool/nagios (owned by nagios.nagios) mode 750
@@ -89,7 +89,7 @@
   - restart nrpe
   tags:
   - config
-  - nagios_client
+  - nagios/client
 
 #
 # The actual items files here end in .j2 (they are templates)
@@ -127,7 +127,7 @@
   - restart nrpe
   tags:
   - config
-  - nagios_client
+  - nagios/client
 
 #
 # The actual items files here end in .j2 (they are templates)
@@ -139,7 +139,7 @@
   notify:
   - restart nrpe
   tags:
-  - nagios_client
+  - nagios/client
 #
 # The actual items files here end in .j2 (they are templates)
 # So when adding or modifying them change the .j2 version in git.
@@ -150,7 +150,7 @@
   notify:
   - restart nrpe
   tags:
-  - nagios_client
+  - nagios/client
 #
 # The actual items files here end in .j2 (they are templates)
 # So when adding or modifying them change the .j2 version in git.
@@ -161,7 +161,7 @@
   notify:
   - restart nrpe
   tags:
-  - nagios_client
+  - nagios/client
 #
 # The actual items files here end in .j2 (they are templates)
 # So when adding or modifying them change the .j2 version in git.
@@ -172,7 +172,7 @@
   notify:
   - restart nrpe
   tags:
-  - nagios_client
+  - nagios/client
 
 - name: install nrpe checks for proxies
   template: src={{ item }}.j2 dest=/etc/nrpe.d/{{ item }}
@@ -183,13 +183,13 @@
   notify:
   - restart nrpe
   tags:
-  - nagios_client
+  - nagios/client
 
 - name: nrpe service start
   service: name=nrpe state=running enabled=true
   tags:
   - service
-  - nagios_client
+  - nagios/client
 
 - name: Check if the fedmsg group exists
   shell: /usr/bin/getent group fedmsg | /usr/bin/wc -l | tr -d ' '
@@ -197,10 +197,10 @@
   always_run: true
   changed_when: "1 != 1"
   tags:
-  - nagios_client
+  - nagios/client
 
 - name: Add nrpe user to the fedmsg group if it exists
   user: name=nrpe groups=fedmsg append=yes
   when: fedmsg_exists.stdout == "1"
   tags:
-  - nagios_client
+  - nagios/client
