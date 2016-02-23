@@ -1,0 +1,123 @@
+#! /usr/bin/perl -w
+
+# check_lock_file_age.pl Copyright (C) 2010 Ricky Elrod <codeblock@fedoraproject.org>
+#
+# Fork of check_file_age.pl
+#
+# Checks a lock file's size and modification time to make sure it's not empty
+# and that it's sufficiently recent.
+#
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty
+# of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# you should have received a copy of the GNU General Public License
+# along with this program (or with Nagios);  if not, write to the
+# Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+# Boston, MA 02111-1307, USA
+
+use strict;
+use English;
+use Getopt::Long;
+use File::stat;
+use vars qw($PROGNAME);
+use lib "/usr/lib64/nagios/plugins";
+use utils qw (%ERRORS &print_revision &support);
+
+sub print_help ();
+sub print_usage ();
+
+my ($opt_c, $opt_f, $opt_w, $opt_h, $opt_V);
+my ($result, $message, $age, $size, $st);
+
+$PROGNAME="check_lock_file_age";
+
+$opt_w = 1;
+$opt_c = 5;
+$opt_f = "";
+
+Getopt::Long::Configure('bundling');
+GetOptions(
+	"V"   => \$opt_V, "version"	=> \$opt_V,
+	"h"   => \$opt_h, "help"	=> \$opt_h,
+	"f=s" => \$opt_f, "file"	=> \$opt_f,
+	"w=f" => \$opt_w, "warning-age=f" => \$opt_w,
+	"c=f" => \$opt_c, "critical-age=f" => \$opt_c);
+
+if ($opt_V) {
+	print_revision($PROGNAME, '1.4.14');
+	exit $ERRORS{'OK'};
+}
+
+if ($opt_h) {
+	print_help();
+	exit $ERRORS{'OK'};
+}
+
+if (($opt_c and $opt_w) and ($opt_c < $opt_w)) {
+        print "Warning time must be less than Critical time.\n";
+        exit $ERRORS{'UNKNOWN'};
+}
+
+$opt_f = shift unless ($opt_f);
+
+if (! $opt_f) {
+	print "LOCK_FILE_AGE UNKNOWN: No file specified\n";
+	exit $ERRORS{'UNKNOWN'};
+}
+
+# Check that file exists (can be directory or link)
+unless (-e $opt_f) {
+	print "LOCK_FILE_AGE OK: File not found (Lock file removed) - $opt_f\n";
+	exit $ERRORS{'OK'};
+}
+
+$st = File::stat::stat($opt_f);
+$age = time - $st->mtime;
+
+$result = 'OK';
+
+# Convert minutes to seconds
+if($opt_c) { $opt_c *= 60; }
+if($opt_w) { $opt_w *= 60; }
+
+if ($opt_c and $age > $opt_c) {
+	$result = 'CRITICAL';
+}
+elsif ($opt_w and $age > $opt_w) {
+	$result = 'WARNING';
+}
+
+# If the age is higher than 2 minutes, convert seconds -> minutes
+# If it's higher than a day, use days.
+# Just a nicety, to make people not have to do math ;)
+if($age > 86400) { $age = int(($age/86400))." days"; }
+elsif($age > 120) { $age = int(($age/60))." minutes"; }
+else { $age = "$age seconds"; }
+
+print "LOCK_FILE_AGE $result: $opt_f is $age old.\n";
+exit $ERRORS{$result};
+
+sub print_usage () {
+	print "Usage:\n";
+	print "  $PROGNAME [-w <secs>] [-c <secs>] -f <file>\n";
+	print "  $PROGNAME [-h | --help]\n";
+	print "  $PROGNAME [-V | --version]\n";
+}
+
+sub print_help () {
+	print_revision($PROGNAME, '1.4.14');
+	print "Copyright (c) 2010 Ricky Elrod\n\n";
+	print_usage();
+	print "\n";
+	print "  <mins>  File must be no more than this many minutes old (default: warn 1m, crit 5m)\n";
+	print "\n";
+	support();
+}
