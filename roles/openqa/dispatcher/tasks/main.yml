@@ -2,10 +2,10 @@
 # - openqa_hostname
 ##      string - hostname of openQA server to run jobs for
 ##      default - localhost
-# - openqa_triggers
-##      list - the timers to enable - i.e. which scheduled runs
-##             will actually be triggered by this dispatcher
-##      default - ['current', 'branched', 'rawhide', 'stable']
+# - openqa_consumer
+##      bool - whether to enable the fedmsg consumer and run whenever
+##             a compose completes
+##      default - true
 #
 # Optional vars
 # - wikitcms_user
@@ -72,6 +72,25 @@
     chdir: /root/openqa_fedora_tools-dispatcher/scheduler
   when: "gittools|changed or not insttools.stat.exists"
 
+# TEMPORARY one-time cleanup of old systemd units/timers
+- name: Disable and stop old systemd timers
+  service: name=openqa-trigger-{{ item }}.timer enabled=no state=stopped
+  with_items:
+  - branched
+  - current
+  - rawhide
+  - stable
+
+- name: Delete old systemd timer and unit files
+  file: path=/usr/lib/systemd/systemd/openqa-{{ item }} state=absent
+  with_items:
+  - trigger-branched.timer
+  - trigger-current.timer
+  - trigger-rawhide.timer
+  - trigger-stable.timer
+  - trigger-nightly@.service
+  - trigger@.service
+
 - name: Reload systemd config to pick up installed units
   command: "systemctl daemon-reload"
   when: "gittools|changed or not insttools.stat.exists"
@@ -98,6 +117,6 @@
   tags:
   - config
 
-- name: Enable and start timers
-  service: name=openqa-trigger-{{ item }}.timer enabled=yes state=started
-  with_items: "{{ openqa_triggers }}"
+- name: Enable and start consumer
+  service: name=openqa-consumer.server enabled=yes state=started
+  when: "openqa_consumer is defined and openqa_consumer"
