@@ -1,0 +1,87 @@
+#!/usr/bin/python -tt
+import os
+import sys
+import copy
+import itertools
+
+from ansible import plugins
+from ansible.errors import AnsibleOptionsError
+from ansible.plugins.callback import CallbackBase
+from ansible.plugins.callback import default
+from ansible.cli.adhoc import AdHocCLI
+ALIAS_PATH = '/srv/web/infra/hosts/{hostname}/host_aliases'
+
+
+class ResultAccumulator(CallbackBase):
+    def __init__(self, *args, **kwargs):
+        super(ResultAccumulator, self).__init__(*args, **kwargs)
+        self.unreachable = set()
+        self.host_status = {}
+        self.sshhostkeys = {}
+
+    def v2_runner_on_unreachable(self, result):
+        self.unreachable.add(result._host.get_name())
+
+    def v2_runner_on_ok(self, result, *args, **kwargs):
+        facts = result._result['ansible_facts']
+        key = "ssh-rsa {0}".format(facts['ansible_ssh_host_key_rsa_public'])
+
+        names = [result._host.get_name()]
+        ansible_fqdn = facts['ansible_fqdn']
+        if ansible_fqdn not in names:
+            names.append(ansible_fqdn)
+
+        ansible_hostname = facts['ansible_hostname']
+        if ansible_hostname not in names:
+           if ansible_fqdn.find('.stg.') != -1 or result._host.get_name().find('.stg.') != -1:
+             names.append(ansible_hostname+".stg")
+           else:
+             names.append(ansible_hostname)
+
+        try:
+            with open(ALIAS_PATH.format(hostname=result._host.get_name()),
+                      "rb") as alias_file:
+                aliases = [a.strip() for a in alias_file.readlines()]
+            for alias in aliases:
+                if alias not in names:
+                    names.append(alias)
+        except IOError:
+            pass
+
+        ipv4_addresses = facts["ansible_default_ipv4"]
+        if ipv4_addresses:
+         names.append(ipv4_addresses["address"])
+
+        # ignore link local addresses
+        non_link_local = facts["ansible_default_ipv6"]
+        if non_link_local:
+         names.append(non_link_local["address"])
+
+        #get tunnel addresses; hardcoded to tun0
+        if facts.has_key('ansible_tun0'):
+         tunnel_addresses=facts["ansible_tun0"]
+         names.append(tunnel_addresses['ipv4']['address'])
+
+        self.sshhostkeys[result._host.get_name()] = {"key": key,
+                                 "names": ",".join(names)}
+
+if __name__ == '__main__':
+    args = copy.copy(sys.argv)
+    args.extend(['-m', 'setup'])
+    cb = ResultAccumulator()
+    cli = AdHocCLI(copy.copy(args), callback=cb)
+    try:
+        cli.parse()
+    except AnsibleOptionsError:
+        if len(cli.args) != 1:
+            cli.args = copy.copy(args)
+            cli.args.append('all')
+        cli.parse()
+    
+    cli.run()
+
+    for host in cb.unreachable:
+        sys.stderr.write('unreachable: %s\n' % host)
+
+    for host in sorted(cb.sshhostkeys.items()):
+     print "{names} {key} {comment}".format(comment=host[0],**host[1])
