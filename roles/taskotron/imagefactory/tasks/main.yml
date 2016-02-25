@@ -24,14 +24,18 @@
     dest: '/var/lib/fedoraqa/base_images'
     update: yes
 
+- name: Generate configuration
+  template: src=config_server.ini.j2 dest=/etc/taskotron_base_images/config_server.ini owner=root group=root mode=0644
+
 - name: Create cronjob to build new images
   cron:
     name: "Build new taskotron_cloud images in ImageFactory"
     special_time: daily
-    job: '/var/lib/fedoraqa/base_images/trigger_build/trigger_build.py build --release 23 --arch x86_64 --flavor="taskotron_cloud" --disksize="3G" > /dev/null'
+    job: '/var/lib/fedoraqa/base_images/trigger_build/trigger_build.py build --config /etc/taskotron_base_images/config_server.ini --release 23 --arch x86_64 --flavor="taskotron_cloud" --disksize="3G" > /dev/null'
 
-- name: Create cronjob to prune old
+- name: Create cronjob to report failed builds
   cron:
-    name: "Prune old taskotron_cloud images in ImageFactory"
+    name: "Report failed build in ImageFactory"
     special_time: daily
-    job: '/var/lib/fedoraqa/base_images/trigger_build/trigger_build.py prune-old --keep 5 > /dev/null'
+    job: '/var/lib/fedoraqa/base_images/report_failures/report_failures.py email --config /etc/taskotron_base_images/config_server.ini > /dev/null'
+
