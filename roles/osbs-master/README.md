@@ -87,6 +87,14 @@ Limit on the number of running pods.
 
     osbs_master_max_pods: 3
 
+[Image garbage
+collection](https://docs.openshift.org/latest/admin_guide/garbage_collection.html#image-garbage-collection)
+can be configured with following variables:
+
+    osbs_image_gc_high_threshold: 90
+    osbs_image_gc_low_threshold: 80
+
+
 Dependencies
 ------------
 

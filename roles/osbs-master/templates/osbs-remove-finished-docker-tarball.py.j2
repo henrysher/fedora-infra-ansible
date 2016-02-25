@@ -1,0 +1,54 @@
+#!/usr/bin/python
+
+# This file was installed by ansible from role osbs-master.
+
+import os
+import re
+import shutil
+import syslog
+
+import koji
+
+SERVER = '{{ osbs_export_koji_hub }}'
+PARENT = '{{ osbs_export_dir }}'
+
+session = koji.ClientSession(SERVER)
+
+
+syslog.openlog('remove-finished-docker-tarball')
+
+for task_dir in os.listdir(PARENT):
+    if not task_dir.startswith('task-'):
+        continue
+
+    match = re.match('^task-(\d+)$', task_dir)
+    if not match:
+        continue
+    task_id = int(match.group(1))
+
+    if not task_id:
+        continue
+
+    children_tasks = session.getTaskInfo(task_id)
+    if 'parent' not in children_tasks or children_tasks['parent'] is None:
+        continue
+    parent_task_id = children_tasks['parent']
+    builds = session.listBuilds(taskID=parent_task_id)
+
+    for build in builds:
+        build['state'] = koji.BUILD_STATES.get(build['state'], 'BADSTATE')
+
+        if build['state'] in ('BUILDING', 'BADSTATE'):
+            continue
+
+
+        image_msg = '%s %s %s' % (task_id, build['build_id'], build['state'])
+
+        full_path = os.path.join(PARENT, task_dir)
+        try:
+            syslog.syslog('Removing %s (%s)' % (full_path, image_msg))
+            shutil.rmtree(full_path)
+        except OSError, exception:
+            syslog.syslog('Failed to remove %s (%s): %s' % (full_path,
+                                                            image_msg,
+                                                            exception))
