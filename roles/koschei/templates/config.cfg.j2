@@ -13,22 +13,13 @@ config = {
         "server": "http://{{ koschei_koji_hub }}/kojihub",
         "topurl": "http://{{ koschei_kojipkgs }}",
         "weburl": "http://{{ koschei_koji_web }}/koji",
-        {% if env == 'staging' %}
         "srpm_relative_path_root": "../vol/prod",
-        {% endif %}
-        {% if env == 'staging' %}
-        {# upcoming config change #}
         "login_method": "ssl_login",
         "login_args": {
             "cert": "/etc/koschei/koschei.pem",
             "ca": "/etc/koschei/fedora-ca.cert",
             "serverca": "/etc/koschei/fedora-ca.cert",
         },
-        {% else %}
-        "cert": "/etc/koschei/koschei.pem",
-        "ca": "/etc/koschei/fedora-ca.cert",
-        "server_ca": "/etc/koschei/fedora-ca.cert",
-        {% endif %}
         "source_tag": "{{ koschei_koji_tag }}",
         "target_tag": "{{ koschei_koji_tag }}",
         "build_tag": "{{ koschei_koji_tag }}-build",
@@ -38,10 +29,7 @@ config = {
         },
         "load_threshold": 0.65,
         "task_priority": 30,
-        {% if env == 'staging' %}
-        {# upcoming config change #}
         "repo_url": "http://{{ koschei_kojipkgs }}/repos/{build_tag}/{repo_id}/{arch}",
-        {% endif %}
     },
     "dependency": {
         "build_group": "build",
@@ -50,21 +38,15 @@ config = {
         "keep_build_deps_for": 1,
         "local": False,
         "arches": ['x86_64', 'i386'],
-        {% if env != 'staging' %}
-        "remote_repo": "http://{{ koschei_kojipkgs }}/repos/{{ koschei_koji_tag }}-build/{repo_id}/{arch}",
-        {% endif %}
-        # For upcoming paraller resolver
         "cache_l1_capacity": 4,
         "cache_l2_capacity": 128,
         "cache_l1_threads": 1,
         "cache_l2_threads": 1,
         "cache_threads_max": 2,
-        {# hawkey on el7 doesn't support ignore_weak_deps and Koji is not
-         ignoring them either
-        {% if env == 'staging' %}
+        {% if False %}
+        {# hawkey on el7 doesn't support ignore_weak_deps and Koji is not ignoring them either #}
         "ignore_weak_deps": True,
         {% endif %}
-        #}
     },
     "services": {
         "watcher": {
