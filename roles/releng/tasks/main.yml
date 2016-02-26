@@ -43,6 +43,13 @@
 - name: add masher koji ca upload cert
   copy: src="{{ private }}/files/koji/buildercerts/fedora-ca.cert" dest=/home/masher/.fedora-upload-ca.cert
 
+- name: add releng koji cert/key
+  copy: src="{{ private }}/files/releng_key_and_cert.pem" dest=/root/.fedora.cert mode=600 owner=root group=root
+- name: add masher koji ca cert
+  copy: src="{{ private }}/files/koji/buildercerts/fedora-ca.cert" dest=/root/.fedora-server-ca.cert
+- name: add masher koji ca upload cert
+  copy: src="{{ private }}/files/koji/buildercerts/fedora-ca.cert" dest=/root/.fedora-upload-ca.cert
+
 - name: add koji ca cert to central system ca-trust
   copy: src="{{ private }}/files/koji/buildercerts/fedora-ca.cert" dest=/etc/pki/ca-trust/source/anchors/fedora-server-ca.cert
 - name: update ca-trust
@@ -96,6 +103,8 @@
     - createrepo
     - pykickstart
     - pyliblzma
+    - pungi
+    - compose-utils
     - httpd
   when: ansible_distribution_major_version|int > 21
 
@@ -111,18 +120,22 @@
   with_items:
     - fedora-22-compose-armhfp.cfg
     - fedora-23-compose-armhfp.cfg
+    - fedora-24-compose-armhfp.cfg
     - fedora-branched-compose-armhfp.cfg
     - fedora-rawhide-compose-armhfp.cfg
     - fedora-22-compose-i386.cfg
     - fedora-23-compose-i386.cfg
+    - fedora-24-compose-i386.cfg
     - fedora-branched-compose-i386.cfg
     - fedora-rawhide-compose-i386.cfg
     - fedora-22-compose-x86_64.cfg
     - fedora-23-compose-x86_64.cfg
+    - fedora-24-compose-x86_64.cfg
     - fedora-branched-compose-x86_64.cfg
     - fedora-rawhide-compose-x86_64.cfg
     - fedora-22-compose-aarch64.cfg
     - fedora-23-compose-aarch64.cfg
+    - fedora-24-compose-aarch64.cfg
     - fedora-branched-compose-aarch64.cfg
     - fedora-rawhide-compose-aarch64.cfg
 
