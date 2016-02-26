@@ -1,0 +1,21 @@
+#!/bin/bash
+
+##
+## This script is used to sync data from main download servers to
+## secondary server at ibiblio.
+##
+
+RSYNC='/usr/bin/rsync'
+RS_OPT="-avSHP  --numeric-ids"
+RS_DEADLY="--delete --delete-excluded --delete-delay --delay-updates"
+ALT_EXCLUDES=""
+EPL_EXCLUDES=""
+FED_EXCLUDES=""
+
+SERVER=dl.fedoraproject.org
+
+# The Buffet.
+${RSYNC} ${RS_OPT} ${RS_DEADLY} ${ALT_EXCLUDES} ${SERVER}::fedora-buffet0/  /srv/pub/ | tail -n2 | logger -p local0.notice -t rsync_updates_alt_stg
+
+# Let MM know I'm all up to date
+#/usr/bin/report_mirror
