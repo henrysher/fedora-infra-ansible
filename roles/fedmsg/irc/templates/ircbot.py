@@ -295,6 +295,28 @@ config = dict(
                 body=['^((?!\/srv\/git\/docs).)*$'],
             ),
         ),
+
+        # And #fedora-websites
+        dict(
+            network='chat.freenode.net',
+            port=6667,
+            make_pretty=True,
+            make_terse=True,
+
+            {% if env == 'staging' %}
+            nickname='websites-bot-stg',
+            {% else %}
+            nickname='websites-bot',
+            {% endif %}
+            channel='#fedora-websites',
+            # If the word fedora-websites appears in any message, forward it.
+            filters=dict(
+                topic=[
+                    '^((?!(pagure)).)*$',
+                ],
+                body=['^((?!fedora-websites).)*$'],
+            ),
+        ),
     ],
 
     ### Possible colors are ###
