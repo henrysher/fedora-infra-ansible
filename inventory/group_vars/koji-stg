@@ -1,5 +1,5 @@
 ---
-# Define resources for this group of hosts here. 
+# Define resources for this group of hosts here.
 lvm_size: 250000
 mem_size: 8192
 num_cpus: 8
@@ -41,3 +41,16 @@ sudoers: "{{ private }}/files/sudo/releng-sudoers"
 koji_server_url: "http://koji.stg.fedoraproject.org/kojihub"
 koji_weburl: "http://koji.stg.fedoraproject.org/koji"
 koji_topurl: "http://kojipkgs.fedoraproject.org/"
+
+osbs_fqdn: "osbs-dev.fedorainfracloud.org"
+docker_registry: "osbs-dev.fedorainfracloud.org"
+koji_root: "koji.stg.fedoraproject.org/koji"
+koji_hub: "koji.stg.fedoraproject.org/kojihub"
+
+
+# Add custom iptable rule to allow stage koji to talk to
+# osbs-dev.fedorainfracloud.org (will move to stage osbs later, this is for the
+# sake of testing).
+custom_rules: [
+    '-A OUTPUT -p tcp -m tcp -d 209.132.184.60 --dport 8443 -j ACCEPT'
+]

@@ -39,6 +39,12 @@
   tasks:
   - include: "provision_builder_tasks.yml"
 
+  - get_url: url=https://kojipkgs.fedoraproject.org//packages/mock/1.2.15/1.fc22/noarch/mock-1.2.15-1.fc22.noarch.rpm dest=/tmp/
+    when: ansible_distribution == 'Fedora' and ansible_distribution_major_version|int == 22
+
+  - yum: state=present name=/tmp/mock-1.2.15-1.fc22.noarch.rpm
+    when: ansible_distribution == 'Fedora' and ansible_distribution_major_version|int == 22
+
   - name: disable offloading
     command: ethtool -K enp0s1 tso off gro off gso off
 
