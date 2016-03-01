@@ -1,0 +1,18 @@
+- name: Copy in the sync-budget cronjob
+  copy: src=cron-sync-budget dest=/etc/cron.d/sync-budget
+  tags:
+  - fedora-web
+  - fedora-web/budget
+
+- name: Copy some config files for {{website}}
+  copy: >
+    src={{item}} dest=/etc/httpd/conf.d/{{website}}/{{item}}
+    owner=root group=root mode=0644
+  with_items:
+  - budget.conf
+  - languages.conf
+  notify:
+  - reload httpd
+  tags:
+  - fedora-web
+  - fedora-web/budget

@@ -11,6 +11,7 @@ SITES="boot.fedoraproject.org \
        flocktofedora.org \
        spins.fedoraproject.org \
        labs.fedoraproject.org \
+       budget.fedoraproject.org \
        arm.fedoraproject.org \
        start.fedoraproject.org"
 
