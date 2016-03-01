@@ -27,10 +27,7 @@ if not BASEURL.endswith('/'):
 # Why do we have this?  Seems insecure....
 sys.path.append('.')
 
-try:
-    import koji
-except:
-    import brew as koji
+import koji
 
 extraArchList = {'kernel': ('i586', 'i686', 'noarch'),
                 'kernel-xen-2.6': ('i586', 'i686', 'noarch'),
@@ -82,70 +79,56 @@ if __name__ == '__main__':
         print "ERROR: no tag specified!\n"
         usage()
 
-    if tag.endswith('epel') or tag.startswith('epel'):
-        if tag.startswith('epel'):
-            version = tag.split('epel')[1]
-        else:
-            version = tag.split('-')[1][:-1]
+    if tag.startswith('epel'):
+        version = tag.split('epel')[1]
+    else:
+        version = tag.split('-')[1][:-1]
 
-        data = requests.get(urljoin(BASEURL, 'api/collections'), verify=VERIFY).json()
-        branch_names = set()
-        for collection in (c for c in data['collections'] if c['status'] != 'EOL'):
-            ### TODO: check with pingou that this is now returning the same
-            # format as the collection names in api/vcs
-            # By moving the data from gitbranchname into branchname, I think
-            # that the data will now match
-            branch_names.add(collection['branchname'])
+    data = requests.get(urljoin(BASEURL, 'api/collections'), verify=VERIFY).json()
+    branch_names = set()
+    for collection in (c for c in data['collections'] if c['status'] != 'EOL'):
+        ### TODO: check with pingou that this is now returning the same
+        # format as the collection names in api/vcs
+        # By moving the data from gitbranchname into branchname, I think
+        # that the data will now match
+        branch_names.add(collection['branchname'])
 
-        if tag.startswith('epel'):
-            # Ex: epel7 => epel7
-            reponame = tag
-        else:
-            # Ex: dist-6E-epel => el6
-            reponame = 'el%s' % version
-        if reponame not in branch_names:
-            print 'tag %s => repo %s: does not seem to be a non-EOL branch' % (tag, reponame)
-            sys.exit(1)
-
-        # EPEL needs a separate entry in koji for each epel version
-
-        data = requests.get(urljoin(BASEURL, 'api/vcs?format=json'), verify=VERIFY).json()
-        acls = data['rpms']
-        pkgs = {}
-        for pkg_name in acls:
-            try:
-                owners = acls[pkg_name][reponame]
-            except KeyError:
-                # Package is not branched for this release
-                continue
-            if len(owners['commit']['people']):
-                # Arbitrarily take the first committer listed as the owner in
-                # koji
-                pkgs[pkg_name] = owners['commit']['people'][0]
-            else:
-                pkgs[pkg_name] = 'orphan'
-        pkgList = pkgs.keys()
-        BuildEPEL = True
+    if tag.startswith('epel'):
+        # Ex: epel7 => epel7
+        reponame = tag
+        arches = ["primary"]
+    elif tag.endswith('epel'):
+        # Ex: dist-6E-epel => el6
+        reponame = 'el%s' % version
         arches = ["primary"]
     else:
-        # Fedora only needs one entry per package for all Fedora releases
-        # Use the owner from bugzilla for simplicity
-        data = requests.get(urljoin(BASEURL, 'api/bugzilla?format=json'), verify=VERIFY).json()
-        acls = data['bugzillaAcls']
-        pkgList = acls['Fedora'].keys()
-        pkgs = {}
-        for pkg in acls['Fedora']:
-            owner = acls['Fedora'][pkg]['owner']
-            owner = owner.replace('group::', '').replace('@', '')
-            pkgs[pkg] = owner
-
-        #pkgs = dict(((p, acls['Fedora'][p]['owner']) for p in acls['Fedora']))
-        BuildEPEL = False
+        # Fedora  
+        reponame = tag
 {% if env == 'staging' %}
         arches = ["primary"]
 {% else %}
         arches = ["primary", "arm", "ppc", "s390"]
 {% endif %}
+    if reponame not in branch_names:
+        print 'tag %s => repo %s: does not seem to be a non-EOL branch' % (tag, reponame)
+        sys.exit(1)
+
+    data = requests.get(urljoin(BASEURL, 'api/vcs?format=json'), verify=VERIFY).json()
+    acls = data['rpms']
+    pkgs = {}
+    for pkg_name in acls:
+        try:
+            owners = acls[pkg_name][reponame]
+        except KeyError:
+            # Package is not branched for this release
+            continue
+        if len(owners['commit']['people']):
+            # Arbitrarily take the first committer listed as the owner in
+            # koji
+            pkgs[pkg_name] = owners['commit']['people'][0]
+        else:
+            pkgs[pkg_name] = 'orphan'
+    pkgList = pkgs.keys()
     pkgList.sort()
 
     options = get_options()
