@@ -47,7 +47,7 @@ config = {
 {% if env == 'staging' %}
         'server': 'https://koji.stg.fedoraproject.org/kojihub',
         'weburl': 'http://koji.stg.fedoraproject.org/koji',
-        'git_url': 'http://pkgs.stg.fedoraproject.org/cgit/{package}.git',
+        'git_url': 'http://pkgs01.stg.phx2.fedoraproject.org/cgit/{package}.git',
 {% else %}
         'server': 'https://koji.fedoraproject.org/kojihub',
         'weburl': 'http://koji.fedoraproject.org/koji',
