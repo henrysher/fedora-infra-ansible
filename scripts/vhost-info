@@ -1,119 +1,116 @@
-#!/usr/bin/python -tt
+#!/usr/bin/python2
 # by skvidal
+# ported by doteast to ansible 2.0
 # gplv2+
 # print out the ACTUAL freemem - not overcommitted value
 
 
 import sys
-import ansible.runner
-import os
-
+from collections import namedtuple
+from ansible.parsing.dataloader import DataLoader
+from ansible.vars import VariableManager
+from ansible.inventory import Inventory
+from ansible.playbook.play import Play
+from ansible.executor.task_queue_manager import TaskQueueManager
+from ansible.plugins.callback import CallbackBase
 from optparse import OptionParser
 
-def parse_args(args):
-    parser = OptionParser(version = "1.0")
-    parser.add_option('--host', default=[], action='append',
-               help="hosts to act on, defaults to ALL")
-    parser.add_option('--timeout', default=30, type='int',
-               help='set the wait timeout for func commands')
-    parser.add_option('--hosts-from-file', default=None, dest="hostfile",
-               help="read list of hosts from this file, if '-' read from stdin")
-    (opts, args) = parser.parse_args(args)
 
-    if opts.hostfile:
-        hosts = []
-        if opts.hostfile == '-':
-            hosts = sys.stdin.readlines()
-        else:
-            hosts = open(opts.hostfile, 'r').readlines()
-
-        for hn in hosts:
-            hn = hn.strip()
-            if hn.startswith('#'):
-                continue
-            hn = hn.replace('\n', '')
-            opts.host.append(hn)
-
-    if not opts.host:
-        opts.host = ["virthost*"]
-
-    return opts, args, parser
+class OutputCallback(CallbackBase):
+    def __init__(self, *args, **kwargs):
+        super(OutputCallback, self).__init__(*args, **kwargs)
+        self.unreachable = set()
+        self.cpu_per_host = {}
+        self.mem_per_host = {}
+        self.mem_used_in_vm = {}
+        self.cpu_used_in_vm = {}
 
 
-opts, args, parser = parse_args(sys.argv[1:])
-hosts ='*'
-if opts.host:
-    hosts = ';'.join(opts.host)
+    def v2_runner_on_unreachable(self, result):
+        self.unreachable.add(result._host.get_name())
 
-if os.geteuid() == 0:
-    login = 'root'
+    def v2_runner_on_ok(self, result, *args, **kwargs):
+        vhostname=result._host.get_name()
+        if result._result['invocation']['module_args']['command'] == 'nodeinfo':
+         self.cpu_per_host[vhostname]=int(result._result['cpus'])
+         self.mem_per_host[vhostname]=int(result._result['phymemory'])
+
+
+        if result._result['invocation']['module_args']['command'] == 'info':
+         mem_used = 0
+         cpu_used = 0
+         for vm in result._result.keys():
+          if vm not in ['invocation', 'changed', '_ansible_no_log']:
+           if vm and type(result._result[vm]) == dict:
+            mem_used += int(result._result[vm]['memory'])/1024
+            cpu_used += int(result._result[vm]['nrVirtCpu'])
+    
+         self.mem_used_in_vm[vhostname]=mem_used
+         self.cpu_used_in_vm[vhostname]=cpu_used
+
+parser = OptionParser(version = "1.0")
+parser.add_option('--host', default=[], action='append', help="hosts to act on, defaults to virthosts")
+parser.add_option('--hosts-from-file', default=None, dest="host_file", help="read list of hosts from this file")
+(opts, args) = parser.parse_args(sys.argv[1:])
+
+if not opts.host:
+ hosts = ["virthosts"]
 else:
-    login = os.getlogin()
+ hosts = ';'.join(opts.host)
 
-# get results of nodeinfo phymemory
-#    "phymemory": "24018", 
-
-
-errors = []
-
-# Setup some dictionaries for storing intermediate results
-mem_per_host = {}
-mem_used_in_vm = {}
-cpu_per_host = {}
-cpu_used_in_vm = {}
-
-# We end up running ansible twice here.  These are the common arguments.
-# We'll use two different commands of the 'virt' ansible module.
-ansible_args = dict(
-    pattern=hosts,
-    module_name='virt',
-    forks=25,
-    transport='paramiko',
-    timeout=10,
-    remote_user=login,
-)
-
-ans = ansible.runner.Runner(module_args='command=nodeinfo', **ansible_args)
-res = ans.run()
-
-for hn in sorted(res['contacted']):
-    if 'failed' in res['contacted'][hn] and res['contacted'][hn]['failed']:
-        continue
-    mem_per_host[hn] = int(res['contacted'][hn]['phymemory'])
-    cpu_per_host[hn] = int(res['contacted'][hn]['cpus'])
+if not opts.host:
+ hosts = ["virthosts"]
+else:
+ hosts = ';'.join(opts.host)
 
 
-ans = ansible.runner.Runner(module_args='command=info', **ansible_args)
-res = ans.run()
 
-for hn in sorted(res['contacted']):
-    mem_used = 0
-    cpu_used = 0
-    if 'failed' in res['contacted'][hn] and res['contacted'][hn]['failed']:
-        errors.append('Failed to contact/run virt lookups on %s' % hn)
-        continue
+Options = namedtuple('Options', ['connection','module_path', 'forks', 'remote_user', 'private_key_file', 'ssh_common_args', 'ssh_extra_args', 'sftp_extra_args', 'scp_extra_args', 'become', 'become_method', 'become_user', 'verbosity', 'check', 'timeout'])
 
-    for vm in sorted(res['contacted'][hn]):
-        info = res['contacted'][hn][vm]
+# initialize needed objects
+variable_manager = VariableManager()
+loader = DataLoader()
 
-        if vm == 'Domain-0':
-            continue
-        elif type(info) != dict:
-            continue
-
-        mem_used += int(info.get('memory', 0))/1024
-        cpu_used += info.get('nrVirtCpu', 0)
-        
-    mem_used_in_vm[hn] = mem_used
-    cpu_used_in_vm[hn] = cpu_used
+options = Options(connection='ssh', module_path=None, forks=25, remote_user=None, private_key_file=None, ssh_common_args=None, ssh_extra_args=None, sftp_extra_args=None, scp_extra_args=None, become=None, become_method=None, become_user=None, verbosity=None, check=False, timeout=10)
 
 
-for hn in sorted(mem_per_host):
-    freemem = mem_per_host[hn] - mem_used_in_vm[hn]
-    freecpu = cpu_per_host[hn] - cpu_used_in_vm[hn]
+# create inventory and pass to var manager
+if opts.host_file:
+ inventory = Inventory(loader=loader, variable_manager=variable_manager, host_list=opts.host_file)
+else:
+ inventory = Inventory(loader=loader, variable_manager=variable_manager)
+ 
+variable_manager.set_inventory(inventory)
+
+
+# create play with tasks
+play_source =  dict(
+        name = "vhost-info",
+        hosts = hosts,
+        gather_facts = 'no',
+        tasks = [ dict(action=dict(module='virt', args=dict(command='nodeinfo'))), dict(action=dict(module='virt', args=dict(command='info'))) ]
+    )
+play = Play().load(play_source, variable_manager=variable_manager, loader=loader)
+
+
+cb=OutputCallback()
+tqm = None
+try:
+    tqm = TaskQueueManager(
+              inventory=inventory,
+              variable_manager=variable_manager,
+              loader=loader,
+              options=options,
+              passwords=None,run_additional_callbacks=False,
+              stdout_callback=cb,
+          )
+    result = tqm.run(play)
+finally:
+    if tqm is not None:
+        tqm.cleanup()
+for vhostname in sorted(cb.mem_per_host):
+    freemem = cb.mem_per_host[vhostname] - cb.mem_used_in_vm[vhostname]
+    freecpu = cb.cpu_per_host[vhostname] - cb.cpu_used_in_vm[vhostname]
     print '%s:\t%s/%s mem(unused/total)\t%s/%s cpus(unused/total)' % (
-        hn, freemem, mem_per_host[hn], freecpu, cpu_per_host[hn])
+        vhostname, freemem, cb.mem_per_host[vhostname], freecpu, cb.cpu_per_host[vhostname])
 
-
-for err in errors:
-    print >> sys.stderr, err
