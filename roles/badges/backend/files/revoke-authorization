@@ -13,6 +13,7 @@ import transaction
 import sys
 
 from tahrir_api.dbapi import TahrirDatabase
+import tahrir_api.model
 
 import fedmsg
 import fedmsg.config
@@ -60,20 +61,23 @@ def main(tahrir, nickname, badge_id):
         print "No such badge %r" % badge_id
         sys.exit(1)
 
-    authz = tahrir.session.query(tahrir.model.Authorization)\
-        .filter_by(tahrir.model.Authorization.badge_id=badge.id)\
-        .filter_by(tahrir.model.Authorization.person_id=person.id)\
+    authz = tahrir.session.query(tahrir_api.model.Authorization)\
+        .filter(tahrir_api.model.Authorization.badge_id==badge.id)\
+        .filter(tahrir_api.model.Authorization.person_id==person.id)\
         .all()
 
     if not authz:
         print "%r does not have authz on %r badge..." % (nickname, badge_id)
         return
 
+    print "Found these pre-existing entries:  %r" % authz
     print "removing", person.nickname, "from authz on %r." % badge_id
     try:
         transaction.begin()
         for item in authz:
-            tahrir.session.remove(item)
+            print "  deleting:", item
+            tahrir.session.delete(item)
+        tahrir.session.commit()
         transaction.commit()
     except Exception as e:
         transaction.abort()
