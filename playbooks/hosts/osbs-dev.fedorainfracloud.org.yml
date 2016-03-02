@@ -31,6 +31,25 @@
     - name: install python and deps for ansible modules
       raw: dnf install -y python2 python2-dnf libselinux-python libsemanage-python python-firewall
 
+- name: pre-install osbs tasks
+  hosts: osbs-dev.fedorainfracloud.org
+  vars_files:
+    - /srv/web/infra/ansible/vars/global.yml
+    - /srv/private/ansible/vars.yml
+    - /srv/private/ansible/files/openstack/passwords.yml
+    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  tasks:
+    - name: override DNS for internal host network
+      lineinfile:
+        dest: /etc/hosts
+        line: "{{ ansible_default_ipv4.address }} osbs osbs-dev.fedorainfracloud.org"
+
+    - name: place htpasswd file
+      file:
+        src: "{{private}}/files/httpd/osbs.htpasswd"
+        dest: /etc/origin/htpasswd
+
 - name: setup osbs
   hosts: osbs-dev.fedorainfracloud.org
   vars_files:
@@ -128,16 +147,6 @@
 
 
   tasks:
-    - name: override DNS for internal host network
-      lineinfile:
-        dest: /etc/hosts
-        line: "{{ ansible_default_ipv4.address }} osbs osbs-dev.fedorainfracloud.org"
-
-    - name: place htpasswd file
-      file:
-        src: "{{private}}/files/httpd/osbs.htpasswd"
-        dest: /etc/origin/htpasswd
-
     - name: install docker
       action: "{{ ansible_pkg_mgr }} name=docker state=installed"
 
