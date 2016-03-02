@@ -24,5 +24,5 @@ FILES=$( ls -1 ${HTTPLOG}/*access.log.xz | awk '{x=split($0,a,"/"); print a[x]}'
 
 for FILE in ${FILES}; do
     TEMP=$(echo ${FILE} | sed 's/\.xz$//')
-    "perl ${AWSTATS} ${HTTPLOG}/${FILE} > ${TARGET}/${TEMP}
+    perl ${AWSTATS} ${HTTPLOG}/${FILE} > ${TARGET}/${TEMP}
 done
