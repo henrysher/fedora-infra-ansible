@@ -22,7 +22,7 @@ for version in `jq -r ".collections[$i].version" < ${ACTIVE}`; do
 done
 
 # check propagation for the development branch
-${CRAWLER} --propagation --threads 50 2>&1 | grep SHA256 > ${LOGBASE}/development-propagation.log.$( date +%s )
+${CRAWLER} --propagation --proppath development/rawhide/Everything/x86_64/os/repodata --threads 50 2>&1 | grep SHA256 > ${LOGBASE}/development-propagation.log.$( date +%s )
 
 # clean up log files older than 14 days
 /usr/sbin/tmpwatch --mtime 14d ${LOGBASE}
