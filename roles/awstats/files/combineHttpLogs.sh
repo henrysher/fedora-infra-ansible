@@ -22,6 +22,9 @@ AWSTATS=/usr/share/awstats/tools/logresolvemerge.pl
 
 FILES=$( ls -1 ${HTTPLOG}/*access.log.xz | awk '{x=split($0,a,"/"); print a[x]}' | sort -u )
 
+
+mkdir -p ${TARGET}
+
 for FILE in ${FILES}; do
     TEMP=$(echo ${FILE} | sed 's/\.xz$//')
     perl ${AWSTATS} ${HTTPLOG}/${FILE} > ${TARGET}/${TEMP}
