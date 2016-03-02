@@ -107,15 +107,26 @@ oauthConfig:
   grantConfig:
     method: auto
   identityProviders:
-  - name: request_header
-    challenge: false
-    login: false
+{% if osbs_identity_provider == "request_header" %}
+  - name: {{ osbs_identity_request.name }}
+    challenge: {{ osbs_identity_request.challenge }}
+    login: {{ osbs_identity_request.login }}
     provider:
       apiVersion: v1
       kind: RequestHeaderIdentityProvider
       clientCA: {{ osbs_proxy_ca_file | default('/etc/origin/master/ca.crt') }}
       headers:
       - X-Remote-User
+{% endif %}
+{% if osbs_identity_provider == "htpasswd_provider" %}
+  - name: {{ osbs_identity_htpasswd.name }}
+    challenge: {{ osbs_identity_htpasswd.challenge }}
+    login: {{ osbs_identity_htpasswd.login }}
+    provider:
+      apiVersion: v1
+      kind: HTPasswdPasswordIdentityProvider
+      file: {{ osbs_identity_htpasswd.provider_file }}
+{% endif %}
   masterCA: ca.crt
   masterPublicURL: https://{{ ansible_default_ipv4.address }}:8443
   masterURL: https://{{ ansible_default_ipv4.address }}:8443
