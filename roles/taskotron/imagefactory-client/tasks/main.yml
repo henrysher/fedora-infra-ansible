@@ -25,3 +25,9 @@
     name: "Download new images from ImageFactory"
     special_time: hourly
     job: '/var/lib/fedoraqa/base_images/get_latest_image/get_latest_image.py update --get-missing --outdir {{imagesdir}} {{imagesdir}} > /dev/null'
+
+- name: Create cronjob to prune old images
+  cron:
+    name: "Clean up images downloaded from ImageFactory"
+    special_time: daily
+    job: '/var/lib/fedoraqa/base_images/prune_images/prune_images.py --keep 7 {{imagesdir}} > /dev/null'
