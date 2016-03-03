@@ -1,7 +1,7 @@
-- include: "/srv/web/infra/ansible/playbooks/include/virt-create.yml myhosts=nagios"
+- include: "/srv/web/infra/ansible/playbooks/include/virt-create.yml myhosts=nagios:nagios-stg"
 
 - name: make the box be real
-  hosts: nagios
+  hosts: nagios:nagios-stg
   user: root
   gather_facts: True
 
@@ -32,7 +32,7 @@
   handlers:
   - include: "{{ handlers }}/restart_services.yml"
 
-- name: deploy service-specific config
+- name: deploy service-specific config (just for production)
   hosts: nagios
   user: root
   gather_facts: True
