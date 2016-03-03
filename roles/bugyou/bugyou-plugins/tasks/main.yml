@@ -1,0 +1,32 @@
+---
+# Configuration for Bugyou Plugins
+
+- name: install needed packages for bugyou_plugins
+  yum: pkg={{ item }} state=present
+  with_items:
+  - python-libpagure
+  - bugyou_plugins
+  notify:
+  - restart fedmsg-hub
+  tags:
+  - bugyou/plugins
+
+- name: copy bugyou plugins configuration files
+  template: >
+    src={{ item }}
+    dest=/etc/bugyou/{{ item }}
+    owner=root
+    group=fedmsg
+    mode=0640
+  with_items:
+  - bugyou_plugins.cfg
+  - bugyou_services.cfg
+  notify:
+  - restart fedmsg-hub
+  tags:
+  - bugyou/plugins
+
+- name: start the bugyou-cntrl
+  service: name=bugyou-cntrl state=started
+  tags:
+  - bugyou/plugins
