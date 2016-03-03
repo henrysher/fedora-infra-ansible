@@ -1,0 +1,42 @@
+---
+# Configuration for the tahrir webapp
+
+- name: install needed packages
+  yum: pkg={{ item }} state=present
+  with_items:
+  - zanata2fedmsg
+  - libsemanage-python
+  tags:
+  - packages
+  - zanata2fedmsg
+
+- name: make some directories
+  file: dest="{{item}}" mode=0755 state=directory
+  with_items:
+  - /usr/share/zanata2fedmsg
+  tags:
+  - zanata2fedmsg
+
+- name: copy zanata2fedmsg wsgi script
+  copy: >
+    src={{ item }} dest="/usr/share/zanata2fedmsg/{{ item }}"
+    owner=apache group=apache mode=0644
+  with_items:
+  - zanata2fedmsg.wsgi
+  tags:
+  - config
+  - zanata2fedmsg
+  notify:
+  - restart apache
+
+- name: copy zanata2fedmsg httpd config
+  template: >
+    src={{ item }} dest="/etc/httpd/conf.d/{{ item }}"
+    owner=apache group=apache mode=0644
+  with_items:
+  - zanata2fedmsg.conf
+  tags:
+  - config
+  - zanata2fedmsg
+  notify:
+  - restart apache
