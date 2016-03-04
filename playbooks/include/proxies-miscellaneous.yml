@@ -11,6 +11,15 @@
   handlers:
   - include: "{{ handlers }}/restart_services.yml"
 
+  tasks:
+      # We retired this in favor of PDC
+      # https://lists.fedoraproject.org/archives/list/rel-eng@lists.fedoraproject.org/thread/LOWVTF6WTS43LNPWDEISLXUELXAH5YXR/#LOWVTF6WTS43LNPWDEISLXUELXAH5YXR
+      - file:
+          dest=/etc/httpd/conf.d/apps.fedoraproject.org/fedora-releng-dash.conf
+          state=absent
+        tags: releng-dash
+        notify: reload apache
+
   roles:
 
   - role: httpd/mime-type
