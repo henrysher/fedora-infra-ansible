@@ -2,13 +2,14 @@
 # Configuration for Bugyou Plugins
 
 - name: install needed packages for bugyou_plugins
-  yum: pkg={{ item }} state=present
+  yum: pkg={{ item }} state=present enablerepo=epel-testing
   with_items:
   - python-libpagure
   - bugyou_plugins
   notify:
   - restart fedmsg-hub
   tags:
+  - bugyou
   - bugyou/plugins
 
 - name: copy bugyou plugins configuration files
@@ -24,9 +25,11 @@
   notify:
   - restart fedmsg-hub
   tags:
+  - bugyou
   - bugyou/plugins
 
 - name: start the bugyou-cntrl
   service: name=bugyou-cntrl state=started
   tags:
+  - bugyou
   - bugyou/plugins
