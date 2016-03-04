@@ -17,6 +17,18 @@
   tags:
   - zanata2fedmsg
 
+- name: copy zanata2fedmsg configuration file
+  template: >
+    src={{ item }} dest="/etc/{{item}}"
+    owner=apache group=apache mode=0640
+  with_items:
+  - zanata2fedmsg.ini
+  tags:
+  - config
+  - zanata2fedmsg
+  notify:
+  - restart apache
+
 - name: copy zanata2fedmsg wsgi script
   copy: >
     src={{ item }} dest="/usr/share/zanata2fedmsg/{{ item }}"
