@@ -50,6 +50,18 @@
   - fedmsgmonitor
   - nagios/client
 
+- name: install bodhi.pem file
+  copy: >
+    src="{{ private }}/files/bodhi_key_and_cert.pem"
+    dest="/etc/pki/bodhi/bodhi.pem"
+    owner=bodhi
+    group=bodhi
+    mode=0400
+  when: inventory_hostname.startswith('bodhi-backend')
+  tags:
+  - config
+  - bodhi
+
 - name: change owner and group attributes of bodhi.pem file
   file: >
     path="/etc/pki/bodhi/bodhi.pem"
