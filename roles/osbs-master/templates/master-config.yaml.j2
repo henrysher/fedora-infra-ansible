@@ -10,7 +10,11 @@ assetConfig:
   extensions: null
   loggingPublicURL: ""
   logoutURL: ""
+{% if osbs_public_api_url %}
+  masterPublicURL: https://{{ osbs_public_api_url }}:8443
+{% else %}
   masterPublicURL: https://{{ ansible_default_ipv4.address }}:8443
+{% endif %}
   metricsPublicURL: ""
   publicURL: https://{{ ansible_default_ipv4.address }}:8443/console/
   servingInfo:
@@ -170,5 +174,15 @@ servingInfo:
   clientCA: ca.crt
   keyFile: master.server.key
   maxRequestsInFlight: 500
-  namedCertificates: null
   requestTimeoutSeconds: 3600
+{%if osbs_named_certificates.enabled %}
+  namedCertificates:
+  - certFile: {{ osbs_named_certificates.cert_file }}
+    keyFile: {{ osbs_named_certificates.key_file }}
+    names:
+{% for name in osbs_named_certificates.names %}
+    - {{ name }}
+{% endfor %}
+{% else %}
+  namedCertificates: null
+{% endif %}

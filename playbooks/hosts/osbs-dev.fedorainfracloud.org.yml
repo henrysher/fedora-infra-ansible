@@ -50,6 +50,21 @@
         src: "{{private}}/files/httpd/osbs.htpasswd"
         dest: /etc/origin/htpasswd
 
+    - name: create cert dir for openshift public facing REST API SSL
+      file:
+        path: "/etc/origin/master/named_certificates"
+        state: "directory"
+
+    - name: install cert for openshift public facing REST API SSL
+      copy:
+        src: "{{private}}/files/osbs/osbs-dev.certs/osbs-dev.fedorainfracloud.org.crt",
+        dest: "/etc/origin/master/named_certificates/osbs-dev.fedorainfracloud.org.crt",
+
+    - name: install key for openshift public facing REST API SSL
+      copy:
+        src: "{{private}}/files/osbs/osbs-dev.certs/osbs-dev.fedorainfracloud.org.key",
+        dest: "/etc/origin/master/named_certificates/osbs-dev.fedorainfracloud.org.key",
+
 - name: setup osbs
   hosts: osbs-dev.fedorainfracloud.org
   vars_files:
@@ -86,7 +101,14 @@
             challenge: true,
             login: true,
             provider_file: "/etc/origin/htpasswd"
-          }
+          },
+          osbs_named_certificates: {
+            enabled: true,
+            cert_file: "named_certificates/osbs-dev.fedorainfracloud.org.crt",
+            key_file: "named_certificates/osbs-dev.fedorainfracloud.org.key",
+            names: [ "osbs-dev.fedorainfracloud.org" ],
+          },
+          osbs_public_api_url: "osbs-dev.fedorainfracloud.org",
       }
     - {
       role: osbs-client,
