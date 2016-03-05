@@ -349,3 +349,24 @@ sub vcl_backend_response {
         set beresp.ttl = 6h;
     }
 }
+
+sub vcl_pipe {
+        set req.http.connection = "close";
+}
+
+sub vcl_hit {
+        if (req.method == "PURGE") {
+            ban(req.url);
+            return (synth(200, "Purged"));
+        }
+ 
+        if (!obj.ttl > 0s) {
+            return (pass);
+        }
+}
+ 
+sub vcl_miss {
+        if (req.method == "PURGE")  {
+            return (synth(200, "Not in cache"));
+        }
+}
