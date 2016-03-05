@@ -29,6 +29,7 @@ sys.path.append('.')
 
 import koji
 
+rawhide = '25'
 extraArchList = {'kernel': ('i586', 'i686', 'noarch'),
                 'kernel-xen-2.6': ('i586', 'i686', 'noarch'),
                 'glibc': ('i686',),
@@ -81,6 +82,8 @@ if __name__ == '__main__':
 
     if tag.startswith('epel'):
         version = tag.split('epel')[1]
+    elif tag.startswith('f'):
+        version = tag.split('f')[1]
     else:
         version = tag.split('-')[1][:-1]
 
@@ -102,8 +105,11 @@ if __name__ == '__main__':
         reponame = 'el%s' % version
         arches = ["primary"]
     else:
-        # Fedora  
-        reponame = tag
+        # Fedora 
+        if version == rawhide:
+            reponame = 'master'
+        else:
+            reponame = tag
 {% if env == 'staging' %}
         arches = ["primary"]
 {% else %}
