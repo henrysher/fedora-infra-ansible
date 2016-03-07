@@ -153,8 +153,11 @@
   pause: seconds=5
   when: "services is defined and services|changed"
 
+# the 'dispatcher' role requires this to be root.fedmsg 0640. so we
+# don't enforce ownership here and set mode to 0640 so we don't wind
+# up ping-ponging it between server and dispatcher roles.
 - name: openQA client config
-  template: src=client.conf.j2 dest=/etc/openqa/client.conf mode=0600
+  template: src=client.conf.j2 dest=/etc/openqa/client.conf mode=0640
   tags:
   - config
 

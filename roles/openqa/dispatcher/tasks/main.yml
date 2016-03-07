@@ -77,23 +77,23 @@
   when: "gittools|changed or not insttools.stat.exists"
 
 - name: openQA client config
-  template: src=client.conf.j2 dest=/etc/openqa/client.conf mode=0600
+  template: src=client.conf.j2 dest=/etc/openqa/client.conf owner=root group=fedmsg mode=0640
   tags:
   - config
 
 - name: Create fedora-openqa-schedule config directory
-  file: path=/etc/fedora-qa state=directory owner=root group=root mode=0700
+  file: path=/etc/fedora-qa state=directory owner=root group=root mode=0755
 
 - name: Write schedule.conf
-  template: src=schedule.conf.j2 dest=/etc/fedora-qa/schedule.conf owner=root group=root mode=0600
+  template: src=schedule.conf.j2 dest=/etc/fedora-qa/schedule.conf owner=root group=root mode=0644
   tags:
   - config
 
-- name: Create /root/.fedora (credentials files location)
-  file: path=/root/.fedora state=directory owner=root group=root mode=0700
+- name: Create /etc/fedora (credentials files location)
+  file: path=/etc/fedora state=directory owner=root group=fedmsg mode=0750
 
 - name: Write wikitcms credentials file
-  template: src=credentials.j2 dest=/root/.fedora/credentials owner=root group=root mode=0600
+  template: src=credentials.j2 dest=/etc/fedora/credentials owner=root group=fedmsg mode=0640
   when: "wikitcms_user is defined and wikitcms_password is defined"
   tags:
   - config
