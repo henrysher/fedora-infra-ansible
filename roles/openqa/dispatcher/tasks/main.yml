@@ -98,18 +98,6 @@
   tags:
   - config
 
-- name: Disable and stop old consumer service
-  service: name=openqa-consumer.service enabled=no state=stopped
-  when: "openqa_consumer is defined and openqa_consumer"
-
-- name: Remove old service if present
-  file: path=/usr/lib/systemd/system/openqa-consumer.service state=absent
-  register: serviceremove
-
-- name: Reload systemd to remove old service if removed
-  command: "systemctl daemon-reload"
-  when: "serviceremove|changed"
-
 - name: Enable fedmsg consumer
   copy: src=openqa_consumer.py dest=/etc/fedmsg.d/openqa_consumer.py owner=root group=root mode=0644
   notify:
