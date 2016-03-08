@@ -49,12 +49,21 @@
   handlers:
    - include: "{{ handlers }}/restart_services.yml"
 
+# for now just stg while we're testing
 - name: set up openQA server data NFS mounts
-# for now just stg while we're testing, this is a temp location to create dirs
   hosts: openqa-stg
   roles:
   - role: nfs/client
-    mnt_dir: '/mnt/temp'
-    nfs_src_dir: 'fedora_openqa_stg'
-    nfs_mount_opts: 'rw,bg'
+    mnt_dir: '/var/lib/openqa/testresults'
+    nfs_src_dir: 'fedora_openqa_stg/testresults'
+    nfs_mount_opts: 'rw,bg,nfsvers=3'
+    tags: ['nfs_client']
+
+- name: set up openQA server data NFS mounts
+  hosts: openqa-stg
+  roles:
+  - role: nfs/client
+    mnt_dir: '/var/lib/openqa/images'
+    nfs_src_dir: 'fedora_openqa_stg/images'
+    nfs_mount_opts: 'rw,bg,nfsvers=3'
     tags: ['nfs_client']
