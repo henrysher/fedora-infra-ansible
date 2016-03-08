@@ -61,6 +61,16 @@
     shell: /sbin/nologin
   when: "gotgeeko.rc > 0"
 
+# note: we need updates-testing until fedfind 2.x and openQA 4.3-18 go stable
+- name: Install required packages (testing)
+  dnf: name={{ item }} state=present enablerepo="updates-testing"
+  with_items:
+  - python2-fedfind
+  - openqa
+  - openqa-httpd
+  tags:
+  - packages
+
 - name: Install required packages
   dnf: name={{ item }} state=present enablerepo=adamwill-openQA
   with_items:

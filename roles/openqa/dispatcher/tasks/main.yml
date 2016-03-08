@@ -22,12 +22,19 @@
 # as we now use the openQA asset downloading capability so that the
 # scheduler is no longer responsible for downloading assets.
 
+# note: we need updates-testing until fedfind/wikitcms 2.x go stable
+- name: Install required packages (testing)
+  dnf: name={{ item }} state=present enablerepo="updates-testing"
+  with_items:
+  - fedfind
+  - python2-wikitcms
+  tags:
+  - packages
+
 - name: Install required packages
   dnf: name={{ item }} state=present
   with_items:
-  - fedfind
   - python2-fedmsg-consumers
-  - python2-wikitcms
   - python-requests
   - python-setuptools
   - python-six
