@@ -171,10 +171,10 @@ config = dict(
             channel='fedora-releng',
             filters=dict(
                 topic=[
-                    '^((?!(pungi.compose.status.change|pkgdb\.package\.update\.status|compose.branched.complete|compose.branched.start|compose.rawhide.complete|compose.rawhide.start|bodhi.updates.|trac.git.receive)).)*$',
+                    '^((?!(bodhi.mashtask.complete|pungi.compose.status.change|pkgdb\.package\.update\.status|compose.branched.complete|compose.branched.start|compose.rawhide.complete|compose.rawhide.start|bodhi.updates.|trac.git.receive)).)*$',
                 ],
                 body=[
-                    "^((?!(u'status': u'DOOMED'|u'status': u'Retired'|u'prev_status': u'Retired'|compose|bodhi\.updates\.|\/srv\/git\/releng)).)*$",
+                    "^((?!(u'success': False|u'status': u'DOOMED'|u'status': u'Retired'|u'prev_status': u'Retired'|compose|bodhi\.updates\.|\/srv\/git\/releng)).)*$",
                 ],
             ),
         ),
