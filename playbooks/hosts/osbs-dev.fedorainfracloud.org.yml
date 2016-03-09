@@ -167,6 +167,9 @@
     osbs_environment:
       KUBECONFIG: "{{ osbs_kubeconfig_path }}"
 
+  handlers:
+    - name: buildroot container
+      shell: atomic-reactor create-build-image --reactor-tarball-path /usr/share/atomic-reactor/atomic-reactor.tar.gz /etc/osbs/buildroot/ buildroot
 
   tasks:
     - name: install docker
@@ -200,8 +203,26 @@
       tags:
         - containerupdate
 
-    - name: create buildroot container
-      shell: atomic-reactor create-build-image --reactor-tarball-path /usr/share/atomic-reactor/atomic-reactor.tar.gz /usr/share/atomic-reactor/images/dockerhost-builder buildroot
+    - name: Create buildroot container conf directory
+      file:
+        path: "/etc/osbs/buildroot/"
+        state: directory
+
+    - name: Upload Dockerfile for buildroot container
+      copy:
+        src: "{{ files }}/osbs-buildroot-Dockerfile"
+        dest: "/etc/osbs/buildroot/Dockerfile"
+        mode: 0400
+      notify:
+        - buildroot container
+
+    - name: Upload internal CA for buildroot
+      copy:
+        src: "{{private}}/files/osbs/osbs-dev.certs/osbs-dev.fedorainfracloud.org.crt"
+        dest: "/etc/osbs/buildroot/ca.crt"
+        mode: 0400
+      notify:
+        - buildroot container
 
     - name: clean up exited containers
       shell: for i in $(docker ps -a | awk '/Exited/ { print $1 }') ; do docker rm $i; done
