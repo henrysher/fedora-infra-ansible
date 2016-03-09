@@ -24,11 +24,11 @@ function build {
     return $rc;
 }
 
-if [ ! -d  /srv/web/fedora-web/.git ]
+if [ ! -d  /srv/web/fedora-websites/.git ]
 then
     /usr/bin/git clone -q \
-        git://git.fedorahosted.org/fedora-web.git \
-        /srv/web/fedora-web
+        https://pagure.io/fedora-websites.git \
+        /srv/web/fedora-websites
 fi
 
 # Freeze the website to prepare beta changes.  On release day, comment the git
@@ -41,7 +41,7 @@ fi
 #
 # Good luck!
 
-cd /srv/web/fedora-web
+cd /srv/web/fedora-websites
 
 /usr/bin/git clean -q -fdx || exit 1
 /usr/bin/git reset -q --hard || exit 1
