@@ -19,24 +19,11 @@
   - rkhunter
   - nagios/client
   - sudo
-  - role: nfs/client
-    mnt_dir: '/mnt/fedora_koji'
-    nfs_src_dir: 'fedora_koji'
-    when: not inventory_hostname.startswith('compose-aarch64-01')
-  - role: nfs/client
-    mnt_dir: '/mnt/koji'
-    nfs_src_dir: 'fedora_arm/data'
-    when: inventory_hostname.startswith(('compose-aarch64-01'))
-  - role: nfs/client
-    mnt_dir: '/mnt/koji'
-    nfs_src_dir: 'fedora_ppc/data'
-    when: inventory_hostname.startswith(('compose-ppc64'))
-  - role: nfs/client
-    mnt_dir: '/pub'
-    nfs_src_dir: 'fedora_ftp/fedora.redhat.com/pub'
-    when: inventory_hostname.startswith(('compose-x86-01'))
+  - { role: nfs/client, when: inventory_hostname.startswith('compose-x86') , mnt_dir: '/mnt/fedora_koji',  nfs_src_dir: 'fedora_koji' }
+  - { role: nfs/client, when: inventory_hostname.startswith('compose-x86') , mnt_dir: '/pub',  nfs_src_dir: 'fedora_ftp/fedora.redhat.com/pub' }
+  - { role: nfs/client, when: inventory_hostname.startswith('compose-aarch64-01') , mnt_dir: '/mnt/fedora_koji',  nfs_src_dir: 'fedora_arm/data' }
+  - { role: nfs/client, when: inventory_hostname.startswith('compose-ppc64') , mnt_dir: '/mnt/fedora_koji',  nfs_src_dir: 'fedora_ppc/data' }
   - role: fedmsg/base
-    when: not inventory_hostname.startswith(('aarch64-02a'))
   - releng
 
   tasks:
