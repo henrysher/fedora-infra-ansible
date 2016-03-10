@@ -25,11 +25,24 @@
   tags:
   - varnish
 
+# Merge these two after freeze lifts
 - name: install /etc/varnish/default.vcl
   template: src=proxy.vcl.j2 dest=/etc/varnish/default.vcl
             owner=root group=root
+  when: env != 'staging'
   with_items:
   - proxy.vcl
+  notify:
+  - restart varnish
+  tags:
+  - varnish
+
+- name: install /etc/varnish/default.vcl
+  template: src=proxy.vcl.j2 dest=/etc/varnish/default.vcl
+            owner=root group=root
+  when: env == 'staging'
+  with_items:
+  - proxy.vcl.stg
   notify:
   - restart varnish
   tags:
