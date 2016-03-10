@@ -1,3 +1,4 @@
+{% if  deployment_type == "qadevel-prod" %}
 <VirtualHost *:443>
   # Change this to the domain which points to your host.
   ServerName phab.{{external_hostname}}
@@ -75,7 +76,21 @@
   RewriteEngine on
   RewriteRule ^/?(.*) https://%{SERVER_NAME}/$1 [R,L]
 </VirtualHost>
+{% if  deployment_type == "qadevel-prod" %}
+{% else %}
+<VirtualHost *:80>
+  # Change this to the domain which points to your host.
+  ServerName phab.{{external_hostname}}
 
+  # Make sure you include "/webroot" at the end!
+  DocumentRoot {{phabroot}}/phabricator/webroot
+
+  RewriteEngine on
+  RewriteRule ^/rsrc/(.*)     -                       [L,QSA]
+  RewriteRule ^/favicon.ico   -                       [L,QSA]
+  RewriteRule ^(.*)$          /index.php?__path__=$1  [B,L,QSA]
+</VirtualHost>
+{% endif %}
 
 <Directory "{{ phabroot }}/phabricator/webroot">
   AllowOverride None
