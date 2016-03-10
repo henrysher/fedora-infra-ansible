@@ -1,0 +1,48 @@
+---
+# common items for the releng-* boxes
+lvm_size: 100000
+mem_size: 16384
+num_cpus: 16
+volgroup: /dev/vg_guests
+ks_url: http://10.5.126.23/repo/rhel/ks/buildvm-fedora-23-ppc64le
+ks_repo: http://10.5.126.23/pub/fedora-secondary/releases/23/Server/ppc64le/os/
+virt_install_command: "{{ virt_install_command_one_nic }} --graphics none"
+
+vmhost: ppc8-04.qa.fedoraproject.org
+eth0_ip: 10.5.129.15
+nm: 255.255.255.0
+gw: 10.5.129.254
+main_bridge: br1
+
+fas_client_groups: sysadmin-noc,sysadmin-releng
+sudoers: "{{ private }}/files/sudo/releng-sudoers"
+
+# With 16 cpus, theres a bunch more kernel threads
+nrpe_procs_warn: 900
+nrpe_procs_crit: 1000
+
+host_group: releng
+
+kojipkgs_url: ppcpkgs.fedoraproject.org
+kojihub_url: ppc.koji.fedoraproject.org/kojihub
+kojihub_scheme: http
+
+koji_server_url: "http://ppc.koji.fedoraproject.org/kojihub"
+koji_weburl: "http://ppc.koji.fedoraproject.org/koji"
+koji_topurl: "http://ppcpkgs.fedoraproject.org/"
+
+nfs_mount_opts: rw,hard,bg,intr,noatime,nodev,nosuid,nfsvers=3,rsize=32768,wsize=32768
+
+fedmsg_certs:
+- service: releng
+  owner: root
+  group: sysadmin-releng
+  can_send:
+  # pungi-koji stuff (ask dgilmore)
+  - pungi.compose.phase.start
+  - pungi.compose.phase.stop
+  - pungi.compose.status.change
+  - pungi.compose.createiso.targets
+  - pungi.compose.createiso.imagefail
+  - pungi.compose.createiso.imagedone
+
