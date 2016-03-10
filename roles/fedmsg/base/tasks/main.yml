@@ -119,7 +119,7 @@
   - relay.py
   - logging.py
   - base.py
-  when: "'persistent-cloud' not in group_names"
+  when: "'persistent-cloud' not in group_names and 'qa-isolated' not in group_names"
   tags:
   - config
   - fedmsgdconfig
@@ -152,7 +152,7 @@
   - restart fedmsg-irc
   - restart fedmsg-relay
 
-- name: setup basic /etc/fedmsg.d/ contents for cloud hosts
+- name: setup basic /etc/fedmsg.d/ contents for firewalled/external hosts
   template: >
     src="{{ item }}.j2"
     dest="/etc/fedmsg.d/{{ item }}"
@@ -165,7 +165,7 @@
   - relay.py
   - logging.py
   - base.py
-  when: "'persistent-cloud' in group_names"
+  when: "'persistent-cloud' in group_names or 'qa-isolated' in group_names"
   tags:
   - config
   - fedmsgdconfig
