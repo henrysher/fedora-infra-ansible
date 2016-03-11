@@ -36,15 +36,6 @@
 # need to ensure geekotest always has the same uid/gid if we re-deploy
 # the servers. So we create the account here with uid/gid 601.
 
-# this first one is just to make sure I don't screw up prod while I'm
-# fiddling with this stuff on stg
-- name: Check if geekotest already exists (temp)
-  command: "getent passwd geekotest"
-  register: gotgeeko
-  failed_when: "1 != 1"
-  changed_when: "1 != 1"
-  always_run: true
-
 - name: Create geekotest group with static GID 601
   group: name=geekotest gid=601 system=yes
   when: "gotgeeko.rc > 0"
@@ -61,7 +52,7 @@
     shell: /sbin/nologin
   when: "gotgeeko.rc > 0"
 
-# note: we need updates-testing until fedfind 2.x and openQA 4.3-18 go stable
+# note: we need updates-testing until fedfind 2.x and openQA 4.3-21 go stable
 - name: Install required packages (testing)
   dnf: name={{ item }} state=present enablerepo="updates-testing"
   with_items:
