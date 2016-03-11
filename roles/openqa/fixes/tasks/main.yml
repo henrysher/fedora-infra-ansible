@@ -4,8 +4,9 @@
 - name: remove internal message source policy
   file: path=/etc/fedmsg.d/policy.py state=absent
 
-- name: use packaged relay.py, not ansible one (which doesn't work)
+- name: use packaged relay.py, not ansible one (just till firewall is fixed)
   command: cp /etc/fedmsg.d/relay.py.rpmnew /etc/fedmsg.d/relay.py
+  when: fedmsg_env == "stg"
 
 - name: restart fedmsg services
   service: name={{ item }} state=restarted
