@@ -43,14 +43,14 @@
   roles:
    - { role: openqa/server, tags: ['openqa_server'] }
    - { role: openqa/dispatcher, tags: ['openqa_dispatcher'] }
-   - { role: fedmsg/hub, tags: ['fedmsg_hub'] }
    - { role: check-compose, tags: ['check-compose'] }
+   - { role: fedmsg/base, tags: ['fedmsg_base', 'fedmsg'] }
+   - { role: fedmsg/hub, tags: ['fedmsg_hub', 'fedmsg'] }
 
   handlers:
    - include: "{{ handlers }}/restart_services.yml"
 
-# for now just stg while we're testing
-- name: set up openQA server data NFS mounts
+- name: set up openQA server data NFS mounts (staging)
   hosts: openqa-stg
   roles:
   - role: nfs/client
@@ -58,22 +58,22 @@
     nfs_src_dir: 'fedora_openqa_stg/testresults'
     nfs_mount_opts: 'rw,bg,nfsvers=3'
     tags: ['nfs_client']
-
-- name: set up openQA server data NFS mounts
-  hosts: openqa-stg
-  roles:
   - role: nfs/client
     mnt_dir: '/var/lib/openqa/images'
     nfs_src_dir: 'fedora_openqa_stg/images'
     nfs_mount_opts: 'rw,bg,nfsvers=3'
     tags: ['nfs_client']
 
-# set up prod temp mount
-- name: set up openQA server data NFS mounts
+- name: set up openQA server data NFS mounts (prod)
   hosts: openqa
   roles:
   - role: nfs/client
-    mnt_dir: '/mnt/temp'
-    nfs_src_dir: 'fedora_openqa'
+    mnt_dir: '/var/lib/openqa/testresults'
+    nfs_src_dir: 'fedora_openqa/testresults'
+    nfs_mount_opts: 'rw,bg,nfsvers=3'
+    tags: ['nfs_client']
+  - role: nfs/client
+    mnt_dir: '/var/lib/openqa/images'
+    nfs_src_dir: 'fedora_openqa/images'
     nfs_mount_opts: 'rw,bg,nfsvers=3'
     tags: ['nfs_client']
