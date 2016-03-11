@@ -1,0 +1,14 @@
+# This file contains some temporary fixes for the fedmsg config on openQA
+# hosts, since the roles still aren't quite right for firewalled systems.
+
+- name: remove internal message source policy
+  file: path=/etc/fedmsg.d/policy.py state=absent
+
+- name: use packaged relay.py, not ansible one (which doesn't work)
+  command: cp /etc/fedmsg.d/relay.py.rpmnew /etc/fedmsg.d/relay.py
+
+- name: restart fedmsg services
+  service: name={{ item }} state=restarted
+  with_items:
+  - fedmsg-hub
+  - fedmsg-relay
