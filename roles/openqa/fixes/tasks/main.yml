@@ -8,6 +8,10 @@
   command: cp /etc/fedmsg.d/relay.py.rpmnew /etc/fedmsg.d/relay.py
   when: fedmsg_env == "stg"
 
+- name: use custom relay.py (external outbound, internal inbound)
+  copy: src=relay.py dest=/etc/fedmsg.d/relay.py owner=root group=root mode=0644
+  when: fedmsg_env != "stg"
+
 - name: restart fedmsg services
   service: name={{ item }} state=restarted
   with_items:
