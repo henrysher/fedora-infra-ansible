@@ -65,7 +65,7 @@
 - command: 'git config --global user.name "Copr dist git"'
 
 - name: install httpd config to serve lookaside and smart-git
-  copy: src="httpd/{{ item }}" dest="/etc/httpd/conf.d/dist-git/{{ item }}"
+  copy: src="httpd/dist-git/{{ item }}" dest="/etc/httpd/conf.d/dist-git/{{ item }}"
   with_items:
   - lookaside.conf
   - lookaside-copr.conf
@@ -74,6 +74,17 @@
   - config
   notify:
   - reload httpd
+
+
+- name: install copr-dist-git httpd config
+  copy: src="httpd/{{ item }}" dest="/etc/httpd/conf.d/{{ item }}"
+  with_items:
+  - copr-dist-git.conf
+  tags:
+  - config
+  notify:
+  - reload httpd
+
 
 - copy: src="dist-git.conf" dest="/etc/dist-git/dist-git.conf" mode=0644
   tags:
