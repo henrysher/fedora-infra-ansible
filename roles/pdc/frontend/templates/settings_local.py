@@ -10,6 +10,11 @@
 #       settings, please remember to update your settings_local.py
 #       when the items you extended got updated in settings.py.
 
+# Turn on the fedmsg publishing plugin.
+MESSAGE_BUS = {
+        'MLP': 'fedmsg',  # MLP: Messaging Library Package
+}
+
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'pdc.apps.auth.authentication.TokenAuthenticationWithChangeSet',
