@@ -1,0 +1,25 @@
+- name: install needed packages
+  yum: pkg={{ item }} state=present
+  with_items:
+  - basset-frontend
+  tags:
+  - basset
+  - basset/frontend
+
+- name: install staging htpasswd
+  copy: src={{private}}/files/httpd/basset.stg.htpasswd dest=/etc/httpd/conf.d/basset.htpasswd
+        owner=root group=root mode=0644
+  notify:
+  - restart httpd
+  tags:
+  - basset
+  - basset/frontend
+
+- name: install frontend config
+  copy: src=basset.conf dest=/etc/httpd/conf.d/basset.conf
+        owner=root group=root mode=0644
+  notify:
+  - restart httpd
+  tags:
+  - basset
+  - basset/frontend

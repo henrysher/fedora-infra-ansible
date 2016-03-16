@@ -1,0 +1,20 @@
+- name: install needed packages
+  yum: pkg={{ item }} state=present
+  with_items:
+  - basset
+  tags:
+  - basset
+  - basset/worker
+
+- name: install worker config
+  template: src=worker.cfg dest=/etc/basset/worker.cfg
+            mode=0600 owner=basset-worker user=basset-worker
+  tags:
+  - basset
+  - basset/worker
+
+- name: start basset worker
+  service: name=basset-worker state=started enabled=yes
+  tags:
+  - basset
+  - basset/worker

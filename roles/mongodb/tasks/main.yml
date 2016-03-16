@@ -1,0 +1,11 @@
+- name: install needed packages
+  yum: pkg={{ item }} state=present
+  with_items:
+  - mongodb-server
+  tags: mongodb
+
+# mongod is the single daemon. mongos is a sharded cluster router,
+# but just plain mongod is good enough for now
+- name: start mongodb
+  service: name=mongod state=started enabled=yes
+  tags: mongodb
