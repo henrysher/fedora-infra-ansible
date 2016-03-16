@@ -198,6 +198,9 @@
     - name: set policy for koji builder in openshift for osbs
       shell: "oadm policy add-role-to-user -n default edit htpasswd_provider: {{ osbs_koji_stg_username }}"
 
+    - name: set policy for koji builder in openshift for atomic-reactor
+      shell: "oadm policy add-role-to-user -n default edit system:serviceaccount:default:builder"
+
     - name: make sure latest fedora image is pulled and pushed to osbs registry
       shell: docker pull fedora && docker tag -f fedora:latest osbs-dev.fedorainfracloud.org:5000/fedora:latest && docker push osbs-dev.fedorainfracloud.org:5000/fedora:latest
       tags:
