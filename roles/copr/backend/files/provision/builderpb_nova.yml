@@ -46,5 +46,11 @@
   - name: disable offloading
     command: ethtool -K eth0 tso off gro off gso off
 
+  - name: install multilib deps for nosync.i686
+    yum: state=present pkg={{ item }}
+    with_items:
+      - glibc.i686
+      - nss-softokn-freebl.i686
+  # DNF module will not resolve the deps, we must install deps manualy!
   - name: install i686 version of nosync for multilib building
     dnf: name=https://kojipkgs.fedoraproject.org//packages/nosync/1.0/3.fc23/i686/nosync-1.0-3.fc23.i686.rpm state=present
