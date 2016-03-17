@@ -15,6 +15,15 @@
   - basset
   - basset/frontend
 
+- name: install prod htpasswd
+  copy: src={{private}}/files/httpd/basset.prod.htpasswd dest=/etc/httpd/conf.d/basset.htpasswd
+        owner=root group=root mode=0644
+  notify:
+  - restart httpd
+  tags:
+  - basset
+  - basset/frontend
+
 - name: set sebooleans so basset-frontend can talk to the broker
   seboolean: name=httpd_can_network_connect
                     state=true
