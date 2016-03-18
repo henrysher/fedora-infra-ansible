@@ -9,6 +9,7 @@
 - name: install staging htpasswd
   copy: src={{private}}/files/httpd/basset.stg.htpasswd dest=/etc/httpd/conf.d/basset.htpasswd
         owner=root group=root mode=0644
+  when: env == "staging"
   notify:
   - restart httpd
   tags:
@@ -18,6 +19,7 @@
 - name: install prod htpasswd
   copy: src={{private}}/files/httpd/basset.prod.htpasswd dest=/etc/httpd/conf.d/basset.htpasswd
         owner=root group=root mode=0644
+  when: env != "staging"
   notify:
   - restart httpd
   tags:
