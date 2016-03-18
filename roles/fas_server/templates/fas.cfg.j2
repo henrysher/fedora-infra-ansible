@@ -115,12 +115,18 @@ cla_deprecated_groups = ['cla_fedora']
 # Format: 'group1:a,b,c|group2:d,e,f'
 auto_approve_groups = 'packager:fedorabugs|qa:fedorabugs|security-team:fedorabugs|qa-beaker-user:qa-automation-shell|docs:fedorabugs|cla_fpca:cla_done|cla_redhat:cla_done|cla_dell:cla_done|cla_ibm:cla_done|cla_intel:cla_done'
 
-{% if env == "staging" %}
 # Anti-spam approval check script, which injects in both registration and CLA steps
 # In Fedora, this is provided by the Basset service
+{% if env == "staging" %}
 antispam.api.url = 'http://basset01.stg.phx2.fedoraproject.org/basset'
 antispam.api.username = '{{ basset_stg_frontend_user }}'
 antispam.api.password = '{{ basset_stg_frontend_pass }}'
+antispam.registration.autoaccept = False
+antispam.cla.autoaccept = False
+{% else %}
+antispam.api.url = 'http://basset01.phx2.fedoraproject.org/basset'
+antispam.api.username = '{{ basset_prod_frontend_user }}'
+antispam.api.password = '{{ basset_prod_frontend_pass }}'
 antispam.registration.autoaccept = False
 antispam.cla.autoaccept = False
 {% endif %}
