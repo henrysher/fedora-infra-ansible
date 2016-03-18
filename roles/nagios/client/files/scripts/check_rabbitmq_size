@@ -1,22 +1,26 @@
-#!/bin/bash
+#!/bin/python
+import sys
+import requests
 
-QUEUE=$1
+url = 'http://localhost:15672/api/queues/%%2f/%s' % (sys.argv[1])
 
-QUEUESIZE=`rabbitmqctl list_queues | grep $QUEUE | awk '{print $2}'`
+r = requests.get(url, auth=('guest', 'guest')).json()
+consumers = r['consumers']
+messages = r['messages']
 
-CRITICAL=20
-WARNING=15
+msg = 'Messages in queue: %i (%i consumers)' % (messages, consumers)
 
+if consumers < 1:
+    print 'CRITICAL: %s' % msg
+    sys.exit(2)
 
-if [ $QUEUESIZE -gt $CRITICAL ]
-then
-    echo "queuesize: CRITICAL Queue size: $QUEUESIZE"
-    exit 2
-elif [ $QUEUESIZE -gt $WARNING ]
-then
-    echo "queuesize: WARNING Queue size: $QUEUESIZE"
-    exit 1
-else
-    echo "queuesize: OK Queue size: $QUEUESIZE"
-    exit 0
-fi
+if messages > 20:
+    print 'CRITICAL: %s' % msg
+    sys.exit(2)
+
+if messages > 10:
+    print 'WARNING: %s' % msg
+    sys.exit(1)
+
+print 'OK: %s' % msg
+sys.exit(0)
