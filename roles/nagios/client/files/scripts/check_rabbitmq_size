@@ -1,0 +1,22 @@
+#!/bin/bash
+
+QUEUE=$1
+
+QUEUESIZE=`rabbitmqctl list_queues | grep $QUEUE | awk '{print $2}'`
+
+CRITICAL=20
+WARNING=15
+
+
+if [ $QUEUESIZE -gt $CRITICAL ]
+then
+    echo "queuesize: CRITICAL Queue size: $QUEUESIZE"
+    exit 2
+elif [ $QUEUESIZE -gt $WARNING ]
+then
+    echo "queuesize: WARNING Queue size: $QUEUESIZE"
+    exit 1
+else
+    echo "queuesize: OK Queue size: $QUEUESIZE"
+    exit 0
+fi
