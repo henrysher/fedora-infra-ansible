@@ -20,14 +20,18 @@ import fedbadges.utils
 def parse_args():
     parser = argparse.ArgumentParser(__doc__)
     parser.add_argument('--badge', default=None, help="A badge id")
+    # XXX - Note, this script intentionally does not allow changing the badge-id
+    # of a badge.  Some things depend on that field as a foreign key and it is
+    # unclear what would break if we changed that.
+    parser.add_argument('--name', default=None, help='Name..')
     parser.add_argument('--description', default=None, help='Description..')
     parser.add_argument('--criteria', default=None, help='Criteria link')
     args = parser.parse_args()
     if not args.badge:
         print "You must specify a badge id."
         sys.exit(1)
-    if not args.description and not args.criteria:
-        print "You must specify either description or criteria to edit."
+    if not args.name and not args.description and not args.criteria:
+        print "You must specify either name, description or criteria to edit."
         sys.exit(1)
     return args
 
@@ -46,7 +50,7 @@ def initialize():
     return tahrir
 
 
-def main(tahrir, badge_id, description, criteria):
+def main(tahrir, badge_id, name, description, criteria):
     badge = tahrir.get_badge(badge_id)
 
     if not badge:
@@ -54,6 +58,10 @@ def main(tahrir, badge_id, description, criteria):
         sys.exit(1)
 
     transaction.begin()
+
+    if name:
+        badge.name = name
+        print "Setting name on %r to %r" % (badge_id, name)
 
     if description:
         badge.description = description
@@ -69,4 +77,4 @@ def main(tahrir, badge_id, description, criteria):
 if __name__ == '__main__':
     args = parse_args()
     tahrir = initialize()
-    main(tahrir, args.badge, args.description, args.criteria)
+    main(tahrir, args.badge, args.name, args.description, args.criteria)
