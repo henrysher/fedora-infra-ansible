@@ -14,6 +14,13 @@
 -A INPUT -m state --state RELATED,ESTABLISHED -j ACCEPT
 -A OUTPUT -m state --state RELATED,ESTABLISHED -j ACCEPT
 
+# if the blocked_ips is defined - drop them
+{% if blocked_ips is defined %}
+{% for ip in blocked_ips %}
+-A INPUT -s {{ ip }} -j DROP
+{% endfor %}
+{% endif %}
+
 # allow ssh only from needed ips
 # vpn in from tun0
 -A INPUT -m conntrack --ctstate NEW -m tcp -p tcp --dport 22 -s 192.168.0.0/24 -i tun0 -j ACCEPT

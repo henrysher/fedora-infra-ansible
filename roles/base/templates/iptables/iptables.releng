@@ -34,6 +34,13 @@ COMMIT
 -A INPUT -p tcp -m tcp -s 209.132.181.35 --dport 5666 -j ACCEPT
 -A INPUT -p tcp -m tcp -s 10.5.126.41  --dport 5666 -j ACCEPT
 
+# if the blocked_ips is defined - drop them
+{% if blocked_ips is defined %}
+{% for ip in blocked_ips %}
+-A INPUT -s {{ ip }} -j DROP
+{% endfor %}
+{% endif %}
+
 # SSH
 # ssh block against uni in .cz where problem(s) have been cited
 # added by skvidal on jan 24 2011 - as per request from spot
