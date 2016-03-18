@@ -55,6 +55,7 @@
   dnf: name={{ item }} state=present enablerepo="updates-testing"
   with_items:
   - python2-fedfind
+  - python3-fedfind
   - openqa
   - openqa-httpd
   - openqa-plugin-fedmsg
@@ -75,8 +76,8 @@
   - expect
   - libguestfs-tools-c
   - libguestfs-xfs
-  - python2-pexpect
-  - python-libguestfs
+  - python3-libguestfs
+  - python3-pexpect
   tags:
   - packages
 
@@ -101,7 +102,7 @@
   - /var/lib/openqa/share/factory/repo
 
 - name: Check if any hard disk images need (re)building
-  command: "python /root/openqa_fedora_tools/tools/createhdds.py check"
+  command: "/root/openqa_fedora_tools/tools/createhdds.py check"
   args:
     chdir: /var/lib/openqa/share/factory/hdd/
   register: diskcheck
@@ -110,7 +111,7 @@
   always_run: true
 
 - name: Create hard disk images (this may take a long time!)
-  command: "python /root/openqa_fedora_tools/tools/createhdds.py all --clean"
+  command: "/root/openqa_fedora_tools/tools/createhdds.py all --clean"
   args:
     chdir: /var/lib/openqa/share/factory/hdd/
   environment:
