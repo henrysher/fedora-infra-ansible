@@ -18,6 +18,9 @@
 ##       default - ansible_nodename
 
 # Optional vars
+# - openqa_static_uid
+##       int - a static ID for the geekotest user and group if desired
+##             this is useful for NFS mounting openQA data files
 # - openqa_dbname
 ##       string - The name of the database to use
 # - openqa_dbhost
@@ -35,23 +38,21 @@
 # set, the server will use a local SQLite database and the other values
 # are ignored.
 
-# As we want to store some geekotest-owned files in shared storage, we
-# need to ensure geekotest always has the same uid/gid if we re-deploy
-# the servers. So we create the account here with uid/gid 601.
+- name: Create geekotest group with static GID
+  group: "name=geekotest gid={{ openqa_static_uid }} system=yes"
+  when: "openqa_static_uid is defined"
 
-- name: Create geekotest group with static GID 601
-  group: name=geekotest gid=601 system=yes
-
-- name: Create geekotest user with static UID 601
+- name: Create geekotest user with static UID
   user:
     name: geekotest
     comment: "openQA user"
-    uid: 601
+    uid: "{{ openqa_static_uid }}"
     group: geekotest
     home: "/var/lib/openqa"
     createhome: no
     system: yes
     shell: /sbin/nologin
+  when: "openqa_static_uid is defined"
 
 # note: we need updates-testing until fedfind 2.x and openQA 4.3-21 go stable
 - name: Install required packages (testing)
