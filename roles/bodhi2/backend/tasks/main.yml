@@ -44,8 +44,13 @@
   tags:
   - bodhi
 
-- name: add nrpe to the masher group so it can talk to the monitoring socket
-  user: name=nrpe groups=masher append=yes
+- name: add apache user to the masher group so it can talk to the monitoring socket
+  user: name=apache groups=mock,ftpsync,masher append=yes
+  tags:
+  - bodhi
+
+- name: add nrpe to the apache group so it can talk to the monitoring socket
+  user: name=nrpe groups=apache append=yes
   tags:
   - fedmsgmonitor
   - nagios/client
@@ -65,15 +70,15 @@
 - name: change owner and group attributes of bodhi.pem file
   file: >
     path="/etc/pki/bodhi/bodhi.pem"
-    owner=masher
-    group=masher
+    owner=apache
+    group=apache
   when: inventory_hostname.startswith('bodhi-backend')
   tags:
   - bodhi
   - config
 
 - name: change owner and group attributes of /var/log/bodhi directory
-  file: path=/var/log/bodhi owner=masher group=masher
+  file: path=/var/log/bodhi owner=apache group=apache
   when: inventory_hostname.startswith('bodhi-backend')
   tags:
   - bodhi
@@ -83,8 +88,8 @@
   template: >
     src=mash.conf
     dest=/etc/bodhi/mash.conf
-    owner=masher
-    group=masher
+    owner=apache
+    group=apache
     mode=0640
   tags:
   - config
@@ -94,7 +99,7 @@
   copy: >
     src="{{ item }}"
     dest="/etc/bodhi/{{ item }}"
-    owner=masher
+    owner=apache
     mode=0640
   with_items:
   - f21-updates.mash
@@ -256,7 +261,7 @@
 # bodhi jobs, previously run by the TurboGears scheduler.
 
 - name: bodhi-approve-testing cron job.
-  cron: name="bodhi-approve-testing" hour="*/6" minute=0 user="masher"
+  cron: name="bodhi-approve-testing" hour="*/6" minute=0 user="apache"
         job="/usr/bin/bodhi-approve-testing /etc/bodhi/production.ini"
         cron_file=bodhi-approve-testing-job
   when: inventory_hostname.startswith('bodhi-backend02') and env == "production"
@@ -266,7 +271,7 @@
   - cron
 
 - name: bodhi-expire-overrides cron job.
-  cron: name="bodhi-expire-overrides" hour="*" minute=0 user="masher"
+  cron: name="bodhi-expire-overrides" hour="*" minute=0 user="apache"
         job="/usr/bin/bodhi-expire-overrides /etc/bodhi/production.ini"
         cron_file=bodhi-expire-overrides-job
   when: inventory_hostname.startswith('bodhi-backend02') and env == "production"
@@ -275,11 +280,11 @@
   - bodhi
   - cron
 
-- name: have the masher own the bodhi config
+- name: have the apache own the bodhi config
   file: >
     path="/etc/bodhi/production.ini"
-    owner=masher
-    group=masher
+    owner=apache
+    group=apache
   when: inventory_hostname.startswith('bodhi')
   tags:
   - config
@@ -297,7 +302,7 @@
   - config
   - bodhi
 
-- name: install a femdsg-hub.service drop-in to run it as the masher
+- name: install a femdsg-hub.service drop-in to run it as the apache
   copy: >
     src="fedmsg-hub.conf"
     dest="/usr/lib/systemd/system/fedmsg-hub.service.d/fedmsg-hub.conf"
@@ -311,21 +316,21 @@
   - bodhi
   - config
 
-- name: have the masher own /var/cache/mash
+- name: have the apache own /var/cache/mash
   file: >
     path="/var/cache/mash"
-    owner=masher
-    group=masher
+    owner=apache
+    group=apache
   when: inventory_hostname.startswith('bodhi-backend')
   tags:
   - config
   - bodhi
 
-- name: have the masher own /var/cache/bodhi because of course..
+- name: have the apache own /var/cache/bodhi because of course..
   file: >
     path="/var/cache/bodhi"
-    owner=masher
-    group=masher
+    owner=apache
+    group=apache
   when: inventory_hostname.startswith('bodhi-backend')
   tags:
   - config
@@ -335,7 +340,7 @@
   file: >
     dest=/var/run/fedmsg
     mode=2775
-    owner=masher
+    owner=apache
     group=nrpe
     state=directory
   ignore_errors: true
@@ -349,7 +354,7 @@
   file: >
     dest=/var/run/fedmsg/monitoring-fedmsg-hub.socket
     mode=0775
-    owner=masher
+    owner=apache
     group=nrpe
     state=file
   ignore_errors: true
@@ -361,7 +366,7 @@
   template: >
     src=atomic-config.py.j2
     dest=/usr/lib/python2.7/site-packages/fedmsg_atomic_composer/config.py
-    owner=masher
+    owner=apache
     mode=0644
   tags:
   - config
