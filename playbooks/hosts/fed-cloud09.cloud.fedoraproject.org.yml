@@ -24,7 +24,7 @@
   vars:
     # this is actually without admin tenant
     all_tenants: ['cloudintern', 'cloudsig', 'copr', 'coprdev', 'infrastructure',
-      'persistent', 'pythonbots', 'qa', 'scratch', 'transient']
+      'persistent', 'pythonbots', 'qa', 'scratch', 'transient', 'openshift']
 
   vars_files:
    - /srv/web/infra/ansible/vars/global.yml
@@ -688,6 +688,7 @@
       - { name: coprdev, desc: 'Development version of Copr' }
       - { name: pythonbots, desc: 'project for python build bot users - twisted, etc' }
       - { name: scratch, desc: 'scratch and short term instances' }
+      - { name: openshift, desc: 'Tenant for openshift deployment' }
 
 
   ##### USERS #####
@@ -727,6 +728,7 @@
       - { name: roshi, email: 'roshi@fedoraproject.org', tenant: qa, password: "{{roshi_password}}" }
       - { name: maxamillion, email: 'maxamillion@fedoraproject.org', tenant: infrastructure, password: "{{maxamillion_password}}" }
       - { name: clime, email: 'clime@redhat.com', tenant: copr, password: "{{clime_password}}" }
+      - { name: misc, email: 'misc@redhat.com', tenant: openshift, password: "{{misc_password}}" }
     tags:
     - openstack_users
 
@@ -765,6 +767,7 @@
       - { username: admin, name: fedora-admin-20130801, tenant: admin, password: "{{ADMIN_PASS}}", public_key: "{{ lookup('file', files + '/fedora-cloud/fedora-admin-20130801.pub') }}" }
       - { username: asamalik, name: asamalik, tenant: scratch, password: "{{asamalik_password}}", public_key: "{{ lookup('pipe', '/srv/web/infra/ansible/scripts/auth-keys-from-fas asamalik') }}" }
       - { username: clime, name: clime, tenant: copr, password: "{{clime_password}}", public_key: "{{ lookup('pipe', '/srv/web/infra/ansible/scripts/auth-keys-from-fas clime') }}" }
+      - { username: misc, name: misc, tenant: openshift, password: "{{misc_password}}", public_key: "{{ lookup('pipe', '/srv/web/infra/ansible/scripts/auth-keys-from-fas misc') }}" }
     tags:
     - openstack_users
 
@@ -907,6 +910,7 @@
       - { name: qa, shared: false }
       - { name: scratch, shared: false }
       - { name: transient, shared: false }
+      - { name: openshift, shared: false }
   - name: Create a subnet for all tenants
     neutron_subnet:
       login_username="admin" login_password="{{ ADMIN_PASS }}" login_tenant_name="admin"
@@ -928,6 +932,7 @@
       - { name: qa, cidr: '172.25.112.1/20', gateway: '172.25.112.1' }
       - { name: scratch, cidr: '172.25.64.1/20', gateway: '172.25.64.1' }
       - { name: transient, cidr: '172.25.48.1/20', gateway: '172.25.48.1' } 
+      - { name: openshift, cidr: '172.25.160.1/20', gateway: '172.25.160.1' }
   - name: "Connect router's interface to the TENANT-subnet"
     neutron_router_interface:
       login_username="admin" login_password="{{ ADMIN_PASS }}" login_tenant_name="admin"
@@ -1033,6 +1038,7 @@
       - { name: qa, prefix: "172.25.112.1/20" }
       - { name: scratch, prefix: '172.25.64.1/20' }
       - { name: transient, prefix: '172.25.48.1/20' }
+      - { name: openshift, prefix: '172.25.160.1/20' }
 
   - name: "Create 'web-80-anywhere' security group"
     neutron_sec_group:
