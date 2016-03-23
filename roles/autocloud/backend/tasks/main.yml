@@ -59,6 +59,20 @@
   - autocloud
   - autocloud/backend
 
+#
+# install koji build fedmsg hotfix
+# See issue https://github.com/kushaldas/autocloud/issues/34
+#
+- name: hotfix - copy over consumer for autocloud
+  copy: src="{{ files }}/hotfix/autocloud/consumer.py" dest=/usr/lib/python2.7/site-packages/autocloud
+          owner=root group=root mode=0644
+  notify:
+  - restart fedmsg-hub
+  tags:
+  - autocloud
+  - hotfix
+  - autocloud/backend
+
 - name: install vagrant-libvirt for the libvirt host
   dnf: pkg={{ item }} state=present
   with_items:
