@@ -15,9 +15,16 @@ DEBUG = autocloud.DEBUG
 class AutoCloudConsumer(fedmsg.consumers.FedmsgConsumer):
 
     if DEBUG:
-        topic = 'org.fedoraproject.dev.__main__.buildsys.task.state.change'
+        topic = [
+            'org.fedoraproject.dev.__main__.buildsys.build.state.change',
+            'org.fedoraproject.dev.__main__.buildsys.task.state.change',
+        ]
+
     else:
-        topic = 'org.fedoraproject.prod.buildsys.task.state.change'
+        topic = [
+            'org.fedoraproject.prod.buildsys.build.state.change',
+            'org.fedoraproject.prod.buildsys.task.state.change',
+        ]
 
     config_key = 'autocloud.consumer.enabled'
 
@@ -97,6 +104,44 @@ class AutoCloudConsumer(fedmsg.consumers.FedmsgConsumer):
     def consume(self, msg):
         """ This is called when we receive a message matching the topic. """
 
+        if msg['topic'].endswith('.buildsys.task.state.change'):
+            # Do the thing you've always done...  this will go away soon.
+            # releng is transitioning away from it.
+            self._consume_scratch_task(msg)
+        elif msg['topic'].endswith('.buildsys.build.state.change'):
+            # Do the new thing we need to do.  handle a 'real build' from koji,
+            # not just a scratch task.
+            self._consume_real_build(msg)
+        else:
+            raise NotImplementedError("Should be impossible to get here...")
+
+    def _consume_real_build(self, msg):
+        builds = list()  # These will be the Koji task IDs to upload, if any.
+
+        msg = msg['body']['msg']
+        if msg['owner'] != 'releng':
+            log.debug("Dropping message.  Owned by %r" % msg['owner'])
+            return
+
+        if msg['instance'] != 'primary':
+            log.info("Dropping message.  From %r instance." % msg['instance'])
+            return
+
+        # Don't upload *any* images if one of them fails.
+        if msg['new'] != 1:
+            log.info("Dropping message.  State is %r" % msg['new'])
+            return
+
+        koji_session = koji.ClientSession(autocloud.KOJI_SERVER_URL)
+        children = koji_session.getTaskChildren(msg['task_id'])
+        for child in children:
+            if child["method"] == "createImage":
+                builds.append(child["id"])
+
+        if len(builds) > 0:
+            produce_jobs(self._get_tasks(builds))
+
+    def _consume_scratch_task(self, msg):
         builds = list()  # These will be the Koji build IDs to upload, if any.
 
         msg_info = msg["body"]["msg"]["info"]
