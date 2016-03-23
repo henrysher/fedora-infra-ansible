@@ -33,6 +33,16 @@ fedmsg.init(**fm_config)
 import fedbadges.utils
 
 
+#a simple listcomp to generate a lists of searchterms
+#allows us to break the fas userlist down to smaller chunks
+#so the cron job doesn't hang
+def get_fas_searchterm():
+    ast = "*"
+    alpha = map(chr, range(97, 123))
+    searchterms = [ term_str + ast for term_str in alpha ]
+    return searchterms
+
+
 def get_fas_userlist(fas_credentials):
     creds = fas_credentials
 
@@ -41,23 +51,28 @@ def get_fas_userlist(fas_credentials):
         password=creds['password'],
     )
 
+    timeout
     timeout = socket.getdefaulttimeout()
     socket.setdefaulttimeout(600)
-    try:
-        log.info("Downloading FAS cache")
-        request = fasclient.send_request('/user/list',
-                                         req_params={'search': '*'},
+    searchterm = get_fas_searchterms()
+    for search_elem in searchterm:
+        try:
+            log.info("Downloading FAS cache")
+            request = fasclient.send_request('/user/list',
+                                         req_params={'search': search_elem},
                                          auth=True)
-    finally:
-        socket.setdefaulttimeout(timeout)
+            fas_userlist.update(request)
+        finally:
+            socket.setdefaulttimeout(timeout)
 
     # We don't actually check for CLA+1, just "2 groups"
-    return [p for p in request['people'] if len(p.memberships) > 1]
+    return [p for p in fas_userlist['people'] if len(p.memberships) > 1]
 
 
 def main():
     now = datetime.datetime.utcnow()
     year = datetime.timedelta(days=365.5)
+    search_terms = get_fas_searchterms() 
     mapping = {
         'egg': year * 1,
         'embryo': year * 2,
@@ -73,13 +88,14 @@ def main():
         assert(badge.id)
 
     # Then, do a long query against FAS for our candidates.
+    # looping over a list of search terms allows us to work around the socket timeout
     results = get_fas_userlist(fas_credentials=fm_config['fas_credentials'])
 
     for badge_id, delta in mapping.items():
         badge = tahrir.get_badge(badge_id=badge_id)
         for person in results:
             creation = datetime.datetime.strptime(
-                person.creation.split('.')[0], '%Y-%m-%d %H:%M:%S')
+               person.creation.split('.')[0], '%Y-%m-%d %H:%M:%S')
             if now - creation > delta:
                 hit_em_up(badge, person)
 
