@@ -166,12 +166,44 @@
     osbs_kubeconfig_path: /etc/origin/master/admin.kubeconfig
     osbs_environment:
       KUBECONFIG: "{{ osbs_kubeconfig_path }}"
+    koji_pki_dir: /etc/pki/koji
+    koji_ca_cert_path: "{{koji_pki_path}}/fedora-server-ca.cert"
+    koji_cert_path: "{{koji_pki_path}}/fedora-builder.pem"
+    koji_builder_user: dockerbuilder
+    osbs_builder_user: builder
+
 
   handlers:
     - name: buildroot container
       shell: atomic-reactor create-build-image --reactor-tarball-path /usr/share/atomic-reactor/atomic-reactor.tar.gz /etc/osbs/buildroot/ buildroot
 
+    - name: oc secrets new
+      shell: "oc secrets new koji cert={{ koji_cert_path }} ca={{ koji_ca_cert_path }} serverca={{ koji_ca_cert_path }}"
+      notify: oc secrets add
+
+    - name: oc secrets add
+      shell: "oc secrets add serviceaccount/{{ osbs_builder_user }} secrets/koji --for=mount"
+
+
   tasks:
+    - name: Ensure koji dockerbuilder cert path exists
+      file:
+        path: "{{ koji_pki_dir }}"
+        state: "directory"
+        mode: 0400
+
+    - name: Add koji dockerbuilder cert for Content Generator import
+      copy:
+        src: "{{private}}/files/koji/containerbuild.pem"
+        dest: "{{ koji_cert_path }}"
+      notify: oc secrets new
+
+    - name: Add koji dockerbuilder ca cert for Content Generator import
+      copy:
+        src: "{{private}}/files/koji/buildercerts/fedora-ca.cert"
+        dest: "{{ koji_ca_cert_path }}"
+      notify: oc secrets new
+
     - name: install docker
       action: "{{ ansible_pkg_mgr }} name=docker state=installed"
 
