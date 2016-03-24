@@ -1,0 +1,50 @@
+- name: Create GNOME backup user
+  user: name=gnomebackup state=present home=/gnome_backups/ createhome=yes shell=/sbin/nologin
+
+- name:  Add a Directory for the Excludes list for each of the backed up GNOME machines
+  file: dest=/gnome_backups/excludes owner=gnomebackup group=gnomebackup state=directory
+
+- name: Install the GNOME SSH configuration file
+  copy: src="{{ files }}/gnome/ssh_config" dest=/usr/local/etc/gnome_ssh_config mode=0600 owner=gnomebackup
+
+- name: Install GNOME backup key
+  copy: src="{{ private }}/files/gnome/backup_id.rsa" dest=/usr/local/etc/gnome_backup_id.rsa mode=0600 owner=gnomebackup
+
+- name: Install GNOME backup script
+  copy: src="{{ files }}/gnome/backup.sh" dest=/usr/local/bin/gnome_backup mode=0700 owner=gnomebackup
+
+- name: Schedule the GNOME backup script
+  cron: name="Backup" hour=5 minute=0 job="(cd /gnome_backups; /usr/local/bin/lock-wrapper gnomebackup /usr/local/bin/gnome_backup)" user=gnomebackup
+
+- name:  Add a Directory for each of the GNOME machines
+  file: dest=/gnome_backups/{{ item }} owner=gnomebackup group=gnomebackup state=directory
+  with_items: 
+  - signal.gnome.org
+  - webapps2.gnome.org
+  - clutter.gnome.org
+  - blogs.gnome.org
+  - view.gnome.org
+  - puppet.gnome.org
+  - extensions.gnome.org
+  - chooser.gnome.org
+  - git.gnome.org
+  - webapps.gnome.org
+  - socket.gnome.org
+  - bugzilla-web.gnome.org
+  - progress.gnome.org
+  - clipboard.gnome.org
+  - drawable.gnome.org
+  - vbox.gnome.org
+  - cloud-ssh.gnome.org
+  - bastion.gnome.org
+  - spinner.gnome.org
+  - master.gnome.org
+  - live.gnome.org
+  - combobox.gnome.org
+  - restaurant.gnome.org
+  - expander.gnome.org
+  - accelerator.gnome.org
+  - range.gnome.org
+  - pentagon.gimp.org
+  - account.gnome.org
+  - bugzilla-new.gnome.org
