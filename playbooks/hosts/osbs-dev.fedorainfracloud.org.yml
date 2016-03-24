@@ -179,10 +179,12 @@
 
     - name: oc secrets new
       shell: "oc secrets new koji cert={{ koji_cert_path }} ca={{ koji_ca_cert_path }} serverca={{ koji_ca_cert_path }}"
+      environment: "{{ osbs_environment }}"
       notify: oc secrets add
 
     - name: oc secrets add
       shell: "oc secrets add serviceaccount/{{ osbs_builder_user }} secrets/koji --for=mount"
+      environment: "{{ osbs_environment }}"
 
 
   tasks:
