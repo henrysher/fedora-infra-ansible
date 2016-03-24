@@ -14,7 +14,9 @@ from django.core.urlresolvers import reverse_lazy
 from django.views.generic import RedirectView
 
 urlpatterns = patterns('',
-    url(r'^$', RedirectView.as_view(url=reverse_lazy('hyperkitty.views.index.index'))),
+    url(r'^$', RedirectView.as_view(
+        url=reverse_lazy('hyperkitty.views.index.index'),
+        permanent=True)),
     #url(r'^$', 'postorius.views.list_index'),
     url(r'^admin/', include('postorius.urls')),
     url(r'^archives/', include('hyperkitty.urls')),
