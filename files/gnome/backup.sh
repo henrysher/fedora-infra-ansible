@@ -33,7 +33,6 @@ MACHINES='signal.gnome.org
           socket.gnome.org'
 
 BACKUP_DIR='/fedora_backups/gnome/'
-LOGS_DIR='/fedora_backups/gnome/logs'
 
 for MACHINE in $MACHINES; do
       rsync -avz -e 'ssh -F /usr/local/etc/gnome_ssh_config' --bwlimit=2000 $MACHINE:/etc/rsyncd/backup.exclude $BACKUP_DIR/excludes/$MACHINE.exclude
