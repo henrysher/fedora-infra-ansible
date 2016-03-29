@@ -9,7 +9,14 @@ DAYS=7
 TMPCLAMDIR=$(mktemp -d clamav_ansible.XXXXXX)
 FILELIST="$TMPCLAMDIR/clamscan_filelist.$$"
 
+clean_tmp_files() {
+    rm -f $FILELIST
+    rmdir $TMPCLAMDIR
+}
+trap clean_tmp_files EXIT
+
 rm -f $LOGFILE
+
 
 # Build file list to scan
 {% for path in clamscan_paths %}
@@ -34,4 +41,3 @@ then
     mail -s "Virus scanning error on $(hostname)" $MAILTO -- < $LOGFILE
 fi
 
-rm -f $FILELIST
