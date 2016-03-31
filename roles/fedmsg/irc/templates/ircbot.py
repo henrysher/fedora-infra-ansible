@@ -317,6 +317,28 @@ config = dict(
                 body=['^((?!fedora-websites).)*$'],
             ),
         ),
+
+        # And #fedora-mktg
+        dict(
+            network='chat.freenode.net',
+            port=6667,
+            make_pretty=True,
+            make_terse=True,
+
+            {% if env == 'staging' %}
+            nickname='mktg-bot-stg',
+            {% else %}
+            nickname='mktg-bot',
+            {% endif %}
+            channel='#fedora-mktg',
+            # If the word fedora-mktg appears in any pagure message, forward it.
+            filters=dict(
+                topic=[
+                    '^((?!(pagure)).)*$',
+                ],
+                body=['^((?!fedora-mktg).)*$'],
+            ),
+        ),
     ],
 
     ### Possible colors are ###

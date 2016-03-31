@@ -223,34 +223,9 @@ sub vcl_recv {
     if (req.url ~ "^/freemedia/") {
         set req.backend_hint = freemedia;
     }
-    if (req.url ~ "^/packages/") {
-        set req.backend_hint = packages;
-        if (req.url ~ "^/packages/_res/") {
-            unset req.http.cookie;
-            set req.url = regsub(req.url, "\?.*", "");
-        }
-        if (req.url ~ "^/packages/css/") {
-            unset req.http.cookie;
-            set req.url = regsub(req.url, "\?.*", "");
-        }
-    }
     if (req.url ~ "^/tagger/") {
         set req.backend_hint = tagger;
         if (req.url ~ "^/tagger/ui/static/") {
-            unset req.http.cookie;
-            set req.url = regsub(req.url, "\?.*", "");
-        }
-    }
-    if (req.url ~ "^/calendar") {
-        set req.backend_hint = fedocal;
-        if (req.url ~ "^/calendar/static/") {
-            unset req.http.cookie;
-            set req.url = regsub(req.url, "\?.*", "");
-        }
-    }
-    if (req.url ~ "^/kerneltest") {
-        set req.backend_hint = kerneltest;
-        if (req.url ~ "^/kerneltest/static/") {
             unset req.http.cookie;
             set req.url = regsub(req.url, "\?.*", "");
         }
@@ -273,13 +248,6 @@ sub vcl_recv {
             set req.url = regsub(req.url, "\?.*", "");
         }
     }
-    if (req.url ~ "^/koschei") {
-        set req.backend_hint = koschei;
-        if (req.url ~ "^/koschei/static/") {
-            unset req.http.cookie;
-            set req.url = regsub(req.url, "\?.*", "");
-        }
-    }
     if (req.http.X-Forwarded-Server ~ "^qa.fedoraproject.org") {
         if (req.url ~ "^/blockerbugs") {
              set req.backend_hint = blockerbugs;
@@ -289,20 +257,59 @@ sub vcl_recv {
             }
         }
     }
-
-    if (req.http.X-Forwarded-Server ~ "^apps.fedoraproject.org") { 
-        if (req.url ~ "^/nuancier") { 
-            set req.backend_hint = nuancier; 
-            if (req.url ~ "^/nuancier/static/") { 
-                unset req.http.cookie; 
-                set req.url = regsub(req.url, "\?.*", ""); 
-            } 
-            if (req.url ~ "^/nuancier/cache/") { 
-                unset req.http.cookie; 
-                set req.url = regsub(req.url, "\?.*", ""); 
-            } 
-        } 
-    } 
+    if (req.http.X-Forwarded-Server ~ "^apps.fedoraproject.org" || req.http.X-Forwarded-Server ~ "^apps.stg.fedoraproject.org") { 
+        if (req.url ~ "^/koschei") {
+            set req.backend_hint = koschei;
+            if (req.url ~ "^/koschei/static/") {
+                unset req.http.cookie;
+                set req.url = regsub(req.url, "\?.*", "");
+            }
+        }
+        if (req.url ~ "^/kerneltest") {
+            set req.backend_hint = kerneltest;
+            if (req.url ~ "^/kerneltest/static/") {
+                unset req.http.cookie;
+                set req.url = regsub(req.url, "\?.*", "");
+            }
+        }
+        if (req.url ~ "^/calendar") {
+            set req.backend_hint = fedocal;
+            if (req.url ~ "^/calendar/static/") {
+                unset req.http.cookie;
+                set req.url = regsub(req.url, "\?.*", "");
+            }
+        }
+        if (req.url ~ "^/nuancier") {
+            set req.backend_hint = nuancier;
+            if (req.url ~ "^/nuancier/static/") {
+                unset req.http.cookie;
+                set req.url = regsub(req.url, "\?.*", "");
+            }
+            if (req.url ~ "^/nuancier/cache/") {
+                unset req.http.cookie;
+                set req.url = regsub(req.url, "\?.*", "");
+            }
+        }
+        if (req.url ~ "^/packages/") {
+            set req.backend_hint = packages;
+            if (req.url ~ "^/packages/_res/") {
+                unset req.http.cookie;
+                set req.url = regsub(req.url, "\?.*", "");
+            }
+            if (req.url ~ "^/packages/css/") {
+                unset req.http.cookie;
+                set req.url = regsub(req.url, "\?.*", "");
+            }
+            if (req.url ~ "^/packages/images/") {
+                unset req.http.cookie;
+                set req.url = regsub(req.url, "\?.*", "");
+            }
+            if (req.url ~ "^/packages/js/") {
+                unset req.http.cookie;
+                set req.url = regsub(req.url, "\?.*", "");
+            }
+        }
+    }
 
     # Pass any requests with the "If-None-Match" header directly.
     if (req.http.If-None-Match) {

@@ -12,9 +12,18 @@
 ##      string - FAS username for reporting results to wiki
 # - wikitcms_password
 ##      string - password for relval_user
+# - deployment_type
+##      string - Fedora Infrastructure thing; for this role, decides
+##               whether and where to submit wiki results
 #
-# When both of the above are set, a wikitcms 'credentials' file will
-# be created and result submission to the wiki will be enabled.
+# When all of the above are set, a wikitcms 'credentials' file will
+# be created and result submission to the wiki will be enabled. If
+# deployment_type is set to 'prod', results will be submitted to the
+# production wiki in response to openQA production 'job complete'
+# fedmsgs; if set to 'stg', results will be submitted to the staging
+# wiki in response to openQA staging 'job complete' fedmsgs. You
+# probably should NOT set these unless you're maintaining the Fedora
+# infrastructure deployments.
 #
 # NOTE: There are still currently a couple of assumptions that the
 # openQA server boxes will always act as their own dispatchers, but
@@ -22,22 +31,23 @@
 # as we now use the openQA asset downloading capability so that the
 # scheduler is no longer responsible for downloading assets.
 
-# note: we need updates-testing until fedfind/wikitcms 2.x go stable
-- name: Install required packages (testing)
-  dnf: name={{ item }} state=present enablerepo="updates-testing"
-  with_items:
-  - fedfind
-  - python2-wikitcms
-  tags:
-  - packages
+# just keeping this around for convenience as we often need it
+#- name: Install required packages (testing)
+#  dnf: name={{ item }} state=present enablerepo="updates-testing"
+#  with_items:
+
+#  tags:
+#  - packages
 
 - name: Install required packages
   dnf: name={{ item }} state=present
   with_items:
+  - fedfind
   - python2-fedmsg-consumers
   - python-requests
   - python-setuptools
   - python-six
+  - python2-wikitcms
   tags:
   - packages
 
