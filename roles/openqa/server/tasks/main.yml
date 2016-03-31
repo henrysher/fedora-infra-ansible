@@ -32,6 +32,12 @@
 # - openqa_assetsize
 ##       int - the asset size limit to set in GB (upstream default is 100GB)
 ##             higher is recommended for normal Fedora testing, 300GB is good
+##             FIXME: this only works for pgsql ATM
+# - deployment_type
+##      string - Fedora Infrastructure thing; for this role, decides
+##               whether to monkeypatch the repo URLs in the templates
+##               to work inside Fedora infrastructure. Don't set it
+##               unless your deployment is running in Fedora infra.
 #
 # If openqa_dbhost is set, the others must be too, and the server will be
 # configured to use a pgsql database accordingly. If openqa_dbhost is not
@@ -54,17 +60,13 @@
     shell: /sbin/nologin
   when: "openqa_static_uid is defined"
 
-# note: we need updates-testing until fedfind 2.x and openQA 4.3-21 go stable
-- name: Install required packages (testing)
-  dnf: name={{ item }} state=present enablerepo="updates-testing"
-  with_items:
-  - python2-fedfind
-  - python3-fedfind
-  - openqa
-  - openqa-httpd
-  - openqa-plugin-fedmsg
-  tags:
-  - packages
+# just keeping this around for convenience as we often need it
+#- name: Install required packages (testing)
+#  dnf: name={{ item }} state=present enablerepo="updates-testing"
+#  with_items:
+#
+#  tags:
+#  - packages
 
 - name: Install required packages
   dnf: name={{ item }} state=present enablerepo=adamwill-openQA
@@ -80,6 +82,11 @@
   - expect
   - libguestfs-tools-c
   - libguestfs-xfs
+  - openqa
+  - openqa-httpd
+  - openqa-plugin-fedmsg
+  - python2-fedfind
+  - python3-fedfind
   - python3-libguestfs
   - python3-pexpect
   tags:
@@ -205,7 +212,7 @@
 
 - name: Patch repo URLs in templates
   shell: "cp /var/lib/openqa/share/tests/fedora/templates /tmp && sed -i -e 's,dl.fedoraproject,dl.phx2.fedoraproject,g' /tmp/templates"
-  when: "gittests|changed"
+  when: "gittests|changed and deployment_type is defined"
   changed_when: "1 != 1"
 
 - name: Dump existing config for checking changes
