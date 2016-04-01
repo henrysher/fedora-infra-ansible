@@ -222,7 +222,6 @@
 - name: koji web common config files
   copy: src={{ item }} dest=/etc/httpd/conf.d/{{ item }} owner=root group=root
   with_items:
-  - kojihub.conf
   - mash.conf
   - rel-eng.conf
   - repo.conf
@@ -232,7 +231,10 @@
   notify: reload httpd
 
 - name: koji web hub specific config files
-  template: src=kojiweb.conf.j2 dest=/etc/httpd/conf.d/kojiweb.conf owner=root group=root
+  template: src={{ item }}.j2 dest=/etc/httpd/conf.d/{{ item }} owner=root group=root
+  with_items:
+  - kojiweb.conf
+  - kojihub.conf
   tags:
   - config
   - koji_hub

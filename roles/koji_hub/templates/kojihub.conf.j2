@@ -12,6 +12,17 @@ Alias /kojihub /usr/share/koji-hub/kojixmlrpc.py
     Require all granted
 </Directory>
 
+{% if inventory_hostname == 'arm-koji01.qa.fedoraproject.org' %}
+# Also serve /mnt/koji
+Alias /kojifiles "/mnt/koji/"
+
+<Directory "/mnt/koji">
+   Options Indexes FollowSymLinks
+   AllowOverride None
+   Order allow,deny
+   Allow from all
+</Directory>
+{% endif %}
 
 <Location /kojihub/ssllogin>
          SSLVerifyClient require
