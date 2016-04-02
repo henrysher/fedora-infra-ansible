@@ -12,10 +12,39 @@
   - include: "{{ tasks }}/yumrepos.yml"
   - yum: name={{item}} state=present
     with_items:
+    - git
+
+  - file: dest=/srv/git state=directory
+  - git: repo=https://pagure.io/fedora-hubs.git
+         dest=/srv/git/fedora-hubs
+         version=develop
+  - file: dest=/etc/fedmsg.d/ state=directory
+  - name: copy around a number of files we want
+    command: cp {{item.src}} {{item.dest}}
+    with_items:
+    - src: /srv/git/fedora-hubs/fedmsg.d/testconfig.py
+      dest: /etc/fedmsg.d/testconfig.py
+      remote_src: True
+    - src: /srv/git/fedora-hubs/fedmsg.d/base.py
+      dest: /etc/fedmsg.d/base.py
+      remote_src: True
+    - src: /srv/git/fedora-hubs/fedmsg.d/logging.py
+      dest: /etc/fedmsg.d/logging.py
+      remote_src: True
+    - src: /srv/git/fedora-hubs/systemd/hubs-worker@.service
+      dest: /usr/lib/systemd/system/hubs-worker@.service
+      remote_src: True
+    - src: /srv/git/fedora-hubs/systemd/hubs-triage@.service
+      dest: /usr/lib/systemd/system/hubs-triage@.service
+      remote_src: True
+    - src: /srv/git/fedora-hubs/systemd/hubs-webapp.service
+      dest: /usr/lib/systemd/system/hubs-webapp.service
+      remote_src: True
+  - yum: name={{item}} state=present
+    with_items:
     - htop
     - tmux
     - vim
-    - git
     - redis
     - python-pip
     - gcc
@@ -29,25 +58,6 @@
     - python-psycopg2
     - postgresql-devel
     - postgresql-server
-  - file: dest=/srv/git state=directory
-  - git: repo=https://pagure.io/fedora-hubs.git
-         dest=/srv/git/fedora-hubs
-         version=develop
-  - name: link in a number of files we want
-    file: src={{item.src}} dest={{item.dest}} state=link
-    with_items:
-    - src: /srv/git/fedora-hubs/fedmsg.d/testconfig.py
-      dest: /etc/fedmsg.d/testconfig.py
-    - src: /srv/git/fedora-hubs/fedmsg.d/base.py
-      dest: /etc/fedmsg.d/base.py
-    - src: /srv/git/fedora-hubs/fedmsg.d/logging.py
-      dest: /etc/fedmsg.d/logging.py
-    - src: /srv/git/fedora-hubs/systemd/hubs-worker@.service
-      dest: /usr/lib/systemd/system/hubs-worker@.service
-    - src: /srv/git/fedora-hubs/systemd/hubs-triage@.service
-      dest: /usr/lib/systemd/system/hubs-triage@.service
-    - src: /srv/git/fedora-hubs/systemd/hubs-webapp.service
-      dest: /usr/lib/systemd/system/hubs-webapp.service
   - command: pip install -r requirements.txt
              chdir=/srv/git/fedora-hubs
              creates=/usr/lib/python2.7/site-packages/fedmsg/
@@ -63,12 +73,29 @@
 
   - command: systemctl daemon-reload
 
-  - service: name={{item}} state=running enabled=yes
+  - service: name={{item}} enabled=yes state=running
     with_items:
     - redis
     - hubs-webapp
-    - hubs-worker1
-    - hubs-triage1
+    - hubs-worker@1
+    - hubs-worker@2
+    - hubs-worker@3
+    - hubs-worker@4
+    - hubs-worker@5
+    - hubs-worker@6
+    - hubs-worker@7
+    - hubs-worker@8
+    - hubs-triage@1
+    - hubs-triage@2
+    - hubs-triage@3
+    - hubs-triage@4
+    - hubs-triage@5
+    - hubs-triage@6
+
 
   # Set up the db for datanommer
   - command: postgresql-setup initdb creates=/var/lib/pgsql/data/pg_hba.conf
+  - service: name=postgresql enabled=yes state=running
+  # TODO -- createdb -E utf-8 datanommer
+  # TODO -- `datanommer-create-db`
+  - service: name=fedmsg-hub enabled=yes state=running
