@@ -3,32 +3,32 @@
   when: ansible_virtualization_role == 'guest'
   register: watchdog_dev
 
-- name: install watchdog
-  package: pkg={{ item }} state=present
-  with_items:
-  - watchdog
-  tags:
-  - packages
-  - watchdog
-  - base
-  when: ansible_virtualization_role == 'guest' and watchdog_dev.stat.exists
+- block:
 
-- name: watchdog device configuration
-  copy: src=watchdog.conf dest=/etc/watchdog.conf owner=root group=root mode=644
-  when: ansible_virtualization_role == 'guest' and watchdog_dev.stat.exists
-  tags:
-  - config
-  - watchdog
-  - base
-  notify: restart watchdog
+    - name: install watchdog
+      package: pkg={{ item }} state=present
+      with_items:
+      - watchdog
+      tags:
+      - packages
+      - watchdog
+      - base
 
-- name: Set watchdog to run on boot
-  service: name=watchdog enabled=yes
+    - name: watchdog device configuration
+      copy: src=watchdog.conf dest=/etc/watchdog.conf owner=root group=root mode=644
+      tags:
+      - config
+      - watchdog
+      - base
+      notify: restart watchdog
+
+    - name: Set watchdog to run on boot
+      service: name=watchdog enabled=yes
+      ignore_errors: true
+      notify:
+      - restart watchdog
+      tags:
+      - service
+      - watchdog
+      - base
   when: ansible_virtualization_role == 'guest' and watchdog_dev.stat.exists
-  ignore_errors: true
-  notify:
-  - restart watchdog
-  tags:
-  - service
-  - watchdog
-  - base
