@@ -4,24 +4,14 @@
   register: watchdog_dev
 
 - name: install watchdog
-  yum: pkg={{ item }} state=present
+  package: pkg={{ item }} state=present
   with_items:
   - watchdog
   tags:
   - packages
   - watchdog
   - base
-  when: ansible_distribution_major_version|int < 22 and ansible_virtualization_role == 'guest' and watchdog_dev.stat.exists
-
-- name: install watchdog
-  dnf: pkg={{ item }} state=present
-  with_items:
-  - watchdog
-  tags:
-  - packages
-  - watchdog
-  - base
-  when: ansible_distribution_major_version|int > 21 and ansible_virtualization_role == 'guest' and watchdog_dev.stat.exists
+  when: ansible_virtualization_role == 'guest' and watchdog_dev.stat.exists
 
 - name: watchdog device configuration
   copy: src=watchdog.conf dest=/etc/watchdog.conf owner=root group=root mode=644
