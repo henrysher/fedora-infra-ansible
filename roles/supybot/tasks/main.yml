@@ -10,32 +10,21 @@
   - packagedb-cli
   tags: supybot
 
+- set_fact: botname=botnames[env]
+
 - name: creating zodbot log dir
   file: path={{ item }} state=directory owner=daemon
   with_items:
-  - /var/lib/zodbot
-  - /var/lib/zodbot/conf
-  - /var/lib/zodbot/data
-  - /var/lib/zodbot/logs
+  - /var/lib/{{ botname }}
+  - /var/lib/{{ botname }}/conf
+  - /var/lib/{{ botname }}/data
+  - /var/lib/{{ botname }}/logs
   - /srv/web
   - /srv/web/meetbot
-  when: env != "staging"
   tags: supybot
 
 - name: create teams directory
   file: path=/srv/web/meetbot/teams state=directory owner=apache group=apache mode=0755
-  tags: supybot
-
-- name: creating usrabot log dir
-  file: path={{ item }} state=directory owner=daemon
-  with_items:
-  - /var/lib/ursabot
-  - /var/lib/ursabot/conf
-  - /var/lib/ursabot/data
-  - /var/lib/ursabot/logs
-  - /srv/web
-  - /srv/web/meetbot
-  when: env == "staging"
   tags: supybot
 
 - name: setup meetings_by_team script
@@ -70,18 +59,9 @@
   - meetbot
   - supybot
 
-- name: setup cron job to start zodbot/ursabot on boot
-  cron: name=zodbot special_time=reboot job='cd /srv/web/meetbot; supybot -d /var/lib/zodbot/conf/zodbot.conf' user=daemon
+- name: setup cron job to start {{ botname }}/ursabot on boot
+  cron: name={{ botname }} special_time=reboot job='cd /srv/web/meetbot; supybot -d /var/lib/{{ botname }}/conf/{{ botname }}.conf' user=daemon
   tags:
   - config
   - meetbot
   - supybot
-  when: env != "staging"
-
-- name: setup cron job to start zodbot/ursabot on boot
-  cron: name=ursabot special_time=reboot job='cd /srv/web/meetbot; supybot -d /var/lib/ursabot/conf/ursabot.conf' user=daemon
-  tags:
-  - config
-  - meetbot
-  - supybot
-  when: env == "staging"
