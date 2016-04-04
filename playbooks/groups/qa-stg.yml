@@ -83,13 +83,6 @@
    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
 
   tasks:
-    - name: ensure ServerName is set in ssl.conf
-      replace: dest=/etc/httpd/conf.d/ssl.conf regexp='^#ServerName .*$' replace='ServerName {{ external_hostname }}:443'
-      notify:
-        - reload httpd
-      tags:
-        - qastaticsites
-
     - name: ensure ServerName is set in httpd.conf
       replace: dest=/etc/httpd/conf/httpd.conf regexp='^#ServerName .*$' replace='ServerName {{ external_hostname }}:443'
       notify:
@@ -104,7 +97,7 @@
         - qastaticsites
 
     - name: generate virtualhosts for static sites
-      template:  src={{ files }}/httpd/newvirtualhost.conf.j2 dest=/etc/httpd/conf.d/{{ item.name }}.conf owner=root group=root mode=0644
+    template:  src={{ files }}/httpd/qadevel-virtualhost.conf.j2 dest=/etc/httpd/conf.d/{{ item.name }}.conf owner=root group=root mode=0644
       with_items: "{{ static_sites }}"
       notify:
         - reload httpd
