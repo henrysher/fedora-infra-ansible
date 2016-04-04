@@ -23,10 +23,15 @@
   notify:
   - restart fedmsg-gateway
 
-- name: bump fs limits by installing our own systemd service file
+- name: create systemd drop-in directory
+  file: >
+    dest=/etc/systemd/system/fedmsg-gateway.service.d
+    state=directory
+
+- name: bump fs limits by installing a drop-in systemd config
   copy: >
-    src=fedmsg-gateway.service
-    dest=/usr/lib/systemd/system/fedmsg-gateway.service
+    src=fs-limits.conf
+    dest=/etc/systemd/system/fedmsg-gateway.service.d/fs-limits.conf
   tags:
   - config
   - fedmsg/gateway
