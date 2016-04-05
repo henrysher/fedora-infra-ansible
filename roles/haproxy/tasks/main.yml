@@ -9,7 +9,7 @@
   - packages
   - haproxy
 
-- name: install haproxy/cfg in prod
+- name: install haproxy/cfg
   template: src={{ item.file }}
         dest={{ item.dest }}
         owner=root group=root mode=0600
@@ -76,15 +76,7 @@
   - selinux
 
 
-- name: check haproxy cfg to make sure it is valid (prod)
-  command: haproxy -c -f /etc/haproxy/haproxy.cfg
-  always_run: true
-  register: haproxyconfigcheck
-  changed_when: haproxyconfigcheck.rc != 0
-  tags:
-  - haproxy
-
-- name: check haproxy cfg to make sure it is valid (prod)
+- name: check haproxy cfg to make sure it is valid
   command: haproxy -c -f /etc/haproxy/haproxy.cfg
   always_run: true
   register: haproxyconfigcheck
