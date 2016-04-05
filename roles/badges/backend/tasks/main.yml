@@ -167,3 +167,19 @@
   - scripts
   - badges
   - badges/backend
+
+#Set PS1 to show prod/stage environment at PS1
+#Should work in sh/bash. Needs tested in other shells
+#
+- name: set PS1 for prod and stage in /etc/profile.d
+  copy: >
+  src=templates/setps1.sh.j2
+  dest=/etc/profile.d/setps1.sh
+  owner=root
+  group=sysadmin-badges
+  mode=644
+  when: {{ env in ['production','staging'] }}
+  tags:
+  - base
+  - config
+
