@@ -32,7 +32,7 @@ fi
 
 DELTA=`echo ${CURDATE}-${LASTRUN} | bc`
 
-/path/to/last-sync -d ${DELTA} -q
+${LAST_SYNC} -d ${DELTA} -q
 
 if [ "$?" -eq "0" ]; then
     # EPEL
@@ -41,6 +41,9 @@ if [ "$?" -eq "0" ]; then
 else
     logger -p local0.notice -t rsync_epel "No change found. Not syncing"
 fi
+
+#######
+####### CODE REUSE ALERT. THIS NEEDS TO BE A SUBROUTINE YOU SILLY
 
 ## Do the FEDORA download if we have had a sync since the last update.
 CURDATE=`date +%s`
@@ -52,7 +55,7 @@ fi
 
 DELTA=`echo ${CURDATE}-${LASTRUN} | bc`
 
-/path/to/last-sync -d ${DELTA} -q
+${LAST_SYNC} -d ${DELTA} -q
 
 if [ "$?" -eq "0" ]; then
     # Enchilada
