@@ -50,15 +50,18 @@
   - name: put in script for syncing on download-ib02
     copy: src="{{ files }}/download/sync-up-downloads.sh"  dest=/usr/local/bin/sync-up-downloads owner=root group=root mode=755
     when: inventory_hostname == 'download-ib02.fedoraproject.org'
+  - name: put in cron job for syncing
+    copy: src="{{ files }}/download/download-sync.cron"  dest=/etc/cron.d/download-sync owner=root group=root mode=644
+    when: inventory_hostname == 'download-ib02.fedoraproject.org'
   - name: put in script for syncing on download-ib01
     copy: src="{{ files }}/download/sync-up-downloads.sh.ib01" dest=/usr/local/bin/sync-up-downloads owner=root group=root mode=755
     when: inventory_hostname == 'download-ib01.fedoraproject.org'
   - name: put in script for syncing on download-ib01
-    copy: src="{{ files }}/download/sync-up-archives.sh.ib01" dest=/usr/local/bin/sync-up-archives owner=root group=root mode=755
+    copy: src="{{ files }}/download/sync-up-other.sh.ib01" dest=/usr/local/bin/sync-up-other owner=root group=root mode=755
     when: inventory_hostname == 'download-ib01.fedoraproject.org'
   - name: put in cron job for syncing
-    copy: src="{{ files }}/download/download-sync.cron"  dest=/etc/cron.d/download-sync owner=root group=root mode=644
-    when: datacenter == 'ibiblio'
+    copy: src="{{ files }}/download/download-sync.cron.ib01"  dest=/etc/cron.d/download-sync owner=root group=root mode=644
+    when: inventory_hostname == 'download-ib01.fedoraproject.org'
   - name: put in last sync scrypt for download-ib01
     copy: src="{{ files}}/download/last-sync" dest=/usr/local/bin/last-sync mode=0755
     when: inventory_hostname == 'download-ib01.fedoraproject.org'

@@ -42,112 +42,121 @@ delta = 86400
 # if no sync happened 1 is returned
 quiet = False
 secondary = False
+rawtime = False
 
 def usage():
-	print
-	print "last-sync queries the Fedora Message Bus if new data is available on the public servers"
-	print
-	print "Usage: last-sync [options]"
-	print
-	print "Options:"
-	print "  -a, --all                 query all possible releases (default)"
-	print "                            (fedora, epel, branched, rawhide)"
-	print "  -f, --fedora              only query if fedora has been updated during <delta>"
-	print "  -e, --epel                only query if epel has been updated"
-	print "  -b, --branched            only query if the branched off release"
-	print "                            has been updated"
-	print "  -r, --rawhide             only query if rawhide has been updated"
-	print "  -q, --quiet               do not print out any informations"
-	print "  -d DELTA, --delta=DELTA   specify the time interval which should be used"
-	print "                            for the query (default: 86400)"
+        print
+        print "last-sync queries the Fedora Message Bus if new data is available on the public servers"
+        print
+        print "Usage: last-sync [options]"
+        print
+        print "Options:"
+        print "  -a, --all                 query all possible releases (default)"
+        print "                            (fedora, epel, branched, rawhide)"
+        print "  -f, --fedora              only query if fedora has been updated during <delta>"
+        print "  -e, --epel                only query if epel has been updated"
+        print "  -b, --branched            only query if the branched off release"
+        print "                            has been updated"
+        print "  -r, --rawhide             only query if rawhide has been updated"
+        print "  -q, --quiet               do not print out any informations"
+        print "  -t, --time                print date in seconds since 1970-01-01"
+        print "  -d DELTA, --delta=DELTA   specify the time interval which should be used"
+        print "                            for the query (default: 86400)"
 
 
 # -a -f -e -b -r -s -q -d
 def parse_args():
-	global topics
-	global delta
-	global quiet
-	global secondary
-	try:
-		opts, args = getopt.getopt(sys.argv[1:], "afhebrsqd:", ["all", "fedora", "epel", "rawhide", "branched", "secondary", "quiet", "delta="])
-	except getopt.GetoptError as err:
-		print str(err)
-		usage()
-		sys.exit(2)
+        global topics
+        global delta
+        global quiet
+        global secondary
+        global rawtime
+        try:
+                opts, args = getopt.getopt(sys.argv[1:], "afhebrsqtd:", ["all", "fedora", "epel", "rawhide", "branched", "secondary", "quiet", "time", "delta="])
+        except getopt.GetoptError as err:
+                print str(err)
+                usage()
+                sys.exit(2)
 
-	for option, argument in opts:
-		if option in ("-a", "--all"):
-			topics =  [ fedora, epel, branched, rawhide ]
-			secondary = True
-		if option in ("-f", "--fedora"):
-			topics.append(fedora)
-		if option in ("-e", "--epel"):
-			topics.append(epel)
-		if option in ("-r", "--rawhide"):
-			topics.append(rawhide)
-		if option in ("-b", "--branched"):
-			topics.append(branched)
-		if option in ("-s", "--secondary"):
-			topics.append(rawhide)
-			secondary = True
-		if option in ("-q", "--quiet"):
-			quiet = True
-		if option in ("-d", "--delta"):
-			delta = argument
-		if option in ("-h"):
-			usage();
-			sys.exit(0)
+        for option, argument in opts:
+                if option in ("-a", "--all"):
+                        topics =  [ fedora, epel, branched, rawhide ]
+                        secondary = True
+                if option in ("-f", "--fedora"):
+                        topics.append(fedora)
+                if option in ("-e", "--epel"):
+                        topics.append(epel)
+                if option in ("-r", "--rawhide"):
+                        topics.append(rawhide)
+                if option in ("-b", "--branched"):
+                        topics.append(branched)
+                if option in ("-s", "--secondary"):
+                        topics.append(rawhide)
+                        secondary = True
+                if option in ("-q", "--quiet"):
+                        quiet = True
+                if option in ("-t", "--time"):
+                        rawtime = True
+                if option in ("-d", "--delta"):
+                        delta = argument
+                if option in ("-h"):
+                        usage();
+                        sys.exit(0)
 
 
 
 def getKey(item):
-	return item[1]
+        return item[1]
 
 def create_url(url, topics, delta):
-	topic = ""
-	for i in topics:
-		topic += "&topic=%s" % i
-	return '%s?delta=%s%s' % (url, delta, topic)
+        topic = ""
+        for i in topics:
+                topic += "&topic=%s" % i
+        return '%s?delta=%s%s' % (url, delta, topic)
 
 parse_args()
 
 if topics == []:
-	topics =  [ fedora, epel, branched, rawhide ]
-	secondary = True
+        topics =  [ fedora, epel, branched, rawhide ]
+        secondary = True
 
 i = 0
 data = None
 while i < 5:
-	try:
-		data = requests.get(create_url(base_url, topics, delta), timeout=1).json()
-		break
-	except:
-		pass
+        try:
+                data = requests.get(create_url(base_url, topics, delta), timeout=1).json()
+                break
+        except:
+                pass
 
 if not data:
-	sys.exit(1)
+        sys.exit(1)
 
 repos = []
 
 for i in range(0, data['count']):
-	try:
-		repo = "%s-%s" % (data['raw_messages'][i]['msg']['repo'], data['raw_messages'][i]['msg']['release'])
-	except:
-		# the rawhide and branch sync message has no repo information
-		arch = data['raw_messages'][i]['msg']['arch']
-		if arch == '':
-			arch = 'primary'
-		elif not secondary:
-			continue
-		repo = "%s-%s" % (data['raw_messages'][i]['msg']['branch'], arch)
+        try:
+                repo = "%s-%s" % (data['raw_messages'][i]['msg']['repo'], data['raw_messages'][i]['msg']['release'])
+        except:
+                # the rawhide and branch sync message has no repo information
+                arch = data['raw_messages'][i]['msg']['arch']
+                if arch == '':
+                        arch = 'primary'
+                elif not secondary:
+                        continue
+                repo = "%s-%s" % (data['raw_messages'][i]['msg']['branch'], arch)
 
-	repos.append([repo, data['raw_messages'][i]['timestamp']])
+        repos.append([repo, data['raw_messages'][i]['timestamp']])
 
 if quiet == False:
-	for repo, timestamp in sorted(repos, key=getKey):
-		print "%s: %s" % (repo, time.strftime("%a, %d %b %Y %H:%M:%S +0000", time.gmtime(timestamp)))
+        for repo, timestamp in sorted(repos, key=getKey):
+                if rawtime == True:
+                   # this is useful if you want to compare the timestamp in seconds versus string
+                   print "%s: %s" % (repo, timestamp)
+                else:
+                   print "%s: %s" % (repo, time.strftime("%a, %d %b %Y %H:%M:%S +0000", time.gmtime(timestamp)))
 
 if data['count'] > 0:
-	sys.exit(0)
+        sys.exit(0)
 else:
-	sys.exit(1)
+        sys.exit(1)

@@ -12,21 +12,57 @@ ALT_EXCLUDES=""
 EPL_EXCLUDES=""
 FED_EXCLUDES=""
 
+DATE_EPEL='/root/last-epel-sync'
+DATE_FED='/root/last-fed-sync'
+
+touch ${DATE_EPEL}
+touch ${DATE_FED}
+
 LAST_SYNC='/usr/local/bin/last-sync'
 
 SERVER=dl.fedoraproject.org
 
-# The Buffet.
-#${RSYNC} ${RS_OPT} ${RS_DEADLY} ${ALT_EXCLUDES} ${SERVER}::fedora-buffet0/  /srv/pub/ | tail -n2 | logger -p local0.notice -t rsync_updates_alt_stg
+## Do the EPEL download if we have had a sync since the last update.
+CURDATE=`date +%s`
+if [[ -s ${DATE_EPEL} ]]; then
+    LASTRUN=$( cat DATE_EPEL | awk '{print int($NF)}' )
+else
+    LASTRUN=$( date +%s --date="Jan 1 00:00:00 UTC 2007" )
+fi
 
-# Alt
-${RSYNC} ${RS_OPT} ${RS_DEADLY} ${ALT_EXCLUDES} ${SERVER}::fedora-alt0/  /srv/pub/alt/ | tail -n2 | logger -p local0.notice -t rsync_alt
-# EPEL
-${RSYNC} ${RS_OPT} ${RS_DEADLY} ${ALT_EXCLUDES} ${SERVER}::fedora-epel0/  /srv/pub/epel/  | tail -n2 | logger -p local0.notice -t rsync_epel
-# Enchilada
-${RSYNC} ${RS_OPT} ${RS_DEADLY} ${ALT_EXCLUDES} ${SERVER}::fedora-enchilada0/  /srv/pub/fedora/ | tail -n2 | logger -p local0.notice -t rsync_fedora
-# Secondary
-${RSYNC} ${RS_OPT} ${RS_DEADLY} ${ALT_EXCLUDES} ${SERVER}::fedora-secondary/  /srv/pub/fedora-secondary/  | tail -n2 | logger -p local0.notice -t rsync_2nd
+DELTA=`echo ${CURDATE}-${LASTRUN} | bc`
+
+/path/to/last-sync -d ${DELTA} -q
+
+if [ "$?" -eq "0" ]; then
+    # EPEL
+    ${RSYNC} ${RS_OPT} ${RS_DEADLY} ${ALT_EXCLUDES} ${SERVER}::fedora-epel0/  /srv/pub/epel/  | tail -n2 | logger -p local0.notice -t rsync_epel
+    echo ${CURDATE} > ${DATE_EPEL}
+else
+    logger -p local0.notice -t rsync_epel "No change found. Not syncing"
+fi
+
+## Do the FEDORA download if we have had a sync since the last update.
+CURDATE=`date +%s`
+if [[ -s ${DATE_FED} ]]; then
+    LASTRUN=$( cat DATE_FED | awk '{print int($NF)}' )
+else
+    LASTRUN=$( date +%s --date="Jan 1 00:00:00 UTC 2007" )
+fi
+
+DELTA=`echo ${CURDATE}-${LASTRUN} | bc`
+
+/path/to/last-sync -d ${DELTA} -q
+
+if [ "$?" -eq "0" ]; then
+    # Enchilada
+    ${RSYNC} ${RS_OPT} ${RS_DEADLY} ${ALT_EXCLUDES} ${SERVER}::fedora-enchilada0/  /srv/pub/fedora/ | tail -n2 | logger -p local0.notice -t rsync_fedora
+    echo ${CURDATE} > ${DATE_FED}
+else
+    logger -p local0.notice -t rsync_fedora "No change found. Not syncing"
+fi
+
+
 
 # Let MM know I'm all up to date
 #/usr/bin/report_mirror
