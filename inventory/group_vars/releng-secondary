@@ -11,3 +11,22 @@ nrpe_procs_warn: 900
 nrpe_procs_crit: 1000
 
 nfs_mount_opts: "rw,hard,bg,intr,noatime,nodev,nosuid,nfsvers=3,rsize=32768,wsize=32768"
+
+fas_client_groups: sysadmin-noc,sysadmin-releng
+sudoers: "{{ private }}/files/sudo/00releng-sudoers"
+
+host_group: releng
+
+fedmsg_certs:
+- service: releng
+  owner: root
+  group: sysadmin-releng
+  can_send:
+  # pungi-koji stuff (ask dgilmore)
+  - pungi.compose.phase.start
+  - pungi.compose.phase.stop
+  - pungi.compose.status.change
+  - pungi.compose.createiso.targets
+  - pungi.compose.createiso.imagefail
+  - pungi.compose.createiso.imagedone
+
