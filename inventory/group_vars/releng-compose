@@ -1,8 +1,22 @@
 ---
+# common items for the releng-* boxes
+lvm_size: 100000
+mem_size: 16384
+num_cpus: 16
+nm: 255.255.255.0
+gw: 10.5.125.254
+dns: 10.5.126.21
+
+# With 16 cpus, theres a bunch more kernel threads
+nrpe_procs_warn: 900
+nrpe_procs_crit: 1000
+
 host_group: releng
 fas_client_groups: sysadmin-releng
 freezes: true
 sudoers: "{{ private }}/files/sudo/00releng-sudoers"
+
+nfs_mount_opts: "rw,hard,bg,intr,noatime,nodev,nosuid,nfsvers=3"
 
 # For the mock config
 kojipkgs_url: kojipkgs.fedoraproject.org
@@ -13,3 +27,50 @@ kojihub_scheme: https
 koji_server_url: "http://koji.fedoraproject.org/kojihub"
 koji_weburl: "http://koji.fedoraproject.org/koji"
 koji_topurl: "http://kojipkgs.fedoraproject.org/"
+
+# These are consumed by a task in roles/fedmsg/base/main.yml
+fedmsg_certs:
+- service: shell
+  owner: root
+  group: root
+  can_send:
+  - logger.log
+- service: releng
+  owner: root
+  group: masher
+  can_send:
+  - compose.branched.complete
+  - compose.branched.mash.complete
+  - compose.branched.mash.start
+  - compose.branched.image.complete
+  - compose.branched.image.start
+  - compose.branched.pungify.complete
+  - compose.branched.pungify.start
+  - compose.branched.rsync.complete
+  - compose.branched.rsync.start
+  - compose.branched.start
+  - compose.epelbeta.complete
+  - compose.rawhide.complete
+  - compose.rawhide.mash.complete
+  - compose.rawhide.mash.start
+  - compose.rawhide.image.complete
+  - compose.rawhide.image.start
+  - compose.rawhide.pungify.complete
+  - compose.rawhide.pungify.start
+  - compose.rawhide.rsync.complete
+  - compose.rawhide.rsync.start
+  - compose.rawhide.start
+  # Then there are *all these* make-updates things from releng+cloudsig
+  - compose.23.make-updates.start
+  - compose.23.make-updates.done
+  - compose.23.cloudimg-build.start
+  - compose.23.cloudimg-build.done
+  - compose.23.mash-atomic.start
+  - compose.23.mash-atomic.stop
+  - compose.23.atomic-lorax.start
+  - compose.23.atomic-lorax.done
+  - compose.23.cloudimg-checksum.start
+  - compose.23.cloudimg-checksum.done
+  - compose.23.cloudimg-staging.start
+  - compose.23.cloudimg-staging.done
+

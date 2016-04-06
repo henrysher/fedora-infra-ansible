@@ -1,7 +1,12 @@
-- include: "/srv/web/infra/ansible/playbooks/include/virt-create.yml myhosts=compose-x86-01.phx2.fedoraproject.org:compose-ppc64-01.ppc.fedoraproject.org:compose-ppc64le-01.ppc.fedoraproject.org"
+# create a new releng system
+# NOTE: should be used with --limit most of the time
+# NOTE: make sure there is room/space for this instance on the buildvmhost
+# NOTE: most of these vars_path come from group_vars/releng or from hostvars
+
+- include: "/srv/web/infra/ansible/playbooks/include/virt-create.yml myhosts=releng-compose:releng-secondary:releng-stg"
 
 - name: Setup releng compose hosts
-  hosts: releng-compose:releng-secondary
+  hosts: releng-compose:releng-secondary:releng-stg
   user: root
   gather_facts: True
   tags:
@@ -19,19 +24,33 @@
   - fas_client
   - rkhunter
   - nagios/client
+  - collectd/base
   - sudo
-  - { role: nfs/client, when: inventory_hostname.startswith('compose-x86') , mnt_dir: '/mnt/fedora_koji',  nfs_src_dir: 'fedora_koji' }
-  - { role: nfs/client, when: inventory_hostname.startswith('compose-x86') , mnt_dir: '/pub',  nfs_src_dir: 'fedora_ftp/fedora.redhat.com/pub' }
+  - fedmsg/base
+  - { role: nfs/client, when: "'releng-compose' in group_names", mnt_dir: '/mnt/fedora_koji',  nfs_src_dir: 'fedora_koji' }
+  - { role: nfs/client, when: "'releng-compose' in group_names", mnt_dir: '/pub',  nfs_src_dir: 'fedora_ftp/fedora.redhat.com/pub' }
   - { role: nfs/client, when: inventory_hostname.startswith('compose-aarch64-01') , mnt_dir: '/mnt/fedora_koji',  nfs_src_dir: 'fedora_arm/data' }
-  - { role: nfs/client, when: inventory_hostname.startswith('compose-ppc64') , mnt_dir: '/mnt/fedora_koji',  nfs_src_dir: 'fedora_ppc/data' }
-  - role: fedmsg/base
+  - { role: nfs/client, when: inventory_hostname.startswith('compose-ppc64le-01') , mnt_dir: '/mnt/fedora_koji',  nfs_src_dir: 'fedora_arm/data' }
+  - { role: nfs/client, when: inventory_hostname.startswith('compose-ppc64-01') , mnt_dir: '/mnt/fedora_koji',  nfs_src_dir: 'fedora_ppc/data' }
+  - { role: nfs/client, when: inventory_hostname.startswith('compose-s390-01') , mnt_dir: '/mnt/fedora_koji',  nfs_src_dir: 'fedora_s390/data' }
+  - { role: nfs/client, when: "'releng-stg' in group_names", mnt_dir: '/mnt/fedora_koji_prod',  nfs_src_dir: 'fedora_koji' }
   - releng
 
   tasks:
   # this is how you include other task lists
+  - include: "{{ tasks }}/yumrepos.yml"
   - include: "{{ tasks }}/2fa_client.yml"
   - include: "{{ tasks }}/motd.yml"
   - include: "{{ tasks }}/common_scripts.yml"
 
   handlers:
   - include: "{{ handlers }}/restart_services.yml"
+
+- name: Install the fedmsg-atomic-composer
+  # Staging only, for now.
+  hosts: releng-stg
+  user: root
+  gather_facts: True
+
+  roles:
+  - atomic-composer
