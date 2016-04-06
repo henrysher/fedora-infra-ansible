@@ -142,7 +142,16 @@
     - fedora-24-compose-aarch64.cfg
     - fedora-branched-compose-aarch64.cfg
     - fedora-rawhide-compose-aarch64.cfg
-
+    - fedora-22-compose-ppc64.cfg
+    - fedora-23-compose-ppc64.cfg
+    - fedora-24-compose-ppc64.cfg
+    - fedora-branched-compose-ppc64.cfg
+    - fedora-rawhide-compose-ppc64.cfg
+    - fedora-22-compose-ppc64le.cfg
+    - fedora-23-compose-ppc64le.cfg
+    - fedora-24-compose-ppc64le.cfg
+    - fedora-branched-compose-ppc64le.cfg
+    - fedora-rawhide-compose-ppc64le.cfg
 
 # idmapd and make sure it's set to run
 - name: idmapd.conf
@@ -177,12 +186,22 @@
 # put cron job in for aarch64 branched compose
 - name: aarch64 branched compose cron
   copy: src="aarch64.branched" dest=/etc/cron.d/branched
-  when: inventory_hostname.startswith('compose-aarch64-01')
+  when: inventory_hostname.startswith('compose-ppc64le-01')
 
 # put cron job in for aarch64 rawhide compose
 - name: aarch64 rawhide compose cron
   copy: src="aarch64.rawhide" dest=/etc/cron.d/rawhide
-  when: inventory_hostname.startswith('compose-aarch64-01')
+  when: inventory_hostname.startswith('compose-ppc64le-01')
+
+# put cron job in for Power64 branched compose
+- name: power64 branched compose cron
+  copy: src="power64.branched" dest=/etc/cron.d/branched
+  when: inventory_hostname.startswith('compose-ppc64-01')
+
+# put cron job in for Power64 rawhide compose
+- name: power64 rawhide compose cron
+  copy: src="power64.rawhide" dest=/etc/cron.d/rawhide
+  when: inventory_hostname.startswith('compose-ppc64-01')
 
 # put cron job in for two-week nightly compose
 - name: twoweek compose cron
