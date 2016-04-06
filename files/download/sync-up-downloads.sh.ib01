@@ -6,7 +6,7 @@
 ##
 
 RSYNC='/usr/bin/rsync'
-RS_OPT="-avSHP  --numeric-ids"
+RS_OPT="-avSHP  --numeric-ids -n "
 RS_DEADLY="--delete --delete-excluded --delete-delay --delay-updates"
 ALT_EXCLUDES=""
 EPL_EXCLUDES=""
@@ -22,50 +22,37 @@ LAST_SYNC='/usr/local/bin/last-sync'
 
 SERVER=dl.fedoraproject.org
 
-## Do the EPEL download if we have had a sync since the last update.
-CURDATE=`date +%s`
-if [[ -s ${DATE_EPEL} ]]; then
-    LASTRUN=$( cat DATE_EPEL | awk '{print int($NF)}' )
-else
-    LASTRUN=$( date +%s --date="Jan 1 00:00:00 UTC 2007" )
-fi
+function sync_stuff() {
+    if [[ $# -ne 4 ]]; then 
+	echo "Illegal number of arguments to sync_stuff: " $#
+	exit 1
+    fi
+    DATE_FILE=$1
+    LOGGER_NAME=$2
+    RSYNC_FROM=$3
+    RSYNC_TO=$4
 
-DELTA=`echo ${CURDATE}-${LASTRUN} | bc`
+    CURDATE=$( date +%s )
+    if [[ -s ${DATE_FILE} ]]; then
+	LASTRUN=$( cat ${DATE_FILE} | awk '{print int($NF)}' )
+    else
+	LASTRUN=$( date +%s --date="Jan 1 00:00:00 UTC 2007" )
+    fi
+    DELTA=`echo ${CURDATE}-${LASTRUN} | bc`
 
-${LAST_SYNC} -d ${DELTA} -q
-
-if [ "$?" -eq "0" ]; then
-    # EPEL
-    ${RSYNC} ${RS_OPT} ${RS_DEADLY} ${ALT_EXCLUDES} ${SERVER}::fedora-epel0/  /srv/pub/epel/  | tail -n2 | logger -p local0.notice -t rsync_epel
-    echo ${CURDATE} > ${DATE_EPEL}
-else
-    logger -p local0.notice -t rsync_epel "No change found. Not syncing"
-fi
-
-#######
-####### CODE REUSE ALERT. THIS NEEDS TO BE A SUBROUTINE YOU SILLY
-
-## Do the FEDORA download if we have had a sync since the last update.
-CURDATE=`date +%s`
-if [[ -s ${DATE_FED} ]]; then
-    LASTRUN=$( cat DATE_FED | awk '{print int($NF)}' )
-else
-    LASTRUN=$( date +%s --date="Jan 1 00:00:00 UTC 2007" )
-fi
-
-DELTA=`echo ${CURDATE}-${LASTRUN} | bc`
-
-${LAST_SYNC} -d ${DELTA} -q
-
-if [ "$?" -eq "0" ]; then
-    # Enchilada
-    ${RSYNC} ${RS_OPT} ${RS_DEADLY} ${ALT_EXCLUDES} ${SERVER}::fedora-enchilada0/  /srv/pub/fedora/ | tail -n2 | logger -p local0.notice -t rsync_fedora
-    echo ${CURDATE} > ${DATE_FED}
-else
-    logger -p local0.notice -t rsync_fedora "No change found. Not syncing"
-fi
+    ${LAST_SYNC} -d ${DELTA} -q
+    
+    if [ "$?" -eq "0" ]; then
+	${RSYNC} ${RS_OPT} ${RS_DEADLY} ${ALT_EXCLUDES} ${SERVER}::${RSYNC_FROM}  ${RSYNC_TO}  | tail -n2 | logger -p local0.notice -t ${LOGGER_NAME}
+	echo ${CURDATE} > ${DATE_FILE}
+    else
+	logger -p local0.notice -t ${LOGGER_NAME} "No change found. Not syncing"
+    fi
+}
 
 
+sync_stuff ${DATE_EPEL} rsync_epel fedora-epel0 /srv/pub/epel/ 
+sync_stuff ${DATE_FED} rsync_fedora fedora-enchilada0 /srv/pub/fedora/ 
 
 # Let MM know I'm all up to date
 #/usr/bin/report_mirror
