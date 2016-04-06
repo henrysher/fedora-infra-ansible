@@ -6,7 +6,7 @@
 ##
 
 RSYNC='/usr/bin/rsync'
-RS_OPT="-avSHP  --numeric-ids -n "
+RS_OPT="-avSHP  --numeric-ids "
 RS_DEADLY="--delete --delete-excluded --delete-delay --delay-updates"
 ALT_EXCLUDES=""
 EPL_EXCLUDES=""
@@ -31,6 +31,7 @@ function sync_stuff() {
     LOGGER_NAME=$2
     RSYNC_FROM=$3
     RSYNC_TO=$4
+    FLAG="$5"
 
     CURDATE=$( date +%s )
     if [[ -s ${DATE_FILE} ]]; then
@@ -40,7 +41,7 @@ function sync_stuff() {
     fi
     DELTA=`echo ${CURDATE}-${LASTRUN} | bc`
 
-    ${LAST_SYNC} -d ${DELTA} -q
+    ${LAST_SYNC} -d ${DELTA} -q ${FLAG}
     
     if [ "$?" -eq "0" ]; then
 	${RSYNC} ${RS_OPT} ${RS_DEADLY} ${ALT_EXCLUDES} ${SERVER}::${RSYNC_FROM}  ${RSYNC_TO}  | tail -n2 | logger -p local0.notice -t ${LOGGER_NAME}
@@ -51,8 +52,8 @@ function sync_stuff() {
 }
 
 
-sync_stuff ${DATE_EPEL} rsync_epel fedora-epel0 /srv/pub/epel/ 
-sync_stuff ${DATE_FED} rsync_fedora fedora-enchilada0 /srv/pub/fedora/ 
+sync_stuff ${DATE_EPEL} rsync_epel fedora-epel0 /srv/pub/epel/ "-e"
+sync_stuff ${DATE_FED} rsync_fedora fedora-enchilada0 /srv/pub/fedora/ "-f"
 
 # Let MM know I'm all up to date
 #/usr/bin/report_mirror
