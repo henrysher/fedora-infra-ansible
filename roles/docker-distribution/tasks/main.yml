@@ -11,6 +11,7 @@
   template:
     src: config.yml.j2
     dest: "{{ conf_path }}"
+  notify: restart docker-distribution
 
 - name: ensure docker certs dir exists
   file:
@@ -22,13 +23,13 @@
 
 - name: install tls cert for docker
   copy:
-    src: "{{ private  }}/{{ cert.private_path }}/{{ cert.src_name }}"
-    dest: "{{ cert.dir }}/{{ cert.dest_name }}"
+    src: "{{ cert.cert_src }}"
+    dest: "{{ cert.dir}}/{{ cert.cert_dest }}"
   when: tls.enabled
 
 - name: install tls key for docker
   copy:
-    src: "{{ private  }}/{{ cert.private_path }}/{{ cert.src_key_name }}"
-    dest: "{{ cert.dir}}/{{ cert.dest_key_name }}"
+    src: "{{ cert.key_src }}"
+    dest: "{{ cert.dir}}/{{ cert.key_dest }}"
   when: tls.enabled
 
