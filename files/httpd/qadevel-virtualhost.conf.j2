@@ -1,8 +1,22 @@
 # this is meant for proxied stuff only, hence the lack of ssl
 
-Alias /{{ item.name }} {{ item.document_root }}
+<VirtualHost *:80>
+    # Change this to the domain which points to your host.
+    ServerName {{ item.name }}
 
-<Directory "{{ item.document_root }}">
-    Options Indexes FollowSymLinks
-    Require all granted
-</Directory>
+    DocumentRoot {{ item.document_root }}
+
+    ErrorLog "/var/log/httpd/{{ item.name }}.error_log"
+    CustomLog "/var/log/httpd/{{ item.name }}.access_log" common
+
+    <Directory "{{ item.document_root }}">
+        Options Indexes FollowSymLinks
+        Require all granted
+    </Directory>
+
+    <Location "/">
+        Options +Indexes
+        DirectoryIndex default.html
+    </Location>
+
+</VirtualHost>
