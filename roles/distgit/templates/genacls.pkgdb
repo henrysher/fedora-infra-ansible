@@ -5,6 +5,7 @@
 # Takes no arguments!
 #
 
+import copy
 import grp
 import sys
 
@@ -68,6 +69,14 @@ if __name__ == '__main__':
     print '    R = @all'
     #print '    RW  private-     = @all'
     # dont' enable the above until we prevent building for real from private-
+
+{% if env == 'staging' %}
+    # XXX - Insert an artificial namespace into the set of namespaces returned
+    # by pkgdb.  We want to create a mirror of rpms/PKG in rpms-checks/PKG
+    # This hack occurs in two places.  Here, and in the branch-creation script.
+    # https://github.com/fedora-infra/pkgdb2/issues/329#issuecomment-207050233
+    data['rpms-checks'] = copy.copy(data['rpms'])
+{% endif %}
 
     # Get a list of all the packages
     for key in data:
