@@ -7,6 +7,7 @@
   - git
   tags:
   - packages
+  - dns
 
 - name: copy rndc config
   copy: src=rndc.conf dest=/etc/rndc.conf
@@ -14,6 +15,7 @@
   - restart named
   tags:
   - config
+  - dns
 
 - name: copy rndc key
   copy: src={{ private }}/files/dns/rndc.key dest=/etc/rndc.key
@@ -21,6 +23,7 @@
   - restart named
   tags:
   - config
+  - dns
 
 - name: copy named cache
   copy: src=named.ca dest=/var/named/named.ca
@@ -28,6 +31,7 @@
   - restart named
   tags:
   - config
+  - dns
 
 - name: copy GeoIP.sh
   copy: src=GeoIP.sh dest=/var/named/GeoIP.sh mode=0755
@@ -35,12 +39,15 @@
   - restart named
   tags:
   - config
+  - dns
 
 - name: create GeoIP acl
   command: /var/named/GeoIP.sh
   changed_when: "1 != 1"
   notify:
   - restart named
+  tags:
+  - dns
 
 - name: copy update-dns
   copy: src=update-dns dest=/usr/local/bin/update-dns mode=0755
@@ -48,6 +55,7 @@
   - restart named
   tags:
   - config
+  - dns
 
 - name: copy zones
   copy: src=zones.conf dest=/etc/named/zones.conf owner=root group=root mode=0644
@@ -55,6 +63,7 @@
   - restart named
   tags:
   - config
+  - dns
 
 - name: copy named config
   copy: src=named.conf dest=/etc/named.conf mode=0644 owner=root group=root
@@ -62,6 +71,7 @@
   - restart named
   tags:
   - config
+  - dns
 
 - name: update dns
   command: /usr/local/bin/update-dns
@@ -70,9 +80,14 @@
   - restart named
   tags:
   - config
+  - dns
 
 - name: update dns cron
   cron: name="update dns" job="/usr/local/bin/update-dns >/dev/null" minute=0,15,30,45
+  tags:
+  - dns
 
 - name: named service
   service: name=named state=started enabled=yes
+  tags:
+  - dns
