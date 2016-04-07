@@ -61,6 +61,17 @@
 - name: create the distgit root directory (/srv/git/repositories)
   file: dest=/srv/git/repositories state=directory mode=2775 group=packager
 
+# These should all map to pkgdb namespaces
+- name: create our namespace directories inside there..
+  file: dest=/srv/git/repositories/{{item}} state=directory mode=2775 group=packager
+  with_items:
+  - rpms
+  - docker
+  - modules
+  # Except for this one.  This namespace is artificially created in the
+  # dist-git pkgdb sync scripts.
+  - rpms-checks
+
 - name: install the distgit scripts
   copy: src={{item}} dest=/usr/local/bin/{{item}} owner=root group=root mode=0755
   with_items:
