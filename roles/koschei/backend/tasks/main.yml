@@ -1,17 +1,20 @@
-- name: Install jenkins repo on stg
-  copy: src=jenkins.repo dest=/etc/yum.repos.d/jenkins.repo
-  when: env == "staging"
-  tags:
-  - koschei
-  - config
-  - packages
-  - yumrepos
-
 - name: install packages
   package: name={{ item }} state=installed
+  when: env != "staging"
   with_items:
   - koschei
   - lbzip2
+  - postgresql
+  tags:
+  - koschei
+  - packages
+
+- name: install packages
+  package: name={{ item }} state=installed
+  when: env == "staging"
+  with_items:
+  - koschei-admin
+  - koschei-backend
   - postgresql
   tags:
   - koschei
@@ -32,7 +35,6 @@
   - restart koschei-resolver
   - restart koschei-scheduler
   - restart koschei-watcher
-  - reload httpd
   tags:
   - koschei
   - config
@@ -74,7 +76,6 @@
   - restart koschei-resolver
   - restart koschei-scheduler
   - restart koschei-watcher
-  - reload httpd
   tags:
   - koschei
   - config
@@ -83,16 +84,6 @@
   template: >
     src="koji.conf.j2"
     dest="/etc/koji.conf"
-  tags:
-  - koschei
-  - config
-
-- name: install httpd config file
-  template: >
-    src="httpd.conf.j2"
-    dest="/etc/httpd/conf.d/koschei.conf"
-  notify:
-  - reload httpd
   tags:
   - koschei
   - config
@@ -107,17 +98,6 @@
   tags:
   - koschei
   - service
-
-- name: allow httpd to connect to db
-  seboolean: name={{ item }} state=yes persistent=yes
-  with_items:
-  - httpd_can_network_connect
-  - httpd_can_network_connect_db
-  notify:
-  - reload httpd
-  tags:
-  - koschei
-  - selinux
 
 - name: Copy the cleanup cronjob
   template: src=cron-db-cleanup.j2 dest=/etc/cron.d/cron-db-cleanup
