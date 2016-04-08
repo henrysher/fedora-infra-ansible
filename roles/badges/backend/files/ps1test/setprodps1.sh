@@ -1,3 +1,4 @@
 # Set PS1 based on env
 #
-PS1="\e[0;31m[PROD]\e[m[\u@\h \W]\$ "
+PS1="[\u@\h:\W]\e[0;33m[PROD]\e[m$ "
+
