@@ -39,6 +39,10 @@
     Allow from all
   </Location>
 
+{% if auth.type == "ssl" %}
+    SSLVerifyClient none
+    SSLCACertificateFile {{ auth.ssl.authca_dest }}
+{% endif %}
   <Location /v2>
     Order deny,allow
     Allow from all
@@ -46,6 +50,10 @@
     AuthName "Registry Authentication"
     AuthType basic
     AuthUserFile {{ auth.basic.userfile_dest }}
+{% endif %}
+{% if auth.type == "ssl" %}
+    SSLVerifyClient require
+    SSLVerifyDepth 1
 {% endif %}
 
     ## Read access to authentified users

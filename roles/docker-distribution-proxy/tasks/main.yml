@@ -37,6 +37,18 @@
     dest: "{{ auth.basic.destdir }}/{{ auth.basic.userfile_dest }}"
   when: auth.type == "basic"
 
+- name: ensure ssl auth dest dir exists
+  file:
+    path: "{{ auth.ssl.destdir }}"
+    state: directory
+  when: auth.type == "ssl"
+
+- name: place authca file
+  copy:
+    src: "{{ auth.ssl.authca_src }}"
+    dest: "{{ auth.ssl.destdir }}/{{ auth.ssl.authca_dest }}"
+  when: auth.type == "ssl"
+
 - name: Configure the vhost
   template:
     src: "docker-registry-vhost.conf.j2"
