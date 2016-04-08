@@ -224,10 +224,15 @@
 # a correct 'changed' for this step is too difficult. Instead we have
 # the prior and following steps; when the templates actually changed,
 # the *following* step will register as changed.
-- name: Load tests
+- name: Load patched tests
   shell: "/tmp/templates --clean"
-  when: "gittests|changed"
+  when: "gittests|changed and deployment_type is defined"
   changed_when: "1 != 1"
+
+- name: Load tests
+  shell: "/var/lib/openqa/share/tests/fedora/templates --clean"
+  when: "gittests|changed and deployment_type is not defined"
+  changed_when: "1 != 1
 
 - name: Check if the tests changed in previous step
   shell: "/usr/share/openqa/script/dump_templates --json > /tmp/tmpl-new.json && json_diff /tmp/tmpl-old.json /tmp/tmpl-new.json"

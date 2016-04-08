@@ -38,6 +38,7 @@ Here are the different steps of this script:
 
 """
 
+import copy
 import itertools
 import multiprocessing.pool
 import os
@@ -248,6 +249,12 @@ def main():
     """
 
     pkgdb_info = pkgdb_pkg_branch()
+
+    # XXX - Insert an artificial namespace into the set of namespaces returned
+    # by pkgdb.  We want to create a mirror of rpms/PKG in rpms-checks/PKG
+    # This hack occurs in two places.  Here, and in genacls.pkgdb.
+    # https://github.com/fedora-infra/pkgdb2/issues/329#issuecomment-207050233
+    pkgdb_info['rpms-checks'] = copy.copy(pkgdb_info['rpms'])
 
     for ns in pkgdb_info:
         namespace = ns

@@ -1,0 +1,47 @@
+---
+# tasks file for docker-distribution-proxy
+#
+- name: Make sure httpd is installed
+  action: "{{ ansible_pkg_mgr }} name=httpd state=installed"
+
+- name: Make sure mod_ssl is installed
+  action: "{{ ansible_pkg_mgr }} name=mod_ssl state=installed"
+
+- name: ensure pki destination directory exists
+  file:
+    path: "{{ ssl.destdir }}"
+    state: directory
+
+- name: install ssl certfile
+  copy:
+    src: "{{ ssl.certfile_src }}"
+    dest: "{{ ssl.destdir }}/{{ ssl.certfile_dest }}"
+
+- name: install ssl keyfile
+  copy:
+    src: "{{ ssl.keyfile_src }}"
+    dest: "{{ ssl.destdir }}/{{ ssl.keyfile_dest }}"
+
+- name: ensure htpasswd basic auth dest dir exists
+  file:
+    path: "{{ auth.basic.destdir }}"
+    state: directory
+  when: auth.type == "basic"
+
+- name: place htpasswd file
+  copy:
+    src: "{{ auth.basic.userfile_src }}"
+    dest: "{{ auth.basic.destdir }}/{{ auth.basic.userfile_dest }}"
+  when: auth.type == "basic"
+
+- name: Configure the vhost
+  template:
+    src: "docker-registry-vhost.conf.j2"
+    dest: "/etc/httpd/conf.d/docker-registry-vhost.conf"
+  notify: reload httpd
+
+- name: start and enable httpd
+  service:
+    name: httpd
+    state: started
+    enabled: yes

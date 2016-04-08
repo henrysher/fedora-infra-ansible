@@ -1,0 +1,63 @@
+<VirtualHost *:443>
+
+  ServerName {{ servername }}
+
+  SSLEngine on
+  SSLCertificateFile {{ ssl.destdir}}/{{ ssl.certfile_dest }}
+  SSLCertificateKeyFile {{ ssl.destdir}}/{{ ssl.keyfile_dest }}
+
+  ## SSL settings recommandation from: https://raymii.org/s/tutorials/Strong_SSL_Security_On_Apache2.html
+  # Anti CRIME
+  SSLCompression off
+
+  # POODLE and other stuff
+  SSLProtocol all -SSLv2 -SSLv3 -TLSv1
+
+  # Secure cypher suites
+  SSLCipherSuite EECDH+AESGCM:EDH+AESGCM:AES256+EECDH:AES256+EDH
+  SSLHonorCipherOrder on
+
+  Header always set "Docker-Distribution-Api-Version" "registry/2.0"
+  Header onsuccess set "Docker-Distribution-Api-Version" "registry/2.0"
+  RequestHeader set X-Forwarded-Proto "https"
+
+  ProxyRequests     off
+  ProxyPreserveHost on
+
+  # no proxy for /error/ (Apache HTTPd errors messages)
+  ProxyPass /error/ !
+
+  ProxyPass        /v2 http://localhost:5000/v2
+  ProxyPassReverse /v2 http://localhost:5000/v2
+
+  ProxyPass        /_ping http://localhost:5000/_ping
+  ProxyPassReverse /_ping http://localhost:5000/_ping
+
+  # Allow ping to run unauthenticated.
+  <Location /_ping>
+    Satisfy any
+    Allow from all
+  </Location>
+
+  <Location /v2>
+    Order deny,allow
+    Allow from all
+{% if auth.type == "basic" %}
+    AuthName "Registry Authentication"
+    AuthType basic
+    AuthUserFile {{ auth.basic.userfile_dest }}
+{% endif %}
+
+    ## Read access to authentified users
+    #<Limit GET HEAD>
+    #  Require valid-user
+    #</Limit>
+
+    # Write access restricted
+    <Limit POST PUT DELETE PATCH>
+      Require valid-user
+    </Limit>
+
+  </Location>
+
+</VirtualHost>
