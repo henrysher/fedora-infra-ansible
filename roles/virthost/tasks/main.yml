@@ -21,7 +21,14 @@
   - rhel7-os-repo
   when: ansible_distribution == 'RedHat' and ansible_distribution_major_version|int == 7 and ansible_architecture == 'x86_64'
 
-- name: install libvirt packages on rhel7 virthosts (x86_64)
+- name: install RHEV for el7 repo file
+  copy: src=rhel7-rhev-ppc64le.repo dest=/etc/yum.repos.d/rhel7-rhev-ppc64le.repo
+  tags:
+  - repos
+  - rhel7-rhev-ppc64le
+  when: ansible_distribution == 'RedHat' and ansible_distribution_major_version|int == 7 and ansible_architecture == 'ppc64le'
+
+- name: install libvirt packages on rhel7 virthosts
   yum: pkg={{ item }} state=present
   with_items:
   - qemu-kvm-rhev
@@ -31,17 +38,7 @@
   - virt-install
   tags:
   - packages
-  when: ansible_distribution == 'RedHat' and ansible_distribution_major_version|int == 7 and ansible_architecture == 'x86_64'
-
-- name: install libvirt packages on rhel7 virthosts (not x86_64)
-  yum: pkg={{ item }} state=present
-  with_items:
-  - qemu-kvm
-  - libvirt
-  - virt-install
-  tags:
-  - packages
-  when: ansible_distribution == 'RedHat' and ansible_distribution_major_version|int == 7 and ansible_architecture == 'ppc64'
+  when: ansible_distribution == 'RedHat' and ansible_distribution_major_version|int == 7
 
 # install libvirtd.conf 
 #
