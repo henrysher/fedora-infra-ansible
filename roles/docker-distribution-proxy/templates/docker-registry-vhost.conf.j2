@@ -30,11 +30,20 @@
   ProxyPass        /v2 http://localhost:5000/v2
   ProxyPassReverse /v2 http://localhost:5000/v2
 
+  ProxyPass        /_ping http://localhost:5000/_ping
+  ProxyPassReverse /_ping http://localhost:5000/_ping
+
+  # Allow ping to run unauthenticated.
+  <Location /_ping>
+    Satisfy any
+    Allow from all
+  </Location>
+
   <Location /v2>
     Order deny,allow
     Allow from all
-    AuthName "Registry Authentication"
 {% if auth.type == "basic" %}
+    AuthName "Registry Authentication"
     AuthType basic
     AuthUserFile {{ auth.basic.userfile_dest }}
 {% endif %}
