@@ -8,13 +8,13 @@
   file: dest=/gnome_backups/excludes owner=gnomebackup group=gnomebackup state=directory
 
 - name: Install the GNOME SSH configuration file
-  copy: src="{{ files }}/gnome/ssh_config" dest=/usr/local/etc/gnome_ssh_config mode=0600 owner=gnomebackup
+  copy: src="ssh_config" dest=/usr/local/etc/gnome_ssh_config mode=0600 owner=gnomebackup
 
 - name: Install GNOME backup key
   copy: src="{{ private }}/files/gnome/backup_id.rsa" dest=/usr/local/etc/gnome_backup_id.rsa mode=0600 owner=gnomebackup
 
 - name: Install GNOME backup script
-  copy: src="{{ files }}/gnome/backup.sh" dest=/usr/local/bin/gnome_backup mode=0700 owner=gnomebackup
+  copy: src="backup.sh" dest=/usr/local/bin/gnome_backup mode=0700 owner=gnomebackup
 
 - name: Schedule the GNOME backup script
   cron: name="Backup" hour=5 minute=0 job="(cd /gnome_backups; /usr/local/bin/lock-wrapper gnomebackup /usr/local/bin/gnome_backup)" user=gnomebackup
