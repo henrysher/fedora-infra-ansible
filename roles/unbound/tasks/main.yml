@@ -24,17 +24,17 @@
   notify:
   - semanage dns8953
 
-- name: copying unbound control key
-  copy: src="{{ private }}/files/unbound/unbound_control.key" dest=/etc/unbound/unbound_control.key owner=root group=unbound mode=640
-
-- name: copying unbound control pem
-  copy: src="{{ private }}/files/unbound/unbound_control.pem" dest=/etc/unbound/unbound_control.pem owner=root group=unbound mode=640
-
-- name: copying unbound server key
-  copy: src="{{ private }}/files/unbound/unbound_server.key" dest=/etc/unbound/unbound_server.key owner=root group=unbound mode=640
-
-- name: copying unbound server pem
-  copy: src="{{ private }}/files/unbound/unbound_server.pem" dest=/etc/unbound/unbound_server.pem owner=root group=unbound mode=640
+- name: copying unbound keys and certs
+  copy: src="{{ private }}/files/unbound/unbound_{{ item }}" dest=/etc/unbound/unbound_{{ item }} owner=root group=unbound mode=640
+  with_items:
+  - control.key
+  - control.pem
+  - server.key
+  - server.pem
+  notify:
+  - restart unbound
+  tags:
+  - config
 
 - name: Enable and start unbound service
   service: state=running enabled=true name=unbound
