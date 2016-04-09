@@ -9,28 +9,18 @@
 # nss_db is needed to store user/group info.
 #
 - name: install package needed for fas-client (yum)
-  yum: state=present name={{ item }}
+  package: state=present name={{ item }}
   with_items:
   - fas-clients
   - cronie
   tags:
   - packages
   - fas_client
-  when: ansible_distribution_major_version|int < 22
-
-- name: install package needed for fas-client (dnf)
-  dnf: state=present name={{ item }}
-  with_items:
-  - fas-clients
-  - cronie
-  tags:
-  - packages
-  - fas_client
-  when: ansible_distribution_major_version|int > 21 and ansible_cmdline.ostree is not defined
+  when: ansible_cmdline.ostree is not defined
 
 - name: install nss_db on rhel hosts only
   yum: state=present name=nss_db
-  when: is_rhel is defined and ansible_distribution_major_version|int == 6
+  when: ansible_distribution_major_version|int == 6
   tags:
   - packages
   - fas_client
