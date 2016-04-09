@@ -1,0 +1,51 @@
+- name: /etc/postfix/main.cf
+  copy: src={{ item }} dest=/etc/postfix/main.cf
+  with_first_found:
+    - "{{ postfix_maincf }}"
+    - "postfix/main.cf/main.cf.{{ ansible_fqdn }}"
+    - "postfix/main.cf/main.cf.{{ host_group }}"
+    - "postfix/main.cf/main.cf.{{ postfix_group }}"
+    - "postfix/main.cf/main.cf.{{ datacenter }}"
+    - "postfix/main.cf/main.cf"
+  notify:
+  - restart postfix
+  tags:
+  - postfix
+  - config
+  - base
+
+- name: install /etc/postfix/master.cf file
+  copy: src={{ item }} dest=/etc/postfix/master.cf mode=0644
+  with_first_found:
+    - "{{ postfix_mastercf }}"
+    - "postfix/master.cf/master.cf.{{ ansible_fqdn }}"
+    - "postfix/master.cf/master.cf.{{ inventory_hostname }}"
+    - "postfix/master.cf/master.cf.{{ host_group }}"
+    - "postfix/master.cf/master.cf.{{ postfix_group }}"
+    - "postfix/master.cf/master.cf"
+  when: inventory_hostname.startswith('smtp-mm')
+  notify:
+  - restart postfix
+  tags:
+  - postfix
+  - config
+  - base
+
+- name: enable postfix to start
+  service: name=postfix state=running enabled=true
+  tags:
+  - service
+  - base
+
+- name: install /etc/postfix/transport file
+  copy: src="postfix/{{ postfix_transport_filename }}" dest=/etc/postfix/transport
+  when: inventory_hostname.startswith(('smtp-mm','bastion'))
+  notify:
+  - restart postfix
+  - rebuild postfix transport
+  tags:
+  - postfix
+  - base
+  - config
+
+
