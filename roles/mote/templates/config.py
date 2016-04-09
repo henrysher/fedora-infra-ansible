@@ -58,3 +58,10 @@ use_mappings_github = False
 # If use_mappings_github is False, set alternate path
 name_mappings_path = "/usr/share/mote/name_mappings.json"
 category_mappings_path = "/usr/share/mote/category_mappings.json"
+
+# Use staging Fedora Apps URL for datagrepper if in staging
+{% if env == 'staging' %}
+datagrepper_base_url = "https://apps.stg.fedoraproject.org"
+{% else %}
+datagrepper_base_url = "https://apps.fedoraproject.org"
+{% endif %}
