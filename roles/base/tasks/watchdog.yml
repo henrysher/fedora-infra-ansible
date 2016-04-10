@@ -1,6 +1,8 @@
 - name: See if theres a watchdog device
   stat: path=/dev/watchdog
   when: ansible_virtualization_role == 'guest'
+  always_run: true
+  failed_when: no
   register: watchdog_dev
 
 - block:
@@ -31,4 +33,4 @@
       - service
       - watchdog
       - base
-  when: ansible_virtualization_role == 'guest' and watchdog_dev.stat.exists is defined
+  when: watchdog_dev|succeeded and ansible_virtualization_role == 'guest' and watchdog_dev.stat.exists
