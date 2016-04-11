@@ -363,3 +363,33 @@
 #
 - name: Set up watchdog
   include: watchdog.yml
+
+
+#Set PS1 to show stage environment at PS1
+#
+- name: set PS1 for stage in /etc/profile.d
+  copy: >
+    src=setstgps1.sh
+    dest="/etc/profile.d/setstgps1.sh"
+    owner=root
+    group=root
+    mode=644
+  when: env == 'staging'  
+  tags:
+  - base
+  - config
+
+#Set PS1 to show prod environment at PS1
+#
+- name: set PS1 for prod in /etc/profile.d
+  copy: >
+    src=setprodps1.sh
+    dest="/etc/profile.d/setprodps1.sh"
+    owner=root
+    group=root
+    mode=644
+  when: env == 'production'  
+  tags:
+  - base
+  - config
+
