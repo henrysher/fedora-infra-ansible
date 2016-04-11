@@ -160,6 +160,12 @@ sub vcl_synth {
     return (deliver);
 }
 
+# CAUTIN: Make very sure that for every unset req.http.cookie, you
+# also set a req.http.clear-cookies = "yes", and in *no other case*.
+# This is done to prevent the case where Varnish drops the cookies
+# because this is the efficient thing to do to allow more caching,
+# but then the backend sends a new session cookies back, overwriting
+# the one the browser had already.
 sub vcl_recv {
     if (req.method == "PURGE") {
         if (!client.ip ~ purge) {
@@ -175,6 +181,7 @@ sub vcl_recv {
         set req.backend_hint = wiki;
         if (req.url ~ "^/w/skins/") {
             unset req.http.cookie;
+            set req.http.clear-cookies = "yes";
             set req.url = regsub(req.url, "\?.*", "");
         }
     }
@@ -185,6 +192,7 @@ sub vcl_recv {
         set req.backend_hint = pkgdb;
         if (req.url ~ "^/pkgdb/static/") {
             unset req.http.cookie;
+            set req.http.clear-cookies = "yes";
             set req.url = regsub(req.url, "\?.*", "");
         }
     }
@@ -192,6 +200,7 @@ sub vcl_recv {
         set req.backend_hint = fas.backend();
         if (req.url ~ "^/accounts/static/") {
             unset req.http.cookie;
+            set req.http.clear-cookies = "yes";
             set req.url = regsub(req.url, "\?.*", "");
         }
     }
@@ -199,6 +208,7 @@ sub vcl_recv {
         set req.backend_hint = voting;
         if (req.url ~ "^/voting/static/") {
             unset req.http.cookie;
+            set req.http.clear-cookies = "yes";
             set req.url = regsub(req.url, "\?.*", "");
         }
     }
@@ -206,10 +216,12 @@ sub vcl_recv {
         set req.backend_hint = mirrormanager;
         if (req.url ~ "^/mirrormanager/static/") {
             unset req.http.cookie;
+            set req.http.clear-cookies = "yes";
             set req.url = regsub(req.url, "\?.*", "");
         }
         if (req.url ~ "^/mirrormanager/mirrors") {
             unset req.http.cookie;
+            set req.http.clear-cookies = "yes";
             set req.url = regsub(req.url, "\?.*", "");
         }
     }
@@ -217,6 +229,7 @@ sub vcl_recv {
         set req.backend_hint = bodhi;
         if (req.url ~ "^/updates/static/") {
             unset req.http.cookie;
+            set req.http.clear-cookies = "yes";
             set req.url = regsub(req.url, "\?.*", "");
         }
     }
@@ -227,6 +240,7 @@ sub vcl_recv {
         set req.backend_hint = tagger;
         if (req.url ~ "^/tagger/ui/static/") {
             unset req.http.cookie;
+            set req.http.clear-cookies = "yes";
             set req.url = regsub(req.url, "\?.*", "");
         }
     }
@@ -234,10 +248,12 @@ sub vcl_recv {
         set req.backend_hint = paste;
         if (req.url ~ "^/skins/") {
             unset req.http.cookie;
+            set req.http.clear-cookies = "yes";
             set req.url = regsub(req.url, "\?.*", "");
         }
         if (req.url ~ "^/addons/") {
             unset req.http.cookie;
+            set req.http.clear-cookies = "yes";
             set req.url = regsub(req.url, "\?.*", "");
         }
     }
@@ -245,6 +261,7 @@ sub vcl_recv {
         set req.backend_hint = askbot;
         if (req.url ~ "^/m/") {
             unset req.http.cookie;
+            set req.http.clear-cookies = "yes";
             set req.url = regsub(req.url, "\?.*", "");
         }
     }
@@ -253,6 +270,7 @@ sub vcl_recv {
              set req.backend_hint = blockerbugs;
             if (req.url ~ "^/blockerbugs/static/") {
                 unset req.http.cookie;
+                set req.http.clear-cookies = "yes";
                 set req.url = regsub(req.url, "\?.*", "");
             }
         }
@@ -262,6 +280,7 @@ sub vcl_recv {
             set req.backend_hint = koschei;
             if (req.url ~ "^/koschei/static/") {
                 unset req.http.cookie;
+                set req.http.clear-cookies = "yes";
                 set req.url = regsub(req.url, "\?.*", "");
             }
         }
@@ -269,6 +288,7 @@ sub vcl_recv {
             set req.backend_hint = kerneltest;
             if (req.url ~ "^/kerneltest/static/") {
                 unset req.http.cookie;
+                set req.http.clear-cookies = "yes";
                 set req.url = regsub(req.url, "\?.*", "");
             }
         }
@@ -276,6 +296,7 @@ sub vcl_recv {
             set req.backend_hint = fedocal;
             if (req.url ~ "^/calendar/static/") {
                 unset req.http.cookie;
+                set req.http.clear-cookies = "yes";
                 set req.url = regsub(req.url, "\?.*", "");
             }
         }
@@ -283,10 +304,12 @@ sub vcl_recv {
             set req.backend_hint = nuancier;
             if (req.url ~ "^/nuancier/static/") {
                 unset req.http.cookie;
+                set req.http.clear-cookies = "yes";
                 set req.url = regsub(req.url, "\?.*", "");
             }
             if (req.url ~ "^/nuancier/cache/") {
                 unset req.http.cookie;
+                set req.http.clear-cookies = "yes";
                 set req.url = regsub(req.url, "\?.*", "");
             }
         }
@@ -294,18 +317,22 @@ sub vcl_recv {
             set req.backend_hint = packages;
             if (req.url ~ "^/packages/_res/") {
                 unset req.http.cookie;
+                set req.http.clear-cookies = "yes";
                 set req.url = regsub(req.url, "\?.*", "");
             }
             if (req.url ~ "^/packages/css/") {
                 unset req.http.cookie;
+                set req.http.clear-cookies = "yes";
                 set req.url = regsub(req.url, "\?.*", "");
             }
             if (req.url ~ "^/packages/images/") {
                 unset req.http.cookie;
+                set req.http.clear-cookies = "yes";
                 set req.url = regsub(req.url, "\?.*", "");
             }
             if (req.url ~ "^/packages/js/") {
                 unset req.http.cookie;
+                set req.http.clear-cookies = "yes";
                 set req.url = regsub(req.url, "\?.*", "");
             }
         }
@@ -354,6 +381,18 @@ sub vcl_backend_response {
     }
     if (bereq.url ~ "^/mirrormanager/static/") {
         set beresp.ttl = 6h;
+    }
+}
+
+sub vcl_deliver {
+    if (req.http.clear-cookies ~ "yes") {
+        # If we stored that we cleared request cookies, we also make sure
+        # we are not sending any response cookies.
+        # NOTE: this is suboptimal, since clearing them at this time means
+        # varnish has already cached that this endpoint returns cookies and
+        # will not cache it. This is really just a failsafe to make sure we
+        # don't send empty cookies back.
+        unset resp.http.set-cookie;
     }
 }
 
