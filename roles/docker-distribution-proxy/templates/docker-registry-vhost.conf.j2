@@ -1,3 +1,4 @@
+Listen 443
 <VirtualHost *:443>
 
   ServerName {{ servername }}
@@ -30,19 +31,15 @@
   ProxyPass        /v2 http://localhost:5000/v2
   ProxyPassReverse /v2 http://localhost:5000/v2
 
-  ProxyPass        /_ping http://localhost:5000/_ping
-  ProxyPassReverse /_ping http://localhost:5000/_ping
-
-  # Allow ping to run unauthenticated.
-  <Location /_ping>
-    Satisfy any
-    Allow from all
-  </Location>
-
 {% if auth.type == "ssl" %}
-    SSLVerifyClient none
-    SSLCACertificateFile {{ auth.ssl.destdir }}/{{ auth.ssl.authca_dest }}
+  SSLVerifyClient optional
+  SSLVerifyDepth 1
+  SSLCACertificateFile {{ auth.ssl.destdir}}/{{ auth.ssl.clientca_dest }}
+  SSLOptions +StdEnvVars
+  SSLVerifyClient none
+  SSLCACertificateFile {{ auth.ssl.destdir }}/{{ auth.ssl.authca_dest }}
 {% endif %}
+
   <Location /v2>
     Order deny,allow
     Allow from all
@@ -50,11 +47,6 @@
     AuthName "Registry Authentication"
     AuthType basic
     AuthUserFile {{ auth.basic.destdir }}/{{ auth.basic.userfile_dest }}
-{% endif %}
-{% if auth.type == "ssl" %}
-    SSLVerifyClient require
-    SSLVerifyDepth 1
-{% endif %}
 
     ## Read access to authentified users
     #<Limit GET HEAD>
@@ -65,7 +57,22 @@
     <Limit POST PUT DELETE PATCH>
       Require valid-user
     </Limit>
+{% endif %}
 
+{% if auth.type == "ssl" %}
+    SSLVerifyClient require
+    SSLVerifyDepth 1
+
+    ## Read access to authentified users
+    #<Limit GET HEAD>
+    #  Require valid-user
+    #</Limit>
+
+    # Write access restricted
+    <Limit POST PUT DELETE PATCH>
+      Require expr %{SSL_CLIENT_VERIFY} == "SUCCESS"
+    </Limit>
+{% endif %}
   </Location>
 
 </VirtualHost>
