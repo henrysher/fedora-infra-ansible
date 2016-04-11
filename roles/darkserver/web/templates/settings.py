@@ -32,28 +32,16 @@ ADMINS = (
 
 MANAGERS = ADMINS
 
-try:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql_psycopg2', # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
-            'NAME': config.get('darkserverweb','database'),                      # Or path to database file if using sqlite3.
-            'USER': config.get('darkserverweb','user'),                      # Not used with sqlite3.
-            'PASSWORD': config.get('darkserverweb','password') ,                  # Not used with sqlite3.
-            'HOST': config.get('darkserverweb','host'),                      # Set to empty string for localhost. Not used with sqlite3.
-            'PORT': '',                      # Set to empty string for default. Not used with sqlite3.
-        }
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql_psycopg2', # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
+        'NAME': config.get('darkserverweb','database'),                      # Or path to database file if using sqlite3.
+        'USER': config.get('darkserverweb','user'),                      # Not used with sqlite3.
+        'PASSWORD': config.get('darkserverweb','password') ,                  # Not used with sqlite3.
+        'HOST': config.get('darkserverweb','host'),                      # Set to empty string for localhost. Not used with sqlite3.
+        'PORT': '',                      # Set to empty string for default. Not used with sqlite3.
     }
-except Exception, e:
-     DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3', # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
-            'NAME': './test.db',                      # Or path to database file if using sqlite3.
-            'USER': '',                      # Not used with sqlite3.
-            'PASSWORD': '',                  # Not used with sqlite3.
-            'HOST': '',                      # Set to empty string for localhost. Not used with sqlite3.
-            'PORT': '',                      # Set to empty string for default. Not used with sqlite3.
-        }
-    }
+}
 
 # Local time zone for this installation. Choices can be found here:
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
