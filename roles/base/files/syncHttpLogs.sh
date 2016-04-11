@@ -69,7 +69,7 @@ syncHttpLogs tagger02.phx2.fedoraproject.org
 syncHttpLogs tagger01.stg.phx2.fedoraproject.org
 syncHttpLogs bodhi03.phx2.fedoraproject.org
 syncHttpLogs bodhi04.phx2.fedoraproject.org
-syncHttpLogs bodhi02.stg.phx2.fedoraproject.org
+syncHttpLogs bodhi01.stg.phx2.fedoraproject.org
 syncHttpLogs packages03.phx2.fedoraproject.org
 syncHttpLogs packages04.phx2.fedoraproject.org
 syncHttpLogs packages03.stg.phx2.fedoraproject.org
