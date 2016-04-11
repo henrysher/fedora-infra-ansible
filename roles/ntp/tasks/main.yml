@@ -1,0 +1,27 @@
+- name: install ntp
+  package: name=ntp state=present
+  tags:
+  - ntp
+  - package
+  - base
+
+- name: install ntp.conf
+  template: src=ntp.conf.j2 dest=/etc/ntp.conf
+  tags:
+  - ntp
+  - config
+  - base
+
+- name: install ntp step-tickers
+  copy: src=step-tickers dest=/etc/ntp/step-tickers
+  tags:
+  - ntp
+  - config
+  - base
+
+- name: Start ntpd
+  service: name=ntpd state=running enabled=true
+  tags:
+  - ntp
+  - service
+  - base
