@@ -1210,3 +1210,10 @@
     register: TENANT_ID
   - shell: source /root/keystonerc_admin && nova quota-update --instances 45 --cores 150 --ram 288300 --security-groups 20 {{ TENANT_ID.stdout }}
 
+# Transient quota
+  - shell: source /root/keystonerc_admin && keystone tenant-list | grep 'transient ' | awk '{print $2}'
+    always_run: true
+    changed_when: false
+    register: TENANT_ID
+  - shell: source /root/keystonerc_admin && nova quota-update --instances 20 --cores 30 --ram 51200 --security-groups 20 {{ TENANT_ID.stdout }}
+
