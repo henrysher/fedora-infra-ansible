@@ -46,6 +46,7 @@ AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
 )
 MIDDLEWARE_CLASSES = (
+    'pdc.apps.utils.middleware.MessagingMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -59,7 +60,6 @@ MIDDLEWARE_CLASSES = (
     'kobo.django.menu.middleware.MenuMiddleware',
     'pdc.apps.usage.middleware.UsageMiddleware',
     'pdc.apps.changeset.middleware.ChangesetMiddleware',
-    'pdc.apps.utils.middleware.MessagingMiddleware',
 )
 
 
