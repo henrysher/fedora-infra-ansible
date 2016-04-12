@@ -93,3 +93,9 @@
   ini_file: dest=/etc/systemd/coredump.conf section=Coredump option=Storage value=none
 #  notify:
 #  - systemctl daemon-reload
+
+- name: 'Remove %_install_langs from /etc/rpm/macros.image-language-conf so that `yum-deprecated --installroot=<chroot-path> install glibc-all-langpacks` installs all possible locale into build chroots'
+  lineinfile:
+    dest: '/etc/rpm/macros.image-language-conf'
+    regexp: '^%_install_lang.*'
+    state: 'absent'
