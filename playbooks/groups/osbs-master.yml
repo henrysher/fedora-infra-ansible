@@ -38,11 +38,6 @@
     - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
 
   tasks:
-    - name: place htpasswd file
-      copy:
-        src: "{{private}}/files/httpd/osbs.htpasswd"
-        dest: /etc/origin/htpasswd
-
     - name: create cert dir for openshift public facing REST API SSL
       file:
         path: "/etc/origin/master/named_certificates"
@@ -219,6 +214,11 @@
 
 
   handlers:
+    - name: place htpasswd file
+      copy:
+        src: "{{private}}/files/httpd/osbs.htpasswd"
+        dest: /etc/origin/htpasswd
+
     - name: buildroot container
       shell: atomic-reactor create-build-image --reactor-tarball-path /usr/share/atomic-reactor/atomic-reactor.tar.gz /etc/osbs/buildroot/ buildroot
 
