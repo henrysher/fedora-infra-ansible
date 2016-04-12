@@ -62,31 +62,10 @@
           }
         },
         httpd: {
-          addr: "localhost:5000"
+          addr: "*:5000"
         },
         when: env == "staging"
       }
-    - {
-      role: docker-distribution-proxy,
-        servername: registry.stg.fedorproject.org,
-        ssl: {
-          destdir: "/etc/pki/docker-distribution/",
-          certfile_src: "{{private}}/files/docker-registry/staging/docker-registry-internal.pem",
-          certfile_dest: "docker-registry-internal.pem",
-          keyfile_src: "{{private}}/files/docker-registry/staging/docker-registry-internal.key",
-          keyfile_dest: "docker-registry-internal.key",
-        },
-        auth: {
-          type: basic,
-          basic: {
-            destdir: "/etc/httpd/",
-            userfile_src: "{{private}}/files/httpd/osbs.htpasswd",
-            userfile_dest: "osbs.htpasswd",
-          }
-        },
-        when: env == "staging"
-      }
-
     # PROD
     - {
       role: docker-distribution,
@@ -108,29 +87,7 @@
           }
         },
         httpd: {
-          addr: "localhost:5000"
+          addr: "*:5000"
         },
         when: env == "production"
       }
-    - {
-      role: docker-distribution-proxy,
-        servername: registry.fedorproject.org,
-        ssl: {
-          destdir: "/etc/pki/docker-distribution/",
-          certfile_src: "{{private}}/files/docker-registry/docker-registry-internal.pem",
-          certfile_dest: "docker-registry-internal.pem",
-          keyfile_src: "{{private}}/files/docker-registry/docker-registry-internal.key",
-          keyfile_dest: "docker-registry-internal.key",
-        },
-        auth: {
-          type: basic,
-          basic: {
-            destdir: "/etc/httpd/",
-            userfile_src: "{{private}}/files/httpd/osbs.htpasswd",
-            userfile_dest: "osbs.htpasswd",
-          }
-        },
-        when: env == "production"
-      }
-
-
