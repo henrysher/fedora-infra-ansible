@@ -220,6 +220,21 @@
         src: "/etc/pki/docker/osbs-dev.fedorainfracloud.org:5000"
         state: "link"
 
+    - name: ensure docker stage cert dir exists
+      file:
+        path: "/etc/docker/certs.d/registry.stg.fedoraproject.org"
+        state: directory
+
+    - name: install docker client cert for stage registry
+      file:
+        src: "{{private}}/files/koji/containerbuild.cert.pem"
+        dest: "/etc/docker/certs.d/registry.stg.fedoraproject.org/client.cert"
+
+    - name: install docker client key for stage registry
+      file:
+        src: "{{private}}/files/koji/containerbuild.key.pem"
+        dest: "/etc/docker/certs.d/registry.stg.fedoraproject.org/client.key"
+
     - name: start and enable docker
       service: name=docker state=started enabled=yes
 
