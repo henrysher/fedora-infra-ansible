@@ -251,6 +251,18 @@
         dest: "{{ koji_ca_cert_path }}"
       notify: oc secrets new
 
+    - name: setup logical volume for docker cache
+      lvol:
+        vg: "vg-docker"
+        lv: "metadata"
+        size: "4g"
+
+    - name: setup logical volume for docker data storage
+      lvol:
+        vg: "vg-docker"
+        lv: "data"
+        size: "55g"
+
     - name: install docker
       action: "{{ ansible_pkg_mgr }} name=docker state=installed"
 
@@ -268,6 +280,11 @@
       copy:
         src: "{{private}}/files/koji/containerbuild.key.pem"
         dest: "{{docker_cert_dir}}/client.key"
+
+    - name: copy docker storage config
+      copy:
+        src: "{{files}}/osbs/docker-storage"
+        dest: "/etc/sysconfig/docker-storage"
 
     - name: start and enable docker
       service: name=docker state=started enabled=yes
@@ -301,7 +318,7 @@
 
     - name: Upload Dockerfile for buildroot container
       copy:
-        src: "{{ files }}/osbs-buildroot-Dockerfile"
+        src: "{{ files }}/osbs/buildroot-Dockerfile"
         dest: "/etc/osbs/buildroot/Dockerfile"
         mode: 0400
       notify:
