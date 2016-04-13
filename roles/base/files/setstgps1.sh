@@ -1,4 +1,4 @@
 # Set PS1 based on env
 #
-PS1="[\u@\h:\W]\e[0;36m[STG]\e[m$ "
+PS1="[\u@\h \W]\[$(tput setaf 6)\][STG]\[$(tput sgr0)\]\\$ \[\]"
 
