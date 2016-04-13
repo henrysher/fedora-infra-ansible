@@ -89,6 +89,24 @@
   - cron
   - postgresql
 
+- name: install script to kill long running pgsql jobs
+  copy: >
+    src=kill_idle_xact_92.sh
+    dest=/usr/local/bin/kill_idle_xact_92.sh
+  when: inventory_hostname.startswith('db-koji01')
+  tags:
+  - cron
+  - postgresql
+
+- name: Set up a cron job to kill long postresql queries
+  copy: >
+    src=koji-cleanup-locks.cron
+    dest=/etc/cron.d/koji-cleanup-locks.cron
+  when: inventory_hostname.startswith('db-koji01')
+  tags:
+  - cron
+  - postgresql
+
 - name: Set up a script for cron job to clean long fas sessions on fas database server only
   copy: >
     src=fasdb-cleanup-sessions
