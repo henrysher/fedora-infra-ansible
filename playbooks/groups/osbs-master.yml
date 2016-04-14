@@ -260,10 +260,10 @@
       service: name=docker state=started enabled=yes
 
     - name: create fedora image stream for OpenShift
-      shell: "echo '{ \"apiVersion\": \"v1\", \"kind\": \"ImageStream\", \"metadata\": { \"name\": \"fedora\" }, \"spec\": { \"dockerImageRepository\": \"{{docker_registry}}/fedora\" } }' | oc create -f -"
+      shell: "echo '{ \"apiVersion\": \"v1\", \"kind\": \"ImageStream\", \"metadata\": { \"name\": \"fedora\" }, \"spec\": { \"dockerImageRepository\": \"{{docker_registry}}/fedora\" } }' | oc create -f - && touch /etc/origin/fedoraimagestreamcreated"
       environment: "{{ osbs_environment }}"
       args:
-        creates: /etc/osbs_fedora_imagestream_created
+        creates: /etc/origin/fedoraimagestreamcreated
 
     - name: set policy for koji builder in openshift for osbs
       shell: "oadm policy add-role-to-user -n default edit htpasswd_provider: {{ osbs_koji_username }}"
