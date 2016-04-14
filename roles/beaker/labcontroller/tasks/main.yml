@@ -8,13 +8,6 @@
   - beaker-lab-controller
   - tftp-server
 
-- name: check beaker-transfer state
-  command: service beaker-transfer status
-  failed_when: no
-  changed_when: no
-  register: transfer_state
-  always_run: yes
-
 - name: Replace default labcontroller.conf file
   template:
     src: etc/beaker/labcontroller.conf.j2
@@ -24,16 +17,11 @@
     mode: 0660
     backup: yes
     force: yes
-  register: configure_result
   notify:
     - reload httpd
     - restart beaker lab controller
   tags:
     - beaker_lab_controller
-
-- name: restart beaker-transfer
-  service: name=beaker-transfer state=restarted
-  when: (transfer_state.rc == 0) and (configure_result.changed)
 
 - name: enable tftp
   command: chkconfig tftp on
@@ -48,5 +36,6 @@
     - beaker-proxy
     - beaker-provision
     - beaker-watchdog
+    # beaker-transfer is left disabled, since we have no log archive server
   tags:
     - beaker_lab_controller
