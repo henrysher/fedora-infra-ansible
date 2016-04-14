@@ -1,0 +1,120 @@
+# This is a config file for Koschei that can override values in default
+# configuration in /usr/share/koschei/config.cfg. It is a python file expecting
+# assignment to config dictionary which will be recursively merged with the
+# default one.
+config = {
+    "database_config": {
+        "host": "{{ koschei_pgsql_hostname }}",
+        "username": "koscheiuser",
+        "password": "{{ koscheiuser_db_password }}",
+        "database": "koschei"
+    },
+    "koji_config": {
+        "server": "http://{{ koschei_koji_hub }}/kojihub",
+        "topurl": "http://{{ koschei_kojipkgs }}",
+        "weburl": "http://{{ koschei_koji_web }}/koji",
+        "login_method": "ssl_login",
+        "login_args": {
+            "cert": "/etc/koschei/koschei.pem",
+            "ca": "/etc/koschei/fedora-ca.cert",
+            "serverca": "/etc/koschei/fedora-ca.cert",
+        },
+        "source_tag": "{{ koschei_koji_tag }}",
+        "target_tag": "{{ koschei_koji_tag }}",
+        "build_tag": "{{ koschei_koji_tag }}-build",
+        "max_builds": 40,
+        "build_arches": ['i386', 'x86_64', 'armhfp'],
+        "build_opts": {
+        },
+        "load_threshold": 0.65,
+        "task_priority": 30,
+        "repo_url": "http://{{ koschei_kojipkgs }}/repos/{build_tag}/{repo_id}/{arch}",
+    },
+    "dependency": {
+        "build_group": "build",
+        "for_arch": "x86_64",
+        "repo_cache_items": 10,
+        "keep_build_deps_for": 1,
+        "local": False,
+        "arches": ['x86_64', 'i386'],
+        "persist_chunk_size": 300,
+        "resolver_queue_size": 100,
+        "dependency_fetch_chunk_size": 150,
+        "cache_l1_capacity": 4,
+        "cache_l2_capacity": 128,
+        "cache_l1_threads": 3,
+        "cache_l2_threads": 1,
+        "cache_threads_max": 4,
+        {% if env == 'staging' %}
+        "ignore_weak_deps": True,
+        {% endif %}
+    },
+    "services": {
+        "watcher": {
+            {% if env == 'staging' %}
+            "watchdog_interval": None, # there are almost no messages in stg
+            {% else %}
+            "watchdog_interval": 600, # in seconds
+            {% endif %}
+        },
+        "polling": {
+            {% if env == 'staging' %}
+            "interval": 1, # in seconds
+            {% else %}
+            "interval": 20*60, # in seconds
+            {% endif %}
+        },
+    },
+    "logging": {
+        "loggers": {
+            "": {
+                "level": "DEBUG",
+                "handlers": ["stderr", "email"],
+            },
+        },
+        "handlers": {
+            "email": {
+                "class": "logging.handlers.SMTPHandler",
+                "level": "WARN",
+                "mailhost": "localhost",
+                "fromaddr": "koschei@fedoraproject.org",
+                "toaddrs": ['sysadmin-koschei-members@fedoraproject.org'],
+                "subject": "Koschei {{ env }} warning",
+            },
+        },
+    },
+    "fedmsg": {
+        {% if env == 'staging' %}
+        "topic": "org.fedoraproject.stg.buildsys",
+        {% else %}
+        "topic": "org.fedoraproject.prod.buildsys",
+        {% endif %}
+    },
+    "fedmsg-publisher": {
+        "enabled": True,
+        "modname": "koschei",
+    },
+    "pkgdb": {
+        {% if env == 'staging' %}
+        "pkgdb_url": 'https://admin.stg.fedoraproject.org/pkgdb/api',
+        "topic_re": r'\.stg\.pkgdb\.',
+        {% else %}
+        "pkgdb_url": 'https://admin.fedoraproject.org/pkgdb/api',
+        "topic_re": r'\.prod\.pkgdb\.',
+        {% endif %}
+        "sync_tracked": True,
+        "cache": {
+            "backend": "dogpile.cache.memcached",
+            "expiration_time": 300,
+            "arguments": {
+                "url": "memcached01",
+                "distributed_lock": True,
+            },
+        },
+    },
+}
+
+# Local Variables:
+# mode: Python
+# End:
+# vi: ft=python
