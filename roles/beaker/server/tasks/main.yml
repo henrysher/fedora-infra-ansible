@@ -105,6 +105,12 @@
     - beaker-init
     - beaker-server
 
+# workaround for https://bugzilla.redhat.com/show_bug.cgi?id=1327051
+- name: create /var/run/beaker
+  command: systemd-tmpfiles beaker-server.conf
+  tags:
+    - beaker-server
+
 - name: ensure the Apache server and the Beaker daemon are running
   service: name={{ item }} state=started enabled=yes
   with_items:
