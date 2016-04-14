@@ -28,13 +28,20 @@
   tags:
     - beaker-server
 
+- name: copy SAML identity provider metadata
+  copy: >
+    src="{{ private }}/files/saml2/idp-{{env}}.xml"
+    dest="/etc/httpd/saml2/{{ beaker_server_cname }}/idp-metadata.xml"
+    owner="apache" group="apache" mode=0600
+  tags:
+    - beaker-server
+
 - name: copy SAML files
   copy: >
     src="{{ item }}" dest="/etc/httpd/{{ item }}"
     owner="apache" group="apache" mode=0644
   with_items:
     - "saml2/{{ beaker_server_cname }}/metadata.xml"
-    - "saml2/{{ beaker_server_cname }}/idp-metadata.xml"
     - "saml2/{{ beaker_server_cname }}/certificate.pem"
   tags:
     - beaker-server
