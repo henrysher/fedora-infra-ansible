@@ -1,0 +1,18 @@
+---
+# Configures the bkr client on the server itself. We can use this from Ansible
+# to perform various administrative tasks.
+
+- name: install bkr client
+  yum: pkg=beaker-client state=present
+  tags:
+    - beaker-server
+
+- name: create /root/.beaker_client
+  file: path=/root/.beaker_client state=directory
+  tags:
+    - beaker-server
+
+- name: configure bkr client
+  template: src=root/beaker-client-config.j2 dest=/root/.beaker_client/config mode=0600
+  tags:
+    - beaker-server
