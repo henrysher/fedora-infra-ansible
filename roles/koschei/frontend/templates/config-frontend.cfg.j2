@@ -14,6 +14,9 @@ config = {
         "topurl": "http://{{ koschei_kojipkgs }}",
         "weburl": "http://{{ koschei_koji_web }}/koji",
     },
+    "flask": {
+        "SECRET_KEY": "{{ koschei_flask_secret_key }}",
+    },
     "logging": {
         "loggers": {
             "": {
@@ -56,6 +59,44 @@ config = {
                 "url": "memcached01",
                 "distributed_lock": True,
             },
+        },
+    },
+    "frontend": {
+        "auto_tracking": True,
+        {% if env == 'staging' %}
+        # Staging copies for fedmenu
+        "fedmenu_url": "https://apps.stg.fedoraproject.org/fedmenu",
+        "fedmenu_data_url": "https://apps.stg.fedoraproject.org/js/data.js",
+        {% else %}
+        # Production copies for fedmenu
+        "fedmenu_url": "https://apps.fedoraproject.org/fedmenu",
+        "fedmenu_data_url": "https://apps.fedoraproject.org/js/data.js",
+        {% endif %}
+    },
+    "openid": {
+        "openid_provider": "{{ koschei_openid_provider }}",
+    },
+    "bugreport": {
+        "url": "https://{{ koschei_bugzilla }}/enter_bug.cgi?%s",
+        "template": {
+            "product": "Fedora",
+            "component": "{name}",
+            "version": "rawhide",
+            "short_desc": "{name}: FTBFS in rawhide",
+            "bug_file_loc": "{{ koschei_topurl }}/package/{name}",
+            "comment": """
+            Description of problem:
+            Package {name} fails to build from source in rawhide.
+
+            Version-Release number of selected component (if applicable):
+            {version}-{release}
+
+            Steps to Reproduce:
+            koji build --scratch {{ koschei_koji_tag }} {name}-{version}-{release}.{arch}.rpm
+
+            Additional info:
+            This package is tracked by Koschei. See:
+            {{ koschei_topurl }}/package/{name}"""
         },
     },
 }
