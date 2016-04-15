@@ -1,5 +1,5 @@
 - name: upgrade koschei frontend
-  hosts: koschei-web-stg
+  hosts: koschei-web:koschei-web-stg
   vars_files:
   - /srv/web/infra/ansible/vars/global.yml
   - /srv/private/ansible/vars.yml
@@ -26,7 +26,7 @@
     - koschei-frontend-fedora
 
 - name: upgrade koschei backend and run DB migration
-  hosts: koschei-backend-stg
+  hosts: koschei-backendkoschei-backend-stg
   vars_files:
   - /srv/web/infra/ansible/vars/global.yml
   - /srv/private/ansible/vars.yml
@@ -49,8 +49,8 @@
     - koschei-polling
     - koschei-resolver
     - koschei-watcher
-  - name: clean yum metadata
-    command: yum clean all
+  - name: clean dnf metadata
+    command: dnf clean all
   - name: upgrade koschei
     package: name="{{ item }}" state=latest
     with_items:
@@ -63,7 +63,7 @@
     command: alembic -c /usr/share/koschei/alembic.ini upgrade head
 
 - name: restart koschei frontend
-  hosts: koschei-web-stg
+  hosts: koschei-web:koschei-web-stg
   vars_files:
   - /srv/web/infra/ansible/vars/global.yml
   - /srv/private/ansible/vars.yml
@@ -73,8 +73,8 @@
   roles:
   - koschei/frontend
 
-- name: restart koschei-backend
-  hosts: koschei-backend-stg
+- name: restart koschei backend
+  hosts: koschei-backend:koschei-backend-stg
   vars_files:
   - /srv/web/infra/ansible/vars/global.yml
   - /srv/private/ansible/vars.yml
