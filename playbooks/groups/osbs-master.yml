@@ -40,6 +40,35 @@
   tasks:
     - include: "{{tasks}}/osbs_repos.yml"
 
+    - name: copy docker-storage-setup config
+      copy:
+        src: "{{files}}/osbs/docker-storage-setup"
+        dest:  "/etc/sysconfig/docker-storage-setup"
+
+    - name: install docker
+      action: "{{ ansible_pkg_mgr }} name=docker state=installed"
+
+    - name: ensure docker daemon cert dir exists
+      file:
+        path: "{{docker_cert_dir}}"
+        state: directory
+
+    - name: install docker client cert for registry
+      copy:
+        src: "{{private}}/files/koji/containerbuild.cert.pem"
+        dest: "{{docker_cert_dir}}/client.cert"
+
+    - name: install docker client key for registry
+      copy:
+        src: "{{private}}/files/koji/containerbuild.key.pem"
+        dest: "{{docker_cert_dir}}/client.key"
+
+    - name: run docker-storage-setup
+      shell: "docker-storage-setup"
+
+    - name: start and enable docker
+      service: name=docker state=started enabled=yes
+
     - name: create cert dir for openshift public facing REST API SSL
       file:
         path: "/etc/origin/master/named_certificates"
@@ -225,44 +254,6 @@
         src: "{{private}}/files/koji/buildercerts/fedora-ca.cert"
         dest: "{{ koji_ca_cert_path }}"
       notify: oc secrets new
-
-    - name: setup logical volume for docker cache
-      lvol:
-        vg: "vg-docker"
-        lv: "metadata"
-        size: "4g"
-
-    - name: setup logical volume for docker data storage
-      lvol:
-        vg: "vg-docker"
-        lv: "data"
-        size: "55g"
-
-    - name: install docker
-      action: "{{ ansible_pkg_mgr }} name=docker state=installed"
-
-    - name: ensure docker daemon cert dir exists
-      file:
-        path: "{{docker_cert_dir}}"
-        state: directory
-
-    - name: install docker client cert for registry
-      copy:
-        src: "{{private}}/files/koji/containerbuild.cert.pem"
-        dest: "{{docker_cert_dir}}/client.cert"
-
-    - name: install docker client key for registry
-      copy:
-        src: "{{private}}/files/koji/containerbuild.key.pem"
-        dest: "{{docker_cert_dir}}/client.key"
-
-    - name: copy docker storage config
-      copy:
-        src: "{{files}}/osbs/docker-storage"
-        dest: "/etc/sysconfig/docker-storage"
-
-    - name: start and enable docker
-      service: name=docker state=started enabled=yes
 
     - name: create fedora image stream for OpenShift
       shell: "echo '{ \"apiVersion\": \"v1\", \"kind\": \"ImageStream\", \"metadata\": { \"name\": \"fedora\" }, \"spec\": { \"dockerImageRepository\": \"{{docker_registry}}/fedora\" } }' | oc create -f - && touch /etc/origin/fedoraimagestreamcreated"
