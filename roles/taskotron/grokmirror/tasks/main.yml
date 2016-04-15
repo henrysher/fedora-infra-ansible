@@ -35,13 +35,13 @@
   git: repo={{ item.url }} bare=yes dest={{ grokmirror_basedir }}/{{ item.name }} update=no
   become: true
   become_user: "{{ grokmirror_user }}"
-  with_items: {{ grokmirror_repos }}
+  with_items: "{{ grokmirror_repos }}"
 
 - name: set up default branch
   command: chdir={{ grokmirror_basedir }}/{{ item.name }} git symbolic-ref HEAD refs/heads/{{ grokmirror_default_branch }}
   become: true
   become_user: "{{ grokmirror_user }}"
-  with_items: {{ grokmirror_repos }}
+  with_items: "{{ grokmirror_repos }}"
 
 - name: generate grokmirror config
   template: src=repos.conf.j2 dest=/etc/grokmirror/repos.conf owner={{ grokmirror_user }} group={{ grokmirror_user }} mode=0644
@@ -52,4 +52,4 @@
     user={{ grokmirror_user }}
     special_time=hourly
     job="cd {{ grokmirror_basedir }}/{{ item.name }} && git fetch origin {{ grokmirror_default_branch }}:{{ grokmirror_default_branch }}"
-  with_items: {{ grokmirror_repos }}
+  with_items: "{{ grokmirror_repos }}"
