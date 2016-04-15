@@ -7,7 +7,7 @@
 # production Koschei database dump, but this is not needed for now.
 
 - name: stop koschei staging services
-  hosts: koschei-stg
+  hosts: koschei-stg-web:koschei-stg-backend
   user: root
   vars_files:
    - /srv/web/infra/ansible/vars/global.yml
@@ -17,11 +17,14 @@
   - include: "{{ handlers }}/restart_services.yml"
 
   tasks:
-  - service: name=koschei-polling state=stopped
-  - service: name=koschei-resolver state=stopped
-  - service: name=koschei-scheduler state=stopped
-  - service: name=koschei-watcher state=stopped
+  - service: name={{ item }} state=stopped
+    when: "backend" in ansible_hostname
+    with_items:
+    - koschei-resolver
+    - koschei-scheduler
+    - koschei-watcher
   - service: name=httpd state=stopped
+    when: "web" in ansible_hostname
 
 
 - name: drop and re-create koschei staging database
@@ -44,7 +47,7 @@
 
 
 - name: import koschei staging database schema
-  hosts: koschei-stg
+  hosts: koschei-backend-stg
   user: root
   become: yes
   become_user: koschei
@@ -68,7 +71,7 @@
 
 
 - name: bring koschei staging services up
-  hosts: koschei-stg
+  hosts: koschei-backend-stg:koschei-web-stg
   user: root
   vars_files:
    - /srv/web/infra/ansible/vars/global.yml
@@ -78,8 +81,11 @@
   - include: "{{ handlers }}/restart_services.yml"
 
   tasks:
-  - service: name=httpd state=started
-  - service: name=koschei-polling state=started
-  - service: name=koschei-resolver state=started
-  - service: name=koschei-scheduler state=started
-  - service: name=koschei-watcher state=started
+  - service: name={{ item }} state=stopped
+    when: "backend" in ansible_hostname
+    with_items:
+    - koschei-resolver
+    - koschei-scheduler
+    - koschei-watcher
+  - service: name=httpd state=stopped
+    when: "web" in ansible_hostname
