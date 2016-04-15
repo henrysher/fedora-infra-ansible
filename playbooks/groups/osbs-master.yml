@@ -40,6 +40,11 @@
   tasks:
     - include: "{{tasks}}/osbs_repos.yml"
 
+    - name: copy docker-storage-setup config
+      copy:
+        src: "{{files}}/osbs/docker-storage-setup"
+        dest:  "/etc/sysconfig/docker-storage-setup"
+
     - name: create cert dir for openshift public facing REST API SSL
       file:
         path: "/etc/origin/master/named_certificates"
@@ -226,18 +231,6 @@
         dest: "{{ koji_ca_cert_path }}"
       notify: oc secrets new
 
-    - name: setup logical volume for docker cache
-      lvol:
-        vg: "vg-docker"
-        lv: "metadata"
-        size: "4g"
-
-    - name: setup logical volume for docker data storage
-      lvol:
-        vg: "vg-docker"
-        lv: "data"
-        size: "55g"
-
     - name: install docker
       action: "{{ ansible_pkg_mgr }} name=docker state=installed"
 
@@ -256,10 +249,8 @@
         src: "{{private}}/files/koji/containerbuild.key.pem"
         dest: "{{docker_cert_dir}}/client.key"
 
-    - name: copy docker storage config
-      copy:
-        src: "{{files}}/osbs/docker-storage"
-        dest: "/etc/sysconfig/docker-storage"
+    - name: run docker-storage-setup
+      shell: "docker-storage-setup"
 
     - name: start and enable docker
       service: name=docker state=started enabled=yes
