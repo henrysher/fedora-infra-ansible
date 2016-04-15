@@ -278,9 +278,25 @@
         path: "/etc/osbs/buildroot/"
         state: directory
 
-    - name: Upload Dockerfile for buildroot container
+    - name: install docker client cert for buildroot to auth to registry
       copy:
-        src: "{{ files }}/osbs/buildroot-Dockerfile"
+        src: "{{private}}/files/koji/containerbuild.cert.pem"
+        dest: "/etc/osbs/buildroot/client.cert"
+        mode: 0400
+      notify:
+        - buildroot container
+
+    - name: install docker client key for buildroot to auth to registry
+      copy:
+        src: "{{private}}/files/koji/containerbuild.key.pem"
+        dest: "/etc/osbs/buildroot/client.key"
+        mode: 0400
+      notify:
+        - buildroot container
+
+    - name: Upload Dockerfile for buildroot container
+      template:
+        src: "{{ files }}/osbs/buildroot-Dockerfile.j2"
         dest: "/etc/osbs/buildroot/Dockerfile"
         mode: 0400
       notify:
