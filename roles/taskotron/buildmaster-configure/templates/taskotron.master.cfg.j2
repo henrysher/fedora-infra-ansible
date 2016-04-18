@@ -158,9 +158,26 @@ factory.addStep(ShellCommand(command=["rm", "-f", "/var/log/taskotron/taskotron.
 factory.addStep(ShellCommand(command=Interpolate("rm -rf /var/tmp/taskotron/%(prop:slavename)s/*"), name="rm_tmp", descriptionDone=['Clean tmp']))
 {% endif %}
 
+{% if deployment_type in ['stg', 'prod'] %}
 # check out the source
 factory.addStep(Git(repourl=Interpolate('{{ grokmirror_user }}@{{ buildmaster }}:/var/lib/git/mirror/fedoraqa/%(prop:taskname)s/'),
                     mode='full', method='clobber'))
+{% elif deployment_type in ['dev'] %}
+# check out the source
+
+distgit = Property('repo') and Property('branch')
+
+if distgit:
+    factory.addStep(Git(repourl=Interpolate('%(prop:repo)s'),
+                        branch=Interpolate('%(prop:branch)s'),
+                        mode='full',
+                        method='clobber',
+                        shallow=True))
+else:
+    factory.addStep(Git(repourl=Interpolate('{{ grokmirror_user }}@{{ buildmaster }}:/var/lib/git/mirror/fedoraqa/%(prop:taskname)s/'),
+                        mode='full',
+                        method='clobber'))
+{% endif %}
 
 # run the runner
 factory.addStep(ShellCommand(command=["runtask",
@@ -169,7 +186,11 @@ factory.addStep(ShellCommand(command=["runtask",
                                         '-a', Interpolate('%(prop:arch)s'),
                                         '-j', Interpolate('%(prop:buildername)s/%(prop:buildnumber)s'),
                                         '--uuid', Interpolate('%(prop:uuid)s'),
+{% if deployment_type in ['dev'] %}
+                                        Interpolate('%(prop:taskname)s/runtask.yml') if distgit else Interpolate('%(prop:taskname)s.yml')],
+{% else %}
                                         Interpolate('%(prop:taskname)s.yml')],
+{% endif %}
                              descriptionDone=[Interpolate('%(prop:taskname)s on %(prop:item)s')],
                              name='runtask',
                              timeout=2400,
