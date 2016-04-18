@@ -3,8 +3,5 @@ RUN dnf -y install docker git python-docker-py python-setuptools e2fsprogs koji 
 ADD ./atomic-reactor.tar.gz /tmp/
 RUN cd /tmp/atomic-reactor-*/ && python setup.py install
 ADD ./ca.crt /etc/pki/ca-trust/source/anchors/osbs-dev.ca.crt
-RUN mkdir -p /etc/docker/certs.d/{{docker_registry}}
-ADD ./client.key /etc/docker/certs.d/{{docker_registry}}/client.key
-ADD ./client.cert /etc/docker/certs.d/{{docker_registry}}/client.cert
 RUN update-ca-trust
 CMD ["atomic-reactor", "--verbose", "inside-build"]
