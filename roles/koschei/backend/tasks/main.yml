@@ -21,6 +21,22 @@
   - koschei
   - packages
 
+- name: create systemd config directories
+  file: >
+    path="/etc/systemd/system/{{ item }}.service.d"
+    state=directory
+  with_items:
+  - koschei-polling
+  - koschei-resolver
+  - koschei-scheduler
+  - koschei-watcher
+  notify:
+  - reload systemd
+  tags:
+  - koschei
+  - config
+  - service
+
 - name: install systemd config files
   copy: >
     src=systemd-memory-limit.conf
@@ -31,6 +47,7 @@
   tags:
   - koschei
   - config
+  - service
 
 - name: install config files
   when: env == "staging"
