@@ -100,13 +100,34 @@
   tags:
   - nfs/client
 
-- name: nfs mount points (stg)
+#
+# In stg we need to mount the koji01.stg volume rw and the
+# production nfs volume ro. Since the setup here isn't good
+# for multiple nfs mounts, we just hard code needed staging bits
+# here. If it becomes more common to have multiple mounts, we
+# should revisit how this role works.
+#
+
+- name: nfs mount points (stg) staging koji
   mount: >
-        name={{ mnt_dir }} 
+        name=/mnt/fedora_koji
         src=10.5.126.87:/mnt/{{ nfs_src_dir }}
         fstype=nfs4
         opts={{nfs_mount_opts}}
-        passno=0 
+        passno=0
+        dump=0
+        state=mounted
+  when: datacenter == 'staging'
+  tags:
+  - nfs/client
+
+- name: nfs mount points (stg) production koji ro
+  mount: >
+        name={{ mnt_dir }}
+        src=ntap-phx2-c01-fedora01-nfs.storage.phx2.redhat.com:/mnt/{{ nfs_src_dir }}
+        fstype=nfs
+        opts=ro,hard,bg,intr,noatime,nodev,nosuid,nfsvers=3
+        passno=0
         dump=0
         state=mounted
   when: datacenter == 'staging'
