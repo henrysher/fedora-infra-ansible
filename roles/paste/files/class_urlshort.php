@@ -16,21 +16,21 @@ class URLShortener
 {
     public function shorten($long_url)
     {
+        // Don't shorten private pastes.
         if(preg_match('/^http(s)?:\/\/(.+).fedoraproject.org\/(\d+)\/(\d+)\/$/', $long_url)) {
             return $long_url;
         }
         $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL,"http://ur1.ca/");
-        curl_setopt($ch, CURLOPT_POST, 1); 
-        curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query(array('longurl' => $long_url)));
+        curl_setopt($ch, CURLOPT_URL,"https://da.gd/s");
+        curl_setopt($ch, CURLOPT_POST, 1);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query(array('url' => $long_url)));
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT ,2); 
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 2);
         curl_setopt($ch, CURLOPT_TIMEOUT, 2);
         $result = curl_exec($ch);
         curl_close($ch);
-        preg_match( '/<p class="success">Your ur1 is: <a href="(.+)">(.+)<\/a><\/p>/', $result, $match );
-        if (!empty($match)) 
-            return $match[1];
+        if (!empty($result))
+            return $result;
         else
             return false;
 
