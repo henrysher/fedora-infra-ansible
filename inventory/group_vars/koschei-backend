@@ -1,0 +1,58 @@
+---
+# Define resources for this group of hosts here.
+lvm_size: 20000
+mem_size: 4096
+num_cpus: 4
+
+# for systems that do not match the above - specify the same parameter in
+# the host_vars/$hostname file
+
+koschei_topurl: https://apps.fedoraproject.org/koschei
+koschei_pgsql_hostname: db01.phx2.fedoraproject.org
+koschei_koji_hub: koji02.phx2.fedoraproject.org
+koschei_kojipkgs: kojipkgs.fedoraproject.org
+koschei_koji_web: koji.fedoraproject.org
+koschei_koji_tag: f25
+
+
+tcp_ports: [
+    # These 4 are for fedmsg.  See also /etc/fedmsg.d/endpoints.py
+    3000, 3001, 3002, 3003,
+]
+
+custom_rules: [
+    # Need for rsync from log01 for logs.
+    '-A INPUT -p tcp -m tcp -s 10.5.126.13 --dport 873 -j ACCEPT',
+    '-A INPUT -p tcp -m tcp -s 192.168.1.59 --dport 873 -j ACCEPT',
+ ]
+
+fas_client_groups: sysadmin-koschei,fi-apprentice
+
+freezes: false
+
+# These are consumed by a task in roles/fedmsg/base/main.yml
+fedmsg_certs:
+- service: shell
+  owner: root
+  group: sysadmin
+  can_send:
+  - logger.log
+- service: koschei
+  owner: root
+  group: koschei
+  can_send:
+  - koschei.package.state.change
+  - koschei.update
+
+# For the MOTD
+csi_security_category: Low
+csi_primary_contact: Fedora admins - admin@fedoraproject.org
+csi_purpose: Koschei continuous integration system
+csi_relationship: |
+    This machine depends on:
+    - PostgreSQL DB server
+    - Koji hub and kojipkgs
+    - fedmsg hub
+    - pkgdb2
+    - bastion (for mail relay)
+    - memcached01

@@ -1,0 +1,41 @@
+---
+# Define resources for this group of hosts here.
+lvm_size: 6000
+mem_size: 1024
+num_cpus: 1
+
+# for systems that do not match the above - specify the same parameter in
+# the host_vars/$hostname file
+
+koschei_topurl: https://apps.fedoraproject.org/koschei
+koschei_pgsql_hostname: db01.phx2.fedoraproject.org
+koschei_koji_hub: koji02.phx2.fedoraproject.org
+koschei_kojipkgs: kojipkgs.fedoraproject.org
+koschei_koji_web: koji.fedoraproject.org
+koschei_koji_tag: f25
+koschei_openid_provider: id.fedoraproject.org
+koschei_bugzilla: bugzilla.redhat.com
+
+
+tcp_ports: [ 80, 443 ]
+
+custom_rules: [
+    # Need for rsync from log01 for logs.
+    '-A INPUT -p tcp -m tcp -s 10.5.126.13 --dport 873 -j ACCEPT',
+    '-A INPUT -p tcp -m tcp -s 192.168.1.59 --dport 873 -j ACCEPT',
+ ]
+
+fas_client_groups: sysadmin-koschei,fi-apprentice
+
+freezes: false
+
+# For the MOTD
+csi_security_category: Low
+csi_primary_contact: Fedora admins - admin@fedoraproject.org
+csi_purpose: Koschei continuous integration system
+csi_relationship: |
+    This machine depends on:
+    - PostgreSQL DB server
+    - pkgdb2
+    - bastion (for mail relay)
+    - memcached01
