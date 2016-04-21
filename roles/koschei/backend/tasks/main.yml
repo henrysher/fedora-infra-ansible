@@ -1,17 +1,5 @@
 - name: install packages
   package: name={{ item }} state=installed
-  when: env != "staging"
-  with_items:
-  - koschei
-  - lbzip2
-  - postgresql
-  tags:
-  - koschei
-  - packages
-
-- name: install packages
-  package: name={{ item }} state=installed
-  when: env == "staging"
   with_items:
   - koschei-admin
   - koschei-backend
@@ -50,7 +38,6 @@
   - service
 
 - name: install config files
-  when: env == "staging"
   template: >
     src="{{ item }}.j2"
     dest="/etc/koschei/{{ item }}"
@@ -60,25 +47,6 @@
   with_items:
   - config-admin.cfg
   - config-backend.cfg
-  notify:
-  - restart koschei-polling
-  - restart koschei-resolver
-  - restart koschei-scheduler
-  - restart koschei-watcher
-  tags:
-  - koschei
-  - config
-
-- name: install config files
-  when: env != "staging"
-  template: >
-    src="{{ item }}.j2"
-    dest="/etc/koschei/{{ item }}"
-    owner=koschei
-    group=koschei
-    mode=0400
-  with_items:
-  - config.cfg
   notify:
   - restart koschei-polling
   - restart koschei-resolver
