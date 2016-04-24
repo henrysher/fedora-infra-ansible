@@ -45,6 +45,14 @@ class APIV1Page(Page):
         return json.dumps(self._perform_call(kwargs))
 
     def _perform_call(self, arguments):
+        required_arguments = ['auth_module', 'username', 'password']
+        for arg in required_arguments:
+            if not arg in arguments:
+                return {'success': False,
+                        'status': 400,
+                        'message': 'Missing argument: %s' % arg
+                        }
+
         fas = self.root_obj.login.fas.lm
         openid = self.root_obj.openid
 
