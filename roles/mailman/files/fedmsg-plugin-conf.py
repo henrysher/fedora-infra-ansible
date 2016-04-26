@@ -1,8 +1,10 @@
 config = {
-    # These are mailing lists that we don't publish to fedmsg (because spam)
+    # These are mailing lists that we don't publish to fedmsg (because spam or privacy)
     'mailman.excluded_lists': [
-        'scm-commits',
-        #'i18n-bugs',# disable this eventually
-        #'fonts-bugs', # disable this eventually
+        'scm-commits',      # too much traffic
+        'council-private',  # private list
+        'cwg-private',      # private list
+        'fesco',            # private list
+        'security-private', # private list
     ],
 }
