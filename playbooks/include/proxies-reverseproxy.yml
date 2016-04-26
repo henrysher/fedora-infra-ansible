@@ -451,11 +451,20 @@
     when: env == "staging"
 
   ### QA staging
+
   - role: httpd/reverseproxy
     website: qa.stg.fedoraproject.org
     destname: qa-stg
     # Talk directly to the app server, not haproxy
     proxyurl: http://qa-stg01.qa.fedoraproject.org
+    when: env == "staging"
+
+  - role: httpd/reverseproxy
+    website: qa.stg.fedoraproject.org
+    destname: blockerbugs
+    remotepath: /blockerbugs
+    localpath: /blockerbugs
+    proxyurl: "{{ varnish_url }}"
     when: env == "staging"
 
   - role: httpd/reverseproxy
