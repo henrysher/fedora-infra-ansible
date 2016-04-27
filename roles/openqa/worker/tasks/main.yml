@@ -30,7 +30,7 @@
   tags:
   - config
 
-- name: openvswitch service
+- name: Start openvswitch service
   service: name=openvswitch enabled=yes state=started
   with_sequence: "count={{ openqa_workers }}"
 
@@ -40,6 +40,21 @@
   - restart NetworkManager
   tags:
   - config
+
+- name: Check if bridge is down
+  shell: "nmcli con show --active | grep ^br0"
+  register: brstatus
+  failed_when: "1 != 1"
+  changed_when: "1 != 1"
+  always_run: true
+
+- name: Bring up bridge if necessary
+  command: ifup br0
+  when: "brstatus.rc > 0"
+
+- name: Create tap devices
+  command: "tunctl -u _openqa-worker -p -t tap{{ item }} creates=/sys/devices/virtual/net/tap{{ item }}"
+  with_sequence: start=0 end={{ openqa_workers | int }}
 
 - name: openvswitch tap devices config
   template: src=ifcfg-tap dest=/etc/sysconfig/network-scripts/ifcfg-tap{{ item }} owner=root group=root mode=0644
