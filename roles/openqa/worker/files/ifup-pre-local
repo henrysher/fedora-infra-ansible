@@ -1,0 +1,9 @@
+#!/bin/sh
+
+# if the interface being brought up is tap[n], create
+# the tap device first
+if=$(echo "$1" | sed -e 's,ifcfg-,,')
+tap=$(echo "$if" | sed -e 's,[0-9]\+$,,')
+if [ "$tap" == "tap" ]; then
+    tunctl -u _openqa-worker -p -t "$if"
+fi

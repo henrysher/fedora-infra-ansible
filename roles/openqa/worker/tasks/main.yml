@@ -53,12 +53,11 @@
   command: ifup br0
   when: "brstatus.rc > 0"
 
-- name: Create tap devices
-  command: "tunctl -u _openqa-worker -p -t tap{{ item }} creates=/sys/devices/virtual/net/tap{{ item }}"
-  with_sequence: start=0 end={{ openqa_workers | int }}
+- name: Install ifup-pre-local script to create tap devices
+  copy: src=ifup-pre-local dest=/etc/sysconfig/network-scripts/ifup-pre-local owner=root group=root mode=0755
 
 - name: openvswitch tap devices config
-  template: src=ifcfg-tap dest=/etc/sysconfig/network-scripts/ifcfg-tap{{ item }} owner=root group=root mode=0644
+  template: src=ifcfg-tap.j2 dest=/etc/sysconfig/network-scripts/ifcfg-tap{{ item }} owner=root group=root mode=0644
   with_sequence: start=0 end={{ openqa_workers | int }}
   notify:
   - restart NetworkManager
