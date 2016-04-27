@@ -11,6 +11,7 @@
   dnf: name={{ item }} state=present
   with_items:
   - openqa-worker
+  - os-autoinst-openvswitch
   - libselinux-python
   - edk2.git-ovmf-x64
   tags:
@@ -28,6 +29,28 @@
   template: src=workers.ini.j2 dest=/etc/openqa/workers.ini owner=_openqa-worker group=root mode=0644
   tags:
   - config
+
+- name: openvswitch service
+  service: name=openvswitch enabled=yes state=started
+  with_sequence: "count={{ openqa_workers }}"
+
+- name: openvswitch bridge device config
+  copy: src=ifcfg-br0 dest=/etc/sysconfig/network-scripts/ifcfg-br0 owner=root group=root mode=0644
+  notify:
+  - restart NetworkManager
+  tags:
+  - config
+
+- name: openvswitch tap devices config
+  template: src=ifcfg-tap dest=/etc/sysconfig/network-scripts/ifcfg-tap{{ item }} owner=root group=root mode=0644
+  with_sequence: start=0 end={{ openqa_workers | int }}
+  notify:
+  - restart NetworkManager
+  tags:
+  - config
+
+- name: os-autoinst openvswitch service
+  service: name=os-autoinst-openvswitch enabled=yes state=started
 
 - name: Worker services
   service: name=openqa-worker@{{ item }} enabled=yes state=started
