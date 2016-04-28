@@ -5,5 +5,12 @@ gw: 10.5.124.254
 openqa_key: "{{ stg_openqa_apikey }}"
 openqa_secret: "{{ stg_openqa_apisecret }}"
 
+# firewall rules to allow openQA openvswitch guests to communicate
+custom_rules: [
+    '-A FORWARD -i br0 -j ACCEPT',
+    '-A FORWARD -m state -i eth0 -o br0 --state RELATED,ESTABLISHED -j ACCEPT',
+    '-A INPUT -i br0 -j ACCEPT'
+]
+
 deployment_type: stg
 freezes: false
