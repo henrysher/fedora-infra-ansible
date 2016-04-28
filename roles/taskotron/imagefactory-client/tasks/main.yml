@@ -18,16 +18,16 @@
   template: src=config.ini.j2 dest=/etc/taskotron_base_images/config.ini owner=root group=root mode=0644
 
 - name: Download/update images
-  command: '/var/lib/fedoraqa/base_images/get_latest_image/get_latest_image.py update --get-missing --outdir {{imagesdir}} {{imagesdir}}'
+  command: '/var/lib/fedoraqa/base_images/process_for_taskotron.py --taskotrondir {{imagesdir}}'
 
 - name: Create cronjob to download new images
   cron:
     name: "Download new images from ImageFactory"
     special_time: hourly
-    job: '/var/lib/fedoraqa/base_images/get_latest_image/get_latest_image.py update --get-missing --outdir {{imagesdir}} {{imagesdir}} > /dev/null'
+    job: '/var/lib/fedoraqa/base_images/process_for_taskotron.py --taskotrondir {{imagesdir}} > /dev/null'
 
 - name: Create cronjob to prune old images
   cron:
     name: "Clean up images downloaded from ImageFactory"
     special_time: daily
-    job: '/var/lib/fedoraqa/base_images/prune_images/prune_images.py --keep 7 {{imagesdir}} > /dev/null'
+    job: '/var/lib/fedoraqa/base_images/prune_images/prune_images.py directory --keep 3 {{imagesdir}} > /dev/null'
