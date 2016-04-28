@@ -34,6 +34,14 @@
 - name: Enable ipv4_forward in sysctl
   sysctl: name=net.ipv4.ip_forward value=1 state=present sysctl_set=yes reload=yes
 
+- name: Check if there's an annoying ifcfg-usb0 lurking
+  stat: path=/etc/sysconfig/network-scripts/ifcfg-usb0
+  register: ifcfgusb0
+
+- name: Make sure usb0 doesn't get in our way
+  lineinfile: dest=/etc/sysconfig/network-scripts/ifcfg-usb0 regexp="^ONBOOT=" line="ONBOOT=no"
+  when: ifcfgusb0.exists == True
+
 - name: Start openvswitch service
   service: name=openvswitch enabled=yes state=started
   with_sequence: "count={{ openqa_workers }}"
