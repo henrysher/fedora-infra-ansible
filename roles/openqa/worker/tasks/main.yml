@@ -74,17 +74,6 @@
   tags:
   - config
 
-- name: Check if bridge is down
-  shell: "nmcli con show --active | grep ^br0"
-  register: brstatus
-  failed_when: "1 != 1"
-  changed_when: "1 != 1"
-  always_run: true
-
-- name: Bring up bridge if necessary
-  command: ifup br0
-  when: "brstatus.rc > 0"
-
 - name: Install ifup-pre-local script to create tap devices
   copy: src=ifup-pre-local dest=/sbin/ifup-pre-local owner=root group=root mode=0755
 
