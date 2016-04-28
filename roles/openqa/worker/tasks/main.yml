@@ -31,14 +31,20 @@
   tags:
   - config
 
+- name: Enable ipv4_forward in sysctl
+  sysctl: name=net.ipv4.ip_forward value=1 state=present sysctl_set=yes reload=yes
+
 - name: Start openvswitch service
   service: name=openvswitch enabled=yes state=started
   with_sequence: "count={{ openqa_workers }}"
 
+- name: Enable network service (needed for openvswitch devices)
+  service: name=network enabled=yes state=started
+
 - name: openvswitch bridge device config
   copy: src=ifcfg-br0 dest=/etc/sysconfig/network-scripts/ifcfg-br0 owner=root group=root mode=0644
   notify:
-  - restart NetworkManager
+  - restart network
   tags:
   - config
 
@@ -60,7 +66,7 @@
   template: src=ifcfg-tap.j2 dest=/etc/sysconfig/network-scripts/ifcfg-tap{{ item }} owner=root group=root mode=0644
   with_sequence: start=0 end={{ openqa_workers | int }}
   notify:
-  - restart NetworkManager
+  - restart network
   tags:
   - config
 
