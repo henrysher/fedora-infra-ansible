@@ -137,16 +137,19 @@ artifacts_baseurl: {{ artifacts_base_url }}
 ## Variables disposable_(release|flavor|arch) set in this config file
 ## define what kind of image is looked for.
 ## The newest (by YYMMDD_HHMM) image of the respective R-F-A is used.
-imagesdir: {{imagesdir}}
+imagesdir: {{ imagesdir }}
 
 ## If set to False, latest image from imagesdir will be used instead of one at imageurl
 ## [default: True]
+{% if deployment_type in ['dev'] %}
+force_imageurl: False
+
+## Url of an image to download and use for disposable client, if force_imageurl was set
+#imageurl:
+{% else %}
 #force_imageurl: True
 
 ## Url of an image to download and use for disposable client, if force_imageurl was set
-{% if deployment_type in ['dev'] %}
-#imageurl:
-{% else %}
 imageurl: file:///srv/diskimages/20160126-taskotron-f23.qcow2
 {% endif %}
 
