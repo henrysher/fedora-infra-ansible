@@ -75,6 +75,21 @@ config = {
     "openid": {
         "openid_provider": "{{ koschei_openid_provider }}",
     },
+    "links": [
+        {% set env_prefix = ".stg" if env == "staging" else "" %}
+        {"name": "Packages",
+         "url": "https://apps{{ env_prefix }}.fedoraproject.org/packages/{package.name}"},
+        {"name": "PkgDB",
+         "url": "https://admin{{ env_prefix }}.fedoraproject.org/pkgdb/package/{package.name}"},
+        {"name": "Bodhi",
+         "url": "https://bodhi{{ env_prefix }}.fedoraproject.org/updates?packages={package.name}"},
+        {"name": "Dist-git",
+         "url": "http://pkgs{{ env_prefix }}.fedoraproject.org/cgit/{package.name}.git"},
+        {"name": "Bugzilla",
+         "url": "https://{{ koschei_bugzilla }}/buglist.cgi?product={package.collection.bugzilla_product}&component={package.name}"},
+        {"name": "Koji",
+         "url": "http://{{ koschei_koji_web }}/koji/packageinfo?packageID={package.name}"},
+    ],
     "bugreport": {
         "url": "https://{{ koschei_bugzilla }}/enter_bug.cgi?%s",
         "template": {
