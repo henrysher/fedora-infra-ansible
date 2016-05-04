@@ -33,7 +33,8 @@ MONTH=$(/bin/date -d "-${NUMDAYS} days" +%m)
 DAY=$(/bin/date -d "-${NUMDAYS} days" +%d)
 
 # And we have have to deal with year/month/day boundaries for our later grep.
-OLDGREP=$(/bin/date -d "-${OLDDAYS} days" +%Y-%m-%d)
+OLDDATE=$(/bin/date -d "-${OLDDAYS} days" +%Y-%m-%d)
+OLDYEAR=$(/bin/date -d "-${OLDDAYS} days" +%Y)
 
 NFSDIR=/mnt/fedora_stats/combined-http
 TARGET=${NFSDIR}/latest
@@ -65,8 +66,9 @@ sort -o ${WORKDIR}/${YEAR}/out-${MONTH} -S 4G -u -m ${WORKDIR}/${YEAR}/${MONTH}/
 sort -o ${WORKDIR}/out-${YEAR} -S 4G -u -m ${WORKDIR}/${YEAR}/out-*
 
 # Because the logs stop at 04:00 we can only get 24 hours from 6 days before. 
-egrep "${OLDGREP}" ${WORKDIR}/out-${YEAR} > ${TEMPDIR}/watched-day
+egrep "${OLDDATE}" ${WORKDIR}/out-${OLDYEAR} > ${TEMPDIR}/watched-day
 
-awk -f /usr/local/share/web-data-analysis/mirror-data.awk ${TEMPDIR}/watched-day >> ${WEBDIR}/mirrordata-${YEAR}.csv
-sort -o ${WEBDIR}/mirrordata-all.csv -u ${WEBDIR}/mirrordata-*.csv
+awk -f /usr/local/share/web-data-analysis/mirror-data.awk ${TEMPDIR}/watched-day >> ${WEBDIR}/mirrordata-${OLDYEAR}.csv
+awk -f /usr/local/share/web-data-analysis/mirror-data.awk ${TEMPDIR}/watched-day >> ${WEBDIR}/mirrordata-all.csv
+
 gnuplot /usr/local/share/web-data-analysis/mirror-data.gp
