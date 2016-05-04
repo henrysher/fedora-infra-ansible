@@ -44,7 +44,7 @@ LOGFILE=${TARGET}/mirrors.fedoraproject.org-access.log
 WORKDIR=/mnt/fedora_stats/data/mirrors
 WORKFILE=${WORKDIR}/${YEAR}/${MONTH}/out-${DAY}
 
-WEBDIR=/var/www/html/csv-reports
+WEBDIR=/var/www/html/csv-reports/mirrors
 
 TEMPDIR=$( mktemp -d /tmp/web-data-analysis.XXXXXXXXX )
 
