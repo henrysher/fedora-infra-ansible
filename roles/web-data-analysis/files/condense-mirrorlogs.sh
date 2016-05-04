@@ -59,18 +59,24 @@ else
     /usr/local/bin/mirrorlist.py -o ${WORKFILE} ${LOGFILE}; 
 fi
 
-# So the data isn't strictly across month boundries due to the end of the logfiles
-# being at 04:00 versus 23:59. Also log files might get stuck and you end up with days
-# or weeks of data in a single file. Doing a continual sort clears up that.
+# So the data isn't strictly across month boundries due to the end of
+# the logfiles being at 04:00 versus 23:59. Also log files might get
+# stuck and you end up with days or weeks of data in a single
+# file. Doing a continual sort clears up that.
+
 sort -o ${WORKDIR}/${YEAR}/out-${MONTH} -S 4G -u -m ${WORKDIR}/${YEAR}/${MONTH}/out-*
 sort -o ${WORKDIR}/out-${YEAR} -S 4G -u -m ${WORKDIR}/${YEAR}/out-*
 
 # Because the logs stop at 04:00 we can only get 24 hours from 6 days before. 
 egrep "${OLDDATE}" ${WORKDIR}/out-${OLDYEAR} > ${TEMPDIR}/watched-day
 
-# Grab the data and put it in the two files.
-awk -f /usr/local/share/web-data-analysis/mirror-data.awk ${TEMPDIR}/watched-day >> ${WEBDIR}/mirrordata-${OLDYEAR}.csv
-awk -f /usr/local/share/web-data-analysis/mirror-data.awk ${TEMPDIR}/watched-day >> ${WEBDIR}/mirrordata-all.csv
+# Grab the data and put it in the two files. This makes it a lot
+# faster to process as a whole year may take an hour to go through.
+
+for i in ${OLDYEAR} all; do
+    awk /usr/local/share/web-data-analysis/mirror-data.awk ${TEMPDIR}/watched-day >> ${WEBDIR}/mirrordata-${i}.csv
+    sort -o ${WEBDIR}/mirrordata-${i}.csv -u ${WEBDIR}/mirrordata-${i}.csv
+done
 
 gnuplot /usr/local/share/web-data-analysis/mirror-data.gp
 
