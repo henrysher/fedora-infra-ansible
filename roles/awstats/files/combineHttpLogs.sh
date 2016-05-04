@@ -28,11 +28,13 @@ MONTH=$(/bin/date -d "-${NUMDAYS} days" +%m)
 DAY=$(/bin/date -d "-${NUMDAYS} days" +%d)
 
 LOGDIR=/var/log/hosts
+NFSDIR=/mnt/fedora_stats/combined-http
 HTTPLOG=${LOGDIR}/proxy*/${YEAR}/${MONTH}/${DAY}/http/
 
-TARGET=/mnt/fedora_stats/combined-http/${YEAR}/${MONTH}/${DAY}
 
-AWSTATS=/usr/share/awstats/tools/logresolvemerge.pl
+TARGET=${NFSDIR}/${YEAR}/${MONTH}/${DAY}
+
+LOGMERGE=/usr/share/awstats/tools/logresolvemerge.pl
 
 FILES=$( ls -1 ${HTTPLOG}/*access.log.xz | awk '{x=split($0,a,"/"); print a[x]}' | sort -u )
 
@@ -40,5 +42,20 @@ mkdir -p ${TARGET}
 
 for FILE in ${FILES}; do
     TEMP=$(echo ${FILE} | sed 's/\.xz$//')
-    perl ${AWSTATS} ${HTTPLOG}/${FILE} > ${TARGET}/${TEMP}
+    perl ${LOGMERGE} ${HTTPLOG}/${FILE} > ${TARGET}/${TEMP}
 done
+
+# Now we link up the files into latest directory
+# 1. make sure the latest directory exists
+# 2. go into it.
+# 3. remove the old links
+# 4. link up all the files we merged over
+
+if [[ -d ${NFSDIR}/latest ]]; then
+    pushd ${NFSDIR}/latest &> /dev/null
+    /bin/rm -f *
+    for file in ../${YEAR}/${MONTH}/${DAY}/*; do
+	ln -s ${file} .
+    done
+    popd &> /dev/null
+fi
