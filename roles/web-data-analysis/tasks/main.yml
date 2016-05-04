@@ -1,0 +1,32 @@
+---
+- name: make sure the /usr/local/share/web-data-analysis exists
+  file: path=/usr/local/share/web-data-analysis state=directory
+  tags:
+    - web-data
+
+- name: script to run the daily mirror log condenser
+  copy: src=condense-mirrorlogs.cron dest=/usr/local/bin/ mode=0755
+  tags:
+    - web-data
+
+- name: python script to calculate mirrorlist
+  copy: src=mirrorlist.py dest=/usr/local/bin mode=0755
+  tags:
+    - web-data
+
+- name: awk file for csv creation
+  copy: src=mirror-data.awk dest=/usr/local/share/web-data-analysis mode=0644
+  tags:
+    - web-data
+
+- name: gnuplot file for csv creation
+  copy: src=mirror-data.gp dest=/usr/local/share/web-data-analysis mode=0644
+  tags:
+    - web-data
+
+- name: daily cron file to run the log files
+  copy: src=condense-mirrorlogs.cron dest=/etc/cron.d/ mode=0644
+  tags:
+    - web-data
+    - cron
+
