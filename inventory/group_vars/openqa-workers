@@ -1,9 +1,25 @@
+gw: 10.5.124.254
 openqa_workers: 4
 openqa_hostname: openqa01.qa.fedoraproject.org
-gw: 10.5.124.254
-
 openqa_key: "{{ prod_openqa_apikey }}"
 openqa_secret: "{{ prod_openqa_apisecret }}"
+
+# for iptables rules...maybe other stuff in future? both staging
+# and prod workers are in this group
+host_group: openqa-workers
+
+# firewall rules to allow openQA openvswitch guests to communicate
+custom_rules: [
+    '-A FORWARD -i br0 -j ACCEPT',
+    '-A FORWARD -m state -i eth0 -o br0 --state RELATED,ESTABLISHED -j ACCEPT',
+    '-A INPUT -i br0 -j ACCEPT'
+]
+
+# we do stuff with ifcfg that base doesn't understand. terrible, terrible
+# stuff. seriously - it doesn't handle the openvswitch config well. so
+# let's tell it to just configure eth0 for us and leave everything else
+# alone.
+ansible_ifcfg_whitelist: ['eth0']
 
 deployment_type: prod
 freezes: false
