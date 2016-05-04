@@ -41,10 +41,10 @@ TARGET=${NFSDIR}/latest
 
 LOGFILE=${TARGET}/mirrors.fedoraproject.org-access.log
 
-WORKDIR=/mnt/fedora_stats/data/
+WORKDIR=/mnt/fedora_stats/data/mirrors
 WORKFILE=${WORKDIR}/${YEAR}/${MONTH}/out-${DAY}
 
-WEBDIR=/var/www/html/csv-reports/
+WEBDIR=/var/www/html/csv-reports
 
 TEMPDIR=$( mktemp -d /tmp/web-data-analysis.XXXXXXXXX )
 
@@ -68,7 +68,11 @@ sort -o ${WORKDIR}/out-${YEAR} -S 4G -u -m ${WORKDIR}/${YEAR}/out-*
 # Because the logs stop at 04:00 we can only get 24 hours from 6 days before. 
 egrep "${OLDDATE}" ${WORKDIR}/out-${OLDYEAR} > ${TEMPDIR}/watched-day
 
+# Grab the data and put it in the two files.
 awk -f /usr/local/share/web-data-analysis/mirror-data.awk ${TEMPDIR}/watched-day >> ${WEBDIR}/mirrordata-${OLDYEAR}.csv
 awk -f /usr/local/share/web-data-analysis/mirror-data.awk ${TEMPDIR}/watched-day >> ${WEBDIR}/mirrordata-all.csv
 
 gnuplot /usr/local/share/web-data-analysis/mirror-data.gp
+
+# cleanup the temp data
+rm -rf ${TEMPDIR}
