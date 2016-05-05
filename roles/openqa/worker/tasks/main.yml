@@ -74,10 +74,19 @@
   tags:
   - config
 
-- name: openvswitch gre tunnel config
+- name: openvswitch gre tunnel config (prod)
   template: src=ifcfg-gre.j2 dest=/etc/sysconfig/network-scripts/ifcfg-gre{{ item.0 }} owner=root group=root mode=0644
   with_indexed_items: "{{ groups['openqa-workers']|difference([inventory_hostname]) }}"
   when: deployment_type == 'prod'
+  notify:
+  - restart network
+  tags:
+  - config
+
+- name: openvswitch gre tunnel config (stg)
+  template: src=ifcfg-gre.j2 dest=/etc/sysconfig/network-scripts/ifcfg-gre{{ item.0 }} owner=root group=root mode=0644
+  with_indexed_items: "{{ groups['openqa-stg-workers']|difference([inventory_hostname]) }}"
+  when: deployment_type == 'stg'
   notify:
   - restart network
   tags:
