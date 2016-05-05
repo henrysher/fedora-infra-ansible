@@ -74,7 +74,7 @@ egrep "${OLDDATE}" ${WORKDIR}/out-${OLDYEAR} > ${TEMPDIR}/watched-day
 # faster to process as a whole year may take an hour to go through.
 
 for i in ${OLDYEAR} all; do
-    awk /usr/local/share/web-data-analysis/mirror-data.awk ${TEMPDIR}/watched-day >> ${WEBDIR}/mirrordata-${i}.csv
+    awk -f /usr/local/share/web-data-analysis/mirror-data.awk ${TEMPDIR}/watched-day >> ${WEBDIR}/mirrordata-${i}.csv
     sort -o ${WEBDIR}/mirrordata-${i}.csv -u ${WEBDIR}/mirrordata-${i}.csv
 done
 
