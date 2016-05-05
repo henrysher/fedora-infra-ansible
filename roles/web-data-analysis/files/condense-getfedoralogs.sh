@@ -61,7 +61,8 @@ if [[ ! -f ${LOGFILE} ]]; then
 elif [[ -f ${WORKFILE} ]]; then 
     echo "The workfile for ${YEAR}/${MONTH}/${DAY} already existed."
 else
-    ${LBIN}/mirrorlist.py -o ${WORKFILE} ${LOGFILE}; 
+    egrep -iv 'slurp|bot|yandex|spider|crawler|check_http' ${LOGFILE} | awk -f ${LSHARE}/${PROJECT}.awk > ${WORKFILE}
+    sort -o ${WORKFILE} -u ${WORKFILE}
 fi
 
 # So the data isn't strictly across month boundries due to the end of
