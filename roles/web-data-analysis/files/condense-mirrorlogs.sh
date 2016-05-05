@@ -42,7 +42,7 @@ TARGET=${NFSDIR}/latest
 LOGFILE=${TARGET}/mirrors.fedoraproject.org-access.log
 
 WORKDIR=/mnt/fedora_stats/data/mirrors
-WORKFILE=${WORKDIR}/${YEAR}/${MONTH}/out-${DAY}
+WORKFILE=${WORKDIR}/${YEAR}/${MONTH}/worked-${DAY}
 
 WEBDIR=/var/www/html/csv-reports/mirrors
 
@@ -64,8 +64,8 @@ fi
 # stuck and you end up with days or weeks of data in a single
 # file. Doing a continual sort clears up that.
 
-sort -o ${WORKDIR}/${YEAR}/out-${MONTH} -S 4G -u -m ${WORKDIR}/${YEAR}/${MONTH}/out-*
-sort -o ${WORKDIR}/out-${YEAR} -S 4G -u -m ${WORKDIR}/${YEAR}/out-*
+sort -o ${WORKDIR}/${YEAR}/out-${YEAR}-${MONTH} -S 4G -u -m ${WORKDIR}/${YEAR}/out-${YEAR}-${MONTH} ${WORKFILE}
+sort -o ${WORKDIR}/out-${YEAR} -S 4G -u -m ${WORKDIR}/${YEAR}/out-${YEAR}-${MONTH}
 
 # Because the logs stop at 04:00 we can only get 24 hours from 6 days before. 
 egrep "${OLDDATE}" ${WORKDIR}/out-${OLDYEAR} > ${TEMPDIR}/watched-day
