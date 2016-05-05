@@ -71,19 +71,19 @@ select now() as time, 'adding staging host {{ host }}' as msg;
 insert into users (name, usertype, status) values ('{{ host }}', 1, 0);
 insert into host (user_id, name, arches) values (
     (select id from users where name='{{host}}'), '{{host}}', 'i386 x86_64');
-{% for channel in [ 'default', 'createrepo', 'maven', 'appliance', 'livecd', 'vm', 'secure-boot', 'compose', 'eclipse', 'images', 'image'] %}
+{% for channel in [ 'default', 'createrepo', 'maven', 'appliance', 'livemedia', 'vm', 'secure-boot', 'compose', 'eclipse', 'images', 'image'] %}
 insert into host_channels (host_id, channel_id) values (
     (select id from host where name='{{host}}'), (select id from channels where name='{{channel}}'));
 {% endfor %}
 {% endfor %}
 
--- The buildvms are x86_64 and i386 and do not have createrepo ability
+-- The buildvms are x86_64 and i386 and also have createrepo ability
 {% for host in groups['buildvm-stg'] %}
 select now() as time, 'adding staging host {{ host }}' as msg;
 insert into users (name, usertype, status) values ('{{ host }}', 1, 0);
 insert into host (user_id, name, arches) values (
     (select id from users where name='{{host}}'), '{{host}}', 'i386 x86_64');
-{% for channel in [ 'default', 'maven', 'appliance', 'livecd', 'vm', 'secure-boot', 'compose', 'eclipse', 'images', 'image'] %}
+{% for channel in [ 'default', 'createrepo', 'appliance', 'livemedia', 'vm', 'secure-boot', 'compose', 'eclipse', 'images', 'image'] %}
 insert into host_channels (host_id, channel_id) values (
     (select id from host where name='{{host}}'), (select id from channels where name='{{channel}}'));
 {% endfor %}
@@ -95,7 +95,7 @@ select now() as time, 'adding staging host {{ host }}' as msg;
 insert into users (name, usertype, status) values ('{{ host }}', 1, 0);
 insert into host (user_id, name, arches) values (
     (select id from users where name='{{host}}'), '{{host}}', 'armhfp');
-{% for channel in [ 'default', 'appliance', 'livecd', 'vm', 'secure-boot', 'compose', 'eclipse', 'images', 'image'] %}
+{% for channel in [ 'default', 'appliance', 'vm', 'secure-boot', 'compose', 'eclipse', 'images', 'image'] %}
 insert into host_channels (host_id, channel_id) values (
     (select id from host where name='{{host}}'), (select id from channels where name='{{channel}}'));
 {% endfor %}
