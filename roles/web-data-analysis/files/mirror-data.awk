@@ -58,7 +58,7 @@ BEGIN{
     unknown_arch = 0;
     centos = 0;
     rhel = 0;
-    print olddate ",02-epel4,03-epel5,04-epel6,05-epel7,06-f03,07-f04,08-f05,09-f06,10-f07,11-f08,12-f09,13-f10,14-f11,15-f12,16-f13,17-f14,18-f15,19-f16,20-f17,21-f18,22-f19,23-f20,24-f21,25-f22,26-f23,27-f24,28-rawhide,29-unk_rel,30-epel,31-fedora,32-alpha,33-arm,34-arm64,35-ia64,36-mips,37-ppc,38-s390,39-sparc,40-tilegx,41-x86_32,42-x86_64,43-x86_32_e,44-x86_32_f,45-x86_64_e,46-x86_64_f,47-ppc_e,48-ppc_f,49-unk_arc,50-centos,51-rhel";
+    print olddate ",02-epel4,03-epel5,04-epel6,05-epel7,06-f03,07-f04,08-f05,09-f06,10-f07,11-f08,12-f09,13-f10,14-f11,15-f12,16-f13,17-f14,18-f15,19-f16,20-f17,21-f18,22-f19,23-f20,24-f21,25-f22,26-f23,27-f24,28-f25,29-f26,30-f27,31-f28,32-f29,33-rawhide,34-unk_rel,35-epel,36-fedora,37-alpha,38-arm,39-arm64,40-ia64,41-mips,42-ppc,43-s390,44-sparc,45-tilegx,46-x86_32,47-x86_64,48-x86_32_e,49-x86_32_f,50-x86_64_e,51-x86_64_f,52-ppc_e,53-ppc_f,54-unk_arc,55-centos,56-rhel";
 }
 
 {
@@ -127,7 +127,7 @@ BEGIN{
 	else if ($4 ~"alpha")   { alpha = alpha +1 }
 	else                   {unknown_arch = unknown_arch +1; };
     } else {
-      print olddate "," epel4 "," epel5 "," epel6 "," epel7 "," f03 "," f04 "," f05 "," f06 "," f07 "," f08 "," f09 "," f10 "," f11 "," f12 "," f13 "," f14 "," f15 "," f16 "," f17 "," f18 "," f19 "," f20 "," f21 "," f22 "," f23 "," f24 "," rawhide "," unknown_release "," epel "," fedora "," alpha "," arm "," arm64 "," ia64 "," mips "," ppc "," s390 "," sparc "," tilegx "," x86_32 "," x86_64 "," x86_32_e "," x86_32_f "," x86_64_e "," x86_64_f "," ppc_e "," ppc_f "," unknown_arch "," centos "," rhel;
+      print olddate "," epel4 "," epel5 "," epel6 "," epel7 "," f03 "," f04 "," f05 "," f06 "," f07 "," f08 "," f09 "," f10 "," f11 "," f12 "," f13 "," f14 "," f15 "," f16 "," f17 "," f18 "," f19 "," f20 "," f21 "," f22 "," f23 "," f24 "," f25 "," f26 "," f27 "," f28 "," f29 "," rawhide "," unknown_release "," epel "," fedora "," alpha "," arm "," arm64 "," ia64 "," mips "," ppc "," s390 "," sparc "," tilegx "," x86_32 "," x86_64 "," x86_32_e "," x86_32_f "," x86_64_e "," x86_64_f "," ppc_e "," ppc_f "," unknown_arch "," centos "," rhel;
 	olddate=$1
 	epel=0;
 	fedora=0;
@@ -191,6 +191,6 @@ BEGIN{
 }
 
 END {
-  print olddate "," epel4 "," epel5 "," epel6 "," epel7 "," f03 "," f04 "," f05 "," f06 "," f07 "," f08 "," f09 "," f10 "," f11 "," f12 "," f13 "," f14 "," f15 "," f16 "," f17 "," f18 "," f19 "," f20 "," f21 "," f22 "," f23 "," f24 "," rawhide "," unknown_release "," epel "," fedora "," alpha "," arm "," arm64 "," ia64 "," mips "," ppc "," s390 "," sparc "," tilegx "," x86_32 "," x86_64 "," x86_32_e "," x86_32_f "," x86_64_e "," x86_64_f "," ppc_e "," ppc_f "," unknown_arch "," centos, "," rhel;
+    print olddate "," epel4 "," epel5 "," epel6 "," epel7 "," f03 "," f04 "," f05 "," f06 "," f07 "," f08 "," f09 "," f10 "," f11 "," f12 "," f13 "," f14 "," f15 "," f16 "," f17 "," f18 "," f19 "," f20 "," f21 "," f22 "," f23 "," f24 "," f25 "," f26 "," f27 "," f28 "," f29 "," rawhide "," unknown_release "," epel "," fedora "," alpha "," arm "," arm64 "," ia64 "," mips "," ppc "," s390 "," sparc "," tilegx "," x86_32 "," x86_64 "," x86_32_e "," x86_32_f "," x86_64_e "," x86_64_f "," ppc_e "," ppc_f "," unknown_arch "," centos "," rhel;
 }
 
