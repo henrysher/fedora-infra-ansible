@@ -68,6 +68,24 @@
   - jenkins/slave
   - config
 
+# Haveged is not needed per se, but very useful for builds that require lots of entropy
+# Hello, Ipsilon
+- name: install haveged
+  dnf: name=haveged state=installed
+  when: is_fedora is defined and ansible_distribution_major_version|int > 21
+  tags:
+  - jenkins
+  - jenkins/slave
+  - packages
+
+- name: enable haveged service to start on boot
+  service: name=haveged state=running enabled=true
+  when: is_fedora is defined and ansible_distribution_major_version|int > 21
+  tags:
+  - jenkins
+  - jenkins/slave
+  - service
+
 - name: create workspace directory
   file: state=directory path=/srv/jenkins owner=jenkins group=jenkins
   tags:
