@@ -8,7 +8,7 @@ rolling = 7
 
 tree = {}
 
-df = pandas.read_csv("data-all.csv")
+df = pandas.read_csv("/var/www/html/csv-reports/mirrors/mirrordata-all.csv")
 
 dates = df['1970-01-01']
 epel4 = pandas.rolling_mean(df['02-epel4'],rolling)
