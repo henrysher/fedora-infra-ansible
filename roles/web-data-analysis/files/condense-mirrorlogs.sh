@@ -80,7 +80,7 @@ egrep "${OLDDATE}" ${WORKDIR}/out-${OLDYEAR} > ${TEMPDIR}/watched-day
 
 for i in ${OLDYEAR} all; do
     awk -f ${LSHARE}/${PROJECT}-data.awk ${TEMPDIR}/watched-day >> ${WEBDIR}/${PROJECT}data-${i}.csv
-    sort -o ${WEBDIR}/mirrordata-${i}.csv -u ${WEBDIR}/${PROJECT}data-${i}.csv
+    sort -o ${WEBDIR}/${PROJECT}data-${i}.csv -u ${WEBDIR}/${PROJECT}data-${i}.csv
 done
 
 gnuplot ${LSHARE}/${PROJECT}-data.gp
