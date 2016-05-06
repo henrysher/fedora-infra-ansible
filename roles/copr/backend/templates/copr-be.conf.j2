@@ -12,6 +12,23 @@ frontend_url={{ frontend_base_url }}/backend
 # default is PASSWORDHERE but you really should change it. really.
 frontend_auth={{ copr_backend_password }}
 
+# For each build group set:
+#   name - name of the group (will be shown in the worker process name)
+#   archs - architectures to build by this group
+#   spawn_playbook - path to an ansible playbook which spawns a builder
+#   terminate_playbook - path to an ansible playbook to terminate the builder
+#   max_workers - maximum number of workers in this group
+#   max_vm_total - maximum number of VM which can run in parallel
+#   max_vm_per_user - maximum number of VM which can use one user in parallel
+#   max_builds_per_vm - maximum consequetive builds on one VM
+#   max_spawn_processes=2 - max number of spawning playbooks run in parallel
+#   vm_spawn_min_interval=30 - after you spin up one VM wait this number of seconds
+#   vm_dirty_terminating_timeout=12 - if user do not reuse VM within this number second then VM is terminated
+#   vm_health_check_period=120 - every X seconds try to check if VM is still alive
+#   vm_health_check_max_time=300 - after this number seconds is not alive it is marked as failed
+#   vm_max_check_fails=2 - when machine is consequently X times marked as failed then it is terminated
+#   vm_terminating_timeout=600 - when machine was terminated and terminate PB did not finish within this number of second, we will run the PB once again.
+
 group0_name=PC
 group0_archs=i386,x86_64
 
@@ -28,19 +45,19 @@ build_groups=2
 group1_name=PPC64LE
 group1_archs=ppc64le
 
-group0_max_workers=28
+group0_max_workers=30
 group0_max_vm_per_user=6
 group0_max_vm_total=25
 group0_vm_spawn_min_interval=5
-group0_max_spawn_processes=3
+group0_max_spawn_processes=5
 
 group1_spawn_playbook=/home/copr/provision/builderpb_ppc64le.yml
 group1_terminate_playbook=/home/copr/provision/terminatepb_ppc64le.yml
 
-group1_max_workers=3
+group1_max_workers=5
 group1_max_vm_per_user=1
-group1_max_vm_total=2
-group1_max_spawn_processes=4
+group1_max_vm_total=4
+group1_max_spawn_processes=2
 {% endif %}
 
 ## old OS cloud, non VMM backend
@@ -55,7 +72,7 @@ group1_max_spawn_processes=4
 destdir=/var/lib/copr/public_html/results
 
 # default is 10
-sleeptime=30
+sleeptime=5
 
 # path to log file
 # default is /var/log/copr/backend.log
