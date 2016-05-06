@@ -28,6 +28,11 @@ plot ["2014-12-01":"2016-12-31"] \
      '/var/www/html/csv-reports/getfedora/getfedoradata-all.csv' using 1:17 title 'Fedora 28' with lines lw 4,\
      '/var/www/html/csv-reports/getfedora/getfedoradata-all.csv' using 1:18 title 'Fedora 29' with lines lw 4,\
      '/var/www/html/csv-reports/getfedora/getfedoradata-all.csv' using 1:19 title 'Unknown Release' with lines lw 4,\
+     '/var/www/html/csv-reports/getfedora/getfedoradata-all.csv' using 1:20 title 'Arm 32' with lines lw 4,\
+     '/var/www/html/csv-reports/getfedora/getfedoradata-all.csv' using 1:21 title 'Arm 64' with lines lw 4,\
+     '/var/www/html/csv-reports/getfedora/getfedoradata-all.csv' using 1:22 title 'PPC LE' with lines lw 4,\
+     '/var/www/html/csv-reports/getfedora/getfedoradata-all.csv' using 1:23 title 'PPC HE' with lines lw 4,\
+     '/var/www/html/csv-reports/getfedora/getfedoradata-all.csv' using 1:24 title 's390x' with lines lw 4,\
      '/var/www/html/csv-reports/getfedora/getfedoradata-all.csv' using 1:25 title 'x86_32' with lines lw 4,\
      '/var/www/html/csv-reports/getfedora/getfedoradata-all.csv' using 1:26 title 'x86_64' with lines lw 4,\
      '/var/www/html/csv-reports/getfedora/getfedoradata-all.csv' using 1:27 title 'Unknown' with lines lw 4,\
@@ -35,7 +40,21 @@ plot ["2014-12-01":"2016-12-31"] \
      '/var/www/html/csv-reports/getfedora/getfedoradata-all.csv' using 1:29 title 'net server' with lines lw 4,\
      '/var/www/html/csv-reports/getfedora/getfedoradata-all.csv' using 1:30 title 'net workstation' with lines lw 4,\
      '/var/www/html/csv-reports/getfedora/getfedoradata-all.csv' using 1:31 title 'net cloud' with lines lw 4,\
-     '/var/www/html/csv-reports/getfedora/getfedoradata-all.csv' using 1:32 title 'spins' with lines lw 4
+     '/var/www/html/csv-reports/getfedora/getfedoradata-all.csv' using 1:32 title 'spins' with lines lw 4,\
+     '/var/www/html/csv-reports/getfedora/getfedoradata-all.csv' using 1:33 title 'XFCE spin' with lines lw 4,\
+     '/var/www/html/csv-reports/getfedora/getfedoradata-all.csv' using 1:34 title 'Sugar spin' with lines lw 4,\
+     '/var/www/html/csv-reports/getfedora/getfedoradata-all.csv' using 1:35 title 'LXDE spin' with lines lw 4,\
+     '/var/www/html/csv-reports/getfedora/getfedoradata-all.csv' using 1:36 title 'Security Spin' with lines lw 4,\
+     '/var/www/html/csv-reports/getfedora/getfedoradata-all.csv' using 1:37 title 'Robotics Spin' with lines lw 4,\
+     '/var/www/html/csv-reports/getfedora/getfedoradata-all.csv' using 1:38 title 'MATE Spin' with lines lw 4,\
+     '/var/www/html/csv-reports/getfedora/getfedoradata-all.csv' using 1:39 title 'Scientific Spin' with lines lw 4,\
+     '/var/www/html/csv-reports/getfedora/getfedoradata-all.csv' using 1:40 title 'Jam Spin' with lines lw 4,\
+     '/var/www/html/csv-reports/getfedora/getfedoradata-all.csv' using 1:41 title 'Design Spin' with lines lw 4,\
+     '/var/www/html/csv-reports/getfedora/getfedoradata-all.csv' using 1:42 title 'Electronics Spin' with lines lw 4,\
+     '/var/www/html/csv-reports/getfedora/getfedoradata-all.csv' using 1:43 title 'Games Spin' with lines lw 4,\
+     '/var/www/html/csv-reports/getfedora/getfedoradata-all.csv' using 1:44 title 'Minimal Spin' with lines lw 4,\
+     '/var/www/html/csv-reports/getfedora/getfedoradata-all.csv' using 1:45 title 'Cinnamon Spin' with lines lw 4,\
+     '/var/www/html/csv-reports/getfedora/getfedoradata-all.csv' using 1:46 title 'KDE Spin' with lines lw 4
 unset output
 
 ##
@@ -84,11 +103,38 @@ unset output
 
 ##
 set output "/var/www/html/csv-reports/images/getfedora-arch.png"
+set title "Daily Architectures Totals"
+plot ["2014-12-01":"2016-12-31"] \
+     '/var/www/html/csv-reports/getfedora/getfedoradata-all.csv' using 1:2 title 'Total number' with lines lw 4,\
+     '/var/www/html/csv-reports/getfedora/getfedoradata-all.csv' using 1:20 title 'Arm 32' with lines lw 4,\
+     '/var/www/html/csv-reports/getfedora/getfedoradata-all.csv' using 1:21 title 'Arm 64' with lines lw 4,\
+     '/var/www/html/csv-reports/getfedora/getfedoradata-all.csv' using 1:22 title 'PPC LE' with lines lw 4,\
+     '/var/www/html/csv-reports/getfedora/getfedoradata-all.csv' using 1:23 title 'PPC HE' with lines lw 4,\
+     '/var/www/html/csv-reports/getfedora/getfedoradata-all.csv' using 1:24 title 's390x' with lines lw 4,\
+     '/var/www/html/csv-reports/getfedora/getfedoradata-all.csv' using 1:25 title 'x86_32' with lines lw 4,\
+     '/var/www/html/csv-reports/getfedora/getfedoradata-all.csv' using 1:26 title 'x86_64' with lines lw 4,\
+     '/var/www/html/csv-reports/getfedora/getfedoradata-all.csv' using 1:27 title 'Unknown' with lines lw 4
+unset output
+
+##
+set output "/var/www/html/csv-reports/images/getfedora-arch-top2-filled.png"
 set title "Daily x86 Architectures Filled Totals"
 plot ["2014-12-01":"2016-12-31"] \
      '/var/www/html/csv-reports/getfedora/getfedoradata-all.csv' using 1:2 title 'Total number' with lines lw 4,\
      '/var/www/html/csv-reports/getfedora/getfedoradata-all.csv' using 1:($25+$26) title 'x86_32' with  filledcurves x1,\
      '/var/www/html/csv-reports/getfedora/getfedoradata-all.csv' using 1:($26) title 'x86_64' with  filledcurves x1
+unset output
+
+##
+set output "/var/www/html/csv-reports/images/getfedora-arch-less-filled.png"
+set title "Daily Other Architectures Totals"
+plot ["2014-01-01":"2016-12-31"] \
+     '/var/www/html/csv-reports/getfedora/getfedoradata-all.csv' using 1:($20+$21+$22+$23+$24+$25) title 'arm_32' with  filledcurves x1,\
+     '/var/www/html/csv-reports/getfedora/getfedoradata-all.csv' using 1:($21+$22+$23+$24+$25) title 'arm_64' with  filledcurves x1,\
+     '/var/www/html/csv-reports/getfedora/getfedoradata-all.csv' using 1:($22+$23+$24+$25) title 'ppc_le' with  filledcurves x1,\
+     '/var/www/html/csv-reports/getfedora/getfedoradata-all.csv' using 1:($23+$24+$25) title 'ppc_he' with  filledcurves x1,\
+     '/var/www/html/csv-reports/getfedora/getfedoradata-all.csv' using 1:($24+$25) title 's390x' with  filledcurves x1,\
+     '/var/www/html/csv-reports/getfedora/getfedoradata-all.csv' using 1:($25) title 'unknown' with  filledcurves x1
 unset output
 
 ##
