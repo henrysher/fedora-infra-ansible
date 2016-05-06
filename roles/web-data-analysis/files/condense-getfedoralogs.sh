@@ -40,7 +40,7 @@ OLDDATE=$(/bin/date -d "-${OLDDAYS} days" +%Y-%m-%d)
 OLDYEAR=$(/bin/date -d "-${OLDDAYS} days" +%Y)
 
 NFSDIR=/mnt/fedora_stats/combined-http
-TARGET=${NFSDIR}/latest
+TARGET=${NFSDIR}/${YEAR}/${MONTH}/${DAY}
 
 LOGFILE=${TARGET}/${WEBLOG}-access.log
 

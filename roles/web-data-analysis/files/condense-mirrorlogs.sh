@@ -28,7 +28,7 @@ let NUMDAYS=5
 let OLDDAYS=$(( $NUMDAYS+1 ))
 
 PROJECT=mirrors
-WEBLOG=${PROJECT}.org
+WEBLOG=${PROJECT}.fedoraproject.org
 
 # This is the year/month/day for a N days ago.
 YEAR=$(/bin/date -d "-${NUMDAYS} days" +%Y)
@@ -40,7 +40,7 @@ OLDDATE=$(/bin/date -d "-${OLDDAYS} days" +%Y-%m-%d)
 OLDYEAR=$(/bin/date -d "-${OLDDAYS} days" +%Y)
 
 NFSDIR=/mnt/fedora_stats/combined-http
-TARGET=${NFSDIR}/latest
+TARGET=${NFSDIR}/${YEAR}/${MONTH}/${DAY}
 
 LOGFILE=${TARGET}/${WEBLOG}-access.log
 
