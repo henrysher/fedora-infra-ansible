@@ -1,25 +1,26 @@
 ---
 - name: install awstats package
-  yum: state=present name=awststs
+  yum: state=present name=awstats
   tags:
   - packages
   - awstats
 
 - name: make the awstats directory
   file: path=/var/www/html/awstats-reports state=directory
+  when inventory_hostname.startswith('data-analysis')
   tags:
     - awstats
 
 - name:  awstats proxy merge script (log01)
   copy: src=combineHttpLogs.sh dest=/usr/local/bin/ mode=0755
-  when: inventory_hostname.startswith('log01')
+  when: inventory_hostname.startswith('log')
   tags:
   - config
   - awstats
 
 - name: awstats daily cron job to merge old logs
   copy: src=combineHttp.cron dest=/etc/cron.d/ mode=0644
-  when: inventory_hostname.startswith('log01')
+  when: inventory_hostname.startswith('log')
   tags:
    - cron
    - awstats
