@@ -106,7 +106,7 @@ BEGIN{
 
 
     } else {
-      print olddate "," total "," edit "," atomic "," cloud "," server "," workstation "," unk_edt "," f20 "," f21 "," f22 "," f23 "," f24 ","  "," f25 "," f26 "," f27 "," f28 "," f29 "," unk_rel "," arm_32 "," arm_64 "," ppc_le "," ppc_he "," s390x "," x86_32 "," x86_64 "," unk_arc "," netinstall "," netserv "," network "," netclod "," spin "," xfce "," soas "," lxde ","  secu "," robo "," mate "," scik "," jamk "," desi "," elec "," game "," mini "," cinn "," kde
+      print olddate "," total "," edit "," atomic "," cloud "," server "," workstation "," unk_edt "," f20 "," f21 "," f22 "," f23 "," f24 "," f25 "," f26 "," f27 "," f28 "," f29 "," unk_rel "," arm_32 "," arm_64 "," ppc_le "," ppc_he "," s390x "," x86_32 "," x86_64 "," unk_arc "," netinstall "," netserv "," network "," netclod "," spin "," xfce "," soas "," lxde ","  secu "," robo "," mate "," scik "," jamk "," desi "," elec "," game "," mini "," cinn "," kde
       olddate=$1
     total = 0;
     #edition
