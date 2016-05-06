@@ -268,7 +268,7 @@ unset output
 set output "/var/www/html/csv-reports/images/epel-daily.png"
 set title "Fedora Epel Totals Unique IPs"
 plot ["2007-05-17":"2016-12-31"] \
-     '/var/www/html/csv-reports/mirrors/mirrorsdata-all.csv' using 1:35 title 'EPEL' with lines lw 3,\
+     '/var/www/html/csv-reports/mirrors/mirrorsdata-all.csv' using 1:35 title 'EPEL' with lines lw 3
 unset output
 
 
