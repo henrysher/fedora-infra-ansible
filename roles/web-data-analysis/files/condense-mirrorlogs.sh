@@ -27,7 +27,7 @@
 let NUMDAYS=5
 let OLDDAYS=$(( $NUMDAYS+1 ))
 
-PROJECT=getfedora
+PROJECT=mirrors
 WEBLOG=${PROJECT}.org
 
 # This is the year/month/day for a N days ago.
