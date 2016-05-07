@@ -93,5 +93,11 @@ done
 
 gnuplot ${LSHARE}/${PROJECT}-data.gp
 
+# Make the seven day moving average file
+/usr/local/bin/mirrors-moving_avg.py > mirrorsdata-all-7day-ma.csv
+
+gnuplot  ${LSHARE}/${PROJECT}-data-ma.gp
+gnuplot  ${LSHARE}/${PROJECT}-moving.gp
+
 # cleanup the temp data
 rm -rf ${TEMPDIR}
