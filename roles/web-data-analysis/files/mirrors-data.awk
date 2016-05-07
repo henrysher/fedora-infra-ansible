@@ -127,7 +127,9 @@ BEGIN{
 	else if ($4 ~"alpha")   { alpha = alpha +1 }
 	else                   {unknown_arch = unknown_arch +1; };
     } else {
-      print olddate "," epel4 "," epel5 "," epel6 "," epel7 "," f03 "," f04 "," f05 "," f06 "," f07 "," f08 "," f09 "," f10 "," f11 "," f12 "," f13 "," f14 "," f15 "," f16 "," f17 "," f18 "," f19 "," f20 "," f21 "," f22 "," f23 "," f24 "," f25 "," f26 "," f27 "," f28 "," f29 "," rawhide "," unknown_release "," epel "," fedora "," alpha "," arm "," arm64 "," ia64 "," mips "," ppc "," s390 "," sparc "," tilegx "," x86_32 "," x86_64 "," x86_32_e "," x86_32_f "," x86_64_e "," x86_64_f "," ppc_e "," ppc_f "," unknown_arch "," centos "," rhel;
+	if ( olddate !~ "1970-01-01" ) {
+	    print olddate "," epel4 "," epel5 "," epel6 "," epel7 "," f03 "," f04 "," f05 "," f06 "," f07 "," f08 "," f09 "," f10 "," f11 "," f12 "," f13 "," f14 "," f15 "," f16 "," f17 "," f18 "," f19 "," f20 "," f21 "," f22 "," f23 "," f24 "," f25 "," f26 "," f27 "," f28 "," f29 "," rawhide "," unknown_release "," epel "," fedora "," alpha "," arm "," arm64 "," ia64 "," mips "," ppc "," s390 "," sparc "," tilegx "," x86_32 "," x86_64 "," x86_32_e "," x86_32_f "," x86_64_e "," x86_64_f "," ppc_e "," ppc_f "," unknown_arch "," centos "," rhel;
+	};
 	olddate=$1
 	epel=0;
 	fedora=0;

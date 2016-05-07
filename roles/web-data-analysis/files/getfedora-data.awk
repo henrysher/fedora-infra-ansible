@@ -106,63 +106,66 @@ BEGIN{
 
 
     } else {
-      print olddate "," total "," edit "," atomic "," cloud "," server "," workstation "," unk_edt "," f20 "," f21 "," f22 "," f23 "," f24 "," f25 "," f26 "," f27 "," f28 "," f29 "," unk_rel "," arm_32 "," arm_64 "," ppc_le "," ppc_he "," s390x "," x86_32 "," x86_64 "," unk_arc "," netinstall "," netserv "," network "," netclod "," spin "," xfce "," soas "," lxde ","  secu "," robo "," mate "," scik "," jamk "," desi "," elec "," game "," mini "," cinn "," kde
-      olddate=$1
-    total = 0;
-    #edition
-    atomic=0;
-    cloud=0;
-    server=0;
-    workstation=0;
-    edit = 0;
-    unk_edt=0;
-    # release
-    f20=0;
-    f21=0;
-    f22=0;
-    f23=0;
-    f24=0;
-    f25=0;
-    f26=0;
-    f27=0;
-    f28=0;
-    f29=0;
-    unk_rel=0;
-    # arch
-    arm_32=0;
-    arm_64=0;
-    x86_32=0;
-    x86_64=0;
-    ppc_le=0;
-    ppc_he=0;
-    s390x=0;
-    unk_arc=0;
-    # spins 
-    spin = 0;
-    xfce = 0;
-    soas = 0;
-    lxde = 0;
-    secu = 0;
-    robo = 0;
-    mate = 0;
-    scik = 0;
-    jamk = 0;
-    desi = 0;
-    elec = 0;
-    game = 0;
-    mini = 0;
-    cinn = 0;
-    kde = 0;
-    # additional data
-    netinstall=0;
-    netserv=0;
-    network=0;
-    netclod=0;
-    }
+	if ( olddate !~ "1970-01-01" ) {
+	    print olddate "," total "," edit "," atomic "," cloud "," server "," workstation "," unk_edt "," f20 "," f21 "," f22 "," f23 "," f24 "," f25 "," f26 "," f27 "," f28 "," f29 "," unk_rel "," arm_32 "," arm_64 "," ppc_le "," ppc_he "," s390x "," x86_32 "," x86_64 "," unk_arc "," netinstall "," netserv "," network "," netclod "," spin "," xfce "," soas "," lxde ","  secu "," robo "," mate "," scik "," jamk "," desi "," elec "," game "," mini "," cinn "," kde;
+	};
 
+	    olddate=$1
+	    total = 0;
+	    #edition
+	    atomic=0;
+	    cloud=0;
+	    server=0;
+	    workstation=0;
+	    edit = 0;
+	    unk_edt=0;
+	    # release
+	    f20=0;
+	    f21=0;
+	    f22=0;
+	    f23=0;
+	    f24=0;
+	    f25=0;
+	    f26=0;
+	    f27=0;
+	    f28=0;
+	    f29=0;
+	    unk_rel=0;
+	    # arch
+	    arm_32=0;
+	    arm_64=0;
+	    x86_32=0;
+	    x86_64=0;
+	    ppc_le=0;
+	    ppc_he=0;
+	    s390x=0;
+	    unk_arc=0;
+	    # spins 
+	    spin = 0;
+	    xfce = 0;
+	    soas = 0;
+	    lxde = 0;
+	    secu = 0;
+	    robo = 0;
+	    mate = 0;
+	    scik = 0;
+	    jamk = 0;
+	    desi = 0;
+	    elec = 0;
+	    game = 0;
+	    mini = 0;
+	    cinn = 0;
+	    kde = 0;
+	    # additional data
+	    netinstall=0;
+	    netserv=0;
+	    network=0;
+	    netclod=0;
+    }
+    
 }
 
 END {
-      print olddate "," total "," edit "," atomic "," cloud "," server "," workstation "," unk_edt "," f20 "," f21 "," f22 "," f23 "," f24 "," unk_rel "," arm_32 "," arm_64 "," ppc_le "," ppc_he "," s390x "," x86_32 "," x86_64 "," unk_arc "," netinstall "," netserv "," network "," netclod "," spin "," xfce "," soas "," lxde ","  secu "," robo "," mate "," scik "," jamk "," desi "," elec "," game "," mini "," cinn "," kde
+    print olddate "," total "," edit "," atomic "," cloud "," server "," workstation "," unk_edt "," f20 "," f21 "," f22 "," f23 "," f24 "," unk_rel "," arm_32 "," arm_64 "," ppc_le "," ppc_he "," s390x "," x86_32 "," x86_64 "," unk_arc "," netinstall "," netserv "," network "," netclod "," spin "," xfce "," soas "," lxde ","  secu "," robo "," mate "," scik "," jamk "," desi "," elec "," game "," mini "," cinn "," kde
 }
 
