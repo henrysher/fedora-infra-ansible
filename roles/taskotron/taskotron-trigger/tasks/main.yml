@@ -46,6 +46,7 @@
     special_time=daily
     user=fedmsg
     job="wget -O {{ trigger_critpath_file }} https://admin.fedoraproject.org/pkgdb/api/critpath?format=json"
+  when: deployment_type in ['dev']
 
 - name: create a cronjob to clear distgit cache
   cron:
@@ -53,6 +54,7 @@
     special_time=daily
     user=fedmsg
     job="tmpwatch -vv --dirmtime -m -f 12h {{ trigger_cache_dir }}"
+  when: deployment_type in ['dev']
 
 - name: start and enable fedmsg-hub service
   service: name=fedmsg-hub enabled=yes state=started
