@@ -1,0 +1,92 @@
+# {{ ansible_managed }}
+*filter
+:INPUT DROP []
+:FORWARD DROP []
+:OUTPUT DROP []
+
+# loopback allowed
+-A INPUT -i lo -j ACCEPT
+-A OUTPUT -o lo -j ACCEPT
+-A INPUT -i virbr0 -j ACCEPT
+-A OUTPUT -o virbr0 -j ACCEPT
+-A INPUT  -d 127.0.0.0/8 -j ACCEPT
+-A OUTPUT -d 127.0.0.0/8 -j ACCEPT
+
+# Accept ping and traceroute (needs icmp)
+-A INPUT -p icmp -j ACCEPT
+-A OUTPUT -p icmp -j ACCEPT
+
+# Established connections allowed
+-A INPUT -m state --state RELATED,ESTABLISHED -j ACCEPT
+-A OUTPUT -m state --state RELATED,ESTABLISHED -j ACCEPT
+
+# if the blocked_ips is defined - drop them
+{% if blocked_ips is defined %}
+{% for ip in blocked_ips %}
+-A INPUT -s {{ ip }} -j DROP
+{% endfor %}
+{% endif %}
+
+# docker-registry
+-A OUTPUT -p tcp -m tcp -d 10.5.126.217 --dport 443 -j ACCEPT
+
+#koji.fp.o
+-A OUTPUT -p tcp -m tcp -d 10.5.126.87 --dport 443 -j ACCEPT
+
+# DNS
+-A OUTPUT -p udp -m udp -d 10.5.126.21 --dport 53 -j ACCEPT
+-A OUTPUT -p udp -m udp -d 10.5.126.22 --dport 53 -j ACCEPT
+
+# bastion smtp
+-A OUTPUT -p tcp -m tcp -d 10.5.126.12 --dport 25 -j ACCEPT
+
+# infra.fp.o
+-A OUTPUT -p tcp -m tcp -d 10.5.126.23 --dport 80 -j ACCEPT
+-A OUTPUT -p tcp -m tcp -d 10.5.126.23 --dport 443 -j ACCEPT
+
+# rsyslog out to log01
+-A OUTPUT -p tcp -m tcp -d 10.5.126.13 --dport 514 -j ACCEPT
+
+# SSH
+-A INPUT -p tcp -m tcp -s 10.5.0.0/16 --dport 22 -j ACCEPT 
+-A OUTPUT -p tcp -m tcp -d 10.5.0.0/16 --sport 22  -j ACCEPT
+
+# git to pkgs
+-A OUTPUT -m tcp -p tcp --dport 9418 -d 10.5.126.83 -j ACCEPT
+-A OUTPUT -m udp -p udp --dport 9418 -d 10.5.126.83 -j ACCEPT
+
+# git on pagure,io
+-A OUTPUT -p tcp -m tcp -d 140.211.169.204 --dport 443 -j ACCEPT
+
+# admin.fedoraproject.org  for fas (proyx01 and proxy10)
+-A OUTPUT -p tcp -m tcp -d 10.5.126.51 --dport 80 -j ACCEPT
+-A OUTPUT -p tcp -m tcp -d 10.5.126.51 --dport 443 -j ACCEPT
+-A OUTPUT -p tcp -m tcp -d 10.5.126.52 --dport 80 -j ACCEPT
+-A OUTPUT -p tcp -m tcp -d 10.5.126.52 --dport 443 -j ACCEPT
+# for 2 facter auth
+-A OUTPUT -p tcp -m tcp -d 10.5.126.30 --dport 8443 -j ACCEPT
+-A OUTPUT -p tcp -m tcp -d 10.5.126.25 --dport 8443 -j ACCEPT
+-A OUTPUT -p tcp -m tcp -d 10.5.126.26 --dport 8443 -j ACCEPT
+
+# ntp
+-A OUTPUT -m udp -p udp --dport 123 -d 10.5.126.11 -j ACCEPT
+-A OUTPUT -m udp -p udp --dport 123 -d 10.5.126.12 -j ACCEPT
+
+# dhcp
+-A OUTPUT -m udp -p udp --dport 67 -d 10.5.126.41 -j ACCEPT
+
+# if the host/group defines incoming tcp_ports - allow them
+{% for port in tcp_ports %}
+-A INPUT -p tcp -m tcp --dport {{ port }} -j ACCEPT
+{% endfor %}
+
+# if the host/group defines incoming udp_ports - allow them
+{% for port in udp_ports %}
+-A INPUT -p udp -m udp --dport {{ port }} -j ACCEPT
+{% endfor %}
+
+# if there are custom rules - put them in as-is
+{% for rule in custom_rules %}
+{{ rule }}
+{% endfor %}
+COMMIT
