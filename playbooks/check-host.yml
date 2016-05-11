@@ -86,8 +86,8 @@
       - services
 
   - name: Check for pending updates
-#    script: {{ scripts }}/needs-updates --host {{ ansible_fqdn  }}
-    script: needs-updates --host {{ ansible_fqdn }}
+#    script: {{ scripts }}/needs-updates --host {{ inventory_hostname  }}
+    script: needs-updates --host {{ inventory_hostname }}
     register: list_update
     delegate_to: 127.0.0.1
     changed_when: False
@@ -215,7 +215,7 @@
       - selinux
 
   - name: resolve last persisted dir - if one is present
-    local_action: shell ls -d -1 {{datadir_prfx_path}}/{{ansible_fqdn}}-* 2>/dev/null | sort -r | head -1
+    local_action: shell ls -d -1 {{datadir_prfx_path}}/{{inventory_hostname}}-* 2>/dev/null | sort -r | head -1
     register: last_dir
     changed_when: False
     ignore_errors: True
@@ -231,17 +231,17 @@
     changed_when: False
 
   - name: create persisting-state directory
-    local_action: file path=/{{datadir_prfx_path}}/{{ansible_fqdn}}-{{timestamp.stdout}} state=directory
+    local_action: file path=/{{datadir_prfx_path}}/{{inventory_hostname}}-{{timestamp.stdout}} state=directory
     changed_when: False
 
   - name: fetch file list
-    fetch: src={{item}} dest=/{{datadir_prfx_path}}/{{ansible_fqdn}}-{{timestamp.stdout}}/ flat=true
+    fetch: src={{item}} dest=/{{datadir_prfx_path}}/{{inventory_hostname}}-{{timestamp.stdout}}/ flat=true
     with_items: file_list.stdout_lines
     changed_when: False
 
 
   - name: diff the new files with last ones presisted
-    local_action: shell for file in {{datadir_prfx_path}}/{{ansible_fqdn}}-{{timestamp.stdout}}/*; do filename=$(basename $file); diff {{datadir_prfx_path}}/{{ansible_fqdn}}-{{timestamp.stdout}}/$filename {{last_dir.stdout.strip(':')}}/$filename; done
+    local_action: shell for file in {{datadir_prfx_path}}/{{inventory_hostname}}-{{timestamp.stdout}}/*; do filename=$(basename $file); diff {{datadir_prfx_path}}/{{inventory_hostname}}-{{timestamp.stdout}}/$filename {{last_dir.stdout.strip(':')}}/$filename; done
     ignore_errors: True
     changed_when: False
     register: file_diff
