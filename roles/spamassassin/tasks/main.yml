@@ -2,7 +2,10 @@
 # tasklist for setting up a SpamAssassin server
 
 - name: install the package
-  yum: pkg=spamassassin state=present
+  yum: pkg={{ item }} state=present
+  with_items:
+  - spamassassin
+  - perl-Razor-Agent
   tags:
   - packages
 
@@ -18,8 +21,24 @@
 
 - name: setup the sysconfig file
   copy: src=sysconfig dest=/etc/sysconfig/spamassassin
+  notify:
+  - restart spamassassin
+  tags:
+  - config
+
+- name: setup the config file
+  copy: src=local.cf dest=/etc/mail/spamassassin/local.cf
+  notify:
+  - restart spamassassin
+  tags:
+  - config
+
+- name: setup the cron job
+  copy: src=sa-update dest=/etc/cron.d/sa-update
   tags:
   - config
 
 - name: set the service running/enabled
   service: name=spamassassin enabled=true state=running
+  tags:
+  - service
