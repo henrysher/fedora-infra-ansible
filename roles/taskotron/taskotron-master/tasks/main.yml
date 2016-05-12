@@ -18,3 +18,8 @@
 
 - name: copy tmpwatch cronjob for taskotron artifacts and buildmaster
   template: src=taskotron-tmpwatch.cron.j2 dest=/etc/cron.d/taskotron-tmpwatch.cron owner=root group=root mode=0644
+  when: deployment_type in ['stg', 'prod', 'local']
+
+- name: copy tmpfiles.d for artifacts and buildmaster
+  template: src=tmpfiles.d.buildmaster.conf.j2 dest=/etc/tmpfiles.d/buildmaster.conf owner=root group=root mode=0644
+  when: deployment_type in ['dev']

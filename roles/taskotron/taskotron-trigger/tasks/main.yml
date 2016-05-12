@@ -52,12 +52,8 @@
     job="wget -O {{ trigger_critpath_file }} {{ trigger_critpath_url }}"
   when: deployment_type in ['dev']
 
-- name: create a cronjob to clear distgit cache
-  cron:
-    name="clear distgit cache"
-    special_time=daily
-    user=fedmsg
-    job="tmpwatch -vv --dirmtime -m -f 12h {{ trigger_cache_dir }}"
+- name: copy tmpfiles.d for trigger distgit cache
+  template: src=tmpfiles.d.trigger.conf.j2 dest=/etc/tmpfiles.d/trigger.conf owner=root group=root mode=0644
   when: deployment_type in ['dev']
 
 - name: start and enable fedmsg-hub service
