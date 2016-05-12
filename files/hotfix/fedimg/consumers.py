@@ -94,7 +94,8 @@ class KojiConsumer(fedmsg.consumers.FedmsgConsumer):
             if u.find('x86_64') > -1 and u.find('vagrant') == -1:
                 if (u.find('fedora-cloud-base') > -1
                         or u.find('fedora-cloud-atomic') > -1
-                        or u.find('fedora-cloud-bigdata') > -1):
+                        or u.find('fedora-cloud-bigdata') > -1
+                        or u.find('fedora-atomic') > -1):
                     upload_files.append(url)
                     log.info('Image {0} will be uploaded'.format(url))
 
