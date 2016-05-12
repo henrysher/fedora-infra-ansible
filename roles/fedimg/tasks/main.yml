@@ -69,6 +69,19 @@
   tags:
   - fedimg
 
+#
+# Install hotfix to consume F24 nightly atomic builds
+# See PR - https://github.com/fedora-infra/fedimg/pull/50
+#
+- name: hotfix - copy over comsumer.py for fedimg
+  copy: src="{{ files }}/hotfix/fedimg/consumers.py" dest=/usr/lib/python2.7/site-packages/fedimg
+          owner=fedmsg group=fedmsg mode=0644
+  notify:
+  - restart fedmsg-hub
+  tags:
+  - fedimg
+  - hotfix
+
 - name: ensure the fedmsg user has a homedir for cron to work in
   file: >
     state=directory
