@@ -1,0 +1,25 @@
+---
+# tasklist for setting up a SpamAssassin server
+
+- name: install the package
+  yum: pkg=spamassassin state=present
+  tags:
+  - packages
+
+- name: create the specific group
+  group: name=spammy system=yes
+  tags:
+  - config
+
+- name: create the specific user
+  user: name=spammy comment="spamassassin user" home=/home/spammy group=spammy createhome=yes system=yes
+  tags:
+  - config
+
+- name: setup the sysconfig file
+  copy: src=sysconfig dest=/etc/sysconfig/spamassassin
+  tags:
+  - config
+
+- name: set the service running/enabled
+  service: name=spamassassin enabled=true state=running
