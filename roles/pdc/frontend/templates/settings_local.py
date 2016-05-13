@@ -101,6 +101,9 @@ DATABASES = {
 REST_API_URL = 'rest_api/'
 REST_API_VERSION = 'v1'
 
+# https://github.com/product-definition-center/product-definition-center/issues/352
+USE_X_FORWARDED_HOST = True
+
 BROWSABLE_DOCUMENT_MACROS = {
     # need to be rewrite with the real host name when deploy.
     'HOST_NAME': 'http://{{ inventory_hostname }}:80',
