@@ -5,7 +5,7 @@
   - /srv/private/ansible/vars.yml
   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
   vars:
-    testing: False
+    testing: True
   handlers:
   - include: "{{ handlers }}/restart_services.yml"
   roles:
@@ -21,13 +21,13 @@
     service: name="httpd" state=stopped
   - name: upgrade koschei from testing repo
     yum: name="{{ item }}" state=latest update_cache=yes enablerepo=copr
-    when: testing
+    when: env == 'staging' and testing
     with_items:
     - koschei-frontend
     - koschei-frontend-fedora
   - name: upgrade koschei from production repo
     yum: name="{{ item }}" state=latest update_cache=yes
-    when: not testing
+    when: env != 'staging' or not testing
     with_items:
     - koschei-frontend
     - koschei-frontend-fedora
@@ -39,7 +39,7 @@
   - /srv/private/ansible/vars.yml
   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
   vars:
-    testing: False
+    testing: True
   handlers:
   - include: "{{ handlers }}/restart_services.yml"
   roles:
@@ -62,14 +62,14 @@
     command: dnf clean all
   - name: upgrade koschei from copr repo
     dnf: name="{{ item }}" state=latest enablerepo=copr
-    when: copr_repo
+    when: env == 'staging' and testing
     with_items:
     - koschei-admin
     - koschei-backend
     - koschei-backend-fedora
   - name: upgrade koschei from production repo
     dnf: name="{{ item }}" state=latest
-    when: not copr_repo
+    when: env != 'staging' or not testing
     with_items:
     - koschei-admin
     - koschei-backend
