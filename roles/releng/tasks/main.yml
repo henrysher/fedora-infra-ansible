@@ -16,6 +16,9 @@
 - name: add ftpsync user
   user: name=ftpsync uid=263 group=ftpsync createhome=yes system=yes state=present
 
+- name: add create-filelist script from quick-fedora-mirror
+  copy: src=create-filelist dest=/usr/local/bin/create-filelist mode=0755 owner=ftpsync group=ftpsync
+
 - name: add the ftpsync update-fullfilelist script
   copy: src=update-fullfilelist dest=/usr/local/bin/update-fullfilelist owner=ftpsync group=ftpsync mode=555
 
@@ -111,6 +114,7 @@
     - hardlink
     - pungi
     - compose-utils
+    - python-scandir
   when: ansible_distribution_major_version|int > 21
 
 # add sigul to secondary arch compose boxes
