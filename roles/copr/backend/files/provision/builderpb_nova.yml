@@ -46,8 +46,14 @@
   - name: disable offloading
     command: ethtool -K eth0 tso off gro off gso off
 
+  # we need to upgrade x86_64 othwerwise we can have different version of multilib glibc
+  - name: install multilib deps for nosync.x86_64
+    yum: state=latest pkg={{ item }}
+    with_items:
+      - glibc
+      - nss-softokn-freebl
   - name: install multilib deps for nosync.i686
-    yum: state=present pkg={{ item }}
+    yum: state=latest pkg={{ item }}
     with_items:
       - glibc.i686
       - nss-softokn-freebl.i686
