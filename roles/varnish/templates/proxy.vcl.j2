@@ -19,6 +19,17 @@ backend pkgdb {
     .first_byte_timeout = 160s;
 }
 
+backend mailman {
+    .host = "mailman01";
+    .port = "http";
+    .probe = {
+        .url = "/";
+        .interval = 5s;
+        .timeout = 5s;
+	.expected_response = 301;
+    }
+}
+
 backend fas01 {
     .host = "fas01";
     .port = "http";
@@ -274,6 +285,9 @@ sub vcl_recv {
                 set req.url = regsub(req.url, "\?.*", "");
             }
         }
+    }
+    if (req.http.X-Forwarded-Server ~ "^lists.fedoraproject.org") {
+        set req.backend_hint = mailman;
     }
     if (req.http.X-Forwarded-Server ~ "^apps.fedoraproject.org" || req.http.X-Forwarded-Server ~ "^apps.stg.fedoraproject.org") { 
         if (req.url ~ "^/koschei") {
