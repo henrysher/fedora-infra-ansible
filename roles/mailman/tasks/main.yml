@@ -48,6 +48,12 @@
   - mailman
   - selinux
 
+- name: set the SELinux policy for the old static archives
+  command: semanage fcontext -a -t httpd_sys_content_t "{{ mailman_webui_basedir }}/old-archives/pipermail(/.*)?"
+  tags:
+  - mailman
+  - selinux
+
 - name: allow Apache to remotely connect to PostgreSQL
   seboolean: name=httpd_can_network_connect_db state=yes persistent=yes
   tags:
