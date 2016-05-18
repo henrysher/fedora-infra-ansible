@@ -13,8 +13,6 @@
   yum: state=present name={{ item }}
   with_items:
   - sigul
-  - ntp
-  - ntpdate
   - gnupg1
   - rpm-sign
   - bzip2
@@ -53,18 +51,3 @@
 
 - name: setup gpg link
   file: state=link src=/usr/bin/gpg1 dest=/usr/bin/gpg
-
-- name: ntp steptickers
-  copy: src="{{ files }}/common/step-tickers" dest=/etc/ntp/step-tickers
-  tags:
-  - ntp
-
-- name: ntp.conf
-  template: src="{{ roles }}/base/templates/ntp/ntp.conf.j2" dest=/etc/ntp.conf
-  tags:
-  - ntp
-
-- name: enable ntpd
-  service: name=ntpd enabled=true state=started
-  tags:
-  - ntp
