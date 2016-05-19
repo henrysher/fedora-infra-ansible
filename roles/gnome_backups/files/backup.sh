@@ -1,7 +1,7 @@
 #!/bin/bash
-# backup.sh will run FROM backup03 TO the various GNOME boxes on the set. (there's two set
-# of machines, one being the ones with a public IP and the others being the IP-less ones that
-# will forward their agent through bastion.gnome.org)
+# backup.sh will run FROM gnome-backups01.phx2.fedoraproject.org TO the various GNOME boxes
+# on the set. (there's two set of machines, one being the ones with a public IP and the others
+# being the IP-less ones that will forward their agent through bastion.gnome.org)
 
 export PATH=$PATH:/bin:/usr/bin:/usr/local/bin
 
