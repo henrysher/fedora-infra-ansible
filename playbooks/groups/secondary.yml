@@ -62,5 +62,13 @@
   - name: add create-filelist script from quick-fedora-mirror
     copy: src="{{ roles }}/bodhi2/backend/files/create-filelist" dest=/usr/local/bin/create-filelist mode=0755
 
+  - name: add cron script to update fullfiletimelist
+    copy: src="{{ files }}/scripts/update-fullfiletimelist" dest=/usr/local/bin/update-fullfiletimelist mode=0755
+
+  - name: Update fullfiletimelist job
+    cron: name="update-fullfiletimelist" hour="*/6" minute="55" user="root"
+        job="/usr/local/bin/lock-wrapper update-fullfiletimelist '/usr/local/bin/update-fullfiletimelist alt'"
+        cron_file=update-fullfiletimelist
+
   handlers:
   - include: "{{ handlers }}/restart_services.yml"

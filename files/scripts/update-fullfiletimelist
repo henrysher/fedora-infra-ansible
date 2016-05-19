@@ -1,0 +1,22 @@
+#!/bin/bash
+
+# currently runs on secondary01 from cron to update alt
+
+MOD=$1
+[ -z "$MOD" ] && {
+	echo "usage: $0 <module>"
+	exit 1
+}
+
+# This is the new list with timestamps
+
+TMPFILE=$(mktemp -p /tmp/)
+pushd /srv/pub/$MOD > /dev/null
+/usr/local/bin/create-filelist . > $TMPFILE
+if diff $TMPFILE fullfiletimelist > /dev/null; then
+	rm -f $TMPFILE
+else
+	mv $TMPFILE fullfiletimelist
+fi
+chmod 0644 fullfiletimelist
+popd > /dev/null
