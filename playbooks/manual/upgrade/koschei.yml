@@ -18,9 +18,9 @@
     when: env != 'staging'
   tasks:
   - name: clean dnf metadata
-    command: dnf clean all
+    command: dnf {%if env == 'staging'%}--enablerepo msimacek-koschei{%endif%} clean all
   - name: create dnf metadata cache
-    command: dnf makecache
+    command: dnf {%if env == 'staging'%}--enablerepo msimacek-koschei{%endif%} makecache
   - name: stop services
     service: name="{{ item }}" state=stopped
     with_items:
@@ -63,9 +63,9 @@
     when: env != 'staging'
   tasks:
   - name: clean yum metadata
-    command: yum clean all
+    command: yum {%if env == 'staging'%}--enablerepo msimacek-koschei{%endif%} clean all
   - name: create yum metadata cache
-    command: yum makecache
+    command: yum {%if env == 'staging'%}--enablerepo msimacek-koschei{%endif%} makecache
   - name: stop httpd
     service: name="httpd" state=stopped
   - name: upgrade koschei from testing repo
