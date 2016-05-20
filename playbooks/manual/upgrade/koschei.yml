@@ -1,38 +1,4 @@
-- name: upgrade koschei frontend
-  hosts: koschei-web:koschei-web-stg
-  vars_files:
-  - /srv/web/infra/ansible/vars/global.yml
-  - /srv/private/ansible/vars.yml
-  - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
-  vars:
-    testing: False
-  handlers:
-  - include: "{{ handlers }}/restart_services.yml"
-  roles:
-  - koschei/frontend
-  pre_tasks:
-  - name: schedule nagios downtime
-    nagios: action=downtime minutes=20 service=host host={{ inventory_hostname_short }}{{ env_suffix }}
-    delegate_to: noc01.phx2.fedoraproject.org
-    ignore_errors: true
-    when: env != 'staging'
-  tasks:
-  - name: stop httpd
-    service: name="httpd" state=stopped
-  - name: upgrade koschei from testing repo
-    yum: name="{{ item }}" state=latest update_cache=yes enablerepo=msimacek-koschei
-    when: env == 'staging' and testing
-    with_items:
-    - koschei-frontend
-    - koschei-frontend-fedora
-  - name: upgrade koschei from production repo
-    yum: name="{{ item }}" state=latest update_cache=yes
-    when: env != 'staging' or not testing
-    with_items:
-    - koschei-frontend
-    - koschei-frontend-fedora
-
-- name: upgrade koschei backend and run DB migration
+- name: upgrade koschei backend
   hosts: koschei-backend:koschei-backend-stg
   vars_files:
   - /srv/web/infra/ansible/vars/global.yml
@@ -74,6 +40,50 @@
     - koschei-admin
     - koschei-backend
     - koschei-backend-fedora
+
+- name: upgrade koschei frontend
+  hosts: koschei-web:koschei-web-stg
+  vars_files:
+  - /srv/web/infra/ansible/vars/global.yml
+  - /srv/private/ansible/vars.yml
+  - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+  vars:
+    testing: False
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"
+  roles:
+  - koschei/frontend
+  pre_tasks:
+  - name: schedule nagios downtime
+    nagios: action=downtime minutes=20 service=host host={{ inventory_hostname_short }}{{ env_suffix }}
+    delegate_to: noc01.phx2.fedoraproject.org
+    ignore_errors: true
+    when: env != 'staging'
+  tasks:
+  - name: stop httpd
+    service: name="httpd" state=stopped
+  - name: upgrade koschei from testing repo
+    yum: name="{{ item }}" state=latest update_cache=yes enablerepo=msimacek-koschei
+    when: env == 'staging' and testing
+    with_items:
+    - koschei-frontend
+    - koschei-frontend-fedora
+  - name: upgrade koschei from production repo
+    yum: name="{{ item }}" state=latest update_cache=yes
+    when: env != 'staging' or not testing
+    with_items:
+    - koschei-frontend
+    - koschei-frontend-fedora
+
+- name: run DB migration
+  hosts: koschei-backend:koschei-backend-stg
+  vars_files:
+  - /srv/web/infra/ansible/vars/global.yml
+  - /srv/private/ansible/vars.yml
+  - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"
+  tasks:
   - name: run db migration
     become: yes
     become_user: koschei
