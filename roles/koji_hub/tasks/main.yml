@@ -167,6 +167,37 @@
   when: ansible_hostname.startswith('arm')
 
 #
+# install production ppc certs and keys
+#
+
+- name: install ppc kojiweb_cert_key.pem
+  copy: src={{ private }}/files/koji/ppc.koji.fedoraproject.org_key_and_cert.pem dest=/etc/pki/tls/private/kojiweb_cert_key.pem owner=apache mode=600
+  notify:
+  - reload httpd
+  tags:
+  - config
+  - koji_hub
+  when: ansible_hostname.startswith('ppc')
+
+- name: install ppc production koji_cert.pem
+  copy: src={{ private }}/files/koji/ppc_koji_cert.pem dest=/etc/pki/tls/certs/koji_cert.pem owner=apache mode=600
+  notify:
+  - reload httpd
+  tags:
+  - config
+  - koji_hub
+  when: ansible_hostname.startswith('ppc')
+
+- name: install ppc production koji_key.pem
+  copy: src={{ private }}/files/koji/ppc_koji_key.pem dest=/etc/pki/tls/private/koji_key.pem owner=apache mode=600
+  notify:
+  - reload httpd
+  tags:
+  - config
+  - koji_hub
+  when: ansible_hostname.startswith('ppc')
+
+#
 # install staging certs and keys
 #
 - name: Install staging koji ssl cert
