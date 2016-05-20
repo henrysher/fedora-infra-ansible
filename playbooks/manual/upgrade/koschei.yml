@@ -17,6 +17,10 @@
     ignore_errors: true
     when: env != 'staging'
   tasks:
+  - name: clean dnf metadata
+    command: dnf clean all
+  - name: create dnf metadata cache
+    command: dnf makecache
   - name: stop services
     service: name="{{ item }}" state=stopped
     with_items:
@@ -24,8 +28,6 @@
     - koschei-polling
     - koschei-resolver
     - koschei-watcher
-  - name: clean dnf metadata
-    command: dnf clean all
   - name: upgrade koschei from copr repo
     dnf: name="{{ item }}" state=latest enablerepo=msimacek-koschei
     when: env == 'staging' and testing
@@ -60,6 +62,10 @@
     ignore_errors: true
     when: env != 'staging'
   tasks:
+  - name: clean yum metadata
+    command: yum clean all
+  - name: create yum metadata cache
+    command: yum makecache
   - name: stop httpd
     service: name="httpd" state=stopped
   - name: upgrade koschei from testing repo
