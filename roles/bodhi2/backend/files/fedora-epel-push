@@ -1,7 +1,7 @@
 #!/bin/sh
 
 SOURCE=/mnt/koji/mash/updates
-DEST=/pub/epel/
+DEST=/pub/epel
 
 OPTIONS="-rlptDvHh --stats --delay-updates $RSYNC_OPTS"
 
@@ -97,8 +97,8 @@ for rel in 5 6 7; do
 	# Does our symbolic link exist?
 	if [ -L ${TARGET} ]; then
 	    # check to see if the link matches the candidate
-	    TEST=$( readlink ${TARGET} )
-	    if [ ${TEST} != ${CANDIDATE} ]; then
+	    TEST=$( readlink -e ${TARGET} )
+	    if [ "${TEST}" != "${CANDIDATE}" ]; then
 		ln -sf $(echo ${CANDIDATE}|sed -e "s|$DEST|./|g" -e 's|//|/|g') ${TARGET}
 	    fi
 	else
