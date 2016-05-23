@@ -27,7 +27,7 @@
   template: src=config.ini.j2 dest=/etc/taskotron_base_images/config.ini owner=root group=root mode=0644
 
 - name: Download/update images
-  command: 'at now + 1 min <<< "/var/lib/fedoraqa/base_images/process_for_taskotron.py --taskotrondir {{imagesdir}}"'
+  at: command="/var/lib/fedoraqa/base_images/process_for_taskotron.py --taskotrondir {{imagesdir}}" count=1 units="minutes" unique="yes"
 
 - name: Create cronjob to download new images
   cron:
