@@ -181,14 +181,11 @@ factory.addStep(ShellCommand(command=["runtask",
 {% if deployment_type in ['prod'] %}
                                         Interpolate('%(prop:taskname)s.yml')],
 {% else %}
-                                        'runtask.yml'],
+                                        'runtask.yml', '2>&1'],
 {% endif %}
                              descriptionDone=[Interpolate('%(prop:taskname)s on %(prop:item)s')],
                              name='runtask',
                              timeout=2400,
-{% if deployment_type in ['dev'] %}
-                             usePTY=True,
-{% endif %}
 {% if deployment_type in ['dev', 'stg', 'prod'] %}
                              logfiles={
                                  'taskotron-overlord.log': {'filename': Interpolate('/var/lib/taskotron/artifacts/%(prop:uuid)s/taskotron-overlord.log')},
