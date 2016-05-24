@@ -4,6 +4,11 @@ config = {
     # Should we turn on the realtime updater?
     'pdcupdater.enabled': True,
 
+    # Use only one thread at a time to handle messages.  If we have more than
+    # one, then we can end up POSTing multiple enormous JSON blobs to the PDC
+    # web frontend, and we'll send it into OOM death.  One at a time, people..
+    "moksha.workers_per_consumer": 1,
+
     # Credentials to talk to PDC
     'pdcupdater.pdc': {
         {% if env == 'staging' %}
