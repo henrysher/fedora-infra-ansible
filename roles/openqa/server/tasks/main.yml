@@ -89,6 +89,7 @@
   - python3-fedfind
   - python3-libguestfs
   - python3-pexpect
+  - withlock
   tags:
   - packages
 
@@ -113,6 +114,9 @@
   - /var/lib/openqa/share/factory/repo
   - /var/lib/openqa/share/factory/other
 
+- name: Set up createhdds cron job
+  copy: src=createhdds dest=/etc/cron.daily/createhdds owner=root group=root mode=0755
+
 - name: Check if any hard disk images need (re)building
   command: "/root/openqa_fedora_tools/tools/createhdds.py check"
   args:
@@ -123,11 +127,7 @@
   always_run: true
 
 - name: Create hard disk images (this may take a long time!)
-  command: "/root/openqa_fedora_tools/tools/createhdds.py all --clean"
-  args:
-    chdir: /var/lib/openqa/share/factory/hdd/
-  environment:
-    LIBGUESTFS_BACKEND: direct
+  command: "/etc/cron.daily/createhdds"
   when: "diskcheck.rc > 0"
 
 - name: Create exports file
