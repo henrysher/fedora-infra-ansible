@@ -53,7 +53,7 @@ BEGIN{
     network=0;
     netclod=0;
     print olddate ",02-total,03-editions,04-atomic,05-cloud,06-server,07-workstation,08-unk_edition,09-f20,10-f21,11-f22,12-f23,13-f24,14-f25,15-f26,16-f27,17-f28,18-f29,19-unk_rel,20-arm_32,21-arm_64,22-ppc_le,23-ppc_he,24-s390x,25-x86_32,26-x86_64,27-unk_arc,28-netinstall,29-netserv,30-network,31-netclod,32-spin,33-Xfce,34-SoaS,35-LXDE,36-Security,37-Robotics,38-Mate,39-Scientific,40-Jam,41-Design,42-Electronics,43-Games,44-Minimal,45-Cinnamon,46-KDE"
-    olddate=1970-01-02;
+    olddate="1970-01-02";
 }
 
 {

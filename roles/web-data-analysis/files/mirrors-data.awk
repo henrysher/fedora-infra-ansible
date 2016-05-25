@@ -59,7 +59,7 @@ BEGIN{
     centos = 0;
     rhel = 0;
     print olddate ",02-epel4,03-epel5,04-epel6,05-epel7,06-f03,07-f04,08-f05,09-f06,10-f07,11-f08,12-f09,13-f10,14-f11,15-f12,16-f13,17-f14,18-f15,19-f16,20-f17,21-f18,22-f19,23-f20,24-f21,25-f22,26-f23,27-f24,28-f25,29-f26,30-f27,31-f28,32-f29,33-rawhide,34-unk_rel,35-epel,36-fedora,37-alpha,38-arm,39-arm64,40-ia64,41-mips,42-ppc,43-s390,44-sparc,45-tilegx,46-x86_32,47-x86_64,48-x86_32_e,49-x86_32_f,50-x86_64_e,51-x86_64_f,52-ppc_e,53-ppc_f,54-unk_arc,55-centos,56-rhel";
-    olddate=1970-01-02;
+    olddate="1970-01-02";
 }
 
 {
