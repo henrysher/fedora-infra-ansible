@@ -96,3 +96,14 @@
 # when under memory pressure. Let's also set it on the mm backend
 # systems as umdl is also mainly looking at the metadata.
 - sysctl: name=vm.vfs_cache_pressure value=10 state=present sysctl_set=yes reload=yes
+
+# MirrorManager cannot access pre-bitflip content:
+# https://fedorahosted.org/fedora-infrastructure/ticket/5289
+# Putting the mirrormanager user into the ftpsync(263) group
+# should enable the mirrormanager user to read the files.
+
+- group: name=ftpsync state=present gid=263
+
+# The mirrormanager user is created by the mirrormanager2-backend RPM
+# Just adding it the existing user to the ftpsync group.
+- user: name=mirrormanager groups=ftpsync append=yes
