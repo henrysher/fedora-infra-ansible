@@ -36,11 +36,15 @@
   user: name=buildslave groups=mock
   when: deployment_type in ['qa-stg']
 
-- name: ensure buildslaves group exists
-  group: name={{ slaves_group }}
+- name: ensure needed groups exist
+  group: name={{ item }}
   when: deployment_type == 'stg' or deployment_type in ['dev', 'prod']
+  with_items:
+    - {{ slaves_group }}
+    - testcloud
+    - taskotron
 
 - name: add buildslave users
-  user: name={{ item.user }} group={{ slaves_group }} groups=testcloud home={{ item.home }}
+  user: name={{ item.user }} group={{ slaves_group }} groups=testcloud,taskotron home={{ item.home }}
   with_items: "{{ slaves }}"
   when: deployment_type == 'stg' or deployment_type in ['dev', 'prod']
