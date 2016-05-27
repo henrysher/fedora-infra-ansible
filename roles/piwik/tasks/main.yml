@@ -6,7 +6,7 @@
   - piwik
 
 - name: set up http configs for piwik
-  file: src={{ item }} dest=/etc/httpd/conf.d/{{ item }}
+  copy: src={{ item }} dest=/etc/httpd/conf.d/{{ item }}
         owner=root group=root mode=0644
   with_items:
   - piwik-httpd.conf
@@ -21,7 +21,6 @@
   copy: >
       src={{ private }}/files/httpd/{{ item }} dest=/etc/pki/tls/certs/{{ item }}
       owner=root group=root mode=0600
-  notify: restart stunnel
   with_items:
   - piwik.fedorainfracloud.org.cert
   - piwik.fedorainfracloud.org.key
