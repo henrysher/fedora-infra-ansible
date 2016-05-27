@@ -1,22 +1,33 @@
-#!/bin/bash
-
-# currently runs on secondary01 from cron to update alt
+#!/bin/sh
 
 MOD=$1
 [ -z "$MOD" ] && {
-	echo "usage: $0 <module>"
-	exit 1
+    echo "usage: $0 <module>"
+    exit 2
 }
 
-# This is the new list with timestamps
+TOPD=/srv/pub/
+FILELIST=fullfilelist
+TIMELIST=fullfiletimelist-$MOD
+LOCKFILE=.lock.$TIMELIST
+CREATE=/usr/local/bin/create-filelist
 
-TMPFILE=$(mktemp -p /tmp/)
-pushd /srv/pub/$MOD > /dev/null
-/usr/local/bin/create-filelist . > $TMPFILE
-if diff $TMPFILE fullfiletimelist > /dev/null; then
-	rm -f $TMPFILE
-else
-	mv $TMPFILE fullfiletimelist
-	chmod 0644 fullfiletimelist
-fi
-popd > /dev/null
+(
+    flock -n 9 || exit 1
+
+    TMPD=$(mktemp -d -t create-filelist.XXXXXXXXXX)
+    trap "rm -rf $TMPD" EXIT
+    cd $TMPD
+
+    $CREATE -c -s -d $TOPD/$MOD -f $FILELIST -t $TIMELIST
+    if diff -q $FILELIST $TOPD/$MOD/$FILELIST > /dev/null; then
+        mv $FILELIST $TOPD/$MOD/$FILELIST
+        chmod 0644 $TOPD/$MOD/$FILELIST
+    fi
+
+    if diff -q $TIMELIST $TOPD/$MOD/$TIMELIST > /dev/null; then
+        mv $TIMELIST $TOPD/$MOD/$TIMELIST
+        chmod 0644 $TOPD/$MOD/$TIMELIST
+    fi
+
+) 9>$LOCKFILE

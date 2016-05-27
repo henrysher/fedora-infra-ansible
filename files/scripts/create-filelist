@@ -1,0 +1,118 @@
+#!/usr/bin/python
+from __future__ import print_function
+
+# A simple script to generate a file list in a format easily consumable by a
+# shell script.
+
+# Originally written by Jason Tibbitts <tibbs@math.uh.edu> in 2016.
+# Donated to the public domain.  If you require a statement of license, please
+# consider this work to be licensed as "CC0 Universal", any version you choose.
+
+import argparse
+import hashlib
+import os
+import sys
+from scandir import scandir
+
+
+def get_ftype(entry):
+    """Return a simple indicator of the file type."""
+    if entry.is_symlink():
+        return 'l'
+    if entry.is_dir():
+        return 'd'
+    return 'f'
+
+
+def sha1(fname):
+    """Return the SHA1 checksum of a file in hex."""
+    fh = open(fname, 'rb')
+    sha1 = hashlib.sha1()
+    block = fh.read(2 ** 16)
+    while len(block) > 0:
+        sha1.update(block)
+        block = fh.read(2 ** 16)
+
+    return sha1.hexdigest()
+
+
+def recursedir(path='.'):
+    """Just like scandir, but recursively."""
+    for entry in scandir(path):
+        if entry.is_dir(follow_symlinks=False):
+            for rentry in recursedir(entry.path):
+                yield rentry
+        yield entry
+
+
+def parseopts():
+    p = argparse.ArgumentParser(
+        description='Generate a list of files and times, suitable for consumption by quick-fedora-mirror.')
+    p.add_argument('-c', '--checksum', action='store_true',
+                   help='Include checksums of all repomd.xml files in the file list.')
+    p.add_argument('-C', '--checksum-file', action='append', dest='checksum_files',
+                   help='Include checksums of all instances of the specified file.')
+    p.add_argument('-s', '--skip', action='store_true',
+                   help='Skip fullfiletimelist in the top directory')
+    p.add_argument('-S', '--skip-file', action='append', dest='skip_files',
+                   help='Skip the specified file in the top directory.')
+
+    p.add_argument('-d', '--dir', help='Directory to scan (default: .).')
+
+    p.add_argument('-t', '--timelist', type=argparse.FileType('w'), default=sys.stdout,
+                   help='Filename of the file list with times (default: fullfiletimelist).')
+    p.add_argument('-f', '--filelist', type=argparse.FileType('w'), default=sys.stdout,
+                   help='Filename of the file list without times (default: fullfilelist).')
+
+    opts = p.parse_args()
+
+    if not opts.dir:
+        opts.dir = '.'
+
+    opts.checksum_files = opts.checksum_files or []
+    if opts.checksum:
+        opts.checksum_files += ['repomd.xml']
+
+    opts.skip_files = opts.skip_files or []
+    if opts.skip:
+        opts.skip_files += ['fullfiletimelist']
+
+    return opts
+
+
+def main():
+    opts = parseopts()
+    checksums = {}
+
+    os.chdir(opts.dir)
+
+    print('[Version]', file=opts.timelist)
+    print('2', file=opts.timelist)
+    print(file=opts.timelist)
+    print('[Files]', file=opts.timelist)
+
+    for entry in recursedir():
+        # opts.filelist.write(entry.path + '\n')
+        print(entry.path, file=opts.filelist)
+        if entry.name in opts.skip_files:
+            continue
+        if entry.name in opts.checksum_files:
+            checksums[entry.path[2:]] = True
+        info = entry.stat(follow_symlinks=False)
+        modtime = max(info.st_mtime, info.st_ctime)
+        size = info.st_size
+        ftype = get_ftype(entry)
+        # opts.timelist.write('{0}\t{1}\t{2}\n'.format(modtime, ftype, entry.path[2:]))
+        print('{0}\t{1}\t{2}\t{3}'.format(modtime, ftype, size, entry.path[2:]), file=opts.timelist)
+
+    if not checksums:
+        sys.exit(0)
+
+    print('\n[Checksums SHA1]', file=opts.timelist)
+
+    for f in sorted(checksums):
+        print('{0}\t{1}'.format(sha1(f), f), file=opts.timelist)
+
+
+if __name__ == '__main__':
+        main()
