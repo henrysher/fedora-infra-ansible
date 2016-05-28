@@ -36,9 +36,15 @@ def sha1(fname):
     return sha1.hexdigest()
 
 
-def recursedir(path='.'):
-    """Just like scandir, but recursively."""
+def recursedir(path='.', skip=[]):
+    """Just like scandir, but recursively.
+
+    Will skip everything in the skip array, but only at the top level
+    directory.
+    """
     for entry in scandir(path):
+        if entry.name in skip:
+            continue
         if entry.is_dir(follow_symlinks=False):
             for rentry in recursedir(entry.path):
                 yield rentry
@@ -46,6 +52,7 @@ def recursedir(path='.'):
 
 
 def parseopts():
+    null = open(os.devnull, 'w')
     p = argparse.ArgumentParser(
         description='Generate a list of files and times, suitable for consumption by quick-fedora-mirror.')
     p.add_argument('-c', '--checksum', action='store_true',
@@ -61,7 +68,7 @@ def parseopts():
 
     p.add_argument('-t', '--timelist', type=argparse.FileType('w'), default=sys.stdout,
                    help='Filename of the file list with times (default: fullfiletimelist).')
-    p.add_argument('-f', '--filelist', type=argparse.FileType('w'), default=sys.stdout,
+    p.add_argument('-f', '--filelist', type=argparse.FileType('w'), default=null,
                    help='Filename of the file list without times (default: fullfilelist).')
 
     opts = p.parse_args()
@@ -91,11 +98,9 @@ def main():
     print(file=opts.timelist)
     print('[Files]', file=opts.timelist)
 
-    for entry in recursedir():
+    for entry in recursedir(skip=opts.skip_files):
         # opts.filelist.write(entry.path + '\n')
         print(entry.path, file=opts.filelist)
-        if entry.name in opts.skip_files:
-            continue
         if entry.name in opts.checksum_files:
             checksums[entry.path[2:]] = True
         info = entry.stat(follow_symlinks=False)
