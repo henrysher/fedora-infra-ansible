@@ -1,35 +1,75 @@
 #!/bin/bash
+# Takes a list of module names.  Generates file lists for all of them and them
+# moves them into place at once.  If you are creating hardlinks between rsync
+# modules, it is required that you update the file lists of both mirrors at the
+# same time.  Otherwise the clients may make separate copies of the files.
 
-# currently runs on bodhi-backend01 after updates pushes
+mods=$*
 
-MOD=$1
-[ -z "$MOD" ] && {
-	echo "usage: $0 <module>"
-	exit 1
-}
-
-# This is the old traditional fullfilelist with no timestamps
-
-TMPFILE=$(mktemp -p /tmp/)
-pushd /pub/$MOD > /dev/null
-find * -print > $TMPFILE
-if diff $TMPFILE fullfilelist > /dev/null; then
-	rm -f $TMPFILE
-else
-	mv $TMPFILE fullfilelist
-	chmod 0644 fullfilelist
+if [[ -z $mods ]]; then
+    echo "usage: $0 <module> [<module> ...]"
+    exit 2
 fi
-popd > /dev/null
 
-# This is the new list with timestamps
+CREATE=/usr/local/bin/create-filelist
 
-TMPFILE=$(mktemp -p /tmp/)
-pushd /pub/$MOD > /dev/null
-/usr/local/bin/create-filelist . > $TMPFILE
-if diff $TMPFILE fullfiletimelist > /dev/null; then
-	rm -f $TMPFILE
-else
-	mv $TMPFILE fullfiletimelist
-	chmod 0644 fullfiletimelist
-fi
-popd > /dev/null
+# A single lockfile for everything we're modifying
+LOCKFILE=.lock.create-filelist
+
+# The directory where all of the modules live
+TOPD=/pub
+
+# These strings will be eval'ed later with $mod replaced by its value in
+# context.
+FILELIST=fullfilelist
+TIMELIST='fullfiletimelist-$mod'
+
+(
+    # We want to wait forever until we can do what we're asked
+    flock -x 9
+
+    # If you don't want to wait forever, try one of the following:
+    # flock -n 9 || exit 1      - Gives up immediately
+    # flock -w 120 9 || exit 1  - Waits 120 seconds and then gives up
+    # Don't change the '9', unless you change the last line of this script.
+
+    tmpd=$(mktemp -d -t create-filelist.XXXXXXXXXX)
+    trap "rm -rf $tmpd" EXIT
+    cd $tmpd
+
+    # Create all of the filelists
+    for mod in $mods; do
+        $CREATE -c -s -d $TOPD/$mod -f fl-$mod -t tl-$mod
+    done
+
+    # Now diff the file lists and delete the ones which didn't change
+    for mod in $mods; do
+        currentfl=$TOPD/$mod/${FILELIST/'$mod'/$mod}
+        currenttl=$TOPD/$mod/${TIMELIST/'$mod'/$mod}
+
+        # If a file list exsts and doesn't differ from what we just generated,
+        # delete the latter.
+        if [[ -f $currentfl ]] && diff -q fl-$mod $currentfl > /dev/null; then
+            rm -f $fl
+        fi
+        if [[ -f $currenttl ]] && diff -q tl-$mod $currenttl > /dev/null; then
+            rm -f $fl
+        fi
+    done
+
+    # And finally, move all of the files which need updating into place
+    for mod in $mods; do
+        currentfl=$TOPD/$mod/${FILELIST/'$mod'/$mod}
+        currenttl=$TOPD/$mod/${TIMELIST/'$mod'/$mod}
+
+        if [[ -f fl-$mod ]]; then
+            chmod 644 fl-$mod
+            cp -p fl-$mod $currentfl
+        fi
+        if [[ -f tl-$mod ]]; then
+            chmod 644 tl-$mod
+            cp -p tl-$mod $currenttl
+        fi
+    done
+
+) 9>$LOCKFILE
