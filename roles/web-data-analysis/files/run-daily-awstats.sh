@@ -22,9 +22,9 @@
 # There is a multiday delay involved in processing the logs. It
 # may take up to 4 days to get the logs to the main-server. It may
 # take a day to combine all the logs onto combined-httpd. So we assume 
-# we are 5 days behind.
+# we are 6 days behind.
 
-let NUMDAYS=5
+let NUMDAYS=6
 
 # This is the year/month/day for a N days ago.
 YEAR=$(/bin/date -d "-${NUMDAYS} days" +%Y)
