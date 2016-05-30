@@ -1,0 +1,33 @@
+#
+# This playbook power cycles an arm soc, sets time and runs playbook on it.
+# 
+# requires -e "target=arm0N-builderXX.arm.fedoraproject.org" -l arm0N-builderXX.arm.fedoraproject.org
+
+- name: power cycle instance
+  hosts: "{{ target }}"
+  gather_facts: False
+  user: root
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+
+  tasks:
+  - name: power off
+    delegate_to: noc01.phx2.fedoraproject.org
+    command: /opt/calxeda/bin/ipmitool -U admin -P "{{ armsocipmipass }}" -H "{{inventory_hostname_short}}-mgmt.arm.fedoraproject.org" power off
+#    no_log: True
+
+  - name: power on
+    delegate_to: noc01.phx2.fedoraproject.org
+    command: /opt/calxeda/bin/ipmitool -U admin -P "{{ armsocipmipass }}" -H "{{inventory_hostname_short}}-mgmt.arm.fedoraproject.org" power on
+#    no_log: True
+
+  - name: wait for soc ssh to come back up
+    local_action: wait_for delay=10 host={{ target }} port=22 state=started timeout=1200
+
+  - name: make sure time is set
+    delegate_to: "{{target}}"
+    command: ntpdate -u bastion01.phx2.fedoraproject.org
+
+- include: groups/buildhw.yml hosts="{{target}}"
