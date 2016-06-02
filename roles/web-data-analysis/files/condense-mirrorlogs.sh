@@ -77,6 +77,7 @@ fi
 # stuck and you end up with days or weeks of data in a single
 # file. Doing a continual sort clears up that.
 
+sort -o ${WORKFILE} -u ${WORKFILE}
 sort -o ${WORKDIR}/${YEAR}/out-${YEAR}-${MONTH} -S 8G -T /srv/tmp -u -m ${WORKDIR}/${YEAR}/out-${YEAR}-${MONTH} ${WORKFILE}
 sort -o ${WORKDIR}/out-${YEAR} -S 8G -T /srv/tmp -u -m ${WORKDIR}/out-${YEAR} ${WORKFILE}
 

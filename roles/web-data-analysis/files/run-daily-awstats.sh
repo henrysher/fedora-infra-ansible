@@ -46,7 +46,5 @@ SITES="apps.fedoraproject.org codecs.fedoraproject.org communityblog.fedoraproje
 
 for SITE in ${SITES}; do
     perl /usr/share/awstats/wwwroot/cgi-bin/awstats.pl -config=${CONFDIR}/${SITE} -update -Logfile=${TREEDIR}/${SITE}-access.log
-    mkdir -p ${OUTDIR}/${YEAR}
-    perl /usr/share/awstats/tools/awstats_buildstaticpages.pl -awstatsprog=${AWSTATS} -config=${SITE} -month=all -year=${YEAR} -dir=${OUTDIR}/${YEAR} ;
 done
 
