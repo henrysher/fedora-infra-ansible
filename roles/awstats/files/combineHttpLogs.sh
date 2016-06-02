@@ -29,20 +29,29 @@ DAY=$(/bin/date -d "-${NUMDAYS} days" +%d)
 
 LOGDIR=/var/log/hosts
 NFSDIR=/mnt/fedora_stats/combined-http
-HTTPLOG=${LOGDIR}/proxy*/${YEAR}/${MONTH}/${DAY}/http/
-
+PROXYLOG=${LOGDIR}/proxy*/${YEAR}/${MONTH}/${DAY}/http/
+DL_LOG=${LOGDIR}/download*/${YEAR}/${MONTH}/${DAY}/http/
 
 TARGET=${NFSDIR}/${YEAR}/${MONTH}/${DAY}
 
 LOGMERGE=/usr/share/awstats/tools/logresolvemerge.pl
 
-FILES=$( ls -1 ${HTTPLOG}/*access.log.xz | awk '{x=split($0,a,"/"); print a[x]}' | sort -u )
+FILES=$( ls -1 ${PROXYLOG}/*access.log.xz | awk '{x=split($0,a,"/"); print a[x]}' | sort -u )
 
 mkdir -p ${TARGET}
 
 for FILE in ${FILES}; do
     TEMP=$(echo ${FILE} | sed 's/\.xz$//')
-    perl ${LOGMERGE} ${HTTPLOG}/${FILE} > ${TARGET}/${TEMP}
+    perl ${LOGMERGE} ${PROXYLOG}/${FILE} > ${TARGET}/${TEMP}
+done
+
+FILES=$( ls -1 ${DL_LOG}/dl*access.log.xz | awk '{x=split($0,a,"/"); print a[x]}' | sort -u )
+
+mkdir -p ${TARGET}
+
+for FILE in ${FILES}; do
+    TEMP=$(echo ${FILE} | sed 's/\.xz$//')
+    perl ${LOGMERGE} ${DL_LOG}/${FILE} > ${TARGET}/${TEMP}
 done
 
 # Now we link up the files into latest directory
