@@ -297,6 +297,7 @@ LANGUAGES = (
     ('es', gettext('Spanish')),
     ('en', gettext('English')),
     ('pt-br', gettext('Brazilian Portuguese')),
+    ('ru', gettext('Russian')),
     ('id', gettext('Indonesian')),
     ('zh-cn', gettext('Simplified Chinese')),
 )
