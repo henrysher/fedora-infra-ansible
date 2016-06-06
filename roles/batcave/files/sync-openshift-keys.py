@@ -8,6 +8,9 @@ from argparse import ArgumentParser
 from fedora.client import AccountSystem
 from oshift_mod import Openshift
 from getpass import getpass
+import os
+
+os.environ['OPENSHIFT_REST_API'] = '1.5'
 
 def get_keys(host,user,passwd):
     os = Openshift(host=host,user=user,passwd=passwd)

@@ -282,7 +282,7 @@ class Openshift(object):
         return (status, raw_response)
 
     @conditional_decorator(timeit, DOING_PERFORMANCE_ANALYSIS)
-    def key_add(self, kwargs):
+    def key_add(self, **kwargs):
         """
         params: {name, type, key_path}
         """
