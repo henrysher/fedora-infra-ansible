@@ -4,8 +4,8 @@ if [ "$#" -lt 2 ]; then
     exit 1
 fi
 set -e
-repodata=`find /var/cache/koschei/repodata/ -maxdepth 1 -type d -name 'primary-f*' | sort -nr | head -n1`
-repoid=`basename $repodata`
+repodata=`find /var/cache/koschei/repodata/ -path '*/primary-f*' -name repomd.xml | sort -nr | head -n1`
+repoid=`grep -o 'primary-[^/]*' <<< "$repodata"`
 group=$1
 shift
-dnf repoquery --repofrompath "$repoid,$repodata/x86_64" --disablerepo \* --enablerepo "$repoid" --repoid "$repoid" --srpm --qf '%{name}' "$@" | koschei-admin edit-group "$group" --content-from-file - --append
+dnf repoquery --repofrompath "$repoid,$repodata" --disablerepo \* --enablerepo "$repoid" --repoid "$repoid" --srpm --qf '%{name}' "$@" | koschei-admin edit-group "$group" --content-from-file - --append
