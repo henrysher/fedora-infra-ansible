@@ -1,0 +1,18 @@
+- name: Copy in the sync-alt cronjob
+  copy: src=cron-sync-alt dest=/etc/cron.d/sync-alt
+  tags:
+  - fedora-web
+  - fedora-web/alt
+
+- name: Copy some config files for {{website}}
+  copy: >
+    src={{item}} dest=/etc/httpd/conf.d/{{website}}/{{item}}
+    owner=root group=root mode=0644
+  with_items:
+  - alt.conf
+  - languages.conf
+  notify:
+  - reload httpd
+  tags:
+  - fedora-web
+  - fedora-web/alt
