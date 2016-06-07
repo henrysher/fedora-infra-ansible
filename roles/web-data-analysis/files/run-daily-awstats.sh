@@ -43,8 +43,9 @@ HTMLDOC=/usr/bin/htmldoc
 
 SITES="apps.fedoraproject.org codecs.fedoraproject.org communityblog.fedoraproject.org docs.fedoraproject.org download.fedoraproject.org fedoramagazine.org fedoraproject.org geoip.fedoraproject.org get.fedoraproject.org getfedora.org labs.fedoraproject.org mirrors.fedoraproject.org spins.fedoraproject.org start.fedoraproject.org"
 
-
+pushd ${CONFDIR}
 for SITE in ${SITES}; do
     perl /usr/share/awstats/wwwroot/cgi-bin/awstats.pl -config=${CONFDIR}/${SITE} -update -Logfile=${TREEDIR}/${SITE}-access.log
+    perl /mnt/fedora_stats/awstats/conf/awstats_buildstaticpages.pl -awstatsprog=${AWSTATS} -config=${SITE} -month=all -year=${YEAR} -dir=${OUTDIR}/${YEAR} ;
 done
-
+popd

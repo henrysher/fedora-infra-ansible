@@ -77,8 +77,8 @@ fi
 # stuck and you end up with days or weeks of data in a single
 # file. Doing a continual sort clears up that.
 
-sort -o ${WORKDIR}/${YEAR}/out-${YEAR}-${MONTH} -S 4G -u -m ${WORKDIR}/${YEAR}/out-${YEAR}-${MONTH} ${WORKFILE}
-sort -o ${WORKDIR}/out-${YEAR} -S 4G -u -m ${WORKDIR}/out-${YEAR} ${WORKFILE}
+sort -o ${WORKDIR}/${YEAR}/out-${YEAR}-${MONTH} -S 8G -u ${WORKDIR}/${YEAR}/out-${YEAR}-${MONTH} ${WORKFILE}
+sort -o ${WORKDIR}/out-${YEAR} -S 8G -u ${WORKDIR}/out-${YEAR} ${WORKFILE}
 
 # Because the logs stop at 04:00 we can only get 24 hours from 6 days before. 
 egrep "${OLDDATE}" ${WORKDIR}/out-${OLDYEAR} > ${TEMPDIR}/watched-day
