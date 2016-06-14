@@ -61,6 +61,15 @@
   - jenkins/slave
   - packages
 
+- name: install f24 and higher specific slave packages
+  dnf: name={{ item }} state=installed
+  with_items: "{{ f24_only }}"
+  when: ansible_distribution_major_version|int > 23
+  tags:
+  - jenkins
+  - jenkins/slave
+  - packages
+
 - name: create jenkins user
   user: name=jenkins state=present createhome=yes system=no groups=mock
   tags:
