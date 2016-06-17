@@ -268,11 +268,6 @@
     - name: set policy for koji builder in openshift for atomic-reactor
       shell: "oadm policy add-role-to-user -n default edit system:serviceaccount:default:builder"
 
-    - name: make sure latest fedora image is pulled and pushed to osbs registry
-      shell: "docker pull fedora && docker tag -f fedora:latest {{docker_registry}}/fedora:latest && docker push {{docker_registry}}/fedora:latest"
-      tags:
-        - containerupdate
-
     - name: Create buildroot container conf directory
       file:
         path: "/etc/osbs/buildroot/"
@@ -293,3 +288,9 @@
         mode: 0400
       notify:
         - buildroot container
+
+    - name: Hardlink atomic-reactor source for buildroot container (because Docker)
+      file:
+        src: /usr/share/atomic-reactor/atomic-reactor.tar.gz
+        dest: /etc/osbs/buildroot/atomic-reactor.tar.gz
+        state: hardlink
