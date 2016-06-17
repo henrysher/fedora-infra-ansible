@@ -41,7 +41,11 @@ XMLRPC.connect(APP, '/xmlrpc')
 
 @XMLRPC.register
 def checkin(pickledata):
-    config = pickle.loads(bz2.decompress(base64.urlsafe_b64decode(pickledata)))
+    uncompressed = bz2.decompress(base64.urlsafe_b64decode(pickledata))
+    try:
+        config = json.loads(uncompressed)
+    except ValueError:
+        config = pickle.loads(uncompressed) 
     r, message = read_host_config(SESSION, config)
     if r is not None:
         return message + 'checked in successful'
