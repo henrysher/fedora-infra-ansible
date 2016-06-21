@@ -21,7 +21,7 @@ class URLShortener
             return $long_url;
         }
         $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL,"https://da.gd/s");
+        curl_setopt($ch, CURLOPT_URL,"https://da.gd/s?strip");
         curl_setopt($ch, CURLOPT_POST, 1);
         curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query(array('url' => $long_url)));
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
