@@ -228,6 +228,18 @@ $code_data = (empty($mode) ? $geshi->parse_code() : htmlspecialchars($row['data'
 $lang->escape($code_data);
 $skin->escape($code_data);
 
+// Fix JSON rendering. The JSON spec disallows newlines in string literals
+// https://www.ietf.org/rfc/rfc4627.txt :
+// "All Unicode characters may be placed within the
+//  quotation marks except for the characters that must be escaped:
+//  quotation mark, reverse solidus, and the control characters (U+0000
+//  through U+001F)."
+// ... and since \n is a control character, sticky-notes putting newlines in
+// string literals (unescaped) breaks spec.
+if ($mode && $mode == 'json') {
+  $code_data = str_replace("\n", "\\n", $code_data);
+}
+
 // Shorten the current URL
 $url_shortener = new URLShortener();
 $short_url = $url_shortener->shorten($nav->get_paste($row['id'], $hash, $project, true, ''));
