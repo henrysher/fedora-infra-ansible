@@ -98,19 +98,15 @@ class ContextInjector(logging.Filter):
 
         This is insane.
 
-        Unless your method or function is passed a reference to the trac
-        'request' object, there is no way to get ahold of the currently
-        logged in user.  Furthermore, there is no way globally to get ahold
-        of the current request object.
-
-        Here, we crawl our way back up the call stack until we find the
-        first place that has 'req' as a local instance variable and attempt
-        to extract the username of the current user from that.
+        There is no way to know the actual fedmsg message at this point in
+        the code, so we're crawling our way down the call stack until we
+        find the first place with a 'msg' local instance variable and
+        attempt to extract the msg_id from it (later).
 
         Please forgive me (and Ralph, the original author of this code).
         """
 
-        for frame in (f[0] for f in inspect.stack()):
+        for frame in (f[0] for f in reversed(inspect.stack())):
             if 'msg' in frame.f_locals:
                 return frame.f_locals['msg']
 
