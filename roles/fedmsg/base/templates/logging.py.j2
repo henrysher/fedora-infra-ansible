@@ -76,7 +76,46 @@ class ContextInjector(logging.Filter):
         if seen_errors[key] > error_limit:
             record.farewell = radio_silence % error_limit
 
+        msg_id = ""
+        try:
+            msg = self.get_msg_object()
+            if isinstance(msg, dict):
+                if 'msg_id' in msg:
+                    msg_id = msg['msg_id']
+                elif 'msg' in msg:
+                    if 'msg_id' in msg['msg']:
+                        msg_id = msg['msg']['msg_id']
+        except:
+            pass
+
+        record.msg_id = msg_id
+
         return True
+
+    @staticmethod
+    def get_msg_object():
+        """ Return the current request object
+
+        This is insane.
+
+        Unless your method or function is passed a reference to the trac
+        'request' object, there is no way to get ahold of the currently
+        logged in user.  Furthermore, there is no way globally to get ahold
+        of the current request object.
+
+        Here, we crawl our way back up the call stack until we find the
+        first place that has 'req' as a local instance variable and attempt
+        to extract the username of the current user from that.
+
+        Please forgive me (and Ralph, the original author of this code).
+        """
+
+        for frame in (f[0] for f in inspect.stack()):
+            if 'msg' in frame.f_locals:
+                return frame.f_locals['msg']
+
+        # This code is reached if there's no Request. Most common case is trac-admin
+        return None
 
     @staticmethod
     def format_callstack():
@@ -126,6 +165,7 @@ host:     %(host)s
 PID:      %(pid)s
 name:     %(proc_name)s
 command:  %(command_line)s
+msg_id:   %(msg_id)s
 
 Callstack that lead to the logging statement
 --------------------------------------------
