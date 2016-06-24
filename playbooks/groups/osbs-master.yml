@@ -284,3 +284,11 @@
         src: /usr/share/atomic-reactor/atomic-reactor.tar.gz
         dest: /etc/osbs/buildroot/atomic-reactor.tar.gz
         state: hardlink
+
+    - name: pull openshift required docker images and tag locally
+      shell: "docker pull {{docker_registry}}/{{item}}:v$(rpm -q origin --qf '%{Version}') && docker tag {{docker_registry}}/{{item}}:v$(rpm -q origin --qf '%{Version}') {{item}}:v$(rpm -q origin --qf '%{Version}')"
+      with_items:
+        - "openshift/origin-pod"
+
+    - name: refresh fedora image streams
+      shell: "oc import-image fedora --all"
