@@ -38,36 +38,10 @@
     - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
 
   tasks:
-    - include: "{{tasks}}/osbs_repos.yml"
-
     - name: copy docker-storage-setup config
       copy:
         src: "{{files}}/osbs/docker-storage-setup"
         dest:  "/etc/sysconfig/docker-storage-setup"
-
-    - name: install docker
-      action: "{{ ansible_pkg_mgr }} name=docker state=installed"
-
-    - name: ensure docker daemon cert dir exists
-      file:
-        path: "{{docker_cert_dir}}"
-        state: directory
-
-    - name: install docker client cert for registry
-      copy:
-        src: "{{private}}/files/koji/containerbuild.cert.pem"
-        dest: "{{docker_cert_dir}}/client.cert"
-
-    - name: install docker client key for registry
-      copy:
-        src: "{{private}}/files/koji/containerbuild.key.pem"
-        dest: "{{docker_cert_dir}}/client.key"
-
-    - name: run docker-storage-setup
-      shell: "docker-storage-setup"
-
-    - name: start and enable docker
-      service: name=docker state=started enabled=yes
 
     - name: create cert dir for openshift public facing REST API SSL
       file:
@@ -93,6 +67,18 @@
       copy:
         src: "{{private}}/files/httpd/osbs.htpasswd"
         dest: /etc/origin/htpasswd
+
+  roles:
+    - {
+      role: push-docker,
+        docker_cert_dir: "/etc/docker/certs.d/registry.stg.fedoraproject.org",
+      when: env == "staging"
+    }
+    - {
+      role: push-docker,
+        docker_cert_dir: "/etc/docker/certs.d/registry.fedoraproject.org",
+      when: env == "production"
+    }
 
 - name: setup osbs
   hosts: osbs:osbs-stg
@@ -293,4 +279,12 @@
       file:
         src: /usr/share/atomic-reactor/atomic-reactor.tar.gz
         dest: /etc/osbs/buildroot/atomic-reactor.tar.gz
-        state: hardlink
+        state: hard
+
+    - name: pull openshift required docker images and tag locally
+      shell: "docker pull {{docker_registry}}/{{item}}:v$(rpm -q origin --qf '%{Version}') && docker tag {{docker_registry}}/{{item}}:v$(rpm -q origin --qf '%{Version}') {{item}}:v$(rpm -q origin --qf '%{Version}')"
+      with_items:
+        - "openshift/origin-pod"
+
+    - name: refresh fedora image streams
+      shell: "oc import-image fedora --all"

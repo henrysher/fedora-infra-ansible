@@ -91,3 +91,22 @@
         },
         when: env == "production"
       }
+
+- name: Setup compose-x86-01 push docker images to registry
+  hosts: compose-x86-01.phx2.fedoraproject.org
+  user: root
+  gather_facts: True
+  tags:
+    - releng-compose
+
+  roles:
+    - {
+      role: push-docker,
+        docker_cert_dir: "/etc/docker/certs.d/registry.stg.fedoraproject.org",
+      when: env == "staging"
+    }
+    - {
+      role: push-docker,
+        docker_cert_dir: "/etc/docker/certs.d/registry.fedoraproject.org",
+      when: env == "production"
+    }
