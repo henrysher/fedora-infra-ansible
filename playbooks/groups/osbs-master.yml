@@ -207,15 +207,15 @@
   tasks:
     - name: pull openshift required docker images
       shell: "docker pull {{item}}:v{{origin_version.stdout}}"
-      with_items: {{openshift_required_images}}
+      with_items: "{{openshift_required_images}}"
 
     - name: tag openshift required docker images for our registry
       shell: "docker tag {{item}}:v{{origin_version.stdout}} {{docker_registry}}/{{item}}:v{{origin_version.stdout}}"
-      with_items: {{openshift_required_images}}
+      with_items: "{{openshift_required_images}}"
 
     - name: push openshift required docker images to our registry
       shell: "docker push {{docker_registry}}/{{item}}:v{{origin_version.stdout}}"
-      with_items: {{openshift_required_images}}
+      with_items: "{{openshift_required_images}}"
 
 - name: post-install osbs tasks
   hosts: osbs:osbs-stg
@@ -309,11 +309,11 @@
 
     - name: pull openshift required docker images
       shell: "docker pull {{docker_registry}}/{{item}}:v{{origin_version.stdout}}"
-      with_items: {{openshift_required_images}}
+      with_items: "{{openshift_required_images}}"
 
     - name: tag openshift required docker images locally
       shell: "docker tag {{docker_registry}}/{{item}}:v{{origin_version.stdout}} {{item}}:v{{origin_version.stdout}}"
-      with_items: {{openshift_required_images}}
+      with_items: "{{openshift_required_images}}"
 
     - name: refresh fedora image streams
       shell: "oc import-image fedora --all"
