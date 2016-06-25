@@ -60,23 +60,13 @@
   copy: >
     src="{{ private }}/files/bodhi_key_and_cert.pem"
     dest="/etc/pki/bodhi/bodhi.pem"
-    owner=bodhi
-    group=bodhi
+    owner=apache
+    group=apache
     mode=0400
   when: inventory_hostname.startswith('bodhi-backend')
   tags:
   - config
   - bodhi
-
-- name: change owner and group attributes of bodhi.pem file
-  file: >
-    path="/etc/pki/bodhi/bodhi.pem"
-    owner=apache
-    group=apache
-  when: inventory_hostname.startswith('bodhi-backend')
-  tags:
-  - bodhi
-  - config
 
 - name: change owner and group attributes of /var/log/bodhi directory
   file: path=/var/log/bodhi owner=apache group=apache
@@ -289,12 +279,30 @@
   - bodhi
   - cron
 
-- name: have the apache own the bodhi config
-  file: >
-    path="/etc/bodhi/production.ini"
+- name: setup basic /etc/bodhi/ contents (staging)
+  template: >
+    src="staging.ini.j2"
+    dest="/etc/bodhi/production.ini"
     owner=apache
     group=apache
-  when: inventory_hostname.startswith('bodhi')
+    mode=0600
+  when: inventory_hostname.startswith('bodhi-backend') and env == 'staging'
+  notify:
+  - reload bodhi httpd
+  tags:
+  - config
+  - bodhi
+
+- name: setup basic /etc/bodhi/ contents (production)
+  template: >
+    src="production.ini.j2"
+    dest="/etc/bodhi/production.ini"
+    owner=apache
+    group=apache
+    mode=0600
+  when: inventory_hostname.startswith('bodhi-backend') and env == 'production'
+  notify:
+  - reload bodhi httpd
   tags:
   - config
   - bodhi
