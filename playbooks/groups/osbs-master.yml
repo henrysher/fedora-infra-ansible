@@ -198,7 +198,7 @@
       register: origin_version
 
 - name: pre-stage content in our docker registry
-  hosts: compose-x86-01.phx2.fedoraproject.org
+  hosts: releng-compose
   user: root
   gather_facts: True
   tags:
@@ -208,14 +208,17 @@
     - name: pull openshift required docker images
       shell: "docker pull {{item}}:v{{origin_version.stdout}}"
       with_items: "{{openshift_required_images}}"
+      when: inventory_hostname.startswith('compose-x86-01')
 
     - name: tag openshift required docker images for our registry
       shell: "docker tag {{item}}:v{{origin_version.stdout}} {{docker_registry}}/{{item}}:v{{origin_version.stdout}}"
       with_items: "{{openshift_required_images}}"
+      when: inventory_hostname.startswith('compose-x86-01')
 
     - name: push openshift required docker images to our registry
       shell: "docker push {{docker_registry}}/{{item}}:v{{origin_version.stdout}}"
       with_items: "{{openshift_required_images}}"
+      when: inventory_hostname.startswith('compose-x86-01')
 
 - name: post-install osbs tasks
   hosts: osbs:osbs-stg
