@@ -50,7 +50,7 @@
 - local_action: shell nova --os-auth-url="{{os_auth_url}}" --os-username="admin" --os-password="{{ADMIN_PASS}}" --os-tenant-name={{inventory_tenant}} volume-list | grep ' {{item.volume_id}} ' | grep 'available' 
   with_items: "{{volumes}}"
   register: volume_available
-  failed_when: no
+  failed_when: volume_available.rc > 1
   when: volumes is defined
 
 #
