@@ -193,9 +193,13 @@
 
   tasks:
 
-    - name: register origin_version
+    - name: register origin_version_out rpm query
       shell: "rpm -q origin --qf '%{Version}'"
-      register: origin_version
+      register: origin_version_out
+
+    - set_fact:
+        origin_version: "{{origin_version_out.stdout}}"
+
 
 - name: pre-stage content in our docker registry
   hosts: compose-x86-01.phx2.fedoraproject.org
@@ -206,15 +210,15 @@
 
   tasks:
     - name: pull openshift required docker images
-      shell: "docker pull {{item}}:v{{origin_version.stdout}}"
+      shell: "docker pull {{item}}:v{{origin_version}}"
       with_items: "{{openshift_required_images}}"
 
     - name: tag openshift required docker images for our registry
-      shell: "docker tag {{item}}:v{{origin_version.stdout}} {{docker_registry}}/{{item}}:v{{origin_version.stdout}}"
+      shell: "docker tag {{item}}:v{{origin_version}} {{docker_registry}}/{{item}}:v{{origin_version}}"
       with_items: "{{openshift_required_images}}"
 
     - name: push openshift required docker images to our registry
-      shell: "docker push {{docker_registry}}/{{item}}:v{{origin_version.stdout}}"
+      shell: "docker push {{docker_registry}}/{{item}}:v{{origin_version}}"
       with_items: "{{openshift_required_images}}"
 
 - name: post-install osbs tasks
@@ -308,11 +312,11 @@
         state: hard
 
     - name: pull openshift required docker images
-      shell: "docker pull {{docker_registry}}/{{item}}:v{{origin_version.stdout}}"
+      shell: "docker pull {{docker_registry}}/{{item}}:v{{origin_version}}"
       with_items: "{{openshift_required_images}}"
 
     - name: tag openshift required docker images locally
-      shell: "docker tag {{docker_registry}}/{{item}}:v{{origin_version.stdout}} {{item}}:v{{origin_version.stdout}}"
+      shell: "docker tag {{docker_registry}}/{{item}}:v{{origin_version}} {{item}}:v{{origin_version}}"
       with_items: "{{openshift_required_images}}"
 
     - name: refresh fedora image streams
