@@ -191,16 +191,6 @@
       when: env == "production"
       }
 
-  tasks:
-
-    - name: register origin_version_out rpm query
-      shell: "rpm -q origin --qf '%{Version}'"
-      register: origin_version_out
-
-    - set_fact:
-        origin_version: "{{origin_version_out.stdout}}"
-
-
 - name: pre-stage content in our docker registry
   hosts: compose-x86-01.phx2.fedoraproject.org
   user: root
@@ -213,6 +203,14 @@
     - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
 
   tasks:
+
+    - name: register origin_version_out rpm query
+      shell: "rpm -q origin --qf '%{Version}'"
+      register: origin_version_out
+
+    - set_fact:
+        origin_version: "{{origin_version_out.stdout}}"
+
     - name: pull openshift required docker images
       shell: "docker pull {{item}}:v{{origin_version}}"
       with_items: "{{openshift_required_images}}"
