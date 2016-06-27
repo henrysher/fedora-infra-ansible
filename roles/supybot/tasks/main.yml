@@ -1,16 +1,3 @@
-- name: install supybot package
-  yum: pkg={{ item }} state=present
-  with_items:
-  - supybot-gribble
-  - supybot-fedora
-  - supybot-koji
-  - supybot-notify
-  - supybot-pinglists
-  - supybot-fedmsg
-  - packagedb-cli
-  tags: supybot
-  when: env == "production"
-
 - name: install limnoria package
   yum: pkg={{ item }} state=present enablerepo=epel-testing
   with_items:
@@ -23,7 +10,6 @@
   - packagedb-cli
   - python-simplejson
   tags: supybot
-  when: env == "staging"
 
 - set_fact: botname={{ botnames[env] }}
 
@@ -74,9 +60,34 @@
   - meetbot
   - supybot
 
-- name: setup cron job to start {{ botname }}/ursabot on boot
-  cron: name={{ botname }} special_time=reboot job='cd /srv/web/meetbot; supybot -d /var/lib/{{ botname }}/conf/{{ botname }}.conf' user=daemon
+- name: setup zodbot systemd service file (prod)
+  copy: src=zodbot.service dest=/etc/systemd/system/zodbot.service
+  notify:
+  - reload systemd
   tags:
   - config
-  - meetbot
+  - supybot
+  when: env =! "staging"
+
+- name: enable zodbot service (prod)
+  service: name=zodbot state=started enabled=true
+  when: env =! "staging"
+  tags:
+  - config
+  - supybot
+
+- name: setup ursabot systemd service file (stg)
+  copy: src=ursabot.service dest=/etc/systemd/system/ursabot.service
+  notify:
+  - reload systemd
+  tags:
+  - config
+  - supybot
+  when: env == "staging"
+
+- name: enable ursabot service (stg)
+  service: name=ursabot state=started enabled=true
+  when: env == "staging"
+  tags:
+  - config
   - supybot
