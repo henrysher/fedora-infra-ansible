@@ -3,7 +3,8 @@ from datetime import datetime
 
 import requests
 import fedmsg.consumers
-import fedfind.release
+import fedfind
+import fedfind.helpers
 
 from sqlalchemy import exc
 
@@ -72,8 +73,7 @@ class AutoCloudConsumer(fedmsg.consumers.FedmsgConsumer):
                 )
 
                 compose_id = compose_details['id']
-                rel = fedfind.release.get_release(cid=compose_id)
-                release = rel.release
+                (release, _, _, _) = fedfind.helpers.parse_cid(compose_id)
 
                 compose_details.update({'release': release})
 

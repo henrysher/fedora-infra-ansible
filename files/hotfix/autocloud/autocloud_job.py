@@ -4,11 +4,11 @@ import datetime
 import json
 import os
 import subprocess
-import sys
 
 from collections import defaultdict
 
-import fedfind.release
+import fedfind
+import fedfind.helpers
 
 from retask.queue import Queue
 
@@ -279,8 +279,7 @@ def check_status_of_compose_image(compose_id):
     session.commit()
 
     compose_id = compose_obj.compose_id
-    rel = fedfind.release.get_release(cid=compose_id)
-    release = rel.release
+    (release, _, _, _) = fedfind.helpers.parse_cid(compose_id)
 
     params = {
         'compose_id': compose_obj.compose_id,
