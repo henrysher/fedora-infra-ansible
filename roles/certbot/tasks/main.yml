@@ -1,0 +1,13 @@
+- name: Install the needed packages
+  yum: pkg={{item}} state=present
+  with_items:
+  - certbot
+
+- name: Create directory for ACME challenge
+  file: dest=/srv/web/acme-challenge state=directory
+
+- name: Allow httpd to see ACME challenge directory
+  copy: src=acme-challenge.conf dest=/etc/httpd/conf.d/acme-challenge.conf
+
+- name: Certbot renewal cron
+  cron: special_time=monthly job="certbot renew"
