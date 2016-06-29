@@ -1,0 +1,22 @@
+First go at a certbot/letsencrypt role for Fedora Infra
+
+To use it:
+
+1) Include the role in your playbook. This will install certbot and put a
+   tiny bit of Apache config in place, along with a monthly cron to attempt to
+   renew certificates.
+2) Add the following lines to your Apache virthost:
+
+  RewriteEngine on
+  RewriteRule ^/\.well-known/(.*) /srv/web/acme-challenge/.well-known/$1 [L]
+
+2) ssh to the relevant box
+
+  # TODO: Fix selinux stuff - the cron won't work until it's fixed either.
+  service httpd graceful
+  setenforce 0
+  certbot certonly --manual-public-ip-logging-ok --webroot -w \
+    /srv/web/acme-challenge/ -d YOURINSTANCE.fedorainfracloud.org
+  setenforce 1
+
+
