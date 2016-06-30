@@ -5,6 +5,8 @@
   - bind
   - unzip
   - git
+  - libsemanage-python
+  - policycoreutils-python-utils
   tags:
   - packages
   - dns
@@ -84,6 +86,22 @@
 
 - name: update dns cron
   cron: name="update dns" job="/usr/local/bin/update-dns >/dev/null" minute=0,15,30,45
+  tags:
+  - dns
+
+- name: check semanage ports
+  command: semanage port -l
+  register: semanageoutput
+  always_run: yes
+  changed_when: "1 != 1"
+  tags:
+  - dns
+
+- name: set ports so bind statistics-channel can bind to 8053
+  command: semanage port -a -t dns_port_t -p tcp 8053
+  when: semanageoutput.stdout.find("8053") == -1
+  notify:
+  - restart named
   tags:
   - dns
 
