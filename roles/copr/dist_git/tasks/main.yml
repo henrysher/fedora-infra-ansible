@@ -99,9 +99,33 @@
 
 - copy: src="ssh_config" dest="/home/copr-service/.ssh/config" owner=copr-service group=copr-service mode=0600
 
-- lineinfile: dest=/etc/cgitrc state=absent regexp="^cache-size"
 - lineinfile: dest=/etc/cgitrc regexp="^project-list=" line="project-list=/var/lib/copr-dist-git/cgit_pkg_list"
+  tags:
+  - config
 - lineinfile: dest=/etc/cgitrc regexp="^scan-path=" line="scan-path=/var/lib/dist-git/git/rpms"
+  tags:
+  - config
+- lineinfile: dest=/etc/cgitrc regexp="^cache-dynamic-ttl=" line="cache-dynamic-ttl=30"
+  tags:
+  - config
+- lineinfile: dest=/etc/cgitrc regexp="^cache-repo-ttl=" line="cache-repo-ttl=30"
+  tags:
+  - config
+- lineinfile: dest=/etc/cgitrc regexp="^cache-root-ttl=" line="cache-root-ttl=30"
+  tags:
+  - config
+- lineinfile: dest=/etc/cgitrc regexp="^cache-scanrc-ttl=" line="cache-scanrc-ttl=30"
+  tags:
+  - config
+- lineinfile: dest=/etc/cgitrc regexp="^cache-about-ttl=" line="cache-about-ttl=30"
+  tags:
+  - config
+- lineinfile: dest=/etc/cgitrc regexp="^cache-snapshot-ttl=" line="cache-snapshot-ttl=30"
+  tags:
+  - config
+- lineinfile: dest=/etc/cgitrc regexp="^cache-size=" line="cache-size=10000"
+  tags:
+  - config
 
 - command: "/usr/share/dist-git/dist_git_sync.sh"
 
@@ -112,6 +136,7 @@
   copy: src="robots.txt" dest="/var/www/html/" mode=0644
   tags:
   - config
+
 
 - name: ensure that services are enabled and started
   service: name="{{ item }}" enabled=yes state=started
