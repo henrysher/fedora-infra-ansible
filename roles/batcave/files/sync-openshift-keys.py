@@ -25,7 +25,9 @@ def add_key(host,user,passwd,key_name,key_type,key_contents, verbose=False):
         print('Adding key %(keyname)s' % {'keyname': key_name})
     os = Openshift(host=host,user=user,passwd=passwd)
     (resp, content) = os.key_add(name=key_name, type=key_type, key_str=key_contents)
-    if resp != 200:
+    # 200 = ok, 201 = created, 422 = error in key format
+    # The latest one is an error, but shouldn't break adding the rest of the keys
+    if resp != 200 and resp != 201 and resp != 422:
         print('ERROR! Result: %(resp)s' % {'resp': resp})
         sys.exit(2)
     if verbose:
