@@ -82,13 +82,15 @@
   - expect
   - libguestfs-tools-c
   - libguestfs-xfs
+  - libvirt-daemon-config-network
+  - libvirt-python3
   - openqa
   - openqa-httpd
   - openqa-plugin-fedmsg
   - python2-fedfind
   - python3-fedfind
   - python3-libguestfs
-  - python3-pexpect
+  - virt-install
   - withlock
   tags:
   - packages
@@ -125,6 +127,10 @@
   failed_when: "1 != 1"
   changed_when: "1 != 1"
   always_run: true
+
+- name: Ensure libvirt is running if needed to create images
+  service: name=libvirtd enabled=yes state=started
+  when: "diskcheck.rc > 0"
 
 # createhdds is kinda fragile and failure is not really fatal on an
 # existing deployment (just means we have an outdated disk image), so
