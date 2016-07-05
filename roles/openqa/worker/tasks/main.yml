@@ -12,10 +12,16 @@
 ##      bool - whether this is the tap-enabled host or not
 ##             each deployment should have *one* tap-capable worker host
 
+- name: Install required packages (testing)
+  dnf: name={{ item }} state=present enablerepo="updates-testing"
+  with_items:
+  - openqa-worker
+  tags:
+  - packages
+
 - name: Install packages
   dnf: name={{ item }} state=present
   with_items:
-  - openqa-worker
   - libselinux-python
   - edk2.git-ovmf-x64
   tags:

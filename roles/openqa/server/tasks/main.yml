@@ -60,13 +60,14 @@
     shell: /sbin/nologin
   when: "openqa_static_uid is defined"
 
-# just keeping this around for convenience as we often need it
-#- name: Install required packages (testing)
-#  dnf: name={{ item }} state=present enablerepo="updates-testing"
-#  with_items:
-#
-#  tags:
-#  - packages
+- name: Install required packages (testing)
+  dnf: name={{ item }} state=present enablerepo="updates-testing"
+  with_items:
+  - openqa
+  - openqa-httpd
+  - openqa-plugin-fedmsg
+  tags:
+  - packages
 
 - name: Install required packages
   dnf: name={{ item }} state=present
@@ -84,9 +85,6 @@
   - libguestfs-xfs
   - libvirt-daemon-config-network
   - libvirt-python3
-  - openqa
-  - openqa-httpd
-  - openqa-plugin-fedmsg
   - python2-fedfind
   - python3-fedfind
   - python3-libguestfs
