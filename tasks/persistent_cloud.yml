@@ -73,9 +73,12 @@
   ignore_errors: True
   register: hostkey
   when: host_is_up|failed
-
+#
+# Set serial: 1 here due to locking bug with known_hosts
+#
 - name: add new ssh host key (you still need to add it to official ssh_host_keys later)
-  local_action: known_hosts path={{item}} key="{{ hostkey.stdout }}" host={{ inventory_hostname }} state=present
+  local_action: known_hosts path={{ item }} key={{ hostkey.stdout }} host={{ inventory_hostname }} state=present
+  serial: 1
   ignore_errors: True
   with_items:
   - /root/.ssh/known_hosts
