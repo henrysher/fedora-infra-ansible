@@ -14,6 +14,7 @@
     version: "{{ atomic_reactor_git.git_branch }}"
     accept_hostkey: yes
   register: dockerfile_git_repo
+  changed_when: "dockerfile_git_repo.after|default('after') != dockerfile_git_repo.before|default('before')"
 
 - name: check if atomic-reactor image is present
   command: docker inspect {{ atomic_reactor_tag }}
