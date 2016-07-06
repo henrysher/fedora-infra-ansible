@@ -225,6 +225,21 @@
 
   tasks:
 
+    - name: pull fedora required docker images
+      shell: "docker pull {{item}}"
+      with_items: "{{fedora_required_images}}"
+      delegate_to: compose-x86-01.phx2.fedoraproject.org
+
+    - name: tag fedora required docker images for our registry
+      shell: "docker tag {{item}} {{docker_registry}}/{{item}}"
+      with_items: "{{fedora_required_images}}"
+      delegate_to: compose-x86-01.phx2.fedoraproject.org
+
+    - name: push fedora required docker images to our registry
+      shell: "docker push {{docker_registry}}/{{item}}"
+      with_items: "{{openshift_required_images}}"
+      delegate_to: compose-x86-01.phx2.fedoraproject.org
+
     - name: register origin_version_out rpm query
       shell: "rpm -q origin --qf '%{Version}'"
       register: origin_version_out
