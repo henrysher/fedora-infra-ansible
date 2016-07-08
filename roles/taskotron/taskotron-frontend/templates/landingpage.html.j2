@@ -1,147 +1,176 @@
-<!doctype html>
-<!-- paulirish.com/2008/conditional-stylesheets-vs-css-hacks-answer-neither/ -->
-<!--[if lt IE 7]> <html class="no-js ie6 oldie" lang="en"> <![endif]-->
-<!--[if IE 7]>    <html class="no-js ie7 oldie" lang="en"> <![endif]-->
-<!--[if IE 8]>    <html class="no-js ie8 oldie" lang="en"> <![endif]-->
-<!-- Consider adding an manifest.appcache: h5bp.com/d/Offline -->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en"> <!--<![endif]-->
-<head>
-  <meta charset="utf-8">
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 
-  <!-- Use the .htaccess and remove these lines to avoid edge case issues.
-       More info: h5bp.com/b/378 -->
-  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
 
-  <title>{{ landingpage_title }}</title>
-  <meta name="description" content="Landing page for the Fedora QA Taskotron instance.">
-  <meta name="author" content="Fedora QA">
+    <meta name="description" content="Landing page for the Fedora QA Taskotron instance.">
+    <meta name="author" content="Fedora QA">
 
-  <!-- Mobile viewport optimized: j.mp/bplateviewport -->
-  <meta name="viewport" content="width=device-width,initial-scale=1">
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="static/css/style.css">
 
-  <!-- Place favicon.ico and apple-touch-icon.png in the root directory: mathiasbynens.be/notes/touch-icons -->
-  <link rel="shortcut icon" href="static/favicon.ico">
-
-  <!-- CSS: implied media=all -->
-  <link rel="stylesheet" href="static/css/foundation.css">
-  <link rel="stylesheet" href="static/css/normalize.css">
-  <link rel="stylesheet" href="static/css/app.css">
-  <link rel="stylesheet" href="static/css/text.css">
-  <!-- end CSS-->
+    <title>Taskotron {{ landingpage_title }}</title>
+    <link rel="icon" type="image/png" href="static/img/favicon.png">
 
 </head>
 
+
 <body>
+  <nav class="navbar navbar-default navbar-static-top navbar-dark">
+    <div class="container-fluid">
+      <div class="navbar-header">
+        <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+          <span class="sr-only">Toggle navigation</span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        {% if landingpage_title %}
+        <a class="navbar-brand {{landingpage_title|lower}}">{{landingpage_title}} Instance</a>
+        {% endif %}
+      </div>
 
-    <div class="fullcontainer">
-
-        <div id="preheader" class="fedora-preheader">
-
-            <div class="row">
-                <div class="large-3 columns">
-                    <a href="">
-
-                    <div id="logo" class="fedora-header">
-
-                    </div>
-                    </a>
-                </div>
-                <div class="large-1 columns">
-                </div>
-            </div>
-        </div>
-
-
-<div class="row">
-    <div class="large-8 large-centered columns" id="nav-bar">
-        <div class="menu-container">
-            <span class="menu-bar">
-                <ul>
-                    <li><a class="active" href="#">Home</a></li>
-                    <li><a href="https://fedoraproject.org/wiki/Taskotron">Wiki</a></li>
-                    <li><a href="https://phab.qadevel.cloud.fedoraproject.org/maniphest">Issue Tracker</a></li>
-                    <li><a href="https://docs.qadevel.cloud.fedoraproject.org/libtaskotron/latest/">Documentation</a></li>
+      <div id="navbar" class="navbar-collapse collapse navbar-dark">
+        <ul class="nav navbar-nav navbar-right">
+          <li><a href="https://fedoraproject.org/wiki/Taskotron">Wiki</a></li>
+          <li><a href="https://phab.qadevel.cloud.fedoraproject.org">Issue Tracker</a></li>
+          <li><a href="https://fedoraproject.org/wiki/Taskotron/Tasks">Information about Tasks</a></li>
         </ul>
-            </span>
-
-
-        </div> <!-- end of menu container -->
-    </div> <!-- end of menu column -->
-</div> <!-- end of menu row -->
-
-
-
-<div class="row">
-    <div class="large-12 columns" id="index">
-        <h2>Welcome to {{ landingpage_title }}</h2>
-
-        <p>Taskotron is a framework for automated task execution. Below are some quick links to the current staging instance.</p>
-        <div class="panel radius" id="main-info">
-              <ul>
-        <li><a href="/taskmaster/waterfall">Recently Executed Tasks</a></li>
-        <li><a href="https://fedoraproject.org/wiki/Taskotron/Tasks">Information about Taskotron Tasks (and help for reading their output)</a></li>
-        <li><a href="/{{ resultsdb_fe_endpoint }}/jobs">Browse Task Results</a></li>
-          </ul>
-        </div>
-
-        <h3>Overview</h3>
-
-        <p>Taskotron is in the very early stages of development with the objective to replace <a href="http://fedoraproject.org/wiki/AutoQA">AutoQA</a> for automating selected <a href="http://fedoraproject.org/wiki/QA">QA</a> tasks in Fedora. Some of its major envisioned features:</p>
-        <div class="panel radius" id="main-info">
-                   <ul>
-              <li>Support for distribution-wide checks - e.g. Can this set of packages be pushed to stable updates repository? or Is this new system compose installable?</li>
-              <li>Support for package-related checks - e.g. Can this new build of firefox package be safely updated? or Do the functional tests pass for this new build of openssh?</li>
-              <li>Simple check management - package maintainers in full control of their package-related checks, no hurdles</li>
-              <li>Event-based - where applicable only the simplest interaction between services is used - passing messages through a message bus - for both check triggering and result reporting. No hardcoded tie-ins to specific services.</li>
-              <li>Decoupled design - comprised of loosely-coupled standalone units (tools, libraries) so that important logical functions are separated and one unit can be replaced with a different unit with similar functionality</li>
-              <li>Trivial local execution - no need to replicate the production environment with all its servers and configurations, the check authors can easily run and develop their checks on their local machine with no unnecessary software setup hassle</li>
-              <li>Useful for other Linux distributions as well, not just Fedora</li>
-            </ul>
-       </div>
-
-
-       <p>Taskotron is under active development. If you're interested in contributing, check out our <a href="{{ taskotron_docs_url }}/devguide.html">Development guide</a> and the tickets and tasks on our <a href="https://phab.qadevel.cloud.fedoraproject.org/maniphest/query/J_IIsveePHC./">phabricator instance</a> (login required for main page for now but applications are available without login).
-            </p>
-
-            <p>If you have any questions there are a few ways you can contact us. 
-                <div class="panel radius" id="main-info">
-                    <ul>
-                        <li>
-                            Via email on <a href="https://admin.fedoraproject.org/mailman/listinfo/qa-devel">The Fedora qa-devel list</a>
-                        </li>
-                        <li>In #fedora-qa on Freenode IRC</li>
-                    </ul>
-                </div>
-            </p>
-
-
-        </div>
-
+      </div>
     </div>
-</div>
+  </nav>
 
-<div class="container">
-    <div class="fedora-prefooter">
-        <div class="twelve column">
-            This application is open source! Get <a href="https://bitbucket.org/fedoraqa/baseweb">the code</a>
-            or look at <a href="https://phab.qadevel.cloud.fedoraproject.org/project/view/5/">development plans</a>.
-            <div class="fedora-footer"></div>
-        </div>
+  <div class="bg fullpage">
+
+    <div class="jumbotron text-center">
+      <div class="container">
+      <div class="vfill-40"></div>
+      <img src="static/img/taskotron-{{landingpage_instance}}.svg" class="img-responsive center-block logo">
+      <div class="vfill-120"></div>
+      <p class="punchline">automated task execution framework</p>
+      <div class="vfill-120"></div>
+      <p>
+      <a class="btn btn-lg btn-primary hvr-fade" href="/{{ resultsdb_fe_endpoint }}/jobs" role="button">Browse Task Results</a>
+        <a class="btn btn-lg btn-primary hvr-fade" href="/taskmaster/waterfall" role="button">Recently Executed Tasks</a>
+        <a class="btn btn-lg btn-primary hvr-fade" href="https://docs.qadevel.cloud.fedoraproject.org/libtaskotron/latest/docs" role="button">Documentation</a>
+      </p>
+      </div>
     </div>
-</div>
+  </div>
 
-</div> <!-- end of main row -->
+  <div class="container">
 
-{% if fedmenu_url is defined and fedmenu_data_url is defined %}
-<script src="{{ jquery_url }}"></script>
-<script src="{{ fedmenu_url }}"></script>
-<script>
-  fedmenu({
-    'url': '{{ fedmenu_data_url }}',
-    'mimeType': 'application/javascript',
-    'position': 'bottom-right',
-  });
-</script>
-{% endif %}
+    <div class="row vertical-center">
+        <div class="col-md-9">
+          <h2>Open source rockstar</h2><p class="text-muted">Taskotron is under active development. If you're interested in contributing, check out our <a href="{{ taskotron_docs_url }}/devguide.html">Development guide</a> and the tickets and tasks on our <a href="https://phab.qadevel.cloud.fedoraproject.org/project/view/28/">Planning Workboard</a>, or pick some <a href="https://phab.qadevel.cloud.fedoraproject.org/project/board/12/">easy to handle tasks</a>.</p>
+        </div>
+      <div class="col-md-3">
+        <div class="featurette text-right" style="color: #cc8f60;">
+        <i class="fa fa-code-fork"></i></div>
+      </div>
+    </div>
+
+    <hr>
+
+    <div class="row vertical-center">
+      <div class="col-md-3">
+        <div class="featurette text-left" style="color: #639a81;">
+        <i class="fa fa-bar-chart"></i></div>
+      </div>
+      <div class="col-md-9">
+        <h2>Simple check management</h2><p class="text-muted">Package maintainers in full control of their package-related checks, no hurdles.</p>
+      </div>
+    </div>
+
+    <hr>
+
+    <div class="row vertical-center">
+        <div class="col-md-9">
+          <h2>Support for package-related checks</h2><p class="text-muted">Can this new build of firefox package be safely updated? Do the functional tests pass for this new build of openssh?</p>
+        </div>
+      <div class="col-md-3">
+        <div class="featurette text-right" style="color: #cc8f60;">
+        <i class="fa fa-cubes"></i></div>
+      </div>
+    </div>
+
+    <hr>
+
+    <div class="row vertical-center">
+      <div class="col-md-3">
+        <div class="featurette text-left" style="color: #639a81;">
+        <i class="fa fa-globe"></i></div>
+      </div>
+      <div class="col-md-9">
+        <h2>Support for distribution-wide checks</h2><p class="text-muted">Can this set of packages be pushed to stable? Is this new system compose installable?</p>
+      </div>
+    </div>
+
+    <hr>
+
+    <div class="row vertical-center">
+        <div class="col-md-9">
+          <h2>Event-based</h2><p class="text-muted">Where applicable only the simplest interaction between services is used - passing messages through a message bus - for both check triggering and result reporting. No hardcoded tie-ins to specific services.</p>
+        </div>
+      <div class="col-md-3">
+        <div class="featurette text-right"  style="color: #cc8f60;">
+        <i class="fa fa-paper-plane"></i></div>
+      </div>
+    </div>
+
+    <hr>
+
+    <div class="row vertical-center">
+      <div class="col-md-3">
+        <div class="featurette text-left"  style="color: #639a81;">
+        <i class="fa fa-puzzle-piece"></i></div>
+      </div>
+      <div class="col-md-9">
+        <h2>Decoupled design</h2><p class="text-muted">Comprised of loosely-coupled standalone units (tools, libraries) so that important logical functions are separated and one unit can be replaced with a different unit with similar functionality.</p>
+      </div>
+    </div>
+
+    <hr>
+
+    <div class="row vertical-center">
+      <div class="col-md-9">
+        <h2>Trivial local execution</h2><p class="text-muted">No need to replicate the production environment with all its servers and configurations, the check authors can easily run and develop their checks on their local machine with no unnecessary software setup hassle.</p>
+      </div>
+      <div class="col-md-3">
+        <div class="featurette text-right"  style="color: #cc8f60;">
+        <i class="fa fa-desktop"></i></div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="fullpage">
+    <div class="container text-center">
+      <div class="punchline">Get in touch!</div>
+      <div class="vfill-120"></div>
+      <p class="text-muted">Email on <a href="https://lists.fedoraproject.org/archives/list/qa-devel@lists.fedoraproject.org/">The Fedora qa-devel list</a></p>
+      <p class="text-muted">In #fedora-qa on <a href="https://webchat.freenode.net/">Freenode IRC</a></p>
+      <p class="text-muted">Check the <a href="https://phab.qadevel.cloud.fedoraproject.org/">Phabricator</a></p>
+      <div class="vfill-120"></div>
+      <img src="static/img/taskotron-box.svg">
+    </div>
+  </footer>
 </body>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+
+<script src="https://apps.fedoraproject.org/fedmenu/js/fedmenu.js"></script>
+    <script>
+      fedmenu({
+        'url': 'https://apps.fedoraproject.org/js/data.js',
+        'mimeType': 'application/javascript',
+        'position': 'bottom-right',
+      });
+    </script>
+
 </html>
