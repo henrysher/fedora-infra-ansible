@@ -355,6 +355,10 @@ config = dict(
             channel='#fedora-modularity',
             # If the word modularity appears in any message, forward it.
             filters=dict(
+                topic=[
+                    # Ignore some of the copr spamminess
+                    'org.fedoraproject.*.copr.*',
+                ],
                 body=['^((?!(modularity|Modularity)).)*$'],
             ),
         ),
