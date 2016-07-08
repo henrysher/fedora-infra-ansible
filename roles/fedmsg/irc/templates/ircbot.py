@@ -339,6 +339,25 @@ config = dict(
                 body=['^((?!fedora-mktg).)*$'],
             ),
         ),
+
+        # And #fedora-modularity
+        dict(
+            network='chat.freenode.net',
+            port=6667,
+            make_pretty=True,
+            make_terse=True,
+
+            {% if env == 'staging' %}
+            nickname='mod-bot-stg',
+            {% else %}
+            nickname='mod-bot',
+            {% endif %}
+            channel='#fedora-modularity',
+            # If the word modularity appears in any message, forward it.
+            filters=dict(
+                body=['^((?!modularity).)*$'],
+            ),
+        ),
     ],
 
     ### Possible colors are ###
