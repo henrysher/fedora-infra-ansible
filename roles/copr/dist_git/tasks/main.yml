@@ -92,8 +92,11 @@
   notify:
   - reload httpd
 
-
 - copy: src="dist-git.conf" dest="/etc/dist-git/dist-git.conf" mode=0644
+  tags:
+  - config
+
+- copy: src="copr-dist-git.hourly" dest="/etc/cron.hourly/copr-dist-git" mode=755
   tags:
   - config
 
@@ -105,29 +108,52 @@
 - lineinfile: dest=/etc/cgitrc regexp="^scan-path=" line="scan-path=/var/lib/dist-git/git/rpms"
   tags:
   - config
-- lineinfile: dest=/etc/cgitrc regexp="^cache-dynamic-ttl=" line="cache-dynamic-ttl=30"
+- lineinfile: dest=/etc/cgitrc regexp="^cache-dynamic-ttl=" line="cache-dynamic-ttl=120"
   tags:
   - config
-- lineinfile: dest=/etc/cgitrc regexp="^cache-repo-ttl=" line="cache-repo-ttl=30"
+- lineinfile: dest=/etc/cgitrc regexp="^cache-repo-ttl=" line="cache-repo-ttl=120"
   tags:
   - config
-- lineinfile: dest=/etc/cgitrc regexp="^cache-root-ttl=" line="cache-root-ttl=30"
+- lineinfile: dest=/etc/cgitrc regexp="^cache-root-ttl=" line="cache-root-ttl=120"
   tags:
   - config
-- lineinfile: dest=/etc/cgitrc regexp="^cache-scanrc-ttl=" line="cache-scanrc-ttl=30"
+- lineinfile: dest=/etc/cgitrc regexp="^cache-scanrc-ttl=" line="cache-scanrc-ttl=120"
   tags:
   - config
-- lineinfile: dest=/etc/cgitrc regexp="^cache-about-ttl=" line="cache-about-ttl=30"
+- lineinfile: dest=/etc/cgitrc regexp="^cache-about-ttl=" line="cache-about-ttl=120"
   tags:
   - config
-- lineinfile: dest=/etc/cgitrc regexp="^cache-snapshot-ttl=" line="cache-snapshot-ttl=30"
+- lineinfile: dest=/etc/cgitrc regexp="^cache-snapshot-ttl=" line="cache-snapshot-ttl=120"
   tags:
   - config
-- lineinfile: dest=/etc/cgitrc regexp="^cache-size=" line="cache-size=10000"
+- lineinfile: dest=/etc/cgitrc regexp="^cache-size=" line="cache-size=100000"
+  tags:
+  - config
+- lineinfile: dest=/etc/cgitrc regexp="^scan-path=" state=absent
+  tags:
+  - config
+- lineinfile: dest=/etc/cgitrc regexp="^include=" line="include=/var/cache/cgit/repo-list.rc"
+  tags:
+  - config
+- name: Copy /etc/cgitrc to /etc/cgitrc.slow
+  copy: remote_src=True src=/etc/cgitrc dest=/etc/cgitrc.slow
+  tags:
+  - config
+- lineinfile: dest=/etc/cgitrc.slow regexp="^scan-path=" line="scan-path=/var/lib/dist-git/git/rpms"
+  tags:
+  - config
+- lineinfile: dest=/etc/cgitrc.slow regexp="^include=" state=absent
+  tags:
+  - config
+- lineinfile: dest=/etc/cgitrc.slow regexp="^cache-scanrc-ttl=" line="cache-scanrc-ttl=10"
   tags:
   - config
 
+
 - command: "/usr/share/dist-git/dist_git_sync.sh"
+
+- name: Create /var/cache/cgit/repo-list.rc if does not exists (it last 30 minutes to generate)
+  command: /etc/cron.hourly/copr-dist-git creates=/var/cache/cgit/repo-list.rc
 
 - name: allow httpd to run cgit
   seboolean: name=httpd_enable_cgi state=true persistent=true
