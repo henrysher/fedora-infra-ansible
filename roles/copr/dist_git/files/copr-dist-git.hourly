@@ -1,3 +1,8 @@
 #!/usr/bin/bash
 
-CGIT_CONFIG="/etc/cgitrc.slow"   /var/www/cgi-bin/cgit  --scan-path=/var/lib/dist-git/git/rpms >/var/cache/cgit/repo-list.rc.new && mv /var/cache/cgit/repo-list.rc.new /var/cache/cgit/repo-list.rc
+(
+flock -n 9 || exit 1
+# ... commands executed under lock ...
+CGIT_CONFIG="/etc/cgitrc.slow"   /var/www/cgi-bin/cgit  --scan-path=/var/lib/dist-git/git/rpms >/var/cache/cgit/repo-list.rc.new >/dev/null && mv -f /var/cache/cgit/repo-list.rc.new /var/cache/cgit/repo-list.rc
+
+) 9>/var/lock/mylockfile
