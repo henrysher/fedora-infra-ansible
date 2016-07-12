@@ -96,38 +96,74 @@
     }
     - osbs-install-openshift
     - {
-        role: osbs-master,
-          osbs_openshift_loglevel: 2,
-          osbs_master_export_port: true,
-          osbs_manage_firewalld: false,
-          osbs_proxy_cert_file: '/etc/origin/proxy_selfsigned.crt',
-          osbs_proxy_key_file: '/etc/origin/proxy_selfsigned.key',
-          osbs_proxy_certkey_file: '/etc/origin/proxy_certkey.crt',
-          osbs_proxy_ca_file: '/etc/origin/proxy_selfsigned.crt',
-          osbs_readonly_users: [],
-          osbs_readonly_groups: [],
-          osbs_readwrite_users: [ "{{ osbs_koji_username }}" ],
-          osbs_readwrite_groups: [],
-          osbs_admin_users: [],
-          osbs_admin_groups: [],
-          osbs_master_max_pods: 3,
-          osbs_update_packages: false,
-          osbs_image_gc_high_threshold: 90,
-          osbs_image_gc_low_threshold: 80,
-          osbs_identity_provider: "htpasswd_provider",
-          osbs_identity_htpasswd: {
-            name: htpasswd_provider,
-            challenge: true,
-            login: true,
-            provider_file: "/etc/origin/htpasswd"
-          },
-          osbs_named_certificates: {
-            enabled: true,
-            cert_file: "named_certificates/{{osbs_url}}.pem",
-            key_file: "named_certificates/{{osbs_url}}.key",
-            names: [ "{{osbs_url}}" ],
-          },
-          osbs_public_api_url: "{{osbs_url}}",
+      role: osbs-master,
+        osbs_openshift_loglevel: 2,
+        osbs_master_export_port: true,
+        osbs_manage_firewalld: false,
+        osbs_proxy_cert_file: '/etc/origin/proxy_selfsigned.crt',
+        osbs_proxy_key_file: '/etc/origin/proxy_selfsigned.key',
+        osbs_proxy_certkey_file: '/etc/origin/proxy_certkey.crt',
+        osbs_proxy_ca_file: '/etc/origin/proxy_selfsigned.crt',
+        osbs_readonly_users: [],
+        osbs_readonly_groups: [],
+        osbs_readwrite_users: [ "{{ osbs_koji_stg_username }}" ],
+        osbs_readwrite_groups: [],
+        osbs_admin_users: [],
+        osbs_admin_groups: [],
+        osbs_master_max_pods: 3,
+        osbs_update_packages: false,
+        osbs_image_gc_high_threshold: 90,
+        osbs_image_gc_low_threshold: 80,
+        osbs_identity_provider: "htpasswd_provider",
+        osbs_identity_htpasswd: {
+          name: htpasswd_provider,
+          challenge: true,
+          login: true,
+          provider_file: "/etc/origin/htpasswd"
+        },
+        osbs_named_certificates: {
+          enabled: true,
+          cert_file: "named_certificates/{{osbs_url}}.pem",
+          key_file: "named_certificates/{{osbs_url}}.key",
+          names: [ "{{osbs_url}}" ],
+        },
+        osbs_public_api_url: "{{osbs_url}}",
+        when: env == "staging"
+      }
+    - {
+      role: osbs-master,
+        osbs_openshift_loglevel: 2,
+        osbs_master_export_port: true,
+        osbs_manage_firewalld: false,
+        osbs_proxy_cert_file: '/etc/origin/proxy_selfsigned.crt',
+        osbs_proxy_key_file: '/etc/origin/proxy_selfsigned.key',
+        osbs_proxy_certkey_file: '/etc/origin/proxy_certkey.crt',
+        osbs_proxy_ca_file: '/etc/origin/proxy_selfsigned.crt',
+        osbs_readonly_users: [],
+        osbs_readonly_groups: [],
+        osbs_readwrite_users: [ "{{ osbs_koji_prod_username }}" ],
+        osbs_readwrite_groups: [],
+        osbs_admin_users: [],
+        osbs_admin_groups: [],
+        osbs_master_max_pods: 3,
+        osbs_update_packages: false,
+        osbs_image_gc_high_threshold: 90,
+        osbs_image_gc_low_threshold: 80,
+        osbs_identity_provider: "htpasswd_provider",
+        osbs_identity_htpasswd: {
+          name: htpasswd_provider,
+          challenge: true,
+          login: true,
+          provider_file: "/etc/origin/htpasswd"
+        },
+        osbs_named_certificates: {
+          enabled: true,
+          cert_file: "named_certificates/{{osbs_url}}.pem",
+          key_file: "named_certificates/{{osbs_url}}.key",
+          names: [ "{{osbs_url}}" ],
+        },
+        osbs_public_api_url: "{{osbs_url}}",
+        when: env == "production"
       }
 
     - {
@@ -168,8 +204,8 @@
           openshift_required_version: 1.1.0,
         },
         default: {
-          username: "{{ osbs_koji_username }}",
-          password: "{{ osbs_koji_password }}",
+          username: "{{ osbs_koji_prod_username }}",
+          password: "{{ osbs_koji_prod_password }}",
           koji_certs_secret: "koji",
           openshift_url: 'https://osbs.fedoraproject.org:8443/',
           registry_uri: 'https://osbs.fedoraproject.org/v2',
@@ -287,7 +323,12 @@
         creates: /etc/origin/fedoraimagestreamcreated
 
     - name: set policy for koji builder in openshift for osbs
-      shell: "oadm policy add-role-to-user -n default edit htpasswd_provider: {{ osbs_koji_username }}"
+      shell: "oadm policy add-role-to-user -n default edit htpasswd_provider: {{ osbs_koji_stg_username }}"
+      when: env == "staging"
+
+    - name: set policy for koji builder in openshift for osbs
+      shell: "oadm policy add-role-to-user -n default edit htpasswd_provider: {{ osbs_koji_prod_username }}"
+      when: env == "production"
 
     - name: set policy for koji builder in openshift for atomic-reactor
       shell: "oadm policy add-role-to-user -n default edit system:serviceaccount:default:builder"
