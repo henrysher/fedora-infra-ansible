@@ -349,7 +349,7 @@ class User(controllers.Controller):
         # Account being changed
         target = People.by_username(targetname)
 
-         email = email.lower()
+        email = email.lower()
 
         emailflash = ''
         changed = [] # record field names that changed for fedmsg
