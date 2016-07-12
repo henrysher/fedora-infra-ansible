@@ -349,6 +349,8 @@ class User(controllers.Controller):
         # Account being changed
         target = People.by_username(targetname)
 
+         email = email.lower()
+
         emailflash = ''
         changed = [] # record field names that changed for fedmsg
 
@@ -987,6 +989,8 @@ If this is not expected, please contact admin@fedoraproject.org and let them kno
             "on our sites. We do not knowingly collect or solicit personal " +\
             "information about children under 13."))
             turbogears.redirect('/')
+        email = email.lower()
+        verify_email = verify_email.lower()
         email_test = select([PeopleTable.c.username],
                       func.lower(PeopleTable.c.email)==email.lower())\
                     .execute().fetchall()
