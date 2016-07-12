@@ -969,6 +969,28 @@
   #################
   # Security Groups
   ################
+  - name: "Create 'testing' security group"
+    neutron_sec_group:
+      login_username: "admin"
+      login_password: "{{ ADMIN_PASS }}"
+      login_tenant_name: "admin"
+      auth_url: "https://{{controller_publicname}}:35357/v2.0"
+      state: "present"
+      name: 'ssh-anywhere-{{item}}'
+      description: "allow ssh from anywhere"
+      tenant_name: "{{item}}"
+      rules:
+        - direction: "ingress"
+          port_range_min: "22"
+          port_range_max: "22"
+          ethertype: "IPv4"
+          protocol: "tcp"
+          remote_ip_prefix: "0.0.0.0/0"
+    with_items:
+    - cloudintern
+
+  - fail: msg="testing"
+
   - name: "Create 'ssh-anywhere' security group"
     neutron_sec_group:
       login_username: "admin"

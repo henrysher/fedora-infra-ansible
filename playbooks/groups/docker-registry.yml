@@ -20,6 +20,8 @@
   - collectd/base
   - rsyncd
   - sudo
+  - { role: openvpn/client,
+      when: env != "staging" }
 
   tasks:
   - include: "{{ tasks }}/yumrepos.yml"
@@ -41,7 +43,6 @@
   #       on localhost and all external connections will be through httpd which
   #       will be SSL enalbed.
   roles:
-    # STAGING
     - {
       role: docker-distribution,
         conf_path: "/etc/docker-distribution/registry/config.yml",
@@ -63,33 +64,7 @@
         },
         http: {
           addr: ":5000"
-        },
-        when: env == "staging"
-      }
-    # PROD
-    - {
-      role: docker-distribution,
-        conf_path: "/etc/docker-distribution/registry/config.yml",
-        tls: {
-          enabled: False,
-        },
-        log: {
-          fields: {
-            service: "registry"
-          }
-        },
-        storage: {
-          cache: {
-            layerinfo: "inmemory"
-            },
-          filesystem: {
-            rootdirectory: "/srv/"
-          }
-        },
-        httpd: {
-          addr: ":5000"
-        },
-        when: env == "production"
+        }
       }
 
     # Setup compose-x86-01 push docker images to registry

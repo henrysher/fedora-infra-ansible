@@ -1046,7 +1046,11 @@ class OpenIDResponse(object):
             do_post_trusts = ['http://taigastg.cloud.fedoraproject.org/',
                               'http://taiga.cloud.fedoraproject.org/',
                               'http://taiga.fedorainfracloud.org/',
-                              'http://taigastg.fedorainfracloud.org/']
+                              'http://taigastg.fedorainfracloud.org/',
+                              'https://taigastg.cloud.fedoraproject.org/',
+                              'https://taiga.cloud.fedoraproject.org/',
+                              'https://taiga.fedorainfracloud.org/',
+                              'https://taigastg.fedorainfracloud.org/']
             if self.request.trust_root in do_post_trusts:
                 # Workaround, since too many clients don't follow the spec
                 return ENCODE_HTML_FORM
