@@ -113,7 +113,7 @@ class UserCreate(validators.Schema):
         validators.Email(not_empty=True, strip=True),
         NonFedoraEmail(not_empty=True, strip=True),
         EVEmail(not_empty=True, strip=True),
-        NonBlockedEmail(not_empty=True, strip=True),
+        # NonBlockedEmail(not_empty=True, strip=True),
     )
     verify_email = validators.All(
         validators.Email(not_empty=True, strip=True),
