@@ -38,11 +38,18 @@ class Auth_FAS extends AuthPlugin {
 
         $groups = $response["person"]["approved_memberships"];
 
+        $has_cla = false;
+        $has_plus_one = false;
         for ($i = 0, $cnt = count($groups); $i < $cnt; $i++) {
-            if ($groups[$i]["name"] == "cla_done") {
-                error_log("FAS auth succeeded for $username", 0);
-                return true;
+            if ($groups[$i]["name"] == "cla_done" || $groups[$i]["name"] == "cla_fpca") {
+                $has_cla = true;
+            } else {
+                $has_plus_one = true;
             }
+        }
+        if($has_cla && $has_plus_one) {
+            error_log("FAS auth succeeded for $username", 0);
+            return true;
         }
         error_log("FAS auth failed for $username: insufficient group membership", 0);
         return false;
