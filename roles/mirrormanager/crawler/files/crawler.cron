@@ -4,4 +4,15 @@
 # [ "`hostname -s`" == "mm-crawler02" ] && sleep 2h is used to start the crawl
 # later on the second crawler to reduce the number of parallel accesses to
 # the database
-0 */12 * * * mirrormanager [ "`hostname -s`" == "mm-crawler02" ] && sleep 2h; /usr/bin/mm2_crawler --timeout-minutes 180 --threads 20 `/usr/local/bin/run_crawler.sh 2` > /dev/null 2>&1
+#
+# To make sure only one cron started crawler is running the previous running
+# (cron) crawlers are being signaled to shut down.  The crawler can try to
+# gracefully shutdown if it gets the signal SIGALRM(14).  After the signal we
+# wait for 5 minutes to give the crawler a chance to shutdown. After that the
+# crawler is killed.  To make sure we only end the cron started crawler we look
+# for the following process "/usr/bin/python /usr/bin/mm2_crawler --threads 25".
+0 */12 * * * mirrormanager [ "`hostname -s`" == "mm-crawler02" ] && sleep 2h;
+pkill -14 -f "/usr/bin/python /usr/bin/mm2_crawler --threads 25"; sleep 5m;
+pkill -9 -f "/usr/bin/python /usr/bin/mm2_crawler --threads 25";
+/usr/bin/mm2_crawler --threads 25 --timeout-minutes 180
+`/usr/local/bin/run_crawler.sh 2` > /dev/null 2>&1
