@@ -177,6 +177,27 @@
   - restart fedmsg-irc
   - restart fedmsg-relay
 
+- name: setup external facing bus loop for composer.stg.phx2.fp.o
+  template: >
+    src="{{ item }}.j2"
+    dest="/etc/fedmsg.d/{{ item }}"
+    owner=root
+    group=root
+    mode=644
+  with_items:
+  - endpoints-external-composer.py
+  when: "'releng-stg' in group_names"
+  tags:
+  - config
+  - fedmsgdconfig
+  - fedmsg/base
+  notify:
+  - reload httpd
+  - restart fedmsg-gateway
+  - restart fedmsg-hub
+  - restart fedmsg-irc
+  - restart fedmsg-relay
+
 - name: install fedmsg-relay in case we're in debug mode.
   yum: name=fedmsg-relay state=present
   when: fedmsg_debug_loopback == true and ansible_distribution_major_version|int < 22
