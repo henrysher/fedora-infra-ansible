@@ -2,7 +2,11 @@
 url = http://127.0.0.1:8080/change_hook
 
 [trigger]
+{% if deployment_type == 'dev' %}
+koji_build_completed_tasks = rpmlint,rpmgrill
+{% else %}
 koji_build_completed_tasks = rpmlint
+{% endif %}
 docker_build_tasks = dockerautotest
 koji_tag_changed_tasks = upgradepath,depcheck
 compose_completed_tasks =
