@@ -12,6 +12,7 @@
   - dist-git-selinux
   - copr-dist-git
   - rdiff-backup
+  - tmpwatch
 
 - name: switch selinux to permissive
   selinux: policy=targeted state=permissive
@@ -166,6 +167,8 @@
   tags:
   - config
 
+- name: set up tmpwatch cron job
+  cron: name="clean tmp" minute="0" job="/usr/sbin/tmpwatch 2h /tmp/"
 
 - name: ensure that services are enabled and started
   service: name="{{ item }}" enabled=yes state=started
