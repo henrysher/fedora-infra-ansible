@@ -211,8 +211,8 @@
   - bodhi
   - cron
 
-- name: put update-fullfilelist in place
-  copy: src=update-fullfilelist dest=/usr/local/bin/update-fullfilelist mode=0755
+- name: put update-fullfiletimelist in place
+  copy: src="{{ files }}/scripts/update-fullfiletimelist" dest=/usr/local/bin/update-fullfiletimelist mode=0755
   when: inventory_hostname.startswith('bodhi-backend01') and env == "production"
   tags:
   - config
@@ -229,7 +229,7 @@
 
 - name: Updates sync cron job. 
   cron: name="updates-sync" minute="15,45" user="ftpsync"
-        job="/usr/local/bin/lock-wrapper fedora-updates-push '/usr/local/bin/fedora-updates-push && /usr/local/bin/update-fullfilelist fedora'"
+        job="/usr/local/bin/lock-wrapper fedora-updates-push '/usr/local/bin/fedora-updates-push && /usr/local/bin/update-fullfiletimelist -l /tmp/update-fullfiletimelist.lock -t /pub fedora'"
         cron_file=updates-sync
   when: inventory_hostname.startswith('bodhi-backend01') and env == "production"
   tags:
