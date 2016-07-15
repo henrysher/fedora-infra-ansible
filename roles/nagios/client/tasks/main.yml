@@ -57,13 +57,14 @@
   - check_lock_file_age
   - check_testcloud
   - check_osbs_builds.py
+  - check_osbs_api.py
   when: not inventory_hostname.startswith('noc')
   tags:
   - nagios/client
 
 # create dirs
 # puppet used to make /var/spool/nagios (owned by nagios.nagios) mode 750
-# and /usr/lib/nagios/plugins (owned by root) mode 755 - but we don't know WHY 
+# and /usr/lib/nagios/plugins (owned by root) mode 755 - but we don't know WHY
 # then stuff it with plugins from the plugins dir in the nagios module
 # then we symlinked that to /usr/lib64/nagios/plugins
 # it was a nightmare - don't do that - my ghost will haunt you if you do
@@ -181,7 +182,7 @@
 - name: install nrpe checks for proxies
   template: src={{ item }}.j2 dest=/etc/nrpe.d/{{ item }}
   with_items:
-  - check_happroxy_conns.cfg 
+  - check_happroxy_conns.cfg
   - check_varnish_proc.cfg
   when: inventory_hostname.startswith('proxy')
   notify:
