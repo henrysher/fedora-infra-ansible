@@ -7,6 +7,14 @@
   - packages
   - yumrepos
 
+- name: put rhel rhev for power repos on rhel power systems
+  copy: src="{{ files }}/common/rhel7-power-rhev.repo" dest="/etc/yum.repos.d/rhel7-power-rhev.repo"
+  when: ansible_distribution == 'RedHat' and ansible_distribution_major_version == 7 and ansible_architecture =='ppc64le'
+  tags:
+  - config
+  - packages
+  - yumrepos
+
 - name: put epel repos on el systems
   copy: src="{{ files }}/common/epel{{ ansible_distribution_major_version }}.repo" dest="/etc/yum.repos.d/epel{{ ansible_distribution_major_version }}.repo"
   when: ((ansible_distribution == 'RedHat' or ansible_distribution == 'CentOS') and use_default_epel)
