@@ -119,9 +119,11 @@
 - ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=my_ip value={{compute_private_ip}}
   notify:
     - restart openstack-nova-compute
+# Cirrus VGA is not available on PPC, thus no VNC
 - ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=vnc_enabled value=True
   notify:
     - restart openstack-nova-compute
+  when: 'ppc' not in ansible_hostname
 - ini_file: dest=/etc/nova/nova.conf section=DEFAULT option=vncserver_listen value=0.0.0.0
   notify:
     - restart openstack-nova-compute

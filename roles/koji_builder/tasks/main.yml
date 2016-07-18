@@ -1,6 +1,11 @@
 #
 # This is a base koji_builder role.
 #
+- name: set hostname
+  hostname: name="{{inventory_hostname}}"
+  tags:
+  - koji_builder
+
 - name: set root passwd
   user: name=root password={{ builder_rootpw }} state=present
   tags:
@@ -58,40 +63,11 @@
   - koji_builder
 
 - name: add pkgs
-  yum: state=present pkg={{ item }}
-  with_items:
-    - yum-utils
-    - koji-builder
-    - koji-containerbuild-builder
-    - strace
-    - mock
-    - kernel-firmware
-    - ntp
-    - ntpdate
-    - rsyslog
-    - audit
-    - oz
-    - imagefactory
-    - imagefactory-plugins-TinMan
-    - imagefactory-plugins-Docker
-    - imagefactory-plugins-vSphere
-    - imagefactory-plugins-ovfcommon
-    - imagefactory-plugins
-    - imagefactory-plugins-OVA
-    - imagefactory-plugins-EC2
-    - imagefactory-plugins-RHEVM
-    - python-psphere
-    - VMDKstream
-    - pykickstart
-  tags:
-  - koji_builder
-  when: ansible_distribution_major_version|int < 22
-
-- name: add pkgs
   dnf: state=present pkg={{ item }}
   with_items:
     - yum-utils
     - koji-builder
+    - python-osbs-client
     - koji-containerbuild-builder
     - strace
     - mock
@@ -117,7 +93,6 @@
     - pykickstart
   tags:
   - koji_builder
-  when: ansible_distribution_major_version|int > 21
 
 - name: build /etc/kojid/kojid.conf from group vars
   template: src=kojid.conf dest=/etc/kojid/kojid.conf
