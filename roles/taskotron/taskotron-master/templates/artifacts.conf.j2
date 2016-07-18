@@ -1,4 +1,6 @@
 Alias /artifacts {{ public_artifacts_dir }}
+
+
 <Directory "{{ public_artifacts_dir }}">
     Options +Indexes
     IndexOptions +NameWidth=*
@@ -8,9 +10,11 @@ Alias /artifacts {{ public_artifacts_dir }}
     Require all granted
 </Directory>
 
+
 <Directory "{{ public_artifacts_dir }}/all">
     Options -Indexes
 </Directory>
+
 
 <DirectoryMatch "^{{ public_artifacts_dir }}/all/(.+)/">
     Options +Indexes
@@ -19,3 +23,14 @@ Alias /artifacts {{ public_artifacts_dir }}
     Require all granted
 </DirectoryMatch>
 
+{% if deployment_type == 'dev' %}
+<DirectoryMatch "^{{ public_artifacts_dir }}/all/(.+)/task_output/">
+    RewriteEngine on
+
+    RewriteCond   "{{ public_artifacts_dir }}/all/$1/task_output/$2.gz"  -f
+    RewriteCond   "{{ public_artifacts_dir }}/all/$1/task_output/$2"     !-f
+    RewriteRule   "^{{ public_artifacts_dir }}/all/(.+)/task_output/(.*)$"  "{{ public_artifacts_dir }}/all/$1/task_output/$2.gz"
+    SetOutputFilter INFLATE
+    ForceType text/plain
+</DirectoryMatch>
+{% endif %}
