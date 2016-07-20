@@ -1,0 +1,170 @@
+---
+# Configuration for the pagure webapp
+
+- name: install needed packages
+  yum: pkg={{ item }} state=present
+  with_items:
+  - pagure
+  - pagure-milters
+  - pagure-ev
+  - pagure-webhook
+  - python-psycopg2
+  - redis
+  - libsemanage-python
+    #  - mod_ssl
+    #  - stunnel
+  tags:
+  - pagure
+  - packages
+
+- name: create the /srv/tmp folder where to clone repos
+  file: state=directory
+               path=/srv/tmp
+               owner=git group=git mode=0775
+  tags:
+  - gitolite
+  - pagure
+
+# Set-up stunnel for the event source server
+
+  #- name: install stunnel service definition
+  #  copy: src=stunnel.service
+  #        dest=/usr/lib/systemd/system/stunnel.service
+  #        owner=root group=root mode=0755
+  #  notify:
+  #  - reload systemd
+  #  - restart stunnel
+  #  tags:
+  #  - pagure
+  #  - stunnel
+
+  #- name: ensure old stunnel init file is gone
+  #  file: dest=/etc/init.d/stunnel/stunnel.init state=absent
+  #  tags:
+  #  - pagure
+  #  - stunnel
+  #  - config
+
+  #- name: install stunnel.conf
+  #  template: src={{ item.file }}
+  #            dest={{ item.dest }}
+  #            owner=root group=root mode=0600
+  #  with_items:
+  #  - { file: stunnel-conf.j2, dest: /etc/stunnel/stunnel.conf }
+  #  notify: restart stunnel
+  #  tags:
+  #  - pagure
+  #  - stunnel
+  #  - config
+
+
+# Set-up Pagure
+
+- name: Create an user we can run pagure under
+  user: name=pagure group=pagure groups=packager append=yes
+  tags:
+  - pagure
+
+- name: copy sundry pagure configuration
+  template: src={{ item.file }}
+            dest={{ item.location }}/{{ item.file }}
+            owner=git group=postfix mode=0640
+  with_items:
+  - { file: pagure.cfg, location: /etc/pagure }
+  - { file: alembic.ini, location: /etc/pagure }
+  tags:
+  - config
+  - web
+  - pagure
+  notify:
+  - restart apache
+
+- name: create the database scheme
+  command: /usr/bin/python2 /usr/share/pagure/pagure_createdb.py
+  changed_when: "1 != 1"
+  environment:
+      PAGURE_CONFIG: /etc/pagure/pagure.cfg
+  tags:
+  - web
+  - pagure
+
+- name: Install the apache configuration file
+  template: src={{ item }} dest=/etc/httpd/conf.d/{{ item }}
+            owner=root group=root mode=0644
+  with_items:
+  - 0_pagure.conf
+  tags:
+  - files
+  - config
+  - pagure
+  notify:
+  - restart apache
+
+- name: Install the wsgi file
+  template: src={{ item }}
+            dest=/var/www/{{ item }}
+            owner=git group=git mode=0644
+  with_items:
+  - pagure.wsgi
+  tags:
+  - config
+  - web
+  - pagure
+  notify:
+  - restart apache
+
+- name: Add default facl so apache can read git repos
+  acl: default=yes etype=user entity=apache permissions="rx" name=/srv/git state=present
+  register: acl_updates
+  tags:
+  - pagure
+
+- name: Manually fix current default ACLs since Ansible doesnt know recursive acls
+  when: acl_updates.changed
+  command: /usr/bin/setfacl -Rdm user:apache:rx /srv/git
+  tags:
+  - pagure
+
+- name: Manually fix current ACLs since Ansible doesnt know recursive acls
+  when: acl_updates.changed
+  command: /usr/bin/setfacl -Rm user:apache:rx /srv/git
+  tags:
+  - pagure
+
+- name: set sebooleans so pagure can talk to the db
+  seboolean: name=httpd_can_network_connect_db
+                    state=true
+                    persistent=true
+  tags:
+  - selinux
+  - web
+  - pagure
+
+- name: set sebooleans so apache can send emails
+  seboolean: name=httpd_can_sendmail
+                    state=true
+                    persistent=true
+  tags:
+  - selinux
+  - web
+  - pagure
+
+
+# Ensure all the services are up and running
+
+- name: Start and enable httpd, postfix, pagure_milter
+  service: name={{ item }} enabled=yes state=started
+  with_items:
+  - httpd
+  - postfix
+    #  - stunnel
+  - pagure_milter
+  - redis
+  - pagure_ev
+  - pagure_webhook
+  - fedmsg-relay
+  ignore_errors: true
+  tags:
+  - pagure
+  - service
+  - postfix
