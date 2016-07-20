@@ -17,14 +17,6 @@
   - pagure
   - packages
 
-- name: create the /srv/tmp folder where to clone repos
-  file: state=directory
-               path=/srv/tmp
-               owner=git group=git mode=0775
-  tags:
-  - gitolite
-  - pagure
-
 # Set-up stunnel for the event source server
 
   #- name: install stunnel service definition
@@ -63,6 +55,14 @@
 - name: Create an user we can run pagure under
   user: name=pagure group=pagure groups=packager append=yes
   tags:
+  - pagure
+
+- name: create the /srv/tmp folder where to clone repos
+  file: state=directory
+               path=/srv/tmp
+               owner=pagure group=pagure mode=0775
+  tags:
+  - gitolite
   - pagure
 
 - name: copy sundry pagure configuration
