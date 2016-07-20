@@ -67,13 +67,12 @@
                path=/srv/tmp
                owner=pagure group=pagure mode=0775
   tags:
-  - gitolite
   - pagure
 
 - name: copy sundry pagure configuration
   template: src={{ item.file }}
             dest={{ item.location }}/{{ item.file }}
-            owner=git group=postfix mode=0640
+            owner=pagure group=postfix mode=0640
   with_items:
   - { file: pagure.cfg, location: /etc/pagure }
   - { file: alembic.ini, location: /etc/pagure }
@@ -108,7 +107,7 @@
 - name: Install the wsgi file
   template: src={{ item }}
             dest=/var/www/{{ item }}
-            owner=git group=git mode=0644
+            owner=pagure group=pagure mode=0644
   with_items:
   - pagure.wsgi
   tags:
