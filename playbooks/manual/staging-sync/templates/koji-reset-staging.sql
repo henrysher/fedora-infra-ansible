@@ -90,7 +90,7 @@ insert into host_channels (host_id, channel_id) values (
 {% endfor %}
 
 -- The arm builders  are armhfp and do not have createrepo ability
-{% for host in groups['arm-stg'] %}
+{% for host in groups['buildarm-stg'] %}
 select now() as time, 'adding staging host {{ host }}' as msg;
 insert into users (name, usertype, status) values ('{{ host }}', 1, 0);
 insert into host (user_id, name, arches) values (
