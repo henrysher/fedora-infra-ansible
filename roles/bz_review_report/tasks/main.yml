@@ -1,0 +1,28 @@
+---
+# Cron job for the bz-review-report
+
+## Install packages
+- name: Install needed packages
+  yum: pkg={{ item }} state=present
+  with_items:
+  - python-bugzilla
+  tags:
+  - packages
+
+
+## Install all files
+- name: Install the bz-review-report script
+  copy: >
+    src=bz-review-report.py dest=/usr/local/bin/bz-review-report.py
+    owner=root group=root mode=0755
+  tags:
+  - files
+
+
+## Install the cron job
+- name: Install the bz-review-report cronjob
+  copy: >
+    src=bz-review-report.cron dest=/etc/cron.d/bz-review-report.cron
+    owner=root group=root mode=0644
+  tags:
+  - files
