@@ -85,15 +85,13 @@ config = {
     "fmn.rules.utils.pkgdb_url": "http://pkgdb01.phx2.fedoraproject.org/pkgdb/api",
     {% endif %}
     "fmn.rules.cache": {
-        "backend": "dogpile.cache.dbm",
-        # 56700 is 16 hours.. a really long time.
-        # As of this commit:  http://da.gd/oZBe that should be okay, because our
-        # backend should intelligently invalidate its pkgdb2 cache if it
-        # receives a pkgdb2 message.
-        "expiration_time": 56700,
+	"backend": "dogpile.cache.redis",
         "arguments": {
-            "filename": "/dev/shm/fmn-cache.dbm",
-            "lock_factory": MutexLock,  # Use on-disk cache but in-memory lock.
+            "host": "localhost",
+            "port": 6379,
+            "db": 0,
+            "redis_expiration_time": 60*60*2,   # 2 hours
+            "distributed_lock": True
         },
     },
 
