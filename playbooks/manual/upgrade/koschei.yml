@@ -121,7 +121,14 @@
   roles:
   - koschei/backend
 
-- name: Check whether an update happened
+- name: Check whether backend update happened
+  hosts: koschei-backend:koschei-backend-stg
   tasks:
   - assert:
-      that: backend_upgrade.changed and frontend_upgrade.changed
+      that: backend_upgrade.changed
+
+- name: Check whether frontend update happened
+  hosts: koschei-web:koschei-web-stg
+  tasks:
+  - assert:
+      that: frontend_upgrade.changed
