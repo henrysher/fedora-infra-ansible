@@ -30,6 +30,7 @@
     - koschei-watcher
   - name: upgrade koschei from copr repo
     dnf: name="{{ item }}" state=latest enablerepo=msimacek-koschei
+    register: frontend_upgrade
     when: env == 'staging' and testing
     with_items:
     - koschei-admin
@@ -37,6 +38,7 @@
     - koschei-backend-fedora
   - name: upgrade koschei from production repo
     dnf: name="{{ item }}" state=latest
+    register: frontend_upgrade
     when: env != 'staging' or not testing
     with_items:
     - koschei-admin
@@ -70,12 +72,14 @@
     service: name="httpd" state=stopped
   - name: upgrade koschei from testing repo
     yum: name="{{ item }}" state=latest update_cache=yes enablerepo=msimacek-koschei
+    register: backend_upgrade
     when: env == 'staging' and testing
     with_items:
     - koschei-frontend
     - koschei-frontend-fedora
   - name: upgrade koschei from production repo
     yum: name="{{ item }}" state=latest update_cache=yes
+    register: backend_upgrade
     when: env != 'staging' or not testing
     with_items:
     - koschei-frontend
@@ -116,3 +120,7 @@
   - include: "{{ handlers }}/restart_services.yml"
   roles:
   - koschei/backend
+
+- name: Check whether an update happened
+  assert:
+    that: backend_upgrade.changed and frontend_upgrade.changed
