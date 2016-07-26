@@ -11,12 +11,12 @@ EnvironmentFile=-/etc/sysconfig/docker
 EnvironmentFile=-/etc/sysconfig/docker-storage
 EnvironmentFile=-/etc/sysconfig/docker-network
 Environment=GOTRACEBACK=crash
-ExecStart=/bin/sh -c '/usr/bin/docker daemon \
+ExecStart=/usr/bin/docker daemon \
+          --exec-opt native.cgroupdriver=systemd \
           $OPTIONS \
           $DOCKER_STORAGE_OPTIONS \
           $DOCKER_NETWORK_OPTIONS \
-          $INSECURE_REGISTRY \
-          2>&1 | /usr/bin/forward-journald -tag docker'
+          $INSECURE_REGISTRY
 ExecStartPost=/usr/local/bin/fix-docker-iptables
 LimitNOFILE=1048576
 LimitNPROC=1048576
