@@ -66,10 +66,28 @@
   - name: Stop the notification backend
     service: name="fedmsg-hub" state=stopped
 
+  - name: Stop the workers and backends
+    service: name={{ item }} state=stopped
+    with_items:
+    - fmn-backend@1
+    - fmn-worker@1
+    - fmn-worker@2
+    - fmn-worker@3
+    - fmn-worker@4
+
   - name: Upgrade the database
     command: /usr/bin/alembic -c /usr/share/fmn.lib/alembic.ini upgrade head
     args:
       chdir: /usr/share/fmn.lib/
+
+  - name: Re-start the workers and the backend
+    service: name={{ item }} state=started
+    with_items:
+    - fmn-backend@1
+    - fmn-worker@1
+    - fmn-worker@2
+    - fmn-worker@3
+    - fmn-worker@4
 
   - name: And... start the backend again
     service: name="fedmsg-hub" state=started
