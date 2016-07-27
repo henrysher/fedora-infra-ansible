@@ -276,13 +276,13 @@
       shell: "docker tag {{item}} {{docker_registry}}/{{item}}"
       with_items: "{{fedora_required_images}}"
       delegate_to: compose-x86-01.phx2.fedoraproject.org
-      when: "'Downloaded newer image' in docker_pull_fedora_delegated.stdout"
+      when: docker_pull_fedora_delegated|changed
 
     - name: push fedora required docker images to our registry
       shell: "docker push {{docker_registry}}/{{item}}"
       with_items: "{{fedora_required_images}}"
       delegate_to: compose-x86-01.phx2.fedoraproject.org
-      when: "'Downloaded newer image' in docker_pull_fedora_delegated.stdout"
+      when: docker_pull_fedora_delegated|changed
 
     - name: register origin_version_out rpm query
       shell: "rpm -q origin --qf '%{Version}'"
@@ -304,13 +304,13 @@
       shell: "docker tag {{item}}:v{{origin_version}} {{docker_registry}}/{{item}}:v{{origin_version}}"
       with_items: "{{openshift_required_images}}"
       delegate_to: compose-x86-01.phx2.fedoraproject.org
-      when: "'Downloaded newer image' in docker_pull_openshift_delegated.stdout"
+      when: docker_pull_openshift_delegated|changed
 
     - name: push openshift required docker images to our registry
       shell: "docker push {{docker_registry}}/{{item}}:v{{origin_version}}"
       with_items: "{{openshift_required_images}}"
       delegate_to: compose-x86-01.phx2.fedoraproject.org
-      when: "'Downloaded newer image' in docker_pull_openshift_delegated.stdout"
+      when: docker_pull_openshift_delegated|changed
 
     - name: Ensure koji dockerbuilder cert path exists
       file:
@@ -395,8 +395,8 @@
     - name: tag openshift required docker images locally
       shell: "docker tag {{docker_registry}}/{{item}}:v{{origin_version}} {{item}}:v{{origin_version}}"
       with_items: "{{openshift_required_images}}"
-      when: "'Downloaded newer image' in docker_pull_openshift.stdout"
+      when: docker_pull_openshift|changed
 
     - name: refresh fedora image streams
       shell: "oc import-image fedora --all"
-      when: "'Downloaded newer image' in docker_pull_fedora.stdout"
+      when: docker_pull_fedora|changed
