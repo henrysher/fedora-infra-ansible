@@ -1,5 +1,5 @@
 ---
-# Configuration for the mdapi webapp
+# Configuration for the plus-plus-service webapp
 
 - name: Ensure mod_wsgi is not installed since we're using python3
   dnf: pkg=mod_wsgi state=absent
@@ -23,14 +23,16 @@
   - config
 
 - name: Install the config files
-  template: src={{ item.file }}
-            dest={{ item.location }}/{{ item.file }}
+  template: src={{ item.src }}
+            dest={{ item.dest }}
   with_items:
-  - { file: 'settings.py', location: /etc/plus-plus-service }
-  - { file: 'apache.conf', location: /etc/plus-plus-service }
+  - { src: 'settings.py', dest: /etc/plus-plus-service/settings.py }
+  - { src: 'apache.conf', dest: /etc/httpd/conf.d/plus-plus-service.conf }
   tags:
   - pps
   - config
+  notify:
+  - reload httpd
 
 - name: start apache service
   service: name=httpd enabled=yes state=running
