@@ -7,7 +7,7 @@ FAS_USERNAME = '{{ fedorathirdpartyUser }}'
 ## password of the user so the application can log in to FAS with
 FAS_PASSWORD = '{{ fedorathirdpartyPassword }}'
 
-PLUS_PLUS_TOKEN = '{{ plus-plus-service-token }}'
+PLUS_PLUS_TOKEN = '{{ plus_plus_service_token }}'
 
 {% if env == 'staging' %}
 FAS_URL = 'https://admin.stg.fedoraproject.org/accounts/'
