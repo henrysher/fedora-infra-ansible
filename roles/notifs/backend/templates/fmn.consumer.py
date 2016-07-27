@@ -97,13 +97,13 @@ config = {
 
     # The notification backend uses this to build a fas cache of ircnicks
     # to fas usernames so it can act appropriately on certain message types.
-    {% if env == 'staging' %}
+    {% if env == 'staging' -%}
     "fas_credentials": {
         "username": "{{fedoraDummyUser}}",
         "password": "{{fedoraDummyUserPassword}}",
         "base_url": "https://admin.stg.fedoraproject.org/accounts",
     },
-    {% else %}
+    {% else -%}
     "fas_credentials": {
         "username": "{{fedoraDummyUser}}",
         "password": "{{fedoraDummyUserPassword}}",
@@ -112,9 +112,9 @@ config = {
 
 
     ## Backend stuff ##
-    {% if env == 'staging' %}
+    {% if env == 'staging' -%}
     "fmn.backends": ["email", "irc", "android"],
-    {% else %}
+    {% else -%}
     "fmn.backends": ["email", "irc"],  # android is disabled.
     {% endif %}
 
