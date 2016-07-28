@@ -356,8 +356,9 @@ config = dict(
             # If the word modularity appears in any message, forward it.
             filters=dict(
                 topic=[
-                    # Ignore some of the copr spamminess
+                    # Ignore some of the ansible and copr spamminess
                     'org.fedoraproject.*.copr.*',
+                    'org.fedoraproject.*.ansible.*',
                 ],
                 body=['^((?!(modularity|Modularity)).)*$'],
             ),
