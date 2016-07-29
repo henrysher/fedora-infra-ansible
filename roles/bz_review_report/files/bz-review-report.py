@@ -208,6 +208,9 @@ if __name__ == '__main__':
     parser.add_option("-m", "--email", action="store", dest="email_address",
     help="If specified, send results to the given email address instead of generating 'output.txt' file.")
 
+    parser.add_option("-f", "--email-from", action="store", dest="email_from",
+    help="Optional. If specified, then this address will be used for From: field")
+
     parser.add_option("-n", "--username", action="store", dest="username", help="BZ username")
     parser.add_option("-p", "--password", action="store", dest="password", help="BZ password")
 
@@ -422,7 +425,10 @@ if __name__ == '__main__':
         file.close()
 
         subject = "Reviews Weekly"
-        me = socket.gethostname()
+        if options.email_from:
+            me = options.email_from
+        else:
+            me = socket.gethostname()
         you = options.email_address
 
         msg['Subject'] = subject
