@@ -1,0 +1,53 @@
+---
+# Tasks to set up fas3_server
+
+- name: install needed packages
+  yum: pkg={{ item }} state=installed
+  with_items:
+  - fas3
+  - httpd
+  - mod_wsgi
+  tags:
+  - packages
+  - fas3
+
+- name: enable httpd_can_network_connect selinux boolean
+  seboolean: name={{ item }} state=yes persistent=yes
+  with_items:
+  - httpd_can_network_connect
+  - allow_ypbind
+  tags:
+  - config
+  - fas3
+
+- name: setup /var/www/.python-eggs directory
+  file: path=/var/www/.python-eggs owner=apache group=apache mode=0700 state=directory
+  tags:
+  - config
+  - fas3
+
+- name: install /etc/httpd/conf.d/accounts.conf file
+  template: > 
+    src="fas-app.conf.j2" 
+    dest="/etc/httpd/conf.d/accounts.conf" 
+    owner=root 
+    group=root 
+    mode=0644
+  notify:
+  - reload httpd
+  tags:
+  - config
+  - fas3
+
+- name: install /etc/fas/production.ini file
+  template: > 
+    src="production.ini"
+    dest="/etc/fas/production.ini"
+    owner=fas
+    group=apache
+    mode=0640
+  notify:
+  - reload httpd
+  tags:
+  - config
+  - fas3
