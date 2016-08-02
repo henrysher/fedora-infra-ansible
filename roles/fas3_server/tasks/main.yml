@@ -1,10 +1,17 @@
 ---
 # Tasks to set up fas3_server
 
+- name: add temporary copr repo
+  copy: src=copr.repo dest=/etc/yum.repos.d/copr.repo
+  tags:
+  - config
+  - packages
+  - yumrepos
+
 - name: install needed packages
   yum: pkg={{ item }} state=installed
   with_items:
-  - fas3
+  - fas
   - httpd
   - mod_wsgi
   tags:
@@ -20,15 +27,9 @@
   - config
   - fas3
 
-- name: setup /var/www/.python-eggs directory
-  file: path=/var/www/.python-eggs owner=apache group=apache mode=0700 state=directory
-  tags:
-  - config
-  - fas3
-
 - name: install /etc/httpd/conf.d/accounts.conf file
-  template: > 
-    src="fas-app.conf.j2" 
+  copy: > 
+    src="accounts.conf" 
     dest="/etc/httpd/conf.d/accounts.conf" 
     owner=root 
     group=root 
@@ -43,9 +44,9 @@
   template: > 
     src="production.ini"
     dest="/etc/fas/production.ini"
-    owner=fas
-    group=apache
-    mode=0640
+    owner=root
+    group=root
+    mode=0644
   notify:
   - reload httpd
   tags:

@@ -1,0 +1,39 @@
+# create a new fas server
+
+- include: "/srv/web/infra/ansible/playbooks/include/virt-create.yml myhosts=fas3-stg"
+
+- name: make the box be real
+  hosts: fas3-stg
+  user: root
+  gather_facts: True
+
+  vars_files: 
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  roles:
+  - base
+  - hosts
+  - rkhunter
+  #- nagios/client
+  - fas_client
+  - collectd/base
+  - rsyncd
+  - memcached
+  - apache
+  - fas3_server
+  - fedmsg/base
+  - sudo
+  #- yubikey
+  #- totpcgi
+  #- { role: openvpn/client, when: env != "staging" }
+
+  tasks:
+  - include: "{{ tasks }}/yumrepos.yml"
+  - include: "{{ tasks }}/2fa_client.yml"
+  - include: "{{ tasks }}/motd.yml"
+  - include: "{{ tasks }}/mod_wsgi.yml"
+
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"
