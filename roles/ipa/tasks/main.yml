@@ -4,10 +4,14 @@
 - name: install needed packages
   yum: pkg={{ item }} state=present update_cache=yes
   with_items:
+  - haveged
   - ipa-server
   - ipa-server-dns
   tags:
   - packages
+
+- name: enable haveged
+  service: haveged state=started enabled=yes
 
 - name: install IPA
   command: ipa-server-install
