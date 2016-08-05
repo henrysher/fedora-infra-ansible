@@ -1,24 +1,33 @@
 ---
 
 - name: install needed packages
-  yum: pkg={{ item }} state=present
+  pkg:
+    name: "{{ item }}"
+    state: present
   with_items:
   - glusterfs-fuse
   tags:
   - packages
 
 - name: make the mountdir
-  file: state=directory path={{ mountdir }} owner={{ owner }} group={{ group }}
+  file:
+    state: directory
+    path: "{{ mountdir }}"
+    owner: "{{ owner }}"
+    group: "{{ group }}"
 
 - name: copy over the client config
-  template: src=client.config dest=/etc/glusterfs/glusterfs.{{name}}.vol mode=0640
+  template:
+    src: client.config
+    dest: /etc/glusterfs/glusterfs.{{name}}.vol
+    mode: 0640
   #notify:
   #- remount?  no idea...
 
 - name: mount it up
-  mount: >
-    src=/etc/glusterfs/glusterfs.{{name}}.vol
-    state=mounted 
-    fstype=glusterfs
-    name={{mountdir}}
+  mount:
+    src: /etc/glusterfs/glusterfs.{{name}}.vol
+    state: mounted
+    fstype: glusterfs
+    name: "{{mountdir}}"
   ignore_errors: True
