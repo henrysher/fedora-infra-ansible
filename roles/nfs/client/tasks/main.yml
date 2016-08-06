@@ -34,22 +34,14 @@
 # Install needed packages
 #
 - name: Install needed nfs packages
-  yum: pkg={{ item }} state=present
+  pkg:
+    name: "{{ item }}"
+    state: present
   with_items: 
   - nfs-utils
   - rpcbind
   tags:
   - nfs/client
-  when: ansible_distribution_major_version|int < 22
-#
-- name: Install needed nfs packages
-  dnf: pkg={{ item }} state=present
-  with_items: 
-  - nfs-utils
-  - rpcbind
-  tags:
-  - nfs/client
-  when: ansible_distribution_major_version|int > 21
 
 - name: enable nfs-related services and run them (fedora20 only)
   service: name={{ item }}  enabled=true state=started
