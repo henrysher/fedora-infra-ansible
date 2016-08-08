@@ -53,14 +53,14 @@
 #  tags:
 #  - config
 
-- name: add ansible root key 
+- name: add ansible root key
   authorized_key: user=root key="{{ item }}"
   with_file:
   - /srv/web/infra/ansible/roles/base/files/ansible-pub-key
   tags:
   - config
   - sshkeys
-  
+
 - name: add root keys for sysadmin-main and other allowed users
   authorized_key: user=root key="{{ item }}"
   with_lines: "/srv/web/infra/ansible/scripts/auth-keys-from-fas @sysadmin-main {{ root_auth_users }}"
@@ -94,7 +94,7 @@
   - packages
 
 - name: write out global-update-applied file if we updated
-  copy: content="updated" dest=/etc/sysconfig/global-update-applied 
+  copy: content="updated" dest=/etc/sysconfig/global-update-applied
   when: updated is defined
   tags:
   - packages

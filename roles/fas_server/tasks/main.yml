@@ -37,11 +37,11 @@
   - fas
 
 - name: install /etc/httpd/conf.d/accounts.conf file
-  template: > 
-    src="fas-app.conf.j2" 
-    dest="/etc/httpd/conf.d/accounts.conf" 
-    owner=root 
-    group=root 
+  template: >
+    src="fas-app.conf.j2"
+    dest="/etc/httpd/conf.d/accounts.conf"
+    owner=root
+    group=root
     mode=0644
   notify:
   - reload httpd
@@ -55,9 +55,9 @@
   - config
   - fas
 
-- name: install pythonsitelib/fas/config/log.cfg 
+- name: install pythonsitelib/fas/config/log.cfg
   copy: >
-    src="fas-log.cfg"  
+    src="fas-log.cfg"
     dest="/usr/lib/python2.6/site-packages/fas/config/log.cfg"
     owner=root
     group=root
@@ -72,7 +72,7 @@
 
 - name: install /etc/fas-gpg/pubring.gpg file
   copy: >
-    src="{{ private }}/files/fas-gpg/pubring.gpg" 
+    src="{{ private }}/files/fas-gpg/pubring.gpg"
     dest="/etc/fas-gpg/pubring.gpg"
     owner=fas
     group=fas
@@ -83,7 +83,7 @@
 
 - name: install /etc/pki/fas/fedora-server-ca.cert file
   copy: >
-    src="{{ private }}/files/fedora-ca.cert" 
+    src="{{ private }}/files/fedora-ca.cert"
     dest="/etc/pki/fas/fedora-server-ca.cert"
     owner=fas
     group=fas
@@ -94,7 +94,7 @@
 
 - name: install /etc/pki/fas/fedora-upload-ca.cert file
   copy: >
-    src="{{ private }}/files/fedora-ca.cert" 
+    src="{{ private }}/files/fedora-ca.cert"
     dest="/etc/pki/fas/fedora-upload-ca.cert"
     owner=fas
     group=fas
@@ -105,8 +105,8 @@
 
 - name: install /usr/share/fas/static/fedora-server-ca.cert file
   copy: >
-    src="{{ private }}/files/fedora-ca.cert" 
-    dest="/usr/share/fas/static/fedora-server-ca.cert" 
+    src="{{ private }}/files/fedora-ca.cert"
+    dest="/usr/share/fas/static/fedora-server-ca.cert"
     owner=root
     group=root
     mode=0644
@@ -116,8 +116,8 @@
 
 - name: install /usr/share/fas/static/fedora-upload-ca.cert file
   copy: >
-    src="{{ private }}/files/fedora-ca.cert" 
-    dest="/usr/share/fas/static/fedora-upload-ca.cert" 
+    src="{{ private }}/files/fedora-ca.cert"
+    dest="/usr/share/fas/static/fedora-upload-ca.cert"
     owner=root
     group=root
     mode=0644
@@ -126,11 +126,11 @@
   - fas
 
 - name: install /etc/fas.cfg file
-  template: > 
-    src="fas.cfg.j2" 
-    dest="/etc/fas.cfg" 
-    owner=fas 
-    group=apache 
+  template: >
+    src="fas.cfg.j2"
+    dest="/etc/fas.cfg"
+    owner=fas
+    group=apache
     mode=0640
   notify:
   - reload httpd
@@ -138,11 +138,11 @@
   - config
   - fas
 
-- name: install /usr/local/bin/yubikey-remove.py file 
-  template: > 
-    src="yubikey-remove.py.j2" 
-    dest="/usr/local/bin/yubikey-remove.py" 
-    owner=fas 
+- name: install /usr/local/bin/yubikey-remove.py file
+  template: >
+    src="yubikey-remove.py.j2"
+    dest="/usr/local/bin/yubikey-remove.py"
+    owner=fas
     group=fas
     mode=0750
   tags:
@@ -182,19 +182,19 @@
 #- name: install /var/lib/fedora-ca/.rnd file
 #  file: path=/var/lib/fedora-ca/.rnd owner=fas group=fas mode=0600 setype=httpd_sys_content_t
 #  when: master_fas_node == True
-#  tags:     
+#  tags:
 #  - config
 #  - fas
 
 - name: setup /var/lib/fedora-ca/newcerts directory
   file: path=/var/lib/fedora-ca/newcerts owner=fas group=fas mode=0700 state=directory
   when: master_fas_node == True
-  tags:     
+  tags:
   - config
   - fas
 
 - name: setup /var/lib/fedora-ca/private directory
-  file: path=/var/lib/fedora-ca/private owner=fas group=fas mode=0700 state=directory 
+  file: path=/var/lib/fedora-ca/private owner=fas group=fas mode=0700 state=directory
   when: master_fas_node == True
   tags:
   - config
@@ -270,8 +270,8 @@
 
 - name: twice every month, force a new crl to be created
   cron: >
-    name="gen-crl" 
-    job="cd /var/lib/fedora-ca ; /usr/bin/make gencrl &> /dev/null" 
+    name="gen-crl"
+    job="cd /var/lib/fedora-ca ; /usr/bin/make gencrl &> /dev/null"
     user="fas"
     minute="0"
     hour="0"
@@ -306,7 +306,7 @@
 - name: create /srv/web/ca/cacert.pem link
   file: path="/srv/web/ca/cacert.pem" state=link src="/var/lib/fedora-ca/cacert.pem"
   when: master_fas_node == True
-  tags: 
+  tags:
   - config
   - fas
 

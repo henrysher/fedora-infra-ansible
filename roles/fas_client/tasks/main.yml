@@ -1,11 +1,11 @@
 ---
 #
-# This task sets up fasClient on a machine. 
+# This task sets up fasClient on a machine.
 # It installs the fas-clients package, then the /etc/fas.conf and finally a cron job update.
 #
 
 #
-# fas-clients is in the infrastructure repo. 
+# fas-clients is in the infrastructure repo.
 # nss_db is needed to store user/group info.
 #
 - name: install package needed for fas-client (yum)
@@ -35,24 +35,24 @@
   - fas_client
 
 #
-# fasClients needs a valid /etc/fas.conf. 
-# There's vars used in this template: 
+# fasClients needs a valid /etc/fas.conf.
+# There's vars used in this template:
 #
 # fas_client_groups = "sysadmin-main"
 # fas_client_restricted_app = ""
 # fas_client_admin_app = ""
 # fas_client_ssh_groups = ""
 #
-# if desired, set them on a per host/group basis. 
+# if desired, set them on a per host/group basis.
 #
-# Currently the default template is used, but could be modified on a host basis. 
+# Currently the default template is used, but could be modified on a host basis.
 #
 - name: setup /etc/fas.conf for client use
   template: src={{ item }} dest=/etc/fas.conf owner=root mode=600
   with_first_found:
   - ../templates/{{ inventory_hostname }}.fas.conf.j2
   - ../templates/{{ ansible_hostname }}.fas.conf.j2
-  - ../templates/{{ ansible_hostname }}.fas.conf.j2 
+  - ../templates/{{ ansible_hostname }}.fas.conf.j2
   - ../templates/fas.conf.j2
   tags:
   - config

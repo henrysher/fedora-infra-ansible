@@ -7,14 +7,14 @@
 
 - name: create directories needed for epylog
   file: state=directory path={{ item }} owner=root mode=755
-  with_items: 
+  with_items:
   - /var/lib/epylog/merged
   - /srv/web/epylog
   - /srv/web/epylog/merged
 
 - name: setup extra epylog modules
   copy: src={{ item }} dest=/usr/share/epylog/{{ item }}
-  with_items: 
+  with_items:
   - modules/selinux_mod.py
   - modules/rsyncd_mod.py
   - modules/sudo_mod.py
@@ -33,7 +33,7 @@
 
 - name: copy in all the epylog merged files
   copy: src=merged dest=/etc/epylog/
-  tags: 
+  tags:
   - config
 
 - name: epylog merged cron
@@ -44,7 +44,7 @@
 
 - name: epylog httpd config
   copy: src=epylog-web.conf dest=/etc/httpd/conf.d/epylog-web.conf
-  notify: 
+  notify:
   - reload httpd
   tags:
   - config

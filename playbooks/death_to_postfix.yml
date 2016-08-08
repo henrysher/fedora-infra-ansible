@@ -9,13 +9,13 @@
   tasks:
       - name: Try to stop postfix cleanly.
         service:  name=postfix state=stopped
-     
+
       # This doesn't really remove the pid file.. but we say it does so ansible only runs it if the pid file is there..
       - name: Really kill postfix master process
         command:  pkill -u root master removes=/var/spool/postfix/pid/master.pid
-     
+
       - name: Clean up old pid lock file.
         command: rm /var/spool/postfix/pid/master.pid removes=/var/spool/postfix/pid/master.pid
-     
+
       - name: Try to start postfix cleanly
         service:  name=postfix state=started

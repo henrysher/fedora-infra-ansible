@@ -61,7 +61,7 @@
   with_items:
   - "{{ ansible_interfaces }}"
   notify:
-#  - restart NetworkManager   
+#  - restart NetworkManager
   - reload NetworkManager-connections
   - apply interface-changes
   when: (virthost is not defined) and (not item.startswith('tun')) and (not item.startswith('virbr')) and (not item.startswith('vnet')) and (hostvars[inventory_hostname]['ansible_' + item.replace('-','_')]['type'] == 'ether') and (ansible_distribution_major_version|int >=7) and hostvars[inventory_hostname]['ansible_' + item.replace('-','_')]['active'] and nmclitest|success and ( not ansible_ifcfg_blacklist ) and ( ansible_ifcfg_whitelist is not defined or item in ansible_ifcfg_whitelist )
@@ -324,7 +324,7 @@
   - base
 
 #
-# Blacklist the cdc_ether module as we don't want it loading mgmt usb0 and spewing to logs. 
+# Blacklist the cdc_ether module as we don't want it loading mgmt usb0 and spewing to logs.
 #
 - name: Blacklist cdc_ether module
   copy: src=blacklist-cdc_ether.conf dest=/etc/modprobe.d/blacklist-cdc_ether.conf
@@ -350,7 +350,7 @@
     owner=root
     group=root
     mode=644
-  when: env == 'staging'  
+  when: env == 'staging'
   tags:
   - base
   - config
@@ -365,7 +365,7 @@
     owner=root
     group=root
     mode=644
-  when: env == 'production'  
+  when: env == 'production'
   tags:
   - base
   - config

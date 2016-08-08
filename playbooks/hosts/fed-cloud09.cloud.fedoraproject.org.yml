@@ -101,7 +101,7 @@
       state=present
       regexp="^.*INPUT.*172\.24\.0\.10/24.*tcp.*{{ item }}.*ACCEPT"
       insertbefore="^.*INPUT.*RELATED,ESTABLISHED.*ACCEPT"
-      line="-A INPUT -s 172.24.0.10/24 -p tcp -m multiport --dports {{ item }} -m comment --comment \"added by fedora-infra ansible\" -j ACCEPT" 
+      line="-A INPUT -s 172.24.0.10/24 -p tcp -m multiport --dports {{ item }} -m comment --comment \"added by fedora-infra ansible\" -j ACCEPT"
       backup=yes
     with_items:
     - 80,443
@@ -278,7 +278,7 @@
 
   # http://docs.openstack.org/icehouse/install-guide/install/yum/content/basics-queue.html
   # https://openstack.redhat.com/Securing_services#qpid
-  #### FIXME 
+  #### FIXME
   - lineinfile: dest=/etc/rabbitmq/rabbitmq-env.conf regexp="^RABBITMQ_NODE_PORT=" state="absent"
   - service: name=rabbitmq-server state=started
 
@@ -461,7 +461,7 @@
   - ini_file: dest=/etc/cinder/api-paste.ini section="filter:authtoken" option=auth_protocol value=https
   - ini_file: dest=/etc/cinder/api-paste.ini section="filter:authtoken" option=service_host value={{ controller_publicname }}
   - ini_file: dest=/etc/cinder/api-paste.ini section="filter:authtoken" option=cafile value=/etc/pki/tls/certs/fedorainfracloud.org.digicert.pem
-  
+
   - ini_file: dest=/etc/neutron/neutron.conf section=keystone_authtoken option=auth_uri value=https://{{ controller_publicname }}:5000
   - ini_file: dest=/etc/neutron/neutron.conf section=keystone_authtoken option=auth_protocol value=https
   - ini_file: dest=/etc/neutron/neutron.conf section=keystone_authtoken option=auth_host value={{ controller_publicname }}
@@ -500,7 +500,7 @@
 
   # enable stunell to neutron
   - shell: cat /etc/pki/tls/certs/fedorainfracloud.org.pem /etc/pki/tls/certs/fedorainfracloud.org.digicert.pem /etc/pki/tls/private/fedorainfracloud.org.key > /etc/haproxy/fedorainfracloud.org.combined
-  - file: path=/etc/haproxy/fedorainfracloud.org.combined owner=haproxy mode=644 
+  - file: path=/etc/haproxy/fedorainfracloud.org.combined owner=haproxy mode=644
   - copy: src={{ files }}/fedora-cloud/haproxy.cfg dest=/etc/haproxy/haproxy.cfg mode=644 owner=root group=root
   # first OS have to free ports so haproxy can bind it, then we start OS on modified ports
   #- shell: openstack-service stop
@@ -952,7 +952,7 @@
       - { name: pythonbots, cidr: '172.25.128.1/20', gateway: '172.25.128.1' }
       - { name: qa, cidr: '172.25.112.1/20', gateway: '172.25.112.1' }
       - { name: scratch, cidr: '172.25.64.1/20', gateway: '172.25.64.1' }
-      - { name: transient, cidr: '172.25.48.1/20', gateway: '172.25.48.1' } 
+      - { name: transient, cidr: '172.25.48.1/20', gateway: '172.25.48.1' }
       - { name: openshift, cidr: '172.25.160.1/20', gateway: '172.25.160.1' }
   - name: "Connect router's interface to the TENANT-subnet"
     neutron_router_interface:
@@ -1222,7 +1222,7 @@
   - shell: source /root/keystonerc_admin && nova quota-update --instances 40 --cores 80 --ram 300000 --floating-ips 10 --security-groups 20 {{ TENANT_ID.stdout }}
 
 #
-# Note that we set manually the amount of volumes for this tenant to 20 in the web interface. 
+# Note that we set manually the amount of volumes for this tenant to 20 in the web interface.
 # nova quota-update cannot do so.
 #
   - shell: source /root/keystonerc_admin && keystone tenant-list | grep 'persistent ' | awk '{print $2}'
