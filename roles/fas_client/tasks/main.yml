@@ -29,7 +29,7 @@
 # setup /etc/nsswitch.conf to use nssdb
 #
 - name: setup /etc/nsswitch.conf for client use
-  copy: src=nsswitch.conf  dest=/etc/nsswitch.conf owner=root mode=644
+  copy: src=nsswitch.conf  dest=/etc/nsswitch.conf owner=root mode=0644
   tags:
   - config
   - fas_client
@@ -48,7 +48,7 @@
 # Currently the default template is used, but could be modified on a host basis.
 #
 - name: setup /etc/fas.conf for client use
-  template: src={{ item }} dest=/etc/fas.conf owner=root mode=600
+  template: src={{ item }} dest=/etc/fas.conf owner=root mode=0600
   with_first_found:
   - ../templates/{{ inventory_hostname }}.fas.conf.j2
   - ../templates/{{ ansible_hostname }}.fas.conf.j2
@@ -70,20 +70,20 @@
 #  - config
 
 - name: fas_client cron job
-  copy: src=fas-client.cron dest=/etc/cron.d/fas-client owner=root mode=644
+  copy: src=fas-client.cron dest=/etc/cron.d/fas-client owner=root mode=0644
   tags:
   - config
   - fas_client
 
 - name: fas_client_aliases cron job
-  copy: src=fas-client-aliases.cron dest=/etc/cron.d/fas-client-aliases owner=root mode=644
+  copy: src=fas-client-aliases.cron dest=/etc/cron.d/fas-client-aliases owner=root mode=0644
   tags:
   - config
   - fas_client
   when: fas_aliases is defined
 
 - name: fas_client_aliases template
-  copy: src=aliases.template dest=/etc/aliases.template owner=root mode=644
+  copy: src=aliases.template dest=/etc/aliases.template owner=root mode=0644
   tags:
   - config
   - fas_client

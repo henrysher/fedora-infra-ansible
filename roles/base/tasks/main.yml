@@ -57,7 +57,7 @@
    - base
 
 - name: copy ifcfg files - non virthost
-  template: src=ifcfg.j2 dest=/etc/sysconfig/network-scripts/ifcfg-{{item}} mode=644
+  template: src=ifcfg.j2 dest=/etc/sysconfig/network-scripts/ifcfg-{{item}} mode=0644
   with_items:
   - "{{ ansible_interfaces }}"
   notify:
@@ -92,7 +92,7 @@
   hostname: name="{{inventory_hostname}}"
 
 - name: sshd_config
-  copy: src={{ item }} dest=/etc/ssh/sshd_config mode=600
+  copy: src={{ item }} dest=/etc/ssh/sshd_config mode=0600
   with_first_found:
     - "{{ sshd_config }}"
     - ssh/sshd_config.{{ inventory_hostname }}
@@ -185,7 +185,7 @@
   - base
 
 - name: iptables
-  template: src={{ item }} dest=/etc/sysconfig/iptables mode=600 validate="/sbin/iptables-restore --text %s"
+  template: src={{ item }} dest=/etc/sysconfig/iptables mode=0600 validate="/sbin/iptables-restore --text %s"
   with_first_found:
    - iptables/iptables.{{ datacenter }}
    - iptables/iptables.{{ inventory_hostname }}
@@ -209,7 +209,7 @@
   - base
 
 - name: ip6tables
-  template: src={{ item }} dest=/etc/sysconfig/ip6tables mode=600 backup=yes
+  template: src={{ item }} dest=/etc/sysconfig/ip6tables mode=0600 backup=yes
   with_first_found:
    - iptables/ip6tables.{{ datacenter }}
    - iptables/ip6tables.{{ inventory_hostname }}
@@ -244,7 +244,7 @@
   - flush journald tmpfiles to persistent store
 
 - name: rsyslog.conf
-  copy: src={{ item }} dest=/etc/rsyslog.conf mode=644
+  copy: src={{ item }} dest=/etc/rsyslog.conf mode=0644
   with_first_found:
     - rsyslog/rsyslog.conf.{{ inventory_hostname }}
     - rsyslog/rsyslog.conf.{{ dist_tag }}
@@ -257,7 +257,7 @@
   - base
 
 - name: rsyslog log rotate for rsyslog servers
-  copy: src=rsyslog/merged-rsyslog dest=/etc/logrotate.d/merged-rsyslog mode=644
+  copy: src=rsyslog/merged-rsyslog dest=/etc/logrotate.d/merged-rsyslog mode=0644
   when: inventory_hostname.startswith('log')
   notify:
   - restart rsyslog
@@ -278,7 +278,7 @@
   - base
 
 - name: log everything to log01 except on mirrorlist, do not log local4 there.
-  copy: src=rsyslog/rsyslog-log01 dest=/etc/rsyslog.d/rsyslog-log01.conf mode=644
+  copy: src=rsyslog/rsyslog-log01 dest=/etc/rsyslog.d/rsyslog-log01.conf mode=0644
   when: not inventory_hostname.startswith(('mirrorlist','copr','jenkins'))
   tags:
   - rsyslogd
@@ -286,7 +286,7 @@
   - base
 
 - name: log everything to log01 except on mirrorlist, do log local4 there.
-  copy: src=rsyslog/rsyslog-log01-nolocal4 dest=/etc/rsyslog.d/rsyslog-log01.conf mode=644
+  copy: src=rsyslog/rsyslog-log01-nolocal4 dest=/etc/rsyslog.d/rsyslog-log01.conf mode=0644
   when: inventory_hostname.startswith('mirrorlist')
   tags:
   - rsyslogd
@@ -311,7 +311,7 @@
   - base
 
 - name: install a sync httpd logs cron script only on log01
-  copy: src=syncHttpLogs.sh dest=/etc/cron.daily/syncHttpLogs.sh mode=755
+  copy: src=syncHttpLogs.sh dest=/etc/cron.daily/syncHttpLogs.sh mode=0755
   when: inventory_hostname.startswith('log01')
   tags:
   - config
@@ -349,7 +349,7 @@
     dest="/etc/profile.d/setstgps1.sh"
     owner=root
     group=root
-    mode=644
+    mode=0644
   when: env == 'staging'
   tags:
   - base
@@ -364,7 +364,7 @@
     dest="/etc/profile.d/setprodps1.sh"
     owner=root
     group=root
-    mode=644
+    mode=0644
   when: env == 'production'
   tags:
   - base
