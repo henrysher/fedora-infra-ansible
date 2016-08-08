@@ -74,7 +74,7 @@
   tags:
   - bodhi
   - config
-  
+
 - name: setup /etc/bodhi/mash.conf file...
   template: >
     src=mash.conf
@@ -157,7 +157,7 @@
   - bodhi
 
 - name: sync packages from pkgdb2 to koji (el5)
-  cron: name="owner-sync-el5" minute="7,17,27,37,47,57" user="root" 
+  cron: name="owner-sync-el5" minute="7,17,27,37,47,57" user="root"
         job="/usr/local/bin/owner-sync-pkgdb dist-5E-epel"
         cron_file=update-koji-owner-EL-5
   when: inventory_hostname.startswith('bodhi-backend01') and env == "production"
@@ -165,23 +165,23 @@
   - bodhi
 
 - name: sync packages from pkgdb2 to koji (el6)
-  cron: name="owner-sync-el6" minute="7,17,27,37,47,57" user="root" 
+  cron: name="owner-sync-el6" minute="7,17,27,37,47,57" user="root"
         job="/usr/local/bin/owner-sync-pkgdb dist-6E-epel"
         cron_file=update-koji-owner-EL-6
   when: inventory_hostname.startswith('bodhi-backend01') and env == "production"
   tags:
   - bodhi
-  
+
 - name: sync packages from pkgdb2 to koji (epel7)
-  cron: name="owner-sync-epel7" minute="7,17,27,37,47,57" user="root" 
+  cron: name="owner-sync-epel7" minute="7,17,27,37,47,57" user="root"
         job="/usr/local/bin/owner-sync-pkgdb epel7"
         cron_file=update-koji-owner-epel7
   when: inventory_hostname.startswith('bodhi-backend01') and env == "production"
   tags:
   - bodhi
-  
+
 - name: sync packages from pkgdb2 to koji fedora
-  cron: name="owner-sync-fedora" minute="7,17,27,37,47,57" user="root" 
+  cron: name="owner-sync-fedora" minute="7,17,27,37,47,57" user="root"
         job="/usr/local/bin/owner-sync-pkgdb f23;/usr/local/bin/owner-sync-pkgdb f24;/usr/local/bin/owner-sync-pkgdb f25;/usr/local/bin/owner-sync-pkgdb f26"
         cron_file=update-koji-owner-fedora
   when: inventory_hostname.startswith('bodhi-backend01') and env == "production"
@@ -223,7 +223,7 @@
   - bodhi
   - cron
 
-- name: Updates sync cron job. 
+- name: Updates sync cron job.
   cron: name="updates-sync" minute="15,45" user="ftpsync"
         job="/usr/local/bin/lock-wrapper fedora-updates-push '/usr/local/bin/fedora-updates-push && /usr/local/bin/update-fullfiletimelist -l /tmp/update-fullfiletimelist-fedora.lock -t /pub fedora'"
         cron_file=updates-sync
@@ -233,7 +233,7 @@
   - bodhi
   - cron
 
-- name: epel Updates sync cron job. 
+- name: epel Updates sync cron job.
   cron: name="epel-updates-sync" minute="15,45" user="ftpsync"
         job="/usr/local/bin/lock-wrapper fedora-epel-push '/usr/local/bin/fedora-epel-push && /usr/local/bin/update-fullfiletimelist -l /tmp/update-fullfiletimelist-epel.lock -t /pub epel'"
         cron_file=updates-sync
@@ -243,7 +243,7 @@
   - bodhi
   - cron
 
-- name: directory sizes update cron job. 
+- name: directory sizes update cron job.
   cron: name="directory-sizes-update" minute="30" hour="19" user="ftpsync"
         job="/usr/bin/find /pub/alt/ /pub/archive/ /pub/fedora-secondary/ /pub/fedora/ /pub/epel/ -type d  ! -path '/pub/alt/screenshots/f21/source' | grep -v snapshot | /usr/bin/xargs -n 1 /usr/bin/du --exclude=.snapshot -sh > /tmp/DIRECTORY_SIZES.txt 2> /dev/null; cp /tmp/DIRECTORY_SIZES.txt /pub/"
         cron_file=directory-sizes-update
