@@ -19,11 +19,12 @@
 
 - name: Install the meta-data fetch cron job
   when: inventory_hostname.startswith(('mdapi01'))
-  template: src={{ item.file }}
-            dest={{ item.location }}/{{ item.file }}
+  template:
+    src: "{{ item | basename }}"
+    dest: "{{ item }}"
   with_items:
-  - { file: 'mdapi.cron', location: /etc/cron.d }
-  - { file: 'mdapi.cfg', location: /etc/mdapi }
+  - /etc/cron.d/mdapi.cron
+  - /etc/mdapi/mdapi.cfg
   tags:
   - mdapi
   - config
