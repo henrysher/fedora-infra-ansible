@@ -7,19 +7,26 @@
 #
 
 - name: install dnf-automatic
-  dnf: name=dnf-automatic state=present
+  dnf:
+    name: dnf-automatic
+    state: present
   tags:
   - packages
   when: ansible_distribution == 'Fedora' and ansible_distribution_major_version|int > 21
 
 - name: install /etc/dnf/automatic.conf
-  template: src=automatic.conf.j2 dest=/etc/dnf/automatic.conf mode=0644
+  template:
+    src: automatic.conf.j2
+    dest: /etc/dnf/automatic.conf
+    mode: 0644
   tags:
   - config
   when: ansible_distribution == 'Fedora' and ansible_distribution_major_version|int > 21
 
 - name: enable and start dnf-automatic
-  command: systemctl enable dnf-automatic.timer creates=/etc/systemd/system/basic.target.wants/dnf-automatic.timer
+  command: systemctl enable dnf-automatic.timer
+  args:
+    creates: /etc/systemd/system/basic.target.wants/dnf-automatic.timer
   tags:
   - config
   when: ansible_distribution == 'Fedora' and ansible_distribution_major_version|int > 21
