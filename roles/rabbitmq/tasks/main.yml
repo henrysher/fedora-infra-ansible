@@ -2,7 +2,18 @@
   yum: pkg={{ item }} state=present
   with_items:
   - rabbitmq-server
-  tags: rabbitmq
+  tags:
+  - rabbitmq
+  - packages
+
+- name: install the configuration
+  copy: src={{item}} dest=/etc/rabbitmq/{{item}} owner=root group=root mode=0644
+  with_items:
+  - rabbitmq.config
+  - enabled_plugins
+  tags:
+  - rabbitmq
+  - config
 
 - name: start rabbitmq
   service: name=rabbitmq-server state=started enabled=yes
