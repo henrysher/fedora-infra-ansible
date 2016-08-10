@@ -8,10 +8,14 @@
   - ipa-server
   - ipa-server-dns
   tags:
+  - ipa
   - packages
 
 - name: enable haveged
   service: name=haveged state=started enabled=yes
+  tags:
+  - haveged
+  - config
 
 - name: install IPA
   command: ipa-server-install
@@ -30,4 +34,13 @@
            --log-file=/var/log/ipainstall.log
            creates=/etc/ipa/default.conf
   tags:
+  - ipa
+  - config
+
+- name: disable kadmin
+  service: name=kadmin
+           enabled=no
+           state=stopped
+  tags:
+  - ipa
   - config
