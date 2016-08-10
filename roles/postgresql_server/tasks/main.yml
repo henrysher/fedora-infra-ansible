@@ -2,13 +2,26 @@
 #
 # Setup postgresql server.
 #
-- name: install postgresql server packages
+- name: install postgresql server packages (yum)
   yum: name={{ item }}  state=present
   with_items:
   - postgresql-server
   - postgresql-contrib
   - postgresql-plpython
   - python-psycopg2
+  when: ansible_distribution_major_version|int < 22
+  tags:
+  - packages
+  - postgresql
+
+- name: install postgresql server packages (dnf)
+  yum: name={{ item }}  state=present
+  with_items:
+  - postgresql-server
+  - postgresql-contrib
+  - postgresql-plpython
+  - python-psycopg2
+  when: ansible_distribution_major_version|int > 21 and ansible_cmdline.ostree is not defined
   tags:
   - packages
   - postgresql
