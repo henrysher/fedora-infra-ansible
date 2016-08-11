@@ -1,3 +1,7 @@
+#
+# This first part is building the maps for: 
+# http://fedoraproject.org/membership-map/ambassadors.html
+#
 - file: dest=/srv/web/membership-map state=directory
 
 - template: >
@@ -16,3 +20,27 @@
 
 - synchronize: >
      src=www/ dest=/srv/web/membership-map/
+
+#
+# This part updates the wiki page at:
+# https://fedoraproject.org/wiki/Ambassadors/MembershipService/Verification
+#
+
+- yum: state=present name=python-mwclient
+  tags:
+  - membership-map
+  - membership-map/build
+
+- template: >
+    src=membership-mwclient.py dest=/usr/local/bin/membership-mwclient.py
+    owner=root group=root mode=0755
+  tags:
+  - membership-map
+  - membership-map/build
+
+- copy: >
+    src=membership-mwclient-build dest=/etc/cron.d/membership-mwclient-build
+    owner=root group=root mode=0644
+  tags:
+  - membership-map
+  - membership-map/build
