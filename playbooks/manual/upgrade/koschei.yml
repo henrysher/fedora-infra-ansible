@@ -1,3 +1,26 @@
+- name: verify koschei frontend
+  hosts: koschei-web:koschei-web-stg
+  vars_files:
+  - /srv/web/infra/ansible/vars/global.yml
+  - /srv/private/ansible/vars.yml
+  - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"
+  roles:
+  - mod_wsgi
+  - koschei/frontend
+
+- name: verify koschei backend
+  hosts: koschei-backend:koschei-backend-stg
+  vars_files:
+  - /srv/web/infra/ansible/vars/global.yml
+  - /srv/private/ansible/vars.yml
+  - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"
+  roles:
+  - koschei/backend
+
 - name: upgrade koschei backend
   hosts: koschei-backend:koschei-backend-stg
   vars_files:
@@ -6,10 +29,6 @@
   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
   vars:
     testing: False
-  handlers:
-  - include: "{{ handlers }}/restart_services.yml"
-  roles:
-  - koschei/backend
   pre_tasks:
   - name: schedule nagios downtime
     nagios: action=downtime minutes=20 service=host host={{ inventory_hostname_short }}{{ env_suffix }}
@@ -28,18 +47,12 @@
     - koschei-polling
     - koschei-resolver
     - koschei-watcher
-  - name: upgrade koschei from copr repo
-    dnf: name="{{ item }}" state=latest enablerepo=msimacek-koschei
-    register: frontend_upgrade
-    when: env == 'staging' and testing
-    with_items:
-    - koschei-admin
-    - koschei-backend
-    - koschei-backend-fedora
-  - name: upgrade koschei from production repo
-    dnf: name="{{ item }}" state=latest
-    register: frontend_upgrade
-    when: env != 'staging' or not testing
+  - name: upgrade koschei
+    dnf:
+      name: "{{ item }}"
+      state: latest
+      enablerepo: "{{ 'msimacek-koschei' if env == 'staging' and testing else omit }}"
+    register: backend_upgrade
     with_items:
     - koschei-admin
     - koschei-backend
@@ -53,10 +66,6 @@
   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
   vars:
     testing: False
-  handlers:
-  - include: "{{ handlers }}/restart_services.yml"
-  roles:
-  - koschei/frontend
   pre_tasks:
   - name: schedule nagios downtime
     nagios: action=downtime minutes=20 service=host host={{ inventory_hostname_short }}{{ env_suffix }}
@@ -70,17 +79,13 @@
     command: yum {%if env == 'staging'%}--enablerepo msimacek-koschei{%endif%} makecache
   - name: stop httpd
     service: name="httpd" state=stopped
-  - name: upgrade koschei from testing repo
-    yum: name="{{ item }}" state=latest update_cache=yes enablerepo=msimacek-koschei
-    register: backend_upgrade
-    when: env == 'staging' and testing
-    with_items:
-    - koschei-frontend
-    - koschei-frontend-fedora
-  - name: upgrade koschei from production repo
-    yum: name="{{ item }}" state=latest update_cache=yes
-    register: backend_upgrade
-    when: env != 'staging' or not testing
+  - name: upgrade koschei
+    yum:
+      name: "{{ item }}"
+      state: latest
+      enablerepo: "{{ 'msimacek-koschei' if env == 'staging' and testing else omit }}"
+      update_cache: yes
+    register: frontend_upgrade
     with_items:
     - koschei-frontend
     - koschei-frontend-fedora
@@ -91,8 +96,6 @@
   - /srv/web/infra/ansible/vars/global.yml
   - /srv/private/ansible/vars.yml
   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
-  handlers:
-  - include: "{{ handlers }}/restart_services.yml"
   tasks:
   - name: run db migration
     become: yes
@@ -108,6 +111,7 @@
   handlers:
   - include: "{{ handlers }}/restart_services.yml"
   roles:
+  - mod_wsgi
   - koschei/frontend
 
 - name: restart koschei backend
