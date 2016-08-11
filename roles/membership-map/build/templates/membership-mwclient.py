@@ -292,9 +292,10 @@ final_output_list_unknown]:
     page.text()
     page.save(final_string, summary = time)
 
-    
+{% raw %}
     note = "{{admon/note | Last Updated : %s UTC. %s active contributors \
 listed here against %s total.}}" % (time, len(output), len(people_list))
+{% endraw %}
     page = site.Pages['Ambassadors/MembershipService/VerificationStats']
     page.text()
     page.save(note, summary = time)
