@@ -12,10 +12,22 @@
   tags:
   - config
   - bodhi
+  when: ansible_distribution_major_version|int == 7
 
+- name: setup the bodhi2 copr repo
+  copy: >
+    src="bowlofeggs-bodhi2-fedora-24.repo"
+    dest="/etc/yum.repos.d/bowlofeggs-bodhi2-fedora-24.repo"
+    owner=root
+    group=root
+    mode=0644
+  tags:
+  - config
+  - bodhi
+  when: ansible_distribution_major_version|int == 24
 
 - name: install needed packages
-  yum: pkg={{ item }} state=present
+  package: pkg={{ item }} state=present
   with_items:
   - bodhi-server
   - libsemanage-python
