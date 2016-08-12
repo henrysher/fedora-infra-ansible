@@ -9,5 +9,9 @@ config = dict(
     # on bodhi-backend02.
     masher={{bodhi_masher_enabled}},
     masher_topic='bodhi.masher.start',
+{% if ansible_hostname == 'bodhi-backend01' %}
     releng_fedmsg_certname='shell-bodhi-backend01.%s' % suffix,
+{% else %}
+    releng_fedmsg_certname='shell-bodhi-backend03.%s' % suffix,
+{% endif %}
 )
