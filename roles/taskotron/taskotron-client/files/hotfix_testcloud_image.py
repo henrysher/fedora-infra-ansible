@@ -190,7 +190,7 @@ class Image(object):
             log.error('Error while changing SELinux context on '
                       'image {}'.format(image_path))
 
-    def prepare(self, copy=True):
+    def prepare(self, copy=False):
         """Prepare the image for local use by either downloading the image from
         a remote location or copying/linking it into the image store from a locally
         mounted filesystem
