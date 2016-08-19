@@ -4,6 +4,9 @@
 - name: set bigger timeout for yum
   ini_file: dest=/etc/yum.conf section=main option=timeout value=1000
 
+- name: install distribution-gpg-keys which are right now not in fedora main
+  shell: dnf install -y https://kojipkgs.fedoraproject.org//packages/distribution-gpg-keys/1.5/1.fc24/noarch/distribution-gpg-keys-1.5-1.fc24.noarch.rpm
+
 - name: install pkgs
   yum: state=present pkg={{ item }}
   with_items:
@@ -89,3 +92,4 @@
 
 - name: we need to have older fedpkg till BZ 1315423 is resolved
   shell: dnf install -y https://kojipkgs.fedoraproject.org//packages/fedpkg/1.20/2.fc23/noarch/fedpkg-1.20-2.fc23.noarch.rpm
+
