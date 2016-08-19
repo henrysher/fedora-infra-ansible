@@ -36,7 +36,8 @@ from email.mime.text import MIMEText
 
 DATAGREPPER_URL = 'https://apps.fedoraproject.org/datagrepper/raw/'
 DELTA = 7 * 24 * 60 * 60  # 7 days
-EMAIL_TO = 'devel@lists.fedoraproject.org'
+COMMASPACE = ', '
+EMAIL_TO = ['devel@lists.fedoraproject.org', 'epel-devel@lists.fedoraproject.org']
 EMAIL_FROM = 'nobody@fedoraproject.org'
 SMTP_SERVER = 'localhost'
 
@@ -53,7 +54,7 @@ def send_report(report):
     msg = MIMEText(report)
     msg['Subject'] = '[POC-change] Fedora packages point of contact updates'
     msg['From'] = EMAIL_FROM
-    msg['To'] = EMAIL_TO
+    msg['To'] = COMMASPACE.join(EMAIL_TO)
 
     # Send the message via our own SMTP server, but don't include the
     # envelope header.
