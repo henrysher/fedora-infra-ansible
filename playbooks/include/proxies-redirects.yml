@@ -248,67 +248,106 @@
 # When there is no prerelease we redirect the prerelease urls
 # back to the main release.
 # This should be disabled when there is a prerelease
-#
 
-  - block:
-     - role: httpd/redirectmatch
-       name: prerelease-to-final-gfo
-       website: getfedora.org
-       regex: /(.*)/prerelease.*$
-       target: https://stg.getfedora.org/$1
+  - role: httpd/redirectmatch
+    name: prerelease-to-final-gfo
+    website: getfedora.org
+    regex: /(.*)/prerelease.*$
+    target: https://stg.getfedora.org/$1
+    when: env == 'staging'
 
-     - role: httpd/redirectmatch
-       name: prerelease-to-final-labs-1
-       website: labs.fedoraproject.org
-       regex: /(.*)/prerelease.*$
-       target: https://labs.stg.fedoraproject.org/$1
+  - role: httpd/redirectmatch
+    name: prerelease-to-final-labs-1
+    website: labs.fedoraproject.org
+    regex: /(.*)/prerelease.*$
+    target: https://labs.stg.fedoraproject.org/$1
+    when: env == 'staging'
 
-     - role: httpd/redirectmatch
-       name: prerelease-to-final-spins-1
-       website: spins.fedoraproject.org
-       regex: /(.*)/prerelease.*$
-       target: https://spins.stg.fedoraproject.org/$1
+  - role: httpd/redirectmatch
+    name: prerelease-to-final-spins-1
+    website: spins.fedoraproject.org
+    regex: /(.*)/prerelease.*$
+    target: https://spins.stg.fedoraproject.org/$1
+    when: env == 'staging'
 
-     - role: httpd/redirectmatch
-       name: prerelease-to-final-arm-1
-       website: arm.fedoraproject.org
-       regex: /(.*)/prerelease.*$
-       target: https://arm.stg.fedoraproject.org/$1
+  - role: httpd/redirectmatch
+    name: prerelease-to-final-arm-1
+    website: arm.fedoraproject.org
+    regex: /(.*)/prerelease.*$
+    target: https://arm.stg.fedoraproject.org/$1
+    when: env == 'staging'
 
-     - role: httpd/redirectmatch
-       name: prerelease-to-final-labs-2
-       website: labs.fedoraproject.org
-       regex: /prerelease.*$
-       target: https://labs.stg.fedoraproject.org/$1
+  - role: httpd/redirectmatch
+    name: prerelease-to-final-labs-2
+    website: labs.fedoraproject.org
+    regex: /prerelease.*$
+    target: https://labs.stg.fedoraproject.org/$1
+    when: env == 'staging'
 
-     - role: httpd/redirectmatch
-       name: prerelease-to-final-spins-2
-       website: spins.fedoraproject.org
-       regex: /prerelease.*$
-       target: https://spins.stg.fedoraproject.org/$1
+  - role: httpd/redirectmatch
+    name: prerelease-to-final-spins-2
+    website: spins.fedoraproject.org
+    regex: /prerelease.*$
+    target: https://spins.stg.fedoraproject.org/$1
+    when: env == 'staging'
 
-     - role: httpd/redirectmatch
-       name: prerelease-to-final-arm-2
-       website: arm.fedoraproject.org
-       regex: /prerelease.*$
-       target: https://arm.stg.fedoraproject.org/$1
-    when: env == 'production'
+  - role: httpd/redirectmatch
+    name: prerelease-to-final-arm-2
+    website: arm.fedoraproject.org
+    regex: /prerelease.*$
+    target: https://arm.stg.fedoraproject.org/$1
+    when: env == 'staging'
 
-# The above when should be: 
-#
-# When there is a final release and we want redirects
-# in both staging and prod
-#
-#   when: env
-#
-# When there is a prerelease only in staging
-#
-#   when: env == 'production'
-#
-# When there is a prerelease in production and staging
-#
-#   when: not env
-#
+# end staging
+
+  - role: httpd/redirectmatch
+    name: prerelease-to-final-gfo
+    website: getfedora.org
+    regex: /(.*)/prerelease.*$
+    target: https://getfedora.org/$1
+    when: env != 'staging'
+
+  - role: httpd/redirectmatch
+    name: prerelease-to-final-labs-1
+    website: labs.fedoraproject.org
+    regex: /(.*)/prerelease.*$
+    target: https://labs.fedoraproject.org/$1
+    when: env != 'staging'
+
+  - role: httpd/redirectmatch
+    name: prerelease-to-final-spins-1
+    website: spins.fedoraproject.org
+    regex: /(.*)/prerelease.*$
+    target: https://spins.fedoraproject.org/$1
+    when: env != 'staging'
+
+  - role: httpd/redirectmatch
+    name: prerelease-to-final-arm-1
+    website: arm.fedoraproject.org
+    regex: /(.*)/prerelease.*$
+    target: https://arm.fedoraproject.org/$1
+    when: env != 'staging'
+
+  - role: httpd/redirectmatch
+    name: prerelease-to-final-labs-2
+    website: labs.fedoraproject.org
+    regex: /prerelease.*$
+    target: https://labs.fedoraproject.org/$1
+    when: env != 'staging'
+
+  - role: httpd/redirectmatch
+    name: prerelease-to-final-spins-2
+    website: spins.fedoraproject.org
+    regex: /prerelease.*$
+    target: https://spins.fedoraproject.org/$1
+    when: env != 'staging'
+
+  - role: httpd/redirectmatch
+    name: prerelease-to-final-arm-2
+    website: arm.fedoraproject.org
+    regex: /prerelease.*$
+    target: https://arm.fedoraproject.org/$1
+    when: env != 'staging'
 
   - role: httpd/redirect
     name: store
