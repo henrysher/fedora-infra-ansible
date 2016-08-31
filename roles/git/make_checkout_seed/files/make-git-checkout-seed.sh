@@ -47,7 +47,7 @@ for repo in $ORIGIN_DIR/*.git ; do
       rm -f $working_tree/$bname.spec
       rm -f $SPEC_DIR/$bname.spec
     elif [ -e $working_tree/$bname.spec ]; then
-      cp $working_tree/$bname.spec $SPEC_DIR/
+      cp -p $working_tree/$bname.spec $SPEC_DIR/
     fi
   else
     pushd $SEED_DIR &>/dev/null
@@ -58,7 +58,7 @@ for repo in $ORIGIN_DIR/*.git ; do
       rm -f $working_tree/$bname.spec
       rm -f $SPEC_DIR/$bname.spec
     elif [ -e $working_tree/$bname.spec ]; then
-      cp $working_tree/$bname.spec $SPEC_DIR/
+      cp -p $working_tree/$bname.spec $SPEC_DIR/
     fi
   fi
 done
