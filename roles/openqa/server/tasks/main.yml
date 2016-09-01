@@ -221,11 +221,6 @@
   changed_when: "admin.rc == 0"
   failed_when: "(admin.rc > 0) and (admin.stderr is not defined or admin.stderr.find('already exists') == -1)"
 
-- name: Patch repo URLs in templates
-  shell: "cp /var/lib/openqa/share/tests/fedora/templates /tmp && sed -i -e 's,dl.fedoraproject,dl.phx2.fedoraproject,g' /tmp/templates"
-  when: "gittests|changed and deployment_type is defined"
-  changed_when: "1 != 1"
-
 - name: Dump existing config for checking changes
   shell: "/usr/share/openqa/script/dump_templates --json > /tmp/tmpl-old.json"
   when: "gittests|changed"
@@ -235,14 +230,9 @@
 # a correct 'changed' for this step is too difficult. Instead we have
 # the prior and following steps; when the templates actually changed,
 # the *following* step will register as changed.
-- name: Load patched tests
-  shell: "/tmp/templates --clean"
-  when: "gittests|changed and deployment_type is defined"
-  changed_when: "1 != 1"
-
 - name: Load tests
   shell: "/var/lib/openqa/share/tests/fedora/templates --clean"
-  when: "gittests|changed and deployment_type is not defined"
+  when: "gittests|changed"
   changed_when: "1 != 1"
 
 - name: Check if the tests changed in previous step
