@@ -21,5 +21,5 @@
 #
 
 config = dict(
-    fedimgconsumer=True,
+    kojiconsumer=True,
 )
