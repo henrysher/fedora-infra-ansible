@@ -2,27 +2,26 @@
 # common items for the buildvm-* koji builders
 volgroup: /dev/vg_guests
 lvm_size: 150000
-mem_size: 10240
+mem_size: 24576
 max_mem_size: "{{ mem_size }}"
 num_cpus: 4
-ks_url: http://10.5.126.23/repo/rhel/ks/buildvm-fedora-24-ppc64
-ks_repo: http://10.5.126.23/pub/fedora-secondary/releases/24/Everything/ppc64/os/
+ks_url: http://10.5.126.23/repo/rhel/ks/buildvm-fedora-24-aarch64
+ks_repo: http://10.5.126.23/pub/fedora-secondary/releases/24/Everything/aarch64/os/
 nm: 255.255.255.0
 gw: 10.5.129.254
 dns: 10.5.126.21
 main_bridge: br1
-virt_install_command: "{{ virt_install_command_one_nic }} --graphics none"
 
 # for systems that do not match the above - specify the same parameter in
 # the host_vars/$hostname file
 host_group: kojibuilder
-fas_client_groups: sysadmin-releng,sysadmin-secondary
+fas_client_groups: sysadmin-releng
 sudoers: "{{ private }}/files/sudo/00releng-sudoers"
 
-koji_hub_nfs: "fedora_ppc/data"
-koji_server_url: "http://ppc.koji.fedoraproject.org/kojihub"
-koji_weburl: "http://ppc.koji.fedoraproject.org/koji"
-koji_topurl: "http://ppcpkgs.fedoraproject.org/"
+koji_hub_nfs: "fedora_koji"
+koji_server_url: "http://koji.fedoraproject.org/kojihub"
+koji_weburl: "http://koji.fedoraproject.org/koji"
+koji_topurl: "http://kojipkgs.fedoraproject.org/"
 
 csi_security_category: High
 csi_primary_contact: Fedora Admins - admin@fedoraproject.org
@@ -33,3 +32,9 @@ csi_relationship: |
   * Several services rely on the builders, including koschei, Bodhi, Tagger, SCM, Darkserver.
   * Produces automated builds of packages for the architecture listed. Builders can be scaled by adding new
 
+# These variables are for koji-containerbuild/osbs
+osbs_fqdn: "osbs.fedoraproject.org"
+docker_registry: "registry.fedoraproject.org"
+source_registry: "registry.fedoraproject.org"
+koji_root: "koji.fedoraproject.org/koji"
+koji_hub: "koji.fedoraproject.org/kojihub"
