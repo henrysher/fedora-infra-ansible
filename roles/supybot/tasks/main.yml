@@ -28,12 +28,24 @@
   file: path=/srv/web/meetbot/teams state=directory owner=apache group=apache mode=0755
   tags: supybot
 
+- name: create archives directory
+  file: path=/srv/web/meetbot/archives state=directory owner=apache group=apache mode=0755
+  tags: supybot
+
 - name: setup meetings_by_team script
   copy: src=meetings_by_team.sh dest=/usr/local/bin/meetings_by_team.sh mode=755
   tags: supybot
 
 - name: teams cron job
   cron: name=meetings-by-team hour="23" minute="0" user=apache job="/usr/local/bin/meetings_by_team.sh"
+  tags: supybot
+
+- name: setup archive script
+  copy: src=archive.sh dest=/usr/local/bin/archive.sh mode=755
+  tags: supybot
+
+- name: teams cron job
+  cron: name=archive hour="23" minute="30" user=apache job="/usr/local/bin/archive.sh >& /dev/null"
   tags: supybot
 
 - name: setup meetbot.conf apache config
