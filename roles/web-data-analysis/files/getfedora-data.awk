@@ -85,7 +85,7 @@ BEGIN{
       else if (($3 ~/Server-DVD/) || ($3 ~/Server_DVD/) || ($3 ~/Server-dvd/))                   { server = server +1; edit = edit +1;total = total +1 }
       else if (($3 ~/Server-netinst/) || ($3 ~/Server_netinst/))    { server = server +1; netinstall = netinstall +1 ; netserv=netserv+1; edit = edit +1;total = total +1 }
       else if (($3 ~/Workstation-netinst/) || ($3 ~/Workstation_netinst/)) { workstation = workstation +1; netinstall = netinstall +1; network=network+1; edit = edit +1;total = total +1 }
-      else if (($3 ~/Live-Workstation/) || ($3 ~/Live_Workstation/)  || ($3 ~/Workstation-Live/)       { workstation = workstation +1; edit = edit +1;total = total +1 }
+      else if (($3 ~/Live-Workstation/) || ($3 ~/Live_Workstation/)  || ($3 ~/Workstation-Live/))       { workstation = workstation +1; edit = edit +1;total = total +1 }
       else if (($3 ~/Desktop/) || ($3 ~/Desktop/))       { workstation = workstation +1; edit = edit +1;total = total +1 }
       else if (($3 ~/Fedora-20-i386-DVD/) || ($3 ~/Fedora-20-ppc64-DVD/) || ($3 ~/Fedora-20-x86_64-DVD/) || ($3 ~/Fedora-i386-20/) || ($3 ~/Fedora-x86_64-20/)) { server = server +1; edit = edit +1;total = total +1 }
       else if (($3 ~/Fedora-20-i386-netinst.iso/) || ($3 ~/Fedora-20-ppc64-netinst.iso/) || ($3 ~/Fedora-20-x86_64-netinst.iso/) ) { server = server +1; netinstall = netinstall + 1; netserv = netserv+1; edit = edit +1;total = total +1 }
