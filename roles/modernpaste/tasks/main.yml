@@ -1,0 +1,24 @@
+---
+- name: setup the copr repo
+  copy: >
+    src="codeblock-modern-paste-fedora-24.repo"
+    dest="/etc/yum.repos.d/modern-paste.repo"
+    owner=root
+    group=root
+    mode=0644
+  tags:
+  - config
+  - modernpaste
+  - repo
+  - packages
+
+- name: install needed packages
+  package: pkg={{ item }} state=present
+  with_items:
+  - python-psycopg2
+  - httpd
+  - mod_wsgi
+  - modern-paste
+  tags:
+  - packages
+  - modernpaste

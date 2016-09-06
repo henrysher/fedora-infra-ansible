@@ -1,0 +1,50 @@
+# create a new modernpaste server
+# NOTE: should be used with --limit most of the time
+# NOTE: make sure there is room/space for this server on the vmhost
+# NOTE: most of these vars_path come from group_vars/mirrorlist or from hostvars
+
+- include: "/srv/web/infra/ansible/playbooks/include/virt-create.yml myhosts=modernpaste-stg"
+
+- name: dole out the generic configuration
+  hosts: modernpaste-stg
+  user: root
+  gather_facts: True
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  roles:
+  - base
+  - rkhunter
+  #- nagios/client
+  - hosts
+  - fas_client
+  - sudo
+  - collectd/base
+  #- fedmsg/base
+
+  tasks:
+  - include: "{{ tasks }}/yumrepos.yml"
+  - include: "{{ tasks }}/2fa_client.yml"
+  - include: "{{ tasks }}/motd.yml"
+
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"
+
+- name: dole out the service-specific config
+  hosts: modernpaste-stg
+  user: root
+  gather_facts: True
+
+  roles:
+  - modernpaste
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - "{{ vars_path }}/{{ ansible_distribution }}.yml"
+
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"
