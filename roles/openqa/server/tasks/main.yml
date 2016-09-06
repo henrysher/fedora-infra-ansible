@@ -93,6 +93,21 @@
   tags:
   - packages
 
+- name: Check test directory exists with correct ownership
+  file: path=/var/lib/openqa/share/tests/fedora state=directory owner=geekotest group=geekotest recurse=yes
+
+# we don't want to run the checkout if the tests are on a non-standard
+# branch, as that usually means we're messing around on staging and
+# don't want the checkout reset to HEAD.
+- name: Check if tests are checked out and on a non-standard branch
+  command: "git status"
+  args:
+    chdir: /var/lib/openqa/share/tests/fedora
+  register: testsbranch
+  failed_when: "1 != 1"
+  changed_when: "1 != 1"
+  always_run: true
+
 - name: Check out the tests
   git:
     repo: https://bitbucket.org/rajcze/openqa_fedora
@@ -100,6 +115,7 @@
   register: gittests
   become: true
   become_user: geekotest
+  when: "(testsbranch.stdout.find('Not a git repository') != -1) or (testsbranch.stdout.find('On branch develop') != -1)"
 
 - name: Check out openqa_fedora_tools
   git:
@@ -223,7 +239,7 @@
 
 - name: Dump existing config for checking changes
   shell: "/usr/share/openqa/script/dump_templates --json > /tmp/tmpl-old.json"
-  when: "gittests|changed"
+  when: "(gittests is defined) and (gittests|changed)"
   changed_when: "1 != 1"
 
 # Because of the boring details of how template loading works, getting
@@ -232,12 +248,12 @@
 # the *following* step will register as changed.
 - name: Load tests
   shell: "/var/lib/openqa/share/tests/fedora/templates --clean"
-  when: "gittests|changed"
+  when: "(gittests is defined) and (gittests|changed)"
   changed_when: "1 != 1"
 
 - name: Check if the tests changed in previous step
   shell: "/usr/share/openqa/script/dump_templates --json > /tmp/tmpl-new.json && json_diff /tmp/tmpl-old.json /tmp/tmpl-new.json"
-  when: "gittests|changed"
+  when: "(gittests is defined) and (gittests|changed)"
   register: testsdiff
   changed_when: "testsdiff.rc > 0"
   failed_when: "1 != 1"
