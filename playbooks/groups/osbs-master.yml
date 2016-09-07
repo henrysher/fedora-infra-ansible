@@ -376,11 +376,30 @@
       notify:
         - buildroot container
 
+    - name: stat /usr/share/atomic-reactor/atomic-reactor.tar.gz
+      stat:
+        path: /usr/share/atomic-reactor/atomic-reactor.tar.gz
+      register: usr_ar_stat
+
+    - name: stat /etc/osbs/buildroot/atomic-reactor.tar.gz
+      stat:
+        path: /etc/osbs/buildroot/atomic-reactor.tar.gz
+      register: etc_ar_stat
+
+    - name: remove old hardlink to /etc/osbs/buildroot/atomic-reactor.tar.gz
+      file:
+        path: /usr/share/atomic-reactor/atomic-reactor.tar.gz
+        state: absent
+      when: etc_ar_stat.stat.exists and usr_ar_stat.stat.checksum != etc_ar_stat.stat.checksum
+
     - name: Hardlink atomic-reactor source for buildroot container (because Docker)
       file:
         src: /usr/share/atomic-reactor/atomic-reactor.tar.gz
         dest: /etc/osbs/buildroot/atomic-reactor.tar.gz
         state: hard
+      notify:
+        - buildroot container
+      when: etc_ar_stat.stat.exists and usr_ar_stat.stat.checksum != etc_ar_stat.stat.checksum
 
     - name: pull fedora required docker images
       shell: "docker pull {{docker_registry}}/{{item}}"
