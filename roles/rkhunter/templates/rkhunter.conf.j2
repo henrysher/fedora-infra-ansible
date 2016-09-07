@@ -390,6 +390,9 @@ ALLOWDEVFILE=/dev/shm/squid-cache_mem.shm
 # libvirt spice device makes a /dev/shm/spice file
 ALLOWDEVFILE=/dev/shm/spice.*
 {% endif %}
+{% if inventory_hostname in groups['ipa'] or inventory_hostname in groups['ipa-stg'] %}
+ALLOWDEVFILE=/dev/shm/sem.slapd*.stats
+{% endif %}
 
 #
 # This setting tells rkhunter where the inetd configuration
@@ -601,6 +604,9 @@ OS_VERSION_FILE=/etc/{{ ansible_distribution|lower }}-release
 #
 #RTKT_DIR_WHITELIST=""
 #RTKT_FILE_WHITELIST=""
+{% if inventory_hostname in groups['ipa'] or inventory_hostname in groups['ipa-stg'] %}
+RTKT_FILE_WHITELIST="/var/log/pki/pki-tomcat/ca/system"
+{% endif %}
 
 #
 # To force rkhunter to use the supplied script for the 'stat' or 'readlink'
