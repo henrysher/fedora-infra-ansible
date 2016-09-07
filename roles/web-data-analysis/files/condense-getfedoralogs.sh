@@ -81,13 +81,13 @@ sort -o ${WORKDIR}/${YEAR}/out-${YEAR}-${MONTH} -S 8G -u ${WORKDIR}/${YEAR}/out-
 sort -o ${WORKDIR}/out-${YEAR} -S 8G -u ${WORKDIR}/out-${YEAR} ${WORKFILE}
 
 # Because the logs stop at 04:00 we can only get 24 hours from 6 days before. 
-egrep "${OLDDATE}" ${WORKDIR}/out-${OLDYEAR} > ${TEMPDIR}/watched-day
+grep "${OLDDATE}" ${WORKDIR}/out-${OLDYEAR} > ${TEMPDIR}/watched-day
 
 # Grab the data and put it in the two files. This makes it a lot
 # faster to process as a whole year may take an hour to go through.
 
 for i in ${OLDYEAR} all; do
-    awk -f ${LSHARE}/${PROJECT}-data.awk ${TEMPDIR}/watched-day >> ${WEBDIR}/${PROJECT}data-${i}.csv
+    awk -f ${LSHARE}/${PROJECT}-data.awk ${TEMPDIR}/watched-day | grep "${OLDDATE}" >> ${WEBDIR}/${PROJECT}data-${i}.csv
 done
 
 gnuplot ${LSHARE}/${PROJECT}-data.gp
