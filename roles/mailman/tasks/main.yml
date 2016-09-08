@@ -110,8 +110,6 @@
   - python-whoosh
   - python-tox
   - python-vcrpy
-  # django-compressor implicitely requires BeautifulSoup until v1.4
-  - python-BeautifulSoup
   # scripts
   - python34-PyYAML
   # mailman soft dep to convert html to plaintext
@@ -334,23 +332,13 @@
 #
 - name: copy the mailman-hyperkitty conffile
   copy: src=mailman-hyperkitty.cfg
-        dest="{{ mailman_webui_confdir }}/mailman-hyperkitty.cfg"
+        dest="/etc/mailman3.d/hyperkitty.cfg"
         owner=root group=mailman mode=0640
   tags:
   - config
   - mailman
   notify:
     - restart mailman3
-
-# To avoid confusion with "{{ mailman_webui_confdir }}/mailman-hyperkitty.cfg"
-# Don't create a symlink because ansible won't convert the regular file coming
-# from the RPM to a symlink.
-- name: remove the hyperkitty conffile in the mailman directory to avoid confusion
-  file: path=/etc/mailman3.d/hyperkitty.cfg state=absent
-  tags:
-  - config
-  - mailman
-
 
 #
 # Scripts
