@@ -28,7 +28,8 @@
   - /srv/private/ansible/vars.yml
   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
   vars:
-    testing: False
+    fedora_repos:
+    - updates
   pre_tasks:
   - name: schedule nagios downtime
     nagios: action=downtime minutes=20 service=host host={{ inventory_hostname_short }}{{ env_suffix }}
@@ -37,9 +38,9 @@
     when: env != 'staging'
   tasks:
   - name: clean dnf metadata
-    command: dnf {%if env == 'staging'%}--enablerepo msimacek-koschei{%endif%} clean all
+    command: dnf {% for repo in fedora_repos %}--enablerepo {{ repo }}{% endfor %} clean all
   - name: create dnf metadata cache
-    command: dnf {%if env == 'staging'%}--enablerepo msimacek-koschei{%endif%} makecache
+    command: dnf {% for repo in fedora_repos %}--enablerepo {{ repo }}{% endfor %} makecache
   - name: stop services
     service: name="{{ item }}" state=stopped
     with_items:
@@ -51,7 +52,7 @@
     dnf:
       name: "{{ item }}"
       state: latest
-      enablerepo: "{{ 'msimacek-koschei' if env == 'staging' and testing else omit }}"
+      enablerepo: "{{ fedora_repos | join(',') }}"
     register: backend_upgrade
     with_items:
     - koschei-admin
@@ -65,7 +66,8 @@
   - /srv/private/ansible/vars.yml
   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
   vars:
-    testing: False
+    epel_repos:
+    - epel-testing
   pre_tasks:
   - name: schedule nagios downtime
     nagios: action=downtime minutes=20 service=host host={{ inventory_hostname_short }}{{ env_suffix }}
@@ -74,17 +76,16 @@
     when: env != 'staging'
   tasks:
   - name: clean yum metadata
-    command: yum {%if env == 'staging'%}--enablerepo msimacek-koschei{%endif%} clean all
+    command: yum {% for repo in epel_repos %}--enablerepo {{ repo }}{% endfor %} clean all
   - name: create yum metadata cache
-    command: yum {%if env == 'staging'%}--enablerepo msimacek-koschei{%endif%} makecache
+    command: yum {% for repo in epel_repos %}--enablerepo {{ repo }}{% endfor %} makecache
   - name: stop httpd
     service: name="httpd" state=stopped
   - name: upgrade koschei
     yum:
       name: "{{ item }}"
       state: latest
-      enablerepo: "{{ 'msimacek-koschei' if env == 'staging' and testing else omit }}"
-      update_cache: yes
+      enablerepo: "{{ epel_repos | join(',') }}"
     register: frontend_upgrade
     with_items:
     - koschei-frontend
