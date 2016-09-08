@@ -261,7 +261,7 @@ if __name__ == '__main__':
                   "field0-0-0": "flagtypes.name",
                   "type0-0-0": "equals"}
 
-    bz = Bugzilla(url=url, user=username, password=passwd)
+    bz = Bugzilla(url=url, user=username, password=passwd, cookiefile=None, tokenfile=None)
     if verbose:
         print "Getting all package review bugs (be patient, this may take a while) ...."
 
