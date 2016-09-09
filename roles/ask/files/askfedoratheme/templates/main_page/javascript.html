@@ -1,0 +1,41 @@
+<script type="text/javascript">
+    /*<![CDATA[*/
+    $(document).ready(function(){
+        /*var on_tab = '#nav_questions';
+        $(on_tab).attr('className','on');*/
+        Hilite.exact = false;
+        Hilite.elementid = "question-list";
+        Hilite.debug_referrer = location.href;
+    });
+
+    askbot['urls']['mark_interesting_tag'] = '{% url mark_interesting_tag %}';
+    askbot['urls']['mark_ignored_tag'] = '{% url mark_ignored_tag %}';
+    askbot['urls']['mark_subscribed_tag'] = '{% url mark_subscribed_tag %}';
+    askbot['urls']['unmark_tag'] = '{% url unmark_tag %}';
+    askbot['urls']['set_tag_filter_strategy'] = '{% url "set_tag_filter_strategy" %}';
+    askbot['settings']['tag_editor'] = '{{ tag_editor_settings|escapejs }}';
+
+    if (Modernizr.history) {
+        // history management works!
+    } else {
+        // no history support :(
+        //hash = unescape(window.location.hash).replace('#','').split("?")[0]
+        {# todo: fix this evil code!!! #}
+        var hash = History.unescapeHash(window.location.hash).replace('#','').split("?")[0];
+        var questions_url = askbot['urls']['questions'];
+        if (hash.substring(0, questions_url.length) === questions_url) {
+            var url = hash;
+        } else {
+            var url = questions_url + hash;
+        }
+        if (hash !== '' && hash !== undefined && url !== undefined){
+            {# was this causing strange redirects in IE??? #}
+            window.location = document.location.protocol + '//' + window.location.host + url;
+        }
+    }
+    /*]]>*/
+</script>
+{% compress js %}
+<script type='text/javascript' src='{{"/js/editor.js"|media}}'></script>
+<script type='text/javascript' src='{{"/js/tag_selector.js"|media}}'></script>
+{% endcompress %}

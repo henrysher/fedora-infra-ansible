@@ -1,0 +1,76 @@
+{% extends "one_column_body.html" %}
+{% import "macros.html" as macros %}
+{% block title %}
+    {% trans %}Moderation queue{% endtrans %}
+{% endblock %}
+{% block body %}
+    <h1 class="section-title">{% trans %}Moderation queue{% endtrans %}</h1>
+    <div class="tools">
+        {#<div class="select-items">
+            <strong>{% trans %}Select:{% endtrans %}</strong>
+            <a class="sel-all">{% trans %}all{% endtrans %}</a> |
+            <a class="sel-none">{% trans %}none{% endtrans %}</a>
+        </div>#}
+        <a class="btn approve-posts">{% trans %}approve posts{% endtrans %}</a>
+        <a class="btn approve-posts-users" id="re_approve_posts_users">{% trans %}approve posts and users{% endtrans %}</a>
+        <div class="btn-group dropdown decline-reasons-menu">
+            <span class="btn btn-info dropdown-toggle">
+                <span>{% trans %}decline and explain why{% endtrans %}</span>
+                <span class="caret"></span>
+            </span>
+            <ul class="dropdown-menu">
+                {% for reason in post_reject_reasons %}
+                <li>
+                    <a class="decline-with-reason" data-reason-id="{{ reason.id }}">{{ reason.title|escape }}</a>
+                </li>
+                {% endfor %}
+                <li>
+                    <a class="manage-reasons">{% trans %}add/manage reject reasons{% endtrans %}</a>
+                </li>
+            </ul>
+        </div>
+        <a class="btn btn-danger decline-block-users">{% trans %}block spammers{% endtrans %}</a>
+        {% if settings.IP_MODERATION_ENABLED %}
+        <a class="btn btn-danger decline-block-users-ips">{% trans %}block spammers and IPs{% endtrans %}</a>
+        {% endif %}
+    </div>
+    <ul class="mod-queue-info">
+        <li>Approval of users removes them from the queue and approves ALL of their posts.</li>
+        <li>Blocking spammers denies them future access and deletes ALL their posts.</li>
+        {% if settings.IP_MODERATION_ENABLED %}
+        <li>Blocking IPs denies access by IP address and blocks all accounts using those IPs (and mass deletes content as above).</li>
+        {% endif %}
+    </ul>
+    {% include "moderation/manage_reject_reasons_dialog.html" %}
+    <div class="action-status"><span></span></div>
+    <div class="messages">
+    {% for message in messages %}
+        <div 
+            class="message{% if message.is_new %} highlight new{% else %} seen{% endif %}"
+            data-message-id="{{ message.id }}"
+        >
+            {{ macros.moderation_queue_message(message) }}
+        </div>
+    {% endfor %}
+    </div>
+{% endblock %}
+{% block endjs %}
+    {# todo: factor out moderation.js file #}
+    <script type="text/javascript" src="{{ '/js/user.js'|media }}"></script>
+    <script type="text/javascript">
+        (function() {
+            askbot['urls']['save_post_reject_reason'] = '{% url save_post_reject_reason %}';
+            askbot['urls']['delete_post_reject_reason'] = '{% url delete_post_reject_reason %}';
+            {% if request.user.is_administrator_or_moderator() %}
+                askbot['data']['postRejectReasons'] = [
+                    {% for reason in post_reject_reasons %}
+                    {'id': {{reason.id}}, 'title': '{{reason.title|escapejs}}'},
+                    {% endfor %}
+                ];
+            {% endif %}
+            askbot['urls']['moderatePostEdits'] = '{% url moderate_post_edits %}';
+            var modControls = new PostModerationControls();
+            modControls.decorate($('body'));
+        })();
+    </script>
+{% endblock %}

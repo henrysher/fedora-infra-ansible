@@ -1,0 +1,44 @@
+<script type='text/javascript' src='{{ "/js/jquery.validate.min.js"|media }}'></script>
+{% if settings.SIGNIN_MOZILLA_PERSONA_ENABLED %}
+<script type="text/javascript" src="https://login.persona.org/include.js"></script>
+{% endif %}
+<script type="text/javascript" src="{{ "/jquery-openid/jquery.openid.js"|media }}"></script>
+<script type="text/javascript">
+    askbot['urls']['changePassword'] = '{% url change_password %}';
+    askbot['urls']['deleteLoginMethod'] = '{% url delete_login_method %}';
+    var extra_token_name = {};
+    var create_pw_text = {};
+    var change_pw_text = {};
+    var siteName = '{{settings.APP_SHORT_NAME}}';
+    var provider_count = {{existing_login_methods|length}};
+    {% for login_provider in major_login_providers %}
+        {% if login_provider.extra_token_name %}
+            extra_token_name['{{login_provider.name}}'] = '{{ login_provider.extra_token_name|escapejs }}';
+        {% endif %}
+        {% if login_provider.type == 'password' %}
+            create_pw_text['{{login_provider.name}}'] = '{{ login_provider.create_password_prompt|escapejs }}';
+            change_pw_text['{{login_provider.name}}'] = '{{ login_provider.change_password_prompt|escapejs }}';
+        {% endif %}
+    {% endfor %}
+    {% for login_provider in minor_login_providers %}
+        {% if login_provider.extra_token_name %}
+            extra_token_name['{{login_provider.name}}'] = '{{ login_provider.extra_token_name|escapejs }}';
+        {% endif %}
+        {% if login_provider.type == 'password' %}
+            create_pw_text['{{login_provider.name}}'] = '{{ login_provider.create_password_prompt|escapejs }}';
+            change_pw_text['{{login_provider.name}}'] = '{{ login_provider.change_password_prompt|escapejs }}';
+        {% endif %}
+    {% endfor %}
+    {% if user.is_authenticated() %}
+        var userIsAuthenticated = true;
+    {% else %}
+        var userIsAuthenticated = false;
+    {% endif %}
+    askbot['settings']['signin_always_show_local_login'] = {% if settings.SIGNIN_ALWAYS_SHOW_LOCAL_LOGIN %}true{% else %}false{% endif %};
+    askbot['settings']['useLdapForPasswordLogin'] = {{ settings.USE_LDAP_FOR_PASSWORD_LOGIN|as_js_bool}};
+    $("body").authenticator();
+    (function() {
+        var form = new ChangePasswordForm();
+        form.decorate($('body'));//a hack
+    })();
+</script>

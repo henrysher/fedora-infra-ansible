@@ -1,0 +1,36 @@
+{% set auto_tweeting_status = view_user.get_social_sharing_status('twitter') %}
+{% set handle = view_user.twitter_handle|escape %}
+<tr class="auto-tweeting {{ auto_tweeting_status }}"
+    data-change-mode-url="{% url 'change_social_sharing_mode' %}"
+    data-start-url="{% url 'start_sharing_twitter' %}"
+>
+{% if auto_tweeting_status == 'enabled' %}
+    <td>{% trans %}Auto-tweeting to @{{ handle }}{% endtrans %}</td>
+    <td>
+        <select class="select-mode">
+            {% set mode = view_user.get_social_sharing_mode() %}
+            {% if mode == 'share-my-posts' %}
+                <option selected="selected" value="share-my-posts">{% trans %}my posts{% endtrans %}</option>
+                <option value="share-everything">{% trans %}all posts{% endtrans %}</option>
+            {% else %}
+                <option selected="selected" value="all-posts">{% trans %}all posts{% endtrans %}</option>
+                <option value="share-my-posts">{% trans %}my posts{% endtrans %}</option>
+            {% endif %}
+            <option value="share-nothing">{% trans %}stop tweeting{% endtrans %}</option>
+        </select>
+    </td>
+{% elif auto_tweeting_status == 'inactive' %}
+    <td>{% trans %}Auto-tweeting is inactive{% endtrans %}</td>
+    <td>
+        <select class="select-account">
+            <option selected="selected" value="select-account">{% trans %}Select twitter account{% endtrans %}</option>
+            <option value="existing-handle">{{ handle }}</option>
+            <option value="new-handle">{% trans %}use another account{% endtrans %}</option>
+        </select>
+    </td>
+{% else %}
+    <td>{% trans %}Auto-tweeting is off{% endtrans %}</td>
+    <td><button class="submit start-tweeting">{% trans %}Start tweeting{% endtrans %}</button>
+    </td>
+{% endif %}
+</tr>

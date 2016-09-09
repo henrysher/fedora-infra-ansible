@@ -1,0 +1,62 @@
+{% extends "one_column_body.html" %}
+{% import "macros.html" as macros %}
+<!-- template list_bulk_tag_subscription.html -->
+{% block title %}{% spaceless %}{% trans %}Manage Tag subscriptions{% endtrans %}{% endspaceless %}{% endblock %}
+{% block content %}
+  <h1 class="section-title">{% trans %}Manage Tag subscription</a> {% endtrans %}(<a href="{% url create_bulk_tag_subscription %}">{%trans%}Create New{%endtrans%}</a>)</h1>
+<p>
+</p>
+<table class='tag-subscriptions'>
+    <thead>
+      <th>{% trans %}Date{%endtrans%} </th>
+      <th>{% trans %}Tags{%endtrans%} </th>
+      <th>{% trans %}Users{%endtrans%}</th>
+        {% if settings.GROUPS_ENABLED %}
+          <th>{%trans%}Groups{%endtrans%} </th>
+      {%endif%}
+      <th>{%trans%}Action{%endtrans%}</th>
+    </thead>
+    <tbody>
+      {% for subscription in object_list %}
+        <tr>
+            <td>{{subscription.date_added}}</td>
+            <td>
+                {{
+                    macros.tag_list_widget(
+                        subscription.tag_list(), 
+                        deletable=False, 
+                        css_class='subscribed marked-tags'
+                    )
+                }}
+            </td>
+            {% set comma=joiner(',') %}
+            <td>{%for user in subscription.users.all() %}{{ comma() }}
+                <a 
+                    href='{% url user_profile user.id, user.username|slugify %}'
+                >{{user.username}}</a>{%endfor%} <a href='#'>
+            </td>
+            {% if settings.GROUPS_ENABLED %}
+            {% set comma=joiner(',') %}
+            <td>
+                {% for group in subscription.groups.all() %}{{ comma() }}
+                    <a 
+                        href='{% url users_by_group group.id, group.name|slugify %}'
+                    >{{group.name}}</a>{%endfor%}
+            </td>
+            {%endif%}
+            <td>
+              <button type="button"><a class='action' href='{% url edit_bulk_tag_subscription subscription.id %}'>{%trans%}Edit{%endtrans%}</a></button>
+              <form action="{%url delete_bulk_tag_subscription %}" method="POST" accept-charset="utf-8">
+                <input type="hidden" name="pk" value="{{subscription.id}}" />
+                <button type="submit">Delete</button>
+               </form>
+             </td>
+        </tr>
+      {%endfor%}
+    </tbody>
+</table>
+{% endblock %}
+{#block endjs%}
+  <script type='text/javascript' src='{{"/js/tag_selector.js"|media}}'></script> 
+{%endblock#}
+<!-- end template list_bulk_tag_subscription.html -->

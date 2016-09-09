@@ -17,6 +17,21 @@
   - ask
   - packages
 
+- name: Create theme directory
+  file: path=/usr/share/askbot/skins state=directory recurse=yes
+        owner=apache group=apache
+  tags:
+  - ask
+  when: env == "staging"
+
+- name: Sync theme
+  synchronize: src=askfedoratheme dest=/usr/share/askbot/skins/askfedoratheme
+  notify:
+  - restart apache
+  tags:
+  - ask
+  when: env == "staging"
+
 # https://github.com/openid/python-openid/pull/76
 - name: hotfix - copy over python-openid fixed messages
   copy: src="{{ files }}/hotfix/python-openid/fetchers.py" dest=/usr/lib/python2.6/site-packages/openid/fetchers.py

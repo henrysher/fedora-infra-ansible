@@ -1,0 +1,30 @@
+<div id="scopeNav">
+{% if need_scope_links %}
+    <ul style="margin-left: 0">
+        {% if not search_state %}  {#  get empty SearchState() if there's none #}
+            {% set search_state=search_state|get_empty_search_state %}
+        {% endif %}
+        {% if settings.ALL_SCOPE_ENABLED %}
+        <li><div class="list-item">
+            <a class="scope-selector {% if scope == 'all' %}on{% endif %}"
+                href="{{ search_state.change_scope('all').full_url() }}"
+            >{% trans %}ALL{% endtrans %}</a>
+        </div></li>
+        {% endif %}
+        {% if settings.UNANSWERED_SCOPE_ENABLED %}
+        <li><div class="list-item">
+            <a class="scope-selector {% if scope == 'unanswered' %}on{% endif %}"
+                href="{{ search_state.change_scope('unanswered').change_sort('answers-asc').full_url() }}"
+            >{{ settings.WORDS_UNANSWERED|escape }}</a>
+        </div></li>
+        {% endif %}
+        {% if request.user.is_authenticated() and settings.FOLLOWED_SCOPE_ENABLED %} 
+        <li><div class="list-item">
+            <a class="scope-selector {% if scope == 'followed' %}on{% endif %}"
+                href="{{ search_state.change_scope('followed').full_url() }}"
+            >{% trans %}FOLLOWED{% endtrans %}</a>
+        </div></li>
+        {% endif %}
+    </ul>
+{% endif %}
+</div>
