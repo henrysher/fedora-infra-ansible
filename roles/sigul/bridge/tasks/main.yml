@@ -1,0 +1,18 @@
+- name: Install sigul bridge
+  yum: state=present name=sigul-bridge
+  tags:
+  - packages
+
+- name: Setup sigul bridge.conf
+  template: src=bridge.conf.j2 dest=/etc/sigul/bridge.conf
+            owner=sigul group=sigul mode=0640
+  tags:
+  - config
+
+- name: Setup secondary koji config files
+  copy: src={{ item }} dest=/etc/{{ item }} owner=root group=root mode=644
+  with_items:
+  - koji-arm.conf
+  - koji-ppc.conf
+  - koji-s390.conf
+  when: inventory_hostname.startswith('secondary')

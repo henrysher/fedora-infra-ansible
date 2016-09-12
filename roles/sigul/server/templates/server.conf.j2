@@ -1,24 +1,32 @@
 # This is a configuration for the sigul server.
 
-# FIXME: remove my data
-
 [server]
 # Host name of the publically acessible bridge to clients
+
+{% if inventory_hostname.startswith('sign') %}
+bridge-hostname: sign-bridge1
+server-cert-nickname: sign-vault1 - Fedora Project
+{% else %}
 bridge-hostname: secondary-signer
+server-cert-nickname: secondary-signer-server
+{% endif %}
+
 # Port on which the bridge expects server connections
-; bridge-port: 44333
+bridge-port: 44333
 # Maximum accepted size of payload stored on disk
 max-file-payload-size: 2073741824
 # Maximum accepted size of payload stored in server's memory
 max-memory-payload-size: 1048576
-# Nickname of the server's certificate in the NSS database specified below
-server-cert-nickname: secondary-signer-server
 
-signing-timeout: 4000
+# Whether to relax the CN vs username check
+lenient-username-check: yes
+# Which CN's are allowed to use different usernames, comma seperated
+proxy-usernames:
+
 
 [database]
-# Path to a SQLite database
-; database-path: /var/lib/sigul/server.conf
+# Path to a directory containing a SQLite database
+;database-path: /var/lib/sigul
 
 [gnupg]
 # Path to a directory containing GPG configuration and keyrings
@@ -28,13 +36,13 @@ gnupg-key-type: RSA
 # Default primary key length for newly created keys
 gnupg-key-length: 4096
 # Default subkey type for newly created keys, empty for no subkey
-#gnupg-subkey-type: ELG-E
+gnupg-subkey-type:
 # Default subkey length for newly created keys if gnupg-subkey-type is not empty
-# gnupg-subkey-length: 4096
+; gnupg-subkey-length: 2048
 # Default key usage flags for newly created keys
 gnupg-key-usage: encrypt, sign
 # Length of key passphrases used for newsly created keys
-; passphrase-length: 64
+passphrase-length: 128
 
 [daemon]
 # The user to run as
@@ -48,4 +56,10 @@ nss-dir: /var/lib/sigul
 # Password for accessing the NSS database.  If not specified, the server will
 # ask on startup
 ; nss-password is not specified by default
+# Minimum and maximum versions of TLS used
+nss-min-tls: tls1.2
+nss-max-tls: tls1.2
 
+[binding]
+# List of binding modules enabled
+enabled: 

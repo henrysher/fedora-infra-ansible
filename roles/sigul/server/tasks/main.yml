@@ -1,0 +1,18 @@
+- name: Install sigul server
+  yum: state=present name={{ item }}
+  with_items:
+  - sigul-server
+  - gnupg1
+  - rpm-sign
+  - bzip2
+  tags:
+  - packages
+
+- name: Setup sigul server.conf
+  template: src=server.conf.j2 dest=/etc/sigul/server.conf
+            owner=sigul group=sigul mode=0640
+  tags:
+  - config
+
+- name: Setup gpg link
+  file: state=link src=/usr/bin/gpg1 dest=/usr/bin/gpg
