@@ -25,34 +25,52 @@
   - mediawiki
 
 - name: install needed packages
-  yum: pkg={{ item }} state=present
+  package: pkg={{ item }} state=present
   with_items:
-  - mediawiki119
-  - mediawiki119-Cite
-  - mediawiki119-Lockdown
-  - mediawiki119-SpecialInterwiki
-  - librsvg2
-  - mediawiki119-HTTP302Found
-  - mediawiki119-intersection
-  - mediawiki119-RSS
+  - "{{ wikiver }}"
+  - "{{ wikiver }}-Lockdown"
+  - "{{ wikiver }}-SpecialInterwiki"
+  - "{{ wikiver }}-HTTP302Found"
+  - "{{ wikiver }}-intersection"
+  - "{{ wikiver }}-RSS"
   - mediawiki-FedoraBadges
-  - mediawiki119-basset
+  - "{{ wikiver }}-basset"
   - php-zmq
   - php-pecl-uuid
+  - librsvg2
   tags:
   - packages
   - mediawiki
 
+- name: install needed packages (el7 only)
+  package: pkg={{ item }} state=present
+  with_items:
+  - "{{ wikiver }}-Cite"
+  tags:
+  - packages
+  - mediawiki
+  when: env != 'staging'
+
+- name: install needed packages (fedora only)
+  package: pkg={{ item }} state=present
+  with_items:
+  - "{{ wikiver }}-openid"
+  tags:
+  - packages
+  - mediawiki
+  when: env == 'staging'
+
 - name: adding FAS auth
   #template: src=Auth_FAS_CLAPLUSONE.php.j2
   template: src=Auth_FAS.php.j2
-            dest=/usr/share/mediawiki119/extensions/Auth_FAS.php owner=root group=root mode=775
+            dest=/usr/share/{{ wikiver }}/extensions/Auth_FAS.php owner=root group=root mode=775
   tags:
   - config
   - mediawiki
+  when: env != 'staging'
 
 - name: adding fedmsg emit
-  copy: src=fedmsg-emit.php dest=/usr/share/mediawiki119/extensions/fedmsg-emit.php owner=root group=root mode=775
+  copy: src=fedmsg-emit.php dest=/usr/share/{{ wikiver }}/extensions/fedmsg-emit.php owner=root group=root mode=775
   tags:
   - config
   - mediawiki
@@ -63,7 +81,7 @@
   - mediawiki
 
 - name: Fedora branding
-  copy: src=skins/ dest=/usr/share/mediawiki119/skins owner=root group=root mode=775
+  copy: src=skins/ dest=/usr/share/{{ wikiver }}/skins owner=root group=root mode=775
   tags:
   - config
   - mediawiki
@@ -74,13 +92,13 @@
   - mediawiki
 
 #- name: creating config dir
-#  file: src=/usr/share/mediawiki119/config dest=/srv/web/{{wikiname}}/config owner=apache group=apache mode=755 state=directory
+#  file: src=/usr/share/{{ wikiver }}/config dest=/srv/web/{{wikiname}}/config owner=apache group=apache mode=755 state=directory
 #  tags:
 #  - mediawiki
 
 # This doesn't seem to exist anymore in upstream....
 #- name: install utils
-#  file: src=/usr/share/mediawiki119/install-utils.inc dest=/srv/web/{{wikiname}}-wiki/install-utils.inc state=link
+#  file: src=/usr/share/{{ wikiver }}/install-utils.inc dest=/srv/web/{{wikiname}}-wiki/install-utils.inc state=link
 #  tags:
 #  - mediawiki
 
@@ -97,56 +115,56 @@
   - mediawiki
 
 - name: linking index.php
-  file: dest=/srv/web/{{wikiname}}-wiki/index.php src=/usr/share/mediawiki119/index.php state=link
+  file: dest=/srv/web/{{wikiname}}-wiki/index.php src=/usr/share/{{ wikiver }}/index.php state=link
   tags:
   - mediawiki
 
 - name: linkng api.php
-  file: dest=/srv/web/{{wikiname}}-wiki/api.php src=/usr/share/mediawiki119/api.php state=link
+  file: dest=/srv/web/{{wikiname}}-wiki/api.php src=/usr/share/{{ wikiver }}/api.php state=link
   tags:
   - mediawiki
 
 - name: linking opensearch
-  file: dest=/srv/web/{{wikiname}}-wiki/opensearch_desc.php src=/usr/share/mediawiki119/opensearch_desc.php state=link
+  file: dest=/srv/web/{{wikiname}}-wiki/opensearch_desc.php src=/usr/share/{{ wikiver }}/opensearch_desc.php state=link
   tags:
   - mediawiki
 
 - name: linking extensions
-  file: dest=/srv/web/{{wikiname}}-wiki/extensions src=/usr/share/mediawiki119/extensions state=link
+  file: dest=/srv/web/{{wikiname}}-wiki/extensions src=/usr/share/{{ wikiver }}/extensions state=link
   tags:
   - mediawiki
 
 - name: linking includes
-  file: dest=/srv/web/{{wikiname}}-wiki/includes src=/usr/share/mediawiki119/includes state=link
+  file: dest=/srv/web/{{wikiname}}-wiki/includes src=/usr/share/{{ wikiver }}/includes state=link
   tags:
   - mediawiki
 
 - name: linking languages
-  file: dest=/srv/web/{{wikiname}}-wiki/languages src=/usr/share/mediawiki119/languages state=link
+  file: dest=/srv/web/{{wikiname}}-wiki/languages src=/usr/share/{{ wikiver }}/languages state=link
   tags:
   - mediawiki
 
 - name: linking maintenance
-  file: dest=/srv/web/{{wikiname}}-wiki/maintenance src=/usr/share/mediawiki119/maintenance state=link
+  file: dest=/srv/web/{{wikiname}}-wiki/maintenance src=/usr/share/{{ wikiver }}/maintenance state=link
   tags:
   - mediawiki
 
 - name: linking serialized
-  file: dest=/srv/web/{{wikiname}}-wiki/serialized src=/usr/share/mediawiki119/serialized state=link
+  file: dest=/srv/web/{{wikiname}}-wiki/serialized src=/usr/share/{{ wikiver }}/serialized state=link
   tags:
   - mediawiki
 
 - name: linking skins
-  file: dest=/srv/web/{{wikiname}}-wiki/skins src=/usr/share/mediawiki119/skins state=link
+  file: dest=/srv/web/{{wikiname}}-wiki/skins src=/usr/share/{{ wikiver }}/skins state=link
   tags:
   - mediawiki
 
 - name: linking load
-  file: dest=/srv/web/{{wikiname}}-wiki/load.php src=/usr/share/mediawiki119/load.php state=link
+  file: dest=/srv/web/{{wikiname}}-wiki/load.php src=/usr/share/{{ wikiver }}/load.php state=link
   tags:
   - mediawiki
 
 - name: linking resources
-  file: dest=/srv/web/{{wikiname}}-wiki/resources src=/usr/share/mediawiki119/resources state=link
+  file: dest=/srv/web/{{wikiname}}-wiki/resources src=/usr/share/{{ wikiver }}/resources state=link
   tags:
   - mediawiki
