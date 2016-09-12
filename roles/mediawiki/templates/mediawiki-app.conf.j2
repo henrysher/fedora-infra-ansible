@@ -7,5 +7,14 @@ Alias /{{ wikipath }} /srv/web/{{ wikiname }}-wiki/index.php
 <Directory /srv/web/{{ wikiname }}-wiki>
   Options SymLinksIfOwnerMatch
   AllowOverride None
+  <IfModule mod_authz_core.c>
+    # Apache 2.4
+    Require all granted
+  </IfModule>
+  <IfModule !mod_authz_core.c>
+    # Apache 2.2
+    Order allow,deny
+    Allow from all
+  </IfModule>
 </Directory>
 
