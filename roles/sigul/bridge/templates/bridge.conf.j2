@@ -20,8 +20,11 @@ required-fas-group: signers
 fas-user-name: {{ fedoraDummyUser }}
 fas-password: {{ fedoraDummyUserPassword }}
 
-{% if inventory_hostname.startswith('secondary') %}
 [koji]
+{% if inventory_hostname.startswith('sign') %}
+koji-instances: primary
+koji-config-ppc: /etc/koji-primary.conf
+{% else %}
 koji-instances: ppc s390 arm sparc
 koji-config-ppc: /etc/koji-ppc.conf
 koji-config-s390: /etc/koji-s390.conf
