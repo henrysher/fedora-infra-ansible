@@ -1,0 +1,31 @@
+#
+# This role sets up serial console on ttyS0
+#
+- name: check for grub serial setup
+  command: cat /etc/grub2.cfg
+  register: serial
+  always_run: yes
+  changed_when: '1 != 1'
+  tags:
+  - serial-console
+
+- name: set grub to use serial console
+  command: /sbin/grubby --update-kernel=ALL --args="console=tty0 console=ttyS0,115200"
+  when: serial is defined and serial.stdout.find("console=tty0 console=ttyS0,115200") == -1
+  tags:
+  - serial-console
+
+- name: setup systemd links for getty (S0)
+  copy: src=serial-getty@.service dest=/etc/systemd/system/serial-getty@ttyS0.service
+  tags:
+  - serial-console
+
+- name: link template in
+  file: src=/etc/systemd/system/getty.target.wants/serial-getty@ttyS0 dest=/etc/systemd/system/serial-getty@ttyS1.service state=link
+  tags:
+  - serial-console
+
+- name: start and enable
+  service: name=serial-getty@ttyS0 enabled=yes state=started
+  tags:
+  - serial-console
