@@ -421,7 +421,7 @@ if __name__ == '__main__':
         from email.mime.text import MIMEText
 
         file = open(output_path, "r")
-        msg = MIMEText(file.read())
+        msg = MIMEText(file.read(), _charset="utf-8")
         file.close()
 
         subject = "Reviews Weekly"
