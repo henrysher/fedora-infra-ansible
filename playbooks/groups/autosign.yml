@@ -1,11 +1,11 @@
 # create a new autosign server
 #
-# This server looks for rawhide builds and requests they be signed.
-#
-- include: "/srv/web/infra/ansible/playbooks/include/virt-create.yml myhosts=autosign"
+# FURTHER NOTE: some of These machines run day to day with sshd disabled/off.
+# Access is via management interface only. This playbook does initial setup.
+# Please check with rel-eng before doing anything here.
 
 - name: make the box be real
-  hosts: autosign:autosign-hardware
+  hosts: autosign
   user: root
   gather_facts: True
 
@@ -21,8 +21,9 @@
   - hosts
   - fas_client
   - collectd/base
-  - autosigner
   - sudo
+  - fedmsg/hub
+  - robosignatory
 
   tasks:
   - include: "{{ tasks }}/yumrepos.yml"
