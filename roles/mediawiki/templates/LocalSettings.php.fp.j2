@@ -187,7 +187,12 @@ $wgProxyKey = "b957b9365f724d22f666998b751507c551c66484bf75b1cc33802a67e92b0827"
 
 ## Default skin: you can change the default skin. Use the internal symbolic
 ## names, ie 'standard', 'nostalgia', 'cologneblue', 'monobook':
+{% if env != "staging" %}
+wfLoadSkin( 'MonoBook' );
+$wgDefaultSkin = 'MonoBook';
+{% else %}
 $wgDefaultSkin = 'fedora';
+{% endif %}
 
 ## For attaching licensing metadata to pages, and displaying an
 ## appropriate copyright notice / icon. GNU Free Documentation
@@ -335,8 +340,16 @@ $wgOpenIDAllowNewAccountname = false;
 $wgOpenIDAllowExistingAccountSelection = false;
 $wgOpenIDTrustEmailAddress = true;
 $wgOpenIDAllowAutomaticUsername = true;
+$wgOpenIDUseEmailAsNickname = true;
+$wgOpenIDUseNicknameAsUsername = true;
 // $wgOpenIDConsumerStorePath;
-$wgOpenIDForcedProvider = 'https://id.stg.fedoraproject.org/openid/';
+$wgOpenIDForcedProvider = 'fedora';
+$wgOpenIDProviders = array(
+        'fedora' => array(
+                'large-provider' => false,
+                'openid-url' => 'https://id.stg.fedoraproject.org/openid/'
+        ),
+);
 {% endif %}
 require_once "$IP/extensions/fedmsg-emit.php";
 require_once "$IP/extensions/HTTP302Found/HTTP302Found.php";
