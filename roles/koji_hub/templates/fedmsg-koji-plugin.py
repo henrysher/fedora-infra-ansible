@@ -118,6 +118,9 @@ def get_message_body(topic, *args, **kws):
     c for c in callbacks.keys()
     if c.startswith('post') and c not in [
         'postImport', # This is kind of useless; also noisy.
+        # This one is special, and is called every time, so ignore it.
+        # Added here https://pagure.io/koji/pull-request/148
+        'postCommit',
     ]
 ])
 @ignore_error
