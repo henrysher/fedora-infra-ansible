@@ -16,7 +16,7 @@
 
   - name: add them to myvms_new group
     local_action: add_host hostname={{ item }} groupname=myvms_new
-    with_items: vmlist.list_vms
+    with_items: '{{vmlist.list_vms}}'
 
 # Call out to another playbook.  Disable any proxies that may live here
 #- include: update-proxy-dns.yml status=disable proxies=myvms_new:&proxies
@@ -38,18 +38,14 @@
     command: yum clean expire-cache
     when: ansible_distribution_major_version|int < 22
 
-  - name: expire-caches
-    command: dnf clean expire-cache
-    when: ansible_distribution_major_version|int > 21 and ansible_cmdline.ostree is not defined
-
   - name: yum -y {{ yumcommand }}
     command: yum -y {{ yumcommand }}
     async: 7200
     poll: 30
     when: ansible_distribution_major_version|int < 22
 
-  - name: dnf -y {{ yumcommand }}
-    command: dnf -y {{ yumcommand }}
+  - name: dnf -y {{ yumcommand }} --refresh
+    command: dnf -y {{ yumcommand }} --refresh
     async: 7200
     poll: 30
     when: ansible_distribution_major_version|int > 21 and ansible_cmdline.ostree is not defined
