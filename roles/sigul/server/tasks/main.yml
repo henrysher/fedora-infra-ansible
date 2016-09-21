@@ -25,6 +25,14 @@
   tags:
   - packages
 
+- name: install fedora only packages
+  package: state=present name={{ item }}
+  with_items:
+  - gnupg
+  when: ansible_distribution_major_version|int > 23
+  tags:
+  - packages
+
 - name: Setup sigul server.conf
   template: src=server.conf.j2 dest=/etc/sigul/server.conf
             owner=sigul group=sigul mode=0640
