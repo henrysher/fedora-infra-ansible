@@ -110,56 +110,9 @@
 
 - copy: src="ssh_config" dest="/home/copr-service/.ssh/config" owner=copr-service group=copr-service mode=0600
 
-- lineinfile: dest=/etc/cgitrc regexp="^project-list=" line="project-list=/var/lib/copr-dist-git/cgit_pkg_list"
-  tags:
-  - config
-#- lineinfile: dest=/etc/cgitrc regexp="^scan-path=" line="scan-path=/var/lib/dist-git/git/rpms"
-#  tags:
-#  - config
-- lineinfile: dest=/etc/cgitrc regexp="^cache-dynamic-ttl=" line="cache-dynamic-ttl=120"
-  tags:
-  - config
-- lineinfile: dest=/etc/cgitrc regexp="^cache-repo-ttl=" line="cache-repo-ttl=120"
-  tags:
-  - config
-- lineinfile: dest=/etc/cgitrc regexp="^cache-root-ttl=" line="cache-root-ttl=120"
-  tags:
-  - config
-- lineinfile: dest=/etc/cgitrc regexp="^cache-scanrc-ttl=" line="cache-scanrc-ttl=120"
-  tags:
-  - config
-- lineinfile: dest=/etc/cgitrc regexp="^cache-about-ttl=" line="cache-about-ttl=120"
-  tags:
-  - config
-- lineinfile: dest=/etc/cgitrc regexp="^cache-snapshot-ttl=" line="cache-snapshot-ttl=120"
-  tags:
-  - config
-- lineinfile: dest=/etc/cgitrc regexp="^cache-size=" line="cache-size=100000"
-  tags:
-  - config
-- lineinfile: dest=/etc/cgitrc regexp="^scan-path=" state=absent
-  tags:
-  - config
-- lineinfile: dest=/etc/cgitrc regexp="^include=" line="include=/var/cache/cgit/repo-list.rc"
-  tags:
-  - config
-- lineinfile: dest=/etc/cgitrc regexp="^clone-prefix=" line="clone-prefix=http://{{ dist_git_base_url }}/git"
-  tags:
-  - config
-- name: Copy /etc/cgitrc to /etc/cgitrc.slow
-  copy: remote_src=True src=/etc/cgitrc dest=/etc/cgitrc.slow
-  tags:
-  - config
-- lineinfile: dest=/etc/cgitrc.slow regexp="^scan-path=" line="scan-path=/var/lib/dist-git/git/rpms"
-  tags:
-  - config
-- lineinfile: dest=/etc/cgitrc.slow regexp="^include=" state=absent
-  tags:
-  - config
-- lineinfile: dest=/etc/cgitrc.slow regexp="^cache-scanrc-ttl=" line="cache-scanrc-ttl=10"
-  tags:
-  - config
+- copy: src="cgitrc" dest="/etc/cgitrc" owner=root group=root mode=0644
 
+- copy: src="cgitrc.slow" dest="/etc/cgitrc.slow" owner=root group=root mode=0644
 
 - command: "/usr/share/dist-git/dist_git_sync.sh"
 
