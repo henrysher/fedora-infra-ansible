@@ -44,6 +44,12 @@ config = {
                     "to": "f25-infra",
                     "key": "fedora-infra",
                     "keyid": "47dd8ef9"
+                },
+                {
+                    "from": "f26-pending",
+                    "to": "f26",
+                    "key": "fedora-26",
+                    "keyid": "64dab85d"
                 }
             ]
         },
