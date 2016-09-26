@@ -8,14 +8,14 @@
 
   tasks:
   - name: Check for the existance of a mashing lock.
-    shell: "/bin/true || ls -alh /mnt/koji/mash/updates/MASHING*"
+    shell: "ls -alh /mnt/koji/mash/updates/MASHING*"
     register: lockfile
     ignore_errors: true
 
   - name: Fail if we found that a mash was in progress
     fail: msg="Presence of lockfile indicates that a mash is in progress."
     any_errors_fatal: true
-    when: lockfile.rc == 0
+    when: lockfile.rc != 0
 
 - name: push packages out
   hosts: bodhi-backend:bodhi-backend-stg:bodhi2:bodhi2-stg
