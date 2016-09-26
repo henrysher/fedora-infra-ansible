@@ -1,0 +1,81 @@
+#!/usr/bin/env python
+""" This is a CLI script for delete a badge entirely.
+
+It will fail if anyone currently holds that badge.
+
+In the event that you really really want to delete a badge that people already
+have, please first use the `revoke-badge` script on all of them first.
+"""
+
+import __main__
+__main__.__requires__ = __requires__ = ["tahrir-api", "sqlalchemy>=0.7"];
+import pkg_resources
+pkg_resources.require(__requires__)
+
+import argparse
+import transaction
+import sys
+
+from tahrir_api.dbapi import TahrirDatabase
+
+import fedmsg
+import fedmsg.config
+
+import fedbadges.utils
+
+
+def parse_args():
+    parser = argparse.ArgumentParser(__doc__)
+    parser.add_argument('--badge', default=None, help="A badge id")
+    args = parser.parse_args()
+    if not args.badge:
+        print "You must specify a badge id."
+        sys.exit(1)
+    return args
+
+
+def initialize():
+    fm_config = fedmsg.config.load_config()
+    fm_config['cert_prefix'] = 'fedbadges'
+    fm_config['name'] = 'relay_inbound'
+    fm_config['active'] = True
+    fedmsg.init(**fm_config)
+    uri = fm_config['badges_global']['database_uri']
+    tahrir = TahrirDatabase(
+        uri,
+        notification_callback=fedbadges.utils.notification_callback,
+    )
+    return tahrir
+
+
+def main(tahrir, badge_id):
+    badge = tahrir.get_badge(badge_id)
+
+    if not badge:
+        print "No such badge %r" % badge_id
+        sys.exit(1)
+
+    badge_holders = [assertion.person for assertion in badge.assertions]
+
+    if badge_holders:
+        print "%i people have the %r badge.  revoke it from them first" % (
+            len(badge_holders), badge_id)
+        for person in badge_holders:
+            print person.nickname
+        return
+
+    print "deleting", badge_id
+    try:
+        transaction.begin()
+        tahrir.session.delete(badge)
+        tahrir.session.commit()
+        transaction.commit()
+    except Exception as e:
+        transaction.abort()
+        print "Failure:", e
+
+
+if __name__ == '__main__':
+    args = parse_args()
+    tahrir = initialize()
+    main(tahrir, args.badge)
