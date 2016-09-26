@@ -140,6 +140,18 @@
 # The actual items files here end in .j2 (they are templates)
 # So when adding or modifying them change the .j2 version in git.
 #
+- name: install nrpe bugyou fedmsg hubs check config
+  template: src=check_fedmsg_hub_procs_bugyou.j2 dest=/etc/nrpe.d/check_fedmsg_hub_procs_bugyou.cfg
+  when: inventory_hostname.startswith('bugyou01')
+  notify:
+  - restart nrpe
+  tags:
+  - nagios/client
+
+#
+# The actual items files here end in .j2 (they are templates)
+# So when adding or modifying them change the .j2 version in git.
+#
 - name: install nrpe openvpn check config
   template: src=check_openvpn_link.cfg.j2 dest=/etc/nrpe.d/check_openvpn_link.cfg
   when: datacenter != 'phx2'
