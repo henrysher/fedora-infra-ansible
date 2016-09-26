@@ -46,10 +46,46 @@ config = {
                     "keyid": "47dd8ef9"
                 },
                 {
-                    "from": "f26-pending",
+                    "from": "f26",
                     "to": "f26",
                     "key": "fedora-26",
                     "keyid": "64dab85d"
+                },
+                {
+                    "from": "f25-updates-candidate",
+                    "to": "f25-updates-candidate",
+                    "key": "fedora-25",
+                    "keyid": "fdb19c98"
+                },
+                {
+                    "from": "f24-updates-candidate",
+                    "to": "f24-updates-candidate",
+                    "key": "fedora-24",
+                    "keyid": "81b46521"
+                },
+                {
+                    "from": "f23-updates-candidate",
+                    "to": "f23-updates-candidate",
+                    "key": "fedora-23",
+                    "keyid": "34ec9cba"
+                },
+                {
+                    "from": "epel7-testing-candidate",
+                    "to": "epel7-testing-candidate",
+                    "key": "epel-7",
+                    "keyid": "352c64e5"
+                },
+                {
+                    "from": "dist-6E-epel-testing-candidate",
+                    "to": "dist-6E-epel-testing-candidate",
+                    "key": "epel-6",
+                    "keyid": "0608b895"
+                },
+                {
+                    "from": "dist-5E-epel-testing-candidate",
+                    "to": "dist-5E-epel-testing-candidate",
+                    "key": "epel-5",
+                    "keyid": "217521f6"
                 }
             ]
         },
