@@ -48,3 +48,32 @@
   - config
 
 
+- name: install /etc/pki/tls/certs/{{name}}.csr
+  copy: >
+    src={{item}}
+    dest=/etc/pki/tls/certs/{{item | basename}}
+    owner=root
+    group=root
+    mode=0644
+  with_first_found:
+  - "{{private}}/files/httpd/{{cert}}.cert"
+  - "{{private}}/files/httpd/{{name}}.cert"
+  notify:
+  - restart postfix
+  tags:
+  - postfix
+
+- name: Copy {{name}}.key
+  copy: >
+    src={{item}}
+    dest=/etc/pki/tls/private/{{item | basename}}
+    owner=root
+    group=root
+    mode=0600
+  with_first_found:
+  - "{{private}}/files/httpd/{{key}}.key"
+  - "{{private}}/files/httpd/{{name}}.key"
+  notify:
+  - restart postfix
+  tags:
+  - postfix
