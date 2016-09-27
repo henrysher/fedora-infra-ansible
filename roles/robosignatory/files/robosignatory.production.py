@@ -1,4 +1,14 @@
 config = {
+    'logging': {
+        'loggers': {
+            'robosignatory': {
+                'handlers': ['console', 'mailer'],
+                'level': 'DEBUG',
+                'propagate': False
+            },
+        },
+    },
+
     'robosignatory.enabled.tagsigner': True,
     'robosignatory.signing.user': 'autopen',
     'robosignatory.signing.passphrase_file': '/etc/sigul/autosign.pass',
@@ -52,26 +62,26 @@ config = {
                     "keyid": "64dab85d"
                 },
                 {
-                    "from": "f25-updates-candidate",
-                    "to": "f25-updates-candidate",
+                    "from": "f25-updates-testing-pending",
+                    "to": "f25-updates-testing-pending",
                     "key": "fedora-25",
                     "keyid": "fdb19c98"
                 },
                 {
-                    "from": "f24-updates-candidate",
-                    "to": "f24-updates-candidate",
+                    "from": "f24-updates-testing-pending",
+                    "to": "f24-updates-testing-pending",
                     "key": "fedora-24",
                     "keyid": "81b46521"
                 },
                 {
-                    "from": "f23-updates-candidate",
-                    "to": "f23-updates-candidate",
+                    "from": "f23-updates-testing-pending",
+                    "to": "f23-updates-testing-pending",
                     "key": "fedora-23",
                     "keyid": "34ec9cba"
                 },
                 {
-                    "from": "epel7-testing-candidate",
-                    "to": "epel7-testing-candidate",
+                    "from": "epel7-testing-pending",
+                    "to": "epel7-testing-pending",
                     "key": "epel-7",
                     "keyid": "352c64e5"
                 },
