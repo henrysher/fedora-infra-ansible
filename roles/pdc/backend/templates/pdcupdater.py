@@ -62,6 +62,13 @@ config = {
     'pdcupdater.handlers': [
         'pdcupdater.handlers.compose:NewComposeHandler',
         'pdcupdater.handlers.atomic:AtomicComponentGroupHandler',
+
+        {% if env == 'staging' %}
+        # https://fedoraproject.org/wiki/User:Ralph/Drafts/Infrastructure/Factory2/ModellingDeps
+        'pdcupdater.handlers.depchain.rpms:NewRPMBuildTimeDepChainHandler',
+        'pdcupdater.handlers.depchain.rpms:NewRPMRunTimeDepChainHandler',
+        {% endif %}
+
         # The new version of PDC broke all of these.  There are different
         # endpoints, etc.
         ##'pdcupdater.handlers.pkgdb:NewPackageHandler',
