@@ -47,28 +47,33 @@
   - base
   - config
 
-
-- name: install /etc/pki/tls/certs/gateway.csr
+- name: create /etc/postfix/tls_policy
+  copy: src="postfix/tls_policy" dest=/etc/postfix/tls_policy
   when: inventory_hostname.startswith(('bastion'))
+  tags:
+  - postfix
+  
+- name: install /etc/pki/tls/certs/gateway.csr
   copy: 
     src="{{private}}/files/smtpd/gateway.crt"
     dest=/etc/pki/tls/certs/
     owner=root
     group=root
     mode=0644
+  when: inventory_hostname.startswith(('bastion'))
   notify:
   - restart postfix
   tags:
   - postfix
 
 - name: Copy gateway.key
-  when: inventory_hostname.startswith(('bastion'))
   copy: 
     src="{{private}}/files/smtpd/gateway.key"
     dest=/etc/pki/tls/private/
     owner=root
-    group=root
-    mode=0600
+    group=postfix
+    mode=0640
+  when: inventory_hostname.startswith(('bastion'))
   notify:
   - restart postfix
   tags:

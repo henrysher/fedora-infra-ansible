@@ -1,0 +1,98 @@
+From d2764137e5f3b3786e7cffa15c4902dfc3ef0bf5 Mon Sep 17 00:00:00 2001
+From: Stephen Smoogen <smooge@redhat.com>
+Date: Tue, 27 Sep 2016 01:10:46 +0000
+Subject: [PATCH 1/2] try this patch set on for size to get tls working with
+ smtp
+
+---
+ roles/base/files/postfix/main.cf/main.cf.gateway | 39 ++++++++++++++++++++++++
+ roles/base/tasks/postfix.yml                     | 29 ++++++++++++++++++
+ 2 files changed, 68 insertions(+)
+
+diff --git a/roles/base/files/postfix/main.cf/main.cf.gateway b/roles/base/files/postfix/main.cf/main.cf.gateway
+index 37b6a87..7a8832a 100644
+--- a/roles/base/files/postfix/main.cf/main.cf.gateway
++++ b/roles/base/files/postfix/main.cf/main.cf.gateway
+@@ -703,3 +703,42 @@ local_header_rewrite_clients = static:all
+ 
+ 
+ message_size_limit = 20971520
++
++
++## TLS
++# enable opportunistic TLS support in the SMTP server
++smtpd_use_tls = yes
++smtpd_tls_security_level = may
++smtpd_tls_auth_only = yes
++smtpd_tls_mandatory_protocols = !SSLv2,!SSLv3
++smtpd_tls_mandatory_ciphers = high
++smtpd_tls_mandatory_exclude_ciphers = aNULL, MD5, RC4
++smtpd_tls_mandatory_protocols = !SSLv2, !SSLv3
++tls_ssl_options = no_ticket, no_compression
++
++smtpd_tls_loglevel = 1
++smtpd_tls_cert_file = /etc/pki/tls/certs/bastion.fedoraproject.org.csr
++smtpd_tls_key_file = /etc/pki/tls/private/bastion.fedoraproject.org.key
++smtpd_tls_CAfile  = /etc/pki/tls/certs/ca-bundle.crt
++smtpd_tls_session_cache_timeout = 3600s
++smtpd_tls_session_cache_database        = btree:${queue_directory}/smtpd_scache
++smtpd_tls_received_header               = yes
++smtpd_tls_ask_ccert                     = yes
++smtpd_tls_received_header = yes
++tls_random_source                       = dev:/dev/urandom
++smtpd_tls_eecdh_grade = ultra
++tls_eecdh_strong_curve = prime256v1
++tls_eecdh_ultra_curve = secp384r1
++# TLS end
++#TLS Client
++smtp_tls_fingerprint_digest=sha1
++smtp_tls_note_starttls_offer = yes
++smtp_tls_policy_maps = hash:/etc/postfix/tls_policy
++smtp_tls_security_level = may
++smtp_tls_mandatory_protocols = !SSLv2,!SSLv3
++smtp_tls_mandatory_ciphers = high
++smtp_tls_mandatory_exclude_ciphers= aNULL, MD5, RC4
++smtp_tls_loglevel = 1
++smtp_tls_cert_file = /etc/pki/tls/certs/bastion.fedoraproject.org.csr
++smtp_tls_key_file = /etc/pki/tls/private/bastion.fedoraproject.org.key
++smtp_tls_CAfile  = /etc/pki/tls/certs/ca-bundle.crt
+diff --git a/roles/base/tasks/postfix.yml b/roles/base/tasks/postfix.yml
+index 8ffdde1..9db1fa7 100644
+--- a/roles/base/tasks/postfix.yml
++++ b/roles/base/tasks/postfix.yml
+@@ -48,3 +48,32 @@
+   - config
+ 
+ 
++- name: install /etc/pki/tls/certs/{{name}}.csr
++  copy: >
++    src={{item}}
++    dest=/etc/pki/tls/certs/{{item | basename}}
++    owner=root
++    group=root
++    mode=0644
++  with_first_found:
++  - "{{private}}/files/httpd/{{cert}}.cert"
++  - "{{private}}/files/httpd/{{name}}.cert"
++  notify:
++  - restart postfix
++  tags:
++  - postfix
++
++- name: Copy {{name}}.key
++  copy: >
++    src={{item}}
++    dest=/etc/pki/tls/private/{{item | basename}}
++    owner=root
++    group=root
++    mode=0600
++  with_first_found:
++  - "{{private}}/files/httpd/{{key}}.key"
++  - "{{private}}/files/httpd/{{name}}.key"
++  notify:
++  - restart postfix
++  tags:
++  - postfix
+-- 
+1.8.3.1
+
