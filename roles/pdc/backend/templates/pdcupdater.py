@@ -46,6 +46,8 @@ config = {
     {% else %}
     'pdcupdater.koji_url': 'http://koji01.phx2.fedoraproject.org/kojihub',
     {% endif %}
+    # Use 8 threads to talk to koji in parallel.
+    'pdcupdater.koji_io_threads': 8,
 
     # Where to find composes
     {% if env == 'staging' %}
