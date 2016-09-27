@@ -6,37 +6,44 @@
   - tpm-tools
   tags:
   - packages
+  - robosignatory
 
 - name: Create config directory
   file: path=/etc/robosignatory state=directory owner=fedmsg group=fedmsg mode=0750
   tags:
   - config
+  - robosignatory
 
 - name: Create sigul directory
   file: path=/etc/robosignatory/sigul state=directory owner=fedmsg group=fedmsg mode=0750
   tags:
   - config
+  - robosignatory
 
 - name: Install koji certificate and key
   copy: src="{{ private }}/files/koji/autopen.pem" dest=/etc/robosignatory/koji.cert
         owner=fedmsg group=fedmsg mode=0640
   tags:
   - config
+  - robosignatory
 
 - name: Install koji config
   copy: src=koji.conf dest=/etc/robosignatory/koji.config
         owner=fedmsg group=fedmsg mode=0640
   tags:
   - config
+  - robosignatory
 
 - name: Install koji CA certificate
   copy: src="{{ private }}/files/fedora-ca.cert" dest=/etc/robosignatory/serverca.cert
         owner=fedmsg group=fedmsg mode=0640
   tags:
   - config
+  - robosignatory
 
 - name: Setup robosignatory config
   copy: src=robosignatory.{{env}}.py dest=/etc/fedmsg.d/robosignatory.py
         owner=fedmsg group=fedmsg mode=0640
   tags:
   - config
+  - robosignatory
