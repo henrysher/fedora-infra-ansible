@@ -30,7 +30,8 @@ MACHINES='signal.gnome.org
           pentagon.gimp.org
           account.gnome.org
           bugzilla-new.gnome.org
-          socket.gnome.org'
+          socket.gnome.org
+          odrs.gnome.org'
 
 BACKUP_DIR='/gnome_backups/'
 
