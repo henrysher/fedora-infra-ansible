@@ -28,6 +28,29 @@ config = dict(
             ),
         ),
 
+        # For fedora-admin
+        dict(
+            network='chat.freenode.net',
+            port=6667,
+            make_pretty=True,
+            make_terse=True,
+
+            {% if env == 'staging' %}
+            nickname='fedmsg-admin-s',
+            {% else %}
+            nickname='fedmsg-admin',
+            {% endif %}
+            channel='fedora-admin',
+            filters=dict(
+                topic=[
+                    '^((?!(pagure)).)*$',
+                ],
+                body=[
+                    "^((?!(fedora-infrastructure|u'name': u'pagure')).)*$",
+                ],
+            ),
+        ),
+
         # For fedora-apps
         dict(
             network='chat.freenode.net',
