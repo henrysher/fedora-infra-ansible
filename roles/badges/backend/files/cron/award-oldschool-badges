@@ -7,6 +7,7 @@ import pkg_resources
 pkg_resources.require(__requires__)
 
 import itertools
+import string
 import time
 import urllib
 import socket
@@ -21,7 +22,7 @@ _fas_cache = {}
 
 import logging
 log = logging.getLogger()
-logging.basicConfig()
+logging.basicConfig(level=logging.INFO)
 import fedora.client.fas2
 
 import fedmsg
@@ -64,7 +65,7 @@ def user_in_group(user, group_name):
     # They must be actually 'approved' in that group for this to count
     return relevant_role.role_status == 'approved'
 
-def get_all_fas_users(creds)
+def get_all_fas_users(creds):
     fasclient = fedora.client.fas2.AccountSystem(
         username=creds['username'],
         password=creds['password'],
@@ -80,6 +81,7 @@ def get_all_fas_users(creds)
             request = fasclient.send_request('/user/list',
                                              req_params={'search': term},
                                              auth=True)
+            log.info("    Found %r matching users." % len(request['people']))
             for person in request['people']:
                 yield person
     finally:
