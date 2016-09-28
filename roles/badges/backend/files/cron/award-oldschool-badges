@@ -6,6 +6,7 @@ __main__.__requires__ = __requires__ = ["tahrir-api", "sqlalchemy>=0.7"];
 import pkg_resources
 pkg_resources.require(__requires__)
 
+import itertools
 import time
 import urllib
 import socket
@@ -63,10 +64,7 @@ def user_in_group(user, group_name):
     # They must be actually 'approved' in that group for this to count
     return relevant_role.role_status == 'approved'
 
-
-def get_fas_groupings(fas_credentials, lookup, **config):
-    creds = fas_credentials
-
+def get_all_fas_users(creds)
     fasclient = fedora.client.fas2.AccountSystem(
         username=creds['username'],
         password=creds['password'],
@@ -76,17 +74,23 @@ def get_fas_groupings(fas_credentials, lookup, **config):
     socket.setdefaulttimeout(600)
     try:
         log.info("Downloading FAS cache")
-        request = fasclient.send_request('/user/list',
-                                         req_params={'search': '*'},
-                                         auth=True)
+        for a, b in itertools.product(string.lowercase, string.lowercase):
+            term = a + b + '*'
+            log.info("  Querying FAS for %r" % term)
+            request = fasclient.send_request('/user/list',
+                                             req_params={'search': term},
+                                             auth=True)
+            for person in request['people']:
+                yield person
     finally:
         socket.setdefaulttimeout(timeout)
 
-    mega_list = request['people']
 
+def get_fas_groupings(fas_credentials, lookup, **config):
     results = {}
     packager_id, ambassadors_id = None, None
     sponsor_types = ['sponsor', 'administrator']
+    mega_list = get_all_fas_users(fas_credentials)
     for user in mega_list:
         # This is the main check.
         for group_name, badge_id in lookup.iteritems():
