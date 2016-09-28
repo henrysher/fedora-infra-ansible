@@ -6,6 +6,8 @@ Django settings for HyperKitty + Postorius
 import os
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
+import django_fedora
+
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = '{{ mailman_hyperkitty_cookie_key }}'
 
@@ -29,7 +31,7 @@ ALLOWED_HOSTS = [
     ".fedoraproject.org",
     "localhost", # Archiving API from Mailman
     "127.0.0.1", # HAProxy ping
-    "mailman01", # Varnish ping on STG
+    "{{ ansible_hostname }}", # Varnish ping
 ]
 
 # Mailman API credentials
@@ -322,12 +324,16 @@ LOGGING = {
     'filters': {
         'require_debug_false': {
             '()': 'django.utils.log.RequireDebugFalse'
+        },
+        'exclude_useless_errors': {
+            '()': 'django.utils.log.CallbackFilter',
+            'callback': django_fedora.exclude_useless_errors,
         }
     },
     'handlers': {
         'mail_admins': {
             'level': 'ERROR',
-            'filters': ['require_debug_false'],
+            'filters': ['require_debug_false', 'exclude_useless_errors'],
             'class': 'django.utils.log.AdminEmailHandler'
         },
         'file':{
@@ -340,7 +346,12 @@ LOGGING = {
     },
     'loggers': {
         'django.request': {
-            'handlers': ['mail_admins', 'file'],
+            'handlers': [
+                'file',
+                {% if env == 'prod' %}
+                'mail_admins',
+                {% endif %}
+            ],
             'level': 'DEBUG',
             'propagate': True,
         },

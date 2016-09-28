@@ -5,6 +5,7 @@
 
 #
 # SELinux
+# TODO: switch to the sefcontext module when we update Ansible to 2.2+
 #
 - name: install semanage
   yum: pkg=policycoreutils-python state=present
@@ -265,6 +266,16 @@
   tags:
   - config
   - mailman
+
+- name: install the django_fedora module
+  copy: src=django_fedora.py
+        dest="{{ mailman_webui_confdir }}/django_fedora.py"
+        owner=root group=root mode=0644
+  tags:
+  - config
+  - mailman
+  notify:
+    - reload apache
 
 - name: install the hyperkitty urls file
   copy: src=urls.py
