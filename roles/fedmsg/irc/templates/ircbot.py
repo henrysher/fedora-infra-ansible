@@ -46,7 +46,7 @@ config = dict(
                     '^((?!(pagure)).)*$',
                 ],
                 body=[
-                    "^((?!(fedora-infrastructure|u'name': u'pagure')).)*$",
+                    "^((?!(fedora-infrastructure)).)*$",
                 ],
             ),
         ),
