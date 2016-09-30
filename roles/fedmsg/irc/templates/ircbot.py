@@ -386,6 +386,44 @@ config = dict(
                 body=['^((?!(modularity|Modularity)).)*$'],
             ),
         ),
+
+        # And #fedora-diversity
+        dict(
+            network='chat.freenode.net',
+            port=6667,
+            make_pretty=True,
+            make_terse=True,
+
+            {% if env == 'staging' %}
+            nickname='fedmsg-diversity-stg',
+            {% else %}
+            nickname='fedmsg-diversity-bot',
+            {% endif %}
+            channel='#fedora-diversity',
+            # If the word diversity appears in any message, forward it.
+            filters=dict(
+                body=['^((?!(diversity|Diversity)).)*$'],
+            ),
+        ),
+
+        # And #fedora-magazine
+        dict(
+            network='chat.freenode.net',
+            port=6667,
+            make_pretty=True,
+            make_terse=True,
+
+            {% if env == 'staging' %}
+            nickname='fedmsg-magazine-stg',
+            {% else %}
+            nickname='fedmsg-magazine-bot',
+            {% endif %}
+            channel='#fedora-magazine',
+            # If the word modularity appears in any message, forward it.
+            filters=dict(
+                body=['^((?!(magazine|Magazine)).)*$'],
+            ),
+        ),
     ],
 
     ### Possible colors are ###
