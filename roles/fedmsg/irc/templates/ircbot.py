@@ -36,9 +36,9 @@ config = dict(
             make_terse=True,
 
             {% if env == 'staging' %}
-            nickname='fedmsg-admin-s',
+            nickname='fmn-stg-admin',
             {% else %}
-            nickname='fedmsg-admin',
+            nickname='fmn-admin',
             {% endif %}
             channel='fedora-admin',
             filters=dict(
@@ -395,9 +395,9 @@ config = dict(
             make_terse=True,
 
             {% if env == 'staging' %}
-            nickname='fedmsg-diversity-stg',
+            nickname='fmn-stg-diversity',
             {% else %}
-            nickname='fedmsg-diversity-bot',
+            nickname='fmn-diversity',
             {% endif %}
             channel='#fedora-diversity',
             # If the word diversity appears in any message, forward it.
@@ -414,9 +414,9 @@ config = dict(
             make_terse=True,
 
             {% if env == 'staging' %}
-            nickname='fedmsg-magazine-stg',
+            nickname='fmn-stg-magazine',
             {% else %}
-            nickname='fedmsg-magazine-bot',
+            nickname='fmn-magazine',
             {% endif %}
             channel='#fedora-magazine',
             # If the word modularity appears in any message, forward it.
