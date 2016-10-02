@@ -16,6 +16,7 @@
   - libxml2-python
   - python-jinja2
   - tree            # requested in ticket 5148
+  - mod_ssl
   tags:
   - packages
   - people
@@ -33,6 +34,19 @@
   - userdir.conf
   tags:
   - people
+
+- name: Install haveged for entropy
+  yum: name=haveged state=installed
+  tags:
+  - httpd
+  - httpd/proxy
+
+- name: Set haveged running/enabled
+  service: name=haveged enabled=yes state=started
+  tags:
+  - service
+  - httpd
+  - httpd/proxy
 
 - name: Empty default welcome.conf
   copy: dest=/etc/httpd/conf.d/welcome.conf content=""
