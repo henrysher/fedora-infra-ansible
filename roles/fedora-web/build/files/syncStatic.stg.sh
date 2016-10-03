@@ -45,24 +45,19 @@ cd /srv/web/fedora-websites
 
 /usr/bin/git clean -q -fdx || exit 1
 /usr/bin/git reset -q --hard || exit 1
-/usr/bin/git checkout -q f25-alpha || exit 1
+/usr/bin/git checkout -q f25-beta || exit 1
 
 /usr/bin/git pull -q --ff-only || exit 1
 build spins.fedoraproject.org
 build labs.fedoraproject.org
 build arm.fedoraproject.org
+build getfedora.org
 
 /usr/bin/git clean -q -fdx || exit 1
 /usr/bin/git reset -q --hard || exit 1
 /usr/bin/git checkout -q alt-rewrite || exit 1
 /usr/bin/git pull -q --ff-only || exit 1
 build alt.fedoraproject.org
-
-/usr/bin/git clean -q -fdx || exit 1
-/usr/bin/git reset -q --hard || exit 1
-/usr/bin/git checkout -q fmw-test || exit 1
-/usr/bin/git pull -q --ff-only || exit 1
-build getfedora.org
 
 pushd mirrors.fedoraproject.org > /dev/null
 rsync -qa --delete-after --delay-updates . /srv/web/mirrors.fedoraproject.org/
