@@ -153,7 +153,8 @@ def main():
     # First, some validation that the badge ids actually exist.
     for fas_group, badge_id in mapping.items():
         badge = tahrir.get_badge(badge_id=badge_id)
-        assert(badge.id)
+        if not badge:
+            raise ValueError("%r is not a valid badge id" % badge_id)
 
     # Then, do a long query against FAS for our candidates.
     results = get_fas_groupings(fas_credentials=fm_config['fas_credentials'],
