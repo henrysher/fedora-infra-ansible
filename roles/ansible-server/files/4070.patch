@@ -1,0 +1,40 @@
+From bd065748a934b9c4261602ab5f1b975e5a441dd0 Mon Sep 17 00:00:00 2001
+From: Patrick Uiterwijk <puiterwijk@redhat.com>
+Date: Wed, 29 Jun 2016 12:59:23 +0000
+Subject: [PATCH] nova_compute: indicate argument type
+
+Without this, ansible 2.1 will convert some arguments that are
+meant to be dict or list type to their str representation.
+
+Signed-off-by: Patrick Uiterwijk <puiterwijk@redhat.com>
+---
+ cloud/openstack/_nova_compute.py | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/cloud/openstack/_nova_compute.py b/cloud/openstack/_nova_compute.py
+index 8b8545f..29d3ab0 100644
+--- a/cloud/openstack/_nova_compute.py
++++ b/cloud/openstack/_nova_compute.py
+@@ -543,17 +543,17 @@ def main():
+         flavor_include                  = dict(default=None),
+         key_name                        = dict(default=None),
+         security_groups                 = dict(default='default'),
+-        nics                            = dict(default=None),
+-        meta                            = dict(default=None),
++        nics                            = dict(default=None, type='list'),
++        meta                            = dict(default=None, type='dict'),
+         wait                            = dict(default='yes', choices=['yes', 'no']),
+         wait_for                        = dict(default=180),
+         state                           = dict(default='present', choices=['absent', 'present']),
+         user_data                       = dict(default=None),
+         config_drive                    = dict(default=False, type='bool'),
+         auto_floating_ip                = dict(default=False, type='bool'),
+-        floating_ips                    = dict(default=None),
+-        floating_ip_pools               = dict(default=None),
+-        scheduler_hints                 = dict(default=None),
++        floating_ips                    = dict(default=None, type='list'),
++        floating_ip_pools               = dict(default=None, type='list'),
++        scheduler_hints                 = dict(default=None, type='dict'),
+     ))
+     module = AnsibleModule(
+         argument_spec=argument_spec,
