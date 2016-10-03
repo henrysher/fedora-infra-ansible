@@ -1,9 +1,7 @@
-from django.core.exceptions import DisallowedHost
 from django.http import UnreadablePostError
 from pylibmc import Error as MemcachedError
 
 EXCLUDED = (
-    DisallowedHost,
     UnreadablePostError,
     MemcachedError,
 )

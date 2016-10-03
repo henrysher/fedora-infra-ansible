@@ -343,6 +343,9 @@ LOGGING = {
             'filename': '/var/log/hyperkitty/hyperkitty.log',
             'formatter': 'verbose',
         },
+        'null': {
+            'class': 'logging.NullHandler',
+        },
     },
     'loggers': {
         'django.request': {
@@ -354,14 +357,9 @@ LOGGING = {
             ],
             'level': 'DEBUG',
         },
-        'django.security': {
-            'handlers': [
-                'file',
-                {% if env == 'production' %}
-                'mail_admins',
-                {% endif %}
-            ],
-            'level': 'DEBUG',
+        'django.security.DisallowedHost': {
+            'handlers': ['null'],
+            'propagate': False,
         },
     },
     'formatters': {
