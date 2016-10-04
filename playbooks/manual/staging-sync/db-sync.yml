@@ -1,0 +1,122 @@
+# This playbook tries to be a generic solution to sync databases from prod to
+# stg
+
+# Usage:
+#  --extra-vars="dbhost='db01' server='pkgdb01.stg' db='pkgdb2'"
+# dbhost => The hostname for the database server (db01, db01.stg...), the
+#           .phx2.fedoraproject.org part is automatically added
+# server => The application server where apache will be turned off during the
+#           sync.
+#           Can be a full hostname (foo01.phx2.fp.o) or a group, foo-stg
+# db     => The database name on both database server (must be the same)
+
+- name: bring staging services down
+  hosts: {{ server }}
+  user: root
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"
+
+  tasks:
+  - service: name=httpd state=stopped
+
+- name: dump the prod db out
+  hosts: {{ dbhost }}.phx2.fedoraproject.org
+  user: root
+  become: yes
+  become_user: postgres
+  become_method: sudo
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"
+
+  tasks:
+  - name: Dumping the production db. This might take a minute. Go out to the lobby!
+    shell: pg_dump -C {{ db }} |xz -c > /var/tmp/{{ db }}.dump.xz
+
+    # Get the dump from `from` in the batcave
+  - fetch:
+     src: /var/tmp/{{ db }}.dump.xz
+     dest: /var/tmp/
+     flat: yes
+
+- name: drop and re-create the staging db entirely
+  hosts: {{ dhost }}.stg.phx2.fedoraproject.org
+  user: root
+  become: yes
+  become_user: postgres
+  become_method: sudo
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"
+
+  tasks:
+    # push dump to stg from batcave
+  - copy:
+       src: /var/tmp/{{ db }}.dump.xz
+       dest: /var/tmp/{{ db }}.dump.xz
+
+  - command: unxz /var/tmp/{{ db }}.dump.xz
+             creates=/var/tmp/{{ db }}.dump
+
+  - command: dropdb {{ db }
+  - command: createdb {{ db }}
+  - name: Import the prod db.  This will take quite a while.  Go get a snack!
+    shell: cat /var/tmp/{{ db }}.dump | psql {{ db }}
+
+- name: bring staging services up
+  hosts: {{ server }}
+  user: root
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"
+
+  tasks:
+  - service: name=httpd state=started
+
+- name: Remove the prod db dump now that we are done
+  hosts: {{ dbhost }}.phx2.fedoraproject.org
+  user: root
+  become: yes
+  become_user: postgres
+  become_method: sudo
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"
+
+  tasks:
+  - name: Remove the db dump on the prod server
+    command: rm -f /var/tmp/{{ db }}.dump.xz
+
+- name: Remove the prod db dump on batcave
+  hosts: batcave01.phx2.fedoraproject.org
+  user: root
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"
+
+  tasks:
+  - command: rm -f /var/tmp/{{ db }}.dump.xz
+
