@@ -253,9 +253,9 @@ config = dict(
             nickname='fedmsg-g11n',
             {% endif %}
             channel='#fedora-g11n',
-            # If the word G11N appears in any message, forward it.
+            # If the word i18n/g11n appears in any message, forward it.
             filters=dict(
-                body=['^((?!G11N).)*$'],
+                body=['^((?!(i18n|g11n)).)*$'],
             ),
         ),
 
