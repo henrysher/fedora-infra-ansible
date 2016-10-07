@@ -11,7 +11,7 @@
 # db     => The database name on both database server (must be the same)
 
 - name: bring staging services down
-  hosts: {{ server }}
+  hosts: "{{ server }}"
   user: root
   vars_files:
    - /srv/web/infra/ansible/vars/global.yml
@@ -24,7 +24,7 @@
   - service: name=httpd state=stopped
 
 - name: dump the prod db out
-  hosts: {{ dbhost }}.phx2.fedoraproject.org
+  hosts: "{{ dbhost }}.phx2.fedoraproject.org"
   user: root
   become: yes
   become_user: postgres
@@ -48,7 +48,7 @@
      flat: yes
 
 - name: drop and re-create the staging db entirely
-  hosts: {{ dbhost }}.stg.phx2.fedoraproject.org
+  hosts: "{{ dbhost }}.stg.phx2.fedoraproject.org"
   user: root
   become: yes
   become_user: postgres
@@ -70,13 +70,13 @@
   - command: unxz /var/tmp/{{ db }}.dump.xz
              creates=/var/tmp/{{ db }}.dump
 
-  - command: dropdb {{ db }
+  - command: dropdb {{ db }}
   - command: createdb {{ db }}
   - name: Import the prod db.  This will take quite a while.  Go get a snack!
     shell: cat /var/tmp/{{ db }}.dump | psql {{ db }}
 
 - name: bring staging services up
-  hosts: {{ server }}
+  hosts: "{{ server }}"
   user: root
   vars_files:
    - /srv/web/infra/ansible/vars/global.yml
@@ -89,7 +89,7 @@
   - service: name=httpd state=started
 
 - name: Remove the prod db dump now that we are done
-  hosts: {{ dbhost }}.phx2.fedoraproject.org
+  hosts: "{{ dbhost }}.phx2.fedoraproject.org"
   user: root
   become: yes
   become_user: postgres
