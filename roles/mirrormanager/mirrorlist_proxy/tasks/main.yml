@@ -1,0 +1,34 @@
+---
+# tasklist for setting up the mirrorlist app as a container on proxies
+- name: Install docker
+  package: name=docker state=present
+  tags:
+  - mirrorlist_proxy
+
+- name: Run docker
+  service: name=docker state=started enabled=yes
+  tags:
+  - mirrorlist_proxy
+
+- name: Pull mirrorlist image
+  docker_image:
+    name: puiterwijk/infra-test:mirrorlist
+  tags:
+  - mirrorlist_proxy
+
+# We deploy two service files. Both listen on a different port, so that we can switch
+# them out as part of the pkl deployment without having any local downtime.
+- name: Deploy service files
+  copy: src={{item}}.service dest=/etc/systemd/system/{{item}}.service
+  with_items:
+  - mirrorlist1
+  - mirrorlist2
+  tags:
+  - mirrorlist_proxy
+
+# We enable mirrorlist1 so we have one that always starts on boot. The pkl deployment script
+# will make sure that at least one is running and the other is killed.
+- name: Enable mirrorlist1
+  server: name=mirrorlist1 enabled=yes
+  tags:
+  - mirrorlist_proxy
