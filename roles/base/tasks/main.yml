@@ -64,7 +64,7 @@
 #  - restart NetworkManager
   - reload NetworkManager-connections
   - apply interface-changes
-  when: (virthost is not defined) and (not item.startswith('tun')) and (not item.startswith('virbr')) and (not item.startswith('vnet')) and (hostvars[inventory_hostname]['ansible_' + item.replace('-','_')]['type'] == 'ether') and (ansible_distribution_major_version|int >=7) and hostvars[inventory_hostname]['ansible_' + item.replace('-','_')]['active'] and nmclitest|success and ( not ansible_ifcfg_blacklist ) and ( ansible_ifcfg_whitelist is not defined or item in ansible_ifcfg_whitelist )
+  when: (virthost is not defined) and (item.startswith(('eth','br'))) and (hostvars[inventory_hostname]['ansible_' + item.replace('-','_')]['type'] == 'ether') and (ansible_distribution_major_version|int >=7) and hostvars[inventory_hostname]['ansible_' + item.replace('-','_')]['active'] and nmclitest|success and ( not ansible_ifcfg_blacklist ) and ( ansible_ifcfg_whitelist is not defined or item in ansible_ifcfg_whitelist )
   tags:
    - config
    - ifcfg
