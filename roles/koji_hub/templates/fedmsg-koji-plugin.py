@@ -73,6 +73,11 @@ def get_message_body(topic, *args, **kws):
         msg['build_id'] = info.get('id', None)
         msg['task_id'] = info.get('task_id', None)
 
+        if msg['task_id']:
+            msg['request'] = kojihub.getTaskRequest(msg['task_id'])
+        else:
+            msg['request'] = None
+
         if 'owner_name' in info:
             msg['owner'] = info['owner_name']
         elif 'owner_id' in info:
