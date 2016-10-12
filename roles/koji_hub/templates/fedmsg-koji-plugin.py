@@ -74,7 +74,8 @@ def get_message_body(topic, *args, **kws):
         msg['task_id'] = info.get('task_id', None)
 
         if msg['task_id']:
-            msg['request'] = kojihub.getTaskRequest(msg['task_id'])
+            task = kojihub.Task(msg['task_id'])
+            msg['request'] = task.getRequest()
         else:
             msg['request'] = None
 
