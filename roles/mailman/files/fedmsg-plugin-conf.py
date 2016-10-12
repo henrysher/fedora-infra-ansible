@@ -6,5 +6,6 @@ config = {
         'cwg-private',      # private list
         'fesco',            # private list
         'security-private', # private list
+        'diversity-private', # private list
     ],
 }
