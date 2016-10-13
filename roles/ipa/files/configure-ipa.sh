@@ -20,6 +20,9 @@ done
 # Create fas_sync user
 ipa user-add fas_sync --first=FAS --last=Sync
 
+# Allow sync user to create and edit users
+ipa group-add-member admins --users=fas_sync
+
 # Allow sync user to update passwords
 ldapmodify -x -D "cn=Directory Manager" -w "$DM_PASSWORD" -h localhost -p 389 <<EOF
 dn: cn=ipa_pwd_extop,cn=plugins,cn=config
