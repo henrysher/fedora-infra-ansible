@@ -38,6 +38,20 @@
   - config
   when: inventory_hostname.startswith("ipa01")
 
+- name: create replica file
+  delegate: ipa01.phx2.fedoraproject.org
+  command: ipa-replica-prepare
+           --password={{ipa_dm_password}}
+           --ip-address={{eth0_ip}}
+           creates=/var/lib/ipa/replica-info-{{inventory_hostname}}.gpg
+  when: env != "staging" and not inventory_hostname.startswith("ipa01")
+
+- name: retrieve replica file
+  delegate: ipa01.phx2.fedoraproject.org
+  fetch: src=/var/lib/ipa/replica-info-{{inventory_hostname}}.gpg
+         dest=/tmp/ipa_replica_{{inventory_hostname}}
+  when: env != "staging" and not inventory_hostname.startswith("ipa01")
+
 #
 # switch this to use the systemd module as soon as ansible 2.2 is out.
 #
