@@ -131,19 +131,19 @@
     owner: "{{ libvirt_user }}"
     group: "{{ libvirt_user }}"
   when: item.hostname not in result.list_vms
-  with_items: clients
+  with_items: "{{ clients }}"
   become: true
   become_user: "{{ libvirt_user }}"
 
 - name: ensure the guest lvs are created
   lvol: lv={{ item.hostname }} vg={{ volgroup }} size={{ item.lvm_size }} state=present
   when: item.hostname not in result.list_vms
-  with_items: clients
+  with_items: "{{ clients }}"
 
 - name: ensure vms are defined
   command: "virsh define --file /home/{{ libvirt_user }}/{{ item.hostname }}.libvirt.xml"
   when: item.hostname not in result.list_vms
-  with_items: clients
+  with_items: "{{ clients }}"
   become: true
   become_user: "{{ libvirt_user }}"
 
