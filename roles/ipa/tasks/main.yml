@@ -85,6 +85,28 @@
   - config
   when: not inventory_hostname.startswith("ipa01") and not replication_status.stat.exists
 
+- name: deploy replica
+  command: ipa-replica-install
+           --setup-ca
+           --setup-kra
+           --password={{ipa_dm_password}}
+           --admin-password={{ipa_admin_password}
+           --mkhomedir
+           --no-ntp
+           --unattended
+           --no-ssh
+           --no-sshd
+           --setup-dns
+           --forwarder=10.5.126.21
+           --forwarder=10.5.126.22
+           --log-file=/var/log/ipainstall.log
+           /root/ipa_replica_{{inventory_hostname}}.gpg
+           creates=/etc/ipa/default.conf
+  tags:
+  - ipa
+  - config
+  when: not inventory_hostname.startswith("ipa01") and not replication_status.stat.exists
+
 #
 # switch this to use the systemd module as soon as ansible 2.2 is out.
 #
