@@ -119,14 +119,17 @@
   - config
   when: not inventory_hostname.startswith("ipa01") and not replication_status.stat.exists
 
-#
-# switch this to use the systemd module as soon as ansible 2.2 is out.
-#
+- name: Deploy configuration script
+  copy: src=configure-ipa.sh dest=/root/configure-ipa.sh mode=0700 owner=root group=root
+  register: config_deployed
+  tags:
+  - ipa
+  - config
+  when: inventory_hostname.startswith("ipa01")
 
-#- name: mask kadmin
-#  file: src=/dev/null
-#        dest=/etc/systemd/system/kadmin.service
-#        owner=root group=root state=link
-#  tags:
-#  - ipa
-#  - config
+- name: Run configuration script
+  command: /bin/bash /root/configure-ipa.sh {{ipa_dm_password}} {{ipa_admin_password}}
+  tags:
+  - ipa
+  - config
+  when: inventory.hostname.startswith("ipa01") and config_deployed.changed
