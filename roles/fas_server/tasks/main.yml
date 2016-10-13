@@ -17,7 +17,6 @@
   - fas
 
 - name: install needed packages
-  when: env == "staging"
   yum: pkg={{ item }} state=installed
   with_items:
   - krb5-workstation
@@ -27,14 +26,12 @@
   - fas
 
 - name: configure krb5
-  when: env == "staging"
   template: src=krb5.conf.j2 dest=/etc/krb5.conf owner=root group=root mode=0644
   tags:
   - config
   - fas
 
 - name: install IPA keytab
-  when: env == "staging"
   copy: >
     src="{{ private }}/files/keytabs/{{env}}/fas_sync"
     dest="/etc/fas_sync_keytab"
@@ -46,7 +43,6 @@
   - fas
 
 - name: install ipa public cert
-  when: env == "staging"
   copy: src=ipa.{{env}}.pem dest=/etc/fas_sync_cert.pem owner=root group=root mode=0644
   tags:
   - config
