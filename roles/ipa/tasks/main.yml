@@ -38,6 +38,14 @@
   - config
   when: inventory_hostname.startswith("ipa01")
 
+- name: determine whether we need to set up replication
+  stat: path=/etc/ipa/default.conf
+  register: replication_status
+  tags:
+  - ipa
+  - config
+  when: inventory_hostname.startswith("ipa01")
+
 - name: create replica file
   delegate_to: ipa01.phx2.fedoraproject.org
   command: ipa-replica-prepare
@@ -48,7 +56,7 @@
   tags:
   - ipa
   - config
-  when: env != "staging" and not inventory_hostname.startswith("ipa01")
+  when: not inventory_hostname.startswith("ipa01") and not replication_status.exists
 
 - name: retrieve replica file
   delegate_to: ipa01.phx2.fedoraproject.org
@@ -58,7 +66,24 @@
   tags:
   - ipa
   - config
-  when: env != "staging" and not inventory_hostname.startswith("ipa01")
+  when: not inventory_hostname.startswith("ipa01") and not replication_status.exists
+
+- name: deploy replica file
+  copy: src=/tmp/ipa_replica_{{inventory_hostname}}.gpg
+        dest=/root/ipa_replica_{{inventory_hostname}}.gpg
+        mode=0600 owner=root group=root
+  tags:
+  - ipa
+  - config
+  when: not inventory_hostname.startswith("ipa01") and not replication_status.exists
+
+- name: destroy replica file on ansible host
+  delegate_to: localhost
+  file: path=/tmp/ipa_replica_{{inventory_hostname}}.gpg state=absent
+  tags:
+  - ipa
+  - config
+  when: not inventory_hostname.startswith("ipa01") and not replication_status.exists
 
 #
 # switch this to use the systemd module as soon as ansible 2.2 is out.
