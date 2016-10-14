@@ -13,21 +13,29 @@
   - mod_ssl
   - python-fedmsg-genacls
   - /usr/sbin/semanage
+  tags:
+  - distgit
 
 - name: install the httpd config file
   copy: src=pkgs.fedoraproject.org.conf dest=/etc/httpd/conf.d/pkgs.fedoraproject.org.conf
   notify:
   - reload httpd
+  tags:
+  - distgit
 
 - name: install the httpd config directory
   file: dest=/etc/httpd/conf.d/pkgs.fedoraproject.org state=directory
   notify:
   - reload httpd
+  tags:
+  - distgit
 
 - name: install the mod_ssl configuration
   copy: src=ssl.conf dest=/etc/httpd/conf.d/ssl.conf
   notify:
   - reload httpd
+  tags:
+  - distgit
 
 - name: install the keytab
   copy: src="{{ private }}/files/keytabs/{{env}}/pkgs"
@@ -37,20 +45,30 @@
         mode=0600
   notify:
   - reload httpd
+  tags:
+  - distgit
 
 - name: allow httpd to access the files on NFS
   seboolean: name=httpd_use_nfs state=yes persistent=yes
+  tags:
+  - distgit
 
 - name: allow httpd to access git user content
   seboolean: name=httpd_read_user_content state=yes persistent=yes
+  tags:
+  - distgit
 
 - name: Secure tmpfs read only
   mount: name=/dev/shm src=tmpfs fstype=tmpfs opts=defaults,size=40G state=present
+  tags:
+  - distgit
 
 # -- Dist Git --------------------------------------------
 # This is the Git setup itself: group, root directory, scripts,...
 - name: create the distgit root directory (/srv/git)
   file: dest=/srv/git state=directory mode=0755
+  tags:
+  - distgit
 
 - name: check the selinux context of the distgit root directory
   command: matchpathcon /srv/git
@@ -72,6 +90,8 @@
 
 - name: create the distgit root directory (/srv/git/repositories)
   file: dest=/srv/git/repositories state=directory mode=2775 group=packager
+  tags:
+  - distgit
 
 # These should all map to pkgdb namespaces
 - name: create our namespace directories inside there..
@@ -83,6 +103,8 @@
   # Except for this one.  This namespace is artificially created in the
   # dist-git pkgdb sync scripts.
   - rpms-checks
+  tags:
+  - distgit
 
 - name: install the distgit scripts
   copy: src={{item}} dest=/usr/local/bin/{{item}} owner=root group=root mode=0755
@@ -99,11 +121,15 @@
   copy: src=git-smart-http.conf dest=/etc/httpd/conf.d/pkgs.fedoraproject.org/git-smart-http.conf
   notify:
   - reload httpd
+  tags:
+  - distgit
 
 - name: Symlink pkgs-git-repos-list
   copy: src=repolist.conf dest=/etc/httpd/conf.d/pkgs.fedoraproject.org/repolist.conf
   notify:
   - reload httpd
+  tags:
+  - distgit
 
 - name: install the pkgdb_sync_git_branches.py scripts
   template: src={{item}} dest=/usr/local/bin/{{item}} owner=root group=root mode=0755
@@ -119,14 +145,20 @@
     minute=0 hour=0 weekday=3
     user=nobody
     job="MAILTO=root PATH=/usr/bin:/usr/local/bin git check-perms --check=update-hook /srv/git/repositories}}"
+  tags:
+  - distgit
 
 # -- Gitolite --------------------------------------------
 # This is the permission management for package maintainers, using Gitolite.
 - name: create the /var/log/gitolite directory
   file: path=/var/log/gitolite owner=root group=packager state=directory mode=2775
+  tags:
+  - distgit
 
 - name: create the gen-acls group
   group: name=gen-acls gid=417 state=present
+  tags:
+  - distgit
 
 - name: create the gen-acls user
   user: >
@@ -136,20 +168,30 @@
         group=gen-acls
         shell=/bin/bash
         home=/srv/git
+  tags:
+  - distgit
 
 - name: create the /etc/gitolite/conf directory
   file: path=/etc/gitolite/conf owner=gen-acls group=gen-acls state=directory mode=0755
+  tags:
+  - distgit
 
 - name: create the /etc/gitolite/logs directory
   file: path=/etc/gitolite/logs owner=gen-acls group=packager
         state=directory mode=0775
+  tags:
+  - distgit
 
 - name: create the /etc/gitolite/local/VREF directory
   file: path=/etc/gitolite/local/VREF owner=gen-acls group=packager
         state=directory mode=0775
+  tags:
+  - distgit
 
 - name: create /etc/gitolite/gitolite.rc
   template: src=gitolite.rc dest=/etc/gitolite/gitolite.rc owner=root group=root mode=0755
+  tags:
+  - distgit
 
 - name: Create the rpms symlink (should not be needed, might still be used by some old scripts)
   command: ln -s /srv/git/repositories / /srv/git/rpms
