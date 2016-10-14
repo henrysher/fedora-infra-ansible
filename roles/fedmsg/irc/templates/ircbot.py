@@ -253,8 +253,11 @@ config = dict(
             nickname='fedmsg-g11n',
             {% endif %}
             channel='#fedora-g11n',
-            # If the word i18n/g11n appears in any message, forward it.
+            # If the word i18n/g11n appears in any of below topic message, forward it.
             filters=dict(
+                topic=[
+                    '^((?!(trac|pagure|planet|mailman|meetbot\.meeting\.complete)).)*$',
+                ],
                 body=['^((?!(i18n|g11n)).)*$'],
             ),
         ),
