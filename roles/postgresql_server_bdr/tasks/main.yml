@@ -1,0 +1,112 @@
+---
+#
+# Setup BDR postgresql server.
+#
+
+- name: setup 2ndquadrant repo
+  yum: >
+      name=http://packages.2ndquadrant.com/postgresql-bdr94-2ndquadrant/yum-repo-rpms/postgresql-bdr94-2ndquadrant-redhat-latest.noarch.rpm
+      state=present
+  tags:
+  - packages
+  - postgresql-bdr
+
+- name: install postgresql server packages (yum)
+  yum: name={{ item }}  state=present
+  with_items:
+  - postgresql-bdr94
+  - postgresql-bdr94-contrib
+  - postgresql-bdr94-server
+  - postgresql-bdr94-bdr
+  - postgresql-plpython
+  - python-psycopg2
+  when: ansible_distribution_major_version|int < 22
+  tags:
+  - packages
+  - postgresql-bdr
+
+- name: Set kernel shared memory max to a larger value
+  sysctl: name=kernel.shmmax value={{ kernel_shmmax }}
+  when: kernel_shmmax is defined
+  notify:
+  - restart postgresql94
+  tags:
+  - postgresql-bdr
+
+- name: Initialize postgres if necessary
+  command: /usr/pgsql-9.4/bin/postgresql94-setup initdb
+           creates=/var/lib/pgsql/9.4-bdr/data
+  notify:
+  - restart postgresql94
+  tags:
+  - postgresql-bdr
+
+- name: Set postgresql-server to run on boot
+  service: name=postgresql-9.4 enabled=yes
+  ignore_errors: true
+  notify:
+  - restart postgresql94
+  tags:
+  - service
+  - postgresql
+
+- name: Add our postgres config file.
+  copy: >
+    src={{ item }}
+    dest=/var/lib/pgsql/9.4-bdr/data/{{ item }}
+    owner=postgres
+  with_items:
+  - pg_hba.conf
+  notify:
+  - restart postgresql94
+  tags:
+  - config
+  - postgresql-bdr
+
+- name: postgresql config template
+  template: dest=/var/lib/pgsql/9.4-bdr/data/postgresql.conf src=postgresql.conf
+  notify:
+  - restart postgresql94
+  tags:
+  - config
+  - postgresql-bdr
+
+- name: Ensure postgres has a place to backup to
+  file: dest=/backups state=directory owner=postgres
+  tags:
+  - postgresql
+
+- name: Copy over backup scriplet
+  copy: src=backup-database dest=/usr/local/bin/backup-database mode=0755
+  tags:
+  - postgresql
+
+- name: Set up some cronjobs to backup databases as configured
+  template: >
+    src=cron-backup-database
+    dest=/etc/cron.d/cron-backup-database-{{ item }}
+  with_items:
+  - "{{ dbs_to_backup }}"
+  when: dbs_to_backup != []
+  tags:
+  - cron
+  - postgresql-bdr
+
+- name: Set up a cron job to clean long koji sessions on koji database server only
+  copy: >
+    src=koji-cleanup-sessions.cron
+    dest=/etc/cron.d/koji-cleanup-sessions.cron
+  when: inventory_hostname.startswith('db-koji01')
+  tags:
+  - cron
+  - postgresql-bdr
+
+- name: Set up a script for cron job to clean long fas sessions on fas database server only
+  copy: >
+    src=fasdb-cleanup-sessions
+    dest=/usr/local/bin/fasdb-cleanup-sessions
+    mode=755
+  when: inventory_hostname.startswith('db-fas01')
+  tags:
+  - cron
+  - postgresql-bdr
