@@ -40,11 +40,14 @@
   group: name={{ item }}
   when: deployment_type == 'stg' or deployment_type in ['dev', 'prod']
   with_items:
-    - "{{ slaves_group }}"
     - testcloud
     - taskotron
+
+- name: ensure needed groups exist
+  group: name={{ slaves_group }}
+  when: slaves_group is defined and (deployment_type == 'stg' or deployment_type in ['dev', 'prod'])
 
 - name: add buildslave users
   user: name={{ item.user }} group={{ slaves_group }} groups=testcloud,taskotron home={{ item.home }}
   with_items: "{{ slaves }}"
-  when: deployment_type == 'stg' or deployment_type in ['dev', 'prod']
+  when: slaves is defined and (deployment_type == 'stg' or deployment_type in ['dev', 'prod'])
