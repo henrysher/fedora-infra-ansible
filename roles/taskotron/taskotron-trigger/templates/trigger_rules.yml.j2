@@ -1,0 +1,26 @@
+---
+- when: {message_type: KojiBuildPackageCompleted}
+  do:
+    - {tasks: [rpmlint, rpmgrill]}
+    - {discover: {repo: 'http://pkgs.fedoraproject.org/git/rpms-checks/${name}.git', branch: "${distgit_branch}"}}
+- when: {message_type: KojiBuildDockerCompleted}
+  do:
+    - {discover: {repo: 'http://pkgs.fedoraproject.org/git/docker-checks/${name}.git', branch: "${distgit_branch}"}}
+- when: {message_type: KojiBuildPackageCompleted, name: docker}
+  do:
+    - {tasks: [dockerautotest]}
+- when:
+    message_type: KojiBuildPackageCompleted
+    name:
+      $in: ${critpath_pkgs}
+      $nin: []
+  do:
+    - {tasks: [abicheck]}
+- when: {message_type: KojiTagChanged}
+  do:
+    - {tasks: [depcheck]}
+- when:
+    message_type: KojiTagChanged
+    tag: {$regex: '/.*(?<!testing-pending)$$/'}
+  do:
+    - {tasks: [upgradepath]}
