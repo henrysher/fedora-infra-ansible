@@ -36,9 +36,9 @@ config = dict(
             make_terse=True,
 
             {% if env == 'staging' %}
-            nickname='fmn-stg-admin',
+            nickname='fm-stg-admin',
             {% else %}
-            nickname='fmn-admin',
+            nickname='fm-admin',
             {% endif %}
             channel='fedora-admin',
             filters=dict(
@@ -59,9 +59,9 @@ config = dict(
             make_terse=True,
 
             {% if env == 'staging' %}
-            nickname='fedmsg-apps-s',
+            nickname='fm-stg-apps',
             {% else %}
-            nickname='fedmsg-apps',
+            nickname='fm-apps',
             {% endif %}
             channel='fedora-apps',
             filters=dict(
@@ -82,9 +82,9 @@ config = dict(
             make_terse=True,
 
             {% if env == 'staging' %}
-            nickname='fedmsg-hubs-s',
+            nickname='fn-stg-hubs',
             {% else %}
-            nickname='fedmsg-hubs',
+            nickname='fm-hubs',
             {% endif %}
             channel='fedora-hubs',
             filters=dict(
@@ -168,9 +168,9 @@ config = dict(
             make_terse=True,
 
             {% if env == 'staging' %}
-            nickname='fedmsg-ask-stg',
+            nickname='fm-stg-ask',
             {% else %}
-            nickname='fedmsg-ask',
+            nickname='fm-ask',
             {% endif %}
             channel='fedora-ask',
             # Only show AskFedora messages
@@ -187,9 +187,9 @@ config = dict(
             make_terse=True,
 
             {% if env == 'staging' %}
-            nickname='fedmsg-releng-s',
+            nickname='fm-stg-releng',
             {% else %}
-            nickname='fedmsg-releng',
+            nickname='fm-releng',
             {% endif %}
             channel='fedora-releng',
             filters=dict(
@@ -210,9 +210,9 @@ config = dict(
             make_terse=True,
 
             {% if env == 'staging' %}
-            nickname='fedmsg-pfi-stg',
+            nickname='fm-stg-pfi',
             {% else %}
-            nickname='fedmsg-pfi',
+            nickname='fm-pfi',
             {% endif %}
             channel='#proyecto-fedora',
             # If the word proyecto appears in any message, forward it.
@@ -229,9 +229,9 @@ config = dict(
             make_terse=True,
 
             {% if env == 'staging' %}
-            nickname='fedmsg-latam-stg',
+            nickname='fm-stg-latam',
             {% else %}
-            nickname='fedmsg-latam',
+            nickname='fm-latam',
             {% endif %}
             channel='#fedora-latam',
             # If the word fedora-latam appears in any message, forward it.
@@ -248,9 +248,9 @@ config = dict(
             make_terse=True,
 
             {% if env == 'staging' %}
-            nickname='fedmsg-g11n-stg',
+            nickname='fm-stg-g11n',
             {% else %}
-            nickname='fedmsg-g11n',
+            nickname='fm-g11n',
             {% endif %}
             channel='#fedora-g11n',
             # If the word i18n/g11n appears in any of below topic message, forward it.
@@ -270,9 +270,9 @@ config = dict(
             make_terse=True,
 
             {% if env == 'staging' %}
-            nickname='ipsilon-bot-stg',
+            nickname='fm-stg-ipsilon',
             {% else %}
-            nickname='ipsilon-bot',
+            nickname='fm-ipsilon',
             {% endif %}
             channel='#ipsilon',
             # If the word ipsilon appears in any message, forward it.
@@ -293,9 +293,9 @@ config = dict(
             make_terse=True,
 
             {% if env == 'staging' %}
-            nickname='fedmsg-design-stg',
+            nickname='fm-stg-design',
             {% else %}
-            nickname='fedmsg-design',
+            nickname='fm-design',
             {% endif %}
             channel='#fedora-design',
             filters=dict(
@@ -312,9 +312,9 @@ config = dict(
             make_short=True,
 
             {% if env == 'staging' %}
-            nickname='fedmsg-docs-stg',
+            nickname='fm-stg-docs',
             {% else %}
-            nickname='fedmsg-docs',
+            nickname='fm-docs',
             {% endif %}
             channel='#fedora-docs',
             filters=dict(
@@ -330,9 +330,9 @@ config = dict(
             make_terse=True,
 
             {% if env == 'staging' %}
-            nickname='websites-bot-stg',
+            nickname='fm-stg-web',
             {% else %}
-            nickname='websites-bot',
+            nickname='fm-web',
             {% endif %}
             channel='#fedora-websites',
             # If the word fedora-websites appears in any message, forward it.
@@ -352,9 +352,9 @@ config = dict(
             make_terse=True,
 
             {% if env == 'staging' %}
-            nickname='mktg-bot-stg',
+            nickname='fm-stg-mktg',
             {% else %}
-            nickname='mktg-bot',
+            nickname='fm-mktg',
             {% endif %}
             channel='#fedora-mktg',
             # If the word fedora-mktg appears in any pagure message, forward it.
@@ -374,9 +374,9 @@ config = dict(
             make_terse=True,
 
             {% if env == 'staging' %}
-            nickname='mod-bot-stg',
+            nickname='fm-stg-mod',
             {% else %}
-            nickname='mod-bot',
+            nickname='fm-mod',
             {% endif %}
             channel='#fedora-modularity',
             # If the word modularity appears in any message, forward it.
@@ -398,9 +398,9 @@ config = dict(
             make_terse=True,
 
             {% if env == 'staging' %}
-            nickname='fmn-stg-diversity',
+            nickname='fm-stg-diversity',
             {% else %}
-            nickname='fmn-diversity',
+            nickname='fm-diversity',
             {% endif %}
             channel='#fedora-diversity',
             # If the word diversity appears in any message, forward it.
@@ -417,9 +417,9 @@ config = dict(
             make_terse=True,
 
             {% if env == 'staging' %}
-            nickname='fmn-stg-magazine',
+            nickname='fm-stg-magazine',
             {% else %}
-            nickname='fmn-magazine',
+            nickname='fm-magazine',
             {% endif %}
             channel='#fedora-magazine',
             # If the word modularity appears in any message, forward it.
