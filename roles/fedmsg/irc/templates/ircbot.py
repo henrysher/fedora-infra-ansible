@@ -424,6 +424,9 @@ config = dict(
             channel='#fedora-magazine',
             # If the word modularity appears in any message, forward it.
             filters=dict(
+                topic=[
+                    '^((?!(pagure|planet|badges|fas.group|mailman|meetbot\.meeting)).)*$',
+                ],
                 body=['^((?!(magazine|Magazine)).)*$'],
             ),
         ),
