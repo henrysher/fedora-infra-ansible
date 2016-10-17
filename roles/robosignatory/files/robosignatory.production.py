@@ -104,9 +104,29 @@ config = {
 
     'robosignatory.ostree_refs': {
         'fedora-atomic/25/x86_64/docker-host': {
-            'directory': '/mnt/fedora_koji/compose/atomic/25/',
+            'directory': '/mnt/fedora_koji/koji/compose/atomic/25/',
             'key': 'fedora-25',
             'ref_to': 'fedora-atomic/25/x86_64/docker-host'
-        }
+        },
+        'fedora/25/x86_64/workstation': {
+            'directory': '/mnt/fedora_koji/koji/compose/ostree/25/',
+            'key': 'fedora-25',
+            'ref_to': 'fedora/25/x86_64/workstation'
+        },
+        'fedora-atomic/rawhide/x86_64/docker-host': {
+            'directory': '/mnt/fedora_koji/koji/compose/atomic/rawhide/',
+            'key': 'fedora-26',
+            'ref_to': 'fedora-atomic/rawhide/x86_64/docker-host'
+        },
+        'fedora-atomic/rawhide/aarch64/docker-host': {
+            'directory': '/mnt/fedora_koji/koji/compose/atomic/rawhide/',
+            'key': 'fedora-26',
+            'ref_to': 'fedora-atomic/rawhide/aarch64/docker-host'
+        },
+        'fedora/rawhide/x86_64/workstation': {
+            'directory': '/mnt/fedora_koji/koji/compose/ostree/rawhide/',
+            'key': 'fedora-26',
+            'ref_to': 'fedora/rawhide/x86_64/workstation'
+        },
     }
 }
