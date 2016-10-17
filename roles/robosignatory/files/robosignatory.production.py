@@ -10,6 +10,7 @@ config = {
     },
 
     'robosignatory.enabled.tagsigner': True,
+    'robosignatory.enabled.atomicsigner': True,
     'robosignatory.signing.user': 'autopen',
     'robosignatory.signing.passphrase_file': '/etc/sigul/autosign.pass',
     'robosignatory.signing.config_file': '/etc/sigul/client.conf',
@@ -100,4 +101,12 @@ config = {
             ]
         },
     },
+
+    'robosignatory.ostree_refs': [
+        'fedora-atomic/25/x86_64/docker-host': {
+            'directory': '/mnt/koji/compose/atomic/25/',
+            'key': 'fedora-25',
+            'ref_to': 'fedora-atomic/25/x86_64/docker-host'
+        }
+    ]
 }
