@@ -145,16 +145,15 @@
 
 - name: Ensure libvirt is running if needed to create images
   service: name=libvirtd enabled=yes state=started
-  when: "diskcheck.rc > 0"
+  when: "diskcheck.rc > 1"
 
-# createhdds is kinda fragile and failure is not really fatal on an
-# existing deployment (just means we have an outdated disk image), so
-# we ignore_errors so the rest of the playbook will complete even if
-# it fails
+# > 1 is not a typo; check exits with 1 if all images are present but some
+# are outdated, and 2 if any images are missing. We only want to handle
+# outright *missing* images here in the playbook (to handle the case of
+# first deployment). Outdated images are handled by the daily cron run.
 - name: Create hard disk images (this may take a long time!)
   command: "/etc/cron.daily/createhdds"
-  when: "diskcheck.rc > 0"
-  ignore_errors: yes
+  when: "diskcheck.rc > 1"
 
 - name: Create exports file
   copy: src=exports dest=/etc/exports.d/openqa.exports owner=root group=root mode=0644
