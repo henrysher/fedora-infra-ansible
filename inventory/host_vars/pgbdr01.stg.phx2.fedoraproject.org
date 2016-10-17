@@ -1,0 +1,49 @@
+---
+nm: 255.255.255.0
+gw: 10.5.126.254
+dns: 10.5.126.21
+volgroup: /dev/vg_guests
+eth0_ip: 10.5.126.191
+vmhost: virthost04.phx2.fedoraproject.org
+datacenter: phx2
+
+ks_url: http://infrastructure.phx2.fedoraproject.org/repo/rhel/ks/kvm-rhel-7
+ks_repo: http://infrastructure.phx2.fedoraproject.org/repo/rhel/RHEL7-x86_64/
+
+# This is a generic list, monitored by collectd
+databases:
+- postgres
+
+# These are normally group variables, but in this case db servers are often different
+lvm_size: 300000
+mem_size: 16384
+max_mem_size: "{{ mem_size }}"
+num_cpus: 4
+fas_client_groups: sysadmin-dba,sysadmin-noc,sysadmin-veteran
+
+# kernel SHMMAX value
+kernel_shmmax: 68719476736
+
+#
+# Only allow postgresql access from the frontend node and other db nodes
+#
+custom_rules: [ 
+   '-A INPUT -p tcp -m tcp -s 10.5.126.191 --dport 5432 -j ACCEPT',
+   '-A INPUT -p tcp -m tcp -s 10.5.126.192 --dport 5432 -j ACCEPT', 
+   '-A INPUT -p tcp -m tcp -s 10.5.126.193 --dport 5432 -j ACCEPT', 
+   '-A INPUT -d 224.0.0.0/8 -j ACCEPT',
+   '-A INPUT -p vrrp -j ACCEPT',
+]
+
+#
+# Large updates pushes cause lots of db threads doing the tag moves, so up this from default. 
+# 
+nrpe_procs_warn: 600
+nrpe_procs_crit: 700
+shared_buffers: "8GB"
+effective_cache_size: "24GB"
+
+# Keepalived variables
+keepalived_interface: eth0
+keepalived_priority: 100
+keepalived_ipaddress: 10.5.126.193/24
