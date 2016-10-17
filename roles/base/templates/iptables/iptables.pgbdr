@@ -1,0 +1,85 @@
+# {{ ansible_managed }}
+*nat
+:PREROUTING ACCEPT []
+:POSTROUTING ACCEPT []
+:OUTPUT ACCEPT []
+
+# Redirect staging attempts to talk to the external proxy to an internal ip.
+# This is primarily for openid in staging which needs to get around proxy
+# redirects.
+-A OUTPUT -d 209.132.181.5 -j DNAT --to-destination 10.5.126.88
+
+COMMIT
+
+*filter
+:INPUT ACCEPT [0:0]
+:FORWARD ACCEPT [0:0]
+:OUTPUT ACCEPT [0:0]
+
+# allow ping and traceroute
+-A INPUT -p icmp -j ACCEPT
+
+# localhost is fine
+-A INPUT -i lo -j ACCEPT
+
+# Established connections allowed
+-A INPUT -m state --state RELATED,ESTABLISHED -j ACCEPT
+-A OUTPUT -m state --state RELATED,ESTABLISHED -j ACCEPT
+
+# if the blocked_ips is defined - drop them
+{% if blocked_ips is defined %}
+{% for ip in blocked_ips %}
+-A INPUT -s {{ ip }} -j DROP
+{% endfor %}
+{% endif %}
+
+# allow ssh - always
+-A INPUT -m conntrack --ctstate NEW -m tcp -p tcp --dport 22 -j ACCEPT
+
+# for nrpe - allow it from nocs
+-A INPUT -p tcp -m tcp --dport 5666 -s 192.168.1.10 -j ACCEPT
+# FIXME - this is the global nat-ip and we need the noc01-specific ip
+-A INPUT -p tcp -m tcp --dport 5666  -s 209.132.181.102 -j ACCEPT
+-A INPUT -p tcp -m tcp --dport 5666  -s 209.132.181.35 -j ACCEPT
+-A INPUT -p tcp -m tcp --dport 5666 -s 10.5.126.41 -j ACCEPT
+
+# if the host declares a fedmsg-enabled wsgi app, open ports for it
+{% if wsgi_fedmsg_service is defined %}
+{% for i in range(wsgi_procs * wsgi_threads) %}
+-A INPUT -p tcp -m tcp --dport 30{{ '%02d' % i }} -j ACCEPT
+{% endfor %}
+{% endif %}
+
+# if the host/group defines incoming tcp_ports - allow them
+{% for port in tcp_ports %}
+-A INPUT -p tcp -m tcp --dport {{ port }} -j ACCEPT
+{% endfor %}
+
+# if the host/group defines incoming udp_ports - allow them
+{% for port in udp_ports %}
+-A INPUT -p udp -m udp --dport {{ port }} -j ACCEPT
+{% endfor %}
+
+# if there are custom rules - put them in as-is
+{% for rule in custom_rules %}
+{{ rule }}
+{% endfor %}
+
+# This is a replicating postgresql server, allow db connections from clients
+{% for host in groups['postgres-clients']|sort %}
+{% if 'eth0_ip' in hostvars[host] %}# {{ host }}
+-A INPUT -s { hostvars[host]['eth0_ip'] }} -p tcp -m tcp --dport 5432 -j ACCEPT
+{% else %}# {{ host }} has no 'eth0_ip' listed
+{% endif %}
+{% endfor %}
+{% for host in groups['postgresql-clients-stg']|sort %}
+{% if 'eth0_ip' in hostvars[host] %}# {{ host }}
+-A INPUT -s { hostvars[host]['eth0_ip'] }} -p tcp -m tcp --dport 5432 -j ACCEPT
+{% else %}# {{ host }} has no 'eth0_ip' listed
+{% endif %}
+{% endfor %}
+
+# otherwise kick everything out
+-A INPUT -j REJECT --reject-with icmp-host-prohibited
+-A FORWARD -j REJECT --reject-with icmp-host-prohibited
+COMMIT
