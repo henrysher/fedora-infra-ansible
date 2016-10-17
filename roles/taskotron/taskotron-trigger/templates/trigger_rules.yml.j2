@@ -2,10 +2,10 @@
 - when: {message_type: KojiBuildPackageCompleted}
   do:
     - {tasks: [rpmlint, rpmgrill]}
-    - {discover: {repo: 'http://pkgs.fedoraproject.org/git/rpms-checks/${name}.git', branch: "${distgit_branch}"}}
+    - {discover: {repo: '{{ trigger_distgit_repo_url }}/rpms-checks/${name}.git', branch: "${distgit_branch}"}}
 - when: {message_type: KojiBuildDockerCompleted}
   do:
-    - {discover: {repo: 'http://pkgs.fedoraproject.org/git/docker-checks/${name}.git', branch: "${distgit_branch}"}}
+    - {discover: {repo: '{{ trigger_distgit_repo_url }}/docker-checks/${name}.git', branch: "${distgit_branch}"}}
 - when: {message_type: KojiBuildPackageCompleted, name: docker}
   do:
     - {tasks: [dockerautotest]}
@@ -13,7 +13,7 @@
     message_type: KojiBuildPackageCompleted
     name:
       $in: ${critpath_pkgs}
-      $nin: []
+      $nin: [firefox,thunderbird,kernel,kdelibs,kdepim,qt]
   do:
     - {tasks: [abicheck]}
 - when: {message_type: KojiTagChanged}
