@@ -13,7 +13,6 @@ MACHINES='signal.gnome.org
           git.gnome.org
           webapps.gnome.org
           progress.gnome.org
-          clipboard.gnome.org
           cloud.gnome.org
           bastion.gnome.org
           spinner.gnome.org
