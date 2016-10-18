@@ -24,7 +24,7 @@ ipa user-add fas_sync --first=FAS --last=Sync
 ipa group-add-member admins --users=fas_sync
 
 # Allow sync user to update passwords
-ldapmodify -x -D "cn=Directory Manager" -w "$DM_PASSWORD" -h localhost -p 389 <<EOF
+ldapmodify -x -H ldapi://%2fvar%2frun%2fslapd-FEDORAPROJECT-ORG.socket <<EOF
 dn: cn=ipa_pwd_extop,cn=plugins,cn=config
 changetype: modify
 add: passSyncManagersDNs
