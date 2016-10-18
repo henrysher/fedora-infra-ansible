@@ -1195,6 +1195,7 @@ qa14.qa.fedoraproject.org
 taskotron-stg01.qa.fedoraproject.org
 taskotron01.qa.fedoraproject.org
 
+
 [osbs]
 osbs-master01.phx2.fedoraproject.org
 
@@ -1202,14 +1203,47 @@ osbs-master01.phx2.fedoraproject.org
 osbs-node01.phx2.fedoraproject.org
 osbs-node02.phx2.fedoraproject.org
 
-[osbs-stg]
-osbs-master01.stg.phx2.fedoraproject.org
 
+#####
+# This is for the OSBS scale-out deployment work, the following group names are
+# unfortunately hard-coded into the openshift-ansible playbooks and roles and
+# must be used:
+#   OSEv3
+#   masters
+#   nodes
+#   etcd
+#   lb
+#
+# In an attempt to separate this out the best as we can, the descriptive group
+# names are used below and we then set those groups as children as necessary
+[OSEv3:children]
+masters
+nodes
+etcd
+lb
+
+[nodes:children]
+osbs-masters-stg
+osbs-nodes-stg
+
+[masters:children]
+osbs-masters-stg
+
+[etcd:children]
+osbs-masters-stg
+
+[lb:children]
+osbs-masters-stg
+
+[osbs-masters-stg]
+osbs-master01.stg.phx2.fedoraproject.org
 
 [osbs-nodes-stg]
 osbs-node01.stg.phx2.fedoraproject.org
 osbs-node02.stg.phx2.fedoraproject.org
 
+
+# Docker (docker-distribution) registries
 [docker-registry]
 docker-registry01.phx2.fedoraproject.org
 docker-candidate-registry01.phx2.fedoraproject.org

@@ -1,0 +1,34 @@
+# create an osbs server
+- include:  "/srv/web/infra/ansible/playbooks/include/virt-create.yml myhosts=osbs-nodes-stg:osbs-masters-stg"
+
+- name: make the box be real
+  hosts: osbs-masters-stg:osbs-nodes-stg
+  user: root
+  gather_facts: True
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  roles:
+  - base
+  - rkhunter
+  - nagios/client
+  - hosts
+  - fas_client
+  - collectd/base
+  - rsyncd
+  - sudo
+  - { role: openvpn/client,
+      when: env != "staging" }
+
+  tasks:
+  - include: "{{ tasks }}/yumrepos.yml"
+  - include: "{{ tasks }}/2fa_client.yml"
+  - include: "{{ tasks }}/motd.yml"
+
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"
+
+- include: "{{ openshift_ansible }}/playbooks/byo/openshift-cluster/config.yml"
