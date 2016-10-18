@@ -8,13 +8,13 @@
   - ipa-server
   - ipa-server-dns
   tags:
-  - ipa
+  - ipa/server
   - packages
 
 - name: enable haveged
   service: name=haveged state=started enabled=yes
   tags:
-  - haveged
+  - ipa/server
   - config
 
 - name: install IPA
@@ -34,7 +34,7 @@
            --log-file=/var/log/ipainstall.log
            creates=/etc/ipa/default.conf
   tags:
-  - ipa
+  - ipa/server
   - config
   when: inventory_hostname.startswith("ipa01")
 
@@ -45,7 +45,7 @@
            --log-file=/var/log/ipakrainstall.log
            creates=/var/log/ipakrainstall.log
   tags:
-  - ipa
+  - ipa/server
   - config
   when: inventory_hostname.startswith("ipa01")
 
@@ -53,7 +53,7 @@
   stat: path=/etc/ipa/default.conf
   register: replication_status
   tags:
-  - ipa
+  - ipa/server
   - config
   when: not inventory_hostname.startswith("ipa01")
 
@@ -65,7 +65,7 @@
            {{inventory_hostname}}
            creates=/var/lib/ipa/replica-info-{{inventory_hostname}}.gpg
   tags:
-  - ipa
+  - ipa/server
   - config
   when: not inventory_hostname.startswith("ipa01") and not replication_status.stat.exists
 
@@ -75,7 +75,7 @@
          dest=/tmp/ipa_replica_{{inventory_hostname}}.gpg
          flat=yes
   tags:
-  - ipa
+  - ipa/server
   - config
   when: not inventory_hostname.startswith("ipa01") and not replication_status.stat.exists
 
@@ -84,7 +84,7 @@
         dest=/root/ipa_replica_{{inventory_hostname}}.gpg
         mode=0600 owner=root group=root
   tags:
-  - ipa
+  - ipa/server
   - config
   when: not inventory_hostname.startswith("ipa01") and not replication_status.stat.exists
 
@@ -92,7 +92,7 @@
   delegate_to: localhost
   file: path=/tmp/ipa_replica_{{inventory_hostname}}.gpg state=absent
   tags:
-  - ipa
+  - ipa/server
   - config
   when: not inventory_hostname.startswith("ipa01") and not replication_status.stat.exists
 
@@ -115,7 +115,7 @@
            /root/ipa_replica_{{inventory_hostname}}.gpg
            creates=/etc/ipa/default.conf
   tags:
-  - ipa
+  - ipa/server
   - config
   when: not inventory_hostname.startswith("ipa01") and not replication_status.stat.exists
 
@@ -123,13 +123,13 @@
   copy: src=configure-ipa.sh dest=/root/configure-ipa.sh mode=0700 owner=root group=root
   register: config_deployed
   tags:
-  - ipa
+  - ipa/server
   - config
   when: inventory_hostname.startswith("ipa01")
 
 - name: Run configuration script
   command: /bin/bash /root/configure-ipa.sh {{ipa_dm_password}} {{ipa_admin_password}}
   tags:
-  - ipa
+  - ipa/server
   - config
   when: inventory_hostname.startswith("ipa01") and config_deployed.changed
