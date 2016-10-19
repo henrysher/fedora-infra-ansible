@@ -1,0 +1,186 @@
+#! /usr/bin/env python
+
+
+"""
+This is a git hook meant to warn the secondary arch folks about package
+that turned off building on secondary arches.
+"""
+
+from __future__ import print_function
+
+
+import os
+import smtplib
+import subprocess
+import sys
+
+from email.mime.text import MIMEText
+
+abspath = os.path.abspath(os.environ['GIT_DIR'])
+PATTERNS = ('+ExclusiveArch:', '+ExcludesArch:')
+FROM_EMAIL = 'githook-noreply@fedoraproject.org'
+TO_MAIL = ''
+CGIT_URL = 'http://pkgs.fedoraproject.org/cgit/%s.git/commit/?id=%s'
+EMAIL_SEND = False
+SMTP_SERVER = 'localhost'
+SMTP_PORT = 25
+DEBUG = True
+
+TEXT = u"""
+The package %s has added or updated either ExclusiveArch or ExcludesArch
+in commit(s):
+%s.
+
+Thanks.
+"""
+
+
+def read_output(cmd, abspath, input=None, keepends=False, **kw):
+    """ Read the output from the given command to run """
+    if input:
+        stdin = subprocess.PIPE
+    else:
+        stdin = None
+    if DEBUG:
+        print('command called:', cmd)
+    procs = subprocess.Popen(
+        cmd,
+        stdin=stdin,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        cwd=abspath,
+        **kw)
+    (out, err) = procs.communicate(input)
+    retcode = procs.wait()
+    if retcode:
+        print('ERROR: %s =-- %s' % (cmd, retcode))
+        print(out)
+        print(err)
+    if not keepends:
+        out = out.rstrip('\n\r')
+    return out
+
+
+def read_git_output(args, abspath, input=None, keepends=False, **kw):
+    """Read the output of a Git command."""
+
+    return read_output(
+        ['git'] + args, abspath, input=input, keepends=keepends, **kw)
+
+
+def read_git_lines(args, abspath, keepends=False, **kw):
+    """Return the lines output by Git command.
+
+    Return as single lines, with newlines stripped off."""
+
+    return read_git_output(
+        args, abspath, keepends=keepends, **kw
+    ).splitlines(keepends)
+
+
+def get_revs_between(oldrev, newrev, abspath, refname):
+    """ Yield revisions between HEAD and BASE. """
+
+    cmd = ['rev-list', '%s...%s' % (oldrev, newrev)]
+    if set(newrev) == set('0'):
+        cmd = ['rev-list', '%s' % oldrev]
+    elif set(oldrev) == set('0') or set(oldrev) == set('^0'):
+        head = get_default_branch(abspath)
+        cmd = ['rev-list', '%s' % newrev, '^%s' % head]
+        if head in refname:
+            cmd = ['rev-list', '%s' % newrev]
+    return read_git_lines(cmd, abspath)
+
+
+
+def send_email(text, subject, to_mail):  # pragma: no cover
+    ''' Send an email with the specified information.
+
+    :arg text: the content of the email to send
+    :arg subject: the subject of the email
+    :arg to_mail: a string representing a list of recipient separated by a
+        coma
+
+    '''
+    if not to_mail:
+        return
+
+    from_email =  FROM_EMAIL
+
+    if not EMAIL_SEND:
+        print('******EMAIL******')
+        print('From: %s' % from_email)
+        print('To: %s' % to_mail)
+        print('Subject: %s' % subject)
+        print('Contents:')
+        print(text.encode('utf-8'))
+        print('*****/EMAIL******')
+        return
+
+    smtp = smtplib.SMTP(SMTP_SERVER, SMTP_PORT)
+
+    for mailto in to_mail.split(','):
+        msg = MIMEText(text.encode('utf-8'), 'plain', 'utf-8')
+        msg['Subject'] = subject
+        msg['From'] = from_email
+
+        # Send the message via our own SMTP server, but don't include the
+        # envelope header.
+        msg['To'] = mailto
+        try:
+            smtp.sendmail(
+                from_email,
+                [mailto],
+                msg.as_string())
+        except smtplib.SMTPException as err:
+            pagure.LOG.exception(err)
+    smtp.quit()
+    return msg
+
+
+def run_as_post_receive_hook():
+    ''' Check what was changed in the commit(s) and warn the secondary-arch
+    folks if either ExclusiveArch or ExcludesArch are changed.
+    '''
+    for line in sys.stdin:
+        if DEBUG:
+            print('Received:', line.strip())
+        (oldrev, newrev, refname) = line.strip().split(' ', 2)
+
+        new_commits_list = get_revs_between(oldrev, newrev, abspath, refname)
+        if DEBUG:
+            print('List of commits:', new_commits_list)
+
+        exclude_arch = []
+        for commit in new_commits_list:
+            if DEBUG:
+                print('Diff of commit:', commit)
+            for line in read_git_lines(['show', commit], abspath):
+                if DEBUG:
+                    print(line)
+                if line.strip().startswith(PATTERNS):
+                    exclude_arch.append(commit)
+                    if DEBUG:
+                        print('Commit %s selected' % commit)
+
+        if exclude_arch:
+            print('Notifying secondary-arch people')
+            package = '/'.join(abspath.rsplit(os.path.sep, 2)[-2:])
+            if DEBUG:
+                print('Package:', package)
+
+            links = []
+            for commit in exclude_arch:
+                links.append(
+                    CGIT_URL % (package, commit)
+                )
+
+            send_email(
+                text=TEXT % (package, '\n'.join(links)),
+                subject='Package added/updated ExclusiveArch/ExcludesArch',
+                to_mail=TO_MAIL
+            )
+
+
+if __name__ == '__main__':
+    run_as_post_receive_hook()
