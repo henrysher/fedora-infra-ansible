@@ -16,6 +16,11 @@
 # - external_hostname
 ##       string - The public hostname for the server (will be used as ServerName)
 ##       default - ansible_nodename
+# - openqa_fixed
+##       string - location for fixed hdd assets; this varies depending on
+##                what openQA version is in use. This is a temporary thing
+##                while we're testing PR #945 on staging
+##       default - /var/lib/openqa/share/factory/hdd
 
 # Optional vars
 # - openqa_static_uid
@@ -128,16 +133,17 @@
   with_items:
   - /var/lib/openqa/share/factory/iso
   - /var/lib/openqa/share/factory/hdd
+  - /var/lib/openqa/share/factory/hdd/fixed
   - /var/lib/openqa/share/factory/repo
   - /var/lib/openqa/share/factory/other
 
 - name: Set up createhdds cron job
-  copy: src=createhdds dest=/etc/cron.daily/createhdds owner=root group=root mode=0755
+  template: src=createhdds.j2 dest=/etc/cron.daily/createhdds owner=root group=root mode=0755
 
 - name: Check if any hard disk images need (re)building
   command: "/root/openqa_fedora_tools/tools/createhdds.py check"
   args:
-    chdir: /var/lib/openqa/share/factory/hdd/
+    chdir: "{{ openqa_fixed }}"
   register: diskcheck
   failed_when: "1 != 1"
   changed_when: "1 != 1"
