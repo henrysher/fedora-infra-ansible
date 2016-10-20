@@ -1,7 +1,7 @@
 ---
 # This role sets up the fedmsg-driven atomic ostree composer
 
-- yum: name=fedmsg-atomic-composer state=present
+- yum: name=python2-fedmsg-atomic-composer state=present
 
 - user: name=masher
         shell=/bin/bash
@@ -12,11 +12,3 @@
         owner={{ user['name'] }} group={{ user['name'] }} mode=755 state=directory
 
 - seboolean: name=rsync_client state=true persistent=true
-
-# Drop this when the new fedmsg-atomic-composer is out
-# https://github.com/fedora-infra/fedmsg-atomic-composer/pull/5
-- name: hotfix for composer
-  copy: src=composer.py dest=/usr/lib/python2.7/site-packages/fedmsg_atomic_composer/composer.py mode=644
-  tags:
-  - atomic-composer
-  - hotfix
