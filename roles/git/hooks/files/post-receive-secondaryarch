@@ -147,6 +147,11 @@ def run_as_post_receive_hook():
             print('Received:', line.strip())
         (oldrev, newrev, refname) = line.strip().split(' ', 2)
 
+        # Skip all the branches that are not master and do not start with an 'f'
+        # ie: personal branches and epel
+        if not refname.startswith(('refs/heads/master', 'refs/heads/f')):
+            continue
+
         new_commits_list = get_revs_between(oldrev, newrev, abspath, refname)
         if DEBUG:
             print('List of commits:', new_commits_list)
