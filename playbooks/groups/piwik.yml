@@ -1,0 +1,33 @@
+# These servers run piwik
+
+- include: "/srv/web/infra/ansible/playbooks/include/virt-create.yml myhosts=piwik-stg"
+
+- name: make the box be real
+  hosts: piwik-stg
+  user: root
+  gather_facts: True
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  roles:
+  - base
+  - rkhunter
+  - nagios/client
+  - hosts
+  - fas_client
+  - collectd/base
+  - apache
+  - fedmsg/base
+  - piwik
+  - sudo
+
+  tasks:
+  - include: "{{ tasks }}/yumrepos.yml"
+  - include: "{{ tasks }}/2fa_client.yml"
+  - include: "{{ tasks }}/motd.yml"
+
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"
