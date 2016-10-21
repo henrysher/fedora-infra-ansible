@@ -1,0 +1,40 @@
+<VirtualHost *:80>
+  ServerName jenkins.fedorainfracloud.org
+  ServerAdmin webmaster@fedoraproject.org
+  TraceEnable Off
+
+  RewriteEngine on
+  RewriteRule ^/\.well-known/(.*) /srv/web/acme-challenge/.well-known/$1 [L]
+  RewriteCond %{HTTPS} off
+  RewriteRule (.*) https://%{HTTP_HOST}%{REQUEST_URI} [NE]
+
+</VirtualHost>
+
+<VirtualHost *:443>
+  ServerName jenkins.fedorainfracloud.org
+  ServerAdmin webmaster@fedoraproject.org
+
+  SSLEngine on
+  SSLCertificateFile /etc/pki/tls/certs/jenkins.fedorainfracloud.org.cert
+  SSLCertificateKeyFile /etc/pki/tls/private/jenkins.fedorainfracloud.org.key
+  SSLCertificateChainFile /etc/pki/tls/certs/wildcard-2014.fedoraproject.org.intermediate.cert
+  SSLHonorCipherOrder On
+
+  # https://fedorahosted.org/fedora-infrastructure/ticket/4101#comment:14
+  # If you change the protocols or cipher suites, you should probably update
+  # modules/squid/files/squid.conf-el6 too, to keep it in sync.
+  SSLProtocol {{ ssl_protocols }}
+  SSLCipherSuite {{ ssl_ciphers }}
+
+  RequestHeader set X-Forwarded-Scheme https early
+  RequestHeader set X-Scheme https early
+  RequestHeader set X-Forwarded-Proto https early
+
+  Alias /robots.txt /srv/web/robots.txt.jenkins.fedorainfracloud.org
+
+  ProxyPass / http://localhost:8080/ nocanon
+  ProxyPassReverse / http://localhost:8080/
+  ProxyRequests     Off
+  AllowEncodedSlashes NoDecode
+
+</VirtualHost>
