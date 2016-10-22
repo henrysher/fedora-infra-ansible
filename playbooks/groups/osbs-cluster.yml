@@ -2,7 +2,7 @@
 - include:  "/srv/web/infra/ansible/playbooks/include/virt-create.yml myhosts=osbs-nodes-stg:osbs-masters-stg"
 
 - name: make the box be real
-  hosts: osbs-masters-stg:osbs-nodes-stg
+  hosts: osbs-control:osbs-control-stg:osbs-masters-stg:osbs-nodes-stg
   user: root
   gather_facts: True
 
@@ -28,3 +28,45 @@
 
   handlers:
   - include: "{{ handlers }}/restart_services.yml"
+
+- name: Deploy controller private ssh keys to osbs control hosts
+  hosts: osbs-control:osbs-control-stg
+  user: root
+  gather_facts: True
+
+  tasks:
+    - name: deploy private key to control hosts
+      copy:
+        src: "{{private}}/files/{{env}}/control_key"
+        dest: "/root/.ssh/control_key"
+        owner: root
+        mode: 0600
+
+- name: Deploy controller public ssh keys to osbs cluster hosts
+  hosts: osbs-masters-stg:osbs-nodes-stg
+  user: root
+  gather_facts: True
+
+  tasks:
+    - name: deploy public key to control hosts
+      authorized_key:
+        user: root
+        key: "{{ lookup('file', '{{private}}/files/{{env}}/control_key.pub') }}"
+
+- name: Deploy OpenShift Cluster and OSBS
+  hosts: osbs-control:osbs-control-stg
+  user: root
+  gather_facts: True
+
+  roles:
+    - {
+      role: ansible-ansible-openshift-ansible,
+        cluster_inventory_filename: "cluster-inventory-stg"
+        openshift_release: "v1.2",
+        openshift_ansible_path: "/root/openshift-ansible",
+        openshift_ansible_playbook: "playbooks/byo/config.yml",
+        openshift_ansible_refspec: "openshift-ansible-3.2.35-1",
+        openshift_cluster_masters_group: "osbs-masters-stg",
+        openshift_cluster_nodes_group: "osbs-nodes-stg",
+      when: env == 'staging'
+    }

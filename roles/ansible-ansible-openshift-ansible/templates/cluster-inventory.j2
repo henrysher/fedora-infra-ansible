@@ -1,0 +1,35 @@
+[OSEv3:children]
+masters
+nodes
+etcd
+lb
+
+[OSEv3:vars]
+ansible_ssh_user=root
+debug_level=2
+deployment_type=origin
+openshift_release={{openshift_release }}
+openshift_master_identity_providers=[{'name': 'htpasswd_auth', 'login': 'true', 'challenge': 'true', 'kind': 'HTPasswdPasswordIdentityProvider', 'filename': '/etc/origin/master/htpasswd'}]
+
+[masters]
+{% for host in groups[openshift_cluster_masters_group] %}
+{{ host }}
+{% endfor %}
+
+[etcd]
+{% for host in groups[openshift_cluster_masters_group] %}
+{{ host }}
+{% endfor %}
+
+[lb]
+{% for host in groups[openshift_cluster_masters_group] %}
+{{ host }}
+{% endfor %}
+
+[nodes]
+{% for host in groups[openshift_cluster_masters_group] %}
+{{ host }} openshift_node_labels="{'region':'infra'}" openshift_schedulable=False
+{% endfor %}
+{% for host in groups[openshift_cluster_nodes_group] %}
+{{ host }} openshift_node_labels="{'region': 'primary', 'zone': 'default'}"
+{% endfor %}
