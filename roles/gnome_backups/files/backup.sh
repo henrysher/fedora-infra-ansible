@@ -31,7 +31,8 @@ MACHINES='signal.gnome.org
           bugzilla-new.gnome.org
           socket.gnome.org
           odrs.gnome.org
-          ghispano.gnome.org'
+          ghispano.gnome.org
+          scale.gnome.org'
 
 BACKUP_DIR='/gnome_backups/'
 
