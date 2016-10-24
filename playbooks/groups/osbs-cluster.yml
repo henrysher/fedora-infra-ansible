@@ -47,7 +47,7 @@
         owner: root
         mode: 0600
 
-- name: Deploy controller public ssh keys to osbs cluster hosts
+- name: Setup cluster hosts pre-reqs
   hosts: osbs-masters-stg:osbs-nodes-stg
   user: root
   gather_facts: True
@@ -58,10 +58,16 @@
    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
 
   tasks:
-    - name: deploy public key to control hosts
+    - name: Deploy controller public ssh keys to osbs cluster hosts
       authorized_key:
         user: root
         key: "{{ lookup('file', '{{private}}/files/osbs/{{env}}/control_key.pub') }}"
+
+    - name: Install necessary packages that openshift-ansible needs
+      package: name="{{ item }}" state=installed
+      with_items:
+        - tar
+        - rsync
 
 - name: Deploy OpenShift Cluster and OSBS
   hosts: osbs-control:osbs-control-stg
