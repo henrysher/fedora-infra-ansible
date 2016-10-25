@@ -45,6 +45,24 @@
   - /etc/ssh/ssh_known_hosts
   when: inventory_hostname not in result.list_vms
 
+- name: (osbs-control01.stg) make sure there is no old ssh host key for the host still around
+  known_hosts: path={{item}} host={{ inventory_hostname }} state=absent
+  ignore_errors: True
+  with_items:
+  - /root/.ssh/known_hosts
+  - /etc/ssh/ssh_known_hosts
+  when: inventory_hostname not in result.list_vms and inventory_hostname in groups['osbs-masters-stg']+groups['osbs-nodes-stg']
+  delegate_to: osbs-control01.stg.phx2.fedoraproject.org
+
+- name: (osbs-control01) make sure there is no old ssh host key for the host still around
+  known_hosts: path={{item}} host={{ inventory_hostname }} state=absent
+  ignore_errors: True
+  with_items:
+  - /root/.ssh/known_hosts
+  - /etc/ssh/ssh_known_hosts
+  when: inventory_hostname not in result.list_vms and inventory_hostname in groups['osbs-masters']+groups['osbs-nodes']
+  delegate_to: osbs-control01.phx2.fedoraproject.org
+
 - name: wait for ssh on the vm to start back
   local_action: wait_for delay=10 host={{ inventory_hostname }} port=22 state=started timeout=1200
   when: inventory_hostname not in result.list_vms
@@ -62,4 +80,22 @@
   - /root/.ssh/known_hosts
   - /etc/ssh/ssh_known_hosts
   when: inventory_hostname not in result.list_vms
+
+- name: (osbs-control01.stg) add new ssh host key
+  known_hosts: path={{item}} key="{{ hostkey.stdout }}" host={{ inventory_hostname }} state=present
+  ignore_errors: True
+  with_items:
+  - /root/.ssh/known_hosts
+  - /etc/ssh/ssh_known_hosts
+  when: inventory_hostname not in result.list_vms and inventory_hostname in groups['osbs-masters-stg']+groups['osbs-nodes-stg']
+  delegate_to: osbs-control01.stg.phx2.fedoraproject.org
+
+- name: (osbs-control01) add new ssh host key
+  known_hosts: path={{item}} key="{{ hostkey.stdout }}" host={{ inventory_hostname }} state=present
+  ignore_errors: True
+  with_items:
+  - /root/.ssh/known_hosts
+  - /etc/ssh/ssh_known_hosts
+  when: inventory_hostname not in result.list_vms and inventory_hostname in groups['osbs-masters']+groups['osbs-nodes']
+  delegate_to: osbs-control01.phx2.fedoraproject.org
 
