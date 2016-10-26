@@ -1,0 +1,36 @@
+---
+- name: copy yum proxy deployment config
+  template: src=openshift-yumproxy-dc.yml.j2 dest={{ osbs_openshift_home }}/yumproxy-dc.yml
+  register: yaml_dc
+  tags:
+  - oc
+  - yumproxy
+
+- name: import yum proxy deployment config
+  command: >
+    oc replace
+    --force=true
+    --namespace={{ osbs_namespace }}
+    --filename={{ osbs_openshift_home }}/yumproxy-dc.yml
+  when: yaml_dc.changed
+  tags:
+  - oc
+  - yumproxy
+
+- name: copy yum proxy service
+  template: src=openshift-yumproxy-svc.yml.j2 dest={{ osbs_openshift_home }}/yumproxy-svc.yml
+  register: yaml_svc
+  tags:
+  - oc
+  - yumproxy
+
+- name: import yum proxy service
+  command: >
+    oc replace
+    --force=true
+    --namespace={{ osbs_namespace }}
+    --filename={{ osbs_openshift_home }}/yumproxy-svc.yml
+  when: yaml_svc.changed
+  tags:
+  - oc
+  - yumproxy

@@ -71,7 +71,7 @@
         - rsync
         - dbus-python
 
-- name: Deploy OpenShift Cluster and OSBS
+- name: Deploy OpenShift Cluster
   hosts: osbs-control:osbs-control-stg
   user: root
   gather_facts: True
@@ -93,4 +93,54 @@
         openshift_cluster_nodes_group: "osbs-nodes-stg",
       when: env == 'staging',
       tags: ['openshift-cluster','ansible-ansible-openshift-ansible']
+    }
+
+
+- name: Setup OSBS requirements on hosts in the cluster
+  hosts: osbs-masters-stg:osbs-nodes-stg
+  user: root
+  gather_facts: True
+
+  vars_files:
+    - /srv/web/infra/ansible/vars/global.yml
+    - "/srv/private/ansible/vars.yml"
+    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  roles:
+    - osbs-common
+
+  tasks:
+    - name:
+
+
+- name: Deploy OSBS on top of OpenShift
+  hosts: osbs-masters-stg[0]:osbs-masters[0]
+  user: root
+  gather_facts: True
+
+  vars_files:
+    - /srv/web/infra/ansible/vars/global.yml
+    - "/srv/private/ansible/vars.yml"
+    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  roles:
+    - {
+      role: osbs-on-openshift,
+        osbs_openshift_home: "/var/lib/origin",
+        osbs_namespace: "default",
+        osbs_namespace_create: "false",
+        osbs_kubeconf_path: "/etc/origin/master/admin.kubeconfig",
+        osbs_environment: [
+          KUBECONFIG: "{{ osbs_kubeconfig_path }}"
+          ],
+        osbs_service_accounts: [],
+        osbs_readonly_users: [],
+        osbs_readonly_groups: [],
+        osbs_readwrite_users: [],
+        osbs_readwrite_groups: [ "system:authenticated"],
+        osbs_admin_users: [],
+        osbs_admin_groups: [],
+        osbs_docker_registry: false,
+        osbs_docker_registry_storage: "/opt/openshift-registry",
+      when: env == "staging"
     }

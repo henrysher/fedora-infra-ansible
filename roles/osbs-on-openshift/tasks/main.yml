@@ -1,0 +1,120 @@
+---
+### openshift service ###
+
+- name: create osbs namespace
+  command: >
+    oc new-project {{ osbs_namespace }}
+  register: new_project
+  failed_when: new_project.rc != 0 and ('already exists' not in new_project.stderr)
+  changed_when: new_project.rc == 0
+  environment: "{{osbs_environment}}"
+  when: osbs_namespace_create
+
+- name: copy service accounts
+  template: src=openshift-serviceaccount.yml.j2 dest={{ osbs_openshift_home }}/serviceaccount-{{ item }}.yml
+  with_items: "{{ osbs_service_accounts }}"
+  register: yaml_sa
+
+- name: import service accounts
+  command: >
+    oc create
+    --namespace={{ osbs_namespace }}
+    --filename={{ osbs_openshift_home }}/serviceaccount-{{ item.item }}.yml
+  register: service_account_import
+  failed_when: service_account_import.rc != 0 and ('already exists' not in service_account_import.stderr)
+  environment: "{{osbs_environment}}"
+  with_items: "{{ yaml_sa.results | default([]) }}"
+  when: item.changed
+
+- name: copy role bindings
+  template: src=openshift-rolebinding.yml.j2 dest={{ osbs_openshift_home }}/rolebinding-{{ item.name }}.yml
+  with_items:
+  - name: osbs-readonly
+    role: view
+    users: "{{ osbs_readonly_users }}"
+    groups: "{{ osbs_readonly_groups }}"
+  - name: osbs-readwrite
+    role: edit
+    users: "{{ osbs_readwrite_users }}"
+    groups: "{{ osbs_readwrite_groups }}"
+  - name: osbs-admin
+    role: admin
+    users: "{{ osbs_admin_users }}"
+    groups: "{{ osbs_admin_groups }}"
+  register: yaml_rolebindings
+
+- name: import the role bindings
+  command: >
+    oc replace
+    --namespace={{ osbs_namespace }}
+    --force=true
+    --filename={{ osbs_openshift_home }}/rolebinding-{{ item.item.name }}.yml
+  environment: "{{osbs_environment}}"
+  with_items: "{{ yaml_rolebindings.results }}"
+  when: item.changed
+
+- name: copy resource quotas
+  template: src=openshift-resourcequota.yml.j2 dest={{ osbs_openshift_home }}/resourcequota.yml
+  when: osbs_master_max_pods is defined and osbs_master_max_pods >= 0
+  register: yaml_resourcequotas
+  tags:
+  - resourcequotas
+
+- name: import resource quotas
+  command: >
+    oc replace
+    --namespace={{ osbs_namespace }}
+    --force=true
+    --filename={{ osbs_openshift_home }}/resourcequota.yml
+  environment: "{{osbs_environment}}"
+  when: osbs_master_max_pods is defined and osbs_master_max_pods >= 0 and yaml_resourcequotas.changed
+  tags:
+  - resourcequotas
+
+- name: delete resource quotas
+  command: >
+    oc delete
+    --namespace={{ osbs_namespace }}
+    --ignore-not-found=true
+    resourcequota concurrentbuilds
+  environment: "{{osbs_environment}}"
+  when: osbs_master_max_pods is not defined or osbs_master_max_pods < 0
+  tags:
+  - resourcequotas
+
+- name: copy cpu limitrange
+  template:
+    src: openshift-limitrange.yml.j2
+    dest: "{{ osbs_openshift_home }}/limitrange.yml"
+  when: osbs_master_cpu_limitrange is defined and osbs_master_cpu_limitrange
+  register: yaml_limitrange
+  tags:
+  - limitranges
+
+- name: import cpu limitrange
+  command: >
+    oc replace
+    --namespace={{ osbs_namespace }}
+    --force=true
+    --filename={{ osbs_openshift_home }}/limitrange.yml
+  environment: "{{osbs_environment}}"
+  when: osbs_master_cpu_limitrange is defined and osbs_master_cpu_limitrange and yaml_limitrange.changed
+  tags:
+  - limitranges
+
+- name: delete cpu limitrange
+  command: >
+    oc delete
+    --namespace={{ osbs_namespace }}
+    --ignore-not-found=true
+    limitrange cpureq
+  environment: "{{osbs_environment}}"
+  when: osbs_master_cpu_limitrange is not defined or not osbs_master_cpu_limitrange
+  tags:
+  - limitranges
+
+- include: yum_proxy.yml
+  when: osbs_yum_proxy_image is defined
+
+- include: registry.yml
+  when: osbs_docker_registry is defined and osbs_docker_registry

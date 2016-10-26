@@ -1,0 +1,54 @@
+---
+- name: copy registry service account
+  template:
+    src: openshift-serviceaccount.yml.j2
+    dest: "{{ osbs_openshift_home }}/serviceaccount-{{ item }}.yml"
+  with_items:
+  - registry
+  register: yaml_sa
+  tags:
+  - oc
+
+- name: import registry service account
+  command: >
+    oc create
+    --namespace=default
+    --filename={{ osbs_openshift_home }}/serviceaccount-{{ item.item }}.yml
+  register: service_account_import
+  failed_when: service_account_import.rc != 0 and ('already exists' not in service_account_import.stderr)
+  environment: "{{osbs_environment}}"
+  with_items: "{{ yaml_sa.results | default([]) }}"
+  when: item.changed
+  tags:
+  - oc
+
+- name: make registry serviceaccount privileged
+  command: >
+    oadm policy
+    --namespace=default
+    add-scc-to-user
+    privileged -z registry
+  environment: "{{osbs_environment}}"
+  tags:
+  - oc
+
+- name: create registry storage
+  file:
+    path: "{{ osbs_docker_registry_storage }}"
+    owner: 1001
+    group: root
+    mode: "0770"
+    state: directory
+
+- name: set up internal registry
+  command: >
+    oadm registry
+    --namespace=default
+    --service-account registry
+    --credentials /etc/origin/master/openshift-registry.kubeconfig
+    --mount-host {{ osbs_docker_registry_storage }}
+  register: create_registry
+  changed_when: "'service exists' not in create_registry.stdout"
+  environment: "{{osbs_environment}}"
+  tags:
+  - oc

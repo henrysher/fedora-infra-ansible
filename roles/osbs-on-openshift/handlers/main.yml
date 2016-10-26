@@ -1,0 +1,17 @@
+---
+- name: restart openshift-master
+  service:
+    name: "{{ osbs_deployment_type }}-master"
+    state: restarted
+
+- name: restart httpd
+  service: name=httpd state=restarted
+
+- name: restart firewalld
+  service: name=firewalld state=restarted
+
+- name: convert privkey to rsa
+  command: openssl rsa -in {{ osbs_proxy_key_file }} -out {{ osbs_proxy_key_file }}
+
+- name: concatenate cert and key
+  shell: cat {{ osbs_proxy_cert_file }} {{ osbs_proxy_key_file }} > {{ osbs_proxy_certkey_file }}
