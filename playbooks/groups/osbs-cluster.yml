@@ -254,6 +254,68 @@
       shell: "oc secrets add serviceaccount/{{ osbs_builder_user }} secrets/koji --for=mount"
       environment: "{{ osbs_environment }}"
 
+  roles:
+    - {
+      role: osbs-client,
+        general: {
+          verbose: 0,
+          build_json_dir: '/usr/share/osbs/',
+          openshift_required_version: 1.1.0,
+        },
+        default: {
+          username: "{{ osbs_koji_stg_username }}",
+          password: "{{ osbs_koji_stg_password }}",
+          koji_certs_secret: "koji",
+          openshift_url: 'https://{{osbs_url}}/',
+          registry_uri: 'https://{{docker_registry}}/v2',
+          source_registry_uri: 'https://{{source_registry}}/v2',
+          build_host: '{{osbs_url}}',
+          koji_root: 'https://{{koji_url}}/koji',
+          koji_hub: 'https://{{koji_url}}/kojihub',
+          sources_command: 'fedpkg sources',
+          build_type: 'prod',
+          authoritative_registry: 'registry.example.com',
+          vendor: 'Fedora Project',
+          verify_ssl: true,
+          use_auth: true,
+          builder_use_auth: true,
+          distribution_scope: 'private',
+          registry_api_versions: 'v2',
+          builder_openshift_url: 'https://172.17.0.1:8443/'
+        },
+      when: env == "staging"
+      }
+    - {
+      role: osbs-client,
+        general: {
+          verbose: 0,
+          build_json_dir: '/usr/share/osbs/',
+          openshift_required_version: 1.1.0,
+        },
+        default: {
+          username: "{{ osbs_koji_prod_username }}",
+          password: "{{ osbs_koji_prod_password }}",
+          koji_certs_secret: "koji",
+          openshift_url: 'https://{{osbs_url}}/',
+          registry_uri: 'https://{{docker_registry}}/v2',
+          source_registry_uri: 'https://{{source_registry}}/v2',
+          build_host: '{{osbs_url}}',
+          koji_root: 'https://{{koji_url}}/koji',
+          koji_hub: 'https://{{koji_url}}/kojihub',
+          sources_command: 'fedpkg sources',
+          build_type: 'prod',
+          authoritative_registry: 'registry.example.com',
+          vendor: 'Fedora Project',
+          verify_ssl: true,
+          use_auth: true,
+          builder_use_auth: true,
+          distribution_scope: 'private',
+          registry_api_versions: 'v2',
+          builder_openshift_url: 'https://172.17.0.1:8443/'
+        },
+      when: env == "production"
+      }
+
   tasks:
     - name: set nrpe read access for osbs.conf for nagios monitoring
       acl: name={{ osbs_client_conf_path }} entity=nrpe etype=user permissions=r state=present
