@@ -62,6 +62,7 @@ config = {
                     "key": "fedora-26",
                     "keyid": "64dab85d"
                 },
+
                 {
                     "from": "f25-updates-testing-pending",
                     "to": "f25-updates-testing-pending",
@@ -97,7 +98,33 @@ config = {
                     "to": "dist-5E-epel-testing-candidate",
                     "key": "epel-5",
                     "keyid": "217521f6"
-                }
+                },
+
+                # For transitional during new bodhi release
+                {
+                    "from": "f25-signing-pending",
+                    "to": "f25-updates-testing-pending",
+                    "key": "fedora-25",
+                    "keyid": "fdb19c98"
+                },
+                {
+                    "from": "f24-signing-pending",
+                    "to": "f24-updates-testing-pending",
+                    "key": "fedora-24",
+                    "keyid": "81b46521"
+                },
+                {
+                    "from": "f23-signing-pending",
+                    "to": "f23-updates-testing-pending",
+                    "key": "fedora-23",
+                    "keyid": "34ec9cba"
+                },
+                {
+                    "from": "epel7-signing-pending",
+                    "to": "epel7-testing-pending",
+                    "key": "epel-7",
+                    "keyid": "352c64e5"
+                },
             ]
         },
     },
