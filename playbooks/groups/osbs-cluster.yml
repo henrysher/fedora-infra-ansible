@@ -50,6 +50,8 @@
 
 - name: Setup cluster hosts pre-reqs
   hosts: osbs-masters-stg:osbs-nodes-stg
+  tags:
+    - osbs-cluster-prereq
   user: root
   gather_facts: True
 
@@ -73,6 +75,8 @@
 
 - name: Deploy OpenShift Cluster
   hosts: osbs-control:osbs-control-stg
+  tags:
+    - osbs-deploy-openshift
   user: root
   gather_facts: True
 
@@ -85,19 +89,28 @@
     - {
       role: ansible-ansible-openshift-ansible,
         cluster_inventory_filename: "cluster-inventory-stg",
+        openshift_htpasswd_file: "/etc/origin/htpasswd",
+        openshift_master_public_api_url: "https://{{ osbs_url }}:8443",
         openshift_release: "v1.3",
         openshift_ansible_path: "/root/openshift-ansible",
         openshift_ansible_playbook: "playbooks/byo/config.yml",
         openshift_ansible_refspec: "openshift-ansible-3.3.38-1",
         openshift_cluster_masters_group: "osbs-masters-stg",
         openshift_cluster_nodes_group: "osbs-nodes-stg",
+        openshift_named_certificates: [{
+          cert_file: "named_certificates/{{osbs_url}}.pem",
+          key_file: "named_certificates/{{osbs_url}}.key",
+          names: [ "{{osbs_url}}" ],
+        }],
       when: env == 'staging',
       tags: ['openshift-cluster','ansible-ansible-openshift-ansible']
     }
 
 
-- name: Setup OSBS requirements on hosts in the cluster
+- name: Setup OSBS requirements for OpenShift cluster hosts
   hosts: osbs-masters-stg:osbs-nodes-stg
+  tags:
+    - osbs-cluster-req
   user: root
   gather_facts: True
 
@@ -107,10 +120,76 @@
     - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
 
   roles:
-    - osbs-common
+    - {
+      role: osbs-common,
+        osbs_manage_firewalld: false,
+      }
+    - osbs-atomic-reactor
+    - {
+      role: push-docker,
+        docker_cert_name: "containerbuild",
+        docker_cert_dir: "/etc/docker/certs.d/candidate-registry.stg.fedoraproject.org",
+      when: env == "staging"
+    }
+    - {
+      role: push-docker,
+        docker_cert_name: "containerbuild",
+        docker_cert_dir: "/etc/docker/certs.d/candidate-registry.fedoraproject.org",
+      when: env == "production"
+    }
+
+  tasks:
+    - name: cron entry to clean up docker storage
+      copy:
+        src: "{{files}}/osbs/cleanup-docker-storage"
+        dest: "/etc/cron.d/cleanup-docker-storage"
+
+    - name: copy docker-storage-setup config
+      copy:
+        src: "{{files}}/osbs/docker-storage-setup"
+        dest:  "/etc/sysconfig/docker-storage-setup"
+
+    - name: create cert dir for openshift public facing REST API SSL
+      file:
+        path: "/etc/origin/master/named_certificates"
+        state: "directory"
+
+- name: Setup requirements for OpenShift master
+  hosts: osbs-masters-stg:osbs-nodes-stg
+  tags:
+    - osbs-master-req
+  user: root
+  gather_facts: True
+
+  vars_files:
+    - /srv/web/infra/ansible/vars/global.yml
+    - "/srv/private/ansible/vars.yml"
+    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+    - name: install cert for openshift public facing REST API SSL
+      copy:
+        src: "{{private}}/files/osbs/{{env}}/osbs-internal.pem"
+        dest: "/etc/origin/master/named_certificates/{{osbs_url}}.pem"
+
+    - name: install key for openshift public facing REST API SSL
+      copy:
+        src: "{{private}}/files/osbs/{{env}}/osbs-internal.key"
+        dest: "/etc/origin/master/named_certificates/{{osbs_url}}.key"
+
+    - name: ensure origin conf dir exists
+      file:
+        path: "/etc/origin"
+        state: "directory"
+
+    - name: place htpasswd file
+      copy:
+        src: "{{private}}/files/httpd/osbs-{{env}}.htpasswd"
+        dest: /etc/origin/htpasswd
 
 - name: Deploy OSBS on top of OpenShift
   hosts: osbs-masters-stg[0]:osbs-masters[0]
+  tags:
+    - osbs-deploy-on-openshift
   user: root
   gather_facts: True
 
@@ -132,7 +211,7 @@
         osbs_service_accounts: [],
         osbs_readonly_users: [],
         osbs_readonly_groups: [],
-        osbs_readwrite_users: [],
+        osbs_readwrite_users: ["{{ osbs_koji_stg_username }}"],
         osbs_readwrite_groups: [ "system:authenticated"],
         osbs_admin_users: [],
         osbs_admin_groups: [],
@@ -140,3 +219,196 @@
         osbs_docker_registry_storage: "/opt/openshift-registry",
       when: env == "staging"
     }
+
+- name: post-install osbs tasks
+  hosts: osbs-masters-stg:osbs-nodes-stg
+  tags:
+    - osbs-post-install
+  vars_files:
+    - /srv/web/infra/ansible/vars/global.yml
+    - /srv/private/ansible/vars.yml
+    - /srv/private/ansible/files/openstack/passwords.yml
+    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+  vars:
+    osbs_kubeconfig_path: /etc/origin/master/admin.kubeconfig
+    osbs_environment:
+      KUBECONFIG: "{{ osbs_kubeconfig_path }}"
+    koji_pki_dir: /etc/pki/koji
+    koji_ca_cert_path: "{{koji_pki_dir}}/fedora-server-ca.cert"
+    koji_cert_path: "{{koji_pki_dir}}/fedora-builder.pem"
+    koji_builder_user: dockerbuilder
+    osbs_builder_user: builder
+
+
+  handlers:
+    - name: buildroot container
+      shell: 'docker build --no-cache --rm -t buildroot /etc/osbs/buildroot/'
+
+    - name: oc secrets new
+      shell: "oc secrets new koji cert={{ koji_cert_path }} ca={{ koji_ca_cert_path }} serverca={{ koji_ca_cert_path }}"
+      environment: "{{ osbs_environment }}"
+      notify: oc secrets add
+
+    - name: oc secrets add
+      shell: "oc secrets add serviceaccount/{{ osbs_builder_user }} secrets/koji --for=mount"
+      environment: "{{ osbs_environment }}"
+
+  tasks:
+    - name: set nrpe read access for osbs.conf for nagios monitoring
+      acl: name={{ osbs_client_conf_path }} entity=nrpe etype=user permissions=r state=present
+
+    - name: pull fedora required docker images
+      shell: "docker pull {{item}}"
+      with_items: "{{fedora_required_images}}"
+      delegate_to: compose-x86-01.phx2.fedoraproject.org
+      register: docker_pull_fedora_delegated
+      changed_when: "'Downloaded newer image' in docker_pull_fedora_delegated.stdout"
+
+    - name: tag fedora required docker images for our registry
+      shell: "docker tag {{item}} {{docker_registry}}/{{item}}"
+      with_items: "{{fedora_required_images}}"
+      delegate_to: compose-x86-01.phx2.fedoraproject.org
+      when: docker_pull_fedora_delegated|changed
+
+    - name: push fedora required docker images to our registry
+      shell: "docker push {{docker_registry}}/{{item}}"
+      with_items: "{{fedora_required_images}}"
+      delegate_to: compose-x86-01.phx2.fedoraproject.org
+      when: docker_pull_fedora_delegated|changed
+
+    - name: register origin_version_out rpm query
+      shell: "rpm -q origin --qf '%{Version}'"
+      register: origin_version_out
+      always_run: true
+      changed_when: False
+
+    - set_fact:
+        origin_version: "{{origin_version_out.stdout}}"
+
+    - name: pull openshift required docker images
+      shell: "docker pull {{item}}:v{{origin_version}}"
+      with_items: "{{openshift_required_images}}"
+      delegate_to: compose-x86-01.phx2.fedoraproject.org
+      register: docker_pull_openshift_delegated
+      changed_when: "'Downloaded newer image' in docker_pull_openshift_delegated.stdout"
+
+    - name: tag openshift required docker images for our registry
+      shell: "docker tag {{item}}:v{{origin_version}} {{docker_registry}}/{{item}}:v{{origin_version}}"
+      with_items: "{{openshift_required_images}}"
+      delegate_to: compose-x86-01.phx2.fedoraproject.org
+      when: docker_pull_openshift_delegated|changed
+
+    - name: push openshift required docker images to our registry
+      shell: "docker push {{docker_registry}}/{{item}}:v{{origin_version}}"
+      with_items: "{{openshift_required_images}}"
+      delegate_to: compose-x86-01.phx2.fedoraproject.org
+      when: docker_pull_openshift_delegated|changed
+
+    - name: Ensure koji dockerbuilder cert path exists
+      file:
+        path: "{{ koji_pki_dir }}"
+        state: "directory"
+        mode: 0400
+
+    - name: Add koji dockerbuilder cert for Content Generator import
+      copy:
+        src: "{{private}}/files/koji/containerbuild.pem"
+        dest: "{{ koji_cert_path }}"
+      notify: oc secrets new
+
+    - name: Add koji dockerbuilder ca cert for Content Generator import
+      copy:
+        src: "{{private}}/files/koji/buildercerts/fedora-ca.cert"
+        dest: "{{ koji_ca_cert_path }}"
+      notify: oc secrets new
+
+    - name: create fedora image stream for OpenShift
+      shell: "echo '{ \"apiVersion\": \"v1\", \"kind\": \"ImageStream\", \"metadata\": { \"name\": \"fedora\" }, \"spec\": { \"dockerImageRepository\": \"{{docker_registry}}/fedora\" } }' | oc create -f - && touch /etc/origin/fedoraimagestreamcreated"
+      environment: "{{ osbs_environment }}"
+      args:
+        creates: /etc/origin/fedoraimagestreamcreated
+        delegate_to: osbs-masters-stg[0]
+
+    - name: set policy for koji builder in openshift for osbs
+      shell: "oadm policy add-role-to-user -n default edit htpasswd_provider: {{ osbs_koji_stg_username }} && touch /etc/origin/koji-builder-policy-added"
+      args:
+        creates: "/etc/origin/koji-builder-policy-added"
+      when: env == "staging"
+
+    - name: set policy for koji builder in openshift for osbs
+      shell: "oadm policy add-role-to-user -n default edit htpasswd_provider: {{ osbs_koji_prod_username }} && touch /etc/origin/koji-builder-policy-added"
+      args:
+        creates: "/etc/origin/koji-builder-policy-added"
+      when: env == "production"
+
+    - name: set policy for koji builder in openshift for atomic-reactor
+      shell: "oadm policy add-role-to-user -n default edit system:serviceaccount:default:builder && touch /etc/origin/atomic-reactor-policy-added"
+      args:
+        creates: "/etc/origin/atomic-reactor-policy-added"
+
+    - name: Create buildroot container conf directory
+      file:
+        path: "/etc/osbs/buildroot/"
+        state: directory
+
+    - name: Upload Dockerfile for buildroot container
+      copy:
+        src: "{{ files }}/osbs/buildroot-Dockerfile-{{env}}"
+        dest: "/etc/osbs/buildroot/Dockerfile"
+        mode: 0400
+      notify:
+        - buildroot container
+
+    - name: Upload internal CA for buildroot
+      copy:
+        src: "{{private}}/files/osbs/{{env}}/osbs-internal.pem"
+        dest: "/etc/osbs/buildroot/ca.crt"
+        mode: 0400
+      notify:
+        - buildroot container
+
+    - name: stat /usr/share/atomic-reactor/atomic-reactor.tar.gz
+      stat:
+        path: /usr/share/atomic-reactor/atomic-reactor.tar.gz
+      register: usr_ar_stat
+
+    - name: stat /etc/osbs/buildroot/atomic-reactor.tar.gz
+      stat:
+        path: /etc/osbs/buildroot/atomic-reactor.tar.gz
+      register: etc_ar_stat
+
+    - name: remove old hardlink to /etc/osbs/buildroot/atomic-reactor.tar.gz
+      file:
+        path: /etc/osbs/buildroot/atomic-reactor.tar.gz
+        state: absent
+      when: etc_ar_stat.stat.exists and usr_ar_stat.stat.checksum != etc_ar_stat.stat.checksum
+
+    - name: Hardlink atomic-reactor source for buildroot container (because Docker)
+      file:
+        src: /usr/share/atomic-reactor/atomic-reactor.tar.gz
+        dest: /etc/osbs/buildroot/atomic-reactor.tar.gz
+        state: hard
+      notify:
+        - buildroot container
+      when: etc_ar_stat.stat.exists and usr_ar_stat.stat.checksum != etc_ar_stat.stat.checksum
+
+    - name: pull fedora required docker images
+      shell: "docker pull {{docker_registry}}/{{item}}"
+      with_items: "{{fedora_required_images}}"
+      register: docker_pull_fedora
+      changed_when: "'Downloaded newer image' in docker_pull_fedora.stdout"
+
+    - name: pull openshift required docker images
+      shell: "docker pull {{docker_registry}}/{{item}}:v{{origin_version}}"
+      with_items: "{{openshift_required_images}}"
+      register: docker_pull_openshift
+      changed_when: "'Downloaded newer image' in docker_pull_openshift.stdout"
+
+    - name: tag openshift required docker images locally
+      shell: "docker tag {{docker_registry}}/{{item}}:v{{origin_version}} {{item}}:v{{origin_version}}"
+      with_items: "{{openshift_required_images}}"
+      when: docker_pull_openshift|changed
+
+    - name: refresh fedora image streams
+      shell: "oc import-image fedora --all"
+      when: docker_pull_fedora|changed
