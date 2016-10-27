@@ -166,25 +166,25 @@
     - "/srv/private/ansible/vars.yml"
     - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
 
-    - name: install cert for openshift public facing REST API SSL
-      copy:
-        src: "{{private}}/files/osbs/{{env}}/osbs-internal.pem"
-        dest: "/etc/origin/master/named_certificates/{{osbs_url}}.pem"
+  - name: install cert for openshift public facing REST API SSL
+    copy:
+      src: "{{private}}/files/osbs/{{env}}/osbs-internal.pem"
+      dest: "/etc/origin/master/named_certificates/{{osbs_url}}.pem"
 
-    - name: install key for openshift public facing REST API SSL
-      copy:
-        src: "{{private}}/files/osbs/{{env}}/osbs-internal.key"
-        dest: "/etc/origin/master/named_certificates/{{osbs_url}}.key"
+  - name: install key for openshift public facing REST API SSL
+    copy:
+      src: "{{private}}/files/osbs/{{env}}/osbs-internal.key"
+      dest: "/etc/origin/master/named_certificates/{{osbs_url}}.key"
 
-    - name: ensure origin conf dir exists
-      file:
-        path: "/etc/origin"
-        state: "directory"
+  - name: ensure origin conf dir exists
+    file:
+      path: "/etc/origin"
+      state: "directory"
 
-    - name: place htpasswd file
-      copy:
-        src: "{{private}}/files/httpd/osbs-{{env}}.htpasswd"
-        dest: /etc/origin/htpasswd
+  - name: place htpasswd file
+    copy:
+      src: "{{private}}/files/httpd/osbs-{{env}}.htpasswd"
+      dest: /etc/origin/htpasswd
 
 - name: Deploy OSBS on top of OpenShift
   hosts: osbs-masters-stg[0]:osbs-masters[0]
