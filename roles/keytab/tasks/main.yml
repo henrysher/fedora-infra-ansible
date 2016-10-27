@@ -9,7 +9,7 @@
   - krb5
 
 - name: Get admin keytab
-  delegate_to: {{ipa_server}}
+  delegate_to: "{{ ipa_server }}"
   shell: echo "{{ipa_admin_password}}" | kinit admin
   tags:
   - base
@@ -18,7 +18,7 @@
   when: not host_keytab_status.stat.exists
 
 - name: Create host entry
-  delegate_to: {{ipa_server}}
+  delegate_to: "{{ ipa_server }}"
   command: ipa host-add {{inventory_hostname}}
   register: host_add_result
   changed_when: "'Added host' in host_add_result.stdout"
@@ -30,7 +30,7 @@
   when: not host_keytab_status.stat.exists
 
 - name: Generate host keytab
-  delegate_to: {{ipa_server}}
+  delegate_to: "{{ ipa_server }}"
   command: ipa-getkeytab -s {{ipa_server}} -p host/{{inventory_hostname}} -k /tmp/{{inventory_hostname}}.kt
   register: getkeytab_result
   changed_when: false
@@ -42,7 +42,7 @@
   when: not host_keytab_status.stat.exists
 
 - name: Destroy kerberos ticket
-  delegate_to: {{ipa_server}}
+  delegate_to: "{{ ipa_server }}"
   command: kdestroy -A
   tags:
   - base
@@ -51,7 +51,7 @@
   when: not host_keytab_status.stat.exists
 
 - name: Get keytab
-  delegate_to: {{ipa_server}}
+  delegate_to: "{{ ipa_server }}"
   command: base64 /tmp/{{inventory_hostname}}.kt
   register: keytab
   tags:
@@ -61,7 +61,7 @@
   when: not host_keytab_status.stat.exists
 
 - name: Destroy stored keytab
-  delegate_to: {{ipa_server}}
+  delegate_to: "{{ ipa_server }}"
   file: path=/tmp/{{inventory_hostname}}.kt state=absent
   tags:
   - base
