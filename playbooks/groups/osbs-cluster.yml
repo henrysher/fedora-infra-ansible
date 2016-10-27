@@ -221,6 +221,81 @@
       when: env == "staging"
     }
 
+- name: Manage docker images and image stream
+  hosts: osbs-masters-stg[0]
+  tags:
+    - osbs-post-install
+    - manage-docker-images
+  vars_files:
+    - /srv/web/infra/ansible/vars/global.yml
+    - /srv/private/ansible/vars.yml
+    - /srv/private/ansible/files/openstack/passwords.yml
+    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+  vars:
+    osbs_kubeconfig_path: /etc/origin/master/admin.kubeconfig
+    osbs_environment:
+      KUBECONFIG: "{{ osbs_kubeconfig_path }}"
+    koji_pki_dir: /etc/pki/koji
+    koji_ca_cert_path: "{{koji_pki_dir}}/fedora-server-ca.cert"
+    koji_cert_path: "{{koji_pki_dir}}/fedora-builder.pem"
+    koji_builder_user: dockerbuilder
+    osbs_builder_user: builder
+
+  tasks:
+    - name: pull fedora required docker images
+      shell: "docker pull {{item}}"
+      with_items: "{{fedora_required_images}}"
+      delegate_to: compose-x86-01.phx2.fedoraproject.org
+      register: docker_pull_fedora_delegated
+      changed_when: "'Downloaded newer image' in docker_pull_fedora_delegated.stdout"
+
+    - name: tag fedora required docker images for our registry
+      shell: "docker tag {{item}} {{docker_registry}}/{{item}}"
+      with_items: "{{fedora_required_images}}"
+      delegate_to: compose-x86-01.phx2.fedoraproject.org
+      when: docker_pull_fedora_delegated|changed
+
+    - name: push fedora required docker images to our registry
+      shell: "docker push {{docker_registry}}/{{item}}"
+      with_items: "{{fedora_required_images}}"
+      delegate_to: compose-x86-01.phx2.fedoraproject.org
+      when: docker_pull_fedora_delegated|changed
+
+    - name: register origin_version_out rpm query
+      shell: "rpm -q origin --qf '%{Version}'"
+      register: origin_version_out
+      always_run: true
+      changed_when: False
+
+    - set_fact:
+        origin_version: "{{origin_version_out.stdout}}"
+
+    - name: pull openshift required docker images
+      shell: "docker pull {{item}}:v{{origin_version}}"
+      with_items: "{{openshift_required_images}}"
+      delegate_to: compose-x86-01.phx2.fedoraproject.org
+      register: docker_pull_openshift_delegated
+      changed_when: "'Downloaded newer image' in docker_pull_openshift_delegated.stdout"
+
+    - name: tag openshift required docker images for our registry
+      shell: "docker tag {{item}}:v{{origin_version}} {{docker_registry}}/{{item}}:v{{origin_version}}"
+      with_items: "{{openshift_required_images}}"
+      delegate_to: compose-x86-01.phx2.fedoraproject.org
+      when: docker_pull_openshift_delegated|changed
+
+    - name: push openshift required docker images to our registry
+      shell: "docker push {{docker_registry}}/{{item}}:v{{origin_version}}"
+      with_items: "{{openshift_required_images}}"
+      delegate_to: compose-x86-01.phx2.fedoraproject.org
+      when: docker_pull_openshift_delegated|changed
+
+    - name: create fedora image stream for OpenShift
+      shell: "echo '{ \"apiVersion\": \"v1\", \"kind\": \"ImageStream\", \"metadata\": { \"name\": \"fedora\" }, \"spec\": { \"dockerImageRepository\": \"{{docker_registry}}/fedora\" } }' | oc create -f - && touch /etc/origin/fedoraimagestreamcreated"
+      environment: "{{ osbs_environment }}"
+      args:
+        creates: /etc/origin/fedoraimagestreamcreated
+
+
 - name: post-install osbs tasks
   hosts: osbs-masters-stg:osbs-nodes-stg
   tags:
@@ -320,52 +395,6 @@
     - name: set nrpe read access for osbs.conf for nagios monitoring
       acl: name={{ osbs_client_conf_path }} entity=nrpe etype=user permissions=r state=present
 
-    - name: pull fedora required docker images
-      shell: "docker pull {{item}}"
-      with_items: "{{fedora_required_images}}"
-      delegate_to: compose-x86-01.phx2.fedoraproject.org
-      register: docker_pull_fedora_delegated
-      changed_when: "'Downloaded newer image' in docker_pull_fedora_delegated.stdout"
-
-    - name: tag fedora required docker images for our registry
-      shell: "docker tag {{item}} {{docker_registry}}/{{item}}"
-      with_items: "{{fedora_required_images}}"
-      delegate_to: compose-x86-01.phx2.fedoraproject.org
-      when: docker_pull_fedora_delegated|changed
-
-    - name: push fedora required docker images to our registry
-      shell: "docker push {{docker_registry}}/{{item}}"
-      with_items: "{{fedora_required_images}}"
-      delegate_to: compose-x86-01.phx2.fedoraproject.org
-      when: docker_pull_fedora_delegated|changed
-
-    - name: register origin_version_out rpm query
-      shell: "rpm -q origin --qf '%{Version}'"
-      register: origin_version_out
-      always_run: true
-      changed_when: False
-
-    - set_fact:
-        origin_version: "{{origin_version_out.stdout}}"
-
-    - name: pull openshift required docker images
-      shell: "docker pull {{item}}:v{{origin_version}}"
-      with_items: "{{openshift_required_images}}"
-      delegate_to: compose-x86-01.phx2.fedoraproject.org
-      register: docker_pull_openshift_delegated
-      changed_when: "'Downloaded newer image' in docker_pull_openshift_delegated.stdout"
-
-    - name: tag openshift required docker images for our registry
-      shell: "docker tag {{item}}:v{{origin_version}} {{docker_registry}}/{{item}}:v{{origin_version}}"
-      with_items: "{{openshift_required_images}}"
-      delegate_to: compose-x86-01.phx2.fedoraproject.org
-      when: docker_pull_openshift_delegated|changed
-
-    - name: push openshift required docker images to our registry
-      shell: "docker push {{docker_registry}}/{{item}}:v{{origin_version}}"
-      with_items: "{{openshift_required_images}}"
-      delegate_to: compose-x86-01.phx2.fedoraproject.org
-      when: docker_pull_openshift_delegated|changed
 
     - name: Ensure koji dockerbuilder cert path exists
       file:
@@ -384,13 +413,6 @@
         src: "{{private}}/files/koji/buildercerts/fedora-ca.cert"
         dest: "{{ koji_ca_cert_path }}"
       notify: oc secrets new
-
-    - name: create fedora image stream for OpenShift
-      shell: "echo '{ \"apiVersion\": \"v1\", \"kind\": \"ImageStream\", \"metadata\": { \"name\": \"fedora\" }, \"spec\": { \"dockerImageRepository\": \"{{docker_registry}}/fedora\" } }' | oc create -f - && touch /etc/origin/fedoraimagestreamcreated"
-      environment: "{{ osbs_environment }}"
-      args:
-        creates: /etc/origin/fedoraimagestreamcreated
-        delegate_to: osbs-masters-stg[0]
 
     - name: set policy for koji builder in openshift for osbs
       shell: "oadm policy add-role-to-user -n default edit htpasswd_provider: {{ osbs_koji_stg_username }} && touch /etc/origin/koji-builder-policy-added"
