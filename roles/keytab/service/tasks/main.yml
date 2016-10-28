@@ -1,0 +1,82 @@
+---
+# We need ipa-getkeytab
+- name: Install ipa-client
+  yum: name=ipa-client state=present
+
+- name: Determine whether we need to get keytab
+  stat: path={{kt_location}}
+  register: keytab_status
+  tags:
+  - keytab
+  - config
+  - krb5
+
+- name: Get admin ticket
+  delegate_to: "{{ ipa_server }}"
+  shell: echo "{{ipa_admin_password}}" | kinit admin
+  tags:
+  - keytab
+  - config
+  - krb5
+  when: not keytab_status.stat.exists
+
+- name: Create host entry
+  delegate_to: "{{ ipa_server }}"
+  command: ipa host-add {{host}}
+  register: host_add_result
+  changed_when: "'Added host' in host_add_result.stdout"
+  failed_when: "not ('Added host' in host_add_result.stdout or 'already exists' in host_add_result.stderr)"
+  tags:
+  - keytab
+  - config
+  - krb5
+  when: not keytab_status.stat.exists
+
+- name: Create service entry
+  delegate_to: "{{ ipa_server }}"
+  command: ipa service-add {{service}}/{{host}}
+  register: service_add_result
+  changed_when: "'Added service' in service_add_result.stdout"
+  failed_when: "not ('Added service' in service_add_result.stdout or 'already exists' in service_add_result.stderr)"
+  tags:
+  - keytab
+  - config
+  - krb5
+  when: not keytab_status.stat.exists
+
+- name: Grant host access to keytab
+  delegate_to: "{{ ipa_server }}"
+  command: ipa service-allow-retrieve-keytab {{service}}/{{host}} --hosts={{inventory_hostname}}
+  register: service_perm_add_result
+  changed_when: "'members added 1' in service_add_result.stdout"
+  failed_when: "not ('members added' in service_add_result.stdout)"
+  tags:
+  - keytab
+  - config
+  - krb5
+  when: not keytab_status.stat.exists
+
+- name: Destroy kerberos ticket
+  delegate_to: "{{ ipa_server }}"
+  command: kdestroy -A
+  tags:
+  - keytab
+  - config
+  - krb5
+  when: not keytab_status.stat.exists
+
+- name: Retrieve keytab
+  command: ipa-getkeytab --retrieve --server {{ipa_server}} --keytab {{kt_location}} --principal {{service}}/{{host}}
+  tags:
+  - keytab
+  - config
+  - krb5
+  when: not keytab_status.stat.exists
+
+- name: Set keytab permissions
+  file: path={{kt_location}} owner={{owner_user}} group={{owner_group}} mode=0600
+  tags:
+  - keytab
+  - config
+  - krb5
+  when: not keytab_status.stat.exists
