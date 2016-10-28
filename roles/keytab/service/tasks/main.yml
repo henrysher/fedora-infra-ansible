@@ -60,7 +60,7 @@
   - krb5
   when: not keytab_status.stat.exists
 
-- name: Destroy kerberos ticket
+- name: Destroy admin ticket
   delegate_to: "{{ ipa_server }}"
   command: kdestroy -A
   tags:
@@ -69,8 +69,24 @@
   - krb5
   when: not keytab_status.stat.exists
 
+- name: Get host ticket
+  shell: kinit -k -t /etc/krb5.keytab host/{{inventory_hostname}}
+  tags:
+  - keytab
+  - config
+  - krb5
+  when: not keytab_status.stat.exists
+
 - name: Retrieve keytab
   command: ipa-getkeytab --retrieve --server {{ipa_server}} --keytab {{kt_location}} --principal {{service}}/{{host}}
+  tags:
+  - keytab
+  - config
+  - krb5
+  when: not keytab_status.stat.exists
+
+- name: Destroy host ticket
+  command: kdestroy -A
   tags:
   - keytab
   - config
