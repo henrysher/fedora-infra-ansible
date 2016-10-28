@@ -503,6 +503,15 @@
       register: docker_pull_fedora
       changed_when: "'Downloaded newer image' in docker_pull_fedora.stdout"
 
+    - name: register origin_version_out rpm query
+      shell: "rpm -q origin --qf '%{Version}'"
+      register: origin_version_out
+      always_run: true
+      changed_when: False
+
+    - set_fact:
+        origin_version: "{{origin_version_out.stdout}}"
+
     - name: pull openshift required docker images
       shell: "docker pull {{docker_registry}}/{{item}}:v{{origin_version}}"
       with_items: "{{openshift_required_images}}"
