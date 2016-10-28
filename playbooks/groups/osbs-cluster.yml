@@ -187,6 +187,23 @@
         src: "{{private}}/files/httpd/osbs-{{env}}.htpasswd"
         dest: /etc/origin/htpasswd
 
+    - name: set policy for koji builder in openshift for osbs
+      shell: "oadm policy add-role-to-user -n default edit htpasswd_provider: {{ osbs_koji_stg_username }} && touch /etc/origin/koji-builder-policy-added"
+      args:
+        creates: "/etc/origin/koji-builder-policy-added"
+      when: env == "staging"
+
+    - name: set policy for koji builder in openshift for osbs
+      shell: "oadm policy add-role-to-user -n default edit htpasswd_provider: {{ osbs_koji_prod_username }} && touch /etc/origin/koji-builder-policy-added"
+      args:
+        creates: "/etc/origin/koji-builder-policy-added"
+      when: env == "production"
+
+    - name: set policy for koji builder in openshift for atomic-reactor
+      shell: "oadm policy add-role-to-user -n default edit system:serviceaccount:default:builder && touch /etc/origin/atomic-reactor-policy-added"
+      args:
+        creates: "/etc/origin/atomic-reactor-policy-added"
+
 - name: Deploy OSBS on top of OpenShift
   hosts: osbs-masters-stg[0]:osbs-masters[0]
   tags:
@@ -413,23 +430,6 @@
         src: "{{private}}/files/koji/buildercerts/fedora-ca.cert"
         dest: "{{ koji_ca_cert_path }}"
       notify: oc secrets new
-
-    - name: set policy for koji builder in openshift for osbs
-      shell: "oadm policy add-role-to-user -n default edit htpasswd_provider: {{ osbs_koji_stg_username }} && touch /etc/origin/koji-builder-policy-added"
-      args:
-        creates: "/etc/origin/koji-builder-policy-added"
-      when: env == "staging"
-
-    - name: set policy for koji builder in openshift for osbs
-      shell: "oadm policy add-role-to-user -n default edit htpasswd_provider: {{ osbs_koji_prod_username }} && touch /etc/origin/koji-builder-policy-added"
-      args:
-        creates: "/etc/origin/koji-builder-policy-added"
-      when: env == "production"
-
-    - name: set policy for koji builder in openshift for atomic-reactor
-      shell: "oadm policy add-role-to-user -n default edit system:serviceaccount:default:builder && touch /etc/origin/atomic-reactor-policy-added"
-      args:
-        creates: "/etc/origin/atomic-reactor-policy-added"
 
     - name: Create buildroot container conf directory
       file:
