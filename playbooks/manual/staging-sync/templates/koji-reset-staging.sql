@@ -68,7 +68,7 @@ update repo set state = 3 where state in (0, 1, 2);
 -- The koji hub is x86_64 and i386 and has createrepo ability
 {% for host in groups['koji-stg'] %}
 select now() as time, 'adding staging host {{ host }}' as msg;
-insert into users (name, usertype, status) values ('{{ host }}', 1, 0);
+insert into users (name, usertype, krb_principal, status) values ('{{ host }}', 1, 'compile/{{ host }}@STG.FEDORAPROJECT.ORG', 0);
 insert into host (user_id, name, arches) values (
     (select id from users where name='{{host}}'), '{{host}}', 'i386 x86_64');
 {% for channel in [ 'default', 'createrepo', 'maven', 'appliance', 'livemedia', 'vm', 'secure-boot', 'compose', 'eclipse', 'images', 'image'] %}
