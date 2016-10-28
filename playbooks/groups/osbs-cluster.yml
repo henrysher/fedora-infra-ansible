@@ -155,7 +155,7 @@
         state: "directory"
 
 - name: Setup requirements for OpenShift master
-  hosts: osbs-masters-stg:osbs-nodes-stg
+  hosts: osbs-masters-stg
   tags:
     - osbs-master-req
   user: root
@@ -312,6 +312,54 @@
       args:
         creates: /etc/origin/fedoraimagestreamcreated
 
+- name: post-install master host osbs tasks
+  hosts: osbs-masters-stg
+  tags:
+    - osbs-post-install
+  vars_files:
+    - /srv/web/infra/ansible/vars/global.yml
+    - /srv/private/ansible/vars.yml
+    - /srv/private/ansible/files/openstack/passwords.yml
+    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+  vars:
+    osbs_kubeconfig_path: /etc/origin/master/admin.kubeconfig
+    osbs_environment:
+      KUBECONFIG: "{{ osbs_kubeconfig_path }}"
+    koji_pki_dir: /etc/pki/koji
+    koji_ca_cert_path: "{{koji_pki_dir}}/fedora-server-ca.cert"
+    koji_cert_path: "{{koji_pki_dir}}/fedora-builder.pem"
+    koji_builder_user: dockerbuilder
+    osbs_builder_user: builder
+
+
+  handlers:
+    - name: oc secrets new
+      shell: "oc secrets new koji cert={{ koji_cert_path }} ca={{ koji_ca_cert_path }} serverca={{ koji_ca_cert_path }}"
+      environment: "{{ osbs_environment }}"
+      notify: oc secrets add
+
+    - name: oc secrets add
+      shell: "oc secrets add serviceaccount/{{ osbs_builder_user }} secrets/koji --for=mount"
+      environment: "{{ osbs_environment }}"
+
+  tasks:
+    - name: Ensure koji dockerbuilder cert path exists
+      file:
+        path: "{{ koji_pki_dir }}"
+        state: "directory"
+        mode: 0400
+
+    - name: Add koji dockerbuilder cert for Content Generator import
+      copy:
+        src: "{{private}}/files/koji/containerbuild.pem"
+        dest: "{{ koji_cert_path }}"
+      notify: oc secrets new
+
+    - name: Add koji dockerbuilder ca cert for Content Generator import
+      copy:
+        src: "{{private}}/files/koji/buildercerts/fedora-ca.cert"
+        dest: "{{ koji_ca_cert_path }}"
+      notify: oc secrets new
 
 - name: post-install osbs tasks
   hosts: osbs-masters-stg:osbs-nodes-stg
@@ -336,15 +384,6 @@
   handlers:
     - name: buildroot container
       shell: 'docker build --no-cache --rm -t buildroot /etc/osbs/buildroot/'
-
-    - name: oc secrets new
-      shell: "oc secrets new koji cert={{ koji_cert_path }} ca={{ koji_ca_cert_path }} serverca={{ koji_ca_cert_path }}"
-      environment: "{{ osbs_environment }}"
-      notify: oc secrets add
-
-    - name: oc secrets add
-      shell: "oc secrets add serviceaccount/{{ osbs_builder_user }} secrets/koji --for=mount"
-      environment: "{{ osbs_environment }}"
 
   roles:
     - {
@@ -411,25 +450,6 @@
   tasks:
     - name: set nrpe read access for osbs.conf for nagios monitoring
       acl: name={{ osbs_client_conf_path }} entity=nrpe etype=user permissions=r state=present
-
-
-    - name: Ensure koji dockerbuilder cert path exists
-      file:
-        path: "{{ koji_pki_dir }}"
-        state: "directory"
-        mode: 0400
-
-    - name: Add koji dockerbuilder cert for Content Generator import
-      copy:
-        src: "{{private}}/files/koji/containerbuild.pem"
-        dest: "{{ koji_cert_path }}"
-      notify: oc secrets new
-
-    - name: Add koji dockerbuilder ca cert for Content Generator import
-      copy:
-        src: "{{private}}/files/koji/buildercerts/fedora-ca.cert"
-        dest: "{{ koji_ca_cert_path }}"
-      notify: oc secrets new
 
     - name: Create buildroot container conf directory
       file:
