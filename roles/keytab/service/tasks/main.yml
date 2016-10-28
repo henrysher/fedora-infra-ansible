@@ -79,11 +79,30 @@
 
 - name: Retrieve keytab
   command: ipa-getkeytab --retrieve --server {{ipa_server}} --keytab {{kt_location}} --principal {{service}}/{{host}}
+  register: retrieve_result
+  failed_when: "not ('Keytab successfully retrieved' in retrieve_result.stdout or 'krbPrincipalKey not found' in retrieve_result.stderr)"
   tags:
   - keytab
   - config
   - krb5
   when: not keytab_status.stat.exists
+
+- name: Create keytab if it did not exist
+  run_once: true
+  command: ipa-getkeytab --server {{ipa_server}} --keytab {{kt_location}} --principal {{service}}/{{host}}
+  tags:
+  - keytab
+  - config
+  - krb5
+  when: not keytab_status.stat.exists and 'krbPrincipalKey not found' in retrieve_results.stderr
+
+- name: Retrieve keytab if it did not exist
+  command: ipa-getkeytab --retrieve --server {{ipa_server}} --keytab {{kt_location}} --principal {{service}}/{{host}}
+  tags:
+  - keytab
+  - config
+  - krb5
+  when: not keytab_status.stat.exists and 'krbPrincipalKey not found' in retrieve_results.stderr
 
 - name: Destroy host ticket
   command: kdestroy -A
