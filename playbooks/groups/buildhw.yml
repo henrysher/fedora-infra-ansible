@@ -19,6 +19,11 @@
   roles:
   - base
   - { role: nfs/client, mnt_dir: '/mnt/fedora_koji',  nfs_src_dir: "{{ koji_hub_nfs }}", when: koji_hub_nfs is defined }
+  - role: keytab/service
+    kt_location: /etc/kojid/kojid.keytab
+    service: compile
+    when: env == "staging"
+  - koji_builder
   - koji_builder
   - { role: bkernel, when: inventory_hostname.startswith('bkernel') }
   - hosts
