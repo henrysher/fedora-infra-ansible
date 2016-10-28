@@ -27,6 +27,10 @@
   - { role: nfs/client, mnt_dir: '/mnt/fedora_koji',  nfs_src_dir: "{{ koji_hub_nfs }}" }
   - { role: fas_client, when: not inventory_hostname.startswith('bkernel') }
   - { role: sudo, when: not inventory_hostname.startswith('bkernel') }
+  - role: keytab/service
+    kt_location: /etc/kojid/kojid.keytab
+    service: compile
+    when: env == "staging"
   - koji_builder
   - {
       role: osbs-client,
