@@ -63,17 +63,20 @@
     chdir: /root/openQA-python-client
   when: "gitclient|changed or instclient.rc > 0"
 
-- name: Check out fedora-qa (where check-compose lives)
+- name: Check out check-compose
   git:
-    repo: https://git.fedorahosted.org/git/fedora-qa.git
-    dest: /root/fedora-qa
-  register: gitqa
+    repo: https://pagure.io/fedora-qa/check-compose.git
+    dest: /root/check-compose
+  register: gitcc
+
+- name: Remove old fedora-qa checkout (temp)
+  file: path=/root/fedora-qa state=absent
 
 - name: Install check-compose
   command: "python setup.py install"
   args:
-    chdir: /root/fedora-qa/check-compose
-  when: "gitqa|changed"
+    chdir: /root/check-compose
+  when: "gitcc|changed"
   notify:
   - restart fedmsg-hub
 
