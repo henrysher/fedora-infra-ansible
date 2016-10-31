@@ -97,6 +97,16 @@
         state: started
         enabled: yes
 
+    - name: cron entry to clean up docker storage
+      copy:
+        src: "{{files}}/osbs/cleanup-docker-storage"
+        dest: "/etc/cron.d/cleanup-docker-storage"
+
+    - name: copy docker-storage-setup config
+      copy:
+        src: "{{files}}/osbs/docker-storage-setup"
+        dest:  "/etc/sysconfig/docker-storage-setup"
+
 - name: Deploy OpenShift Cluster
   hosts: osbs-control:osbs-control-stg
   tags:
@@ -163,15 +173,6 @@
     }
 
   tasks:
-    - name: cron entry to clean up docker storage
-      copy:
-        src: "{{files}}/osbs/cleanup-docker-storage"
-        dest: "/etc/cron.d/cleanup-docker-storage"
-
-    - name: copy docker-storage-setup config
-      copy:
-        src: "{{files}}/osbs/docker-storage-setup"
-        dest:  "/etc/sysconfig/docker-storage-setup"
 
     - name: create cert dir for openshift public facing REST API SSL
       file:
