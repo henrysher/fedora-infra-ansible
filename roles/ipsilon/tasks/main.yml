@@ -46,6 +46,17 @@
   notify:
   - restart apache
 
+- name: copy ipsilon OIDC client config
+  copy: src={{ private }}/files/ipsilon/openidc.{{env}}.static dest=/etc/ipsilon/openidc.static.cfg
+            owner=ipsilon group=ipsilon mode=0600
+  with_items:
+  - ipsilon
+  - configuration
+  tags:
+  - config
+  notify:
+  - restart apache
+
 - name: copy ipsilon httpd config
   copy: src=ipsilon-httpd.conf
         dest=/etc/httpd/conf.d/ipsilon.conf
@@ -77,6 +88,16 @@
 - name: copy persona STG public key
   copy: src=browserid.stg dest=/etc/ipsilon/wellknown/browserid
         owner=ipsilon group=ipsilon mode=0644
+  when: env == "staging"
+
+- name: copy OIDC private key
+  copy: src={{ private }}/files/ipsilon/openidc.key dest=/etc/ipsilon/openidc.key
+        owner=ipsilon group=ipsilon mode=0600
+  when: env != "staging"
+
+- name: copy OIDC STG private key
+  copy: src={{ private }}/files/ipsilon/openidc.stg.key dest=/etc/ipsilon/openidc.stg.key
+        owner=ipsilon group=ipsilon mode=0600
   when: env == "staging"
 
 - name: create SAML2 dir
