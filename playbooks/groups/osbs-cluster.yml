@@ -72,6 +72,22 @@
         - tar
         - rsync
         - dbus-python
+        - NetworkManager
+
+    # This is required for OpenShift built-in SkyDNS inside the overlay network
+    # of the cluster
+    - name: ensure NM_CONTROLLED is set to "yes" for osbs cluster
+      lineinfile:
+        dest: "/etc/sysconfig/network-scripts/ifcfg-eth0"
+        line: "NM_CONTROLLED=yes"
+
+    # This is required for OpenShift built-in SkyDNS inside the overlay network
+    # of the cluster
+    - name: ensure NetworkManager is enabled and started
+      service:
+        name: NetworkManager
+        state: started
+        enabled: yes
 
 - name: Deploy OpenShift Cluster
   hosts: osbs-control:osbs-control-stg
