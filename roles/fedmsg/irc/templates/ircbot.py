@@ -385,6 +385,8 @@ config = dict(
                     # Ignore some of the ansible and copr spamminess
                     'org.fedoraproject.*.copr.*',
                     'org.fedoraproject.*.ansible.*',
+                    # Oh, and koji builds.  We have a lot of those now...
+                    'org.fedoraproject.*.buildsys.*',
                 ],
                 body=['^((?!(modularity|Modularity)).)*$'],
             ),
