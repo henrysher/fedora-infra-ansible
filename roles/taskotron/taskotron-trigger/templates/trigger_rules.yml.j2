@@ -1,8 +1,10 @@
 ---
+{% if deployment_type in ['dev', 'stg'] %}
 - when: {message_type: KojiBuildPackageCompleted}
   do:
     - {tasks: [rpmlint, rpmgrill, python-versions]}
     - {discover: {repo: '{{ trigger_distgit_repo_url }}/rpms-checks/${name}.git', branch: "${distgit_branch}"}}
+{% endif %}
 - when: {message_type: KojiBuildDockerCompleted}
   do:
     - {tasks: [simpledocker]}

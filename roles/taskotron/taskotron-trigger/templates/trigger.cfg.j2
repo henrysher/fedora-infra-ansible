@@ -1,4 +1,4 @@
-{% if deployment_type in ['stg', 'prod'] %}
+{% if deployment_type in ['prod'] %}
 [buildbot]
 url = http://127.0.0.1:8080/change_hook
 
@@ -17,11 +17,7 @@ joblog_file = {{ trigger_joblog_file }}
 fuse_delay = 900 ; 15 minutes in seconds
 
 [distgit]
-{% if deployment_type in ['stg'] %}
-enabled = True
-{% else %}
 enabled = False
-{% endif %}
 cache_dir = {{ trigger_cache_dir }}
 repo_url = {{ trigger_distgit_repo_url }}
 namespace = rpms-checks
@@ -29,7 +25,7 @@ namespace = rpms-checks
 [abicheck]
 critpath_filepath = {{ trigger_critpath_file }}
 critpath_exclude = firefox,thunderbird,kernel,kdelibs,kdepim,qt
-{% elif deployment_type in ['dev'] %}
+{% elif deployment_type in ['dev', 'stg'] %}
 [buildbot]
 url = http://127.0.0.1:8080/change_hook
 
