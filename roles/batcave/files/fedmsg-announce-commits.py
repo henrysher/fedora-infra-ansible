@@ -13,14 +13,9 @@ import six
 import fedmsg
 import fedmsg.config
 
-# Use $GIT_DIR to determine where this repo is.
-abspath = os.path.abspath(os.environ['GIT_DIR'])
-# This assumes git root dir is named "repo_name.git"
-repo_name = '.'.join(abspath.split(os.path.sep)[-1].split('.')[:-1])
-
 username = getpass.getuser()
 
-repo = pygit2.Repository(abspath)
+repo = pygit2.Repository(os.getcwd())
 
 print("Emitting a message to the fedmsg bus.")
 config = fedmsg.config.load_config([], None)
@@ -34,7 +29,7 @@ def revs_between(head, base):
 
     # pygit2 can't do a rev-list yet, so we have to shell out.. silly.
     cmd = '/usr/bin/git rev-list %s...%s' % (head.id, base.id)
-    proc = sp.Popen(cmd.split(), stdout=sp.PIPE, stderr=sp.PIPE, cwd=abspath)
+    proc = sp.Popen(cmd.split(), stdout=sp.PIPE, stderr=sp.PIPE)
     stdout, stderr = proc.communicate()
     if proc.returncode != 0:
         raise IOError('git rev-list failed: %r, err: %r' % (stdout, stderr))
@@ -110,7 +105,7 @@ for line in lines:
                 total=total,
             ),
             rev=six.text_type(rev),
-            path=abspath,
+            path=os.getcwd(),
             repo=repo_name,
             branch=branch,
             agent=os.getlogin(),
