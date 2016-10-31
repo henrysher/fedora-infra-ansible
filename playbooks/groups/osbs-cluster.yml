@@ -60,6 +60,12 @@
     - "/srv/private/ansible/vars.yml"
     - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
 
+  handlers:
+    - name: restart NetworkManager
+      service:
+        name: NetworkManager
+        state: restarted
+
   tasks:
     - name: Deploy controller public ssh keys to osbs cluster hosts
       authorized_key:
@@ -80,6 +86,8 @@
       lineinfile:
         dest: "/etc/sysconfig/network-scripts/ifcfg-eth0"
         line: "NM_CONTROLLED=yes"
+      notify:
+        - restart NetworkManager
 
     # This is required for OpenShift built-in SkyDNS inside the overlay network
     # of the cluster
