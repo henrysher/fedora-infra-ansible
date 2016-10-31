@@ -30,7 +30,7 @@
   handlers:
   - include: "{{ handlers }}/restart_services.yml"
 
-- name: Deploy controller private ssh keys to osbs control hosts
+- name: OSBS control hosts pre-req setup
   hosts: osbs-control:osbs-control-stg
   user: root
   gather_facts: True
@@ -47,6 +47,11 @@
         dest: "/root/.ssh/id_rsa"
         owner: root
         mode: 0600
+
+    - name: set ansible to use pipelining
+      lineinfile:
+        dest: "/etc/ansible/ansible.cfg"
+        line: "pipelining = True"
 
 - name: Setup cluster hosts pre-reqs
   hosts: osbs-masters-stg:osbs-nodes-stg
