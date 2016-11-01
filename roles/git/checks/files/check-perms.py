@@ -227,6 +227,8 @@ def set_post_receive_hook_version3(gitdir):
             os.path.join(dest_prefix, 'post-receive-email'),
         '/usr/share/git-core/post-receive-fedmsg':
             os.path.join(dest_prefix, 'post-receive-fedmsg'),
+        '/usr/share/git-core/post-receive-alternativearch':
+            os.path.join(dest_prefix, 'post-receive-alternativearch'),
 
         # This one kicks off all the others.
         '/usr/share/git-core/post-receive-chained':
