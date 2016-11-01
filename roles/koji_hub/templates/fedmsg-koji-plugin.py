@@ -5,6 +5,7 @@
 #     Ralph Bean <rbean@redhat.com>
 #     Mike Bonnet <mikeb@redhat.com>
 
+from koji.context import context
 from koji.plugin import callbacks
 from koji.plugin import callback
 from koji.plugin import ignore_error
@@ -130,7 +131,7 @@ def get_message_body(topic, *args, **kws):
     ]
 ])
 @ignore_error
-def send_message(cbtype, *args, **kws):
+def queue_message(cbtype, *args, **kws):
     if cbtype.startswith('post'):
         msgtype = cbtype[4:]
     else:
@@ -178,4 +179,22 @@ def send_message(cbtype, *args, **kws):
 
     body = scrub(body)
 
+{% if env != 'staging' %}
+    # Send the messages immediately.
     fedmsg.publish(topic=topic, msg=body, modname='buildsys')
+{% else %}
+    # Queue the message for later.
+    # It will only get sent after postCommit is called.
+    messages = getattr(context, 'fedmsg_plugin_messages', [])
+    messages.append(dict(topic=topic, msg=body, modname='buildsys'))
+    context.fedmsg_plugin_messages = messages
+
+
+# Meanwhile, postCommit actually sends messages.
+@callback('postCommit')
+@ignore_error
+def send_messages(cbtype, *args, **kws):
+    messages = getattr(context, 'fedmsg_plugin_messages', [])
+    for message in messages:
+        fedmsg.publish(**message)
+{% endif %}
