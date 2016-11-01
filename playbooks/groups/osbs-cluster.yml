@@ -553,6 +553,24 @@
       with_items: "{{openshift_required_images}}"
       when: docker_pull_openshift|changed
 
+    - set_fact:
+        docker_pull_openshift: "{{ docker_pull_openshift }}"
+
+
+- name: Post-Install image stream refresh
+  hosts: osbs-masters-stg[0]
+  tags:
+    - osbs-post-install
+  vars_files:
+    - /srv/web/infra/ansible/vars/global.yml
+    - /srv/private/ansible/vars.yml
+    - /srv/private/ansible/files/openstack/passwords.yml
+    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  tasks:
+    - debug: var=hostvars
+
     - name: refresh fedora image streams
       shell: "oc import-image fedora --all"
-      when: docker_pull_fedora|changed
+      when: env == "staging" and hostvars[groups["osbs-masters-stg"][0]]["docker_pull_fedora"]|changed
+
