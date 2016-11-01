@@ -1,31 +1,3 @@
-{% if deployment_type in ['prod'] %}
-[buildbot]
-url = http://127.0.0.1:8080/change_hook
-
-[trigger]
-koji_build_completed_tasks = rpmlint,rpmgrill
-docker_build_tasks = dockerautotest
-koji_tag_changed_tasks = upgradepath,depcheck
-compose_completed_tasks =
-valid_arches = x86_64
-koji_url = http://koji.fedoraproject.org/kojihub
-datagrepper_url = https://apps.fedoraproject.org/datagrepper/raw
-execdb_server = {{ execdb_server }}
-type = BuildbotTrigger
-job_logging = True
-joblog_file = {{ trigger_joblog_file }}
-fuse_delay = 900 ; 15 minutes in seconds
-
-[distgit]
-enabled = False
-cache_dir = {{ trigger_cache_dir }}
-repo_url = {{ trigger_distgit_repo_url }}
-namespace = rpms-checks
-
-[abicheck]
-critpath_filepath = {{ trigger_critpath_file }}
-critpath_exclude = firefox,thunderbird,kernel,kdelibs,kdepim,qt
-{% elif deployment_type in ['dev', 'stg'] %}
 [buildbot]
 url = http://127.0.0.1:8080/change_hook
 
@@ -43,4 +15,4 @@ rules_template = {{ trigger_rules_template_path }}
 
 [koji_build_completed]
 critpath_filepath = {{ trigger_critpath_file }}
-{% endif %}
+
