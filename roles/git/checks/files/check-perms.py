@@ -16,8 +16,10 @@ DEFAULT_CHECKS = ['bare', 'shared', 'perms', 'post-update-hook']
 
 OBJECT_RE = re.compile('[0-9a-z]{40}')
 
+
 def error(msg):
     print >> sys.stderr, msg
+
 
 def is_object(path):
     """Check if a path is a git object."""
@@ -27,6 +29,7 @@ def is_object(path):
         return True
     return False
 
+
 def is_bare_repo(gitdir):
     """Check if a git repository is bare."""
     cmd = ['git', '--git-dir', gitdir, 'config', '--bool', 'core.bare']
@@ -35,6 +38,7 @@ def is_bare_repo(gitdir):
     if bare.rstrip() != 'true' or p.returncode:
         return False
     return True
+
 
 def is_shared_repo(gitdir):
     """Check if a git repository is shared."""
@@ -46,17 +50,20 @@ def is_shared_repo(gitdir):
         return False
     return True
 
+
 def uses_version1_mail_hook(gitdir):
     """Check if a git repository uses the old fedora-git-commit-mail-hook."""
     hook = os.path.join(gitdir, 'hooks/update')
     oldpath = '/usr/bin/fedora-git-commit-mail-hook'
     return os.path.realpath(hook) == oldpath
 
+
 def uses_version2_mail_hook(gitdir):
     """Check if a git repository uses the pre-fedmsg mail-hook setup."""
     hook = os.path.join(gitdir, 'hooks/post-receive')
     oldpath = '/usr/share/git-core/mail-hooks/gnome-post-receive-email'
     return os.path.realpath(hook) == oldpath
+
 
 def check_post_update_hook(gitdir, fix=False):
     """Check if a repo's post-update hook is setup correctly."""
@@ -103,6 +110,7 @@ def check_post_update_hook(gitdir, fix=False):
 
     return True
 
+
 def set_bare_repo(gitdir):
     """Set core.bare for a git repository."""
     cmd = ['git', '--git-dir', gitdir, 'config', '--bool', 'core.bare', 'true']
@@ -110,6 +118,7 @@ def set_bare_repo(gitdir):
     if ret:
         return False
     return True
+
 
 def set_shared_repo(gitdir, value='group'):
     """Set core.sharedRepository for a git repository."""
@@ -204,12 +213,8 @@ def set_post_receive_hook_version2(gitdir):
     return True
 
 
-def set_post_receive_hook_version3(gitdir):
+def set_post_receive_hook_version3(gitdir, fix=False):
     """Configure a git repository to use the fedmsg+gnome-mail hooks."""
-
-    if not uses_version2_mail_hook(gitdir):
-        error('%s: Not yet on version2 mail hook; do --fix=mail-hook' % gitdir)
-        return False
 
     # Check that the destination is 'okay'
     dest_prefix = os.path.join(gitdir, 'hooks', 'post-receive-chained.d')
@@ -240,6 +245,10 @@ def set_post_receive_hook_version3(gitdir):
         if not os.path.exists(script):
             error('%s: Hook (%s) does not exist.' % (gitdir, script))
             return False
+        if not fix:
+            if not os.path.exists(hook):
+                error('%s: Hook (%s) not installed.' % (gitdir, hook))
+                return False
 
         if os.path.exists(hook):
             try:
@@ -309,6 +318,7 @@ def check_git_perms(path, fix=False):
                     mode, path, errstr))
             return False
     return True
+
 
 def check_gitolite_update_hook(gitdir, fix=False):
     """Check our update hooks
@@ -412,10 +422,8 @@ def main():
             if not opts.fix or not set_post_receive_hook_version2(gitdir):
                 problems.append(gitdir)
 
-        if 'fedmsg-hook' in checks and (uses_version1_mail_hook(gitdir) or
-                                        uses_version2_mail_hook(gitdir)):
-            error('%s: uses the gnome mail hook or older' % gitdir)
-            if not opts.fix or not set_post_receive_hook_version3(gitdir):
+        if 'fedmsg-hook' in checks:
+            if not set_post_receive_hook_version3(gitdir, fix=opts.fix):
                 problems.append(gitdir)
 
         if 'post-update-hook' in checks and not check_post_update_hook(gitdir,
