@@ -27,13 +27,15 @@ SMTP_PORT = 25
 DEBUG = False
 
 TEXT = u"""
-The package %s has added or updated either ExclusiveArch or ExcludesArch
+The package %(pkg)s has added or updated either ExclusiveArch or ExcludesArch
 in commit(s):
-%s.
+%(url)s.
+
+Change:
+%(change)s
 
 Thanks.
 """
-
 
 def read_output(cmd, abspath, input=None, keepends=False, **kw):
     """ Read the output from the given command to run """
@@ -164,7 +166,7 @@ def run_as_post_receive_hook():
                 if DEBUG:
                     print(line)
                 if line.strip().startswith(PATTERNS):
-                    exclude_arch.append(commit)
+                    exclude_arch.append({commit: line.strip()})
                     if DEBUG:
                         print('Commit %s selected' % commit)
 
@@ -175,13 +177,16 @@ def run_as_post_receive_hook():
                 print('Package:', package)
 
             links = []
+            diffs = exclude_arch.values()
             for commit in exclude_arch:
                 links.append(
                     CGIT_URL % (package, commit)
                 )
 
             send_email(
-                text=TEXT % (package, '\n'.join(links)),
+                text=TEXT % dict(
+                    pkg=package, url='\n'.join(links), change=diffs
+                ),
                 subject='Package added/updated ExclusiveArch/ExcludesArch',
                 to_mail=TO_MAIL
             )
