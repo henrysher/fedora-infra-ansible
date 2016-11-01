@@ -14,6 +14,7 @@ src="$1"
 dest="$2"
 if [ -d $dest/.git ]; then
    cd $dest
+   unset GIT_DIR
    /usr/bin/git pull 2>&1
 else
     /usr/bin/git clone $src $dest 2>&1 | sed 's/^/    /'
