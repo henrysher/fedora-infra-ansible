@@ -16,6 +16,7 @@ import fedmsg.config
 username = getpass.getuser()
 
 repo = pygit2.Repository(os.getcwd())
+repo_name = '.'.join(os.getcwd().split(os.path.sep)[-1].split('.')[:-1])
 
 print("Emitting a message to the fedmsg bus.")
 config = fedmsg.config.load_config([], None)
