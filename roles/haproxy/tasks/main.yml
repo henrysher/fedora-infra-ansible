@@ -71,7 +71,7 @@
 - name: check to see if its even installed yet
   shell: semodule -l | grep fi-haproxy | wc -l
   register: fi_haproxy_grep
-  always_run: true
+  check_mode: no
   changed_when: "'0' in fi_haproxy_grep.stdout"
   tags:
   - haproxy
@@ -87,7 +87,7 @@
 
 - name: check haproxy cfg to make sure it is valid
   command: haproxy -c -f /etc/haproxy/haproxy.cfg
-  always_run: true
+  check_mode: no
   register: haproxyconfigcheck
   changed_when: haproxyconfigcheck.rc != 0
   tags:

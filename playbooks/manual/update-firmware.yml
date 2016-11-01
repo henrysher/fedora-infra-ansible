@@ -49,13 +49,13 @@
 
   tasks:
   - name: Create drop place for upgrades
-    always_run: true
+    check_mode: no
     when: ansible_virtualization_role == "host"
     file: path=/root/firmware-upgrades
           state=directory
 
   - name: Check which updates to copy
-    always_run: true
+    check_mode: no
     stat: path=/root/firmware-upgrades/{{ item.1}}.applied
     register: is_applied_results
     when: item.0.vendor == ansible_system_vendor and item.0.product == ansible_product_name
@@ -64,7 +64,7 @@
     - files
 
   - name: Copy updates
-    always_run: true
+    check_mode: no
     copy: src={{ bigfiles }}/firmware/{{ item.item.0.dirname }}/{{ item.item.1}}
           dest=/root/firmware-upgrades/
           mode=0700
@@ -75,7 +75,7 @@
 
   # Dell updates here
   - name: Check Dell updates
-    always_run: true
+    check_mode: no
     command: /root/firmware-upgrades/{{ item.item.1}} -qc
     register: check_results
     failed_when: "'System(s) supported by this package' in check_results.stdout"
@@ -105,7 +105,7 @@
 
   # We are cleaning up all files we copied, regardless of update result
   - name: Delete update files
-    always_run: true
+    check_mode: no
     file: path=/root/firmware-upgrades/{{ item.item.1 }}
           state=absent
     when: "'stat' in item and not item.stat.exists"

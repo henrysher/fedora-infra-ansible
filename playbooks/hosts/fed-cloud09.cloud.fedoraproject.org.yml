@@ -286,110 +286,110 @@
   # ceilometer
   - shell: source /root/keystonerc_admin && keystone service-list | grep ceilometer | awk '{print $2}'
     register: SERVICE_ID
-    always_run: yes
+    check_mode: no
     changed_when: false
   - shell: source /root/keystonerc_admin && keystone endpoint-list | grep {{SERVICE_ID.stdout}} | awk '{print $2}'
     register: ENDPOINT_ID
-    always_run: yes
+    check_mode: no
     changed_when: false
   - shell: source /root/keystonerc_admin && keystone endpoint-list |grep {{SERVICE_ID.stdout}} |grep -v {{ controller_publicname }} && (keystone endpoint-delete {{ENDPOINT_ID.stdout}} && keystone endpoint-create --region 'RegionOne' --service {{SERVICE_ID.stdout}} --publicurl 'https://{{ controller_publicname }}:8777'  --adminurl 'https://{{ controller_publicname }}:8777' --internalurl 'https://{{ controller_publicname }}:8777' ) || true
   # cinder
   - shell: source /root/keystonerc_admin && keystone service-list | grep 'cinder ' | awk '{print $2}'
     register: SERVICE_ID
-    always_run: yes
+    check_mode: no
     changed_when: false
   - shell: source /root/keystonerc_admin && keystone endpoint-list | grep {{SERVICE_ID.stdout}} | awk '{print $2}'
     register: ENDPOINT_ID
-    always_run: yes
+    check_mode: no
     changed_when: false
   - shell: source /root/keystonerc_admin && keystone endpoint-list |grep {{SERVICE_ID.stdout}} |grep -v {{ controller_publicname }} && (keystone endpoint-delete {{ENDPOINT_ID.stdout}} && keystone endpoint-create --region 'RegionOne' --service {{SERVICE_ID.stdout}} --publicurl 'https://{{ controller_publicname }}:8776/v1/%(tenant_id)s'  --adminurl 'https://{{ controller_publicname }}:8776/v1/%(tenant_id)s' --internalurl 'https://{{ controller_publicname }}:8776/v1/%(tenant_id)s' ) || true
   # cinderv2
   - shell: source /root/keystonerc_admin && keystone service-list | grep 'cinderv2' | awk '{print $2}'
     register: SERVICE_ID
-    always_run: yes
+    check_mode: no
     changed_when: false
   - shell: source /root/keystonerc_admin && keystone endpoint-list | grep {{SERVICE_ID.stdout}} | awk '{print $2}'
     register: ENDPOINT_ID
-    always_run: yes
+    check_mode: no
     changed_when: false
   - shell: source /root/keystonerc_admin && keystone endpoint-list |grep {{SERVICE_ID.stdout}} |grep -v {{ controller_publicname }} && (keystone endpoint-delete {{ENDPOINT_ID.stdout}} && keystone endpoint-create --region 'RegionOne' --service {{SERVICE_ID.stdout}} --publicurl 'https://{{ controller_publicname }}:8776/v2/%(tenant_id)s'  --adminurl 'https://{{ controller_publicname }}:8776/v2/%(tenant_id)s' --internalurl 'https://{{ controller_publicname }}:8776/v2/%(tenant_id)s' ) || true
   # glance
   - shell: source /root/keystonerc_admin && keystone service-list | grep 'glance' | awk '{print $2}'
     register: SERVICE_ID
-    always_run: yes
+    check_mode: no
     changed_when: false
   - shell: source /root/keystonerc_admin && keystone endpoint-list | grep {{SERVICE_ID.stdout}} | awk '{print $2}'
     register: ENDPOINT_ID
-    always_run: yes
+    check_mode: no
     changed_when: false
   - shell: source /root/keystonerc_admin && keystone endpoint-list |grep {{SERVICE_ID.stdout}} |grep -v {{ controller_publicname }} && (keystone endpoint-delete {{ENDPOINT_ID.stdout}} && keystone endpoint-create --region 'RegionOne' --service {{SERVICE_ID.stdout}} --publicurl 'https://{{ controller_publicname }}:9292'  --adminurl 'https://{{ controller_publicname }}:9292' --internalurl 'https://{{ controller_publicname }}:9292' ) || true
   # neutron
   - shell: source /root/keystonerc_admin && keystone service-list | grep 'neutron' | awk '{print $2}'
-    always_run: yes
+    check_mode: no
     changed_when: false
     register: SERVICE_ID
   - shell: source /root/keystonerc_admin && keystone endpoint-list | grep {{SERVICE_ID.stdout}} | awk '{print $2}'
-    always_run: yes
+    check_mode: no
     changed_when: false
     register: ENDPOINT_ID
   - shell: source /root/keystonerc_admin && keystone endpoint-list |grep {{SERVICE_ID.stdout}} |grep -v {{ controller_publicname }} && (keystone endpoint-delete {{ENDPOINT_ID.stdout}} && keystone endpoint-create --region 'RegionOne' --service {{SERVICE_ID.stdout}} --publicurl 'https://{{ controller_publicname }}:9696/'  --adminurl 'https://{{ controller_publicname }}:9696/' --internalurl 'https://{{ controller_publicname }}:9696/' ) || true
   # nova
   - shell: source /root/keystonerc_admin && keystone service-list | grep 'nova ' | awk '{print $2}'
-    always_run: yes
+    check_mode: no
     changed_when: false
     register: SERVICE_ID
   - shell: source /root/keystonerc_admin && keystone endpoint-list | grep {{SERVICE_ID.stdout}} | awk '{print $2}'
-    always_run: yes
+    check_mode: no
     changed_when: false
     register: ENDPOINT_ID
   - shell: source /root/keystonerc_admin && keystone endpoint-list |grep {{SERVICE_ID.stdout}} |grep -v {{ controller_publicname }} && (keystone endpoint-delete {{ENDPOINT_ID.stdout}} && keystone endpoint-create --region 'RegionOne' --service {{SERVICE_ID.stdout}} --publicurl 'https://{{ controller_publicname }}:8774/v2/%(tenant_id)s'  --adminurl 'https://{{ controller_publicname }}:8774/v2/%(tenant_id)s' --internalurl 'https://{{ controller_publicname }}:8774/v2/%(tenant_id)s' ) || true
   # nova_ec2
   - shell: source /root/keystonerc_admin && keystone service-list | grep 'nova_ec2' | awk '{print $2}'
-    always_run: yes
+    check_mode: no
     changed_when: false
     register: SERVICE_ID
   - shell: source /root/keystonerc_admin && keystone endpoint-list | grep {{SERVICE_ID.stdout}} | awk '{print $2}'
-    always_run: yes
+    check_mode: no
     changed_when: false
     register: ENDPOINT_ID
   - shell: source /root/keystonerc_admin && keystone endpoint-list |grep {{SERVICE_ID.stdout}} |grep -v {{ controller_publicname }} && (keystone endpoint-delete {{ENDPOINT_ID.stdout}} && keystone endpoint-create --region 'RegionOne' --service {{SERVICE_ID.stdout}} --publicurl 'https://{{ controller_publicname }}:8773/services/Cloud'  --adminurl 'https://{{ controller_publicname }}:8773/services/Admin' --internalurl 'https://{{ controller_publicname }}:8773/services/Cloud' ) || true
   # novav3
   - shell: source /root/keystonerc_admin && keystone service-list | grep 'novav3' | awk '{print $2}'
-    always_run: yes
+    check_mode: no
     changed_when: false
     register: SERVICE_ID
   - shell: source /root/keystonerc_admin && keystone endpoint-list | grep {{SERVICE_ID.stdout}} | awk '{print $2}'
-    always_run: yes
+    check_mode: no
     changed_when: false
     register: ENDPOINT_ID
   - shell: source /root/keystonerc_admin && keystone endpoint-list |grep {{SERVICE_ID.stdout}} |grep -v {{ controller_publicname }} && (keystone endpoint-delete {{ENDPOINT_ID.stdout}} && keystone endpoint-create --region 'RegionOne' --service {{SERVICE_ID.stdout}} --publicurl 'https://{{ controller_publicname }}:8774/v3'  --adminurl 'https://{{ controller_publicname }}:8774/v3' --internalurl 'https://{{ controller_publicname }}:8774/v3' ) || true
   # swift
   - shell: source /root/keystonerc_admin && keystone service-list | grep 'swift ' | awk '{print $2}'
-    always_run: yes
+    check_mode: no
     changed_when: false
     register: SERVICE_ID
   - shell: source /root/keystonerc_admin && keystone endpoint-list | grep {{SERVICE_ID.stdout}} | awk '{print $2}'
-    always_run: yes
+    check_mode: no
     changed_when: false
     register: ENDPOINT_ID
   - shell: source /root/keystonerc_admin && keystone endpoint-list |grep {{SERVICE_ID.stdout}} |grep -v {{ controller_publicname }} && (keystone endpoint-delete {{ENDPOINT_ID.stdout}} && keystone endpoint-create --region 'RegionOne' --service {{SERVICE_ID.stdout}} --publicurl 'https://{{controller_publicname}}:8080/v1/AUTH_%(tenant_id)s'  --adminurl 'https://{{controller_publicname}}:8080' --internalurl 'https://{{controller_publicname}}:8080/v1/AUTH_%(tenant_id)s' ) || true
   # swift_s3
   - shell: source /root/keystonerc_admin && keystone service-list | grep 'swift_s3' | awk '{print $2}'
-    always_run: yes
+    check_mode: no
     changed_when: false
     register: SERVICE_ID
   - shell: source /root/keystonerc_admin && keystone endpoint-list | grep {{SERVICE_ID.stdout}} | awk '{print $2}'
-    always_run: yes
+    check_mode: no
     changed_when: false
     register: ENDPOINT_ID
   - shell: source /root/keystonerc_admin && keystone endpoint-list |grep {{SERVICE_ID.stdout}} |grep -v {{ controller_publicname }} && (keystone endpoint-delete {{ENDPOINT_ID.stdout}} && keystone endpoint-create --region 'RegionOne' --service {{SERVICE_ID.stdout}} --publicurl 'https://{{ controller_publicname }}:8080'  --adminurl 'https://{{ controller_publicname }}:8080' --internalurl 'https://{{ controller_publicname }}:8080' ) || true
   # keystone --- !!!!! we need to use ADMIN_TOKEN here - this MUST be last before we restart OS and set up haproxy
   - shell: source /root/keystonerc_admin && keystone service-list | grep 'keystone' | awk '{print $2}'
-    always_run: yes
+    check_mode: no
     changed_when: false
     register: SERVICE_ID
   - shell: source /root/keystonerc_admin && keystone endpoint-list | grep {{SERVICE_ID.stdout}} | awk '{print $2}'
-    always_run: yes
+    check_mode: no
     changed_when: false
     register: ENDPOINT_ID
   - ini_file: dest=/etc/keystone/keystone.conf section=ssl option=certfile value=/etc/haproxy/fedorainfracloud.org.combined
@@ -1211,12 +1211,12 @@
   # default is 10 instances, 20 cores, 51200 RAM, 10 floating IPs
   - shell: source /root/keystonerc_admin && keystone tenant-list | grep 'copr ' | awk '{print $2}'
     register: TENANT_ID
-    always_run: true
+    check_mode: no
     changed_when: false
   - shell: source /root/keystonerc_admin && nova quota-update --instances 40 --cores 80 --ram 300000 --floating-ips 10 --security-groups 20 {{ TENANT_ID.stdout }}
 
   - shell: source /root/keystonerc_admin && keystone tenant-list | grep 'coprdev ' | awk '{print $2}'
-    always_run: true
+    check_mode: no
     changed_when: false
     register: TENANT_ID
   - shell: source /root/keystonerc_admin && nova quota-update --instances 40 --cores 80 --ram 300000 --floating-ips 10 --security-groups 20 {{ TENANT_ID.stdout }}
@@ -1226,14 +1226,14 @@
 # nova quota-update cannot do so.
 #
   - shell: source /root/keystonerc_admin && keystone tenant-list | grep 'persistent ' | awk '{print $2}'
-    always_run: true
+    check_mode: no
     changed_when: false
     register: TENANT_ID
   - shell: source /root/keystonerc_admin && nova quota-update --instances 60 --cores 150 --ram 288300 --security-groups 20 {{ TENANT_ID.stdout }}
 
 # Transient quota
   - shell: source /root/keystonerc_admin && keystone tenant-list | grep 'transient ' | awk '{print $2}'
-    always_run: true
+    check_mode: no
     changed_when: false
     register: TENANT_ID
   - shell: source /root/keystonerc_admin && nova quota-update --instances 30 --cores 60 --ram 102400 --security-groups 20 {{ TENANT_ID.stdout }}
