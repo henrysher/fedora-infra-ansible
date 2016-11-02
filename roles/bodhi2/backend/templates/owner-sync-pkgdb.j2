@@ -80,12 +80,17 @@ if __name__ == '__main__':
         print "ERROR: no tag specified!\n"
         usage()
 
-    if tag.startswith('epel'):
-        version = tag.split('epel')[1]
-    elif tag.startswith('f'):
-        version = tag.split('f')[1]
+    if 'docker' in tag:
+        namespace='docker'
+        version = tag.split('-')[0].split('f')[1]
     else:
-        version = tag.split('-')[1][:-1]
+        namespace='rpms'
+        if tag.startswith('epel'):
+            version = tag.split('epel')[1]
+        elif tag.startswith('f'):
+            version = tag.split('f')[1]
+        else:
+            version = tag.split('-')[1][:-1]
 
     data = requests.get(urljoin(BASEURL, 'api/collections'), verify=VERIFY).json()
     branch_names = set()
@@ -109,7 +114,7 @@ if __name__ == '__main__':
         if version == rawhide:
             reponame = 'master'
         else:
-            reponame = tag
+            reponame = tag.split('-')[0]
 {% if env == 'staging' %}
         arches = ["primary"]
 {% else %}
@@ -120,7 +125,7 @@ if __name__ == '__main__':
         sys.exit(1)
 
     data = requests.get(urljoin(BASEURL, 'api/vcs?format=json'), verify=VERIFY).json()
-    acls = data['rpms']
+    acls = data[namespace]
     pkgs = {}
     for pkg_name in acls:
         try:
