@@ -185,6 +185,17 @@
         state=link
   tags: taiga
 ### DONE with taiga-front
+### cron to renew and backup certificates
+- file: src=renew-cert.sh dest=/usr/local/bin/renew-cert.sh mode=0755
+  tags:
+  - taiga
+  - cron
+
+- file: src=cron-renew-cert dest=/etc/cron.d/cron-renew-cert
+  notify: restart crond
+  tags:
+  - taiga
+  - cron
 
 ### FINALLY, nginx to serve/proxy it all
 - template: src=taiga-http.nginx dest=/etc/nginx/conf.d/taiga-http.conf
