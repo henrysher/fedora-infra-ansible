@@ -6,6 +6,15 @@
   - keytab
   - package
   - krb5
+  when: ansible_distribution_major_version|int < 22
+
+- name: Install ipa-client
+  dnf: name=ipa-client state=present
+  tags:
+  - keytab
+  - package
+  - krb5
+  when: ansible_distribution_major_version|int > 21
 
 - name: Determine whether we need to get keytab
   stat: path={{kt_location}}
