@@ -148,6 +148,7 @@
     mode=0644
   tags:
   - config
+  - bodhi
 
 #
 # cron job that syncs packages to koji
@@ -188,14 +189,14 @@
         cron_file=update-koji-owner-fedora
   when: inventory_hostname.startswith('bodhi-backend03') and env == "production"
   tags:
+  - bodhi
 
-  - name: sync packages from pkgdb2 to koji fedor (docker)
-    cron: name="owner-sync-fedora" minute="7,17,27,37,47,57" user="root"
-          job="/usr/local/bin/owner-sync-pkgdb f24-docker;/usr/local/bin/owner-sync-pkgdb f25-docker;/usr/local/bin/owner-sync-pkgdb f26-docker"
-          cron_file=update-koji-owner-fedora-docker
-    when: inventory_hostname.startswith('bodhi-backend03') and env == "production"
-    tags:
-    - bodhi
+- name: sync packages from pkgdb2 to koji fedor (docker)
+  cron: name="owner-sync-fedora" minute="7,17,27,37,47,57" user="root"
+        job="/usr/local/bin/owner-sync-pkgdb f24-docker;/usr/local/bin/owner-sync-pkgdb f25-docker;/usr/local/bin/owner-sync-pkgdb f26-docker"
+        cron_file=update-koji-owner-fedora-docker
+  when: inventory_hostname.startswith('bodhi-backend03') and env == "production"
+  tags:
   - bodhi
 #
 # cron job that syncs updates to master mirror
