@@ -130,6 +130,21 @@
   - krb5
   when: not keytab_status.stat.exists
 
+- name: Base64-decode keytab
+  shell: "umask 077 && base64 -d {{kt_location}}.b64 >{{kt_location}}"
+  tags:
+  - keytab
+  - config
+  - krb5
+  when: not keytab_status.stat.exists
+
+- name: Destroy encoded keytab
+  file: path={{kt_location}}.b64 state=absent
+  tags:
+  - keytab
+  - config
+  - krb5
+
 - name: Set keytab permissions
   file: path={{kt_location}} owner={{owner_user}} group={{owner_group}} mode=0600
   tags:
