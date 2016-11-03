@@ -60,17 +60,12 @@
   - krb5
   when: not keytab_status.stat.exists
 
-- name: Destroy admin ticket
+- name: Grant admin access to keytab
   delegate_to: "{{ ipa_server }}"
-  command: kdestroy -A
-  tags:
-  - keytab
-  - config
-  - krb5
-  when: not keytab_status.stat.exists
-
-- name: Get host ticket
-  shell: kinit -k -t /etc/krb5.keytab host/{{inventory_hostname}}
+  command: ipa service-allow-retrieve-keytab {{service}}/{{host}} --users=admin
+  register: service_perm_add_result
+  changed_when: "'members added 1' in service_perm_add_result.stdout"
+  failed_when: "not ('members added' in service_perm_add_result.stdout)"
   tags:
   - keytab
   - config
@@ -78,7 +73,8 @@
   when: not keytab_status.stat.exists
 
 - name: Retrieve keytab
-  command: ipa-getkeytab --retrieve --server {{ipa_server}} --keytab {{kt_location}} --principal {{service}}/{{host}}
+  delegate_to: "{{ ipa_server }}"
+  command: ipa-getkeytab --retrieve --server {{ipa_server}} --keytab /tmp/{{service}}_{{host}}.kt --principal {{service}}/{{host}}
   register: retrieve_result
   failed_when: "not ('Keytab successfully retrieved' in retrieve_result.stderr or 'krbPrincipalKey not found' in retrieve_result.stderr)"
   tags:
@@ -88,23 +84,47 @@
   when: not keytab_status.stat.exists
 
 - name: Create keytab if it did not exist
-  command: ipa-getkeytab --server {{ipa_server}} --keytab {{kt_location}} --principal {{service}}/{{host}}
+  delegate_to: "{{ ipa_server }}"
+  command: ipa-getkeytab --server {{ipa_server}} --keytab /tmp/{{service}}_{{host}}.kt --principal {{service}}/{{host}}
   tags:
   - keytab
   - config
   - krb5
   when: not keytab_status.stat.exists and 'krbPrincipalKey not found' in retrieve_result.stderr
 
-- name: Retrieve keytab if it did not exist
-  command: ipa-getkeytab --retrieve --server {{ipa_server}} --keytab {{kt_location}} --principal {{service}}/{{host}}
-  tags:
-  - keytab
-  - config
-  - krb5
-  when: not keytab_status.stat.exists and 'krbPrincipalKey not found' in retrieve_result.stderr
-
-- name: Destroy host ticket
+- name: Destroy admin ticket
+  delegate_to: "{{ ipa_server }}"
   command: kdestroy -A
+  tags:
+  - keytab
+  - config
+  - krb5
+  when: not keytab_status.stat.exists
+
+- name: Get keytab
+  delegate_to: "{{ ipa_server }}"
+  command: base64 /tmp/{{service}}_{{host}}.kt
+  register: keytab
+  tags:
+  - keytab
+  - config
+  - krb5
+  when: not keytab_status.stat.exists
+
+- name: Destroy stored keytab
+  delegate_to: "{{ ipa_server }}"
+  file: path=/tmp/{{service}}_{{host}}.kt state=absent
+  register: keytab
+  tags:
+  - keytab
+  - config
+  - krb5
+  when: not keytab_status.stat.exists
+
+- name: Deploy base64 keytab
+  copy: dest={{kt_location}}.b64
+        content={{keytab.stdout}}
+        owner={{owner_user}} group={{owner_group}} mode=0600
   tags:
   - keytab
   - config
