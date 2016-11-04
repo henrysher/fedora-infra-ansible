@@ -50,7 +50,7 @@
 # Check that the volume is available
 #
 - local_action: shell nova --os-auth-url="{{os_auth_url}}" --os-username="admin" --os-password="{{ADMIN_PASS}}" --os-tenant-name={{inventory_tenant}} volume-list | grep ' {{item.volume_id}} ' | grep 'available'
-  with_items: "{{volumes}}|default([])"
+  with_items: "{{ volumes|default([]) }}"
   register: volume_available
   failed_when: volume_available.rc == 2
   changed_when: volume_available.rc == 0
@@ -62,7 +62,7 @@
 # If it is attach it.
 #
 - local_action: shell nova --os-auth-url="{{os_auth_url}}" --os-username="admin" --os-password="{{ADMIN_PASS}}" --os-tenant-name={{inventory_tenant}} volume-attach "{{inventory_instance_name}}" "{{item.volume_id}}" "{{item.device}}"
-  with_items: "{{volumes}}|default([])"
+  with_items: "{{ volumes|default([]) }}"
   ignore_errors: True
   failed_when: False
   when: volumes is defined and volume_available is defined and volume_available
