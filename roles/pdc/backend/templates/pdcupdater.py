@@ -57,7 +57,7 @@ config = {
     {% endif %}
 
     # Where to find the fedora-atomic json definitions.
-    'pdcupdater.fedora_atomic_git_url': 'https://git.fedorahosted.org/cgit/fedora-atomic.git/plain/',
+    'pdcupdater.fedora_atomic_git_url': 'https://pagure.io/fedora-atomic/raw/master/f/',
 
     # We have an explicit list of these in the config so we can turn them on
     # and off individually in production if one is causing an issue.
