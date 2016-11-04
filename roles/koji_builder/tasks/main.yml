@@ -166,21 +166,23 @@
   tags:
   - koji_builder
 
+#
+# On primary we want to make a /mnt/koji link to /mnt/fedora_koji/koji
+#
+
 - name: make a mnt/koji link
   file: state=link src=/mnt/fedora_koji/koji dest=/mnt/koji
-  when: inventory_hostname.startswith(('build','arm04-builder00','arm04-builder01','arm02-builder21','arm02-builder23')) and not inventory_hostname.startswith(('buildvm-ppc64','buildvm-s390'))
+  when: koji_hub_nfs is defined and koji_hub_nfs == "fedora_koji"
   tags:
   - koji_builder
+
+#
+# alternative arch builders however want to link to just /mnt/fedora_koji
+#
 
 - name: make a mnt/koji link
   file: state=link src=/mnt/fedora_koji dest=/mnt/koji
-  when: inventory_hostname.startswith(('aarch64','ppc8','buildvm-ppc64','buildvm-s390'))
-  tags:
-  - koji_builder
-
-- name: make a mnt/koji link
-  file: state=link src=/mnt/fedora_koji/koji dest=/mnt/koji
-  when: "'builders-stg' in group_names"
+  when: koji_hub_nfs is defined and koji_hub_nfs != "fedora_koji"
   tags:
   - koji_builder
 
