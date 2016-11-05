@@ -1,6 +1,6 @@
 #!/usr/bin/python -tt
 # Author: Toshio Kuratomi <toshio@fedoraproject.org>
-# Copyright: December, 2015
+# Copyright: December 2015, November 2016
 # License: LGPLv3+
 import sys
 import copy
@@ -23,7 +23,7 @@ class ResultAccumulator(CallbackBase):
         self.unreachable.add(result._host.get_name())
 
     def v2_runner_on_ok(self, result, *args, **kwargs):
-        for vm in (vm for vm in result._result.keys() if vm not in ('invocation', 'changed', '_ansible_no_log')):
+        for vm in (vm for vm in result._result.keys() if vm not in ('invocation', 'changed') and not vm.startswith('_ansible')):
             self.host_status[(result._host.get_name(), vm)] = (result._result[vm]['state'], str(result._result[vm]['autostart']))
 
 
