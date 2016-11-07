@@ -426,6 +426,9 @@
         name: docker
         state: restarted
 
+    - name: systemctl daemon-reload
+      shell: 'systemctl daemon-reload'
+
   roles:
     - {
       role: osbs-client,
@@ -502,6 +505,7 @@
         src: "{{files}}/osbs/docker.service"
         dest: /etc/systemd/system/docker.service
       notify:
+        - systemctl daemon-reload
         - restart docker
 
     - name: set nrpe read access for osbs.conf for nagios monitoring
