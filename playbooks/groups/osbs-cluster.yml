@@ -421,6 +421,11 @@
     - name: buildroot container
       shell: 'docker rmi buildroot; docker build --no-cache --rm -t buildroot /etc/osbs/buildroot/'
 
+    - name: restart docker
+      service:
+        name: docker
+        state: restarted
+
   roles:
     - {
       role: osbs-client,
@@ -489,11 +494,15 @@
         src: "{{files}}/osbs/fix-docker-iptables.{{ env }}"
         dest: /usr/local/bin/fix-docker-iptables
         mode: 0755
+      notify:
+        - restart docker
 
     - name: copy docker service config
       copy:
         src: "{{files}}/osbs/docker.service"
         dest: /etc/systemd/system/docker.service
+      notify:
+        - restart docker
 
     - name: set nrpe read access for osbs.conf for nagios monitoring
       acl: name={{ osbs_client_conf_path }} entity=nrpe etype=user permissions=r state=present
