@@ -1,0 +1,54 @@
+#!/bin/bash -xe
+# Note: this is done as a script because it needs to be run after
+# every docker service restart.
+# And just doing an iptables-restore is going to mess up kubernetes'
+# NAT table.
+
+# Delete all old rules
+iptables --flush FORWARD
+
+# Re-insert some basic rules
+iptables -A FORWARD -o br0 -j DOCKER
+iptables -A FORWARD -o br0 -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
+iptables -A FORWARD -i br0 -o br0 -j ACCEPT
+
+# Now insert access to allowed boxes
+# docker-registry
+iptables -A FORWARD -i br0 -p tcp -m tcp -d 10.5.125.56 --dport 443 -j ACCEPT
+
+#koji.fp.o
+iptables -A FORWARD -i br0 -p tcp -m tcp -d 10.5.125.61 --dport 80 -j ACCEPT
+iptables -A FORWARD -i br0 -p tcp -m tcp -d 10.5.125.61 --dport 443 -j ACCEPT
+
+# pkgs
+iptables -A FORWARD -i br0 -p tcp -m tcp -d 10.5.125.44 --dport 80 -j ACCEPT
+iptables -A FORWARD -i br0 -p tcp -m tcp -d 10.5.125.44 --dport 443 -j ACCEPT
+iptables -A FORWARD -i br0 -p tcp -m tcp -d 10.5.125.44 --dport 9418 -j ACCEPT
+
+# DNS
+iptables -A FORWARD -i br0 -p udp -m udp -d 10.5.126.21 --dport 53 -j ACCEPT
+iptables -A FORWARD -i br0 -p udp -m udp -d 10.5.126.22 --dport 53 -j ACCEPT
+
+# mirrors.fp.o
+iptables -A FORWARD -i br0 -p tcp -m tcp -d 10.5.126.51 --dport 443 -j ACCEPT
+iptables -A FORWARD -i br0 -p tcp -m tcp -d 10.5.126.52 --dport 443 -j ACCEPT
+
+# dl.phx2
+iptables -A FORWARD -i br0 -p tcp -m tcp -d 10.5.126.93 --dport 80 -j ACCEPT
+iptables -A FORWARD -i br0 -p tcp -m tcp -d 10.5.126.93 --dport 443 -j ACCEPT
+iptables -A FORWARD -i br0 -p tcp -m tcp -d 10.5.126.94 --dport 80 -j ACCEPT
+iptables -A FORWARD -i br0 -p tcp -m tcp -d 10.5.126.94 --dport 443 -j ACCEPT
+iptables -A FORWARD -i br0 -p tcp -m tcp -d 10.5.126.95 --dport 80 -j ACCEPT
+iptables -A FORWARD -i br0 -p tcp -m tcp -d 10.5.126.95 --dport 443 -j ACCEPT
+iptables -A FORWARD -i br0 -p tcp -m tcp -d 10.5.126.96 --dport 80 -j ACCEPT
+iptables -A FORWARD -i br0 -p tcp -m tcp -d 10.5.126.96 --dport 443 -j ACCEPT
+iptables -A FORWARD -i br0 -p tcp -m tcp -d 10.5.126.97 --dport 80 -j ACCEPT
+iptables -A FORWARD -i br0 -p tcp -m tcp -d 10.5.126.97 --dport 443 -j ACCEPT
+
+
+# Docker is CRAZY and forces Google DNS upon us.....
+iptables -A FORWARD -i br0 -p udp -m udp -d 8.8.8.8 --dport 53 -j ACCEPT
+iptables -A FORWARD -i br0 -p udp -m udp -d 8.8.4.4 --dport 53 -j ACCEPT
+
+iptables -A FORWARD -j REJECT --reject-with icmp-host-prohibited
+

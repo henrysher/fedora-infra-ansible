@@ -484,6 +484,17 @@
       }
 
   tasks:
+    - name: copy docker iptables script
+      copy:
+        src:"{{files}}/osbs/fix-docker-iptables.{{ env }}"
+        dest: /usr/local/bin/fix-docker-iptables
+        mode: 0755
+
+    - name: copy docker service config
+      copy:
+        src: "{{files}}/osbs/docker.service"
+        dest: /etc/systemd/system/docker.service
+
     - name: set nrpe read access for osbs.conf for nagios monitoring
       acl: name={{ osbs_client_conf_path }} entity=nrpe etype=user permissions=r state=present
 
