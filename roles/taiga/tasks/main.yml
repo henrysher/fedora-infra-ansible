@@ -205,36 +205,6 @@
 
 ### letsencrypt
 
-- name: letsencrypt directory
-  file: dest=/etc/letsencrypt state=directory
-  tags: 
-  - taiga
-  - letsencrypt
-
-- name: copy certificate
-  copy: >
-    src={{private}}/files/letsencrypt/{{inventory_hostname}}/
-    dest=/etc/letsencrypt/
-  tags: 
-  - taiga
-  - letsencrypt
-
-### script to backup certificate
-- name: copy cert backup script
- copy: src=backup-cert.sh dest=/usr/local/bin/backup-cert.sh mode=0755
- tags:
- - taiga
- - cron
- - letsencrypt
-
-### cron to backup certificate
-- name: install cron for cert backup
-  copy: src=cron-backup-cert dest=/etc/cron.d/cron-backup-cert
-  notify: restart crond
-  tags:
-  - taiga
-  - cron
-
 ### script to renew certificate
 - name: copy cert renew script
   copy: src=renew-cert.sh dest=/usr/local/bin/renew-cert.sh mode=0755
