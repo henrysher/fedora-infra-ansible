@@ -124,7 +124,7 @@
 
 # settle for os unicorn
 - name: remove gunicorn
-  command: sudo -u taiga sed -i -e '/^gunicorn.*$/c\' requirements.txt
+  command: sudo -u taiga sed -i -e '/^gunicorn.*$/d' requirements.txt
            chdir=/home/taiga/taiga-back
   tags: taiga
 
@@ -132,6 +132,11 @@
            chdir=/home/taiga/taiga-back
            creates=/usr/lib/python3.4/site-packages/django/
   tags: taiga
+
+# make sure this is the working version of html5lib
+- command: pip3 install html5lib==0.9999999
+  tags: taiga
+
 
 - name: copy in our taiga backend config
   template: src=local.py dest=/home/taiga/taiga-back/settings/local.py
