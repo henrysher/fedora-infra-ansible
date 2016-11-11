@@ -175,7 +175,7 @@ config = dict(
             channel='fedora-ask',
             # Only show AskFedora messages
             filters=dict(
-                topic=['^((?!askbot).)*$'],
+                topic=['^((?!(askbot.post.edit|askbot.flag_offensive.add)).)*$'],
             ),
         ),
 
