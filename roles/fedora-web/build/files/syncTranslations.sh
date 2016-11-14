@@ -3,7 +3,8 @@
 # It pulls every resources.
 
 PO_DIR=/var/tmp/po_dir
-SITES="boot.fedoraproject.org \
+SITES="alt.fedoraproject.org \
+       boot.fedoraproject.org \
        fedoracommunity.org \
        fedorahosted.org \
        fedoraproject.org \
