@@ -54,6 +54,13 @@ build arm.fedoraproject.org
 build getfedora.org
 build alt.fedoraproject.org
 
+# Temporary: Build releases.json here and copy it over.
+# This will eventually move to a daily cron.
+cd getfedora.org
+make json-releases
+rsync -qa --delete-after --delay-updates out/releases.json /srv/web/getfedora.org/
+cd ..
+
 pushd mirrors.fedoraproject.org > /dev/null
 rsync -qa --delete-after --delay-updates . /srv/web/mirrors.fedoraproject.org/
 popd > /dev/null
