@@ -6,6 +6,61 @@ rhel6 = dist[0] == 'redhat' and int(float(dist[1])) == 6
 
 config = dict(
     releases={
+        'f25-updates': {
+            'name': 'f25-updates',
+            'repo': 'updates',
+            'version': '25',
+            'arch': 'x86_64',
+
+            # OSTree treefile configuration
+            # https://github.com/projectatomic/rpm-ostree/blob/master/doc/treefile.md
+            'tree': 'docker-host',
+            'treefile': {
+                'include': 'fedora-atomic-docker-host.json',
+                'ref': 'fedora-atomic/25/x86_64/docker-host',
+                'repos': ['fedora-25', 'fedora-25-updates'],
+                'packages': [],
+            },
+
+            # The name of the mock container to build and maintain
+            'mock': 'fedora-25-updates-x86_64',
+
+            # The git branch to use in the `git_repo` for the parent
+            # treefile & repo configurations
+            'git_branch': 'f25',
+
+            # Add or overwrite yum repository name:urls. This lets you
+            # compose trees against your own repositories.
+            'repos': {},
+        },
+        'f25-updates-testing': {
+            'name': 'f25-updates-testing',
+            'repo': 'updates-testing',
+            'version': '25',
+            'arch': 'x86_64',
+
+            # OSTree treefile configuration
+            # https://github.com/projectatomic/rpm-ostree/blob/master/doc/treefile.md
+            'tree': 'docker-host',
+            'treefile': {
+                'include': 'fedora-atomic-docker-host.json',
+                'ref': 'fedora-atomic/25/x86_64/testing/docker-host',
+                'repos': ['fedora-24', 'fedora-24-updates', 'updates-testing'],
+                'packages': [],
+            },
+
+            # The name of the mock container to build and maintain
+            'mock': 'fedora-25-updates-testing-x86_64',
+
+            # The git branch to use in the `git_repo` for the parent
+            # treefile & repo configurations
+            'git_branch': 'f25',
+
+            # Add or overwrite yum repository name:urls. This lets you
+            # compose trees against your own repositories.
+            'repos': {},
+        },
+
         'f24-updates': {
             'name': 'f24-updates',
             'repo': 'updates',
