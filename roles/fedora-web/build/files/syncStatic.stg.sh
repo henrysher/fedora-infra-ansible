@@ -52,6 +52,11 @@ build spins.fedoraproject.org
 build labs.fedoraproject.org
 build arm.fedoraproject.org
 build getfedora.org
+
+pushd getfedora.org > /dev/null
+rsync -qa --delete-after out/static/releases.json /srv/web/getfedora.org/releases.json
+popd > /dev/null
+
 build alt.fedoraproject.org
 
 pushd mirrors.fedoraproject.org > /dev/null
