@@ -25,6 +25,7 @@ CREATE=/usr/local/bin/create-filelist
 # context.
 FILELIST=fullfilelist
 TIMELIST='fullfiletimelist-$mod'
+FILTERLIST='filterlist-$mod'
 
 usage () {
     echo
@@ -107,18 +108,23 @@ cd $tmpd
     for mod in $MODS; do
         currentfl=$TOPD/$mod/${FILELIST/'$mod'/$mod}
         currenttl=$TOPD/$mod/${TIMELIST/'$mod'/$mod}
+        currentsl=$TOPD/$mod/${FILTERLIST/'$mod'/$mod}
         flname=$(basename $currentfl)
         tlname=$(basename $currenttl)
+        slname=$(basename $currentsl)
 
-        $CREATE -c -s -d $TOPD/$mod -f $flname -t $tlname
+        $CREATE -c -s -d $TOPD/$mod -f $flname -t $tlname -F $slname
 
-        # If a file list exsts and doesn't differ from what we just generated,
+        # If a file list exists and doesn't differ from what we just generated,
         # delete the latter.
         if [[ -f $currentfl ]] && diff -q $currentfl $flname > /dev/null; then
             rm -f $flname
         fi
         if [[ -f $currenttl ]] && diff -q $currenttl $tlname > /dev/null; then
             rm -f $tlname
+        fi
+        if [[ -f $currentsl ]] && diff -q $currentsl $slname > /dev/null; then
+            rm -f $slname
         fi
     done
 
@@ -128,10 +134,13 @@ cd $tmpd
     for mod in $MODS; do
         currentfl=$TOPD/$mod/${FILELIST/'$mod'/$mod}
         currenttl=$TOPD/$mod/${TIMELIST/'$mod'/$mod}
+        currentsl=$TOPD/$mod/${FILTERLIST/'$mod'/$mod}
         flname=$(basename $currentfl)
         fldir=$(dirname $currentfl)
         tlname=$(basename $currenttl)
         tldir=$(dirname $currenttl)
+        slname=$(basename $currentsl)
+        sldir=$(dirname $currentsl)
 
         if [[ -f $flname ]]; then
             tmpf=$(mktemp -p $fldir $flname.XXXXXXXXXX)
@@ -144,6 +153,12 @@ cd $tmpd
             cp -p $tlname $tmpf
             chmod 644 $tmpf
             mv $tmpf $currenttl
+        fi
+        if [[ -f $slname ]]; then
+            tmpf=$(mktemp -p $sldir $slname.XXXXXXXXXX)
+            cp -p $slname $tmpf
+            chmod 644 $tmpf
+            mv $tmpf $currentsl
         fi
     done
 

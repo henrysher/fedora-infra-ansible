@@ -57,7 +57,9 @@ def recursedir(path='.', skip=[], alwaysskip=['.~tmp~']):
 def parseopts():
     null = open(os.devnull, 'w')
     p = argparse.ArgumentParser(
-        description='Generate a list of files and times, suitable for consumption by quick-fedora-mirror.')
+        description='Generate a list of files and times, suitable for consumption by quick-fedora-mirror, '
+                    'and a much smaller list with packages, Device Tree boot files, HTML files and '
+                    'directories filtered out, for consumption by fedfind.')
     p.add_argument('-c', '--checksum', action='store_true',
                    help='Include checksums of all repomd.xml files in the file list.')
     p.add_argument('-C', '--checksum-file', action='append', dest='checksum_files',
@@ -73,6 +75,8 @@ def parseopts():
                    help='Filename of the file list with times (default: stdout).')
     p.add_argument('-f', '--filelist', type=argparse.FileType('w'), default=null,
                    help='Filename of the file list without times (default: no plain file list is generated).')
+    p.add_argument('-F', '--filterlist', type=argparse.FileType('w'), default=null,
+                   help='Filename of the filtered file list for fedfind (default: not generated).')
 
     opts = p.parse_args()
 
@@ -107,6 +111,10 @@ def main():
     for entry in recursedir(skip=opts.skip_files):
         # opts.filelist.write(entry.path + '\n')
         print(entry.path, file=opts.filelist)
+        # write to filtered list if appropriate
+        skips = ('.rpm', '.drpm', '.dtb', '.html')
+        if not any(entry.path.endswith(skip) for skip in skips) and not (entry.is_dir()):
+            print(entry.path, file=opts.filterlist)
         if entry.name in opts.checksum_files:
             checksums[entry.path[2:]] = True
         info = entry.stat(follow_symlinks=False)
