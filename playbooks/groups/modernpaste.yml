@@ -3,10 +3,10 @@
 # NOTE: make sure there is room/space for this server on the vmhost
 # NOTE: most of these vars_path come from group_vars/mirrorlist or from hostvars
 
-- include: "/srv/web/infra/ansible/playbooks/include/virt-create.yml myhosts=modernpaste-stg"
+- include: "/srv/web/infra/ansible/playbooks/include/virt-create.yml myhosts=modernpaste-stg:modernpaste"
 
 - name: dole out the generic configuration
-  hosts: modernpaste-stg
+  hosts: modernpaste-stg:modernpaste
   user: root
   gather_facts: True
 
@@ -18,12 +18,12 @@
   roles:
   - base
   - rkhunter
-  #- nagios/client
+  - nagios/client
   - hosts
   - fas_client
   - sudo
   - collectd/base
-  #- fedmsg/base
+  - fedmsg/base
 
   tasks:
   - include: "{{ tasks }}/yumrepos.yml"
@@ -34,7 +34,7 @@
   - include: "{{ handlers }}/restart_services.yml"
 
 - name: dole out the service-specific config
-  hosts: modernpaste-stg
+  hosts: modernpaste-stg:modernpaste
   user: root
   gather_facts: True
 
