@@ -1,5 +1,4 @@
 SHELL=/bin/bash
 MAILTO=sysadmin-koschei-members@fedoraproject.org
 0 3 * * *   koschei    koschei-admin cleanup --older-than 6 >/dev/null
-#0 4,10,16,22 * * *   koschei    psql -h {{ koschei_pgsql_hostname }} -d koschei -U koscheiadmin <<< 'VACUUM ANALYZE package; VACUUM FULL ANALYZE package;'
-*/5 * * * *   koschei   psql -h {{ koschei_pgsql_hostname }} -d koschei -U koscheiadmin <<< 'VACUUM ANALYZE package' >/dev/null
+*/5 * * * *   koschei   koschei-admin psql <<< 'VACUUM FULL ANALYZE VERBOSE package' 2>&1 | awk '/DETAIL/{print$2}' > /var/log/vaccum.log
