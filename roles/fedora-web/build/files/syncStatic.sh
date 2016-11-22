@@ -50,6 +50,8 @@ cd /srv/web/fedora-websites
 /usr/bin/git pull -q --ff-only || exit 1
 build labs.fedoraproject.org
 build arm.fedoraproject.org
+build getfedora.org
+build alt.fedoraproject.org
 
 pushd mirrors.fedoraproject.org > /dev/null
 rsync -qa --delete-after --delay-updates . /srv/web/mirrors.fedoraproject.org/
@@ -62,7 +64,6 @@ popd > /dev/null
 
 /usr/bin/git pull -q --ff-only || exit 1
 
-build getfedora.org
 build flocktofedora.org
 build spins.fedoraproject.org
 build boot.fedoraproject.org
