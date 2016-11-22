@@ -14,6 +14,12 @@ import os
 import sys
 from scandir import scandir
 
+# productmd is optional, needed only for the imagelist feature
+try:
+    from productmd.images import SUPPORTED_IMAGE_FORMATS
+except ImportError:
+    SUPPORTED_IMAGE_FORMATS = []
+
 
 def get_ftype(entry):
     """Return a simple indicator of the file type."""
@@ -58,8 +64,8 @@ def parseopts():
     null = open(os.devnull, 'w')
     p = argparse.ArgumentParser(
         description='Generate a list of files and times, suitable for consumption by quick-fedora-mirror, '
-                    'and a much smaller list with packages, Device Tree boot files, HTML files, pictures '
-                    'and directories filtered out, for consumption by fedfind.')
+                    'and (optionally) a much smaller list of only files that match one of the productmd '
+                    ' supported image types, for use by fedfind.')
     p.add_argument('-c', '--checksum', action='store_true',
                    help='Include checksums of all repomd.xml files in the file list.')
     p.add_argument('-C', '--checksum-file', action='append', dest='checksum_files',
@@ -75,8 +81,9 @@ def parseopts():
                    help='Filename of the file list with times (default: stdout).')
     p.add_argument('-f', '--filelist', type=argparse.FileType('w'), default=null,
                    help='Filename of the file list without times (default: no plain file list is generated).')
-    p.add_argument('-F', '--filterlist', type=argparse.FileType('w'), default=null,
-                   help='Filename of the filtered file list for fedfind (default: not generated).')
+    p.add_argument('-i', '--imagelist', type=argparse.FileType('w'), default=null,
+                   help='Filename of the image file list for fedfind (default: not generated). Requires '
+                   'the productmd library.')
 
     opts = p.parse_args()
 
@@ -99,6 +106,8 @@ def parseopts():
 
 def main():
     opts = parseopts()
+    if opts.imagelist.name != os.devnull and not SUPPORTED_IMAGE_FORMATS:
+        sys.exit("--imagelist requires the productmd library!")
     checksums = {}
 
     os.chdir(opts.dir)
@@ -112,9 +121,9 @@ def main():
         # opts.filelist.write(entry.path + '\n')
         print(entry.path, file=opts.filelist)
         # write to filtered list if appropriate
-        skips = ('.rpm', '.drpm', '.dtb', '.html', '.png', '.jpg')
-        if not any(entry.path.endswith(skip) for skip in skips) and not (entry.is_dir()):
-            print(entry.path, file=opts.filterlist)
+        imgs = ['.{0}'.format(form) for form in SUPPORTED_IMAGE_FORMATS]
+        if any(entry.path.endswith(img) for img in imgs):
+            print(entry.path, file=opts.imagelist)
         if entry.name in opts.checksum_files:
             checksums[entry.path[2:]] = True
         info = entry.stat(follow_symlinks=False)
