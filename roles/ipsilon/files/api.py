@@ -2,6 +2,10 @@
 
 from __future__ import absolute_import
 
+try:
+    from ipsilon.info.infofas import fas_make_userdata
+except ImportError:
+    fas_make_userdata = None
 from ipsilon.providers.openid.extensions.common import OpenidExtensionBase
 import ipsilon.root
 from ipsilon.util.page import Page
@@ -83,7 +87,10 @@ class APIV1Page(Page):
         userdata = None
         try:
             _, user = fas.fpc.login(username, password)
-            userdata = fas.page.make_userdata(user.user)
+            if fas_make_userdata is None:
+                userdata = fas.page.make_userdata(user.user)
+            else:
+                userdata = fas_make_userdata(user.user)
         except Exception, ex:
             print 'Error during auth: %s' % ex
             pass
