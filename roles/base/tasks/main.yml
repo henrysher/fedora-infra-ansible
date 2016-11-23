@@ -374,6 +374,15 @@
 # Set krb5 conf
 - name: configure krb5
   template: src=krb5.conf.j2 dest=/etc/krb5.conf owner=root group=root mode=0644
+  when: not inventory_hostname.startswith('ipa')
+  tags:
+  - base
+  - config
+  - krb5
+
+- name: configure krb5 (IPA master)
+  template: src=krb5.conf.master.j2 dest=/etc/krb5.conf owner=root group=root mode=0644
+  when: inventory_hostname.startswith('ipa')
   tags:
   - base
   - config

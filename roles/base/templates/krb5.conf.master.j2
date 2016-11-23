@@ -1,0 +1,48 @@
+includedir /var/lib/sss/pubconf/krb5.include.d/
+
+[logging]
+ default = FILE:/var/log/krb5libs.log
+ kdc = FILE:/var/log/krb5kdc.log
+ admin_server = FILE:/var/log/kadmind.log
+
+[libdefaults]
+{% if env == "production" %}
+ default_realm = FEDORAPROJECT.ORG
+{% else %}
+ default_realm = STG.FEDORAPROJECT.ORG
+{% endif %}
+ dns_lookup_realm = false
+ dns_lookup_kdc = false
+ ticket_lifetime = 24h
+ renew_lifetime = 7d
+ forwardable = true
+
+[realms]
+{% if env == "production" %}
+ FEDORAPROJECT.ORG = {
+  default_domain = fedoraproject.org
+{% else %}
+ STG.FEDORAPROJECT.ORG = {
+  default_domain = stg.fedoraproject.org
+{% endif %}
+  kdc = {{inventory_hostname}}:88
+  master_kdc = {{inventory_hostname}}:88
+  admin_server = {{inventory_hostname}}:749
+  pkinit_anchors = FILE:/etc/ipa/ca.crt
+}
+
+[domain_realm]
+{% if env == "production" %}
+ .fedoraproject.org = FEDORAPROJECT.ORG
+ fedoraproject.org = FEDORAPROJECT.ORG
+ {{inventory_hostname}} = FEDORAPROJECT.ORG
+{% else %}
+ .stg.fedoraproject.org = STG.FEDORAPROJECT.ORG
+ stg.fedoraproject.org = STG.FEDORAPROJECT.ORG
+ {{inventory_hostname}} = STG.FEDORAPROJECT.ORG
+{% endif %}
+
+[dbmodules]
+  STG.FEDORAPROJECT.ORG = {
+      db_library = ipadb.so
+  }
