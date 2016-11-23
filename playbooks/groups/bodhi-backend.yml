@@ -48,7 +48,17 @@
     owner_user: apache
     owner_group: apache
     service: bodhi
-    host: "{{inventory_hostname}}"
+    # We use a fake name here so that we can share the same name between both backends
+    host: "bodhi-backend.phx2.fedoraproject.org"
+    when: env == "production"
+  - role: keytab/service
+    owner_user: apache
+    owner_group: apache
+    service: bodhi
+    # We use a fake name here so that we can share the same name between both backends
+    host: "bodhi-backend.stg.phx2.fedoraproject.org"
+    when: env == "staging"
+
   - bodhi2/backend
   - fedmsg/base
   - role: collectd/fedmsg-service
