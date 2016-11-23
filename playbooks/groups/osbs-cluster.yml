@@ -466,7 +466,9 @@
         default: {
           username: "{{ osbs_koji_stg_username }}",
           password: "{{ osbs_koji_stg_password }}",
-          koji_certs_secret: "koji",
+          use_kerberos: True,
+          kerberos_keytab: "/etc/krb5.osbs_{{osbs_url}}",
+          kerberos_principal: "osbs/{{osbs_url}}@{{ipa_realm}}",
           openshift_url: 'https://{{osbs_url}}/',
           registry_uri: 'https://{{docker_registry}}/v2',
           source_registry_uri: 'https://{{source_registry}}/v2',
@@ -496,7 +498,9 @@
         default: {
           username: "{{ osbs_koji_prod_username }}",
           password: "{{ osbs_koji_prod_password }}",
-          koji_certs_secret: "koji",
+          use_kerberos: True,
+          kerberos_keytab: "/etc/krb5.osbs_{{osbs_url}}",
+          kerberos_principal: "osbs/{{osbs_url}}@{{ipa_realm}}",
           openshift_url: 'https://{{osbs_url}}/',
           registry_uri: 'https://{{docker_registry}}/v2',
           source_registry_uri: 'https://{{source_registry}}/v2',
@@ -543,8 +547,8 @@
         state: directory
 
     - name: Upload Dockerfile for buildroot container
-      copy:
-        src: "{{ files }}/osbs/buildroot-Dockerfile-{{env}}"
+      template:
+        src: "{{ files }}/osbs/buildroot-Dockerfile-{{env}}.j2"
         dest: "/etc/osbs/buildroot/Dockerfile"
         mode: 0400
       notify:
@@ -582,6 +586,31 @@
       notify:
         - buildroot container
       when: etc_ar_stat.stat.exists == false
+
+    - name: stat /etc/ keytab
+      stat:
+        path: "/etc/krb5.osbs_{{osbs_url}}.keytab"
+      register: etc_kt_stat
+
+    - name: stat /etc/osbs/buildroot/ keytab
+      stat:
+        path: "/etc/osbs/buildroot/krb5.osbs_{{osbs_url}}.keytab"
+      register: etcosbs_kt_stat
+
+    - name: remove old hardlink to /etc/osbs/buildroot/ keytab
+      file:
+        path: "/etc/osbs/buildroot/krb5.osbs_{{osbs_url}}.keytab"
+        state: absent
+      when: etcosbs_kt_stat.stat.exists and etc_kt_stat.stat.checksum != etcosbs_kt_stat.stat.checksum
+
+    - name: Hardlink keytab for buildroot container (because Docker)
+      file:
+        src: "/etc/krb5.osbs_{{osbs_url}}.keytab"
+        dest: "/etc/osbs/buildroot/krb5.osbs_{{osbs_url}}.keytab"
+        state: hard
+      notify:
+        - buildroot container
+      when: etcosbs_kt:_stat.stat.exists == false
 
     - name: pull fedora required docker images
       shell: "docker pull {{docker_registry}}/{{item}}"
