@@ -23,6 +23,9 @@ ipa user-add fas_sync --first=FAS --last=Sync
 # Allow sync user to create and edit users
 ipa group-add-member admins --users=fas_sync
 
+# Disable password expiration
+ipa pwpolicy-mod global_policy --maxlife=0 --minlife=0 --history=0 --minclasses=0 --minlength=0 --maxfail=0
+
 # Allow sync user to update passwords
 ldapmodify -x -H ldapi://%2fvar%2frun%2fslapd-FEDORAPROJECT-ORG.socket <<EOF
 dn: cn=ipa_pwd_extop,cn=plugins,cn=config
