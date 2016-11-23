@@ -26,9 +26,37 @@ Alias /kojifiles "/mnt/koji/"
 
 SSLVerifyClient optional
 <Location /kojihub/ssllogin>
+{% if env == "production" %}
          SSLVerifyClient require
          SSLVerifyDepth  10
          SSLOptions +StdEnvVars
+{% else %}
+         SSLVerifyClient optional
+	 SSLVerifyDepth 1
+	 SSLOptions +StrictRequire +StdEnvVars +OptRenegotiate
+
+	 AuthType GSSAPI
+	 GssapiSSLonly On
+	 AuthName "GSSAPI Single Sign On Login"
+	 GssapiCredStore keytab:/etc/koji-hub-http.keytab
+
+	 # This complicated ACL stuff is to support both SSL and kerb auth at the same time
+	 # To be killed on December 12th, 2016, after which "Require valid-user" remains
+	 SetEnvIfExpr "%{SSL_CLIENT_S_DN_O} == 'Fedora Project'" cert_s_o_valid
+	 SetEnvIfExpr "%{SSL_CLIENT_S_DN_OU} == 'Fedora User Cert'" cert_s_ou_valid
+	 SetEnvIfExpr "%{SSL_CLIENT_I_DN_O} == 'Fedora Project'" cert_i_o_valid
+	 SetEnvIfExpr "%{SSL_CLIENT_I_DN_OU} == 'Fedora Project CA'" cert_i_ou_valid
+
+	 <RequireAny>
+		<RequireAll>
+			Require env cert_s_o_valid
+			Require env cert_s_ou_valid
+			Require env cert_i_o_valid
+			Require env cert_i_ou_valid
+		</RequireAll>
+		Require valid-user
+	 </RequireAny>
+{% endif %}
 </Location>
 
 # uncomment this to enable authentication via SSL client certificates
