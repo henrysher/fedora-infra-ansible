@@ -53,6 +53,30 @@
         dest: "/etc/ansible/ansible.cfg"
         line: "pipelining = True"
 
+- name: Setup cluster keytabs
+  hosts: osbs-masters-stg
+  user: root
+  gather_facts: True
+
+  vars_files:
+    - /srv/web/infra/ansible/vars/global.yml
+    - "/srv/private/ansible/vars.yml"
+    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  tasks:
+  - role: keytab/service
+    owner_user: apache
+    owner_group: apache
+    service: osbs
+    host: "osbs.fedoraproject.org"
+    when: env == "production"
+  - role: keytab/service
+    owner_user: apache
+    owner_group: apache
+    service: osbs
+    host: "osbs.stg.fedoraproject.org"
+    when: env == "staging"
+
 - name: Setup cluster hosts pre-reqs
   hosts: osbs-masters-stg:osbs-nodes-stg
   tags:
