@@ -53,30 +53,6 @@
         dest: "/etc/ansible/ansible.cfg"
         line: "pipelining = True"
 
-- name: Setup cluster keytabs
-  hosts: osbs-masters-stg
-  user: root
-  gather_facts: True
-
-  vars_files:
-    - /srv/web/infra/ansible/vars/global.yml
-    - "/srv/private/ansible/vars.yml"
-    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
-
-  roles:
-  - role: keytab/service
-    owner_user: root
-    owner_group: root
-    service: osbs
-    host: "osbs.fedoraproject.org"
-    when: env == "production"
-  - role: keytab/service
-    owner_user: root
-    owner_group: root
-    service: osbs
-    host: "osbs.stg.fedoraproject.org"
-    when: env == "staging"
-
 - name: Setup cluster hosts pre-reqs
   hosts: osbs-masters-stg:osbs-nodes-stg
   tags:
@@ -135,6 +111,30 @@
       copy:
         src: "{{files}}/osbs/docker-storage-setup"
         dest:  "/etc/sysconfig/docker-storage-setup"
+
+- name: Setup cluster keytabs
+  hosts: osbs-masters-stg
+  user: root
+  gather_facts: True
+
+  vars_files:
+    - /srv/web/infra/ansible/vars/global.yml
+    - "/srv/private/ansible/vars.yml"
+    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  roles:
+  - role: keytab/service
+    owner_user: root
+    owner_group: root
+    service: osbs
+    host: "osbs.fedoraproject.org"
+    when: env == "production"
+  - role: keytab/service
+    owner_user: root
+    owner_group: root
+    service: osbs
+    host: "osbs.stg.fedoraproject.org"
+    when: env == "staging"
 
 - name: Deploy OpenShift Cluster
   hosts: osbs-control:osbs-control-stg
