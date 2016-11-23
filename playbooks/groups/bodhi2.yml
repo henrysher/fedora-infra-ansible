@@ -23,6 +23,20 @@
       when: env != "staging" }
   - apache
   - mod_wsgi
+
+  - role: keytab/service
+    owner_user: apache
+    owner_group: apache
+    service: bodhi
+    host: "bodhi.fedoraproject.org"
+    when: env == "production"
+  - role: keytab/service
+    owner_user: apache
+    owner_group: apache
+    service: bodhi
+    host: "bodhi.stg.fedoraproject.org"
+    when: env == "staging"
+
   - { role: bodhi2/base, when: "inventory_hostname.startswith('bodhi0')" }
   - { role: fedmsg/base,  when: "inventory_hostname.startswith('bodhi0')" }
 
