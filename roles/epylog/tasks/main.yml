@@ -1,6 +1,9 @@
 ---
-- name: install epylog package
-  yum: state=present name=epylog
+- name: install epylog packages
+  yum: state=present name={{item}}
+  with_items:
+  - epylog
+  - mod_auth_gssapi
   tags:
   - packages
   - epylog
@@ -11,6 +14,8 @@
   - /var/lib/epylog/merged
   - /srv/web/epylog
   - /srv/web/epylog/merged
+  tags:
+  - epylog
 
 - name: setup extra epylog modules
   copy: src={{ item }} dest=/usr/share/epylog/{{ item }}
@@ -21,6 +26,8 @@
   - modules/common_unparsed_mod.py
   - modules/logins_mod.py
   - modules/kojiload_mod.py
+  tags:
+  - epylog
 
 - name: epylog cron
   copy: src=epylog-default.cron dest=/etc/{{ item }}/epylog.cron
@@ -30,17 +37,20 @@
   tags:
   - config
   - cron
+  - epylog
 
 - name: copy in all the epylog merged files
   copy: src=merged dest=/etc/epylog/
   tags:
   - config
+  - epylog
 
 - name: epylog merged cron
   copy: src=epylog-merged.cron dest=/etc/cron.d/epylog-merged.cron
   tags:
   - config
   - cron
+  - epylog
 
 - name: epylog httpd config
   copy: src=epylog-web.conf dest=/etc/httpd/conf.d/epylog-web.conf
@@ -49,3 +59,4 @@
   tags:
   - config
   - apache
+  - epylog
