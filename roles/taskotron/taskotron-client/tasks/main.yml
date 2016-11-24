@@ -53,12 +53,12 @@
   file: path=/var/log/taskotron state=directory owner={{ slave_user }} group={{ slave_user }} mode=1755
   when: deployment_type == 'local'
 
-- name: create directory for disposable clients images
-  file: path={{ imagesdir }} state=directory owner=root group={{ slaves_group }} mode=1755
-  when: deployment_type in ['dev', 'stg', 'prod']
-
 - name: ensure buildslaves group exists
   group: name={{ slaves_group }}
+  when: deployment_type in ['dev', 'stg', 'prod']
+
+- name: create directory for disposable clients images
+  file: path={{ imagesdir }} state=directory owner=root group={{ slaves_group }} mode=1755
   when: deployment_type in ['dev', 'stg', 'prod']
 
 - name: create /var/log/taskotron for task logfiles
