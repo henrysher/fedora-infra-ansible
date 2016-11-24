@@ -79,7 +79,14 @@
 
 - name: enable libvirtd
   service: name=libvirtd state=started enabled=yes
-  when: deployment_type in ['dev', 'stg', 'prod']
+  when: ansible_distribution_major_version|int < 24
+
+- name: start and enable libvirt services
+  service: name={{ item }} state=started enabled=yes
+  with_items:
+    - libvirtd
+    - virtlogd
+  when: ansible_distribution_major_version|int >= 24
 
 - name: copy custom libvirt network config
   copy: src=default.xml dest=/etc/libvirt/qemu/networks/default.xml owner=root group=root mode=0600
