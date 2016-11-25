@@ -32,7 +32,9 @@ MACHINES='signal.gnome.org
           socket.gnome.org
           odrs.gnome.org
           ghispano.gnome.org
-          scale.gnome.org'
+          scale.gnome.org
+          sdkbuilder.gnome.org
+          webapps3.gnome.org'
 
 BACKUP_DIR='/gnome_backups/'
 
