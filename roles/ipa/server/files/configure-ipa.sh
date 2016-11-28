@@ -1,6 +1,5 @@
 #!/bin/bash -xe
 ADMIN_PASSWORD="$1"
-DM_PASSWORD="$2"
 
 function cleanup {
     kdestroy -A
