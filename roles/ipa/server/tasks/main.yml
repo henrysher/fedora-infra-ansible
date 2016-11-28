@@ -205,6 +205,9 @@
   with_items:
   - grant_fas_sync
   when: inventory_hostname.startswith("ipa01")
+  tags:
+  - ipa/server
+  - config
   register: apply_output
   changed_when: "'Type or value exists' not in apply_output.stderr"
   failed_when: "'Type or value exists' not in apply_output.stderr and 'modifying entry' not in apply_output.stdout"
@@ -213,6 +216,9 @@
 - name: Grant access to replication status
   command: ldapmodify -Y EXTERNAL -H ldapi://%2fvar%2frun%2fslapd-FEDORAPROJECT-ORG.socket
            -f /root/ldif/grant_anonymous_replication_view.ldif
+  tags:
+  - ipa/server
+  - config
   register: grant_repl_status_output
   changed_when: "'Type or value exists' not in grant_repl_status_output.stderr"
   failed_when: "'Type or value exists' not in grant_repl_status_output.stderr and 'modifying entry' not in grant_repl_status_output.stdout"
