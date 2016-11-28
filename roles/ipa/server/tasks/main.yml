@@ -171,6 +171,9 @@
   - ipa/server
   - config
   when: inventory_hostname.startswith("ipa01")
+  register: pwpolicy_output
+  changed_when: "'no modifications to be performed' not in pwpolicy_output.stderr"
+  failed_when: "'no modifications to be performed' not in pwpolicy_output.stdout and pwpolicy_output.rc != 0"
 
 - name: Destroy admin ticket
   command: kdestroy -A
