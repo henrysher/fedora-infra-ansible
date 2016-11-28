@@ -1,4 +1,4 @@
-#!/bin/bash -xe
+#!/bin/bash -x
 ADMIN_PASSWORD="$1"
 
 function cleanup {
