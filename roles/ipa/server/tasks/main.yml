@@ -135,3 +135,24 @@
   - ipa/server
   - config
   when: inventory_hostname.startswith("ipa01") and config_deployed.changed
+
+- name: Create LDIF directory
+  file: path=/root/ldif state=directory user=root group=root mode=0750
+  tags:
+  - ipa/server
+  - config
+
+- name: Copy LDIF files
+  copy: src={{item}} dest=/root/ldif/{{item}}
+  with_items:
+  - grant_anonymous_replication_view.ldif
+  tags:
+  - ipa/server
+  - config
+
+- name: Grant access to replication status
+  command: ldapmodify -Y EXTERNAL -H ldapi://%2fvar%2frun%2fslapd-FEDORAPROJECT-ORG.socket
+           -f /root/ldif/grant_anonymous_replication_view.ldif
+  register: grant_repl_status_output
+  changed_when: "'Type or value exists' not in grant_repl_status_output.stderr"
+  failed_when: "'Type or value exists' not in grant_repl_status_output.stderr and 'modifying entry' not in grant_repl_status_output.stdout"
