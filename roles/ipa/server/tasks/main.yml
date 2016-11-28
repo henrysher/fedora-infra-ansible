@@ -136,6 +136,45 @@
   - config
   when: inventory_hostname.startswith("ipa01") and config_deployed.changed
 
+- name: Get admin ticket
+  shell: echo "{{ipa_admin_password}}" | kinit admin
+  tags:
+  - ipa/server
+  - keytab
+  - config
+  - krb5
+  when: inventory_hostname.startswith("ipa01")
+
+- name: Create fas_sync user
+  command: ipa user-add fas_sync --first=FAS --last=Sync
+  tags:
+  - ipa/server
+  - config
+  when: inventory_hostname.startswith("ipa01")
+
+- name: Promote fas_sync user
+  command: ipa group-add-member admins --users=fas_sync
+  tags:
+  - ipa/server
+  - config
+  when: inventory_hostname.startswith("ipa01")
+
+- name: Configure password policy
+  command: ipa pwpolicy-mod global_policy --maxlife=0 --minlife=0 --history=0 --minclasses=0 --minlength=0 --maxfail=0
+  tags:
+  - ipa/server
+  - config
+  when: inventory_hostname.startswith("ipa01")
+
+- name: Destroy admin ticket
+  command: kdestroy -A
+  tags:
+  - ipa/server
+  - keytab
+  - config
+  - krb5
+  when: inventory_hostname.startswith("ipa01")
+
 - name: Create LDIF directory
   file: path=/root/ldif state=directory user=root group=root mode=0750
   tags:
