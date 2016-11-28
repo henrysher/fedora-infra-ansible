@@ -146,10 +146,22 @@
   copy: src={{item}} dest=/root/ldif/{{item}}
   with_items:
   - grant_anonymous_replication_view.ldif
+  - grant_fas_sync.ldif
   tags:
   - ipa/server
   - config
 
+- name: Apply LDIF files
+  command: ldapmodify -Y EXTERNAL -H ldapi://%2fvar%2frun%2fslapd-FEDORAPROJECT-ORG.socket
+           -f /root/ldif/{{item}}.ldif
+  with_items:
+  - grant_fas_sync
+  when: inventory_hostname.startswith("ipa01")
+  register: apply_output
+  changed_when: "'Type or value exists' not in apply_output.stderr"
+  failed_when: "'Type or value exists' not in apply_output.stderr and 'modifying entry' not in apply_output.stdout"
+
+# This is a special one, in that it needs to apply on each master since it's non-replicated.
 - name: Grant access to replication status
   command: ldapmodify -Y EXTERNAL -H ldapi://%2fvar%2frun%2fslapd-FEDORAPROJECT-ORG.socket
            -f /root/ldif/grant_anonymous_replication_view.ldif

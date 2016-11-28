@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -xe
 ADMIN_PASSWORD="$1"
 DM_PASSWORD="$2"
 
@@ -25,12 +25,3 @@ ipa group-add-member admins --users=fas_sync
 
 # Disable password expiration
 ipa pwpolicy-mod global_policy --maxlife=0 --minlife=0 --history=0 --minclasses=0 --minlength=0 --maxfail=0
-
-# Allow sync user to update passwords
-ldapmodify -x -H ldapi://%2fvar%2frun%2fslapd-FEDORAPROJECT-ORG.socket <<EOF
-dn: cn=ipa_pwd_extop,cn=plugins,cn=config
-changetype: modify
-add: passSyncManagersDNs
-passSyncManagersDNs: uid=fas_sync,cn=users,cn=accounts,dc=fedoraproject,dc=org
-EOF
-exit 0
