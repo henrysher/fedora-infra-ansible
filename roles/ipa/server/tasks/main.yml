@@ -200,7 +200,7 @@
   - config
 
 - name: Apply LDIF files
-  command: ldapmodify -Y EXTERNAL -H ldapi://%2fvar%2frun%2fslapd-FEDORAPROJECT-ORG.socket
+  command: ldapmodify -Y EXTERNAL -H {{ ipa_ldap_socket }}
            -f /root/ldif/{{item}}.ldif
   with_items:
   - grant_fas_sync
@@ -214,7 +214,7 @@
 
 # This is a special one, in that it needs to apply on each master since it's non-replicated.
 - name: Grant access to replication status
-  command: ldapmodify -Y EXTERNAL -H ldapi://%2fvar%2frun%2fslapd-FEDORAPROJECT-ORG.socket
+  command: ldapmodify -Y EXTERNAL -H {{ ipa_ldap_socket }}
            -f /root/ldif/grant_anonymous_replication_view.ldif
   tags:
   - ipa/server
