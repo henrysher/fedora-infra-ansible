@@ -4,14 +4,9 @@
  admin_server = FILE:/var/log/kadmind.log
 
 [libdefaults]
-{% if env == "production" %}
- default_realm = FEDORAPROJECT.ORG
-{% else %}
- default_realm = STG.FEDORAPROJECT.ORG
-{% endif %}
-{% if inventory_hostname.startswith('buildvm') and env=="staging" %}
+ default_realm = {{ ipa_realm }}
+ rdns = false
  dns_canonicalize_hostname = false
-{% endif %}
  dns_lookup_realm = false
  dns_lookup_kdc = false
  ticket_lifetime = 24h
@@ -19,30 +14,14 @@
  forwardable = true
 
 [realms]
-{% if env == "production" %}
- FEDORAPROJECT.ORG = {
-{% if datacenter == "phx2" and not krb_builder %}
-  kdc = ipa01.phx2.fedoraproject.org
-  kdc = ipa02.phx2.fedoraproject.org
-{% else %}
-  kdc = https://id.fedoraproject.org/KdcProxy
-{% endif %}
+ {{ ipa_realm }} = {
+  kdc = https://id{{ env_suffix }}.fedoraproject.org/KdcProxy
  }
-{% else %}
- STG.FEDORAPROJECT.ORG = {
-{% if datacenter == "phx2" %}
-  kdc = ipa01.stg.phx2.fedoraproject.org
-{% else %}
-  kdc = https://id.stg.fedoraproject.org/KdcProxy
-{% endif %}
- }
-{% endif %}
 
 [domain_realm]
+ {{env_suffix}}.fedoraproject.org = FEDORAPROJECT.ORG
 {% if env == "production" %}
- .fedoraproject.org = FEDORAPROJECT.ORG
  fedoraproject.org = FEDORAPROJECT.ORG
 {% else %}
- .stg.fedoraproject.org = STG.FEDORAPROJECT.ORG
  stg.fedoraproject.org = STG.FEDORAPROJECT.ORG
 {% endif %}
