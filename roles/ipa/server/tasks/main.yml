@@ -153,16 +153,7 @@
   when: inventory_hostname.startswith("ipa01")
   register: create_output
   changed_when: "'already exists' not in create_output.stderr"
-  failed_when: false
-  #failed_when: "'already exists' not in create_output.stderr and create_output.exitcode != 0"
-
-- name: Debug
-  debug: var=create_output
-  tags: ipa/server
-
-- fail: msg="testing"
-  tags: ipa/server
-
+  failed_when: "'already exists' not in create_output.stderr and create_output.rc != 0"
 
 - name: Promote fas_sync user
   command: ipa group-add-member admins --users=fas_sync
