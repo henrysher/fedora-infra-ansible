@@ -32,6 +32,19 @@
     kt_location: /etc/kojid/kojid.keytab
     service: compile
     when: env == "staging" or krb_builder
+  - role: keytab/service
+    owner_user: root
+    owner_group: root
+    service: osbs
+    host: "osbs.fedoraproject.org"
+    when: env == "production"
+  - role: keytab/service
+    owner_user: root
+    owner_group: root
+    service: osbs
+    host: "osbs.stg.fedoraproject.org"
+    when: env == "staging"
+
   - {
       role: osbs-client,
         when: env == 'staging' and ansible_architecture == 'x86_64',
