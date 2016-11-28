@@ -32,7 +32,19 @@
   - blockerbugs
 
 - name: setup blockerbugs app settings file
-  template: src=blockerbugs-settings.py.j2 dest=/etc/blockerbugs/settings.py owner=blockerbugs group=root mode=640
+  template: src=blockerbugs-settings.py.j2 dest=/etc/blockerbugs/settings.py mode=640
+  notify:
+  - reload httpd
+  tags:
+  - config
+  - httpd
+  - blockerbugs
+
+- name: grant blockerbugs and apache read access to the settings file
+  acl: name=/etc/blockerbugs/settings.py entity={{ item }} etype=user permissions="r" state=present
+  with_items:
+  - blockerbugs
+  - apache
   notify:
   - reload httpd
   tags:
