@@ -1,6 +1,7 @@
 #!/usr/bin/python 
 # Source: https://github.com/opinkerfi/nagios-plugins/blob/master/check_ipa/check_ipa_replication
 # Copyright 2013, Tomas Edwardsson 
+# Copyright 2016, Patrick Uiterwijk
 #
 # This script is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -47,9 +48,19 @@ except Exception, e:
 # Loop through replication agreements
 for rhost in replication:
     plugin.add_summary("Replica %s Status: %s" % (rhost[1]['nsDS5ReplicaHost'][0], rhost[1]['nsds5replicaLastUpdateStatus'][0]))
-    if rhost[1]['nsds5replicaLastUpdateStatus'][0][:2] == "0 ":
+
+    status = rhost[1]['nsds5replicaLastUpdateStatus'][0]
+    code = status[:2]
+    if status.startswith('Error ('):
+        # IPA >=4.4.0
+        code = status[status.find('(')+1:status.find(')')]
+    else:
+        # IPA <4.4.0
+        code = status[:status.find(' ')]
+
+    if code == '0':
         plugin.status(ok)
-    elif rhost[1]['nsds5replicaLastUpdateStatus'][0][:2] == "1 ":
+    elif code == '1':
         # Busy Replica is not an error, its "unknown" (but its "ok" for now)
         plugin.status(ok)
     else:
