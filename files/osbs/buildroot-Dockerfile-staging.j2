@@ -1,6 +1,7 @@
 FROM fedora:latest
 RUN curl -o /etc/yum.repos.d/maxamillion-atomic-reactor-copr.repo https://copr.fedorainfracloud.org/coprs/maxamillion/atomic-reactor/repo/fedora-24/maxamillion-atomic-reactor-fedora-24.repo
 RUN dnf -y install --refresh dnf-plugins-core && dnf -y install docker git python-docker-py python-setuptools e2fsprogs koji python-backports-lzma osbs-client gssproxy fedpkg python-docker-squash
+RUN sed -i 's|.*default_ccache_name.*| default_ccache_name = DIR:/tmp/|g' /etc/krb5.conf
 ADD ./atomic-reactor.tar.gz /tmp/
 ADD ./krb5.osbs_{{osbs_url}}.keytab /etc/
 RUN cd /tmp/atomic-reactor-*/ && python setup.py install
