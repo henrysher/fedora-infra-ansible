@@ -84,7 +84,24 @@
   - vagrant
   register: virtualbox_installed
   check_mode: no
-  when: autocloud_specialization == 'virtualbox'
+  when: autocloud_specialization == 'virtualbox' and inventory_hostname == 'autocloud-libvirt-vbox.phx2.fedoraproject.org'
+  notify:
+  - restart fedmsg-hub
+  - restart autocloud
+  tags:
+  - autocloud
+  - autocloud/backend
+
+- name: install virtualbox basics where needed
+  dnf: pkg={{ item }} state=present
+  with_items:
+  - VirtualBox-5.1
+  - kernel-devel
+  - gcc
+  - vagrant
+  register: virtualbox_installed
+  check_mode: no
+  when: autocloud_specialization == 'virtualbox' and inventory_hostname == 'autocloud-libvirt-vbox2.phx2.fedoraproject.org'
   notify:
   - restart fedmsg-hub
   - restart autocloud
