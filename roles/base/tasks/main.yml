@@ -5,6 +5,22 @@
 # Things in here are things we want to do to every machine no matter what.
 #
 
+- name: ensure packages required for semanage are installed (yum)
+  yum: name={{ item }} state=present
+  when: ansible_distribution_major_version|int < 22
+  with_items:
+  - libsemanage-python
+  tags:
+  - selinux
+
+- name: ensure packages required for semanage are installed (dnf)
+  dnf: name={{ item }} state=present
+  when: ansible_distribution_major_version|int > 21 and ansible_cmdline.ostree is not defined
+  with_items:
+  - policycoreutils-python-utils
+  tags:
+  - selinux
+
 # XXX fixme # a datacenter 'fact' from setup
 - name: /etc/resolv.conf
   copy: src={{ item }} dest=/etc/resolv.conf
@@ -90,6 +106,28 @@
 
 - name: make sure hostname is set right on rhel7 hosts
   hostname: name="{{inventory_hostname}}"
+
+- name: check if sshd port is already known by selinux
+  shell: semanage port -l | grep ssh
+  register: sshd_selinux_port
+  check_mode: no
+  changed_when: false
+  tags:
+  - sshd_config
+  - config
+  - sshd
+  - selinux
+  - base
+
+- name: allow alternate sshd port
+  command: semanage port -a -t ssh_port_t -p tcp {{ sshd_port }}
+  when: sshd_selinux_port.stdout.find('{{ sshd_port }}') == -1
+  tags:
+  - sshd_config
+  - config
+  - sshd
+  - selinux
+  - base
 
 - name: sshd_config
   copy: src={{ item }} dest=/etc/ssh/sshd_config mode=0600
