@@ -41,6 +41,11 @@
     - libphutil
     - arcanist
     - phabricator
+  when: ansible_distribution_major_version|int > 21 and ansible_cmdline.ostree is not defined
+
+- name: ensure packages required to make selinux changes for phabricator are installed
+  dnf: name={{ item }} state=present enablerepo={{ extra_enablerepos }}
+  with_items:
     - libsemanage-python
     - libselinux-python
     - policycoreutils-python
@@ -152,10 +157,19 @@
   register: sshd_selinux_port
   check_mode: no
   changed_when: false
+  tags:
+  - sshd_config
+  - config
+  - sshd
+
 
 - name: allow alternate sshd port
   command: semanage port -a -t ssh_port_t -p tcp {{ sshd_port }}
   when: sshd_selinux_port.stdout.find('{{ sshd_port }}') == -1
+  tags:
+  - sshd_config
+  - config
+  - sshd
 
 - name: generate phabricator phd service file
   template: src=phd.service.j2 dest=/lib/systemd/system/phd.service owner=root group=root mode=0644
