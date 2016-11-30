@@ -1,0 +1,65 @@
+# This role creates Wikitcms release validation events. There should
+# always be exactly one host in infra with this role set up and
+# relvalconsumer_prod set to True, or else we'll stop getting events.
+#
+# Required vars
+# - wikitcms_user
+##       string - FAS username for creating wiki pages
+# - wikitcms_password
+##       string - password for wikitcms_user
+#
+# Required vars with defaults
+# - relvalconsumer_prod
+##       bool - whether this is the production instance. **SHOULD ONLY
+##              EVER BE TRUE ON ONE SYSTEM IN THE WORLD**
+##       default - False
+
+# note: we need updates-testing until fedfind 3.1.3 goes stable
+- name: Install required packages (testing)
+  dnf: name={{ item }} state=present enablerepo="updates-testing"
+  with_items:
+  - python2-fedfind
+  tags:
+  - packages
+
+- name: Install required packages
+  dnf: name={{ item }} state=present
+  with_items:
+  - python2-fedmsg-consumers
+  - python2-mwclient
+  - python-setuptools
+  - python2-wikitcms
+  tags:
+  - packages
+
+# next two duplicated with openqa/dispatcher, but I kinda don't want to
+# move them up somewhere shared, I like the roles to be somewhat usable
+# outside of Fedora infra...
+- name: Create /etc/fedora (credentials files location)
+  file: path=/etc/fedora state=directory owner=root group=fedmsg mode=0750
+
+- name: Write wikitcms credentials file
+  template: src=credentials.j2 dest=/etc/fedora/credentials owner=root group=fedmsg mode=0640
+  tags:
+  - config
+
+- name: Check out relvalconsumer
+  git:
+    repo: https://pagure.io/fedora-qa/relvalconsumer.git
+    dest: /root/relvalconsumer
+  register: gitrvc
+
+- name: Install relvalconsumer
+  command: "python setup.py install"
+  args:
+    chdir: /root/relvalconsumer
+  when: "gitrvc|changed"
+  notify:
+  - restart fedmsg-hub
+
+- name: Enable fedmsg consumer
+  template: src=relvalconsumer.py.j2 dest=/etc/fedmsg.d/relvalconsumer.py owner=root group=root mode=0644
+  notify:
+  - restart fedmsg-hub
+  tags:
+  - config
