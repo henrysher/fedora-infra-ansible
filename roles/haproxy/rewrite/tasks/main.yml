@@ -4,3 +4,12 @@
   tags:
   - haproxy
   - haproxy/rewrite
+  when: not inventory_hostname.startswith('proxy')
+
+- template: src=rewrite.conf dest=/etc/httpd/conf.d/{{website}}/haproxy.conf
+  notify:
+  - reload proxyhttpd
+  tags:
+  - haproxy
+  - haproxy/rewrite
+  when: inventory_hostname.startswith('proxy')
