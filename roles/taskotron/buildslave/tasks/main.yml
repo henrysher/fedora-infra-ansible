@@ -29,6 +29,10 @@
     - python2-rpmfluff
   when: (deployment_type == 'qa-stg') and (ansible_distribution_major_version|int > 21) and (ansible_cmdline.ostree is not defined)
 
+- name: set the selinux fcontext type for the buildmaster_home to var_lib_t
+  command: semanage fcontext -a -t var_lib_t "{{ slave_dir }}(/.*)?"
+  when: deployment_type in ['qa-stg']
+
 - name: add the buildslave user for taskotron
   user: name=buildslave
   when: deployment_type in ['local']
