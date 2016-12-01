@@ -256,10 +256,12 @@ def main():
     # https://github.com/fedora-infra/pkgdb2/issues/329#issuecomment-207050233
     # And then, this got renamed from rpms-checks to test-rpms
     # https://pagure.io/fedora-infrastructure/issue/5570
-    pkgdb_info['test-rpms'] = copy.copy(pkgdb_info['rpms'])
+    if 'rpms' in pkgdb_info:
+        pkgdb_info['test-rpms'] = copy.copy(pkgdb_info['rpms'])
     # Also, modules are a thing
     # https://pagure.io/fedora-infrastructure/issue/5571
-    pkgdb_info['test-modules'] = copy.copy(pkgdb_info['modules'])
+    if 'modules' in pkgdb_info:
+        pkgdb_info['test-modules'] = copy.copy(pkgdb_info['modules'])
 
     for ns in pkgdb_info:
         namespace = ns
