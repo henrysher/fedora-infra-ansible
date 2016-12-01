@@ -86,32 +86,6 @@
   - config
   - bodhi
 
-- name: install bodhi.pem file
-  copy: >
-    src="{{ private }}/files/bodhi_key_and_cert.pem"
-    dest="/etc/pki/bodhi/bodhi.pem"
-    owner=bodhi
-    group=bodhi
-    mode=0400
-  when: inventory_hostname.startswith('bodhi0')
-  tags:
-  - config
-  - bodhi
-
-- name: install bodhi certificates
-  copy: >
-    src="{{ private }}/files/fedora-ca.cert"
-    dest="/etc/pki/bodhi/{{ item }}"
-    owner=root
-    group=root
-    mode=0644
-  with_items:
-  - fedora-server-ca.cert
-  - fedora-upload-ca.cert
-  tags:
-  - config
-  - bodhi
-
 - name: setup /var/cache/bodhi directory
   file: dest=/var/cache/bodhi mode=0755 state=directory
   tags:
