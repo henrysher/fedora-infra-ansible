@@ -250,11 +250,16 @@ def main():
 
     pkgdb_info = pkgdb_pkg_branch()
 
-    # XXX - Insert an artificial namespace into the set of namespaces returned
-    # by pkgdb.  We want to create a mirror of rpms/PKG in rpms-checks/PKG
+    # XXX - Insert artificial namespaces into the set of namespaces returned
+    # by pkgdb.  We want to create a mirror of rpms/PKG in test-rpms/PKG
     # This hack occurs in two places.  Here, and in genacls.pkgdb.
     # https://github.com/fedora-infra/pkgdb2/issues/329#issuecomment-207050233
-    pkgdb_info['rpms-checks'] = copy.copy(pkgdb_info['rpms'])
+    # And then, this got renamed from rpms-checks to test-rpms
+    # https://pagure.io/fedora-infrastructure/issue/5570
+    pkgdb_info['test-rpms'] = copy.copy(pkgdb_info['rpms'])
+    # Also, modules are a thing
+    # https://pagure.io/fedora-infrastructure/issue/5571
+    pkgdb_info['test-modules'] = copy.copy(pkgdb_info['modules'])
 
     for ns in pkgdb_info:
         namespace = ns
