@@ -49,13 +49,21 @@
   when: inventory_hostname.startswith('log')
 
 # apache - localhost only - pretty much any apache server
-- name: install collectd-apache
+- name: install collectd-apache (yum)
   yum: state=present name=collectd-apache
   tags:
   - collectd
   notify:
   - restart collectd
-  when: collectd_apache
+  when: collectd_apache and ansible_distribution_major_version|int < 22
+
+- name: install collectd-apache (dnf)
+  dnf: state=present name=collectd-apache
+  tags:
+  - collectd
+  notify:
+  - restart collectd
+  when: collectd_apache and ansible_distribution_major_version|int > 21
 
 - name: /etc/collectd/apache.conf
   copy: src=apache.conf dest=/etc/collectd.d/apache.conf
