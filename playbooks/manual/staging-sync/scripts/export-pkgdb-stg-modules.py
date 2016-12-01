@@ -16,6 +16,6 @@ response = requests.get(
 )
 data = response.json()
 with open(filename, 'wb') as f:
-    f.write(json.dumps(data).encode('utf-8'))
+    f.write(json.dumps(data, indent=2).encode('utf-8'))
 
 print "Wrote %s" % filename
