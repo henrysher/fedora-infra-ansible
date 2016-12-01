@@ -151,3 +151,21 @@
   - config
   - bodhi
   - selinux
+
+- name: check the selinux context of bodhi's homedir
+  command: matchpathcon /usr/share/bodhi/.fedora
+  register: homedir
+  check_mode: no
+  changed_when: "1 != 1"
+  tags:
+  - config
+  - bodhi
+  - selinux
+
+- name: /usr/share/bodhi/.fedora file contexts
+  command: semanage fcontext -a -t httpd_sys_content_rw_t "/usr/share/bodhi/.fedora"
+  when: homedir.stdout.find('httpd_sys_content_t') == -1
+  tags:
+  - config
+  - bodhi
+  - selinux
