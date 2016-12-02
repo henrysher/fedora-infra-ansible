@@ -6,7 +6,6 @@
   "mysql.host" : "{{ mariadb_host }}",
   "mysql.user" : "{{ mariadb_user }}",
   "mysql.pass" : "{{ mariadb_password }}",
-  "load-libraries"       : [],
   "log.access.path" : "/var/log/phabricator/access.log",
   "log.ssh.path" : "/var/log/phabricator/ssh.log",
   "phd.pid-directory" : "/var/run/phabricator/",
@@ -33,11 +32,13 @@
         "PhabricatorApplicationHarbormaster" : true,
         "PhabricatorApplicationOAuthServer" : true,
         "PhabricatorApplicationPhortune" : true
-        }
-{% if deployment_type == "qa-stg-ignore-for-now" %}
-  ,"load-libraries": {
+        },
+{% if deployment_type == "qa-stg" %}
+  "load-libraries": {
     "ipsilonoauth": "/srv/phabricator-extension-ipsilonoauth/src"
   }
+{% else %}
+  "load-libraries"       : []
 {% endif %}
 }
 
