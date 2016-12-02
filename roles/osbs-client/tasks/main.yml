@@ -7,3 +7,23 @@
 - name: apply osbs-client templated config
   template: src=osbs.conf.j2 dest={{ osbs_client_conf_path }} mode=0640
 
+- name: Create custom OSBS input directory
+  file:
+    path: "/etc/osbs/input/"
+    state: directory
+
+- name: Upload OSBS Site Customizations plugin conf
+  copy:
+    src: "osbs-site-customizations.json"
+    dest: "/etc/osbs/input/prod_customizations.json"
+    mode: 0400
+
+- name: Symlink in OSBS input configs provided by package
+  file:
+    src: "/usr/share/osbs/{{item}}.json"
+    dest: "/etc/osbs/input/{{item}}.json"
+    state: link
+  with_items:
+    - "prod"
+    - "prod_inner"
+

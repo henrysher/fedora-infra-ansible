@@ -460,7 +460,7 @@
       role: osbs-client,
         general: {
           verbose: 0,
-          build_json_dir: '/usr/share/osbs/',
+          build_json_dir: '/etc/osbs/input/',
           openshift_required_version: 1.1.0,
         },
         default: {
@@ -492,7 +492,7 @@
       role: osbs-client,
         general: {
           verbose: 0,
-          build_json_dir: '/usr/share/osbs/',
+          build_json_dir: '/etc/osbs/input/',
           openshift_required_version: 1.1.0,
         },
         default: {
@@ -561,31 +561,6 @@
         mode: 0400
       notify:
         - buildroot container
-
-    - name: stat /usr/share/atomic-reactor/atomic-reactor.tar.gz
-      stat:
-        path: /usr/share/atomic-reactor/atomic-reactor.tar.gz
-      register: usr_ar_stat
-
-    - name: stat /etc/osbs/buildroot/atomic-reactor.tar.gz
-      stat:
-        path: /etc/osbs/buildroot/atomic-reactor.tar.gz
-      register: etc_ar_stat
-
-    - name: remove old hardlink to /etc/osbs/buildroot/atomic-reactor.tar.gz
-      file:
-        path: /etc/osbs/buildroot/atomic-reactor.tar.gz
-        state: absent
-      when: etc_ar_stat.stat.exists and usr_ar_stat.stat.checksum != etc_ar_stat.stat.checksum
-
-    - name: Hardlink atomic-reactor source for buildroot container (because Docker)
-      file:
-        src: /usr/share/atomic-reactor/atomic-reactor.tar.gz
-        dest: /etc/osbs/buildroot/atomic-reactor.tar.gz
-        state: hard
-      notify:
-        - buildroot container
-      when: etc_ar_stat.stat.exists == false
 
     - name: stat /etc/ keytab
       stat:
