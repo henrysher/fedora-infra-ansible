@@ -262,6 +262,8 @@ def main():
     # https://pagure.io/fedora-infrastructure/issue/5571
     if 'modules' in pkgdb_info:
         pkgdb_info['test-modules'] = copy.copy(pkgdb_info['modules'])
+    if 'docker' in pkgdb_info:
+        pkgdb_info['test-docker'] = copy.copy(pkgdb_info['docker'])
 
     for ns in pkgdb_info:
         namespace = ns
