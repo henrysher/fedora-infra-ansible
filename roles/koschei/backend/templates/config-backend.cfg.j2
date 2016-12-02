@@ -23,8 +23,6 @@ config = {
         "server": "http://{{ koschei_koji_hub }}/kojihub",
         "topurl": "http://{{ koschei_kojipkgs }}",
         "weburl": "http://{{ koschei_koji_web }}/koji",
-        {% if env == 'staging' %}
-        {# staging will use kerberos #}
         "login_method": "krb_login",
         "login_args": DictMergeWorkaround({
             "keytab": "/etc/krb5.koschei_{{ inventory_hostname }}.keytab",
@@ -33,15 +31,6 @@ config = {
         "session_opts": {
             "krb_rdns": False,
         },
-        {% else %}
-        {# prod still uses ssl #}
-        "login_method": "ssl_login",
-        "login_args": {
-            "cert": "/etc/koschei/koschei.pem",
-            "ca": "/etc/koschei/fedora-ca.cert",
-            "serverca": "/etc/koschei/fedora-ca.cert",
-        },
-        {% endif %}
         {% if env == 'staging' %}
         "max_builds": 4,
         "build_arches": ['i386', 'x86_64', 'armhfp'],
