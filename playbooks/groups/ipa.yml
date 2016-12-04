@@ -55,6 +55,16 @@
     host: "id.fedoraproject.org"
     when: env == "production"
 
+  tasks:
+  - name: Make symlink for keytab
+    file: state=link path=/etc/httpd/conf/ipa.keytab
+          src="/etc/krb5.HTTP_id{{env_suffix}}.fedoraproject.org.keytab"
+    notify:
+    - reload httpd
+    tags:
+    - ipa/server
+    - krb5
+
   handlers:
   - include: "{{ handlers }}/restart_services.yml"
 
