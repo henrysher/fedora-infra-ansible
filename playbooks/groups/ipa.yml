@@ -42,6 +42,18 @@
 
   roles:
   - ipa/server
+  - role: keytab/service
+    owner_user: apache
+    owner_group: apache
+    service: HTTP
+    host: "id.stg.fedoraproject.org"
+    when: env == "staging"
+  - role: keytab/service
+    owner_user: apache
+    owner_group: apache
+    service: HTTP
+    host: "id.fedoraproject.org"
+    when: env == "production"
 
   handlers:
   - include: "{{ handlers }}/restart_services.yml"
