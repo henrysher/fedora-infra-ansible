@@ -41,9 +41,11 @@
 
   - name: Create new tables in the database
     command: /usr/bin/python2 /usr/share/pagure/pagure_createdb.py
+    environment:
+        PAGURE_CONFIG: /etc/pagure/pagure.cfg
 
   - name: Upgrade the database
-    command: /usr/bin/alembic -c /usr/share/bodhi/alembic.ini upgrade head
+    command: /usr/bin/alembic -c /etc/pagure/alembic.ini /upgrade head
     args:
       chdir: /etc/pagure/
     environment:
