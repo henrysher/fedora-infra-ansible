@@ -1,0 +1,64 @@
+# Utility playbook to upgrade pagure in stg and prod.
+# You can use it to update stg by simply calling ``-l pagure-stg`` to your
+# ansible command.
+
+- name: upgrade pagure
+  hosts: pagure01:pagure01-stg
+  user: root
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+  vars:
+    testing: False
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"
+
+  pre_tasks:
+  - name: tell nagios to shush w.r.t. the frontend
+    nagios:
+        action=downtime
+        minutes=15
+        service=host
+        host={{ inventory_hostname_short }}{{ env_suffix }}
+    delegate_to: noc01.phx2.fedoraproject.org
+    ignore_errors: true
+  - service: name="httpd" state=stopped
+
+  tasks:
+  - name: yum update pagure packages from main repo
+    yum: name="pagure*"
+         state=latest
+         update_cache=yes
+    when: not testing
+
+  - name: yum update pagure* packages from testing repo
+    yum: name="pagure*"
+         state=latest
+         enablerepo=infrastructure-testing
+         update_cache=yes
+    when: testing
+
+  - name: Create new tables in the database
+    command: /usr/bin/python2 /usr/share/pagure/pagure_createdb.py
+
+  - name: Upgrade the database
+    command: /usr/bin/alembic -c /usr/share/bodhi/alembic.ini upgrade head
+    args:
+      chdir: /etc/pagure/
+    environment:
+        PAGURE_CONFIG: /etc/pagure/pagure.cfg
+
+  post_tasks:
+  - service: name="httpd" state=restarted
+  - service: name="pagure_ev" state=restarted
+  - service: name="pagure_ci" state=restarted
+  - service: name="pagure_webhook" state=restarted
+  - service: name="pagure_milter" state=restarted
+  - name: tell nagios to unshush w.r.t. the frontend
+    nagios:
+        action=unsilence
+        service=host
+        host={{ inventory_hostname_short }}{{ env_suffix }}
+    delegate_to: noc01.phx2.fedoraproject.org
+    ignore_errors: true
