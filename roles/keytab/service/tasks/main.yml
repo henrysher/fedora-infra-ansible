@@ -2,6 +2,7 @@
 - name: Determine whether we need to get keytab
   stat: path={{kt_location}}
   register: keytab_status
+  check_mode: no
   tags:
   - keytab
   - config
@@ -20,6 +21,7 @@
   delegate_to: "{{ ipa_server }}"
   command: ipa host-add {{host}}
   register: host_add_result
+  check_mode: no
   changed_when: "'Added host' in host_add_result.stdout"
   failed_when: "not ('Added host' in host_add_result.stdout or 'already exists' in host_add_result.stderr)"
   tags:
@@ -32,6 +34,7 @@
   delegate_to: "{{ ipa_server }}"
   command: ipa service-add {{service}}/{{host}}
   register: service_add_result
+  check_mode: no
   changed_when: "'Added service' in service_add_result.stdout"
   failed_when: "not ('Added service' in service_add_result.stdout or 'already exists' in service_add_result.stderr)"
   tags:
@@ -44,6 +47,7 @@
   delegate_to: "{{ ipa_server }}"
   command: ipa service-allow-retrieve-keytab {{service}}/{{host}} --hosts={{inventory_hostname}}
   register: service_perm_add_result
+  check_mode: no
   changed_when: "'members added 1' in service_perm_add_result.stdout"
   failed_when: "not ('members added' in service_perm_add_result.stdout)"
   tags:
@@ -56,6 +60,7 @@
   delegate_to: "{{ ipa_server }}"
   command: ipa service-allow-retrieve-keytab {{service}}/{{host}} --users=admin
   register: service_perm_add_result
+  check_mode: no
   changed_when: "'members added 1' in service_perm_add_result.stdout"
   failed_when: "not ('members added' in service_perm_add_result.stdout)"
   tags:
@@ -68,6 +73,8 @@
   delegate_to: "{{ ipa_server }}"
   command: ipa-getkeytab --retrieve --server {{ipa_server}} --keytab /tmp/{{service}}_{{host}}.kt --principal {{service}}/{{host}}
   register: retrieve_result
+  check_mode: no
+  changed_when: "1 != 1"
   failed_when: "not ('Keytab successfully retrieved' in retrieve_result.stderr or 'krbPrincipalKey not found' in retrieve_result.stderr)"
   tags:
   - keytab
@@ -97,6 +104,7 @@
   delegate_to: "{{ ipa_server }}"
   command: base64 /tmp/{{service}}_{{host}}.kt
   register: keytab
+  check_mode: no
   tags:
   - keytab
   - config
