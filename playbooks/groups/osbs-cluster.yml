@@ -113,6 +113,18 @@
         src: "{{files}}/osbs/docker-storage-setup"
         dest:  "/etc/sysconfig/docker-storage-setup"
 
+- name: Deploy kerberose keytab to cluster hosts
+  hosts: osbs-masters-stg:osbs-nodes-stg:osbs-masters:osbs-nodes
+  tags:
+    - osbs-cluster-prereq
+  user: root
+  gather_facts: True
+
+  vars_files:
+    - /srv/web/infra/ansible/vars/global.yml
+    - "/srv/private/ansible/vars.yml"
+    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
   roles:
   - role: keytab/service
     owner_user: root
