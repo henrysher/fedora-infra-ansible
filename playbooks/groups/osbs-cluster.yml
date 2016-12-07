@@ -545,17 +545,17 @@
         path: "/etc/osbs/buildroot/infrastructure.repo"
       register: etcosbs_infra_repo_stat
 
-    - name: remove old hardlink to /etc/osbs/buildroot/ infra repofile
+    - name: remove old /etc/osbs/buildroot/ infra repofile
       file:
         path: "/etc/osbs/buildroot/infrastructure.repo"
         state: absent
       when: etcosbs_infra_repo_stat.stat.exists and infra_repo_stat.stat.checksum != etcosbs_infra_repo_stat.stat.checksum
 
-    - name: Hardlink repofile for buildroot container (because Docker)
-      file:
+    - name: Copy repofile for buildroot container (because Docker)
+      copy:
         src: "/etc/yum.repos.d/infrastructure.repo"
         dest: "/etc/osbs/buildroot/infrastructure.repo"
-        state: hard
+        remote_src: true
       notify:
         - buildroot container
       when: etcosbs_infra_repo_stat.stat.exists == false
