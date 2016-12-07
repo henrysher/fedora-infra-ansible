@@ -72,11 +72,6 @@
         state: restarted
 
   tasks:
-    - name: Deploy controller public ssh keys to osbs cluster hosts
-      authorized_key:
-        user: root
-        key: "{{ lookup('file', '{{private}}/files/osbs/{{env}}/control_key.pub') }}"
-
     - name: Install necessary packages that openshift-ansible needs
       package: name="{{ item }}" state=installed
       with_items:
@@ -85,6 +80,11 @@
         - dbus-python
         - NetworkManager
         - libselinux-python
+
+    - name: Deploy controller public ssh keys to osbs cluster hosts
+      authorized_key:
+        user: root
+        key: "{{ lookup('file', '{{private}}/files/osbs/{{env}}/control_key.pub') }}"
 
     # This is required for OpenShift built-in SkyDNS inside the overlay network
     # of the cluster
