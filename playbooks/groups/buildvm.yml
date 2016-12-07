@@ -82,19 +82,21 @@
         when: env == 'production' and ansible_architecture == 'x86_64',
         general: {
           verbose: 0,
-          build_json_dir: '/usr/share/osbs/',
+          build_json_dir: '/etc/osbs/input/',
           openshift_required_version: 1.1.0,
         },
         default: {
           username: "{{ osbs_koji_prod_username }}",
           password: "{{ osbs_koji_prod_password }}",
-          koji_certs_secret: "koji",
+          koji_use_kerberos: True,
+          koji_kerberos_keytab: "FILE:/etc/krb5.osbs_{{osbs_url}}.keytab",
+          koji_kerberos_principal: "osbs/{{osbs_url}}@{{ipa_realm}}",
           openshift_url: 'https://{{ osbs_url }}/',
           registry_uri: 'https://{{ docker_registry }}/v2',
           source_registry_uri: 'https://{{ source_registry }}/v2',
           build_host: '{{ osbs_url }}',
           koji_root: 'http://{{ koji_root }}',
-          koji_hub: 'https://koji.fedoraproject.org/kojihub',
+          koji_hub: 'https://koji.stg.fedoraproject.org/kojihub',
           sources_command: 'fedpkg sources',
           build_type: 'prod',
           authoritative_registry: 'registry.example.com',
@@ -104,7 +106,7 @@
           builder_use_auth: true,
           distribution_scope: 'private',
           registry_api_versions: 'v2',
-          builder_openshift_url: 'https://172.17.0.1:8443/'
+          builder_openshift_url: 'https://{{osbs_url}}'
         }
     }
 
