@@ -32,6 +32,8 @@
 
 - name: OSBS control hosts pre-req setup
   hosts: osbs-control:osbs-control-stg
+  tags:
+    - osbs-cluster-prereq
   user: root
   gather_facts: True
 
@@ -52,6 +54,44 @@
       lineinfile:
         dest: "/etc/ansible/ansible.cfg"
         line: "pipelining = True"
+
+- name: Setup cluster masters pre-reqs
+  hosts: osbs-masters-stg:osbs-masters
+  tags:
+    - osbs-cluster-prereq
+  user: root
+  gather_facts: True
+
+  vars_files:
+    - /srv/web/infra/ansible/vars/global.yml
+    - "/srv/private/ansible/vars.yml"
+    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+    - name: ensure origin conf dir exists
+      file:
+        path: "/etc/origin"
+        state: "directory"
+
+    - name: create cert dir for openshift public facing REST API SSL
+      file:
+        path: "/etc/origin/master/named_certificates"
+        state: "directory"
+
+    - name: install cert for openshift public facing REST API SSL
+      copy:
+        src: "{{private}}/files/osbs/{{env}}/osbs-internal.pem"
+        dest: "/etc/origin/master/named_certificates/{{osbs_url}}.pem"
+
+    - name: install key for openshift public facing REST API SSL
+      copy:
+        src: "{{private}}/files/osbs/{{env}}/osbs-internal.key"
+        dest: "/etc/origin/master/named_certificates/{{osbs_url}}.key"
+
+    - name: place htpasswd file
+      copy:
+        src: "{{private}}/files/httpd/osbs-{{env}}.htpasswd"
+        dest: /etc/origin/htpasswd
+
 
 - name: Setup cluster hosts pre-reqs
   hosts: osbs-masters-stg:osbs-nodes-stg:osbs-masters:osbs-nodes
@@ -233,11 +273,6 @@
 
   tasks:
 
-    - name: create cert dir for openshift public facing REST API SSL
-      file:
-        path: "/etc/origin/master/named_certificates"
-        state: "directory"
-
     - name: install fedora dnsmasq specific config
       copy:
         src: "{{files}}/osbs/fedora-dnsmasq.conf.{{env}}"
@@ -256,26 +291,6 @@
     - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
 
   tasks:
-    - name: install cert for openshift public facing REST API SSL
-      copy:
-        src: "{{private}}/files/osbs/{{env}}/osbs-internal.pem"
-        dest: "/etc/origin/master/named_certificates/{{osbs_url}}.pem"
-
-    - name: install key for openshift public facing REST API SSL
-      copy:
-        src: "{{private}}/files/osbs/{{env}}/osbs-internal.key"
-        dest: "/etc/origin/master/named_certificates/{{osbs_url}}.key"
-
-    - name: ensure origin conf dir exists
-      file:
-        path: "/etc/origin"
-        state: "directory"
-
-    - name: place htpasswd file
-      copy:
-        src: "{{private}}/files/httpd/osbs-{{env}}.htpasswd"
-        dest: /etc/origin/htpasswd
-
     - name: set policy for koji builder in openshift for osbs
       shell: "oadm policy add-role-to-user -n default edit htpasswd_provider: {{ osbs_koji_stg_username }} && touch /etc/origin/koji-builder-policy-added"
       args:
