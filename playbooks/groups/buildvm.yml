@@ -17,8 +17,6 @@
 
   pre_tasks:
   - include: "{{ tasks }}/yumrepos.yml"
-  - include: "{{ tasks }}/osbs_certs.yml"
-  - include: "{{ tasks }}/osbs_repos.yml"
 
   roles:
   - base
@@ -45,6 +43,35 @@
     host: "osbs.stg.fedoraproject.org"
     when: env == "staging"
 
+  tasks:
+  - include: "{{ tasks }}/2fa_client.yml"
+    when: not inventory_hostname.startswith('bkernel')
+  - include: "{{ tasks }}/motd.yml"
+    when: not inventory_hostname.startswith('bkernel')
+
+  - name: make sure kojid is running
+    service: name=kojid state=running enabled=yes
+
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"
+
+- name: configure osbs on koji builders
+  hosts: buildvm:buildvm-stg:buildvm-aarch64:buildvm-ppc64:buildvm-ppc64le:buildppcle:buildppc:buildvm-s390
+  tags:
+    - osbs
+  user: root
+  gather_facts: True
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  pre_tasks:
+  - include: "{{ tasks }}/osbs_certs.yml"
+  - include: "{{ tasks }}/osbs_repos.yml"
+
+  roles:
   - {
       role: osbs-client,
         when: env == 'staging' and ansible_architecture == 'x86_64',
@@ -109,15 +136,3 @@
           builder_openshift_url: 'https://{{osbs_url}}'
         }
     }
-
-  tasks:
-  - include: "{{ tasks }}/2fa_client.yml"
-    when: not inventory_hostname.startswith('bkernel')
-  - include: "{{ tasks }}/motd.yml"
-    when: not inventory_hostname.startswith('bkernel')
-
-  - name: make sure kojid is running
-    service: name=kojid state=running enabled=yes
-
-  handlers:
-  - include: "{{ handlers }}/restart_services.yml"
