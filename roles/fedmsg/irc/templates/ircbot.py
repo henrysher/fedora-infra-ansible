@@ -366,7 +366,7 @@ config = dict(
             ),
         ),
 
-        # And #fedora-modularity
+        # And #fedora-modularity-bots
         dict(
             network='chat.freenode.net',
             port=6667,
@@ -378,7 +378,7 @@ config = dict(
             {% else %}
             nickname='fm-mod',
             {% endif %}
-            channel='#fedora-modularity',
+            channel='#fedora-modularity-bots',
             # If the word modularity appears in any message, forward it.
             filters=dict(
                 topic=[
