@@ -10,6 +10,14 @@
   - "/srv/private/ansible/vars.yml"
   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
 
+  pre_tasks:
+  - name: Copy keytab
+    copy: src={{private}}/files/keytabs/{{env}}/pkgs
+          dest=/etc/httpd.keytab
+          user=httpd group=httpd mode=0600
+    tags:
+    - krb5
+
   roles:
   - base
   - rkhunter
@@ -18,18 +26,6 @@
   - collectd/base
   - sudo
   - apache
-  - role: keytab/service
-    owner_user: apache
-    owner_group: apache
-    service: HTTP
-    host: "{{inventory_hostname}}"
-    when: env == "staging"
-  - role: keytab/service
-    owner_user: apache
-    owner_group: apache
-    service: HTTP
-    host: "pkgs.fedoraproject.org"
-    when: env == "production"
   - gitolite/base
   - cgit/base
   - cgit/clean_lock_cron
