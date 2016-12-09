@@ -208,7 +208,7 @@ unset output
 
 
 set output "/var/www/html/csv-reports/images/fedora-stacked-ma.png"
-set title "Fedora Epel Yum Unique IPs"
+set title "Fedora Yum Unique IPs"
 plot ["2007-05-17":"2017-12-31"] \
      '/var/www/html/csv-reports/mirrors/mirrorsdata-all-7day-ma.csv' using 1:($6+$7+$8+$9+$10+$11+$12+$13+$14+$15+$16+$17+$18+$19+$20+$21+$22+$23+$24+$25+$26+$27+$28+$29+$30+$31+$32+$33+$34) title 'unknown-release' w filledcurves x1, \
      '/var/www/html/csv-reports/mirrors/mirrorsdata-all-7day-ma.csv' using 1:($6+$7+$8+$9+$10+$11+$12+$13+$14+$15+$16+$17+$18+$19+$20+$21+$22+$23+$24+$25+$26+$27+$28+$29+$30+$31+$32+$33) title 'rawhide' w filledcurves x1, \
@@ -242,7 +242,7 @@ plot ["2007-05-17":"2017-12-31"] \
 unset output
 
 set output "/var/www/html/csv-reports/images/fedora-rev-all-stacked-ma.png"
-set title "Fedora Epel Yum Unique IPs"
+set title "Fedora Yum Reverse Unique IPs"
 plot ["2007-05-17":"2017-12-31"] \
      '/var/www/html/csv-reports/mirrors/mirrorsdata-all-7day-ma.csv' using 1:($34+$33+$32+$31+$30+$29+$28+$27+$26+$25+$24+$23+$22+$21+$20+$19+$18+$17+$16+$15+$14+$13+$12+$11+$10+$9+$8+$7+$6) title 'fed03' w filledcurves x1, \
      '/var/www/html/csv-reports/mirrors/mirrorsdata-all-7day-ma.csv' using 1:($34+$33+$32+$31+$30+$29+$28+$27+$26+$25+$24+$23+$22+$21+$20+$19+$18+$17+$16+$15+$14+$13+$12+$11+$10+$9+$8+$7) title 'fed04' w filledcurves x1, \
@@ -276,7 +276,7 @@ plot ["2007-05-17":"2017-12-31"] \
 unset output
 
 set output "/var/www/html/csv-reports/images/fedora-rev-latest-stacked-ma.png"
-set title "Fedora Epel Yum Unique IPs"
+set title "Fedora Yum Unique IPs"
 plot ["2007-05-17":"2017-12-31"] \
      '/var/www/html/csv-reports/mirrors/mirrorsdata-all-7day-ma.csv' using 1:($34+$33+$32+$31+$30+$29+$28+$27+$26+$25+$24+$23+$22+$21) title 'fed18' w filledcurves x1, \
      '/var/www/html/csv-reports/mirrors/mirrorsdata-all-7day-ma.csv' using 1:($34+$33+$32+$31+$30+$29+$28+$27+$26+$25+$24+$23+$22) title 'fed19' w filledcurves x1, \
@@ -296,7 +296,7 @@ unset output
 
 
 set output "/var/www/html/csv-reports/images/fedora-select-stacked-ma.png"
-set title "Fedora Epel Yum Unique IPs"
+set title "Fedora Yum Unique IPs"
 plot ["2007-05-17":"2017-12-31"] \
      '/var/www/html/csv-reports/mirrors/mirrorsdata-all-7day-ma.csv' using 1:($6+$7+$8+$9+$10+$11+$12+$13+$14+$15+$16+$17+$18+$19+$20+$21+$22+$23+$24+$25+$26+$27+$28+$29+$30+$31+$32+$33)  title 'fedora-future' w filledcurves x1, \
      '/var/www/html/csv-reports/mirrors/mirrorsdata-all-7day-ma.csv' using 1:($6+$7+$8+$9+$10+$11+$12+$13+$14+$15+$16+$17+$18+$19+$20+$21+$22+$23+$24+$25+$26+$27)  title 'fed21-24' w filledcurves x1, \
