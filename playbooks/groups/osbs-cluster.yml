@@ -625,24 +625,24 @@
 
     - name: stat infra repofile
       stat:
-        path: "/etc/yum.repos.d/infrastructure.repo"
+        path: "/etc/yum.repos.d/infra-tags.repo"
       register: infra_repo_stat
 
     - name: stat /etc/osbs/buildroot/ infra repofile
       stat:
-        path: "/etc/osbs/buildroot/infrastructure.repo"
+        path: "/etc/osbs/buildroot/infra-tags.repo"
       register: etcosbs_infra_repo_stat
 
     - name: remove old /etc/osbs/buildroot/ infra repofile
       file:
-        path: "/etc/osbs/buildroot/infrastructure.repo"
+        path: "/etc/osbs/buildroot/infra-tags.repo"
         state: absent
       when: etcosbs_infra_repo_stat.stat.exists and infra_repo_stat.stat.checksum != etcosbs_infra_repo_stat.stat.checksum
 
     - name: Copy repofile for buildroot container (because Docker)
       copy:
-        src: "/etc/yum.repos.d/infrastructure.repo"
-        dest: "/etc/osbs/buildroot/infrastructure.repo"
+        src: "/etc/yum.repos.d/infra-tags.repo"
+        dest: "/etc/osbs/buildroot/infra-tags.repo"
         remote_src: true
       notify:
         - buildroot container
