@@ -62,6 +62,12 @@ config = {
                     "key": "fedora-26",
                     "keyid": "64dab85d"
                 },
+                {
+                    "from": "f26-pending",
+                    "to": "f26",
+                    "key": "fedora-26",
+                    "keyid": "64dab85d"
+                },
 
                 {
                     "from": "f25-updates-testing-pending",
