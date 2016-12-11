@@ -11,11 +11,13 @@
 - name: ensure the lv for the guest is made
   lvol: lv={{ inventory_hostname }} vg={{ volgroup }} size={{ lvm_size }} state=present
   delegate_to: "{{ vmhost }}"
+  serial: 1
   when: inventory_hostname not in result.list_vms
 
 - name: run the virt-install
   shell: "{{ virt_install_command }}"
   delegate_to: "{{ vmhost }}"
+  serial: 1
   when: inventory_hostname not in result.list_vms
 
 - name: wait for the install to finish
