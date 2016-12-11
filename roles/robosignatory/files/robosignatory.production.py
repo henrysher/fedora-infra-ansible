@@ -21,9 +21,9 @@ config = {
             'url': 'https://koji.fedoraproject.org/kojihub',
             'options': {
                 # Only ssl is supported at the moment
-                'authmethod': 'ssl',
-                'cert': '/etc/sigul/autopen.pem',
-                'serverca': '/etc/sigul/fedoraca.pem',
+                'authmethod': 'kerberos',
+                'principal': 'autosign/autosign01.phx2.fedoraproject.org',
+                'keytab': '/etc/krb5.autosign_autosign01.phx2.fedoraproject.org.keytab'
             },
             'tags': [
                 {
