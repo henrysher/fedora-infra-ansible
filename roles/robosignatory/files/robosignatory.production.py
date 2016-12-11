@@ -22,7 +22,7 @@ config = {
             'options': {
                 # Only ssl is supported at the moment
                 'authmethod': 'kerberos',
-                'principal': 'autosign/autosign01.phx2.fedoraproject.org',
+                'principal': 'autosign/autosign01.phx2.fedoraproject.org@FEDORAPROJECT.ORG',
                 'keytab': '/etc/krb5.autosign_autosign01.phx2.fedoraproject.org.keytab'
             },
             'tags': [
