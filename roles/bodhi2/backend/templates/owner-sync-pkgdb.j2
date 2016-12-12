@@ -31,11 +31,11 @@ import koji
 
 rawhide = '26'
 extraArchList = {'kernel': ('i586', 'i686', 'noarch'),
-                'kernel-xen-2.6': ('i586', 'i686', 'noarch'),
-                'glibc': ('i686',),
-                'openssl': ('i686',),
-                'em8300-kmod': ('i586', 'i686'),
-                'sysprof-kmod': ('i586', 'i686'),
+                 'kernel-xen-2.6': ('i586', 'i686', 'noarch'),
+                 'glibc': ('i686',),
+                 'openssl': ('i686',),
+                 'em8300-kmod': ('i586', 'i686'),
+                 'sysprof-kmod': ('i586', 'i686'),
                 }
 
 def usage():
@@ -47,15 +47,14 @@ def get_options():
     # shamelessly stolen from koji CLI
     opts = {
 {% if env == 'staging' %}
-        'server': 'http://koji.stg.fedoraproject.org/kojihub',
-        'weburl': 'http://koji.stg.fedoraproject.org/koji',
+        'server': 'https://koji.stg.fedoraproject.org/kojihub',
+        'weburl': 'https://koji.stg.fedoraproject.org/koji',
 {% else %}
-        'server': 'http://koji.fedoraproject.org/kojihub',
-        'weburl': 'http://koji.fedoraproject.org/koji',
+        'server': 'https://koji.fedoraproject.org/kojihub',
+        'weburl': 'https://koji.fedoraproject.org/koji',
 {% endif %}
-        'cert': '/etc/pki/pkgdb/pkgdb.pem',
-        'ca': '/etc/pki/pkgdb/fedora-server-ca.cert',
-        'serverca': '/etc/pki/pkgdb/fedora-server-ca.cert'
+        'principal': 'pkgdb/{{inventor_hostname}}@{{ipa_realm}}',
+        'keytab': '/etc/krb5.pkgdb_{{inventory_hostname}}.keytab',
     }
     for configFile in ('/etc/koji.conf', os.path.expanduser('~/.koji/config')):
         if os.access(configFile, os.F_OK):
@@ -154,7 +153,7 @@ if __name__ == '__main__':
         else:
             session = koji.ClientSession("http://%s.koji.fedoraproject.org/kojihub" % arch)
         try:
-            session.ssl_login(options['cert'], options['ca'], options['serverca'])
+            session.krb_login(options['principal'], options['keytab'])
         except:
             print "Unable to sync to %s hub" % arch
             continue
