@@ -30,6 +30,9 @@
     service: compose
     host: "composer.stg.phx2.fedoraproject.org"
     when: env == "staging"
+  - role: keytab/service
+    service: compose
+    host: "koji{{env_suffix}}.fedoraproject.org"
   - { role: nfs/client, when: "'releng-stg' not in group_names",  mnt_dir: '/mnt/fedora_koji',  nfs_src_dir: "{{ koji_hub_nfs }}" }
   - { role: nfs/client, when: "'releng-compose' in group_names", mnt_dir: '/pub',  nfs_src_dir: 'fedora_ftp/fedora.redhat.com/pub' }
   - { role: nfs/client, when: "'releng-secondary' in group_names", mnt_dir: '/pub/fedora-secondary',  nfs_src_dir: 'fedora_ftp/fedora.redhat.com/pub/fedora-secondary' }
