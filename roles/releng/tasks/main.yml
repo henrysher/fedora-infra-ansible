@@ -43,22 +43,9 @@
 
 - name: add masher koji cert/key
   copy: src="{{ private }}/files/mash/masher.pem" dest=/home/masher/.fedora.cert mode=600 owner=masher group=masher
-- name: add masher koji ca cert
-  copy: src="{{ private }}/files/koji/buildercerts/fedora-ca.cert" dest=/home/masher/.fedora-server-ca.cert
-- name: add masher koji ca upload cert
-  copy: src="{{ private }}/files/koji/buildercerts/fedora-ca.cert" dest=/home/masher/.fedora-upload-ca.cert
 
 - name: add releng koji cert/key
   copy: src="{{ private }}/files/releng_key_and_cert.pem" dest=/root/.fedora.cert mode=600 owner=root group=root
-- name: add masher koji ca cert
-  copy: src="{{ private }}/files/koji/buildercerts/fedora-ca.cert" dest=/root/.fedora-server-ca.cert
-- name: add masher koji ca upload cert
-  copy: src="{{ private }}/files/koji/buildercerts/fedora-ca.cert" dest=/root/.fedora-upload-ca.cert
-
-- name: add koji ca cert to central system ca-trust
-  copy: src="{{ private }}/files/koji/buildercerts/fedora-ca.cert" dest=/etc/pki/ca-trust/source/anchors/fedora-server-ca.cert
-- name: update ca-trust
-  command: /usr/bin/update-ca-trust
 
 # rawhide group
 - name: rawhide group
@@ -136,7 +123,7 @@
   template: src=mash.conf dest=/etc/mash/mash.conf
 
 - name: /etc/koji.conf
-  template: src="{{ files }}//../roles/koji_builder/templates/koji.conf" dest=/etc/koji.conf
+  template: src=koji.conf.j2 dest=/etc/koji.conf
 
 # mock configs
 - name: put extra special  mock configs in
