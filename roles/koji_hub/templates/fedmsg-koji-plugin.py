@@ -179,10 +179,6 @@ def queue_message(cbtype, *args, **kws):
 
     body = scrub(body)
 
-{% if env != 'staging' %}
-    # Send the messages immediately.
-    fedmsg.publish(topic=topic, msg=body, modname='buildsys')
-{% else %}
     # Queue the message for later.
     # It will only get sent after postCommit is called.
     messages = getattr(context, 'fedmsg_plugin_messages', [])
@@ -197,4 +193,3 @@ def send_messages(cbtype, *args, **kws):
     messages = getattr(context, 'fedmsg_plugin_messages', [])
     for message in messages:
         fedmsg.publish(**message)
-{% endif %}
