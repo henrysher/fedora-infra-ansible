@@ -43,11 +43,11 @@
 
 - name: ensure buildmaster user can use home directory (old)
   file: path="{{ buildmaster_home }}" state=directory owner=buildmaster group=buildmaster mode=0775 setype=user_home_t
-  when: deployment_type == 'prod' or deployment_type == 'stg' or deployment_type == 'local'
+  when: deployment_type == 'prod' or deployment_type == 'local'
 
 - name: ensure buildmaster user can use home directory (new)
   file: path="{{ buildmaster_home }}" state=directory owner=buildmaster group=buildmaster mode=0775
-  when: deployment_type in ['dev']
+  when: deployment_type in ['dev', 'stg']
 
 - name: allow httpd tcp connections with selinux
   seboolean: name=httpd_can_network_connect state=true persistent=yes
