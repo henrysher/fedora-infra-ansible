@@ -1,0 +1,61 @@
+{
+    "disable_plugins": [
+        {
+            "plugin_type": "postbuild_plugins",
+            "plugin_name": "pulp_push"
+        },
+        {
+            "plugin_type": "postbuild_plugins",
+            "plugin_name": "pulp_sync"
+        },
+        {
+            "plugin_type": "postbuild_plugins",
+            "plugin_name": "pulp_pull"
+        }
+    ],
+
+    "enable_plugins": [
+       {
+            "plugin_type": "postbuild_plugins",
+            "plugin_name": "tag_and_push",
+            "plugin_args": {
+                "registries": {
+                    "{{general.registry}}": {
+                        "insecure": false
+                    }
+                }
+            }
+        },
+        {
+            "plugin_type": "prebuild_plugins",
+            "plugin_name": "pull_base_image",
+            "plugin_args": {
+                "parent_registry_insecure": false,
+                "parent_registry": "{{general.parent_registry}}"
+            }
+        },
+        {
+            "plugin_type": "exit_plugins",
+            "plugin_name": "koji_promote",
+            "plugin_args": {
+                  "kojihub": "{{default.koji_hub}}",
+                  "verify_ssl": true,
+                  "target": "rawhide-docker-candidate",
+                  "url": "{{default.openshift_url}}",
+                  "blocksize": 10485760,
+                  "koji_principal": "osbs/{{general.osbs_url}}@{{general.ipa_realm}}",
+                  "koji_keytab": "FILE:/etc/krb5.osbs_{{general.osbs_url}}.keytab",
+                  "use_auth": true
+            }
+        },
+        {
+            "plugin_type": "exit_plugins",
+            "plugin_name": "store_metadata_in_osv3",
+            "plugin_args": {
+                "url": "{{default.openshift_url}}",
+                "verify_ssl": false,
+                "use_auth": true
+            }
+        }
+    ]
+}
