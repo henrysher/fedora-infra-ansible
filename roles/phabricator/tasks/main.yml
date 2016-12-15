@@ -96,6 +96,12 @@
     group: root
     mode: 0644
 
+- name: clone phabricator-extension-ipsilonoauth
+  git:
+      repo: 'https://pagure.io/phabricator-extension-ipsilonoauth.git'
+      dest: /srv/phabricator-extension-ipsilonoauth
+      version: c70333b0d2d4d348b429e82e39d634071accf939
+
 - name: create git repo root for phabricator
   file: path={{ phabricator_repodir }} state=directory owner={{ phabricator_daemon_user }} group={{ phabricator_daemon_user }} mode=1755
   when: enable_phabricator_git
@@ -154,12 +160,6 @@
 
 - name: start and enable phabricator phd service
   service: name=phd enabled=yes state=started
-
-- name: clone phabricator-extension-ipsilonoauth
-  git:
-      repo: 'https://pagure.io/phabricator-extension-ipsilonoauth.git'
-      dest: /srv/phabricator-extension-ipsilonoauth
-      version: c70333b0d2d4d348b429e82e39d634071accf939
 
 - name: copy phabricator httpd config
   template: src=phabricator.conf.j2 dest=/etc/httpd/conf.d/phabricator.conf owner=root group=root mode=0644
