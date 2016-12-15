@@ -18,12 +18,7 @@ from buildbot.buildslave import openstack
 
 c['slaves'] = [
                 {% for buildslave in buildslaves %}
-                {% if deployment_type == 'qa-stg' %}
                 BuildSlave("{{ buildslave }}", "{{ qa_stg_buildslave_password }}"),
-                {% endif %}
-                {% if deployment_type == 'qadevel-prod' %}
-                BuildSlave("{{ buildslave }}", "{{ qadevel_prod_buildslave_password }}"),
-                {% endif %}
                 {% endfor %}
               ]
 
@@ -58,7 +53,7 @@ interval = {{ buildslave_poll_interval }}
 
 c['change_source'] = []
 {#
-{% if deployment_type == 'qadevel-prod' %}
+{% if deployment_type == 'qa-prod' %}
 #}
 c['change_source'].append(GitPoller(
         'https://bitbucket.org/fedoraqa/taskotron-trigger.git',
@@ -164,21 +159,6 @@ from buildbot.steps.transfer import DirectoryUpload
 
 
 
-{% if deployment_type == 'qadevel-prod' %}
-
-def create_test_factory(repo_name, func=True):
-    factory = BuildFactory()
-    factory.addStep(Git(repourl=Interpolate('https://bitbucket.org/fedoraqa/%s.git' % repo_name),
-                    mode='full',method='clobber'))
-    factory.addStep(ShellCommand(command=['virtualenv', '--system-site-packages', 'env']))
-    factory.addStep(ShellCommand(command=['bash', '-c', 'source env/bin/activate; pip install -r requirements.txt']))
-    factory.addStep(ShellCommand(command=['bash', '-c', 'source env/bin/activate; TEST="true" py.test %s testing/' % '-F' if func else ''], name=repo_name))
-    return factory
-
-
-{% endif %}
-
-{% if deployment_type == 'qa-stg' %}
 def create_test_factory(repo_name, func=True):
     factory = BuildFactory()
 #    factory.addStep(Git(repourl=Interpolate('{{ repo_base }}/%s.git' % repo_name),
@@ -193,8 +173,6 @@ def create_test_factory(repo_name, func=True):
 
     return factory
 
-{% endif %}
-
 trigger_factory = create_test_factory('taskotron-trigger')
 libtaskotron_factory = create_test_factory('libtaskotron-docs')
 resultsdb_factory = create_test_factory('resultsdb')
@@ -205,7 +183,7 @@ from buildbot.config import BuilderConfig
 
 c['builders'] = []
 {#
-{% if deployment_type == 'qadevel-prod' %}
+{% if deployment_type == 'qa-prod' %}
 #}
 c['builders'].append(
     BuilderConfig(name="trigger-builder",
@@ -260,8 +238,8 @@ authz_cfg=authz.Authz(
     {% if deployment_type == 'qa-stg' %}
     auth=auth.BasicAuth([("{{ qa_stg_buildbot_master_user }}","{{ qa_stg_buildbot_master_password }}")]),
     {% endif %}
-    {% if deployment_type == 'qadevel-prod' %}
-    auth=auth.BasicAuth([("{{ qadevel_prod_buildbot_master_user }}","{{ qadevel_prod_buildbot_master_password }}")]),
+    {% if deployment_type == 'qa-prod' %}
+    auth=auth.BasicAuth([("{{ qa_prod_prod_buildbot_master_user }}","{{ qa_prod_prod_buildbot_master_password }}")]),
     {% endif %}
     gracefulShutdown = False,
     forceBuild = 'auth', # use this to test your slave once it is set up
