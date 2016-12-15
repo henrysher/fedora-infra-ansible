@@ -6,34 +6,33 @@ DBUser = koji
 {% if inventory_hostname.startswith('koji') %}
 DBHost = db-koji01
 DBPass = {{ kojiPassword }}
+AuthPrincipal = host/koji{{env_suffix}}.fedoraproject.org
 {% elif inventory_hostname == 's390-koji01.s390.fedoraproject.org' %}
 DBHost = db-s390-koji01
 DBPass = {{ s390kojiPassword }}
+AuthPrincipal = host/s390.koji.fedoraproject.org
 {% elif inventory_hostname == 'arm-koji01.qa.fedoraproject.org' %}
 DBHost = db-arm-koji01
 DBPass = {{ armkojiPassword }}
+AuthPrincipal = host/arm.koji.fedoraproject.org
 {% elif inventory_hostname == 'ppc-koji01.ppc.fedoraproject.org' %}
 DBHost = db-ppc-koji01
 DBPass = {{ ppckojiPassword }}
+AuthPrincipal = host/ppc.koji.fedoraproject.org
 {% endif %}
 KojiDir = /mnt/koji
 MemoryWarnThreshold = 10000
 MaxRequestLength = 83886080
 
 # Kerb auth
-
 {% if env == "staging" %}
-AuthPrincipal = host/koji.stg.fedoraproject.org
 HostPrincipalFormat = compile/%s@STG.FEDORAPROJECT.ORG
 {% else %}
-AuthPrincipal = host/koji.fedoraproject.org
 HostPrincipalFormat = compile/%s@FEDORAPROJECT.ORG
 {% endif %}
 AuthKeytab = /etc/koji-hub/koji-hub.keytab
 {% if env == "staging" %}
-{% if inventory_hostname.startswith('koji') %}
 ProxyPrincipals = modularity@STG.FEDORAPROJECT.ORG,HTTP/koji.stg.fedoraproject.org@STG.FEDORAPROJECT.ORG
-{% endif %}
 {% else %}
 ProxyPrincipals = HTTP/koji.fedoraproject.org@FEDORAPROJECT.ORG,sigul/sign-bridge01.phx2.fedoraproject.org@FEDORAPROJECT.ORG
 {% endif %}
