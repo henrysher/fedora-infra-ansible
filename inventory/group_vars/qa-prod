@@ -1,0 +1,100 @@
+---
+# Define resources for this group of hosts here. 
+lvm_size: 40000
+mem_size: 8196
+num_cpus: 2
+
+# for systems that do not match the above - specify the same parameter in
+# the host_vars/$hostname file
+
+fas_client_groups: sysadmin-qa,sysadmin-main,fi-apprentice,sysadmin-noc,sysadmin-veteran
+
+
+freezes: true
+sslonly: false
+
+sshd_config: ssh/sshd_config.qa-prod
+sshd_port: 222
+external_hostname: qa.stg.fedoraproject.org
+
+# not needed with new setup
+#sslcertfile: qa-stg.qa.fedoraproject.org.cert
+#sslkeyfile: qa-stg.qa.fedoraproject.org.key
+sslcertfile: ''
+sslkeyfile: ''
+sslintermediatecertfile: ''
+
+
+################################################################################
+# Buildbot Settings
+################################################################################
+#
+buildmaster_db_host: localhost
+buildmaster_template: ci.master.cfg.j2
+buildmaster_endpoint: buildmaster
+buildslave_ssh_pubkey: ''
+buildslave_port: 9989
+buildmaster_dir: /home/buildmaster/master
+buildslave_dir: /home/buildslave/slave
+buildslave_poll_interval: 1800
+buildmaster_home: /home/buildmaster
+buildmaster_user: buildmaster
+external_hostname: qa.fedoraproject.org
+
+# build details
+repo_base: 'https://git.qa-prod01.qa.fedoraproject.org/diffusion'
+docs_build_dir: /var/www/docs/
+
+# for now, we're just doing a local slave so we need the slave vars in here
+slave_home: /home/buildslave/
+slave_dir: /home/buildslave/slave
+slave_user: buildslave
+buildslave_name: 'qa-prod01-1'
+buildslave_password: '{{ qa_prod_buildslave_password }}'
+
+
+################################################################################
+# MariaDB Settings
+################################################################################
+
+mariadb_host: localhost
+mariadb_config: my.cnf.phabricator
+mariadb_user: '{{ qa_prod_mariadb_user }}'
+mariadb_password: '{{ qa_prod_mariadb_password }}'
+
+################################################################################
+# Phabricator Settings
+################################################################################
+phabricator_db_prefix: 'phabricator'
+enable_phabricator_git: False
+phabricator_vcs_user: git
+phabricator_vcs_user_password: '{{ qa_prod_vcs_user_password }}'
+phabricator_daemon_user: phabdaemon
+phabroot: /usr/share/
+phabricator_filedir: /var/lib/phabricator/files
+phabricator_repodir: /var/lib/phabricator/repos
+phabricator_config_filename: qaconfig
+phabricator_header_color: 'blue'
+phabricator_mail_enabled: True
+phabricator_mail_domain: fedoraproject.org
+phabricator_mysqldump_filename: 'qa-prod_phabricator.sql'
+ircnick: fedoraqabot
+
+
+################################################################################
+# Backup Settings
+################################################################################
+
+backup_dir: /srv/backup
+backup_username: root
+backup_ssh_pubkey: ssh-dss AAAAB3NzaC1kc3MAAACBAJr3xqn/hHIXeth+NuXPu9P91FG9jozF3Q1JaGmg6szo770rrmhiSsxso/Ibm2mObqQLCyfm/qSOQRynv6tL3tQVHA6EEx0PNacnBcOV7UowR5kd4AYv82K1vQhof3YTxOMmNIOrdy6deDqIf4sLz1TDHvEDwjrxtFf8ugyZWNbTAAAAFQCS5puRZF4gpNbaWxe6gLzm3rBeewAAAIBcEd6pRatE2Qc/dW0YwwudTEaOCUnHmtYs2PHKbOPds0+Woe1aWH38NiE+CmklcUpyRsGEf3O0l5vm3VrVlnfuHpgt/a/pbzxm0U6DGm2AebtqEmaCX3CIuYzKhG5wmXqJ/z+Hc5MDj2mn2TchHqsk1O8VZM+1Ml6zX3Hl4vvBsQAAAIALDt5NFv6GLuid8eik/nn8NORd9FJPDBJxgVqHNIm08RMC6aI++fqwkBhVPFKBra5utrMKQmnKs/sOWycLYTqqcSMPdWSkdWYjBCSJ/QNpyN4laCmPWLgb3I+2zORgR0EjeV2e/46geS0MWLmeEsFwztpSj4Tv4e18L8Dsp2uB2Q==  root@backup03-rdiff-backup
+host_backup_targets: ['/var/lib/phabricator/files', '/var/lib/phabricator/repos', '/srv/backup']
+
+
+################################################################################
+# Static Site Settings
+################################################################################
+
+static_sites:
+  - name: "{{ inventory_hostname }}"
+    document_root: /srv/content
