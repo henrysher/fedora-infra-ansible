@@ -1,81 +1,3 @@
-{% if  deployment_type == "qadevel-prod" %}
-<VirtualHost *:443>
-  # Change this to the domain which points to your host.
-  ServerName phab.{{external_hostname}}
-
-  # Use separate log files for the SSL virtual host; note that LogLevel
-  # is not inherited from httpd.conf.
-  ErrorLog logs/phab_error_log
-  TransferLog logs/phab_access_log
-  LogLevel warn
-
-  #   SSL Engine Switch:
-  #   Enable/Disable SSL for this virtual host.
-  SSLEngine on
-
-  #   SSL Protocol support:
-  # List the enable protocol levels with which clients will be able to
-  # connect.  Disable SSLv2 access by default:
-  SSLProtocol {{ ssl_protocols }}
-
-  #   SSL Cipher Suite:
-  # List the ciphers that the client is permitted to negotiate.
-  # See the mod_ssl documentation for a complete list.
-  SSLCipherSuite {{ ssl_ciphers }}
-
-  #   Server Certificate:
-  # Point SSLCertificateFile at a PEM encoded certificate.  If
-  # the certificate is encrypted, then you will be prompted for a
-  # pass phrase.  Note that a kill -HUP will prompt again.  A new
-  # certificate can be generated using the genkey(1) command.
-  SSLCertificateFile /etc/pki/tls/certs/{{ sslcertfile }}
-
-  #   Server Private Key:
-  #   If the key is not combined with the certificate, use this
-  #   directive to point at the key file.  Keep in mind that if
-  #   you've both a RSA and a DSA private key you can configure
-  #   both in parallel (to also allow the use of DSA ciphers, etc.)
-  SSLCertificateKeyFile /etc/pki/tls/private/{{ sslkeyfile }}
-
-  #   Server Certificate Chain:
-  #   Point SSLCertificateChainFile at a file containing the
-  #   concatenation of PEM encoded CA certificates which form the
-  #   certificate chain for the server certificate. Alternatively
-  #   the referenced file can be the same as SSLCertificateFile
-  #   when the CA certificates are directly appended to the server
-  #   certificate for convinience.
-  #SSLCertificateChainFile /etc/pki/tls/certs/server-chain.crt
-  {% if sslintermediatecertfile is defined and sslintermediatecertfile != '' %}
-  SSLCertificateChainFile /etc/pki/tls/certs/{{ sslintermediatecertfile }}
-  {% endif %}
-
-  #   Certificate Authority (CA):
-  #   Set the CA certificate verification path where to find CA
-  #   certificates for client authentication or alternatively one
-  #   huge file containing all of them (file must be PEM encoded)
-  #SSLCACertificateFile /etc/pki/tls/certs/ca-bundle.crt
-
-  # Change this to the path where you put 'phabricator' when you checked it
-  # out from GitHub when following the Installation Guide.
-  #
-  # Make sure you include "/webroot" at the end!
-  DocumentRoot {{phabroot}}/phabricator/webroot
-
-  RewriteEngine on
-  RewriteRule ^/rsrc/(.*)     -                       [L,QSA]
-  RewriteRule ^/favicon.ico   -                       [L,QSA]
-  RewriteRule ^(.*)$          /index.php?__path__=$1  [B,L,QSA]
-</VirtualHost>
-
-
-<VirtualHost *:80>
-  # Change this to the domain which points to your host.
-  ServerName phab.{{external_hostname}}
-
-  RewriteEngine on
-  RewriteRule ^/?(.*) https://%{SERVER_NAME}/$1 [R,L]
-</VirtualHost>
-{% else %}
 <VirtualHost *:80>
   # Change this to the domain which points to your host.
   ServerName phab.{{external_hostname}}
@@ -88,7 +10,6 @@
   RewriteRule ^/favicon.ico   -                       [L,QSA]
   RewriteRule ^(.*)$          /index.php?__path__=$1  [B,L,QSA]
 </VirtualHost>
-{% endif %}
 
 <Directory "{{ phabroot }}/phabricator/webroot">
   AllowOverride None
