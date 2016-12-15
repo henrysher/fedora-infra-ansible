@@ -69,7 +69,6 @@ def get_options():
     for entry in opts.keys():
         if entry == 'server' or entry == 'weburl':
             pass
-        opts[entry] = os.path.expanduser(opts[entry])
     return opts
 
 if __name__ == '__main__':
@@ -145,13 +144,9 @@ if __name__ == '__main__':
 
     for arch in arches:
         if arch == "primary":
-{% if env == 'staging' %}
-            session = koji.ClientSession("https://koji.stg.fedoraproject.org/kojihub")
-{% else %}
-            session = koji.ClientSession("https://koji.fedoraproject.org/kojihub")
-{% endif %}
+            session = koji.ClientSession("https://koji{{env_suffix}}.fedoraproject.org/kojihub", {'krb_rdns': False})
         else:
-            session = koji.ClientSession("https://%s.koji.fedoraproject.org/kojihub" % arch)
+            session = koji.ClientSession("https://%s.koji.fedoraproject.org/kojihub" % arch, {'krb_rdns': False})
         try:
             session.krb_login(options['principal'], options['keytab'])
         except:

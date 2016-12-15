@@ -123,34 +123,6 @@
 #
 # koji ssl cert for owner sync jobs below
 #
-- name: create pki dir
-  file: path=/etc/pki/pkgdb mode=700 state=directory
-
-- name: copy koji ssl cert for owner sync
-  copy: src="{{ private }}/files/pkgdb_key_and_cert.pem" dest=/etc/pki/pkgdb/pkgdb.pem mode=600
-  tags:
-  - config
-
-- name: install /etc/pki/fas/fedora-server-ca.cert file
-  copy: >
-    src="{{ private }}/files/fedora-ca.cert"
-    dest="/etc/pki/pkgdb/fedora-server-ca.cert"
-    mode=0644
-  tags:
-  - config
-
-- name: create pki dir
-  file: path=/root/.koji mode=700 state=directory
-
-- name: install koji config for root to run owner-sync
-  copy: >
-    src=koji-config
-    dest=/root/.koji/config
-    mode=0644
-  tags:
-  - config
-  - bodhi
-
 #
 # cron job that syncs packages to koji
 #
