@@ -151,39 +151,11 @@
 - name: start and enable phabricator phd service
   service: name=phd enabled=yes state=started
 
-- name: Install the SSL cert
-  copy:
-      src: "{{ private}}/files/httpd/{{ sslcertfile }}"
-      dest: /etc/pki/tls/certs/{{ sslcertfile }}
-      owner: root
-      group: root
-      mode: 0600
-  when: deployment_type == 'qadevel-prod'
-
-- name: Install the SSL key
-  copy:
-      src: "{{ private}}/files/httpd/{{ sslkeyfile }}"
-      dest: /etc/pki/tls/private/{{ sslkeyfile }}
-      owner: root
-      group: root
-      mode: 0600
-  when: deployment_type == 'qadevel-prod'
-
-- name: Install the SSL intermediate cert
-  copy:
-      src: "{{ private}}/files/httpd/{{ sslintermediatecertfile }}"
-      dest: /etc/pki/tls/certs/{{ sslintermediatecertfile }}
-      owner: root
-      group: root
-      mode: 0600
-  when: sslintermediatecertfile != '' and deployment_type == 'qadevel-prod'
-
 - name: clone phabricator-extension-ipsilonoauth
   git:
       repo: 'https://pagure.io/phabricator-extension-ipsilonoauth.git'
       dest: /srv/phabricator-extension-ipsilonoauth
-      version: bb099b7da76b9d9d87ef53d20ec0e0238da7a3bb
-  when: deployment_type == 'qa-stg'
+      version: c70333b0d2d4d348b429e82e39d634071accf939
 
 - name: copy phabricator httpd config
   template: src=phabricator.conf.j2 dest=/etc/httpd/conf.d/phabricator.conf owner=root group=root mode=0644
