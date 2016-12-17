@@ -2,6 +2,11 @@
 #earlier = higher precedence!
 
 [main]
+; For Kerberos authentication
+; the principal to connect with
+principal=koji-gc/koji{{env_suffix}}.fedoraproject.org@{{ipa_realm}}
+; The location of the keytab for the principal above
+keytab=/etc/krb5.koji-gc_koji{{env_suffix}}.fedoraproject.org.keytab
 krb_rdns = True
 
 key_aliases =
@@ -50,9 +55,9 @@ unprotected_keys =
     fedora-epel-6
     fedora-epel-7
 
-server = https://koji.fedoraproject.org/kojihub
+server = {{ koji_server_url }}
 serverca = /etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem
-weburl = http://koji.fedoraproject.org/koji
+weburl = {{ koji_web_url }}
 from_addr = Koji Build System <buildsys@fedoraproject.org>
 
 [prune]
