@@ -112,10 +112,18 @@ def get_message_body(topic, *args, **kws):
         msg['tag_id'] = kws['repo']['tag_id']
         msg['repo_id'] = kws['repo']['id']
     elif topic == 'rpm.sign':
-        msg['attribute'] = kws['attribute']
-        msg['old'] = kws['old']
-        msg['new'] = kws['new']
-        msg['info'] = kws['info']
+        if 'attribute' in kws:
+            # v1.10.1 and earlier
+            msg['attribute'] = kws['attribute']
+            msg['old'] = kws['old']
+            msg['new'] = kws['new']
+            msg['info'] = kws['info']
+        else:
+            # v1.11.0 (and maybe higher, but who knows)
+            msg['sigkey'] = kws['sigkey']
+            msg['sighash'] = kws['sighash']
+            msg['build'] = kws['build']
+            msg['rpm'] = kws['rpm']
 
     return msg
 
