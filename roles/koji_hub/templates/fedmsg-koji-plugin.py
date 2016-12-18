@@ -169,7 +169,8 @@ def queue_message(cbtype, *args, **kws):
     # Don't publish these uninformative rpm.sign messages if there's no actual
     # sigkey present.  Koji apparently adds a dummy sig value when rpms are
     # first imported and there's no need to spam the world about that.
-    if topic == 'rpm.sign' and body.get('info', {}).get('sigkey') == '':
+    if topic == 'rpm.sign' and (body.get('info', {}).get('sigkey') == '' or
+                                body.get('sigkey') == ''):
         return
 
     # Last thing to do before publishing: scrub some problematic fields
