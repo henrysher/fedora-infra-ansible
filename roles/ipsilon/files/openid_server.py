@@ -1059,8 +1059,6 @@ class OpenIDResponse(object):
             if self.fields.isOpenID1() and \
                len(self.encodeToURL()) > OPENID1_URL_LIMIT:
                 return ENCODE_HTML_FORM
-            elif len(self.encodeToURL()) > (6 * 1024):
-                return ENCODE_HTML_FORM
             else:
                 return ENCODE_URL
         else:
