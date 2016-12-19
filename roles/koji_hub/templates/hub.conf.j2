@@ -7,18 +7,26 @@ DBUser = koji
 DBHost = db-koji01
 DBPass = {{ kojiPassword }}
 AuthPrincipal = host/koji{{env_suffix}}.fedoraproject.org
+{% if env == "staging" %}
+ProxyPrincipals = modularity@STG.FEDORAPROJECT.ORG,HTTP/koji.stg.fedoraproject.org@STG.FEDORAPROJECT.ORG
+{% else %}
+ProxyPrincipals = HTTP/koji.fedoraproject.org@FEDORAPROJECT.ORG,sigul/sign-bridge01.phx2.fedoraproject.org@FEDORAPROJECT.ORG
+{% endif %}
 {% elif inventory_hostname == 's390-koji01.s390.fedoraproject.org' %}
 DBHost = db-s390-koji01.s390.fedoraproject.org
 DBPass = {{ s390kojiPassword }}
 AuthPrincipal = host/s390.koji.fedoraproject.org
+ProxyPrincipals = HTTP/koji.fedoraproject.org@FEDORAPROJECT.ORG,sigul/secondary-bridge01.phx2.fedoraproject.org@FEDORAPROJECT.ORG
 {% elif inventory_hostname == 'arm-koji01.qa.fedoraproject.org' %}
 DBHost = db-arm-koji01.qa.fedoraproject.org
 DBPass = {{ armkojiPassword }}
 AuthPrincipal = host/arm.koji.fedoraproject.org
+ProxyPrincipals = HTTP/koji.fedoraproject.org@FEDORAPROJECT.ORG,sigul/secondary-bridge01.phx2.fedoraproject.org@FEDORAPROJECT.ORG
 {% elif inventory_hostname == 'ppc-koji01.ppc.fedoraproject.org' %}
 DBHost = db-ppc-koji01.ppc.fedoraproject.org
 DBPass = {{ ppckojiPassword }}
 AuthPrincipal = host/ppc.koji.fedoraproject.org
+ProxyPrincipals = HTTP/koji.fedoraproject.org@FEDORAPROJECT.ORG,sigul/secondary-bridge01.phx2.fedoraproject.org@FEDORAPROJECT.ORG
 {% endif %}
 KojiDir = /mnt/koji
 MemoryWarnThreshold = 10000
@@ -31,11 +39,6 @@ HostPrincipalFormat = compile/%s@STG.FEDORAPROJECT.ORG
 HostPrincipalFormat = compile/%s@FEDORAPROJECT.ORG
 {% endif %}
 AuthKeytab = /etc/koji-hub/koji-hub.keytab
-{% if env == "staging" %}
-ProxyPrincipals = modularity@STG.FEDORAPROJECT.ORG,HTTP/koji.stg.fedoraproject.org@STG.FEDORAPROJECT.ORG
-{% else %}
-ProxyPrincipals = HTTP/koji.fedoraproject.org@FEDORAPROJECT.ORG,sigul/sign-bridge01.phx2.fedoraproject.org@FEDORAPROJECT.ORG
-{% endif %}
 
 ##  SSL client certificate auth configuration  ##
 #note: ssl auth may also require editing the httpd config (conf.d/kojihub.conf)
