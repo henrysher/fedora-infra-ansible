@@ -52,7 +52,12 @@
 
   handlers:
   - include: "{{ handlers }}/restart_services.yml"
-  - include: "{{ handlers }}/ipa.yml"
+
+  tasks:
+  - name: Combine IPA keytabs
+    shell: printf "%b" "read_kt /etc/httpd/conf/ipa.keytab\nread_kt /etc/krb5.HTTP_id{{env_suffix}}.fedoraproject.org.keytab\nwrite_kt /etc/krb5.HTTP_id{{env_suffix}}.fedoraproject.org.keytab.combined" | ktutil
+    tags:
+    - krb5
 
 - name: do base role once more to revert any resolvconf changes
   hosts: ipa:ipa-stg
