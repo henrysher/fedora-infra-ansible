@@ -230,3 +230,21 @@
   register: grant_repl_status_output
   changed_when: "'Type or value exists' not in grant_repl_status_output.stderr"
   failed_when: "'Type or value exists' not in grant_repl_status_output.stderr and 'modifying entry' not in grant_repl_status_output.stdout"
+
+# Make some httpd changes
+- name: Configure referer override
+  template: src=referer-override.conf
+            dest=/etc/httpd/conf.d/referer-override.conf
+  notify:
+  - reload apache
+  tags:
+  - ipa/server
+  - config
+
+- name: Update xmlrpc_uri
+    lineinfile: dest=/etc/ipa/default.conf
+                regexp='xmlrpc_uri ='
+                line='xmlrpc_uri = https://id{{env_suffix}}.fedoraproject.org/ipa/xml'
+    tags:
+    - ipa/server
+    - config
