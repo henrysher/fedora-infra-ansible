@@ -6,7 +6,7 @@ base=/srv/web/stats/raw
 baseurl='http://torrent.fedoraproject.org:6969/stats?mode='
 date=`date +%Y-%m-%d`
 hour=`date +%H`
-wgetcmd="wget --timeout=20 -q"
+wgetcmd="wget --timeout=20 -q -4"
 #per-torrent stats
 src="${baseurl}tpbs&format=txt"
 dest=$base/torrent/$date
