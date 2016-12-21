@@ -196,8 +196,12 @@
   tags:
   - config
 
+# we redirect stdout to stderr here to account for a difference between
+# openQA <= 4.4-32 (currently in prod) and openQA >= 4.4-33 (currently in
+# stg). When 4.4-33 or later is in prod, we can drop that and go back to
+# command instead of shell
 - name: Initialize database
-  command: "/usr/share/openqa/script/initdb --user geekotest --init_database"
+  shell: "/usr/share/openqa/script/initdb --user geekotest --init_database 1>&2"
   register: initdb
   changed_when: "initdb.rc == 0"
   failed_when: "(initdb.rc > 0) and (initdb.stderr is not defined or initdb.stderr.find('already exists') == -1)"
@@ -247,7 +251,7 @@
 # the prior and following steps; when the templates actually changed,
 # the *following* step will register as changed.
 - name: Load tests
-  shell: "/var/lib/openqa/share/tests/fedora/templates --clean"
+  command: "/var/lib/openqa/share/tests/fedora/templates --clean"
   when: "(gittests is defined) and (gittests|changed)"
   changed_when: "1 != 1"
 
