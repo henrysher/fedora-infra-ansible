@@ -15,3 +15,8 @@ do
     echo "Removing $line"
     ipa selfservice-del "$line"
 done
+
+# Disable default permissions so we don't break our privacy policy
+ipa permission-mod "System: Read User Addressbook Attributes" --bindtype=permission
+
+# TODO: Add custom permissions to grant specific access to user attributes
