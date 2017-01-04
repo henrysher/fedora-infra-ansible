@@ -53,39 +53,40 @@
    - include: "{{ handlers }}/restart_services.yml"
 
 
-- name: configure qadevel buildmaster
-  hosts: qadevel
-  user: root
-  gather_facts: True
-
-  vars_files:
-   - /srv/web/infra/ansible/vars/global.yml
-   - "/srv/private/ansible/vars.yml"
-   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
-
-  roles:
-   - { role: taskotron/buildmaster, tags: ['buildmaster'] }
-   - { role: taskotron/buildmaster-configure, tags: ['buildmasterconfig'] }
-
-  handlers:
-   - include: "{{ handlers }}/restart_services.yml"
-
-- name: configure qadevel local slave
-  hosts: qadevel
-  user: root
-  gather_facts: True
-
-  vars_files:
-   - /srv/web/infra/ansible/vars/global.yml
-   - "/srv/private/ansible/vars.yml"
-   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
-
-  roles:
-   - { role: taskotron/buildslave, tags: ['buildslave'] }
-   - { role: taskotron/buildslave-configure, tags: ['buildslaveconfig'] }
-
-  handlers:
-   - include: "{{ handlers }}/restart_services.yml"
+# the CI isn't working quite right and this machine is going away soon, just commenting it out
+#- name: configure qadevel buildmaster
+#  hosts: qadevel
+#  user: root
+#  gather_facts: True
+#
+#  vars_files:
+#   - /srv/web/infra/ansible/vars/global.yml
+#   - "/srv/private/ansible/vars.yml"
+#   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+#
+#  roles:
+#   - { role: taskotron/buildmaster, tags: ['buildmaster'] }
+#   - { role: taskotron/buildmaster-configure, tags: ['buildmasterconfig'] }
+#
+#  handlers:
+#   - include: "{{ handlers }}/restart_services.yml"
+#
+#- name: configure qadevel local slave
+#  hosts: qadevel
+#  user: root
+#  gather_facts: True
+#
+#  vars_files:
+#   - /srv/web/infra/ansible/vars/global.yml
+#   - "/srv/private/ansible/vars.yml"
+#   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+#
+#  roles:
+#   - { role: taskotron/buildslave, tags: ['buildslave'] }
+#   - { role: taskotron/buildslave-configure, tags: ['buildslaveconfig'] }
+#
+#  handlers:
+#   - include: "{{ handlers }}/restart_services.yml"
 
 - name: configure static sites for qadevel
   hosts: qadevel
