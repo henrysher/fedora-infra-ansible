@@ -57,6 +57,11 @@
   with_items: "{{ slaves }}"
   when: slaves is defined and deployment_type in ['dev', 'stg']
 
+- name: make sure the selinux fcontext is restored
+  command: restorecon -R "{{ item.dir }}"
+  with_items: "{{ slaves }}"
+  when: slaves is defined and deployment_type in ['dev', 'stg']
+
 - name: add buildslave users
   user: name={{ item.user }} group={{ slaves_group }} groups=testcloud,taskotron home={{ item.home }}
   with_items: "{{ slaves }}"
