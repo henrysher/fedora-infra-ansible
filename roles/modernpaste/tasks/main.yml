@@ -7,6 +7,7 @@
   - mod_wsgi
   - python2-mock
   - modern-paste
+  - stickynotes2modernpaste
   tags:
   - packages
   - modernpaste
@@ -20,6 +21,13 @@
 
 - name: modernpaste flask config
   template: src=flask_config.py dest=/etc/modern-paste/flask_config.py owner=apache group=apache mode=600
+  tags:
+  - config
+  - modernpaste
+  notify: reload httpd
+
+- name: modernpaste apache config
+  copy: src=modern-paste.conf dest=/etc/httpd/conf.d/modern-paste.conf owner=root group=root mode=644
   tags:
   - config
   - modernpaste
