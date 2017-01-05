@@ -1,0 +1,228 @@
+# nagios-client/nrpe
+
+---
+# install pkgs:
+- name: install nagios client pkgs
+  yum: name={{ item }} state=present
+  with_items:
+  - nrpe
+  - nagios-plugins
+  - nagios-plugins-disk
+  - nagios-plugins-file_age
+  - nagios-plugins-users
+  - nagios-plugins-procs
+  - nagios-plugins-swap
+  - nagios-plugins-load
+  - nagios-plugins-ping
+  tags:
+  - packages
+  - nagios_client
+  when: ansible_distribution_major_version|int < 22
+
+# install pkgs:
+- name: install nagios client pkgs
+  dnf: name={{ item }} state=present
+  with_items:
+  - nrpe
+  - nagios-plugins
+  - nagios-plugins-disk
+  - nagios-plugins-file_age
+  - nagios-plugins-users
+  - nagios-plugins-procs
+  - nagios-plugins-swap
+  - nagios-plugins-load
+  - nagios-plugins-ping
+  tags:
+  - packages
+  - nagios_client
+  when: ansible_distribution_major_version|int > 21
+
+- name: install local nrpe check scripts that are not packaged
+  copy: src="scripts/{{ item }}" dest="{{ libdir }}/nagios/plugins/{{ item }}" mode=0755 owner=nagios group=nagios
+  with_items:
+  - check_haproxy_conns.py
+  - check_haproxy_mirrorlist.py
+  - check_postfix_queue
+  - check_raid.py
+  - check_lock
+  - check_fcomm_queue
+  - check_fedmsg_consumer_backlog.py
+  - check_fedmsg_consumer_exceptions.py
+  - check_fedmsg_producer_last_ran.py
+  - check_fedmsg_producers_consumers.py
+  - check_supybot_plugin
+  - check_rabbitmq_size
+  - check_datanommer_timesince.py
+  - check_memcache_connect
+  - check_readonly_fs
+  - check_lock_file_age
+  - check_testcloud
+  - check_osbs_builds.py
+  - check_osbs_api.py
+  - check_ipa_replication
+  when: not inventory_hostname.startswith('noc')
+  tags:
+  - nagios_client
+
+# create dirs
+# puppet used to make /var/spool/nagios (owned by nagios.nagios) mode 750
+# and /usr/lib/nagios/plugins (owned by root) mode 755 - but we don't know WHY
+# then stuff it with plugins from the plugins dir in the nagios module
+# then we symlinked that to /usr/lib64/nagios/plugins
+# it was a nightmare - don't do that - my ghost will haunt you if you do
+# skvidal 2013-05-21
+
+
+# Three tasks for handling our custom selinux module
+- name: ensure a directory exists for our custom selinux module
+  file: dest=/usr/share/nrpe state=directory
+
+- name: copy over our custom selinux module
+  copy: src=selinux/fi-nrpe.pp dest=/usr/share/nrpe/fi-nrpe.pp
+  register: selinux_module
+
+- name: install our custom selinux module
+  command: semodule -i /usr/share/nrpe/fi-nrpe.pp
+  when: ansible_distribution_major_version|int == 7 and selinux_module|changed
+
+
+# Set up our base config.
+- name: /etc/nagios/nrpe.cfg
+  template: src=nrpe.cfg.j2 dest=/etc/nagios/nrpe.cfg
+  when: not inventory_hostname.startswith('noc')
+  notify:
+  - restart nrpe
+  tags:
+  - config
+  - nagios_client
+
+#
+# The actual items files here end in .j2 (they are templates)
+# So when adding or modifying them change the .j2 version in git.
+#
+- name: install nrpe client configs
+  template: src={{ item }}.j2 dest=/etc/nrpe.d/{{ item }}
+  with_items:
+  - check_mirrorlist_cache.cfg
+  - check_raid.cfg
+  - check_ipa.cfg
+  - check_readonly_fs.cfg
+  - check_cron.cfg
+  - check_disk.cfg
+  - check_swap.cfg
+  - check_postfix_queue.cfg
+  - check_lock.cfg
+  - check_fedmsg_hub_proc.cfg
+  - check_fedmsg_irc_proc.cfg
+  - check_fedmsg_relay_proc.cfg
+  - check_fedmsg_gateway_proc.cfg
+  - check_fedmsg_masher_proc.cfg
+  - check_redis_proc.cfg
+  - check_autocloud_proc.cfg
+  - check_fedmsg_consumers.cfg
+  - check_supybot_fedmsg_plugin.cfg
+  - check_datanommer_history.cfg
+  - check_memcache.cfg
+  - check_lock_file_age.cfg
+  - check_basset.cfg
+  - check_fmn.cfg
+  - check_osbs.cfg
+  - check_koschei_polling_proc.cfg
+  - check_koschei_resolver_proc.cfg
+  - check_koschei_scheduler_proc.cfg
+  - check_koschei_watcher_proc.cfg
+  - check_testcloud.cfg
+  notify:
+  - restart nrpe
+  tags:
+  - config
+  - nagios_client
+
+#
+# The actual items files here end in .j2 (they are templates)
+# So when adding or modifying them change the .j2 version in git.
+#
+- name: install nrpe bugyou fedmsg hubs check config
+  template: src=check_fedmsg_hub_procs_bugyou.cfg.j2 dest=/etc/nrpe.d/check_fedmsg_hub_procs_bugyou.cfg
+  when: inventory_hostname.startswith('bugyou01')
+  notify:
+  - restart nrpe
+  tags:
+  - nagios_client
+
+#
+# The actual items files here end in .j2 (they are templates)
+# So when adding or modifying them change the .j2 version in git.
+#
+- name: install nrpe openvpn check config
+  template: src=check_openvpn_link.cfg.j2 dest=/etc/nrpe.d/check_openvpn_link.cfg
+  when: datacenter != 'phx2'
+  notify:
+  - restart nrpe
+  tags:
+  - nagios_client
+#
+# The actual items files here end in .j2 (they are templates)
+# So when adding or modifying them change the .j2 version in git.
+#
+- name: install nrpe unbound check config
+  template: src=check_unbound_proc.cfg.j2 dest=/etc/nrpe.d/check_unbound_proc.cfg
+  when: inventory_hostname.startswith('unbound')
+  notify:
+  - restart nrpe
+  tags:
+  - nagios_client
+#
+# The actual items files here end in .j2 (they are templates)
+# So when adding or modifying them change the .j2 version in git.
+#
+- name: install nrpe merged log check script on log01
+  template: src=check_merged_file_age.cfg.j2 dest=/etc/nrpe.d/check_merged_file_age.cfg
+  when: inventory_hostname.startswith('log0')
+  notify:
+  - restart nrpe
+  tags:
+  - nagios_client
+#
+# The actual items files here end in .j2 (they are templates)
+# So when adding or modifying them change the .j2 version in git.
+#
+- name: install nrpe check_mysql config for mariadb servers
+  template: src=check_mysql.cfg.j2 dest=/etc/nrpe.d/check_mysql.cfg
+  when: inventory_hostname.startswith('db03')
+  notify:
+  - restart nrpe
+  tags:
+  - nagios_client
+
+- name: install nrpe checks for proxies
+  template: src={{ item }}.j2 dest=/etc/nrpe.d/{{ item }}
+  with_items:
+  - check_happroxy_conns.cfg
+  - check_happroxy_mirrorlist.cfg
+  - check_varnish_proc.cfg
+  when: inventory_hostname.startswith('proxy')
+  notify:
+  - restart nrpe
+  tags:
+  - nagios_client
+
+- name: nrpe service start
+  service: name=nrpe state=running enabled=true
+  tags:
+  - service
+  - nagios_client
+
+- name: Check if the fedmsg group exists
+  shell: /usr/bin/getent group fedmsg | /usr/bin/wc -l | tr -d ' '
+  register: fedmsg_exists
+  check_mode: no
+  changed_when: "1 != 1"
+  tags:
+  - nagios_client
+
+- name: Add nrpe user to the fedmsg group if it exists
+  user: name=nrpe groups=fedmsg append=yes
+  when: fedmsg_exists.stdout == "1"
+  tags:
+  - nagios_client

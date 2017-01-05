@@ -1,0 +1,294 @@
+##
+## A playbook to set up a Nagios 4 server
+##
+
+## Setup the initial user and groups.
+- name: Add nagios group as 420
+  group: name=nagios gid=420 state=present system=yes
+  tags:
+  - nagios_server
+
+- name: Add nagios user as 420
+  user: name=nagios uid=420 state=present home=/var/spool/nagios comment="Nagios Monitoring User" createhome=yes system=yes shell=/bin/bash
+  tags:
+  - nagios_server
+
+# Add the apache user to the nagios group so that it has permissions
+# to do stuff in /var/spool/nagios/*
+- name: Add apache to nagios group
+  user: name=apache append=yes groups=nagios
+  tags:
+  - nagios_server
+
+## Install the initial packages for the group.
+- name: Install nagios packages
+  yum: name={{ item }} state=present
+  with_items:
+  - php
+  - nagios-plugins-http
+  - nagios-plugins-dns
+  - nagios-plugins-dig
+  - nagios-plugins-ssh
+  - nagios-plugins-nagios
+  - nagios-plugins-nrpe
+  - nagios-plugins-tcp
+  - nagios-plugins-pgsql
+  - nagios-plugins-smtp
+  - nagios.x86_64
+  - nagios-plugins
+  - perl-Mail-IMAPClient
+  - nagios-plugins-dummy
+  - stunnel
+  - mod_auth_gssapi
+  tags:
+  - nagios_server
+
+## Setup directories for files to be copied
+- name: Create or confirm directories to be made
+  file: dest={{item}} mode=0755 owner=root group=root state=directory
+  with_items:
+  - /etc/nagios/commands
+  - /etc/nagios/contacts
+  - /etc/nagios/contactgroups
+  - /etc/nagios/hosts
+  - /etc/nagios/hostgroups
+  - /etc/nagios/services
+  - /etc/nagios/servicegroups
+  - /usr/lib64/nagios/plugins/
+  - /usr/lib64/nagios/plugins/eventhandlers/
+
+## Remove the items we don't want
+- name: Nuke default nagios passwd
+  file: dest=/etc/nagios/passwd state=absent
+  tags:
+  - nagios_server
+
+- name: Nuke default nagios objects
+  file: dest=/etc/nagios/objects state=absent
+  tags:
+  - nagios_server
+
+## Copy over system configs
+- name: Copy httpd config
+  template: src=httpd/nagios.conf dest=/etc/httpd/conf.d/nagios.conf
+  tags:
+  - nagios_server
+
+- name: Copy specialized nrpe.cfg for nagios server
+  copy: src=nrpe/nrpe.cfg dest=/etc/nagios/nrpe.cfg mode=0644 group=root owner=root
+  notify:
+  - restart nrpe
+  tags:
+  - config
+  - nagios_server
+
+
+## Copy over the command scripts
+- name: Copy /etc/nagios/commands
+  synchronize: src=nagios/commands/ dest=/etc/nagios/commands/
+  tags:
+  - nagios-config
+  - nagios_server
+  notify: restart nagios
+
+## Copy over the contacts
+- name: Copy /etc/nagios/contacts
+  synchronize: src=nagios/contacts/ dest=/etc/nagios/contacts/
+  tags:
+  - nagios-config
+  - nagios_server
+  notify: restart nagios
+
+## Copy over the contactgroups
+- name: Copy /etc/nagios/contactgroups
+  synchronize: src=nagios/contactgroups/ dest=/etc/nagios/contactgroups/
+  tags:
+  - nagios-config
+  - nagios_server
+  notify: restart nagios
+
+## Copy over the hosts
+- name: Copy /etc/nagios/hosts
+  copy: src=nagios/hosts/ dest=/etc/nagios/hosts/
+  tags:
+  - nagios-config
+  - nagios_server
+  notify: restart nagios
+
+## Copy over the services
+- name: Copy /etc/nagios/services
+  synchronize: src=nagios/services/ dest=/etc/nagios/services/
+  tags:
+  - nagios-config
+  - nagios_server
+  notify: restart nagios
+
+## Copy over the servicegroups
+- name: Copy /etc/nagios/servicegroups
+  synchronize: src=nagios/servicegroups/ dest=/etc/nagios/servicegroups/
+  tags:
+  - nagios-config
+  - nagios_server
+  notify: restart nagios
+
+## Copy over the plugins
+- name: Copy plugins
+  copy: src=nagios/plugins/ dest=/usr/lib64/nagios/plugins/ mode=0755 owner=root group=root
+  tags:
+  - nagios_server
+
+## Copy over the programs
+- name: Copy irc-colorize.py
+  copy: src=nagios/scripts/irc-colorize.py dest=/usr/local/bin/irc-colorize.py mode=0755 group=root owner=root
+  tags:
+  - nagios_server
+
+- name: Copy check_nagios_notifications.py
+  copy: src=nagios/scripts/check_nagios_notifications.py dest=/usr/local/bin/check_nagios_notifications.py mode=0755 group=root owner=root
+  tags:
+  - nagios_server
+
+
+## Build template files
+
+- name: Override config.inc.php for the given environment
+  template: src=nagios/config.inc.php.j2 dest=/usr/share/nagios/html/config.inc.php mode=0640 owner=root group=apache
+  tags:
+  - nagios_server
+
+- name: Build out nagios host templates
+  template: src=nagios/hosts/{{item}}.j2 dest=/etc/nagios/hosts/ mode=0644 owner=root group=root
+  with_items:
+    - bodhost-hosts.cfg
+    - cloud-hosts.cfg
+    - coloamer-hosts.cfg
+    - dedicatedsolutions-hosts.cfg
+    - gateway-hosts.cfg
+    - host1plus-hosts.cfg
+    - ibiblio-hosts.cfg
+    - internetx-hosts.cfg
+    - osuosl-hosts.cfg
+    - phx2-hosts.cfg
+    - phx2-mgmt-hosts.cfg
+    - rdu-cc-hosts.cfg
+    - rdu-hosts.cfg
+    - tummy-hosts.cfg
+  tags:
+  - nagios_server
+
+- name: Build out nagios hostgroup templates
+  template: src=nagios/hostgroups/{{item}}.j2 dest=/etc/nagios/hostgroups/ mode=0644 owner=root group=root
+  with_items:
+    - all.cfg.j2
+    - anitya.cfg.j2
+    - ask.cfg.j2
+    - autocloud.cfg.j2
+    - autosign.cfg.j2
+    - backup.cfg.j2
+    - badges.cfg.j2
+    - basset.cfg.j2
+    - bastion.cfg.j2
+    - batcave.cfg.j2
+    - beaker.cfg.j2
+    - blockerbugs.cfg.j2
+    - bodhi.cfg.j2
+    - bug2fedmsg.cfg.j2
+    - bugyou.cfg.j2
+    - build-x86.cfg.j2
+    - buildaarch64.cfg.j2
+    - buildarm.cfg.j2
+    - builders.cfg.j2
+    - buildppc.cfg.j2
+    - builds390.cfg.j2
+    - busgateway.cfg.j2
+    - copr.cfg.j2
+    - darkserver.cfg.j2
+    - datagrepper.cfg.j2
+    - dbserver.cfg.j2
+    - dhcp.cfg.j2
+    - dns.cfg.j2
+    - docker.cfg.j2
+    - download.cfg.j2
+    - elections.cfg.j2
+    - fas.cfg.j2
+    - fedimg.cfg.j2
+    - fedmsg.cfg.j2
+    - fedocal.cfg.j2
+    - github2fedmsg.cfg.j2
+    - hosted.cfg.j2
+    - hotness.cfg.j2
+    - infinote.cfg.j2
+    - ipa.cfg.j2
+    - ipsilon.cfg.j2
+    - jenkins.cfg.j2
+    - kernel.cfg.j2
+    - koji.cfg.j2
+    - koschei.cfg.j2
+    - kvmHosts.cfg.j2
+    - mailman.cfg.j2
+    - mdapi.cfg.j2
+    - memcached.cfg.j2
+    - mgmt.cfg.j2
+    - mirroring.cfg.j2
+    - modernpaste.cfg.j2
+    - moksha.cfg.j2
+    - notifs.cfg.j2
+    - nuancier.cfg.j2
+    - openqa.cfg.j2
+    - osbs.cfg.j2
+    - packages.cfg.j2
+    - pagure.cfg.j2
+    - paste.cfg.j2
+    - pdc.cfg.j2
+    - people.cfg.j2
+    - pgbdr.cfg.j2
+    - pkgdb.cfg.j2
+    - pkgs.cfg.j2
+    - proxies.cfg.j2
+    - releng.cfg.j2
+    - relvalconsumer.cfg.j2
+    - resultsdb.cfg.j2
+    - retrace.cfg.j2
+    - servers.cfg.j2
+    - smtp-mm.cfg.j2
+    - statscache.cfg.j2
+    - summershum.cfg.j2
+    - sundries.cfg.j2
+    - tagger.cfg.j2
+    - taskotron.cfg.j2
+    - torrent.cfg.j2
+    - unbound.cfg.j2
+    - value.cfg.j2
+    - vpnclients.cfg.j2
+    - web.cfg.j2
+    - wiki.cfg.j2
+    - zanata2fedmsg.cfg.j2
+  tags:
+  - nagios_server
+
+
+## Copy over the servicedeps
+## Setup the cron jobs
+
+- name: Install check_nagios_notifications cron
+  cron: name="check_nagios_notifications" minute=0 hour=0 weekday=1 user=nagios job="/usr/local/bin/check_nagios_notifications.py"
+  tags:
+  - nagios_server
+
+## Handle selinux annoyances - roughly copied from fedmsg role
+- name: Ensure a directory exists for our custom selinux module
+  file: dest=/usr/local/share/nagios-policy state=directory
+  tags:
+  - nagios_server
+
+- name: Copy over our custom selinux module
+  copy: src=selinux/nagios_hostname.pp dest=/usr/local/share/nagios-policy/nagios_hostname.pp
+  register: selinux_module
+  tags:
+  - nagios_server
+
+- name: Install our custom selinux module
+  command: semodule -i /usr/local/share/nagios-policy/nagios_hostname.pp
+  when: selinux_module|changed
+  tags:
+  - nagios_server

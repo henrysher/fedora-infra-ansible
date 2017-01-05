@@ -1,0 +1,19 @@
+#!/bin/bash
+
+FAILURES=$(/usr/bin/wget -q --no-check-certificate -O- http://koji.phx2.fedoraproject.org/koji/builds | /bin/grep -c failed.png)
+WARNING=20
+CRITICAL=25
+
+if [ $FAILURES -gt $CRITICAL ]
+then
+    echo "Koji: CRITICAL failed builds: $FAILURES"
+    exit 2
+elif [ $FAILURES -gt $WARNING ]
+then
+    echo "Koji: WARNING failed builds: $FAILURES"
+    exit 1
+else
+    echo "Koji: OK failed builds: $FAILURES"
+    exit 0
+fi
+

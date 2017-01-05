@@ -1,0 +1,27 @@
+{% for host in groups['all'] %}
+{% if hostvars[host].datacenter == 'coloamer' %}
+define host {
+   use                     defaulttemplate
+   host_name               {{ host }}
+{% if hostvars[host].ansible_hostname is defined %}
+   alias                   {{ hostvars[host].ansible_hostname }}
+{% else %}
+   alias                   {{ host }}
+{% endif %}
+{% if hostvars[host].eth0_ip is defined %}
+   address                 {{ hostvars[host].eth0_ip }}
+{% elif hostvars[host].ansible_default_ipv4 is defined %}
+{% if hostvars[host].ansible_default_ipv4.address is defined %}
+   address                 {{ hostvars[host].ansible_default_ipv4.address }}
+{% endif %}
+{% else %}
+   address                 {{ host }}
+{% endif %}
+{% if hostvars[host]['vmhost'] is defined %}
+   parents                 {{ hostvars[host]['vmhost'] }}
+{% elif hostvars[host].datacenter is defined %}
+   parents                 coloamer-gw
+{% endif %}
+}
+{% endif %}
+{% endfor %}

@@ -1,0 +1,44 @@
+#!/bin/bash
+#
+# 29-02-2012
+# Author: Christos Triantafyllidis <christos.triantafyllidis@gmail.com>
+#
+
+# Default values
+STUNNEL_EXEC=${STUNNEL_EXEC:-/usr/bin/stunnel}
+CHECK_DIG_EXEC=${CHECK_DIG_EXEC:-/usr/lib64/nagios/plugins/check_dig}
+lport=8443
+
+ARGS=""
+while getopts "L:H:p:l:T:a:A:w:c:t:v" options
+do
+    case $options in
+        L ) lport=$OPTARG ;;
+        H ) host=$OPTARG ;;
+        p ) port=$OPTARG ;;
+        * ) ARGS="$ARGS -$options $OPTARG";;
+    esac
+done
+
+# Create a ssl tunnel to the request socket
+TMPFILE=`mktemp /tmp/$(basename $0)_${host}_${port}_XXXXX`
+echo "
+client = yes
+verify = 0
+syslog = no
+pid=$TMPFILE.pid
+[${host}_${port}]
+accept=${lport}
+connect=${host}:${port}
+" > $TMPFILE
+
+$STUNNEL_EXEC $TMPFILE
+
+# Use check_dig via the stunnel
+$CHECK_DIG_EXEC -H localhost -p ${lport} $ARGS
+e_status=$?
+
+# cleanup
+kill -9 `cat $TMPFILE.pid`
+rm -f $TMPFILE $TMPFILE.pid
+exit $e_status
