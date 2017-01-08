@@ -54,6 +54,7 @@
   - /etc/nagios/hostgroups
   - /etc/nagios/services
   - /etc/nagios/servicegroups
+  - /etc/nagios/conf.d
   - /usr/lib64/nagios/plugins/
   - /usr/lib64/nagios/plugins/eventhandlers/
 
@@ -83,13 +84,21 @@
   - nagios_server
 
 ## Copy over the nagios configs
-- name: Copy /etc/nagios/*cfg files
-  copy: src=nagios/configs/{{ item }} dest=/etc/nagios/{{ item }}
+- name: Copy /etc/nagios/conf.d/*cfg files
+  copy: src=nagios/configs/{{ item }} dest=/etc/nagios/conf.d/{{ item }}
   with_items:
     - escalations.cfg  
-    - minimal.cfg
-    - nagios.cfg
     - timeperiods.cfg
+  tags:
+  - config
+  - nagios_server
+
+- name: Copy over the main conf file
+  copy: src=nagios/configs/nagios.cfg dest=etc/nagios mode=0644 group=root owner=root
+  tags:
+  - config
+  - nagios_server
+
 
 ## Copy over the command scripts
 - name: Copy /etc/nagios/commands
@@ -160,7 +169,7 @@
 ## Build template files
 # This one may go to being just a regular config file if we can make remote monitoring work
 - name: Template out the cgi.cfg 
-  template: src=nagios/configs/cgi.cfg.j2 dest=/etc/nagios/ mode=0644 owner=root group=root
+  template: src=nagios/configs/cgi.cfg.j2 dest=/etc/nagios/cgi.cfg mode=0644 owner=root group=root
   tags:
   - nagios_server
 
