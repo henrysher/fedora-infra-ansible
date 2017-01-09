@@ -1,8 +1,8 @@
 # This is a basic playbook
-- include: "/srv/web/infra/ansible/playbooks/include/virt-create.yml myhosts=nagios-internal"
+- include: "/srv/web/infra/ansible/playbooks/include/virt-create.yml myhosts=nagios-stg"
 
 - name: make the box be real
-  hosts: noc-internal.phx2.fedoraproject.org
+  hosts: noc01.stg.phx2.fedoraproject.org
   user: root
   gather_facts: True
 
@@ -37,3 +37,20 @@
   handlers:
   - include: "{{ handlers }}/restart_services.yml"
 
+- name: deploy nagios service config
+  hosts: noc01.stg.phx2.fedoraproject.org
+  user:
+  gather_facts: True
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+   - "/srv/web/infra/ansible/vars/nagios.{{ inventory_hostname_short }}.yml"
+
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"
+
+  roles:
+  - nagios_server
+  - fedmsg/base
