@@ -3,17 +3,19 @@
 ###############
 
 {% for key, value in groups.iteritems() %}
+{% if not groups[key] %}
 define hostgroup{
        hostgroup_name {{ key }}
        alias          {{ key }}
        members        {% for host in groups[key] %}{{host}}, {% endfor %} 
 
 }
+{% endif %}
 {% endfor %}
 
 define hostgroup {
         hostgroup_name  phx2_mgmt_systems
-        alias           Non-Ansibled Management Systems
+        alias           phx2_mgmt_systems
         members         {% for host in vars['phx2_management_hosts'] %}{{host}}{% if not loop.last %},{% endif %} {% endfor %} 
 
 }
