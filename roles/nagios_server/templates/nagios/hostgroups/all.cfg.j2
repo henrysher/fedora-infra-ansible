@@ -2,10 +2,18 @@
 # All Servers and associated devices
 ###############
 
-# Hosts in telia are defined elsewhere
-# why its there
+{% for key, value in groups.iteritems() %}
+define hostgroup{
+       hostgroup_name {{ key }}
+       alias          {{ key }}
+       members        {% for host in groups[key] %}{{host}}, {% endfor %} 
+
+}
+{% endfor %}
+
 define hostgroup {
-        hostgroup_name  all
-        alias           All hosts / Devices
-        members         *,
+        hostgroup_name  phx2_mgmt_systems
+        alias           Non-Ansibled Management Systems
+        members         {% for host in vars['phx2_management_hosts'] %}{{host}}{% if not loop.last %},{% endif %} {% endfor %} 
+
 }
