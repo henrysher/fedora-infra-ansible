@@ -19,3 +19,10 @@ define hostgroup {
         members         {% for host in vars['phx2_management_hosts'] %}{{host}}{% if not loop.last %},{% endif %} {% endfor %} 
 
 }
+
+define hostgroup {
+        hostgroup_name  vpnclients
+        alias           vpnclients
+        members         {% for host in groups['all'] %}{% if hostvars[host].vpn %}{{host}},{% endif %} {% endfor %}
+
+}
