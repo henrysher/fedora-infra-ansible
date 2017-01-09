@@ -78,8 +78,16 @@
   - nagios_server
 
 ## Copy over system configs
+# TODO: Make this a template once they're closer together
 - name: Copy httpd config
   copy: src=httpd/nagios.conf dest=/etc/httpd/conf.d/nagios.conf
+  when: env == "production"
+  tags:
+  - nagios_server
+
+- name: Copy httpd config
+  copy: src=httpd/nagios-new.conf dest=/etc/httpd/conf.d/nagios.conf
+  when: env == "staging"
   tags:
   - nagios_server
 
