@@ -26,6 +26,14 @@ config = {
                 'keytab': '/etc/krb5.autosign_autosign01.phx2.fedoraproject.org.keytab'
             },
             'tags': [
+                # Temporary tags for rebuilds
+                {
+                    "from": "f26-ruby24",
+                    "to": "f26-ruby24",
+                    "key": "fedora-26",
+                    "keyid": "64dab85d"
+                },
+                # Normal tags
                 {
                     "from": "epel6-infra-candidate",
                     "to": "epel6-infra",
