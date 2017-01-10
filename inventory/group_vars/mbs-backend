@@ -1,0 +1,42 @@
+---
+lvm_size: 20000
+mem_size: 4096
+num_cpus: 2
+
+# We should set freezes = True for the F27 timeframe.
+freezes: false
+
+# for systems that do not match the above - specify the same parameter in
+# the host_vars/$hostname file
+
+tcp_ports: [ 3000, 3001, 3002, 3003,
+             3004, 3005, 3006, 3007 ]
+
+fas_client_groups: sysadmin-noc,sysadmin-releng
+
+# These people get told when something goes wrong.
+fedmsg_error_recipients:
+- ralph@fedoraproject.org
+- jkaluza@fedoraproject.org
+- fivaldi@fedoraproject.org
+
+# These are consumed by a task in roles/fedmsg/base/main.yml
+fedmsg_certs:
+- service: mbs
+  owner: root
+  group: fedmsg
+  can_send:
+  - mbs.module.state.change
+  - mbs.component.state.change
+
+# For the MOTD
+csi_security_category: High
+csi_primary_contact: Modularity WG - modularity-wg-members@fedoraproject.org
+csi_purpose: Run fedmsg-hub with the fedbadges plugin to award badges (+ some crons)
+csi_purpose: Run the module-build-service fedmsg-hub backend (the scheduler)
+csi_relationship: |
+    The fedmsg-hub process running here is responsible for scheduling all rpm
+    builds in koji in response to requests submitted to the MBS API on the
+    mbs-frontend nodes.
+
+    NOTE - this system has a KRB service principal with elevated koji privileges.
