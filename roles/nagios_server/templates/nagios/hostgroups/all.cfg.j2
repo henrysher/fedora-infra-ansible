@@ -1,6 +1,7 @@
 ###############
 # All Servers and associated devices
 ###############
+## {{ env }}
 
 {% for key, value in groups.iteritems() %}
 {% if env == "staging" %}
@@ -26,7 +27,9 @@ define hostgroup{
 
 {$ endif %}
 {% endfor %}
-{{ env }}
+
+##
+## Management hardware
 define hostgroup {
         hostgroup_name  phx2_mgmt_systems
         alias           phx2_mgmt_systems
@@ -35,10 +38,13 @@ define hostgroup {
 }
 
 {% if env != "staging" %}
+##
+## VPN clients
 define hostgroup {
         hostgroup_name  vpnclients
         alias           vpnclients
         members         {% for host in groups['all'] %}{% if hostvars[host].vpn %}{{host}},{% endif %} {% endfor %}
 
 }
+
 {% endif %}
