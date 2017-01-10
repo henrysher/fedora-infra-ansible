@@ -73,4 +73,4 @@ ln -s git-seed-$DATE.tar.xz $OUTPUT_DIR/git-seed-latest.tar.xz
 ln -s rpm-specs-$DATE.tar.xz $OUTPUT_DIR/rpm-specs-latest.tar.xz
 
 python2 /usr/local/bin/alternative_arch_report.py /srv/git_seed/rpm-specs/ | \
-    mail -s "[Report] Packages Restricting Arches" pingou@fedoraproject.org
+    mail -s "[Report] Packages Restricting Arches" arch-excludes@lists.fedoraproject.org
