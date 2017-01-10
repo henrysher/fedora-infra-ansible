@@ -79,13 +79,13 @@
 
 ## Copy over system configs
 # TODO: Make this a template once they're closer together
-- name: Copy httpd config
+- name: Copy httpd config (production)
   copy: src=httpd/nagios.conf dest=/etc/httpd/conf.d/nagios.conf
   when: env == "production"
   tags:
   - nagios_server
 
-- name: Copy httpd config
+- name: Copy httpd config (staging)
   copy: src=httpd/nagios-new.conf dest=/etc/httpd/conf.d/nagios.conf
   when: env == "staging"
   tags:
@@ -149,11 +149,21 @@
   notify: restart nagios
 
 ## Copy over the services
-- name: Copy /etc/nagios/services
+- name: Copy /etc/nagios/services (production)
   synchronize: src=nagios/services/ dest=/etc/nagios/services/
   tags:
   - nagios-config
   - nagios_server
+  when: env == "production"
+  notify: restart nagios
+
+## Copy over the services
+- name: Copy /etc/nagios/services (staging)
+  synchronize: src=nagios/services-staging/ dest=/etc/nagios/services/
+  tags:
+  - nagios-config
+  - nagios_server
+  when: env == "staging"
   notify: restart nagios
 
 ## Copy over the servicegroups
@@ -194,7 +204,7 @@
   tags:
   - nagios_server
 
-- name: Build out nagios host templates
+- name: Build out nagios host templates (production)
   template: src=nagios/hosts/{{item}}.j2 dest=/etc/nagios/hosts/{{item}} mode=0644 owner=root group=root
   with_items:
     - bodhost-hosts.cfg
@@ -211,6 +221,17 @@
     - rdu-cc-hosts.cfg
     - rdu-hosts.cfg
     - tummy-hosts.cfg
+  when: env == "production"
+  tags:
+  - nagios_server
+
+- name: Build out nagios host templates (staging)
+  template: src=nagios/hosts/{{item}}.j2 dest=/etc/nagios/hosts/{{item}} mode=0644 owner=root group=root
+  with_items:
+    - phx2-hosts.cfg
+    - staging-hosts.cfg
+    - phx2-mgmt-hosts.cfg
+  when: env == "staging"
   tags:
   - nagios_server
 
@@ -234,9 +255,6 @@
 #     - mgmt-http.cfg
 #     - mirrorlist.cfg
 #     - retrace.cfg
-
-##
-## not implemented yet
 #    - zanata2fedmsg.cfg
   tags:
   - nagios_server
