@@ -3,8 +3,8 @@
 ###############
 ## {{ env }}
 
-{% for key, value in groups.iteritems() %}
 {% if env == "staging" %}
+{% for key, value in groups.iteritems() %}
 {% if groups[key] %}
 
 define hostgroup{
@@ -15,7 +15,11 @@ define hostgroup{
 }
 
 {% endif %}
+{% endfor %}
+
 {% else %}
+
+{% for key, value in groups.iteritems() %}
 {% if groups[key] %}
 define hostgroup{
        hostgroup_name {{ key }}
@@ -23,10 +27,10 @@ define hostgroup{
        members        {% for host in groups[key] %}{{host}}, {% endfor %} 
 
 }
-
-
-{$ endif %}
 {% endfor %}
+
+
+{% endif %}
 
 ##
 ## Management hardware
