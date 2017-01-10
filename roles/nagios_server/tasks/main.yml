@@ -150,7 +150,41 @@
 
 ## Copy over the services
 - name: Copy /etc/nagios/services (production)
-  synchronize: src=nagios/services/ dest=/etc/nagios/services/
+  copy: src=nagios/services/{{ item }} dest=/etc/nagios/services/{{ item }}
+  with_items:
+    - autocloud.cfg
+    - basset.cfg
+    - copr.cfg
+    - db_backups.cfg
+    - disk.cfg
+    - dns.cfg
+    - fedmsg.cfg
+    - file_age.cfg
+    - fmn.cfg
+    - haproxy.cfg
+    - haproxy_mirrorlist.cfg
+    - hosted.cfg
+    - ipa.cfg
+    - koji.cfg
+    - koschei.cfg
+    - locking.cfg
+    - mail_queue.cfg
+    - memcached.cfg
+    - nagios.cfg
+    - nrpe.cfg
+    - osbs.cfg
+    - pgsql.cfg
+    - ping.cfg
+    - procs.cfg
+    - raid.cfg
+    - smtp-mm.cfg
+    - ssh.cfg
+    - ssl.cfg
+    - swap.cfg
+    - unbound.cfg
+    - vpnclients.cfg
+    - websites.cfg
+    - templates.cfg
   tags:
   - nagios-config
   - nagios_server
@@ -158,8 +192,16 @@
   notify: restart nagios
 
 ## Copy over the services
-- name: Copy /etc/nagios/services (staging)
-  synchronize: src=nagios/services-staging/ dest=/etc/nagios/services/
+- name: Copy /etc/nagios/services (production)
+  copy: src=nagios/services/{{ item }} dest=/etc/nagios/services/{{ item }}
+  with_items:
+    - disk.cfg
+    - mail_queue.cfg
+    - ping.cfg
+    - procs.cfg
+    - raid.cfg
+    - ssh.cfg
+    - templates.cfg
   tags:
   - nagios-config
   - nagios_server
@@ -201,6 +243,13 @@
 
 - name: Override config.inc.php for the given environment
   template: src=nagios/config.inc.php.j2 dest=/usr/share/nagios/html/config.inc.php mode=0640 owner=root group=apache
+  tags:
+  - nagios_server
+
+- name: Template over services
+  template: src=nagios/services/{{item}}.j2 dest=/etc/nagios/services/{{item}} mode=0644 owner=root group=root
+  with_items:
+    - phx2-mgmt.cfg
   tags:
   - nagios_server
 
