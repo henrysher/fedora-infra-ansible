@@ -1,0 +1,112 @@
+- include: "/srv/web/infra/ansible/playbooks/include/virt-create.yml myhosts=mbs:mbs-stg"
+
+- name: make the box be real
+  hosts: mbs:mbs-stg
+  user: root
+  gather_facts: True
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  pre_tasks:
+  - include: "{{ tasks }}/yumrepos.yml"
+
+  roles:
+  - base
+  - rkhunter
+  - nagios/client
+  - hosts
+  - fas_client
+  - rsyncd
+  - sudo
+  - collectd/base
+
+  tasks:
+  - include: "{{ tasks }}/2fa_client.yml"
+  - include: "{{ tasks }}/motd.yml"
+
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"
+
+- name: openvpn on the prod frontend nodes
+  hosts: mbs-frontend
+  user: root
+  gather_facts: True
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - "{{ vars_path }}/{{ ansible_distribution }}.yml"
+
+  roles:
+  - openvpn/client
+
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"
+
+- name: Set up apache on the frontend MBS API app
+  hosts: mbs-frontend:mbs-frontend-stg
+  user: root
+  gather_facts: True
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - "{{ vars_path }}/{{ ansible_distribution }}.yml"
+
+  roles:
+  - mod_wsgi
+
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"
+
+- name: set up fedmsg configuration
+  hosts: mbs:mbs-stg
+  user: root
+  gather_facts: True
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  roles:
+  - fedmsg/base
+
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"
+
+- name: deploy the frontend MBS API app
+  hosts: mbs-frontend:mbs-frontend-stg
+  user: root
+  gather_facts: True
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - "{{ vars_path }}/{{ ansible_distribution }}.yml"
+
+  roles:
+  #- mbs/frontend
+
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"
+
+- name: deploy the backend MBS scheduler daemon
+  hosts: mbs-backend:mbs-backend-stg
+  user: root
+  gather_facts: True
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - "{{ vars_path }}/{{ ansible_distribution }}.yml"
+
+  roles:
+  - fedmsg/hub
+  #- mbs/backend
+
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"
