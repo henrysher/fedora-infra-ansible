@@ -20,6 +20,14 @@
   notify: restart fedmsg-hub
   tags: pdc
 
+- name: copy client tool configuration
+  template: >
+    src={{ item }} dest=/etc/pdc.d/{{item}}
+    owner=fedmsg group=fedmsg mode=0600
+  with_items:
+  - fedora.json
+  tags: pdc
+
 - name: setup cron for a daily audit script
   copy: src=pdc-audit.cron dest=/etc/cron.d/pdc-audit.cron mode=0755
   tags:
