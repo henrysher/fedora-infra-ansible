@@ -81,6 +81,8 @@ sort -o ${WORKDIR}/${YEAR}/out-${YEAR}-${MONTH} -S 8G -u ${WORKDIR}/${YEAR}/out-
 sort -o ${WORKDIR}/out-${YEAR} -S 8G -u ${WORKDIR}/out-${YEAR} ${WORKFILE}
 
 # Because the logs stop at 04:00 we can only get 24 hours from 6 days before. 
+###
+### FIXME: This breaks around the new year.
 grep "${OLDDATE}" ${WORKDIR}/out-${OLDYEAR} > ${TEMPDIR}/watched-day
 
 # Grab the data and put it in the two files. This makes it a lot
