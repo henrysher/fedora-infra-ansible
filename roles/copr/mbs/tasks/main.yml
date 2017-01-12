@@ -1,0 +1,98 @@
+---
+
+- name: Install python and deps for ansible modules
+  raw: dnf install -y python2 python2-dnf libselinux-python
+
+- name: Install stuff
+  dnf: name={{ item }} state=latest
+  with_items:
+    # Those things are explicitly listed in Vagrantfile
+    # https://pagure.io/fm-orchestrator/blob/master/f/Vagrantfile
+    # Should they be covered by spec file?
+    - fedmsg-relay
+    - fedpkg
+    - gcc
+    - gcc
+    - gcc-c++
+    - git
+    - koji
+    - krb5-workstation
+    - libffi-devel
+    - openssl-devel
+    - python
+    - python-devel
+    - python-devel
+    - python-flask
+    - python-mock
+    - python-virtualenv
+    - redhat-rpm-config
+    - redhat-rpm-config
+    - rpm-build
+    - swig
+    - systemd-devel
+
+    # Required for copr
+    - copr-cli
+
+
+# Install module-build-service
+- name: Enable copr-dev repo
+  command: dnf -y copr enable frostyx/module-build-service
+
+- name: Install module-build-service package
+  #dnf: name=module-build-service state=latest
+  command: dnf install https://frostyx.fedorapeople.org/module-build-service-1.0.2-1.fc24.noarch.rpm
+
+
+# Post-install stuff
+- name: Copy config to fedmsg.d (probably workarounding .spec here)
+  command: creates=/etc/fedmsg.d/module_build_service.py
+    cp /etc/module-build-service/fedmsg.d/module_build_service.py /etc/fedmsg.d/
+
+
+# Create user and group for mbs
+- name: Create group for mbs-frontend
+  group: name=mbs state=present
+
+- name: Create user for mbs-frontend
+  user: name=mbs group=mbs
+
+
+
+- name: Upgrade database
+  command: mbs-upgradedb
+
+- name: Generate cert
+  command: mbs-gencert
+
+- name: Export krbcc
+  command: echo 'export KRB5CCNAME=FILE:/var/tmp/krbcc' >> ~/.bashrc
+
+- name: Set properties in config
+  replace:
+    dest: /etc/module-build-service/config.py
+    regexp: '^    {{ item.key }} = .*$'
+    replace: '    {{ item.key }} = {{ item.value }}'
+    backup: yes
+  with_items:
+    - { key: 'SYSTEM', value: '"copr"'}
+    - { key: 'REQUIRE_PACKAGER', value: 'False'}
+    - { key: 'OIDC_CLIENT_SECRETS', value: '"/etc/module-build-service/client_secrets.json"'}
+
+
+# @TODO Should be packaged in module-build-service package? Or should already exist on copr-frontend instance?
+- name: Copy cacert.pem
+  command: wget https://pagure.io/fm-orchestrator/raw/master/f/conf/cacert.pem -O /etc/module-build-service/cacert.pem
+
+
+# Run module-build-service processes
+- name: Enable fedmsg-relay
+  service: name=fedmsg-relay enabled=yes state=started
+
+- name: Run fedmsg-hub
+  service: name=fedmsg-hub enabled=yes state=started
+
+- name: copy apache files to conf.d
+  copy: src=httpd/mbs.conf dest=/etc/httpd/conf.d/mbs.conf
+  tags:
+  - config
