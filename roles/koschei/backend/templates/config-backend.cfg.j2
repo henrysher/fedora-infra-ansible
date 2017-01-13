@@ -24,10 +24,17 @@ config = {
         "topurl": "http://{{ koschei_kojipkgs }}",
         "weburl": "http://{{ koschei_koji_web }}/koji",
         "login_method": "krb_login",
+        {% if env == 'staging' %} {# 1.9 #}
+        "login_args": {
+            "keytab": "/etc/krb5.koschei_{{ inventory_hostname }}.keytab",
+            "principal": "koschei/{{ inventory_hostname }}@{{ ipa_realm }}",
+        },
+        {% else %}
         "login_args": DictMergeWorkaround({
             "keytab": "/etc/krb5.koschei_{{ inventory_hostname }}.keytab",
             "principal": "koschei/{{ inventory_hostname }}@{{ ipa_realm }}",
         }),
+        {% endif %}
         "session_opts": {
             "krb_rdns": False,
         },
@@ -72,7 +79,6 @@ config = {
     "logging": {
         "loggers": {
             "": {
-                "level": "DEBUG",
                 "handlers": ["stderr", "email"],
             },
             "fedmsg": {
@@ -90,7 +96,11 @@ config = {
             },
         },
     },
+    {% if env == 'staging' %} {# 1.9 #}
+    "plugins": ['pkgdb', 'fedmsg'],
+    {% else %}
     "plugins": ['pkgdb', 'fedmsg_publisher'],
+    {% endif %}
     "fedmsg": {
         {% if env == 'staging' %}
         "topic": "org.fedoraproject.stg.buildsys",
@@ -102,6 +112,29 @@ config = {
         "enabled": True,
         "modname": "koschei",
     },
+    "caching": { {# 1.9+ #}
+        "rpm_requires": {
+            "backend": "dogpile.cache.memcached",
+            "expiration_time": None,
+            "arguments": {
+                "url": "memcached01",
+                "distributed_lock": True,
+            },
+        },
+        "plugin": {
+            "pkgdb": {
+                "users": {
+                    "backend": "dogpile.cache.memcached",
+                    "expiration_time": 300,
+                    "arguments": {
+                        "url": "memcached01",
+                        "distributed_lock": True,
+                    },
+                },
+            },
+        },
+    },
+
     "pkgdb": {
         {% if env == 'staging' %}
         "pkgdb_url": 'https://admin.stg.fedoraproject.org/pkgdb/api',
@@ -111,7 +144,7 @@ config = {
         "topic_re": r'\.prod\.pkgdb\.',
         {% endif %}
         "sync_tracked": True,
-        "cache": {
+        "cache": { {# remove after 1.9 #}
             "backend": "dogpile.cache.memcached",
             "expiration_time": 300,
             "arguments": {

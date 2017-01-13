@@ -39,12 +39,19 @@ config = {
         },
     },
     "plugins": ['pkgdb'],
-    "fedmsg": {
-        {% if env == 'staging' %}
-        "topic": "org.fedoraproject.stg.buildsys",
-        {% else %}
-        "topic": "org.fedoraproject.prod.buildsys",
-        {% endif %}
+    "caching": { {# 1.9+ #}
+        "plugin": {
+            "pkgdb": {
+                "users": {
+                    "backend": "dogpile.cache.memcached",
+                    "expiration_time": 300,
+                    "arguments": {
+                        "url": "memcached01:11211",
+                        "distributed_lock": True,
+                    },
+                },
+            },
+        },
     },
     "pkgdb": {
         {% if env == 'staging' %}
@@ -55,7 +62,7 @@ config = {
         "topic_re": r'\.prod\.pkgdb\.',
         {% endif %}
         "sync_tracked": True,
-        "cache": {
+        "cache": { {# remove in 1.9 #}
             "backend": "dogpile.cache.memcached",
             "expiration_time": 300,
             "arguments": {
