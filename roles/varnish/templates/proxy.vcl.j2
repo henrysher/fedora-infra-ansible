@@ -140,6 +140,11 @@ backend koschei {
     .port = "10040";
 }
 
+backend registry {
+    .host = "localhost";
+    .port = "10048";
+}
+
 
 acl purge {
     "192.168.1.129"; // wiki01.vpn
@@ -186,6 +191,9 @@ sub vcl_recv {
         return(purge);
     }
 
+    if (req.http.X-Forwarded-Server ~ "^registry.fedoraproject.org" || req.http.X-Forwarded-Server ~ "^registry.stg.fedoraproject.org") {
+        set req.backend_hint = registry;
+    }
     if (req.url ~ "^/wiki/") {
         set req.backend_hint = wiki;
     }
