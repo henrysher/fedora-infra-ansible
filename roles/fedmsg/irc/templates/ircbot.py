@@ -284,6 +284,28 @@ config = dict(
             ),
         ),
 
+        # For pagure
+        dict(
+            network='chat.freenode.net',
+            port=6667,
+            make_pretty=True,
+            make_terse=True,
+
+            {% if env == 'staging' %}
+            nickname='fm-stg-pagure',
+            {% else %}
+            nickname='fm-pagure',
+            {% endif %}
+            channel='#pagure',
+            filters=dict(
+                topic=[
+                    '^((?!(github\.star|pagure)).)*$',
+                ],
+                body=[
+                    "^((?!u'name': u'pagure').)*$",
+                ],
+            ),
+        ),
 
         # Hook up the design-team with badges messages
         dict(
