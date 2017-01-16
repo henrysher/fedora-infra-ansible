@@ -302,7 +302,7 @@ config = dict(
                     '^((?!(github\.star|pagure)).)*$',
                 ],
                 body=[
-                    "^((?!u'name': u'pagure').)*$",
+                    "^((?!(u'name': u'pagure'|u'name': u'pagure-importer')).)*$",
                 ],
             ),
         ),
