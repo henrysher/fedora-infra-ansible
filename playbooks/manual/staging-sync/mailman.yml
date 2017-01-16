@@ -1,0 +1,92 @@
+# This playbook syncs the production mailman instance with staging and manages all
+# the steps we need to keep our setup intact.
+
+
+- name: bring staging services down
+  hosts: mailman-stg
+  user: root
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"
+
+  tasks:
+  - service: name=httpd state=stopped
+  - service: name=mailman3 state=stopped
+
+
+- name: drop and re-create the staging dsb entirely
+  hosts: db01.stg.phx2.fedoraproject.org
+  user: root
+  become: yes
+  become_user: postgres
+  become_method: sudo
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"
+
+  tasks:
+  #- template: src=templates/mailman-reset-staging.sql dest=/var/lib/pgsql/mailman-reset-staging.sql
+  - copy:
+      src=/srv/web/infra/db-dumps/mailman.dump.xz
+      dest=/var/tmp/mailman.dump.xz
+      owner=postgres
+      group=postgres
+  - command: unxz /var/tmp/mailman.dump.xz
+             creates=/var/tmp/mailman.dump
+  - command: dropdb mailman
+  - command: createdb -O mailmanadmin mailman
+  - name: Import the prod db.  This will take quite a while.  Go get a snack!
+    command: psql -f /var/tmp/mailman.dump mailman
+  #- name: Fix the database
+  #  shell: psql -f /var/lib/pgsql/mailman-reset-staging.sql mailman
+
+  #- template: src=templates/hyperkitty-reset-staging.sql dest=/var/lib/pgsql/hyperkitty-reset-staging.sql
+  - copy:
+      src=/srv/web/infra/db-dumps/hyperkitty.dump.xz
+      dest=/var/tmp/hyperkitty.dump.xz
+      owner=postgres
+      group=postgres
+  - command: unxz /var/tmp/hyperkitty.dump.xz
+             creates=/var/tmp/hyperkitty.dump
+  - command: dropdb hyperkitty
+  - command: createdb -O hyperkittyadmin hyperkitty
+  - name: Import the prod db.  This will take quite a while.  Go get a snack!
+    command: psql -f /var/tmp/hyperkitty.dump hyperkitty
+  #- name: Fix the database
+  #  shell: psql -f /var/lib/pgsql/hyperkitty-reset-staging.sql hyperkitty
+
+  # TODO: reindex emails (fulltext)? Not a full-reindex, it may take days.
+
+
+- name: bring staging services up
+  hosts: mailman-stg
+  user: root
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"
+
+  tasks:
+  - service: name=httpd state=started
+  - service: name=mailman3 state=started
+
+- name: Nuke the prod db dump that we cached on batcave
+  hosts: batcave
+  user: root
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  tasks:
+  - name: Nuke the prod db dump that we cached on batcave
+    file: dest=/var/tmp/prod-mailman-dump/ state=absent
