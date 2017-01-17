@@ -9,6 +9,7 @@
     # Those things are explicitly listed in Vagrantfile
     # https://pagure.io/fm-orchestrator/blob/master/f/Vagrantfile
     # Should they be covered by spec file?
+    - fedmsg-hub
     - fedmsg-relay
     - fedpkg
     - gcc
@@ -32,6 +33,7 @@
     - systemd-devel
 
     # Required for copr
+    # @TODO Get there a new version to fix - AttributeError: 'CoprClient' object has no attribute 'get_module_repo'
     - copr-cli
 
 
@@ -41,13 +43,29 @@
 
 - name: Install module-build-service package
   #dnf: name=module-build-service state=latest
-  command: dnf install https://frostyx.fedorapeople.org/module-build-service-1.0.2-1.fc24.noarch.rpm
+  #command: dnf -y install https://frostyx.fedorapeople.org/module-build-service-1.0.2-1.fc24.noarch.rpm
+  command: dnf -y install https://kojipkgs.fedoraproject.org//packages/module-build-service/1.0.2/2.fc26/noarch/module-build-service-1.0.2-2.fc26.noarch.rpm
 
 
 # Post-install stuff
 - name: Copy config to fedmsg.d (probably workarounding .spec here)
   command: creates=/etc/fedmsg.d/module_build_service.py
     cp /etc/module-build-service/fedmsg.d/module_build_service.py /etc/fedmsg.d/
+
+- name: FOO
+  #command: grep -q '^127\.0\.0\.1 fedmsg-relay$' /etc/hosts || echo "127.0.0.1 fedmsg-relay" >> /etc/hosts
+  command: echo "127.0.0.1 fedmsg-relay" >> /etc/hosts
+
+- name: FOO
+  #command: echo "export KRB5CCNAME=FILE:/var/tmp/krbcc" > /etc/profile.d/module_build_service_developer_env.sh
+  lineinfile: dest=/etc/profile.d/module_build_service_developer_env.sh create=yes state=present line='export KRB5CCNAME=FILE:/var/tmp/krbcc'
+
+- name: FOO
+  #command: echo "export MODULE_BUILD_SERVICE_DEVELOPER_ENV=1" >> /etc/profile.d/module_build_service_developer_env.sh
+  lineinfile: dest=/etc/profile.d/module_build_service_developer_env.sh state=present line='export MODULE_BUILD_SERVICE_DEVELOPER_ENV=1'
+
+# - name: FOO
+#   command: source /etc/profile.d/module_build_service_developer_env.sh
 
 
 # Create user and group for mbs
@@ -59,12 +77,8 @@
 
 
 
-- name: Upgrade database
-  command: mbs-upgradedb
 
-- name: Generate cert
-  command: mbs-gencert
-
+# @FIXME
 - name: Export krbcc
   command: echo 'export KRB5CCNAME=FILE:/var/tmp/krbcc' >> ~/.bashrc
 
@@ -76,13 +90,26 @@
     backup: yes
   with_items:
     - { key: 'SYSTEM', value: '"copr"'}
-    - { key: 'REQUIRE_PACKAGER', value: 'False'}
-    - { key: 'OIDC_CLIENT_SECRETS', value: '"/etc/module-build-service/client_secrets.json"'}
+      #- { key: 'REQUIRE_PACKAGER', value: 'False'}
+      #- { key: 'OIDC_CLIENT_SECRETS', value: '"/etc/module-build-service/client_secrets.json"'}
+
+
+# @TODO Should be packaged in module_build_service package? Or we need to create our own?
+- name: Obtain client_secrets.json
+  command: wget https://pagure.io/fm-orchestrator/raw/master/f/conf/client_secrets.json -P /etc/module-build-service/
 
 
 # @TODO Should be packaged in module-build-service package? Or should already exist on copr-frontend instance?
 - name: Copy cacert.pem
   command: wget https://pagure.io/fm-orchestrator/raw/master/f/conf/cacert.pem -O /etc/module-build-service/cacert.pem
+
+
+
+- name: Upgrade database
+  command: mbs-upgradedb
+
+- name: Generate cert
+  command: mbs-gencert
 
 
 # Run module-build-service processes
@@ -92,7 +119,22 @@
 - name: Run fedmsg-hub
   service: name=fedmsg-hub enabled=yes state=started
 
+
+# @FIXME Use apache instead
+- name: Run mbs-frontend
+  #service: name=mbs-frontend enabled=yes state=started
+  shell: nohup mbs-frontend < /dev/null >& /tmp/mbs-frontend.out &
+
 - name: copy apache files to conf.d
   copy: src=httpd/mbs.conf dest=/etc/httpd/conf.d/mbs.conf
   tags:
   - config
+
+
+# Only for testing purposes
+# Use it as:  python submit_build.py 127.0.0.1:5000
+- name: Download submit_build.py
+  command: wget https://pagure.io/fm-orchestrator/raw/master/f/contrib/submit_build.py
+
+- name: Download submit-build.json
+  command: wget https://pagure.io/fm-orchestrator/raw/master/f/contrib/submit-build.json
