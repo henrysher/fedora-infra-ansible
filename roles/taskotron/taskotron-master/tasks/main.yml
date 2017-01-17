@@ -21,7 +21,7 @@
 
 - name: allow httpd to read artifacts on nfs
   seboolean: name=httpd_use_nfs state=yes persistent=yes
-  when: deployment_type == 'stg'
+  when: deployment_type in ['stg', 'prod']
 
 - name: copy cronjob for cleaning old taskotron artifacts and buildmaster logs
   template: src=taskotron-clean.cron.j2 dest=/etc/cron.d/taskotron-clean.cron owner=root group=root mode=0644
