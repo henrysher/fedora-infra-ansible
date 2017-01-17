@@ -52,6 +52,11 @@
   group: name={{ slaves_group }}
   when: slaves_group is defined and (deployment_type == 'stg' or deployment_type in ['dev', 'prod'])
 
+- name: add buildslave users
+  user: name={{ item.user }} group={{ slaves_group }} groups=testcloud,taskotron home={{ item.home }}
+  with_items: "{{ slaves }}"
+  when: slaves is defined and (deployment_type == 'stg' or deployment_type in ['dev', 'prod'])
+
 - name: set the selinux fcontext type for the buildslave dir to var_lib_t
   command: semanage fcontext -a -t var_lib_t "{{ item.dir }}(/.*)?"
   with_items: "{{ slaves }}"
@@ -62,7 +67,3 @@
   with_items: "{{ slaves }}"
   when: slaves is defined and deployment_type in ['dev', 'stg', 'prod']
 
-- name: add buildslave users
-  user: name={{ item.user }} group={{ slaves_group }} groups=testcloud,taskotron home={{ item.home }}
-  with_items: "{{ slaves }}"
-  when: slaves is defined and (deployment_type == 'stg' or deployment_type in ['dev', 'prod'])
