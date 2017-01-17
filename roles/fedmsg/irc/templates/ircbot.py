@@ -69,7 +69,7 @@ config = dict(
                     '^((?!(github\.create|github\.issue\.|github\.pull_request|github\.commit_comment|github\.star|pagure)).)*$',
                 ],
                 body=[
-                    "^((?!(fedora-infra|u'name': u'pagure')).)*$",
+                    "^((?!fedora-infra).)*$",
                 ],
             ),
         ),
