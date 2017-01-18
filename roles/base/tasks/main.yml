@@ -330,7 +330,20 @@
   - rsyslogd
   - config
   - base
-   - base
+
+- name: rsyslogd make systemd limits directory for file handles
+  file: dest=/etc/systemd/system/rsyslog.service.d/ mode=0755 owner=root group=root state=directory
+  when: inventory_hostname.startswith('log')
+  tags:
+  - rsyslogd
+  - config
+
+- name: rsyslogd put systemd limits directory for file handles
+  copy: src=rsyslog/rsyslog-limits.conf dest=/etc/systemd/system/rsyslog.service.d/limits.conf mode=0644
+  when: inventory_hostname.startswith('log')
+  tags:
+  - rsyslogd
+  - config
 
 - name: Setup postfix
   include: postfix.yml
