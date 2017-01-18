@@ -30,3 +30,8 @@
     tag: {$regex: '/.*(?<!testing-pending)$$/'}
   do:
     - {tasks: [upgradepath]}
+{% if deployment_type in ['dev'] %}
+- when: {message_type: DistGitCommit, namespace: modules}
+  do:
+    - {tasks: [check_modulemd]}
+{% endif %}
