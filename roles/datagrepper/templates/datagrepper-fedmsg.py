@@ -8,7 +8,7 @@ config = {
     # expect the amount of data it generates to grow pretty steadily over time
     # and we don't want *read* operations on that database to slow down all our
     # other apps.
-    {% if environment == "staging" %}
+    {% if env == "staging" %}
     'datanommer.sqlalchemy.url': 'postgresql://{{ datanommerDBUser }}:{{ datanommerDBPassword }}@db-datanommer.stg.phx2.fedoraproject.org/datanommer',
     'fedmenu_url': 'https://apps.stg.fedoraproject.org/fedmenu',
     'fedmenu_data_url': 'https://apps.stg.fedoraproject.org/js/data.js',
