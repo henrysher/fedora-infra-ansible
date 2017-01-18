@@ -5,24 +5,16 @@
 - name: setup networking
   include: "network.yml"
 
-- name: install copr modularity repofile
-  copy: src="yum/_copr_@modularity-modulemd.custom.repo" dest="/etc/yum.repos.d/_copr_@modularity-modulemd.custom.repo"
+- name: install copr local path repo
+  copy: src="yum/copr_local.repo" dest="/etc/yum.repos.d/copr_local.repo"
   tags:
   - config
-
-- name: install python2-modulemd
-  shell: yum-deprecated install -y python2-modulemd || yum install -y python2-modulemd
-
-# BZ 1241507
-- name: install copr-backend
-  shell: yum-deprecated install -y copr-backend || yum install -y copr-backend
-- name: install copr-selinux
-  shell: yum-deprecated install -y copr-selinux || yum install -y copr-selinux
 
 - name: add packages for copr backend
   dnf: state=present name={{ item }}
   with_items:
-  #- copr-backend
+  - copr-backend
+  - copr-selinux
   - python-novaclient
   - python-glanceclient
   - python-neutronclient
