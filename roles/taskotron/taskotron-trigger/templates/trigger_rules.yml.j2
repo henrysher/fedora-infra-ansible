@@ -24,7 +24,11 @@
     - {tasks: [abicheck]}
 - when: {message_type: KojiTagChanged}
   do:
+{% if deployment_type in ['dev'] %}
+    - {tasks: [depcheck, rpmdeplint]}
+{% else %}
     - {tasks: [depcheck]}
+{% endif %}
 - when:
     message_type: KojiTagChanged
     tag: {$regex: '/.*(?<!testing-pending)$$/'}
