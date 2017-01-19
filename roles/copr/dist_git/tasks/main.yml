@@ -14,9 +14,10 @@
   - rdiff-backup
   - tmpwatch
 
-# BZ 1241507
-- name: upgrade copr-dist-git
-  shell: yum-deprecated install -y copr-dist-git || yum install -y copr-dist-git
+- name: install copr-dist-git
+  dnf: state=latest name={{ item }}
+  with_items:
+    - copr-dist-git
 
 - name: switch selinux to permissive
   selinux: policy=targeted state=permissive
