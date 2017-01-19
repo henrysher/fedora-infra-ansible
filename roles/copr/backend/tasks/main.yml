@@ -10,11 +10,15 @@
   tags:
   - config
 
-- name: add packages for copr backend
-  dnf: state=present name={{ item }}
+- name: install copr-backend and copr-selinux
+  dnf: state=latest name={{ item }}
   with_items:
   - copr-backend
   - copr-selinux
+
+- name: add additional packages for copr-backend
+  dnf: state=present name={{ item }}
+  with_items:
   - python-novaclient
   - python-glanceclient
   - python-neutronclient
