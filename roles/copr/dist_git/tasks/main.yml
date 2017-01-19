@@ -41,15 +41,11 @@
 - name: create user for copr-git service
   user: name="copr-service" groups=apache,packager,mock,docker generate_ssh_key=yes ssh_key_bits=2048 ssh_key_file=.ssh/id_rsa
 
-#- name: make sure directories are owned by copr-service user
-#  shell: chown -R copr-service:copr-service /var/log/copr-dist-git
-
 - name: make sure directories are owned by copr-service user
-  file: path={{ item }} owner=copr-service group=copr-service
+  file: path={{ item }} owner=copr-service group=copr-service state=directory recurse=yes
   with_items:
   - /var/lib/copr-dist-git/
-  - /var/lib/copr-dist-git/cgit_pkg_list
-  - /var/log/copr-dist-git
+  - /var/log/copr-dist-git/
 
 - name: make sure directories are owned by copr-service:packager user
   file: path=/var/lib/dist-git/git owner=copr-service group=packager
