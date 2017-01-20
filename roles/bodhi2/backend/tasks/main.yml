@@ -136,7 +136,7 @@
   cron: name="owner-sync-el5" minute="7,17,27,37,47,57" user="root"
         job="/usr/local/bin/owner-sync-pkgdb dist-5E-epel"
         cron_file=update-koji-owner-EL-5
-  when: inventory_hostname.startswith('bodhi-backend03') and env == "production"
+  when: inventory_hostname.startswith('bodhi-backend01') and env == "production"
   tags:
   - bodhi
 
@@ -144,7 +144,7 @@
   cron: name="owner-sync-el6" minute="7,17,27,37,47,57" user="root"
         job="/usr/local/bin/owner-sync-pkgdb dist-6E-epel"
         cron_file=update-koji-owner-EL-6
-  when: inventory_hostname.startswith('bodhi-backend03') and env == "production"
+  when: inventory_hostname.startswith('bodhi-backend01') and env == "production"
   tags:
   - bodhi
 
@@ -152,7 +152,7 @@
   cron: name="owner-sync-epel7" minute="7,17,27,37,47,57" user="root"
         job="/usr/local/bin/owner-sync-pkgdb epel7"
         cron_file=update-koji-owner-epel7
-  when: inventory_hostname.startswith('bodhi-backend03') and env == "production"
+  when: inventory_hostname.startswith('bodhi-backend01') and env == "production"
   tags:
   - bodhi
 
@@ -160,7 +160,7 @@
   cron: name="owner-sync-fedora" minute="7,17,27,37,47,57" user="root"
         job="/usr/local/bin/owner-sync-pkgdb f24;/usr/local/bin/owner-sync-pkgdb f25;/usr/local/bin/owner-sync-pkgdb f26"
         cron_file=update-koji-owner-fedora
-  when: inventory_hostname.startswith('bodhi-backend03') and env == "production"
+  when: inventory_hostname.startswith('bodhi-backend01') and env == "production"
   tags:
   - bodhi
 
@@ -168,7 +168,7 @@
   cron: name="owner-sync-fedora" minute="7,17,27,37,47,57" user="root"
         job="/usr/local/bin/owner-sync-pkgdb f24-docker;/usr/local/bin/owner-sync-pkgdb f25-docker;/usr/local/bin/owner-sync-pkgdb f26-docker"
         cron_file=update-koji-owner-fedora-docker
-  when: inventory_hostname.startswith('bodhi-backend03') and env == "production"
+  when: inventory_hostname.startswith('bodhi-backend01') and env == "production"
   tags:
   - bodhi
 #
@@ -177,7 +177,7 @@
 
 - name: put fedora-updates-push in place
   copy: src=fedora-updates-push dest=/usr/local/bin/fedora-updates-push mode=0755
-  when: inventory_hostname.startswith('bodhi-backend03') and env == "production"
+  when: inventory_hostname.startswith('bodhi-backend01') and env == "production"
   tags:
   - config
   - bodhi
@@ -185,7 +185,7 @@
 
 - name: put fedora-epel-push in place
   copy: src=fedora-epel-push dest=/usr/local/bin/fedora-epel-push mode=0755
-  when: inventory_hostname.startswith('bodhi-backend03') and env == "production"
+  when: inventory_hostname.startswith('bodhi-backend01') and env == "production"
   tags:
   - config
   - bodhi
@@ -193,7 +193,7 @@
 
 - name: put update-fullfiletimelist in place
   copy: src="{{ files }}/scripts/update-fullfiletimelist" dest=/usr/local/bin/update-fullfiletimelist mode=0755
-  when: inventory_hostname.startswith('bodhi-backend03') and env == "production"
+  when: inventory_hostname.startswith('bodhi-backend01') and env == "production"
   tags:
   - config
   - bodhi
@@ -201,7 +201,7 @@
 
 - name: add create-filelist script from quick-fedora-mirror
   copy: src="{{ files }}/scripts/create-filelist" dest=/usr/local/bin/create-filelist mode=0755
-  when: inventory_hostname.startswith('bodhi-backend03') and env == "production"
+  when: inventory_hostname.startswith('bodhi-backend01') and env == "production"
   tags:
   - config
   - bodhi
@@ -211,7 +211,7 @@
   cron: name="updates-sync" minute="15,45" user="ftpsync"
         job="/usr/local/bin/lock-wrapper fedora-updates-push '/usr/local/bin/fedora-updates-push && /usr/local/bin/update-fullfiletimelist -l /pub/fedora-secondary/update-fullfiletimelist.lock -t /pub fedora'"
         cron_file=updates-sync
-  when: inventory_hostname.startswith('bodhi-backend03') and env == "production"
+  when: inventory_hostname.startswith('bodhi-backend01') and env == "production"
   tags:
   - config
   - bodhi
@@ -221,7 +221,7 @@
   cron: name="epel-updates-sync" minute="15,45" user="ftpsync"
         job="/usr/local/bin/lock-wrapper fedora-epel-push '/usr/local/bin/fedora-epel-push && /usr/local/bin/update-fullfiletimelist -l /tmp/update-fullfiletimelist-epel.lock -t /pub epel'"
         cron_file=updates-sync
-  when: inventory_hostname.startswith('bodhi-backend03') and env == "production"
+  when: inventory_hostname.startswith('bodhi-backend01') and env == "production"
   tags:
   - config
   - bodhi
@@ -231,7 +231,7 @@
   cron: name="directory-sizes-update" minute="30" hour="19" user="ftpsync"
         job="/usr/bin/find /pub/alt/ /pub/archive/ /pub/fedora-secondary/ /pub/fedora/ /pub/epel/ -type d  ! -path '/pub/alt/screenshots/f21/source' | grep -v snapshot | /usr/bin/xargs -n 1 /usr/bin/du --exclude=.snapshot -sh > /tmp/DIRECTORY_SIZES.txt 2> /dev/null; cp /tmp/DIRECTORY_SIZES.txt /pub/"
         cron_file=directory-sizes-update
-  when: inventory_hostname.startswith('bodhi-backend03') and env == "production"
+  when: inventory_hostname.startswith('bodhi-backend01') and env == "production"
   tags:
   - config
   - bodhi
