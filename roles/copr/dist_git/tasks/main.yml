@@ -1,6 +1,5 @@
 - include: "mount_fs.yml"
 
-
 #- copy: src="dist-git-epel-7.repo" dest="/etc/yum.repos.d/"
 
 - name: install packages
@@ -9,7 +8,6 @@
   #- epel-release
   - cgit
   - dist-git
-  - dist-git-selinux
   - copr-dist-git
   - rdiff-backup
   - tmpwatch
@@ -113,9 +111,6 @@
 
 - command: "/usr/share/dist-git/dist_git_sync.sh"
 
-- name: Create /var/cache/cgit/repo-list.rc if does not exists (it last 30 minutes to generate)
-  command: /etc/cron.hourly/copr-dist-git creates=/var/cache/cgit/repo-list.rc
-
 - name: allow httpd to run cgit
   seboolean: name=httpd_enable_cgi state=true persistent=true
 
@@ -133,3 +128,11 @@
   - "httpd"
   - "dist-git.socket"
   - "copr-dist-git"
+
+- name: Create /var/cache/cgit/repo-list.rc if does not exists (it last 30 minutes to generate)
+  command: /etc/cron.hourly/copr-dist-git creates=/var/cache/cgit/repo-list.rc
+
+- name: install dist-git-selinux package
+  dnf: state=present name={{ item }}
+  with_items:
+  - dist-git-selinux # this takes several hours to finish due to fs relabelling
