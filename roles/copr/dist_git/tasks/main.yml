@@ -2,6 +2,18 @@
 
 #- copy: src="dist-git-epel-7.repo" dest="/etc/yum.repos.d/"
 
+# pre-create users/groups and copy uids/gids from the current prod copr-dist-git
+- group: name="packager" state=present gid=987
+- group: name="cvsadmin" state=present gid=1001
+- group: name="copr-dist-git" state=present gid=1002
+- group: name="copr-service" state=present gid=1003
+
+- name: create user for git repos
+  user: name="copr-dist-git" group=copr-dist-git groups=cvsadmin,packager uid=1001
+
+- name: create user for copr-git service
+  user: name="copr-service" group=copr-service groups=packager generate_ssh_key=yes ssh_key_bits=2048 ssh_key_file=.ssh/id_rsa uid=1002
+
 - name: install packages
   dnf: state=present name={{ item }}
   with_items:
@@ -11,6 +23,8 @@
   - copr-dist-git
   - rdiff-backup
   - tmpwatch
+
+- user: append=yes name="copr-service" groups=apache,mock
 
 - name: install copr-dist-git
   dnf: state=latest name={{ item }}
@@ -29,15 +43,6 @@
   dnf: state=present name={{ item }}
   with_items:
   - pyrpkg
-
-# TODO: remove, this should be done by `dist-git` package
-- group: name="cvsadmin" state=present
-
-- name: create user for git repos
-  user: name="copr-dist-git" groups=cvsadmin,packager
-
-- name: create user for copr-git service
-  user: name="copr-service" groups=apache,packager,mock,docker generate_ssh_key=yes ssh_key_bits=2048 ssh_key_file=.ssh/id_rsa
 
 - name: make sure directories are owned by copr-service user
   file: path={{ item }} owner=copr-service group=copr-service state=directory recurse=yes
