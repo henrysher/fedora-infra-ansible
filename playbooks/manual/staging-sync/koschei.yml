@@ -1,5 +1,5 @@
-# This playbook is used to rebuild staging Koschei database from
-# scratch.  Useful to be ran after synchronization of staging Koji DB
+# This playbook is used to rebuild staging Koschei database.
+# Useful to be ran after synchronization of staging Koji DB
 # with production, which breaks Koschei - old builds from before sync
 # have conflicting IDs with post-sync builds.
 #
@@ -27,33 +27,12 @@
   - service: name=httpd state=stopped
     when: '"web" in ansible_hostname'
 
-
-- name: drop and re-create koschei staging database
-  hosts: pgbdr01.stg.phx2.fedoraproject.org
-  user: root
-  become: yes
-  become_user: postgres
-  become_method: sudo
-
-  vars_files:
-   - /srv/web/infra/ansible/vars/global.yml
-   - /srv/private/ansible/vars.yml
-   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
-  handlers:
-  - include: "{{ handlers }}/restart_services.yml"
-
-  tasks:
-  - command: dropdb koschei
-  - command: createdb -O koscheiadmin koschei
-
-
-- name: import koschei staging database schema
+- name: drop and recreate koji-related tables
   hosts: koschei-backend-stg
   user: root
   become: yes
   become_user: koschei
   become_method: sudo
-
   vars_files:
    - /srv/web/infra/ansible/vars/global.yml
    - /srv/private/ansible/vars.yml
@@ -62,17 +41,16 @@
   - include: "{{ handlers }}/restart_services.yml"
 
   tasks:
+  - shell: >
+      koschei-admin psql <<< "
+      BEGIN;
+      SET LOCAL bdr.permit_ddl_locking = true;
+      UPDATE base_package SET all_blocked = true;
+      DROP TABLE buildroot_problem;
+      DROP TABLE package CASCADE;
+      COMMIT;
+      "
   - command: koschei-admin create-db
-  - command: >
-      koschei-admin create-collection f26
-        --display-name 'Fedora Rawhide'
-        --target f26
-        --branch master
-        --bugzilla-product Fedora
-        --bugzilla-version rawhide
-  - command: >
-      koschei-admin create-group php
-
 
 - name: bring koschei staging services up
   hosts: koschei-backend-stg:koschei-web-stg
