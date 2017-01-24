@@ -1,7 +1,12 @@
 ---
 
+# @TODO need to have comment here, to explain why not to use dnf module
 - name: Install python and deps for ansible modules
-  raw: dnf install -y python2 python2-dnf libselinux-python
+  command: dnf install -y python2 python2-dnf libselinux-python
+
+
+- name: Enable copr repo
+  command: dnf -y copr enable @copr/copr
 
 - name: Install stuff
   dnf: name={{ item }} state=latest
@@ -32,43 +37,64 @@
     - swig
     - systemd-devel
 
+    - python-systemd
+
     # Required for copr
-    # @TODO Get there a new version to fix - AttributeError: 'CoprClient' object has no attribute 'get_module_repo'
     - copr-cli
+    - python-copr
 
 
 # Install module-build-service
-- name: Enable copr-dev repo
-  command: dnf -y copr enable frostyx/module-build-service
+#- name: Enable copr-dev repo
+#command: dnf -y copr enable frostyx/module-build-service
 
 - name: Install module-build-service package
   #dnf: name=module-build-service state=latest
   #command: dnf -y install https://frostyx.fedorapeople.org/module-build-service-1.0.2-1.fc24.noarch.rpm
-  command: dnf -y install https://kojipkgs.fedoraproject.org//packages/module-build-service/1.0.2/2.fc26/noarch/module-build-service-1.0.2-2.fc26.noarch.rpm
+  #command: dnf -y install https://kojipkgs.fedoraproject.org//packages/module-build-service/1.0.2/2.fc26/noarch/module-build-service-1.0.2-2.fc26.noarch.rpm
+  command: dnf -y install https://kojipkgs.fedoraproject.org//packages/module-build-service/1.1.0/1.fc26/noarch/module-build-service-1.1.0-1.fc26.noarch.rpm
+
 
 
 # Post-install stuff
-- name: Copy config to fedmsg.d (probably workarounding .spec here)
-  command: creates=/etc/fedmsg.d/module_build_service.py
-    cp /etc/module-build-service/fedmsg.d/module_build_service.py /etc/fedmsg.d/
+
+- name: Remove /etc/fedmsg.d/relay.py
+  file: path=/etc/fedmsg.d/relay.py state=absent
+
+- name: Install fedmsg.d/mbs-scheduler.py
+  #command: wget https://pagure.io/fm-orchestrator/raw/master/f/fedmsg.d/mbs-scheduler.py -P /etc/fedmsg.d
+  get_url: url=https://pagure.io/fm-orchestrator/raw/master/f/fedmsg.d/mbs-scheduler.py dest=/etc/fedmsg.d
+
+
+  # We want to run fedmsg-hub as 'mbs' user, because we don't want to rpmbuild as 'fedmsg'
+- name: Copy modified fedmsg-hub.service file
+  copy: src=fedmsg-hub.service dest=/etc/systemd/system/fedmsg-hub.service
+
+- name: Reload unit files
+  command: systemctl daemon-reload
+
+
+
 
 - name: FOO
   #command: grep -q '^127\.0\.0\.1 fedmsg-relay$' /etc/hosts || echo "127.0.0.1 fedmsg-relay" >> /etc/hosts
-  command: echo "127.0.0.1 fedmsg-relay" >> /etc/hosts
+  #command: echo "127.0.0.1 fedmsg-relay" >> /etc/hosts
+  lineinfile: dest=/etc/hosts line='127.0.0.1 fedmsg-relay'
 
 - name: FOO
   #command: echo "export KRB5CCNAME=FILE:/var/tmp/krbcc" > /etc/profile.d/module_build_service_developer_env.sh
-  lineinfile: dest=/etc/profile.d/module_build_service_developer_env.sh create=yes state=present line='export KRB5CCNAME=FILE:/var/tmp/krbcc'
+  lineinfile: dest=/etc/profile.d/module_build_service_developer_env.sh create=yes line='export KRB5CCNAME=FILE:/var/tmp/krbcc'
 
 - name: FOO
   #command: echo "export MODULE_BUILD_SERVICE_DEVELOPER_ENV=1" >> /etc/profile.d/module_build_service_developer_env.sh
-  lineinfile: dest=/etc/profile.d/module_build_service_developer_env.sh state=present line='export MODULE_BUILD_SERVICE_DEVELOPER_ENV=1'
+  lineinfile: dest=/etc/profile.d/module_build_service_developer_env.sh line='export MODULE_BUILD_SERVICE_DEVELOPER_ENV=1'
 
 # - name: FOO
 #   command: source /etc/profile.d/module_build_service_developer_env.sh
 
 
 # Create user and group for mbs
+# @TODO use gid= and uid=
 - name: Create group for mbs-frontend
   group: name=mbs state=present
 
@@ -82,26 +108,50 @@
 - name: Export krbcc
   command: echo 'export KRB5CCNAME=FILE:/var/tmp/krbcc' >> ~/.bashrc
 
-- name: Set properties in config
-  replace:
-    dest: /etc/module-build-service/config.py
-    regexp: '^    {{ item.key }} = .*$'
-    replace: '    {{ item.key }} = {{ item.value }}'
-    backup: yes
-  with_items:
-    - { key: 'SYSTEM', value: '"copr"'}
-      #- { key: 'REQUIRE_PACKAGER', value: 'False'}
-      #- { key: 'OIDC_CLIENT_SECRETS', value: '"/etc/module-build-service/client_secrets.json"'}
+# - name: Set properties in config
+#   replace:
+#     dest: /etc/module-build-service/config.py
+#     regexp: '^    {{ item.key }} = .*$'
+#     replace: '    {{ item.key }} = {{ item.value }}'
+#     backup: yes
+#   with_items:
+#     - { key: 'SYSTEM', value: '"copr"'}
+#       #- { key: 'REQUIRE_PACKAGER', value: 'False'}
+#       #- { key: 'OIDC_CLIENT_SECRETS', value: '"/etc/module-build-service/client_secrets.json"'}
+#
+
+
+- name: Stat base_config
+  stat: path=/etc/module-build-service/base_config.py
+  register: base_config_stat
+
+- name: Move config.py to base_config.py
+  command: mv /etc/module-build-service/config.py /etc/module-build-service/base_config.py
+  when: base_config_stat.stat.exists == False
+
+- name: Touch __init__.py file
+  file: path=/etc/module-build-service/__init__.py state=touch
+
+- name: Copy production config
+  copy: src=config.py dest=/etc/module-build-service/config.py
+
+
+- name: Chown /etc/module-build-service to mbs:mbs
+  file: path=/etc/module-build-service owner=mbs group=mbs recurse=yes
+
+
 
 
 # @TODO Should be packaged in module_build_service package? Or we need to create our own?
 - name: Obtain client_secrets.json
-  command: wget https://pagure.io/fm-orchestrator/raw/master/f/conf/client_secrets.json -P /etc/module-build-service/
+  #command: wget https://pagure.io/fm-orchestrator/raw/master/f/conf/client_secrets.json -P /etc/module-build-service/
+  get_url: url=https://pagure.io/fm-orchestrator/raw/master/f/conf/client_secrets.json dest=/etc/module-build-service/
 
 
 # @TODO Should be packaged in module-build-service package? Or should already exist on copr-frontend instance?
 - name: Copy cacert.pem
-  command: wget https://pagure.io/fm-orchestrator/raw/master/f/conf/cacert.pem -O /etc/module-build-service/cacert.pem
+  #command: wget https://pagure.io/fm-orchestrator/raw/master/f/conf/cacert.pem -O /etc/module-build-service/cacert.pem
+  get_url: url=https://pagure.io/fm-orchestrator/raw/master/f/conf/cacert.pem dest=/etc/module-build-service/cacert.pem
 
 
 
@@ -125,16 +175,37 @@
   #service: name=mbs-frontend enabled=yes state=started
   shell: nohup mbs-frontend < /dev/null >& /tmp/mbs-frontend.out &
 
-- name: copy apache files to conf.d
-  copy: src=httpd/mbs.conf dest=/etc/httpd/conf.d/mbs.conf
-  tags:
-  - config
+  # @FIXME Update the current coprs.conf
+  #- name: copy apache files to conf.d
+  #copy: src=httpd/mbs.conf dest=/etc/httpd/conf.d/mbs.conf
+  #tags:
+  #- config
+
+- name: Create /opt/module-build-service
+  file:  path=/opt/module-build-service state=directory
+
+- name: Copy mbs.wsgi file
+  copy: src=mbs.wsgi dest=/opt/module-build-service/mbs.wsgi
 
 
 # Only for testing purposes
 # Use it as:  python submit_build.py 127.0.0.1:5000
 - name: Download submit_build.py
-  command: wget https://pagure.io/fm-orchestrator/raw/master/f/contrib/submit_build.py
+  #command: wget https://pagure.io/fm-orchestrator/raw/master/f/contrib/submit_build.py
+  get_url: url=https://pagure.io/fm-orchestrator/raw/master/f/contrib/submit_build.py dest=./
 
 - name: Download submit-build.json
-  command: wget https://pagure.io/fm-orchestrator/raw/master/f/contrib/submit-build.json
+  #command: wget https://pagure.io/fm-orchestrator/raw/master/f/contrib/submit-build.json
+  get_url: url=https://pagure.io/fm-orchestrator/raw/master/f/contrib/submit-build.json dest=./
+
+
+# @TODO
+#
+# - I am currently storing my personal token in /etc/module-build-service/copr.conf
+#
+# - I am currently running mbs-frontend manually
+#     - Because of issue with <Location> in httpd config. See coprs.conf
+#
+#
+# - Do not use wget, use http://docs.ansible.com/ansible/get_url_module.html instead
+#     - Rewrited, needs testing
