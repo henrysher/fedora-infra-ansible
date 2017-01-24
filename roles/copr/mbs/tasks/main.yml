@@ -128,9 +128,13 @@
 - name: Copy mbs.wsgi file
   copy: src=mbs.wsgi dest=/opt/module-build-service/mbs.wsgi
 
-# @FIXME Use apache instead
-- name: Run mbs-frontend
-  shell: nohup mbs-frontend < /dev/null >& /tmp/mbs-frontend.out &
+- name: Create vhosts directory
+  file: path=/etc/httpd/conf/vhosts/mbs state=directory
+
+- name: Copy httpd/mbs.conf to vhosts directory
+  copy: src=httpd/mbs.conf dest=/etc/httpd/conf/vhosts/mbs/mbs.conf
+  notify: reload httpd
+
 
 
 # Only for testing purposes
