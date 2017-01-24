@@ -55,7 +55,7 @@
 
 - name: Install module-build-service package
   #dnf: name=module-build-service state=latest
-  command: dnf -y install https://kojipkgs.fedoraproject.org//packages/module-build-service/1.1.0/1.fc26/noarch/module-build-service-1.1.0-1.fc26.noarch.rpm
+  command: dnf -y install https://kojipkgs.fedoraproject.org//packages/module-build-service/1.1.0/3.fc26/noarch/module-build-service-1.1.0-3.fc26.noarch.rpm
 
 
 
@@ -64,11 +64,6 @@
 # We need to remove this file or otherwise MBS Builder code is not executed at all
 - name: Remove /etc/fedmsg.d/relay.py
   file: path=/etc/fedmsg.d/relay.py state=absent
-
-# We are workarounding module-build-service package here. Ralph confirmed that it should be done by the package
-- name: Install fedmsg.d/mbs-scheduler.py
-  get_url: url=https://pagure.io/fm-orchestrator/raw/master/f/fedmsg.d/mbs-scheduler.py dest=/etc/fedmsg.d
-
 
 # We want to run fedmsg-hub as 'mbs' user, because we don't want to rpmbuild as 'fedmsg'
 - name: Copy modified fedmsg-hub.service file
