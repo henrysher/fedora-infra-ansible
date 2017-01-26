@@ -145,7 +145,7 @@ config = {
 
     'robosignatory.ostree_refs': {
         'fedora-atomic/25/x86_64/docker-host': {
-            'directory': '/mnt/fedora_koji/koji/compose/atomic/25/',
+            'directory': '/mnt/fedora_koji/koji/atomic/25/',
             'key': 'fedora-25'
         },
         'fedora/25/x86_64/workstation': {
