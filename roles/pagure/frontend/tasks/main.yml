@@ -261,8 +261,20 @@
   tags:
   - pagure
 
-- name: set sebooleans so pagure can talk to the db
-  seboolean: name=httpd_can_network_connect_db
+- name: copy over our custom selinux module
+  copy: src=selinux/pagure.pp dest=/usr/local/share/pagure.pp
+  register: selinux_module
+  tags:
+  - pagure
+
+- name: install our custom selinux module
+  command: semodule -i /usr/local/share/pagure.pp
+  when: selinux_module|changed
+  tags:
+  - pagure
+
+- name: set sebooleans so pagure can talk to the network (db + redis)
+  seboolean: name=httpd_can_network_connect
                     state=true
                     persistent=true
   tags:
