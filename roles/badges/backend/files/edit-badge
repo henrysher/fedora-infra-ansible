@@ -26,6 +26,7 @@ def parse_args():
     parser.add_argument('--name', default=None, help='Name..')
     parser.add_argument('--description', default=None, help='Description..')
     parser.add_argument('--criteria', default=None, help='Criteria link')
+    parser.add_argument('--image', default=None, help='Image link')
     args = parser.parse_args()
     if not args.badge:
         print "You must specify a badge id."
@@ -50,7 +51,7 @@ def initialize():
     return tahrir
 
 
-def main(tahrir, badge_id, name, description, criteria):
+def main(tahrir, badge_id, name, description, criteria, image):
     badge = tahrir.get_badge(badge_id)
 
     if not badge:
@@ -70,6 +71,10 @@ def main(tahrir, badge_id, name, description, criteria):
     if criteria:
         badge.criteria = criteria
         print "Setting criteria on %r to %r" % (badge_id, criteria)
+
+    if image:
+        badge.image = image
+        print "Setting criteria on %r to %r" % (badge_id, image)
     tahrir.session.commit()
     transaction.commit()
 
