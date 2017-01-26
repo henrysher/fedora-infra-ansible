@@ -14,6 +14,11 @@ INDEXDIR=$BASEDIR/fulltext_index
 sleep $[ ( $RANDOM % 10 )  + 1 ]s # avoid simultaneous lockups on parallel servers. Yes, this is dirty.
 $BASEDIR/bin/pg-give-rights.py > /dev/null
 
+echo "Stop services"
+systemctl stop mailman3
+sleep 5
+systemctl stop httpd
+
 echo "static files"
 django-admin collectstatic --clear --noinput --verbosity 0 --pythonpath $CONFDIR --settings settings
 django-admin compress --pythonpath $CONFDIR --settings settings
@@ -26,14 +31,15 @@ chown apache:apache -R $INDEXDIR
 
 # SELinux contexts
 echo "SELinux contexts"
-restorecon -r "$BASEDIR"
+restorecon -r $BASEDIR/{bin,config,fulltext_index,static,templates}
 
 # Run unit tests
 echo "unit tests"
 django-admin test --pythonpath $CONFDIR --settings settings_test hyperkitty postorius
 
-# Reload Apache to flush the python cache
-systemctl reload httpd
+# Restart services
+systemctl start httpd
+systemctl start mailman3
 
 # Clean the cache
 systemctl restart memcached
