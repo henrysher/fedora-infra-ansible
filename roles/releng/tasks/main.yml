@@ -64,28 +64,6 @@
     - /var/spool/rsyslog
 
 - name: add pkgs
-  yum: state=present pkg={{ item }}
-  with_items:
-    - yum-utils
-    - koji
-    - strace
-    - mock
-    - nfs-utils
-    - git
-    - mash
-    - intltool
-    - mutt
-    - createrepo
-    - pykickstart
-    - pyliblzma
-    - httpd
-    - hardlink
-    - pungi
-    - pungi-utils
-    - compose-utils
-  when: ansible_distribution_major_version|int < 22
-
-- name: add pkgs
   dnf: state=present pkg={{ item }}
   with_items:
     - yum-utils
@@ -103,11 +81,15 @@
     - httpd
     - hardlink
     - pungi
-    - pungi-utils
     - compose-utils
     - python-scandir
     - python2-productmd
-  when: ansible_distribution_major_version|int > 21
+
+- name: add pkgs
+  dnf: state=present pkg={{ item }}
+  with_items:
+    - pungi-utils
+  when: "'releng-compose' in group_names"
 
 # add sigul to secondary arch compose boxes
 - name: add pkgs
