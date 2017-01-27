@@ -15,9 +15,7 @@ sleep $[ ( $RANDOM % 10 )  + 1 ]s # avoid simultaneous lockups on parallel serve
 $BASEDIR/bin/pg-give-rights.py > /dev/null
 
 echo "Stop services"
-systemctl stop mailman3
-sleep 5
-systemctl stop httpd
+systemctl stop crond mailman3 httpd
 
 echo "static files"
 django-admin collectstatic --clear --noinput --verbosity 0 --pythonpath $CONFDIR --settings settings
@@ -38,8 +36,7 @@ echo "unit tests"
 django-admin test --pythonpath $CONFDIR --settings settings_test hyperkitty postorius
 
 # Restart services
-systemctl start httpd
-systemctl start mailman3
+systemctl start httpd mailman3 crond
 
 # Clean the cache
 systemctl restart memcached
