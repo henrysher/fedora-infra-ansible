@@ -78,19 +78,19 @@ class BaseConfiguration(object):
 class ProdConfiguration(BaseConfiguration):
     DEBUG = False  # Don't turn this on.
 
-    {% if env == 'staging' %}
+{% if env == 'staging' %}
     SECRET_KEY = '{{ mbs_stg_secret_key }}'
     SQLALCHEMY_DATABASE_URI = 'postgresql://mbs:{{mbs_stg_db_password}}@db-mbs/mbs'
-    {% else %}
+{% else %}
     SECRET_KEY = '{{ mbs_prod_secret_key }}'
     SQLALCHEMY_DATABASE_URI = 'postgresql://mbs:{{mbs_prod_db_password}}@db-mbs/mbs'
-    {% endif %}
+{% endif %}
 
-    {% if env == 'staging' %}
+{% if env == 'staging' %}
     KRB_PRINCIPAL = 'modularity@STG.FEDORAPROJECT.ORG'
-    {% else %}
+{% else %}
     KRB_PRINCIPAL = 'modularity@FEDORAPROJECT.ORG'
-    {% endif %}
+{% endif %}
 
     KRB_KEYTAB = '/etc/krb5.mbs_mbs{{env_suffix}}.fedoraproject.org.keytab'
     KRB_CCACHE = '/var/cache/mbs-krb5cc'
@@ -102,18 +102,18 @@ class ProdConfiguration(BaseConfiguration):
     PDC_DEVELOP = False
 
     KOJI_CONFIG = path.join(confdir, 'koji.conf')
-    {% if env == 'staging' %}
+{% if env == 'staging' %}
     KOJI_PROFILE = 'staging'
     KOJI_ARCHES = ['x86_64']
     KOJI_REPOSITORY_URL = 'http://kojipkgs.stg.fedoraproject.org/repos'
     MESSAGING_TOPIC_PREFIX = ['org.fedoraproject.stg']
     PDC_URL = 'https://pdc.stg.fedoraproject.org/rest_api/v1'
     SCMURLS = ["git://pkgs.stg.fedoraproject.org/modules/"]
-    {% else %}
+{% else %}
     KOJI_PROFILE = 'production'
     KOJI_ARCHES = ['aarch64', 'armv7hl', 'i686', 'ppc64', 'ppc64le', 'x86_64']
     KOJI_REPOSITORY_URL = 'http://kojipkgs.fedoraproject.org/repos'
     MESSAGING_TOPIC_PREFIX = ['org.fedoraproject.prod']
     PDC_URL = 'https://pdc.fedoraproject.org/rest_api/v1'
     SCMURLS = ["git://pkgs.fedoraproject.org/modules/"]
-    {% endif %}
+{% endif %}
