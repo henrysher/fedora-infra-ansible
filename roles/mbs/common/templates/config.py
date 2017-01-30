@@ -111,7 +111,7 @@ class ProdConfiguration(BaseConfiguration):
     SCMURLS = ["git://pkgs.stg.fedoraproject.org/modules/"]
     {% else %}
     KOJI_PROFILE = 'production'
-    KOJI_ARCHES = ['x86_64']
+    KOJI_ARCHES = ['aarch64', 'armv7hl', 'i686', 'ppc64', 'ppc64le', 'x86_64']
     KOJI_REPOSITORY_URL = 'http://kojipkgs.fedoraproject.org/repos'
     MESSAGING_TOPIC_PREFIX = ['org.fedoraproject.prod']
     PDC_URL = 'https://pdc.fedoraproject.org/rest_api/v1'
