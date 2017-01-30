@@ -1,0 +1,43 @@
+---
+# Configuration for the Module Build Service (MBS) frontend webapp.
+
+- name: disable the scheduler on the frontend
+  copy: >
+    src={{ item }} dest=/etc/fedmsg.d/{{ item }}
+    owner=apache group=apache mode=0600
+  with_items:
+  - mbs-scheduler.py
+  notify:
+  - restart apache
+  tags:
+  - mbs
+  - mbs/frontend
+
+- name: copy mbs httpd config
+  template: >
+    src=mbs.conf dest=/etc/httpd/conf.d/mbs.conf
+    owner=apache group=apache mode=0644
+  notify:
+  - restart apache
+  tags:
+  - mbs
+  - mbs/frontend
+
+- name: copy custom wsgi file
+  copy: src=mbs.wsgi dest=/usr/share/mbs/mbs.wsgi mode=0644
+  notify:
+  - restart apache
+  tags:
+  - mbs
+  - mbs/frontend
+
+- name: ensure selinux lets httpd talk to postgres, memcached, and mail
+  seboolean: name={{item}} state=yes persistent=yes
+  with_items:
+  - httpd_can_network_connect_db
+  - httpd_can_network_memcache
+  - httpd_can_sendmail
+  tags:
+  - mbs
+  - mbs/frontend
+  - selinux

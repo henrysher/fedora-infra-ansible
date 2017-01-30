@@ -62,7 +62,7 @@
   handlers:
   - include: "{{ handlers }}/restart_services.yml"
 
-- name: set up fedmsg configuration
+- name: set up fedmsg configuration and common mbs files
   hosts: mbs:mbs-stg
   user: root
   gather_facts: True
@@ -74,6 +74,7 @@
 
   roles:
   - fedmsg/base
+  - mbs/common
 
   handlers:
   - include: "{{ handlers }}/restart_services.yml"
@@ -89,7 +90,7 @@
    - "{{ vars_path }}/{{ ansible_distribution }}.yml"
 
   roles:
-  #- mbs/frontend
+  - mbs/frontend
 
   handlers:
   - include: "{{ handlers }}/restart_services.yml"
@@ -105,6 +106,10 @@
    - "{{ vars_path }}/{{ ansible_distribution }}.yml"
 
   roles:
+  - role: keytab/service
+    service: mbs
+    owner_user: fedmsg
+    host: "mbs{{env_suffix}}.fedoraproject.org"
   - fedmsg/hub
   #- mbs/backend
 

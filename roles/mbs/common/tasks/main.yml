@@ -1,0 +1,27 @@
+---
+# Common configuration for the Module Build Service (MBS) pieces
+
+- name: install needed packages
+  yum: pkg={{ item }} state=present
+  with_items:
+  - module-build-service
+  - python-psycopg2
+  - libsemanage-python
+  - python-memcached
+  notify:
+  - restart apache
+  - restart fedmsg-hub
+  tags:
+  - mbs
+  - mbs/common
+
+- name: copy app configuration
+  template: >
+    src=config.py dest=/etc/module-build-service/config.py
+    owner=root group=fedmsg mode=0640
+  notify:
+  - restart apache
+  - restart fedmsg-hub
+  tags:
+  - mbs
+  - mbs/common
