@@ -89,12 +89,11 @@
   file: path=/etc/module-build-service/__init__.py state=touch
 
 - name: Copy production config
-  copy: src=config.py dest=/etc/module-build-service/config.py
+  template: src=config.py dest=/etc/module-build-service/config.py
 
+- name: Install client_secrets.json
+  template: src=client_secrets.json dest=/etc/module-build-service/
 
-# @TODO Should be packaged in module_build_service package? Or we need to create our own?
-- name: Obtain client_secrets.json
-  get_url: url=https://pagure.io/fm-orchestrator/raw/master/f/conf/client_secrets.json dest=/etc/module-build-service/
 
 - name: Upgrade database
   command: mbs-upgradedb
