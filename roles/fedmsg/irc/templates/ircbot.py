@@ -454,6 +454,29 @@ config = dict(
                 body=['^((?!(magazine|Magazine)).)*$'],
             ),
         ),
+
+        # And #fedora-rust
+        dict(
+            network='chat.freenode.net',
+            port=6667,
+            make_pretty=True,
+            make_terse=True,
+
+            {% if env == 'staging' %}
+            nickname='fm-stg-rust',
+            {% else %}
+            nickname='fm-rust',
+            {% endif %}
+            channel='fedora-rust',
+            filters=dict(
+                topic=[
+                    '^((?!(pagure)).)*$',
+                ],
+                body=[
+                    "^((?!((u)?'namespace': (u)?'fedora-rust')).)*$",
+                ],
+            ),
+        ),
     ],
 
     ### Possible colors are ###
