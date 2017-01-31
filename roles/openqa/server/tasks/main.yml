@@ -60,8 +60,11 @@
     shell: /sbin/nologin
   when: "openqa_static_uid is defined"
 
-- name: Install required packages (testing)
-  dnf: name={{ item }} state=present enablerepo="updates-testing"
+# this is separate from the step below so we can easily flip it between
+# stable and testing
+- name: Install openQA packages
+#  dnf: name={{ item }} state=present enablerepo="updates-testing"
+  dnf: name={{ item }} state=present
   with_items:
   - openqa
   - openqa-httpd
@@ -69,7 +72,7 @@
   tags:
   - packages
 
-- name: Install required packages
+- name: Install various other required packages
   dnf: name={{ item }} state=present
   with_items:
   - libselinux-python
