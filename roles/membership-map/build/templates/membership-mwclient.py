@@ -102,7 +102,7 @@ def calc_list():
     base_url = 'https://admin.fedoraproject.org/accounts/'
 {% endif %}
 
-    fas = AccountSystem(base_url=base_url, username=username, password=password)
+    fas = AccountSystem(base_url=base_url, username=username, password=password, timeout=600)
 
     # Call fedoraproject API with mwclient
 {% if env == "staging" %}
