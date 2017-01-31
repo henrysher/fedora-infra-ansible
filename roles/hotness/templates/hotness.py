@@ -56,8 +56,8 @@ config = {
         'git_url': 'https://src.fedoraproject.org/cgit/rpms/{package}.git',
 {% endif %}
 
-        'krb_principal': None,
-        'krb_keytab': None,
+        'krb_principal': 'hotness/hotness01.{{env_suffix}}phx2.fedoraproject.org',
+        'krb_keytab': '/etc/krb5.hotness_hotness01.{{env_suffix}}phx2.fedoraproject.org.keytab',
         'krb_ccache': None,
         'krb_sessionopts': {'timeout': 3600, 'krb_rdns': False},
 
