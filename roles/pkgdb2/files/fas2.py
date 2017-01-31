@@ -263,6 +263,8 @@ class AccountSystem(BaseClient):
             160404: 'ctubbsii@fedoraproject.org',
             # Björn Esser: bjoern.esser@gmail.com
             163460: 'besser82@fedoraproject.org',
+            # Amit Shah: amit@amitshah.net
+            115389: 'amitshah@fedoraproject.org',
         }
         # A few people have an email account that is used in owners.list but
         # have setup a bugzilla account for their primary account system email
