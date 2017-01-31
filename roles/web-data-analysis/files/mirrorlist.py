@@ -34,7 +34,7 @@ out which releases and architectures were looked for, and by how much.
 '''
 
 log_line = [
-    r"(?P<host>[\d\.]+)\s",
+    r"(?P<host>([\d\.]+|[0-9a-fA-F\:]+))\s",
     r"(?P<identity>\S*)\s",
     r"(?P<user>\S*)\s",
     r"\[(?P<time>.*?)\]\s",
