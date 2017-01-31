@@ -260,3 +260,30 @@
   copy: src=sub-planets/summer-coding/base_config dest=/etc/planet/summer-coding/base_config mode=0644 owner=root group=root
   tags:
     - planet_server
+#
+#
+# QA
+#
+
+- name: create planet directory (quality)
+  file: path={{ item }} state=directory owner=planet-user group=web mode=0775
+  with_items:
+    - /etc/planet/quality
+    - /srv/planet/config/quality
+    - /srv/planet/config/quality/cache
+    - /srv/planet/site/quality
+
+- name: copy the planet cron job (quality)
+  copy: src=sub-planets/quality/planet-group.cron dest=/etc/cron.d/planet-quality.cron
+  tags:
+    - planet_server
+
+- name: copy the planet fpbulder.conf (quality)
+  copy: src=sub-planets/quality/fpbuilder.conf dest=/etc/planet/quality/fpbuilder.conf
+  tags:
+    - planet_server
+
+- name: copy the planet base_config (quality)
+  copy: src=sub-planets/quality/base_config dest=/etc/planet/quality/base_config mode=0644 owner=root group=root
+  tags:
+    - planet_server
