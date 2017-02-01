@@ -59,6 +59,7 @@ config = {
         'krb_principal': 'hotness/hotness01{{env_suffix}}.phx2.fedoraproject.org@{{ipa_realm}}',
         'krb_keytab': '/etc/krb5.hotness_hotness01{{env_suffix}}.phx2.fedoraproject.org.keytab',
         'krb_ccache': None,
+        'krb_proxyuser': None,
         'krb_sessionopts': {'timeout': 3600, 'krb_rdns': False},
 
         'user_email': ('Fedora Release Monitoring ',
