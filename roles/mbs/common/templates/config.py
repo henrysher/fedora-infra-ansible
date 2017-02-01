@@ -93,7 +93,7 @@ class ProdConfiguration(BaseConfiguration):
 {% endif %}
 
     KRB_KEYTAB = '/etc/krb5.mbs_mbs{{env_suffix}}.fedoraproject.org.keytab'
-    KRB_CCACHE = '/var/cache/mbs-krb5cc'
+    KRB_CCACHE = '/var/cache/fedmsg/mbs-krb5cc'
 
     LOG_LEVEL = 'debug'
     LOG_BACKEND = 'console'
