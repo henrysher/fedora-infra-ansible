@@ -49,6 +49,6 @@ LOGGING = {}
 # Disable caching
 CACHES = {
     'default': {
-        'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
     }
 }
