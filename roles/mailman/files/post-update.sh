@@ -33,7 +33,7 @@ restorecon -r $BASEDIR/{bin,config,fulltext_index,static,templates}
 
 # Run unit tests
 echo "unit tests"
-django-admin test --pythonpath $CONFDIR --settings settings_test hyperkitty postorius django_mailman3
+django-admin test --pythonpath $CONFDIR --settings settings_test hyperkitty postorius
 
 # Restart services
 systemctl start httpd mailman3 crond
