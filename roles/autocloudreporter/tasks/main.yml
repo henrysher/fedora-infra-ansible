@@ -21,6 +21,18 @@
   tags:
   - packages
 
+- name: Check out resultsdb_conventions (not packaged yet)
+  git:
+    repo: https://pagure.io/fedora-qa/resultsdb_conventions.git
+    dest: /root/resultsdb_conventions
+  register: gitrdbc
+
+- name: Install resultsdb_conventions
+  command: "python setup.py install"
+  args:
+    chdir: /root/resultsdb_conventions
+  when: "gitrdbc|changed"
+
 - name: Check out autocloudreporter
   git:
     repo: https://pagure.io/fedora-qa/autocloudreporter.git
