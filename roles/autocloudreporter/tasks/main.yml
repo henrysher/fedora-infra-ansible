@@ -1,0 +1,43 @@
+# This role reports Autocloud results to ResultsDB. There should
+# always be exactly one host in infra with this role set up and
+# autocloudreporter_prod set to True, so all results are reported
+# once.
+#
+# Required vars
+#
+# Required vars with defaults
+# - autocloudreporter_prod
+##       bool - whether this is the production instance. **SHOULD ONLY
+##              EVER BE TRUE ON ONE SYSTEM IN THE WORLD**
+##       default - False
+
+- name: Install required packages
+  dnf: name={{ item }} state=present
+  with_items:
+  - python2-fedfind
+  - python2-fedmsg-consumers
+  - python2-resultsdb_api
+  - python-setuptools
+  tags:
+  - packages
+
+- name: Check out autocloudreporter
+  git:
+    repo: https://pagure.io/fedora-qa/autocloudreporter.git
+    dest: /root/autocloudreporter
+  register: gitacr
+
+- name: Install autocloudreporter
+  command: "python setup.py install"
+  args:
+    chdir: /root/autocloudreporter
+  when: "gitacr|changed"
+  notify:
+  - restart fedmsg-hub
+
+- name: Enable fedmsg consumer
+  template: src=autocloudreporter.py.j2 dest=/etc/fedmsg.d/autocloudreporter.py owner=root group=root mode=0644
+  notify:
+  - restart fedmsg-hub
+  tags:
+  - config
