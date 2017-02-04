@@ -59,6 +59,8 @@ config = {
 {% if env == "production" %}
         'cert': '/etc/pki/fedmsg/hotness.pem',
         'ca_cert': '/etc/pki/fedmsg/fedora-server-ca.cert',
+        'userstring': ('Fedora Release Monitoring ',
+                       '<release-monitoring@fedoraproject.org>'),
 {% else %}
         'krb_principal': 'hotness/hotness01{{env_suffix}}.phx2.fedoraproject.org@{{ipa_realm}}',
         'krb_keytab': '/etc/krb5.hotness_hotness01{{env_suffix}}.phx2.fedoraproject.org.keytab',
