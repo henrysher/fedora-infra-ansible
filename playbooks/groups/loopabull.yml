@@ -1,0 +1,31 @@
+# create a new loopabull server
+- include: "/srv/web/infra/ansible/playbooks/include/virt-create.yml myhosts=loopabull-stg"
+
+- name: make the box be real
+  hosts: loopabull-stg
+  user: root
+  gather_facts: True
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  pre_tasks:
+  - include: "{{ tasks }}/yumrepos.yml"
+
+  roles:
+  - base
+  - rkhunter
+  - nagios/client
+  - hosts
+  - fas_client
+  - collectd/base
+  - sudo
+
+  tasks:
+  - include: "{{ tasks }}/2fa_client.yml"
+  - include: "{{ tasks }}/motd.yml"
+
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"
