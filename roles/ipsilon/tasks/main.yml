@@ -16,12 +16,15 @@
   - python-psycopg2
   - libsemanage-python
   tags:
+  - ipsilon
   - packages
 
 - name: Copy OpenID API extension
   copy: src=api.py
         dest=/usr/lib/python2.7/site-packages/ipsilon/providers/openid/extensions/api.py
         owner=root group=root mode=0644
+  tags:
+  - ipsilon
 
 - name: Copy OpenID Connect scope registrations
   copy: src=oidc_scopes/{{item}}.py
@@ -37,16 +40,22 @@
   copy: src=openid_server.py
         dest=/usr/lib/python2.7/site-packages/openid/server/server.py
         owner=root group=root mode=0644
+  tags:
+  - ipsilon
 
 - name: copy ipsilon templates
   copy: src=templates/
         dest=/usr/share/ipsilon/templates-fedora
         owner=ipsilon group=ipsilon mode=0666
+  tags:
+  - ipsilon
 
 - name: copy ipsilon ui assets
   copy: src=ui-fedora/
         dest=/usr/share/ipsilon/ui/fedora
         owner=ipsilon group=ipsilon mode=0666
+  tags:
+  - ipsilon
 
 - name: copy ipsilon configuration
   template: src={{ item }}.conf
@@ -56,6 +65,7 @@
   - ipsilon
   - configuration
   tags:
+  - ipsilon
   - config
   notify:
   - restart apache
@@ -67,6 +77,7 @@
   - ipsilon
   - configuration
   tags:
+  - ipsilon
   - config
   notify:
   - restart apache
@@ -74,81 +85,115 @@
 - name: copy ipsilon httpd config
   template: src=ipsilon-httpd.conf.j2
             dest=/etc/httpd/conf.d/ipsilon.conf
+  tags:
+  - ipsilon
 
 - name: Create Ipsilon config symlink
   file: dest=/var/lib/ipsilon/ipsilon.conf
         src=/etc/ipsilon/ipsilon.conf
         state=link
+  tags:
+  - ipsilon
 
 - name: create wellknown directory
   file: path=/etc/ipsilon/wellknown state=directory
         owner=ipsilon group=ipsilon mode=0755
+  tags:
+  - ipsilon
 
 - name: copy persona private key
   copy: src={{ private }}/files/ipsilon/persona.key dest=/etc/ipsilon/persona.key
         owner=ipsilon group=ipsilon mode=0600
   when: env != "staging"
+  tags:
+  - ipsilon
 
 - name: copy persona public key
   copy: src=browserid dest=/etc/ipsilon/wellknown/browserid
         owner=ipsilon group=ipsilon mode=0644
   when: env != "staging"
+  tags:
+  - ipsilon
 
 - name: copy persona STG private key
   copy: src={{ private }}/files/ipsilon/persona.stg.key dest=/etc/ipsilon/persona.stg.key
         owner=ipsilon group=ipsilon mode=0600
   when: env == "staging"
+  tags:
+  - ipsilon
 
 - name: copy persona STG public key
   copy: src=browserid.stg dest=/etc/ipsilon/wellknown/browserid
         owner=ipsilon group=ipsilon mode=0644
   when: env == "staging"
+  tags:
+  - ipsilon
 
 - name: copy OIDC private key
   copy: src={{ private }}/files/ipsilon/openidc.key dest=/etc/ipsilon/openidc.key
         owner=ipsilon group=ipsilon mode=0600
   when: env != "staging"
+  tags:
+  - ipsilon
 
 - name: copy OIDC STG private key
   copy: src={{ private }}/files/ipsilon/openidc.stg.key dest=/etc/ipsilon/openidc.stg.key
         owner=ipsilon group=ipsilon mode=0600
   when: env == "staging"
+  tags:
+  - ipsilon
 
 - name: create SAML2 dir
   file: path=/etc/ipsilon/saml2 state=directory mode=0700
         owner=ipsilon group=ipsilon setype=httpd_var_lib_t
+  tags:
+  - ipsilon
 
 - name: copy SAML2 private key
   copy: src={{ private }}/files/saml2/production/keys/idp.key dest=/etc/ipsilon/saml2/idp.key
         owner=ipsilon group=ipsilon mode=0600
   when: env != "staging"
+  tags:
+  - ipsilon
 
 - name: copy SAML2 public key
   copy: src={{ private }}/files/saml2/production/keys/idp.crt dest=/etc/ipsilon/saml2/idp.crt
         owner=ipsilon group=ipsilon mode=0644
   when: env != "staging"
+  tags:
+  - ipsilon
 
 - name: copy SAML2 metadata
   copy: src={{ private }}/files/saml2/idp-{{env}}.xml dest=/etc/ipsilon/saml2/metadata.xml
         owner=ipsilon group=ipsilon mode=0644
+  tags:
+  - ipsilon
 
 - name: copy SAML2 STG private key
   copy: src={{ private }}/files/ipsilon/saml2.stg.key dest=/etc/ipsilon/saml2/certificate.stg.key
         owner=ipsilon group=ipsilon mode=0600
   when: env == "staging"
+  tags:
+  - ipsilon
 
 - name: copy SAML STG public key
   copy: src=saml2.stg.pem dest=/etc/ipsilon/saml2/certificate.stg.pem
         owner=ipsilon group=ipsilon mode=0644
   when: env == "staging"
+  tags:
+  - ipsilon
 
 
 - name: set sebooleans so ipsilon can talk to the db
   seboolean: name=httpd_can_network_connect_db
                     state=true
                     persistent=true
+  tags:
+  - ipsilon
 
 - name: apply selinux type to the wsgi file
   file: >
     dest=/usr/libexec/ipsilon
     setype=httpd_sys_content_t
+  tags:
+  - ipsilon
