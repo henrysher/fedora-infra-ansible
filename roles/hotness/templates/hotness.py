@@ -16,14 +16,14 @@ Based on the information from anitya:  https://release-monitoring.org/project/%(
 """
 
 config = {
-    #{% if env == 'staging' %}
-    ## Establish a loop from prod anitya back into the staging hotness.
-    #'endpoints': {
-    #    'anitya-public-relay': [
-    #        'tcp://release-monitoring.org:9940',
-    #    ],
-    #},
-    #{% endif %}
+    {% if env == 'staging' %}
+    # Establish a loop from prod anitya back into the staging hotness.
+    'endpoints': {
+        'anitya-public-relay': [
+            'tcp://release-monitoring.org:9940',
+        ],
+    },
+    {% endif %}
 
     'hotness.bugzilla.enabled': True,
 
