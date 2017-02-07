@@ -26,13 +26,6 @@ config = {
                 'keytab': '/etc/krb5.autosign_autosign01.phx2.fedoraproject.org.keytab'
             },
             'tags': [
-                # Temporary tags for rebuilds
-                {
-                    "from": "f26-ruby24",
-                    "to": "f26-ruby24",
-                    "key": "fedora-26",
-                    "keyid": "64dab85d"
-                },
                 # Normal tags
                 {
                     "from": "epel6-infra-candidate",
@@ -144,6 +137,10 @@ config = {
     },
 
     'robosignatory.ostree_refs': {
+        'fedora-atomic/25/x86_64/updates/docker-host': {
+            'directory': '/mnt/fedora_koji/koji/mash/atomic/25/',
+            'key': 'fedora-25'
+        },
         'fedora-atomic/25/x86_64/docker-host': {
             'directory': '/mnt/fedora_koji/koji/mash/atomic/25/',
             'key': 'fedora-25'
