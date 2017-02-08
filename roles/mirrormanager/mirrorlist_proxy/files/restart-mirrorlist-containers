@@ -9,14 +9,13 @@
 ## Check that pkl is newer than old pkl
 if [ /srv/mirrorlist/data/mirrorlist1/mirrorlist_cache.pkl -nt /srv/mirrorlist/data/mirrorlist2/mirrorlist_cache.pkl ]; then
 	# new pkl
+	continue
 else
 	# No new pkl
         exit 0
 fi
 ## check mirrorlist1 running
-if [ `systemctl show mirrorlist1 -p ActiveState` == 'ActiveState=active' ]; then
-	# mirrorlist1 is running ok
-else
+if [ `systemctl show mirrorlist1 -p ActiveState` != 'ActiveState=active' ]; then
 	# mirrorlist1 not running, there is a problem
 	echo "Error: mirrorlist1 is not running as expected"
 	exit 1
