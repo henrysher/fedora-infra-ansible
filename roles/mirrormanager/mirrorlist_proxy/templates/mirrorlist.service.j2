@@ -1,0 +1,14 @@
+[Unit]
+Description=Mirrorlist Container {{ item }}
+After=docker.service
+Requires=docker.service
+
+[Service]
+TimeoutStartSec=0
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/bin/docker run --detach --name %n -v /srv/mirrorlist/data/mirrorlist{{ item }}:/var/lib/mirrormanager:z -v /var/log/mirrormanager:/var/log/mirrormanager:z -p 1808{{ item }}:80 {{ mirrorlist_container_image }} -l /var/log/mirrormanager/%n.log
+ExecStop=/usr/bin/docker rm --force %n
+
+[Install]
+WantedBy=multi-user.target
