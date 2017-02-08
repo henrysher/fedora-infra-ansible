@@ -31,8 +31,14 @@ if [ $? != 0 ]; then
 	exit 1
 fi
 
+# Drain mirrorlist1. This is safe since we assured that local2 is serving
+echo "disable server mirror-lists/mirrorlist-local1" | nc -U /var/run/haproxy-admin
+sleep 1
+
 # restart mirrorlist1 (new pkl and make sure it's processing ok)
 systemctl restart mirrorlist1
+sleep 1
+echo "enable server mirror-lists/mirrorlist-local1" | nc -U /var/run/haproxy-admin
 
 sleep 15
 curl -q -H mirrors.fedoraproject.org "http://localhost:18081/metalink?repo=rawhide&arch=x86_64" -o/dev/null -s -f
