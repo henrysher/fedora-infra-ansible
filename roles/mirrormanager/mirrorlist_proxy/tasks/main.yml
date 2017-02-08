@@ -51,3 +51,16 @@
   service: name=mirrorlist1 enabled=yes
   tags:
   - mirrorlist_proxy
+
+# install our cron script to handle hourly new pkl changes. 
+- name: install script to restart mirrorlist containers on pkl changes
+  copy: src=restart-mirrorlist-containers dest=/usr/local/bin/restart-mirrorlist-containers
+  tags:
+  - mirrorlist_proxy
+
+- name: Setup hourly cron at for pkl reload restarts
+  cron: name="restart-mirrorlist-containers" minute="10" user="root"
+        job="/usr/local/bin/restart-mirrorlist-containers"
+        cron_file=restart-mirrorlist-containers
+  tags:
+  - mirrorlist_proxy
