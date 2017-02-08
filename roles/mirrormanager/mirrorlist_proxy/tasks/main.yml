@@ -1,6 +1,20 @@
 ---
 # tasklist for setting up the mirrorlist app as a container on proxies
 
+
+- name: add mirrormanager user - uid {{ mirrormanager_uid }}
+  user: name=mirrormanager uid={{ mirrormanager_uid }} state=present home=/home/mirrormanager createhome=yes
+  tags:
+  - mirrorlist_proxy
+
+# mirrormanager user ssh key(s)
+- name: add authorized_keys for mirrormanager
+  authorized_key: key="{{ item }}" user=mirrormanager state=present
+  with_file:
+  - mm-authorized_key
+  tags:
+  - mirrorlist_proxy
+
 - name: setup directories
   file: dest="{{item}}" mode=0755 state=directory
   with_items:
@@ -12,6 +26,13 @@
   - /var/log/mirrormanager2
   tags:
   - mirrorlist_proxy
+
+- name: make sure mirrormanager user can write new pkl files
+  file: dest="{{item}}" user=mirrormanager
+  with_items:
+  - /srv/mirrorlist/data
+  - /srv/mirrorlist/data/mirrorlist1
+  - /srv/mirrorlist/data/mirrorlist2
 
 - name: Install docker
   package: name={{item}} state=present
