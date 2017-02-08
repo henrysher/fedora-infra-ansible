@@ -1,0 +1,51 @@
+#!/bin/bash
+
+#
+# This job handles hourly restarting mirrorlist container(s) and making sure all is well. 
+#
+
+# Initial expected state is mirrorlist1 running, mirrorlist2 not running and new pkl
+
+## Check that pkl is newer than old pkl
+if [ /srv/mirrorlist/data/mirrorlist1/mirrorlist_cache.pkl -nt /srv/mirrorlist/data/mirrorlist2/mirrorlist_cache.pkl ]; then
+	# new pkl
+        continue
+else
+	# No new pkl
+        exit 0
+fi
+## check mirrorlist1 running
+if [ `systemctl show mirrorlist1 -p ActiveState` == 'ActiveState=active' ]; then
+	# mirrorlist1 is running ok
+        continue
+else
+	# mirrorlist1 not running, there is a problem
+	echo "Error: mirrorlist1 is not running as expected"
+	exit 1
+fi
+
+# start mirrorlist2 (old pkl and see that it's processing ok)
+systemctl start mirrorlist2
+
+sleep 15
+curl -q -H mirrors.fedoraproject.org "http://localhost:18082/metalink?repo=rawhide&arch=x86_64" -o/dev/null -s
+if [ $? != 0 ]; then
+	echo "ERROR: mirrorlist2 did not start correctly"
+	exit 1
+fi
+
+# restart mirrorlist1 (new pkl and make sure it's processing ok)
+systemctl restart mirrorlist1
+
+sleep 15
+curl -q -H mirrors.fedoraproject.org "http://localhost:18081/metalink?repo=rawhide&arch=x86_64" -o/dev/null -s
+if [ $? != 0 ]; then
+	echo "ERROR: mirrorlist1 did not restart correctly"
+	exit 1
+fi
+
+# copy new pkl to mirrorlist2
+cp -a /srv/mirrorlist/data/mirrorlist1/* /srv/mirrorlist/data/mirrorlist2/
+
+# stop mirrorlist2
+systemctl stop mirrorlist2
