@@ -49,11 +49,11 @@ config = {
 {% if env == 'staging' %}
         'server': 'https://koji.stg.fedoraproject.org/kojihub',
         'weburl': 'https://koji.stg.fedoraproject.org/koji',
-        'git_url': 'https://src.stg.fedoraproject.org/cgit/rpms/{package}.git',
+        'git_url': 'https://src.stg.fedoraproject.org/rpms/{package}.git',
 {% else %}
         'server': 'https://koji.fedoraproject.org/kojihub',
         'weburl': 'https://koji.fedoraproject.org/koji',
-        'git_url': 'https://src.fedoraproject.org/cgit/rpms/{package}.git',
+        'git_url': 'https://src.fedoraproject.org/rpms/{package}.git',
 {% endif %}
 
 {% if env == "production" %}
