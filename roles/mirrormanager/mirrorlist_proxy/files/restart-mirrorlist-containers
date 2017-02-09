@@ -23,7 +23,7 @@ fi
 
 # start mirrorlist2 (old pkl and see that it's processing ok)
 systemctl start mirrorlist2
-echo "enable server mirror-lists/mirrorlist-local2" | nc -U /var/run/haproxy-admin
+echo "enable server mirror-lists/mirrorlist-local2" | nc -U /var/run/haproxy-admin >& /dev/null
 
 sleep 15
 curl -q -H mirrors.fedoraproject.org "http://localhost:18082/metalink?repo=rawhide&arch=x86_64" -o/dev/null -s -f
@@ -33,13 +33,13 @@ if [ $? != 0 ]; then
 fi
 
 # Drain mirrorlist1. This is safe since we assured that local2 is serving
-echo "disable server mirror-lists/mirrorlist-local1" | nc -U /var/run/haproxy-admin
+echo "disable server mirror-lists/mirrorlist-local1" | nc -U /var/run/haproxy-admin >& /dev/null
 sleep 1
 
 # restart mirrorlist1 (new pkl and make sure it's processing ok)
 systemctl restart mirrorlist1
 sleep 1
-echo "enable server mirror-lists/mirrorlist-local1" | nc -U /var/run/haproxy-admin
+echo "enable server mirror-lists/mirrorlist-local1" | nc -U /var/run/haproxy-admin >& /dev/null
 
 sleep 15
 curl -q -H mirrors.fedoraproject.org "http://localhost:18081/metalink?repo=rawhide&arch=x86_64" -o/dev/null -s -f
@@ -52,7 +52,7 @@ fi
 cp -a /srv/mirrorlist/data/mirrorlist1/* /srv/mirrorlist/data/mirrorlist2/
 
 # Drain mirrorlist2
-echo "disable server mirror-lists/mirrorlist-local2" | nc -U /var/run/haproxy-admin
+echo "disable server mirror-lists/mirrorlist-local2" | nc -U /var/run/haproxy-admin >& /dev/null
 sleep 1
 
 # stop mirrorlist2
@@ -60,4 +60,4 @@ systemctl stop mirrorlist2
 
 # Now that it's stopped, we can re-enable it. That makes sure that if anything went wrong, we
 # still have it enabled
-echo "enable server mirror-lists/mirrorlist-local2" | nc -U /var/run/haproxy-admin
+echo "enable server mirror-lists/mirrorlist-local2" | nc -U /var/run/haproxy-admin >& /dev/null
