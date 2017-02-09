@@ -75,6 +75,11 @@ config = {
         ##'pdcupdater.handlers.pkgdb:NewPackageBranchHandler',
         ##'pdcupdater.handlers.rpms:NewRPMHandler',
         ##'pdcupdater.handlers.persons:NewPersonHandler',
+
+        {% if env == 'staging' %}
+        # For MBS https://fedoraproject.org/wiki/Changes/ModuleBuildService
+        'pdcupdater.handlers.modules:ModuleStateChangeHandler',
+        {% endif %}
     ],
 
     'logging': dict(
