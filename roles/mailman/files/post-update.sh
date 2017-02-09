@@ -37,6 +37,3 @@ django-admin test --pythonpath $CONFDIR --settings settings_test hyperkitty post
 
 # Restart services
 systemctl start httpd mailman3 crond
-
-# Clean the cache
-systemctl restart memcached
