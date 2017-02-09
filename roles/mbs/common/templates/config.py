@@ -117,3 +117,6 @@ class ProdConfiguration(BaseConfiguration):
     PDC_URL = 'https://pdc.fedoraproject.org/rest_api/v1'
     SCMURLS = ["git://pkgs.fedoraproject.org/modules/"]
 {% endif %}
+
+    # These aren't really secret.
+    OIDC_CLIENT_SECRETS = path.join(confdir, 'client_secrets.json')
