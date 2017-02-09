@@ -9,7 +9,7 @@ done
 
 # sync also to new mirrorlist containers on proxies
 
-MIRRORLIST_PROXY="proxy02.fedoraproject.org"
+MIRRORLIST_PROXY="proxy02.fedoraproject.org proxy05.fedoraproject.org"
 
 for s in ${MIRRORLIST_PROXY}; do
 	rsync -az --delete-delay --delay-updates --delete /var/lib/mirrormanager/{*pkl,*txt} ${s}:/srv/mirrorlist/data/mirrorlist1/
