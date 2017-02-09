@@ -193,6 +193,12 @@ sub vcl_recv {
 
     if (req.http.X-Forwarded-Server ~ "^registry.fedoraproject.org" || req.http.X-Forwarded-Server ~ "^registry.stg.fedoraproject.org") {
         set req.backend_hint = registry;
+        unset req.http.cookie;
+        set req.http.clear-cookies = "yes";
+        set req.url = regsub(req.url, "\?.*", "");
+        if (req.url ~ "/blobs/") {
+            return(pass);
+        }
     }
     if (req.url ~ "^/wiki/") {
         set req.backend_hint = wiki;
