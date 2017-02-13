@@ -22,6 +22,7 @@ if 'PAGURE_CONFIG' not in os.environ \
 
 import pagure
 from pagure import SESSION
+from pagure.exceptions import PagureException
 
 TESTING = False
 
@@ -34,14 +35,26 @@ GRP_URL = 'https://admin.fedoraproject.org/pkgdb/api/groups?format=json'
 {% endif %}
 
 
+def get_user_info(username):
+    ''' Uses python-fedora to get information about a FAS user '''
+
+    user = {
+        'username': username,
+        'fullname': username,
+        'default_email': '%s@fedoraproject.org' % username
+    }
+    return user
+
+
 def create_user_obj(username):
     ''' Creates a sqlalchemy user object for pagure db '''
     try:
+        userinfo = get_user_info(username)
         user = pagure.lib.set_up_user(
-            SESSION,
-            username,
-            username,
-            '%s@fedorahosted.org' % username
+            session=SESSION,
+            username=username,
+            fullname=userinfo['fullname'],
+            default_email=userinfo['default_email']
         )
         SESSION.commit()
     except SQLAlchemyError:
@@ -62,7 +75,7 @@ def create_groups_in_db(groups):
         if len(groups[groupname]) == 0:
             continue
 
-        # first insure the users in the groups are present in the db
+        # first make sure that the users in the groups are present in the db
         group_users = groups[groupname]
         for guser in group_users:
             user_obj = pagure.lib.search_user(SESSION, username=guser)
@@ -75,9 +88,15 @@ def create_groups_in_db(groups):
             # add the group to the db using the first user in the group
             try:
                 pagure.lib.add_group(
-                    SESSION, groupname, 'user',
-                    groups[groupname][0], False,
-                    pagure.APP.config['BLACKLISTED_GROUPS'])
+                    session=SESSION,
+                    group_name=groupname,
+                    display_name=groupname,
+                    description=None,
+                    group_type='user',
+                    user=groups[groupname][0],
+                    is_admin=False,
+                    blacklist=pagure.APP.config['BLACKLISTED_GROUPS']
+                )
                 SESSION.commit()
             except SQLAlchemyError:
                 SESSION.rollback()
@@ -85,18 +104,20 @@ def create_groups_in_db(groups):
                     print 'Adding a user to group failed'
 
         # now that all groups are present in the db
-        # ensure all the members are there in the group in the db
+        # make sure that all the members are there in the group in the db
         for guser in group_users:
             if not pagure.lib.is_group_member(SESSION, guser, groupname):
                 group_obj = pagure.lib.search_groups(
-                    SESSION, group_name=groupname)
+                    session=SESSION,
+                    group_name=groupname
+                )
                 try:
-                    msg = pagure.lib.add_user_to_group(
-                        SESSION,
-                        guser,
-                        group_obj,
-                        groups[groupname][0],
-                        False
+                    pagure.lib.add_user_to_group(
+                        session=SESSION,
+                        username=guser,
+                        group=group_obj,
+                        user=groups[groupname][0],
+                        is_admin=False
                     )
                     SESSION.commit()
                 except SQLAlchemyError:
@@ -105,116 +126,139 @@ def create_groups_in_db(groups):
                         print 'Adding a user to group failed'
 
 
-def update_owners_to_db(pkg, owners):
+def update_owners_to_db(namespace, pkg, owners):
     ''' Adds owners to pagure db '''
 
     for owner in owners:
-        # check if the owners are present in the db if not create them
+        # check if the owners are present in the db
+        # if not create them
         owner_obj = pagure.lib.search_user(SESSION, username=owner)
         if not owner_obj:
             owner_obj = create_user_obj(owner)
 
-        # check if the repo exists, if not create
-        pkg_obj = pagure.lib.get_project(SESSION, name='rpms/%s' % pkg)
+        pkg_obj = pagure.lib.get_project(
+            SESSION, name=pkg, namespace=namespace)
 
         # this flag is for avoiding unnecessary db queries
         flag = True
         if not pkg_obj:
-            pkgname = pkg
             try:
-                msg = pagure.lib.new_project(
-                    SESSION,
-                    owner,
-                    'rpms/%s' % pkgname,
-                    pagure.APP.config['BLACKLISTED_PROJECTS'],
-                    pagure.APP.config['ALLOWED_PREFIX'],
-                    pagure.APP.config['GIT_FOLDER'],
-                    pagure.APP.config['DOCS_FOLDER'],
-                    pagure.APP.config['TICKETS_FOLDER'],
-                    pagure.APP.config['REQUESTS_FOLDER'],
+                pagure.lib.new_project(
+                    session=SESSION,
+                    user=owner,
+                    namespace=namespace,
+                    name=pkg,
+                    blacklist=pagure.APP.config['BLACKLISTED_PROJECTS'],
+                    allowed_prefix=pagure.APP.config['ALLOWED_PREFIX'],
+                    gitfolder=pagure.APP.config['GIT_FOLDER'],
+                    docfolder=pagure.APP.config['DOCS_FOLDER'],
+                    ticketfolder=pagure.APP.config['TICKETS_FOLDER'],
+                    requestfolder=pagure.APP.config['REQUESTS_FOLDER'],
                 )
                 SESSION.commit()
                 flag = False
-            except SQLAlchemyError:
+            except SQLAlchemyError as err:
                 SESSION.rollback()
                 if TESTING:
-                    print "Couldn't create project"
+                    print "Couldn't create project - %s" % pkg
+                    print "ERROR: %s" % err
+            except PagureException as err:
+                if TESTING:
+                    print "Couldn't create project - %s" % pkg
+                    print "ERROR: %s" % err
 
-        # so now the pkg surely exists, make the owner, the owner of the repo
-        # if (s)he is not
+        # so now the pkg surely exists, make the owner,
+        # the owner of the repo if he is not
         if not flag:
-            pkg_obj = pagure.lib.get_project(SESSION, name='rpms/%s' % pkg)
+            pkg_obj = pagure.lib.get_project(
+                session=SESSION,
+                name=pkg,
+                namespace=namespace
+            )
 
-        if owner_obj not in pkg_obj.users and owner_obj is not pkg_obj.user:
+        if owner_obj not in pkg_obj.admins and owner_obj is not pkg_obj.user:
             try:
-                msg = pagure.lib.add_user_to_project(
-                    SESSION,
-                    pkg_obj,
-                    owner_obj.user,
-                    pkg_obj.user.user,
+                pagure.lib.add_user_to_project(
+                    session=SESSION,
+                    project=pkg_obj,
+                    new_user=owner_obj.user,
+                    user=pkg_obj.user.user,
                 )
                 SESSION.commit()
-            except SQLAlchemyError:
+            except SQLAlchemyError as err:
                 SESSION.rollback()
                 if TESTING:
                     print "Couldn't add user to project"
+                    print "ERROR: %s" % err
 
 
-def update_groups_to_db(pkg, pkg_groups):
+def update_groups_to_db(namespace, pkg, pkg_groups):
     ''' Adds groups to projects in pagure db '''
 
     for group in pkg_groups:
         # we have already created all the groups
         group_obj = pagure.lib.search_groups(SESSION, group_name=group)
-        pkg_obj = pagure.lib.get_project(SESSION, name='rpms/%s' % pkg)
 
-        # In case when there are only groups with commit access and no people
-        # The below flag is for cutting out db queries later
+        pkg_obj = pagure.lib.get_project(
+            SESSION, name=pkg, namespace=namespace)
+
+        # in case when there are only groups with commit access and no
+        # people the flag is for cutting out db queries later
         flag = True
         if not pkg_obj:
-            pkgname = pkg
             try:
-                msg = pagure.lib.new_project(
-                    SESSION,
-                    group_obj.creator.user,
-                    'rpms/%s' % pkgname,
-                    pagure.APP.config['BLACKLISTED_PROJECTS'],
-                    pagure.APP.config['ALLOWED_PREFIX'],
-                    pagure.APP.config['GIT_FOLDER'],
-                    pagure.APP.config['DOCS_FOLDER'],
-                    pagure.APP.config['TICKETS_FOLDER'],
-                    pagure.APP.config['REQUESTS_FOLDER'],
+                pagure.lib.new_project(
+                    session=SESSION,
+                    user=group_obj.creator.user,
+                    namespace=namespace,
+                    name=pkg,
+                    blacklist=pagure.APP.config['BLACKLISTED_PROJECTS'],
+                    allowed_prefix=pagure.APP.config['ALLOWED_PREFIX'],
+                    gitfolder=pagure.APP.config['GIT_FOLDER'],
+                    docfolder=pagure.APP.config['DOCS_FOLDER'],
+                    ticketfolder=pagure.APP.config['TICKETS_FOLDER'],
+                    requestfolder=pagure.APP.config['REQUESTS_FOLDER'],
                 )
                 SESSION.commit()
                 flag = False
-            except SQLAlchemyError:
+            except SQLAlchemyError as err:
                 SESSION.rollback()
                 if TESTING:
                     print "Couldn't create project"
+                    print "ERROR: %s" % err
+            except PagureException as err:
+                if TESTING:
+                    print "Couldn't create project - %s" % pkg
+                    print "ERROR: %s" % err
 
-        # for the case when the new project was just created by the above call
+        # for the case when the new project was just created
+        # by the above call
         if not flag:
-            pkg_obj = pagure.lib.get_project(SESSION, name='rpms/%s' % pkg)
+            pkg_obj = pagure.lib.get_project(
+                SESSION, name=pkg, namespace=namespace)
 
-        # if the group was initially empty, it was not created in the db
+        # if the group was initially empty, it was not
+        # created in the db
         if not group_obj:
             continue
 
-        # check if the group is added to project if not, add them
+        # check if the group is added to project
+        # if not, add them
         if group_obj not in pkg_obj.groups:
-            group_creator = group_obj.creator
             try:
                 pagure.lib.add_group_to_project(
-                    SESSION,
-                    pkg_obj,
-                    group,
-                    pkg_obj.user.user,
+                    session=SESSION,
+                    project=pkg_obj,
+                    new_group=group,
+                    user=pkg_obj.user.user,
+                    access='admin'
                 )
                 SESSION.commit()
             except SQLAlchemyError as err:
                 SESSION.rollback()
                 if TESTING:
                     print "Adding a group to a project failed"
+                    print "ERROR: %s" % err
 
 
 if __name__ == '__main__':
@@ -271,9 +315,15 @@ if __name__ == '__main__':
         elif groups[group] != gmems:
             groups[group] = gmems
 
-    # <pagure db create groups>
     create_groups_in_db(groups)
-    # </pagure db>
+
+    # Check the blacklist and if the name clashes
+    # append '-1' after them - tmp workaround
+    #blacklist = pagure.APP.config.get('BLACKLISTED_PROJECTS')
+    #pkgs_list = data['rpms'].keys()
+    #for i in pkgs_list:
+        #if i in blacklist:
+            #data['rpms'][i + '-1'] = data['rpms'].pop(i)
 
     data = requests.get(VCS_URL).json()
 
@@ -303,18 +353,12 @@ if __name__ == '__main__':
         data['test-docker'] = copy.copy(data['docker'])
 
     # Get a list of all the packages
-    for key in data:
-        if key == 'title':
+    for namespace in data:
+        if namespace == 'title':
             continue
 
-        acls = data[key]
-        pkglist = data[key].keys()
-        pkglist.sort()
-
-        if key != 'packageAcls':
-            key = '%s/' % key
-        else:
-            key = ''
+        acls = data[namespace]
+        pkglist = sorted(data[namespace].keys())
 
         for pkg in pkglist:
 
@@ -351,11 +395,9 @@ if __name__ == '__main__':
                     if branch == 'master':
                         masters.extend(committers)
 
-                        # <pagure db update groups and owner>
                         pkg_groups = acls[pkg][branch]['commit']['groups']
-                        update_owners_to_db(pkg, owners)
-                        update_groups_to_db(pkg, pkg_groups)
-                        # </pagure db>
+                        update_owners_to_db(namespace, pkg, owners)
+                        update_groups_to_db(namespace, pkg, pkg_groups)
 
                     # add all the committers to the top writers list
                     for committer in committers:
