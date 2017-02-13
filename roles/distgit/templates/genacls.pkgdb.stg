@@ -15,16 +15,17 @@ import requests
 from sqlalchemy.exc import SQLAlchemyError
 
 
+TESTING = False
+
 if 'PAGURE_CONFIG' not in os.environ \
         and os.path.exists('/etc/pagure/pagure.cfg'):
-    print 'Using configuration file `/etc/pagure/pagure.cfg`'
+    if TESTING:
+        print 'Using configuration file `/etc/pagure/pagure.cfg`'
     os.environ['PAGURE_CONFIG'] = '/etc/pagure/pagure.cfg'
 
 import pagure
 from pagure import SESSION
 from pagure.exceptions import PagureException
-
-TESTING = False
 
 {% if env == 'staging' %}
 VCS_URL = 'https://admin.stg.fedoraproject.org/pkgdb/api/vcs?format=json'
