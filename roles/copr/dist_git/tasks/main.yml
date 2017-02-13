@@ -11,15 +11,26 @@
 - name: create user for git repos
   user: name="copr-dist-git" group=copr-dist-git groups=cvsadmin,packager uid=1001
 
-- name: create user for copr-git service
-  user: name="copr-service" group=copr-service groups=packager generate_ssh_key=yes ssh_key_bits=2048 ssh_key_file=.ssh/id_rsa uid=1002
+- name: create user for copr-dist-git service
+  user: name="copr-service" group=copr-service groups=packager,docker generate_ssh_key=yes ssh_key_bits=2048 ssh_key_file=.ssh/id_rsa uid=1002
+
+- name: enable copr dist-git repo
+  shell: "dnf -y copr enable clime/dist-git"
+  when: devel
+
+- name: install dist-git
+  dnf: state=latest name="dist-git"
+
+- name: set home for copr-dist-git user
+  user: name="copr-dist-git" home=/srv/git
+  when: devel
 
 - name: install packages
   dnf: state=present name={{ item }}
   with_items:
   #- epel-release
   - cgit
-  - dist-git
+#  - dist-git
   - copr-dist-git
   - rdiff-backup
   - tmpwatch
@@ -38,6 +49,7 @@
   file: path="/var/lib/dist-git/git" state=directory group=packager mode=0775
 #- file: path="/var/lib/dist-git/git/pkgs-git-repos-list" state=file group=packager
 # - file: path="/var/lib/dist-git/git/rpms/" state=directory group=packager
+  when: not devel
 
 - name: install packages which should be added as requirements
   dnf: state=present name={{ item }}
@@ -52,6 +64,11 @@
 
 - name: make sure directories are owned by copr-service:packager user
   file: path=/var/lib/dist-git/git owner=copr-service group=packager
+  when: not devel
+
+- name: make sure directories are owned by root:root user
+  file: path=/srv/git owner=root group=root mode=0755
+  when: devel
 
 # set ssh key, so that copr-service could access gitolite
 - name: read pub key into var
@@ -65,7 +82,16 @@
 - debug: msg={{pubkey}}
 
 - name: prepare authorized key, so copr-service could interact with gitolite
+  authorized_key: user="copr-dist-git" key="{{pubkey}}"
+  when: devel
+
+- name: set correct selinux policy for copr-dist-git's .ssh dir
+  shell: 'semanage fcontext -a -t ssh_home_t "/srv/git/.ssh(/.*)?" && restorecon -R /srv/git/.ssh'
+  when: devel
+
+- name: prepare authorized key, so copr-service could interact with gitolite
   authorized_key: user="copr-dist-git" key="{{pubkey}}" key_options="command=\"HOME=/var/lib/dist-git/git/ /usr/share/gitolite3/gitolite-shell $USER \"'"
+  when: not devel
 ## keys done
 
 - name: install config for copr-dist-git
@@ -115,6 +141,7 @@
 - template: src="cgitrc.slow" dest="/etc/cgitrc.slow" owner=root group=root mode=0644
 
 - command: "/usr/share/dist-git/dist_git_sync.sh"
+  when: not devel
 
 - name: allow httpd to run cgit
   seboolean: name=httpd_enable_cgi state=true persistent=true
