@@ -176,7 +176,8 @@ def update_owners_to_db(namespace, pkg, owners):
                 namespace=namespace
             )
 
-        if owner_obj not in pkg_obj.admins and owner_obj is not pkg_obj.user:
+        #if owner_obj not in pkg_obj.admins and owner_obj is not pkg_obj.user:
+        if owner_obj not in pkg_obj.users and owner_obj is not pkg_obj.user:
             try:
                 pagure.lib.add_user_to_project(
                     session=SESSION,
@@ -251,7 +252,7 @@ def update_groups_to_db(namespace, pkg, pkg_groups):
                     project=pkg_obj,
                     new_group=group,
                     user=pkg_obj.user.user,
-                    access='admin'
+                    #access='admin'
                 )
                 SESSION.commit()
             except SQLAlchemyError as err:
@@ -413,7 +414,7 @@ if __name__ == '__main__':
                     )
 
             print ''
-            print 'repo %s%s' % (key, pkg)
+            print 'repo %s/%s' % (namespace, pkg)
             print '\n'.join(buffer)
             for reserved in RESERVED:
                 print '    -    %s = @all' % reserved
