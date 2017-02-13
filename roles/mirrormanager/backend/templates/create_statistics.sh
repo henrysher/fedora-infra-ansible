@@ -1,21 +1,26 @@
 #!/bin/sh
 
 MIRRORLIST_SERVERS="{% for host in groups['mirrorlist2'] %} {{ host }} {% endfor %}"
+MIRRORLIST_PROXIES="{% for host in groups['mirrorlist-proxies'] %} {{ host }} {% endfor %}"
 FRONTENDS="{% for host in groups['mm-frontend'] %} {{ host }} {% endfor %}"
 
 INPUT="/var/log/mirrormanager/mirrorlist.log"
+CONTAINER1="/var/log/mirrormanager/mirrorlist1.service.log"
+CONTAINER2="/var/log/mirrormanager/mirrorlist2.service.log"
 
 if [ "$1" == "yesterday" ]; then
-	DATE=`date +%Y-%m-%d --date='yesterday'`
+	DATE=`date +%Y%m%d --date='yesterday'`
 	STATISTICS="/usr/bin/mirrorlist_statistics -o 1"
 	DEST="/var/www/mirrormanager-statistics/data/`date +%Y/%m --date='yesterday'`"
 else
-	DATE=`date +%Y-%m-%d`
+	DATE=`date +%Y%m%d`
 	STATISTICS="/usr/bin/mirrorlist_statistics"
 	DEST="/var/www/mirrormanager-statistics/data/`date +%Y/%m`"
 fi
 
-INFILE=${INPUT}.${DATE}
+INFILE=${INPUT}-${DATE}.xz
+INFILE_CONTAINER1=${CONTAINER1}-${DATE}.xz
+INFILE_CONTAINER2=${CONTAINER2}-${DATE}.xz
 
 OUTPUT=`mktemp -d`
 
@@ -23,7 +28,11 @@ OUTPUT=`mktemp -d`
 
 # Fetch compressed log files
 for s in ${MIRRORLIST_SERVERS}; do
-	ssh $s "( cat $INFILE | gzip -4 )" >> ${OUTPUT}/mirrorlist.log.gz
+	ssh $s "( xzcat $INFILE | gzip -4 )" >> ${OUTPUT}/mirrorlist.log.gz
+done
+for s in ${MIRRORLIST_PROXIES}; do
+	ssh $s "( xzcat $INFILE_CONTAINER1 | gzip -4 )" >> ${OUTPUT}/mirrorlist.log.gz
+	ssh $s "( xzcat $INFILE_CONTAINER2 | gzip -4 )" >> ${OUTPUT}/mirrorlist.log.gz
 done
 
 ${STATISTICS} -l ${OUTPUT}/mirrorlist.log.gz -d ${OUTPUT}/
