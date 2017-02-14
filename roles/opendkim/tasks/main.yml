@@ -1,0 +1,33 @@
+- name: install opendkim
+  package: name=opendkim state=present
+  tags:
+  - opendkim
+  - package
+
+- name: install opendkim.conf
+  copy: src=opendkim.conf dest=/etc/opendkim.conf
+  tags:
+  - opedkim
+  - config
+  - base
+
+- name: install opendkim trusted hosts file
+  copy: src=TrustedHosts dest=/etc/opendkim/TrustedHosts
+  tags:
+  - opendkim
+  - config
+  - base
+
+- name: install bastion opendkim key from private
+  copy: src={{ private }}/files/opendkim/bastion.key dest=/etc/opendkim/keys/bastion.key
+  tags:
+  - opendkim
+  - config
+  - base
+
+- name: Start and enable opendkim
+  service: name=opendkim state=running enabled=true
+  tags:
+  - opendkim
+  - service
+  - base
