@@ -4,9 +4,6 @@
 - name: set bigger timeout for yum
   ini_file: dest=/etc/yum.conf section=main option=timeout value=1000
 
-- name: install distribution-gpg-keys which are right now not in fedora main
-  shell: dnf install -y https://kojipkgs.fedoraproject.org//packages/distribution-gpg-keys/1.5/1.fc24/noarch/distribution-gpg-keys-1.5-1.fc24.noarch.rpm
-
 - name: install pkgs
   yum: state=present pkg={{ item }}
   with_items:
@@ -63,6 +60,7 @@
 
 - name: symlink F26 configs to rawhide ones
   shell: for cfg in /etc/mock/fedora-rawhide-*.cfg; do ln -s $cfg `echo $cfg|sed 's/rawhide/26/'`; done
+  when: prepare_base_image is defined
 
 # ansible doesn't support simultaneously usage of async and with_* options
 # it's not even planned for implementation, see https://github.com/ansible/ansible/issues/5841
