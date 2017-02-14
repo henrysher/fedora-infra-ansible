@@ -23,9 +23,16 @@
   with_items:
   - forwarded.conf
   - 00-namevirtualhost.conf
-  - 01-keepalives.conf
   - 02-ticketkey.conf
   - 03-reqtimeout.conf
+  notify:
+  - reload proxyhttpd
+  tags:
+  - httpd
+  - httpd/proxy
+
+- name: Remove the keepalives configuration
+  file: path=/etc/httpd/conf.d/01-keepalives.conf state=absent
   notify:
   - reload proxyhttpd
   tags:
