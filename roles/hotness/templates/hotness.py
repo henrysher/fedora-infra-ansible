@@ -53,7 +53,7 @@ config = {
         'server': 'https://koji.fedoraproject.org/kojihub',
         'weburl': 'https://koji.fedoraproject.org/koji',
 {% endif %}
-        'git_url': 'https://src.fedoraproject.org/rpms/{package}.git',
+        'git_url': 'https://src.fedoraproject.org/git/rpms/{package}.git',
 
         'krb_principal': 'hotness/hotness01{{env_suffix}}.phx2.fedoraproject.org@{{ipa_realm}}',
         'krb_keytab': '/etc/krb5.hotness_hotness01{{env_suffix}}.phx2.fedoraproject.org.keytab',
