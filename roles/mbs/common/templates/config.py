@@ -98,8 +98,10 @@ class ProdConfiguration(BaseConfiguration):
     LOG_LEVEL = 'debug'
     LOG_BACKEND = 'console'
 
+    # Yes, use tls.
     PDC_INSECURE = False
-    PDC_DEVELOP = False
+    # No, don't try to obtain a token (we just read.  we don't write.)
+    PDC_DEVELOP = True
 
     KOJI_CONFIG = path.join(confdir, 'koji.conf')
 {% if env == 'staging' %}
