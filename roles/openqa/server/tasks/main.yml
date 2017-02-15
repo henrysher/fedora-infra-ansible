@@ -120,11 +120,13 @@
   become_user: geekotest
   when: "(testsbranch.stdout.find('Not a git repository') != -1) or (testsbranch.stdout.find('On branch master') != -1)"
 
-- name: Check out openqa_fedora_tools
+- name: Remove old openqa_fedora_tools checkout
+  file: path=/root/openqa_fedora_tools state=absent
+
+- name: Check out createhdds
   git:
-    repo: https://bitbucket.org/rajcze/openqa_fedora_tools
-    dest: /root/openqa_fedora_tools
-  register: git_result
+    repo: https://pagure.io/fedora-qa/createhdds.git
+    dest: /root/createhdds
 
 - name: Create asset directories
   file: path={{ item }} state=directory owner=geekotest group=root mode=0755
@@ -139,7 +141,7 @@
   copy: src=createhdds dest=/etc/cron.daily/createhdds owner=root group=root mode=0755
 
 - name: Check if any hard disk images need (re)building
-  command: "/root/openqa_fedora_tools/tools/createhdds.py check"
+  command: "/root/createhdds/createhdds.py check"
   args:
     chdir: /var/lib/openqa/share/factory/hdd/fixed
   register: diskcheck

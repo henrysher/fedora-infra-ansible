@@ -1,14 +1,18 @@
 [report]
-openqa_url: https://{{ external_hostname|default(ansible_nodename) }}
-{% if wikitcms_user is defined and wikitcms_password is defined %}
-submit_wiki: true
-submit_resultsdb: true
-{% else %}
-submit_wiki: false
-submit_resultsdb: false
-{% endif %}
 {% if deployment_type is defined and deployment_type == 'prod' %}
 resultsdb_url: http://resultsdb01.qa.fedoraproject.org/resultsdb_api/api/v2.0/
+wiki_hostname: fedoraproject.org
+prod_oqa_baseurl: https://{{ external_hostname|default(ansible_nodename) }}
+prod_wiki_hostname: fedoraproject.org
+prod_wiki_report: true
+prod_rdb_url: http://resultsdb01.qa.fedoraproject.org/resultsdb_api/api/v2.0/
+prod_rdb_report: true
 {% elif deployment_type is defined and deployment_type == 'stg' %}
 resultsdb_url: http://resultsdb-stg01.qa.fedoraproject.org/resultsdb_api/api/v2.0/
+wiki_hostname: stg.fedoraproject.org
+stg_oqa_baseurl: https://{{ external_hostname|default(ansible_nodename) }}
+stg_wiki_hostname: stg.fedoraproject.org
+stg_wiki_report: true
+stg_rdb_url: http://resultsdb-stg01.qa.fedoraproject.org/resultsdb_api/api/v2.0/
+stg_rdb_report: true
 {% endif %}
