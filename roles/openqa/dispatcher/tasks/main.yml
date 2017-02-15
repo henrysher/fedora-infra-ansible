@@ -16,8 +16,10 @@
 # - wikitcms_password
 ##      string - password for relval_user
 # - deployment_type
-##      string - Fedora Infrastructure thing; for this role, decides
-##               whether and where to submit wiki results
+##      string - Fedora Infrastructure thing; for this role, the
+##               fedora_openqa config file will be set appropriately
+##               for infra deployments if this is set, so don't set
+##               it for private deployments
 #
 # When all of the above are set, a wikitcms 'credentials' file will
 # be created and result submission to the wiki will be enabled. If
@@ -75,25 +77,29 @@
     chdir: /root/openQA-python-client
   when: "gitclient|changed or instclient.rc > 0"
 
-# We check this out to a different place from the 'server' task, because
-# otherwise it's hard to make sure we install each time it changes.
-- name: Check out openqa_fedora_tools
+- name: Remove old openqa_fedora_tools checkout
+  file: path=/root/openqa_fedora_tools-dispatcher state=absent
+
+- name: Remove old fedora-openqa-schedule script
+  file: path=/usr/bin/fedora-openqa-schedule state=absent
+
+- name: Check out fedora_openqa (scheduler / reporter tool)
   git:
-    repo: https://bitbucket.org/rajcze/openqa_fedora_tools
-    dest: /root/openqa_fedora_tools-dispatcher
+    repo: https://pagure.io/fedora-qa/fedora_openqa.git
+    dest: /root/fedora_openqa
   register: gittools
 
-- name: Check if openqa_fedora_tools has ever been installed
-  stat: path=/usr/bin/fedora-openqa-schedule
+- name: Check if fedora_openqa has ever been installed
+  stat: path=/usr/bin/fedora-openqa
   register: insttools
   changed_when: "1 != 1"
   failed_when: "1 != 1"
   check_mode: no
 
-- name: Install openqa_fedora_tools
+- name: Install fedora_openqa
   command: "python setup.py install"
   args:
-    chdir: /root/openqa_fedora_tools-dispatcher/scheduler
+    chdir: /root/fedora_openqa
   when: "gittools|changed or not insttools.stat.exists"
   notify:
   - restart fedmsg-hub
@@ -103,7 +109,7 @@
   tags:
   - config
 
-- name: Create fedora-openqa-schedule config directory
+- name: Create fedora_openqa config directory
   file: path=/etc/fedora-openqa state=directory owner=root group=root mode=0755
 
 - name: Write schedule.conf
