@@ -3,20 +3,25 @@
 
 - name: install semanage
   yum: pkg=/usr/sbin/semanage state=present
+  tags: cgit
 
 - name: create the git root directory (/srv/git)
   file: dest=/srv/git state=directory mode=0755
+  tags: cgit
 
 - name: ensure the repo list file exists
   copy: content="" dest=/srv/git/pkgs-git-repos-list force=no owner=apache group=apache mode=0644
+  tags: cgit
 
 - name: install the script
   copy: src=make-cgit-pkgs-list.sh dest=/usr/local/bin/make-cgit-pkgs-list.sh mode=0755
   when: inventory_hostname.startswith('pkgs')
+  tags: cgit
 
 - name: install the script for fedorapeople
   copy: src=make-people-git.sh dest=/usr/local/bin/make-people-git.sh mode=0755
   when: inventory_hostname.startswith('people')
+  tags: cgit
 
 #
 # For the batcave we just have a small static list
@@ -24,10 +29,12 @@
 - name: install the file for batcave
   copy: src=cgit-projects-batcave dest=/etc/cgit-projects-batcave mode=0644
   when: inventory_hostname.startswith('batcave')
+  tags: cgit
 
 - name: install the file for infinote
   copy: src=cgit-projects-infinote dest=/etc/cgit-projects-infinote mode=0644
   when: inventory_hostname.startswith('infinote')
+  tags: cgit
 
 - name: install the cron job
   cron: >
@@ -36,6 +43,7 @@
     user=root
     job="/usr/local/bin/lock-wrapper make-cgit-pkgs-list '/usr/local/bin/make-cgit-pkgs-list.sh | /usr/local/bin/nag-once make-cgit-pkgs-list 1d 2>&1'"
   when: inventory_hostname.startswith('pkgs')
+  tags: cgit
 
 - name: install the cron job for fedora people cgit
   cron: >
@@ -44,6 +52,7 @@
     user=root
     job="/usr/local/bin/lock-wrapper make-people-git '/usr/local/bin/make-people-git.sh | /usr/local/bin/nag-once make-people-git 1d 2>&1'"
   when: inventory_hostname.startswith('people')
+  tags: cgit
 
 - name: check the selinux context of the repo list
   command: matchpathcon /srv/git/pkgs-git-repos-list
