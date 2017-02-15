@@ -29,3 +29,26 @@
 
   handlers:
   - include: "{{ handlers }}/restart_services.yml"
+
+- name: Deploy and configure loopabull
+  hosts: loopabull-stg
+  user: root
+  gather_facts: True
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  roles:
+    - {
+      role: loopabull,
+        plugin: fedmsg,
+        routing_keys: [
+          "org.fedoraproject.prod.buildsys.build.state.change"
+        ],
+        playbooks_dir: /usr/local/loopabull-playbooks/,
+        ansible_cfg_path: /etc/ansible/ansible.cfg,
+        playbook_cmd: /usr/bin/ansible-playbook
+    }
+

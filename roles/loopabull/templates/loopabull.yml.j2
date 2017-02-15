@@ -1,0 +1,40 @@
+# Loopabull (https://github.com/maxamillion/loopabull) config file
+#
+# There are three main definitions: ansible, routing_keys, plugin. These will be
+# explained in comments above each section below.
+
+# plugin
+#
+# This is the selected plugin that will interface with your prefered origin of
+# events (message bus or otherwise).
+plugin: {{plugin}}
+
+# routing_keys
+#
+# This is a list of routing keys that will be yielded by your selected plugin
+# that should be acted upon (i.e. - these keys should trigger an ansible
+# playbook by the same name).
+routing_keys:
+{% for rkey in routing_keys %}
+  - {{ rkey }}
+{% endfor %}
+
+# ansible
+#
+# This section will tell Loopabull about information to pass to the
+# ansible-playbook command.
+#
+#   playbooks_dir
+#     The full path location of the directory containing your playbooks that
+#     coorelate to the routing_keys
+#
+#   cfg_file_path
+#     Full path location of the ansible configuration to use
+#
+#   playbook_cmd
+#     Command to use in place of ansible-playbook (for those that want to use
+#     Ansible Tower commands or custom wrappers of their own)
+ansible:
+  playbooks_dir: {{ playbooks_dir }}
+  cfg_file_path: {{ cfg_file_path }}
+  playbook_cmd:  {{ playbook_cmd }}

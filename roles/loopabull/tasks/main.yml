@@ -1,0 +1,27 @@
+---
+# tasks file for loopabull
+
+- name: Install required packages
+  package: name="{{ item }}" state=installed
+  with_items:
+    - git
+
+- name: install loopabull
+  dnf: name=loopabull state=latest
+
+- name: configure loopabull
+  template:
+    src: loopabull.yml.j2
+    dest: {{ansible_cfg_path}}
+
+- name: clone the playbooks repo into playbooks dir
+  git:
+    repo: "https://pagure.io/releng-automation.git"
+    dest: {{playbooks_dir}}
+
+- name: start and enable loopabull
+  service:
+    name: loopabull
+    state: started
+    enabled: yes
+
