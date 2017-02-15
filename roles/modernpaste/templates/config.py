@@ -3,7 +3,11 @@ import constants
 
 # Domain from which you will access this app
 # If running on a port other than 80, append it after a colon at the end of the domain, e.g. 'domain.com:8080'
+{% if env == 'staging' %}
 DOMAIN = 'modernpaste.stg.fedoraproject.org'
+{% else %}
+DOMAIN = 'paste.fedoraproject.org'
+{% endif %}
 
 # Use HTTPS by default?
 # This is only used for deciding whether to use the http:// or https:// prefix when constructing full URLs,
@@ -23,7 +27,7 @@ USE_ENCRYPTED_IDS = True
 # Choose to allow paste attachments
 # This will allow for users to attach files and images to pastes. If disabled, the MAX_ATTACHMENT_SIZE and
 # ATTACHMENTS_DIR configuration constants will be ignored.
-ENABLE_PASTE_ATTACHMENTS = True
+ENABLE_PASTE_ATTACHMENTS = False
 
 # Allow only paste attachments below a certain size threshold, in MB
 # Set this to 0 for an unlimited file size.
@@ -50,12 +54,20 @@ REQUIRE_LOGIN_TO_PASTE = False
 # This is only relevant if USE_ENCRYPTED_IDS above is True. If not, this config parameter can be ignored.
 # It is recommended, but not strictly required, for you to replace the string below with the output of os.urandom(32),
 # so that the encrypted IDs generated for the app are specific to this installation.
+{% if env == 'staging' %}
 ID_ENCRYPTION_KEY = '6\x80\x18\xdc\xcf \xad\x14U\xa7\x05X\x7f\x81\x01\xd5\x19i\xf3S;\xcaL\xcf\xe2\x8d\x82\x1a\x12\xd9}\x8c'
+{% else %}
+ID_ENCRYPTION_KEY = '{{modernpaste_encryption_key}}'
+{% endif %}
 
 # Flask session secret key
 # IMPORTANT NOTE: Open up a Python terminal, and replace the below with the output of os.urandom(32)
 # This secret key should be different for every installation of Modern Paste.
+{% if env == 'staging' %}
 FLASK_SECRET_KEY = '{{modernpaste_stg_session_key}}'
+{% else %}
+FLASK_SECRET_KEY = '{{modernpaste_session_key}}'
+{% endif %}
 
 # Languages
 # A list of all languages you want to support with the app. Add 'text' for plain text support.
