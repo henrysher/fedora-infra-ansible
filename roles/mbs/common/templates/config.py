@@ -87,9 +87,9 @@ class ProdConfiguration(BaseConfiguration):
 {% endif %}
 
 {% if env == 'staging' %}
-    KRB_PRINCIPAL = 'modularity@STG.FEDORAPROJECT.ORG'
+    KRB_PRINCIPAL = 'mbs/mbs.stg.fedoraproject.org@STG.FEDORAPROJECT.ORG'
 {% else %}
-    KRB_PRINCIPAL = 'modularity@FEDORAPROJECT.ORG'
+    KRB_PRINCIPAL = 'mbs/mbs.fedoraproject.org@FEDORAPROJECT.ORG'
 {% endif %}
 
     KRB_KEYTAB = '/etc/krb5.mbs_mbs{{env_suffix}}.fedoraproject.org.keytab'
