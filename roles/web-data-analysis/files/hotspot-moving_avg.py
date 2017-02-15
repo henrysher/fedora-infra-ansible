@@ -30,7 +30,7 @@ rolling = 7
 
 tree = {}
 
-df = pandas.read_csv("hotspot-new.csv")
+df = pandas.read_csv("/var/www/html/csv-reports/hotspot/hotspotdata-all.csv")
 
 dates = df['1970-01-01']
 AVG   = pandas.rolling_mean(df['AVG'],rolling)

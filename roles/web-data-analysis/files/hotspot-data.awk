@@ -1,10 +1,10 @@
 BEGIN{
-  date=strftime("%F",0);
+  date=strftime("%F",172800);
   count=1;
   sum=0;
   most=0;
   least=0
-  print date ",AVG,LEAST,MAX"
+  print "1970-01-01,AVG,LEAST,MAX"
 }
 
 {
