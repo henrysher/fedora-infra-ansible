@@ -77,7 +77,7 @@ fi
 find ${WORKDIR} -type f | grep raw- | xargs cat  | sort -u | awk 'BEGIN{x=0; y=0}; {if (x != $1){ print x,y; x=$1; y=$2} else {y=y+$2}}' > ${WORKDIR}/worked-all
 
 
-awk -f ${LSHARE}/${PROJECT}-data.awk ${WORKDIR}/worked-all | sort -u > ${WEBDIR}/${PROJECT}data-all.csv
+awk -f ${LSHARE}/${PROJECT}-data.awk ${WORKDIR}/worked-all | grep -v "1970-01-01,0,0,0" | sort -u > ${WEBDIR}/${PROJECT}data-all.csv
 
 # Make the seven day moving average file
 /usr/local/bin/hotspot-moving_avg.py > ${WEBDIR}/${PROJECT}data-all-7day-ma.csv

@@ -1,5 +1,5 @@
 BEGIN{
-  date=strftime("%F",172800);
+  date=strftime("%F",86401);
   count=1;
   sum=0;
   most=0;
