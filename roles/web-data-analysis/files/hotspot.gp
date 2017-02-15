@@ -7,7 +7,7 @@ set datafile separator ","
 set term png size 1600,1200
 
 ##
-set output "hotspot-all.png"
+set output "/var/www/html/csv-reports/images/hotspot-all.png"
 set title "IPs grabbing hotspot per day"
 plot ["2014-12-01":"2017-12-31"] \
      '/var/www/html/csv-reports/hotspot/hotspotdata-all.csv' using 1:2 title 'Average every 5min' with lines lw 4, \
@@ -16,7 +16,7 @@ plot ["2014-12-01":"2017-12-31"] \
 unset output
 
 ##
-set output "hotspot-all-ma.png"
+set output "/var/www/html/csv-reports/images/hotspot-all-ma.png"
 set title "Moving Average of IPs grabbing hotspot"
 plot ["2014-12-01":"2017-12-31"] \
      '/var/www/html/csv-reports/hotspot/hotspotdatadata-all-7day-ma.csv' using 1:2 title 'Average every 5min' with lines lw 4, \
