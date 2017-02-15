@@ -26,10 +26,11 @@
   - mbs
   - mbs/common
 
-- name: copy client secrets that aren't really secret.
+- name: copy client secrets
   template: >
     src=client_secrets.json.{{env}} dest=/etc/module-build-service/client_secrets.json
-    owner=root group=root mode=0644
+    owner=root group=apache mode=0640
+  when: inventory_hostname.startswith('mbs-web')
   notify:
   - restart apache
   tags:
