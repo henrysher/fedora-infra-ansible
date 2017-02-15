@@ -26,12 +26,6 @@ import pandas
 #import matplotlib.pyplot as plt
 import math
 
-# Moving Average
-
-import pandas
-import matplotlib.pyplot as plt
-import math
-
 rolling = 7
 
 tree = {}

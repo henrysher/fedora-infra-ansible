@@ -74,10 +74,10 @@ fi
 # stuck and you end up with days or weeks of data in a single
 # file. Because the data is pretty small we can get away with adding up the data every day.
 
-find ${WORKEDIR} -type f | grep raw- | xargs cat  | sort -u | awk 'BEGIN{x=0; y=0}; {if (x != $1){ print x,y; x=$1; y=$2} else {y=y+$2}}' > ${WORKEDIR}/worked-all
+find ${WORKDIR} -type f | grep raw- | xargs cat  | sort -u | awk 'BEGIN{x=0; y=0}; {if (x != $1){ print x,y; x=$1; y=$2} else {y=y+$2}}' > ${WORKDIR}/worked-all
 
 
-awk -f ${LSHARE}/${PROJECT}-data.awk ${WORKEDIR}/worked-all | sort -u > ${WEBDIR}/${PROJECT}data-all.csv
+awk -f ${LSHARE}/${PROJECT}-data.awk ${WORKDIR}/worked-all | sort -u > ${WEBDIR}/${PROJECT}data-all.csv
 
 # Make the seven day moving average file
 /usr/local/bin/hotspot-moving_avg.py > ${WEBDIR}/${PROJECT}data-all-7day-ma.csv
