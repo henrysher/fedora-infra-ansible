@@ -35,13 +35,12 @@
   roles:
     - anitya/frontend
     - anitya/fedmsg
-  notify:
-    - restart apache
   post_tasks:
     - name: tell nagios to unshush w.r.t. the frontend
       nagios: action=unsilence service=host host={{ inventory_hostname_short }}{{ env_suffix }}
       delegate_to: noc01.phx2.fedoraproject.org
       ignore_errors: true
+    - service: name="httpd" state=restarted
 
 - name: verify the backend and then upgrade the db
   hosts: anitya-backend
