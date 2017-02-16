@@ -1,5 +1,5 @@
 - name: push packages out
-  hosts: anitya-frontend01:anitya-backend01
+  hosts: anitya-frontend:anitya-backend
   user: root
   vars_files:
     - /srv/web/infra/ansible/vars/global.yml
@@ -19,7 +19,7 @@
       when: testing
 
 - name: verify the frontend
-  hosts: anitya-frontend01
+  hosts: anitya-frontend
   user: root
   vars_files:
     - /srv/web/infra/ansible/vars/global.yml
@@ -42,7 +42,7 @@
       ignore_errors: true
 
 - name: verify the backend and then upgrade the db
-  hosts: anitya-backend01
+  hosts: anitya-backend
   user: root
   vars_files:
     - /srv/web/infra/ansible/vars/global.yml
@@ -63,7 +63,7 @@
       command: /usr/bin/alembic -c /usr/share/anitya/alembic.ini upgrade head
       args:
         chdir: /usr/share/anitya/
-      when: inventory_hostname.startswith('anitya-backend01')
+      when: inventory_hostname.startswith('anitya-backend')
   post_tasks:
     - name: tell nagios to unshush w.r.t. the backend
       nagios: action=unsilence service=host host={{ inventory_hostname_short }}{{ env_suffix }}
