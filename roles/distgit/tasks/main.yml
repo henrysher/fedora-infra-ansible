@@ -68,19 +68,19 @@
 # This is the Git setup itself: group, root directory, scripts,...
 - name: install the Dist Git-related httpd config
   copy: src=clime-dist-git-epel-7.repo dest=/etc/yum.repos.d/clime-dist-git-epel-7.repo
-  when: env == "staging"
+  when: env == "staging" and inventory_hostname.startswith('pkgs02')
   tags:
   - distgit
 
 - name: install dist-git
   yum: pkg=dist-git state=present
-  when: env == "staging"
+  when: env == "staging" and inventory_hostname.startswith('pkgs02')
   tags:
   - distgit
 
 - name: create the distgit root directory (/srv/git)
   file: dest=/srv/git state=directory mode=0755
-  when: env != "staging"
+  when: env != "staging" or inventory_hostname.startswith('pkgs01')
   tags:
   - distgit
 
@@ -96,7 +96,7 @@
 
 - name: set the SELinux policy for the distgit root directory
   command: semanage fcontext -a -t git_content_t "/srv/git(/.*)?"
-  when: distgitcontext.stdout.find('git_content_t') == -1 and env != "staging"
+  when: distgitcontext.stdout.find('git_content_t') == -1
   tags:
   - config
   - distgit
@@ -104,7 +104,7 @@
 
 - name: create the distgit root directory (/srv/git/repositories)
   file: dest=/srv/git/repositories state=directory mode=2775 group=packager
-  when: env != "staging"
+  when: env != "staging" or inventory_hostname.startswith('pkgs01')
   tags:
   - distgit
 
@@ -137,7 +137,7 @@
     - setup_git_package
     - mkbranch
     - mkbranch_branching
-  when: env != "staging"
+  when: env != "staging" or inventory_hostname.startswith('pkgs01')
   tags:
   - config
   - distgit
