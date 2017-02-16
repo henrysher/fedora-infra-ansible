@@ -35,6 +35,8 @@
   roles:
     - anitya/frontend
     - anitya/fedmsg
+  notify:
+    - restart apache
   post_tasks:
     - name: tell nagios to unshush w.r.t. the frontend
       nagios: action=unsilence service=host host={{ inventory_hostname_short }}{{ env_suffix }}
@@ -60,7 +62,7 @@
     - anitya/fedmsg
   tasks:
     - name: Upgrade the database
-      command: /usr/bin/alembic -c /usr/share/anitya/alembic.ini upgrade head
+      command: /usr/bin/alembic -c /etc/anitya/alembic.ini upgrade head
       args:
         chdir: /usr/share/anitya/
       when: inventory_hostname.startswith('anitya-backend')
