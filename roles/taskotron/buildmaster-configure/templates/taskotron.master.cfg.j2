@@ -188,6 +188,10 @@ factory.addStep(ShellCommand(command=["runtask",
                              logfiles={'taskotron.log': {'filename': '/var/log/taskotron/taskotron.log', }}))
 {% endif %}
 
+
+factory.addStep(ShellCommand(command=Interpolate('testcloud instance remove --force taskotron-%(prop:uuid)s; true'),
+                                   descriptionDone=['Make sure the minion is removed']))
+
 # create artifacts dir on master
 factory.addStep(MasterShellCommand(command=["mkdir", '-m', '0755', Interpolate('{{ public_artifacts_dir }}/%(prop:uuid)s')],
                                    descriptionDone=['Create artifacs dir']))
