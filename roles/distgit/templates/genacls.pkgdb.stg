@@ -265,6 +265,16 @@ def update_groups_to_db(namespace, pkg, pkg_groups):
                     print "ERROR: %s" % err
 
 
+def add_fork_to_gitolite():
+    ''' Creates a sqlalchemy user object for pagure db '''
+    for fork in pagure.lib.search_projects(session=SESSION, forks=True):
+        print ''
+        print 'repo %s' % (fork.fullname)
+        if masters:
+            print '    RWC      = %s' % ' '.join(
+                [user.username for user in fork.committers])
+
+
 if __name__ == '__main__':
 
     TRUSTED = grp.getgrnam('cvsadmin')[3]
@@ -424,5 +434,7 @@ if __name__ == '__main__':
             print '    RWC  refs/tags/ = %s' % ' '.join(writers)
             if masters:
                 print '    RWC      = %s' % ' '.join(masters)
+
+    add_fork_to_gitolite()
 
     sys.exit(0)
