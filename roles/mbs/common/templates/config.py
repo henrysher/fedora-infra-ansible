@@ -95,6 +95,9 @@ class ProdConfiguration(BaseConfiguration):
     KRB_KEYTAB = '/etc/krb5.mbs_mbs{{env_suffix}}.fedoraproject.org.keytab'
     KRB_CCACHE = '/var/cache/fedmsg/mbs-krb5cc'
 
+    # https://pagure.io/fm-orchestrator/issue/334
+    KOJI_PROXYUSER = False
+
     LOG_LEVEL = 'debug'
     LOG_BACKEND = 'console'
 
