@@ -52,9 +52,6 @@
 - name: make sure the selinux fcontext is restored
   command: restorecon -R "{{ buildmaster_home }}"
   when: deployment_type in ['dev', 'stg', 'prod', 'qa-stg']
-  async: 300
-  poll: 0
-  register: selinux_context
 
 - name: allow httpd tcp connections with selinux
   seboolean: name=httpd_can_network_connect state=true persistent=yes
@@ -95,9 +92,3 @@
 - name: put robots.txt at web root of external hostname
   when: robots_path is defined
   template: src=robots.txt.j2 dest={{ robots_path }}/robots.txt owner=apache group=apache mode=0644
-
-- name: check on selinux context change
-  async_status: jid={{ selinux_context.ansible_job_id }}
-  register: job_result
-  until: job_result.finished
-  retries: 30
