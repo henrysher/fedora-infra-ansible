@@ -1,5 +1,5 @@
 - name: verify koschei frontend
-  hosts: "{{ koschei_web_hosts | default('koschei-web') }}"
+  hosts: "{{ koschei_web_hosts |  default('koschei-web:koschei-web-stg') }}"
   vars_files:
   - /srv/web/infra/ansible/vars/global.yml
   - /srv/private/ansible/vars.yml
@@ -11,7 +11,7 @@
   - koschei/frontend
 
 - name: verify koschei backend
-  hosts: "{{ koschei_backend_hosts | default('koschei-backend') }}"
+  hosts: "{{ koschei_backend_hosts |  default('koschei-backend:koschei-backend-stg') }}"
   vars_files:
   - /srv/web/infra/ansible/vars/global.yml
   - /srv/private/ansible/vars.yml
@@ -22,7 +22,7 @@
   - koschei/backend
 
 - name: upgrade koschei backend
-  hosts: "{{ koschei_backend_hosts | default('koschei-backend') }}"
+  hosts: "{{ koschei_backend_hosts |  default('koschei-backend:koschei-backend-stg') }}"
   vars_files:
   - /srv/web/infra/ansible/vars/global.yml
   - /srv/private/ansible/vars.yml
@@ -60,7 +60,7 @@
     - koschei-backend-fedora
 
 - name: upgrade koschei frontend
-  hosts: "{{ koschei_web_hosts | default('koschei-web') }}"
+  hosts: "{{ koschei_web_hosts |  default('koschei-web:koschei-web-stg') }}"
   vars_files:
   - /srv/web/infra/ansible/vars/global.yml
   - /srv/private/ansible/vars.yml
@@ -92,7 +92,7 @@
     - koschei-frontend-fedora
 
 - name: run DB migration
-  hosts: "{{ koschei_backend_hosts | default('koschei-backend') }}"
+  hosts: "{{ koschei_backend_hosts |  default('koschei-backend:koschei-backend-stg') }}"
   vars_files:
   - /srv/web/infra/ansible/vars/global.yml
   - /srv/private/ansible/vars.yml
@@ -104,7 +104,7 @@
     command: alembic -c /usr/share/koschei/alembic.ini upgrade head
 
 - name: restart koschei frontend
-  hosts: "{{ koschei_web_hosts | default('koschei-web') }}"
+  hosts: "{{ koschei_web_hosts |  default('koschei-web:koschei-web-stg') }}"
   vars_files:
   - /srv/web/infra/ansible/vars/global.yml
   - /srv/private/ansible/vars.yml
@@ -116,7 +116,7 @@
   - koschei/frontend
 
 - name: restart koschei backend
-  hosts: "{{ koschei_backend_hosts | default('koschei-backend') }}"
+  hosts: "{{ koschei_backend_hosts |  default('koschei-backend:koschei-backend-stg') }}"
   vars_files:
   - /srv/web/infra/ansible/vars/global.yml
   - /srv/private/ansible/vars.yml
@@ -127,13 +127,13 @@
   - koschei/backend
 
 - name: Check whether backend update happened
-  hosts: "{{ koschei_backend_hosts | default('koschei-backend') }}"
+  hosts: "{{ koschei_backend_hosts |  default('koschei-backend:koschei-backend-stg') }}"
   tasks:
   - assert:
       that: backend_upgrade.changed
 
 - name: Check whether frontend update happened
-  hosts: "{{ koschei_web_hosts | default('koschei-web') }}"
+  hosts: "{{ koschei_web_hosts |  default('koschei-web:koschei-web-stg') }}"
   tasks:
   - assert:
       that: frontend_upgrade.changed
