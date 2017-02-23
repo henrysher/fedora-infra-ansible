@@ -25,7 +25,7 @@
 
 # Here's the meaty part in the middle
 - name: drop and re-create the staging db entirely
-  hosts: db01.stg.phx2.fedoraproject.org
+  hosts: pgbdr01.stg.phx2.fedoraproject.org
   user: root
   become: yes
   become_user: postgres
@@ -43,8 +43,34 @@
       owner=postgres group=postgres
   - command: unxz /var/tmp/bodhi2.dump.xz
              creates=/var/tmp/bodhi2.dump
-  - command: dropdb bodhi2
-  - command: createdb -O bodhi2 bodhi2
+  - shell: >
+      psql bodhi2 <<< "
+      BEGIN;
+      SET LOCAL bdr.permit_ddl_locking = true;
+      DELETE FROM TABLE alembic_version;
+      DROP TABLE comments CASCADE;
+      DROP TABLE groups CASCADE;
+      DROP TABLE cves CASCADE;
+      DROP TABLE packages CASCADE;
+      DROP TABLE stacks CASCADE;
+      DROP TABLE stack_user_table CASCADE;
+      DROP TABLE update_cve_table CASCADE;
+      DROP TABLE releases CASCADE;
+      DROP TABLE comment_bug_assoc CASCADE;
+      DROP TABLE comment_testcase_assoc CASCADE;
+      DROP TABLE stack_group_table CASCADE;
+      DROP TABLE testcases CASCADE;
+      DROP TABLE buildroot_overrides CASCADE;
+      DROP TABLE bug_cve_table CASCADE;
+      DROP TABLE users CASCADE;
+      DROP TABLE builds CASCADE;
+      DROP TABLE updates CASCADE;
+      DROP TABLE bugs CASCADE;
+      DROP TABLE update_bug_table CASCADE;
+      DROP TABLE user_group_table CASCADE;
+      DROP TABLE user_package_table CASCADE;
+      COMMIT;
+      "
   - name: Import the prod db.
     shell: cat /var/tmp/bodhi2.dump | psql bodhi2
   - file: dest=/var/tmp/bodhi2.dump state=absent
