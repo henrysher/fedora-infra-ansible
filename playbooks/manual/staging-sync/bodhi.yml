@@ -43,7 +43,8 @@
       owner=postgres group=postgres
   - command: unxz /var/tmp/bodhi2.dump.xz
              creates=/var/tmp/bodhi2.dump
-  - command: sed -i "s/CREATE DATABASE bodhi2.*/SET LOCAL bdr.permit_ddl_locking = true;/" /var/tmp/bodhi2.dump
+  - command: sed -i "s/CREATE DATABASE bodhi2.*//" /var/tmp/bodhi2.dump
+  - command: sed -i "s/\connect bodhi2/\connect bodhi2\nSET bdr.permit_ddl_locking = true;/" /var/tmp/bodhi2.dump
   - shell: >
       psql bodhi2 <<< "
       BEGIN;
