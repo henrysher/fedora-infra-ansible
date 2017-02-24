@@ -48,8 +48,72 @@
       group=postgres
   - command: unxz /var/tmp/koji.dump.xz
              creates=/var/tmp/koji.dump
-  - command: dropdb koji
-  - command: createdb -O koji koji
+  - command: sed -i "s/CREATE DATABASE koji.*/SET bdr.permit_ddl_locking = true;/" /var/tmp/koji.dump
+  - command: sed -i "s/connect bodhi2/connect koji\nSET bdr.permit_ddl_locking = true;/" /var/tmp/koji.dump
+  - shell: >
+      psql koji <<< "
+      BEGIN;
+      SET LOCAL bdr.permit_ddl_locking = on;
+      DROP TABLE  archive_components      CASCADE;
+      DROP TABLE  archive_rpm_components  CASCADE;
+      DROP TABLE  archiveinfo             CASCADE;
+      DROP TABLE  archivetypes            CASCADE;
+      DROP TABLE  btype                   CASCADE;
+      DROP TABLE  build                   CASCADE;
+      DROP TABLE  build_notifications     CASCADE;
+      DROP TABLE  build_target            CASCADE;
+      DROP TABLE  build_target_config     CASCADE;
+      DROP TABLE  build_types             CASCADE;
+      DROP TABLE  buildroot               CASCADE;
+      DROP TABLE  buildroot_archives      CASCADE;
+      DROP TABLE  buildroot_listing       CASCADE;
+      DROP TABLE  buildroot_tools_info    CASCADE;
+      DROP TABLE  cg_users                CASCADE;
+      DROP TABLE  channels                CASCADE;
+      DROP TABLE  content_generator       CASCADE;
+      DROP TABLE  event_labels            CASCADE;
+      DROP TABLE  events                  CASCADE;
+      DROP TABLE  external_repo           CASCADE;
+      DROP TABLE  external_repo_config    CASCADE;
+      DROP TABLE  group_config            CASCADE;
+      DROP TABLE  group_package_listing   CASCADE;
+      DROP TABLE  group_req_listing       CASCADE;
+      DROP TABLE  groups                  CASCADE;
+      DROP TABLE  host                    CASCADE;
+      DROP TABLE  host_channels           CASCADE;
+      DROP TABLE  image_archive_listing   CASCADE;
+      DROP TABLE  image_archives          CASCADE;
+      DROP TABLE  image_builds            CASCADE;
+      DROP TABLE  image_listing           CASCADE;
+      DROP TABLE  imageinfo               CASCADE;
+      DROP TABLE  imageinfo_listing       CASCADE;
+      DROP TABLE  log_messages            CASCADE;
+      DROP TABLE  maven_archives          CASCADE;
+      DROP TABLE  maven_builds            CASCADE;
+      DROP TABLE  package                 CASCADE;
+      DROP TABLE  permissions             CASCADE;
+      DROP TABLE  repo                    CASCADE;
+      DROP TABLE  rpminfo                 CASCADE;
+      DROP TABLE  rpmsigs                 CASCADE;
+      DROP TABLE  sessions                CASCADE;
+      DROP TABLE  standard_buildroot      CASCADE;
+      DROP TABLE  tag                     CASCADE;
+      DROP TABLE  tag_config              CASCADE;
+      DROP TABLE  tag_external_repos      CASCADE;
+      DROP TABLE  tag_extra               CASCADE;
+      DROP TABLE  tag_inheritance         CASCADE;
+      DROP TABLE  tag_listing             CASCADE;
+      DROP TABLE  tag_packages            CASCADE;
+      DROP TABLE  tag_updates             CASCADE;
+      DROP TABLE  task                    CASCADE;
+      DROP TABLE  user_groups             CASCADE;
+      DROP TABLE  user_perms              CASCADE;
+      DROP TABLE  users                   CASCADE;
+      DROP TABLE  volume                  CASCADE;
+      DROP TABLE  win_archives            CASCADE;
+      DROP TABLE  win_builds              CASCADE;
+      COMMIT;
+      "
   - name: Import the prod db.  This will take quite a while.  Go get a snack!
     shell: cat /var/tmp/koji.dump | psql koji
   - name: repoint all the prod rpm entries at the secondary volume (and other stuff)

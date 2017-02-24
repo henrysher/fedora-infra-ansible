@@ -101,6 +101,45 @@ insert into host_channels (host_id, channel_id) values (
 {% endfor %}
 {% endfor %}
 
+-- The aarch64 builders are aarch64 and do not have createrepo 
+
+{% for host in groups['buildvm-aarch64-stg'] %}
+select now() as time, 'adding staging host {{ host }}' as msg;
+insert into users (name, usertype, status) values ('{{ host }}', 1, 0);
+insert into host (user_id, name, arches) values (
+    (select id from users where name='{{host}}'), '{{host}}', 'aarch64');
+{% for channel in [ 'default', 'appliance', 'vm', 'secure-boot', 'compose', 'eclipse', 'images', 'image'] %}
+insert into host_channels (host_id, channel_id) values (
+    (select id from host where name='{{host}}'), (select id from channels where name='{{channel}}'));
+{% endfor %}
+{% endfor %}
+
+-- The ppc64 builders are ppc64 and do not have createrepo
+
+{% for host in groups['buildvm-ppc64-stg'] %}
+select now() as time, 'adding staging host {{ host }}' as msg;
+insert into users (name, usertype, status) values ('{{ host }}', 1, 0);
+insert into host (user_id, name, arches) values (
+    (select id from users where name='{{host}}'), '{{host}}', 'ppc64');
+{% for channel in [ 'default', 'appliance', 'vm', 'secure-boot', 'compose', 'eclipse', 'images', 'image'] %}
+insert into host_channels (host_id, channel_id) values (
+    (select id from host where name='{{host}}'), (select id from channels where name='{{channel}}'));
+{% endfor %}
+{% endfor %}
+
+-- The ppc64le builders are ppc64le and do not have createrepo
+
+{% for host in groups['buildvm-ppc64le-stg'] %}
+select now() as time, 'adding staging host {{ host }}' as msg;
+insert into users (name, usertype, status) values ('{{ host }}', 1, 0);
+insert into host (user_id, name, arches) values (
+    (select id from users where name='{{host}}'), '{{host}}', 'ppc64le');
+{% for channel in [ 'default', 'appliance', 'vm', 'secure-boot', 'compose', 'eclipse', 'images', 'image'] %}
+insert into host_channels (host_id, channel_id) values (
+    (select id from host where name='{{host}}'), (select id from channels where name='{{channel}}'));
+{% endfor %}
+{% endfor %}
+
 -- Add some people to be admins, only in staging.  Feel free to grow this list..
 
 {% for username in ['modularity', 'mizdebsk', 'ralph', 'psabata', 'puiterwijk', 'jkaluza', 'fivaldi', 'mprahl'] %}
