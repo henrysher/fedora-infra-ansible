@@ -7,9 +7,12 @@
 
 import copy
 import grp
+import itertools
 import os
 import sys
 import json
+
+from multiprocessing import Pool, Manager
 
 import requests
 from sqlalchemy.exc import SQLAlchemyError
@@ -47,19 +50,19 @@ def get_user_info(username):
     return user
 
 
-def create_user_obj(username):
+def create_user_obj(session, username):
     ''' Creates a sqlalchemy user object for pagure db '''
     try:
         userinfo = get_user_info(username)
         user = pagure.lib.set_up_user(
-            session=SESSION,
+            session=session,
             username=username,
             fullname=userinfo['fullname'],
             default_email=userinfo['default_email']
         )
-        SESSION.commit()
+        session.commit()
     except SQLAlchemyError:
-        SESSION.rollback()
+        session.rollback()
         if TESTING:
             print 'Creating user failed'
 
@@ -127,25 +130,25 @@ def create_groups_in_db(groups):
                         print 'Adding a user to group failed'
 
 
-def update_owners_to_db(namespace, pkg, owners):
+def update_owners_to_db(session, namespace, pkg, owners):
     ''' Adds owners to pagure db '''
+    pkg_obj = pagure.lib.get_project(
+        session, name=pkg, namespace=namespace)
 
     for owner in owners:
         # check if the owners are present in the db
         # if not create them
-        owner_obj = pagure.lib.search_user(SESSION, username=owner)
+        owner_obj = pagure.lib.search_user(session, username=owner)
         if not owner_obj:
-            owner_obj = create_user_obj(owner)
+            owner_obj = create_user_obj(session, owner)
 
-        pkg_obj = pagure.lib.get_project(
-            SESSION, name=pkg, namespace=namespace)
 
         # this flag is for avoiding unnecessary db queries
-        flag = True
+        created = False
         if not pkg_obj:
             try:
                 pagure.lib.new_project(
-                    session=SESSION,
+                    session=session,
                     user=owner,
                     namespace=namespace,
                     name=pkg,
@@ -157,10 +160,10 @@ def update_owners_to_db(namespace, pkg, owners):
                     requestfolder=pagure.APP.config['REQUESTS_FOLDER'],
                     ignore_existing_repo=True,
                 )
-                SESSION.commit()
-                flag = False
+                session.commit()
+                created = True
             except SQLAlchemyError as err:
-                SESSION.rollback()
+                session.rollback()
                 if TESTING:
                     print "Couldn't create project - %s" % pkg
                     print "ERROR: %s" % err
@@ -171,9 +174,9 @@ def update_owners_to_db(namespace, pkg, owners):
 
         # so now the pkg surely exists, make the owner,
         # the owner of the repo if he is not
-        if not flag:
+        if created:
             pkg_obj = pagure.lib.get_project(
-                session=SESSION,
+                session=session,
                 name=pkg,
                 namespace=namespace
             )
@@ -182,12 +185,12 @@ def update_owners_to_db(namespace, pkg, owners):
         if owner_obj not in pkg_obj.users and owner_obj is not pkg_obj.user:
             try:
                 pagure.lib.add_user_to_project(
-                    session=SESSION,
+                    session=session,
                     project=pkg_obj,
                     new_user=owner_obj.user,
                     user=pkg_obj.user.user,
                 )
-                SESSION.commit()
+                session.commit()
             except SQLAlchemyError as err:
                 SESSION.rollback()
                 if TESTING:
@@ -195,23 +198,23 @@ def update_owners_to_db(namespace, pkg, owners):
                     print "ERROR: %s" % err
 
 
-def update_groups_to_db(namespace, pkg, pkg_groups):
+def update_groups_to_db(session, namespace, pkg, pkg_groups):
     ''' Adds groups to projects in pagure db '''
+
+    pkg_obj = pagure.lib.get_project(
+        session, name=pkg, namespace=namespace)
 
     for group in pkg_groups:
         # we have already created all the groups
-        group_obj = pagure.lib.search_groups(SESSION, group_name=group)
-
-        pkg_obj = pagure.lib.get_project(
-            SESSION, name=pkg, namespace=namespace)
+        group_obj = pagure.lib.search_groups(session, group_name=group)
 
         # in case when there are only groups with commit access and no
         # people the flag is for cutting out db queries later
-        flag = True
+        created = False
         if not pkg_obj:
             try:
                 pagure.lib.new_project(
-                    session=SESSION,
+                    session=session,
                     user=group_obj.creator.user,
                     namespace=namespace,
                     name=pkg,
@@ -223,10 +226,10 @@ def update_groups_to_db(namespace, pkg, pkg_groups):
                     requestfolder=pagure.APP.config['REQUESTS_FOLDER'],
                     ignore_existing_repo=True,
                 )
-                SESSION.commit()
-                flag = False
+                session.commit()
+                created = True
             except SQLAlchemyError as err:
-                SESSION.rollback()
+                session.rollback()
                 if TESTING:
                     print "Couldn't create project"
                     print "ERROR: %s" % err
@@ -237,9 +240,9 @@ def update_groups_to_db(namespace, pkg, pkg_groups):
 
         # for the case when the new project was just created
         # by the above call
-        if not flag:
+        if created:
             pkg_obj = pagure.lib.get_project(
-                SESSION, name=pkg, namespace=namespace)
+                session, name=pkg, namespace=namespace)
 
         # if the group was initially empty, it was not
         # created in the db
@@ -251,15 +254,15 @@ def update_groups_to_db(namespace, pkg, pkg_groups):
         if group_obj not in pkg_obj.groups:
             try:
                 pagure.lib.add_group_to_project(
-                    session=SESSION,
+                    session=session,
                     project=pkg_obj,
                     new_group=group,
                     user=pkg_obj.user.user,
-                    #access='admin'
+                    access='admin'
                 )
-                SESSION.commit()
+                session.commit()
             except SQLAlchemyError as err:
-                SESSION.rollback()
+                session.rollback()
                 if TESTING:
                     print "Adding a group to a project failed"
                     print "ERROR: %s" % err
@@ -267,12 +270,73 @@ def update_groups_to_db(namespace, pkg, pkg_groups):
 
 def add_fork_to_gitolite():
     ''' Creates a sqlalchemy user object for pagure db '''
-    for fork in pagure.lib.search_projects(session=SESSION, forks=True):
+    for fork in pagure.lib.search_projects(session=SESSION, fork=True):
         print ''
         print 'repo %s' % (fork.fullname)
-        if masters:
-            print '    RWC      = %s' % ' '.join(
-                [user.username for user in fork.committers])
+        print '    RWC  = %s' % fork.user.username
+
+
+def process_pkg(arg):
+    """ Process the given package, adjust pagure for it and queue all the
+    ACLs so we can send them to gitolite
+    """
+    pkg, acls, myq = arg
+    session = pagure.lib.create_session(pagure.APP.config['DB_URL'])
+
+    branchAcls = {}  # Check whether we need to set separate per branch acls
+    buffer = []  # Buffer the output per package
+    masters = []  # Folks that have commit to master
+    writers = []  # Anybody that has write access
+
+    # Examine each branch in the package
+    branches = acls[pkg].keys()
+    branches.sort()
+    for branch in branches:
+        if branch not in ACTIVE.keys():
+            continue
+        if 'packager' in acls[pkg][branch]['commit']['groups']:
+            # If the packager group is defined, everyone has access
+            buffer.append('    RWC   %s = @all' % (ACTIVE[branch]))
+            branchAcls.setdefault('@all', []).append(
+                (pkg, ACTIVE[branch])
+            )
+            if branch == 'master':
+                masters.append('@all')
+            if '@all' not in writers:
+                writers.append('@all')
+        else:
+            # Extract the owners
+            committers = []
+            owners = acls[pkg][branch]['commit']['people']
+            owners.sort()
+            for owner in owners:
+                committers.append(owner)
+            for group in acls[pkg][branch]['commit']['groups']:
+                committers.append('@%s' % group)
+            if branch == 'master':
+                masters.extend(committers)
+
+                pkg_groups = acls[pkg][branch]['commit']['groups']
+                update_owners_to_db(session, namespace, pkg, owners)
+                update_groups_to_db(session, namespace, pkg, pkg_groups)
+
+            # add all the committers to the top writers list
+            for committer in committers:
+                if committer not in writers:
+                    writers.append(committer)
+
+            # Print the committers to the acl for this package-branch
+            committers = ' '.join(committers)
+            buffer.append(
+                '    RWC   %s = %s' % (ACTIVE[branch], committers))
+            branchAcls.setdefault(committers, []).append(
+                (pkg, ACTIVE[branch])
+            )
+
+    session.close()
+    data = [pkg, buffer, writers, masters]
+    myq.put(data)
+    myq.task_done()
 
 
 if __name__ == '__main__':
@@ -374,58 +438,17 @@ if __name__ == '__main__':
         acls = data[namespace]
         pkglist = sorted(data[namespace].keys())
 
-        for pkg in pkglist:
+        m = Manager()
+        q = m.Queue()
+        p = Pool(5)
+        p.map(process_pkg, itertools.product(pkglist, [acls], [q]))
+        p.close()
+        p.join()
 
-            branchAcls = {}  # Check whether we need to set separate per branch acls
-            buffer = []  # Buffer the output per package
-            masters = []  # Folks that have commit to master
-            writers = []  # Anybody that has write access
-
-            # Examine each branch in the package
-            branches = acls[pkg].keys()
-            branches.sort()
-            for branch in branches:
-                if branch not in ACTIVE.keys():
-                    continue
-                if 'packager' in acls[pkg][branch]['commit']['groups']:
-                    # If the packager group is defined, everyone has access
-                    buffer.append('    RWC   %s = @all' % (ACTIVE[branch]))
-                    branchAcls.setdefault('@all', []).append(
-                        (pkg, ACTIVE[branch])
-                    )
-                    if branch == 'master':
-                        masters.append('@all')
-                    if '@all' not in writers:
-                        writers.append('@all')
-                else:
-                    # Extract the owners
-                    committers = []
-                    owners = acls[pkg][branch]['commit']['people']
-                    owners.sort()
-                    for owner in owners:
-                        committers.append(owner)
-                    for group in acls[pkg][branch]['commit']['groups']:
-                        committers.append('@%s' % group)
-                    if branch == 'master':
-                        masters.extend(committers)
-
-                        pkg_groups = acls[pkg][branch]['commit']['groups']
-                        update_owners_to_db(namespace, pkg, owners)
-                        update_groups_to_db(namespace, pkg, pkg_groups)
-
-                    # add all the committers to the top writers list
-                    for committer in committers:
-                        if committer not in writers:
-                            writers.append(committer)
-
-                    # Print the committers to the acl for this package-branch
-                    committers = ' '.join(committers)
-                    buffer.append(
-                        '    RWC   %s = %s' % (ACTIVE[branch], committers))
-                    branchAcls.setdefault(committers, []).append(
-                        (pkg, ACTIVE[branch])
-                    )
-
+        #for pkg in pkglist:
+            #process_pkg([pkg, acls, q])
+        while q.qsize():
+            pkg, buffer, writers, masters = q.get()
             print ''
             print 'repo %s/%s' % (namespace, pkg)
             print '\n'.join(buffer)
@@ -433,7 +456,9 @@ if __name__ == '__main__':
                 print '    -    %s = @all' % reserved
             print '    RWC  refs/tags/ = %s' % ' '.join(writers)
             if masters:
-                print '    RWC      = %s' % ' '.join(masters)
+                print '    RWC  = %s' % ' '.join(masters)
+
+        q.join()
 
     add_fork_to_gitolite()
 
