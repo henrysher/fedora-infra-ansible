@@ -3,17 +3,6 @@
 # assignment to config dictionary which will be recursively merged with the
 # default one.
 
-{% if env != 'staging' %}{# 1.9 #}
-class DictMergeWorkaround(object):
-    # workaround that koji login args get accidentally merged with example ones
-    def __init__(self, mapping):
-        self.mapping = mapping
-    def keys(self):
-        return self.mapping.keys()
-    def __getitem__(self, key):
-        return self.mapping[key]
-{% endif %}
-
 config = {
     "database_config": {
         "host": "{{ koschei_pgsql_hostname }}",
@@ -30,16 +19,10 @@ config = {
         "topurl": "https://{{ koschei_kojipkgs }}",
         {% endif %}
         "login_method": "krb_login",
-        {% if env == 'staging' %} {# 1.9 #}
         "login_args": {
             "keytab": "/etc/krb5.koschei_{{ inventory_hostname }}.keytab",
             "principal": "koschei/{{ inventory_hostname }}@{{ ipa_realm }}",
         },
-        {% else %}
-        "login_args": DictMergeWorkaround({
-            "keytab": "/etc/krb5.koschei_{{ inventory_hostname }}.keytab",
-            "principal": "koschei/{{ inventory_hostname }}@{{ ipa_realm }}",
-        }),
         {% endif %}
         "session_opts": {
             "krb_rdns": False,
@@ -102,11 +85,7 @@ config = {
             },
         },
     },
-    {% if env == 'staging' %} {# 1.9 #}
     "plugins": ['pkgdb', 'fedmsg'],
-    {% else %}
-    "plugins": ['pkgdb', 'fedmsg_publisher'],
-    {% endif %}
     "fedmsg": {
         {% if env == 'staging' %}
         "topic": "org.fedoraproject.stg.buildsys",
@@ -118,7 +97,7 @@ config = {
         "enabled": True,
         "modname": "koschei",
     },
-    "caching": { {# 1.9+ #}
+    "caching": {
         "rpm_requires": {
             "backend": "dogpile.cache.memcached",
             "expiration_time": None,
@@ -150,14 +129,6 @@ config = {
         "topic_re": r'\.prod\.pkgdb\.',
         {% endif %}
         "sync_tracked": True,
-        "cache": { {# remove after 1.9 #}
-            "backend": "dogpile.cache.memcached",
-            "expiration_time": 300,
-            "arguments": {
-                "url": "memcached01",
-                "distributed_lock": True,
-            },
-        },
     },
 }
 
