@@ -43,3 +43,17 @@
   tags:
   - config
   - collectd/server
+
+# create /var/log/collectd as it's on a larger volume
+- name: create /var/log/collectd
+  file: path=/var/log/collectd owner=root group=root mode=0755 state=dir
+  tags:
+  - config
+  - collectd/server
+
+# create a link from /var/lib/collectd to /var/log/collectd
+- name: create link from /var/lib/collectd to /var/log/collectd
+  file: state=link src=/var/log/collectd dest=/var/lib/collectd
+  tags:
+  - config
+  - collectd/server
