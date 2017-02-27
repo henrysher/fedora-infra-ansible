@@ -80,7 +80,7 @@ insert into host_channels (host_id, channel_id) values (
 -- The buildvms are x86_64 and i386 and also have createrepo ability
 {% for host in groups['buildvm-stg'] %}
 select now() as time, 'adding staging host {{ host }}' as msg;
-insert into users (name, usertype, status) values ('{{ host }}', 1, 0);
+insert into users (name, usertype, krb_principal, status) values ('{{ host }}', 1, 'compile/{{ host }}@STG.FEDORAPROJECT.ORG', 0);
 insert into host (user_id, name, arches) values (
     (select id from users where name='{{host}}'), '{{host}}', 'i386 x86_64');
 {% for channel in [ 'default', 'createrepo', 'appliance', 'livemedia', 'vm', 'secure-boot', 'compose', 'eclipse', 'images', 'image'] %}
@@ -92,7 +92,7 @@ insert into host_channels (host_id, channel_id) values (
 -- The arm builders  are armhfp and do not have createrepo ability
 {% for host in groups['buildarm-stg'] %}
 select now() as time, 'adding staging host {{ host }}' as msg;
-insert into users (name, usertype, status) values ('{{ host }}', 1, 0);
+insert into users (name, usertype, krb_principal, status) values ('{{ host }}', 1, 'compile/{{ host }}@STG.FEDORAPROJECT.ORG', 0);
 insert into host (user_id, name, arches) values (
     (select id from users where name='{{host}}'), '{{host}}', 'armhfp');
 {% for channel in [ 'default', 'appliance', 'vm', 'secure-boot', 'compose', 'eclipse', 'images', 'image'] %}
@@ -105,7 +105,7 @@ insert into host_channels (host_id, channel_id) values (
 
 {% for host in groups['buildvm-aarch64-stg'] %}
 select now() as time, 'adding staging host {{ host }}' as msg;
-insert into users (name, usertype, status) values ('{{ host }}', 1, 0);
+insert into users (name, usertype, krb_principal, status) values ('{{ host }}', 1, 'compile/{{ host }}@STG.FEDORAPROJECT.ORG', 0);
 insert into host (user_id, name, arches) values (
     (select id from users where name='{{host}}'), '{{host}}', 'aarch64');
 {% for channel in [ 'default', 'appliance', 'vm', 'secure-boot', 'compose', 'eclipse', 'images', 'image'] %}
@@ -118,7 +118,7 @@ insert into host_channels (host_id, channel_id) values (
 
 {% for host in groups['buildvm-ppc64-stg'] %}
 select now() as time, 'adding staging host {{ host }}' as msg;
-insert into users (name, usertype, status) values ('{{ host }}', 1, 0);
+insert into users (name, usertype, krb_principal, status) values ('{{ host }}', 1, 'compile/{{ host }}@STG.FEDORAPROJECT.ORG', 0);
 insert into host (user_id, name, arches) values (
     (select id from users where name='{{host}}'), '{{host}}', 'ppc64');
 {% for channel in [ 'default', 'appliance', 'vm', 'secure-boot', 'compose', 'eclipse', 'images', 'image'] %}
@@ -131,7 +131,7 @@ insert into host_channels (host_id, channel_id) values (
 
 {% for host in groups['buildvm-ppc64le-stg'] %}
 select now() as time, 'adding staging host {{ host }}' as msg;
-insert into users (name, usertype, status) values ('{{ host }}', 1, 0);
+insert into users (name, usertype, krb_principal, status) values ('{{ host }}', 1, 'compile/{{ host }}@STG.FEDORAPROJECT.ORG', 0);
 insert into host (user_id, name, arches) values (
     (select id from users where name='{{host}}'), '{{host}}', 'ppc64le');
 {% for channel in [ 'default', 'appliance', 'vm', 'secure-boot', 'compose', 'eclipse', 'images', 'image'] %}
