@@ -24,7 +24,7 @@
   vars:
     # this is actually without admin tenant
     all_tenants: ['cloudintern', 'cloudsig', 'copr', 'coprdev', 'infrastructure',
-      'persistent', 'pythonbots', 'qa', 'scratch', 'transient', 'openshift']
+      'persistent', 'pythonbots', 'qa', 'scratch', 'transient', 'openshift', 'maintainertest', 'dashost']
 
   vars_files:
    - /srv/web/infra/ansible/vars/global.yml
@@ -711,6 +711,8 @@
       - { name: pythonbots, desc: 'project for python build bot users - twisted, etc' }
       - { name: scratch, desc: 'scratch and short term instances' }
       - { name: openshift, desc: 'Tenant for openshift deployment' }
+      - { name: maintainertest, desc: 'Tenant for maintainer test machines' }
+      - { name: dashost, desc: 'Tenant for dashost' }
 
 
   ##### USERS #####
@@ -790,6 +792,11 @@
       - { username: asamalik, name: asamalik, tenant: scratch, password: "{{asamalik_password}}", public_key: "{{ lookup('pipe', '/srv/web/infra/ansible/scripts/auth-keys-from-fas asamalik') }}" }
       - { username: clime, name: clime, tenant: copr, password: "{{clime_password}}", public_key: "{{ lookup('pipe', '/srv/web/infra/ansible/scripts/auth-keys-from-fas clime') }}" }
       - { username: misc, name: misc, tenant: openshift, password: "{{misc_password}}", public_key: "{{ lookup('pipe', '/srv/web/infra/ansible/scripts/auth-keys-from-fas misc') }}" }
+      - { username: alivigni, name: alivigni, tenant: dashost, password: "{{alivigni_password}}", public_key: "{{ lookup('pipe', '/srv/web/infra/ansible/scripts/auth-keys-from-fas alivigni') }}" }
+      - { username: jbieren, name: jbieren, tenant: dashost, password: "{{jbieren_password}}", public_key: "{{ lookup('pipe', '/srv/web/infra/ansible/scripts/auth-keys-from-fas jbieren') }}" }
+      - { username: bpeck, name: bpeck, tenant: dashost, password: "{{bpeck_password}}", public_key: "{{ lookup('pipe', '/srv/web/infra/ansible/scripts/auth-keys-from-fas bpeck') }}" }
+      - { username: srallaba, name: srallaba, tenant: dashost, password: "{{srallaba_password}}", public_key: "{{ lookup('pipe', '/srv/web/infra/ansible/scripts/auth-keys-from-fas srallaba') }}" }
+      - { username: jburke, name: jburke, tenant: dashost, password: "{{jburke_password}}", public_key: "{{ lookup('pipe', '/srv/web/infra/ansible/scripts/auth-keys-from-fas jburke') }}" }
     tags:
     - openstack_users
 
@@ -813,6 +820,8 @@
       - { user: admin, tenant: infrastructure }
       - { user: admin, tenant: scratch }
       - { user: admin, tenant: transient }
+      - { user: admin, tenant: maintainertest }
+      - { user: admin, tenant: dashost }
       - { user: copr, tenant: coprdev }
       - { user: kevin, tenant: cloudintern }
       - { user: kevin, tenant: cloudsig }
@@ -823,6 +832,8 @@
       - { user: kevin, tenant: qa }
       - { user: kevin, tenant: scratch }
       - { user: kevin, tenant: transient }
+      - { user: kevin, tenant: maintainertest }
+      - { user: kevin, tenant: dashost }
       - { user: msuchy, tenant: cloudintern }
       - { user: msuchy, tenant: cloudsig }
       - { user: msuchy, tenant: coprdev }
@@ -842,6 +853,8 @@
       - { user: puiterwijk, tenant: qa }
       - { user: puiterwijk, tenant: scratch }
       - { user: puiterwijk, tenant: transient }
+      - { user: puiterwijk, tenant: maintainertest }
+      - { user: puiterwijk, tenant: dashost }
       - { user: mizdebsk, tenant: infrastructure }
       - { user: mizdebsk, tenant: transient }
       - { user: clime, tenant: coprdev }
@@ -933,6 +946,8 @@
       - { name: scratch, shared: false }
       - { name: transient, shared: false }
       - { name: openshift, shared: false }
+      - { name: maintainertest, shared: false }
+      - { name: dashost, shared: false }
   - name: Create a subnet for all tenants
     neutron_subnet:
       login_username="admin" login_password="{{ ADMIN_PASS }}" login_tenant_name="admin"
@@ -955,6 +970,8 @@
       - { name: scratch, cidr: '172.25.64.1/20', gateway: '172.25.64.1' }
       - { name: transient, cidr: '172.25.48.1/20', gateway: '172.25.48.1' }
       - { name: openshift, cidr: '172.25.160.1/20', gateway: '172.25.160.1' }
+      - { name: maintainertest, cidr: '172.25.180.1/20', gateway: '172.25.180.1' }
+      - { name: dashost, cidr: '172.25.200.1/20', gateway: '172.25.200.1' }
   - name: "Connect router's interface to the TENANT-subnet"
     neutron_router_interface:
       login_username="admin" login_password="{{ ADMIN_PASS }}" login_tenant_name="admin"
@@ -1061,6 +1078,8 @@
       - { name: scratch, prefix: '172.25.64.1/20' }
       - { name: transient, prefix: '172.25.48.1/20' }
       - { name: openshift, prefix: '172.25.160.1/20' }
+      - { name: maintainertest, prefix: '172.25.180.1/20' }
+      - { name: dashost, prefix: '172.25.200.1/20' }
 
   - name: "Create 'web-80-anywhere' security group"
     neutron_sec_group:
