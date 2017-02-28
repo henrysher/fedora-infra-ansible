@@ -56,18 +56,15 @@
     - fedora-23-ppc64le.cfg
     - fedora-24-ppc64le.cfg
     - fedora-25-ppc64le.cfg
+    - fedora-26-ppc64le.cfg
     - fedora-rawhide-ppc64le.cfg
-
-- name: symlink F26 configs to rawhide ones
-  shell: for cfg in /etc/mock/fedora-rawhide-*.cfg; do ln -s $cfg `echo $cfg|sed 's/rawhide/26/'`; done
-  when: prepare_base_image is defined
 
 # ansible doesn't support simultaneously usage of async and with_* options
 # it's not even planned for implementation, see https://github.com/ansible/ansible/issues/5841
 - name: prepare cache
   when: prepare_base_image is defined
   async: 14400
-  shell: "for i in fedora-23-ppc64le fedora-24-ppc64le fedora-25-ppc64le fedora-rawhide-ppc64le; do mock --init -r $i; done"
+  shell: "for i in fedora-23-ppc64le fedora-24-ppc64le fedora-25-ppc64le fedora-26-ppc64le fedora-rawhide-ppc64le; do mock --init -r $i; done"
 
 - name: mockbuilder user
   user: name=mockbuilder groups=mock

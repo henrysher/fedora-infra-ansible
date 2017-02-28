@@ -56,9 +56,8 @@
     - custom-1-x86_64.cfg
     - custom-1-i386.cfg
     - custom-1-ppc64le.cfg
-
-- name: symlink F26 configs to rawhide ones
-  shell: for cfg in /etc/mock/fedora-rawhide-*.cfg; do ln -s $cfg `echo $cfg|sed 's/rawhide/26/'`; done
+    - fedora-26-x86_64.cfg
+    - fedora-26-i386.cfg
 
 # TODO: file globs or ansible escaping works strange, now using predefined file location
 #- name: "fix mock configs to use nearest mirror"
@@ -76,6 +75,8 @@
   -  /etc/mock/fedora-24-x86_64.cfg
   -  /etc/mock/fedora-25-i386.cfg
   -  /etc/mock/fedora-25-x86_64.cfg
+  -  /etc/mock/fedora-26-i386.cfg
+  -  /etc/mock/fedora-26-x86_64.cfg
 
 - name: "patch mock.cfg (main)"
   replace: >
@@ -87,6 +88,8 @@
   -  /etc/mock/fedora-24-x86_64.cfg
   -  /etc/mock/fedora-25-i386.cfg
   -  /etc/mock/fedora-25-x86_64.cfg
+  -  /etc/mock/fedora-26-i386.cfg
+  -  /etc/mock/fedora-26-x86_64.cfg
 
 
 
@@ -95,7 +98,7 @@
 - name: prepare cache
   when: prepare_base_image is defined
   async: 14400
-  shell: "for i in epel-5-i386 epel-5-x86_64 epel-6-i386 epel-6-x86_64 epel-7-x86_64 fedora-23-i386 fedora-23-x86_64 fedora-24-i386 fedora-24-x86_64 fedora-25-i386 fedora-25-x86_64 fedora-rawhide-i386 fedora-rawhide-x86_64; do mock --init -r $i; done"
+  shell: "for i in epel-5-i386 epel-5-x86_64 epel-6-i386 epel-6-x86_64 epel-7-x86_64 fedora-23-i386 fedora-23-x86_64 fedora-24-i386 fedora-24-x86_64 fedora-25-i386 fedora-25-x86_64 fedora-26-i386 fedora-26-x86_64 fedora-rawhide-i386 fedora-rawhide-x86_64; do mock --init -r $i; done"
 
 - name: mockbuilder user
   user: name=mockbuilder groups=mock
