@@ -90,15 +90,6 @@ if __name__ == '__main__':
         else:
             version = tag.split('-')[1][:-1]
 
-    data = requests.get(urljoin(BASEURL, 'api/collections'), verify=VERIFY).json()
-    branch_names = set()
-    for collection in (c for c in data['collections'] if c['status'] != 'EOL'):
-        ### TODO: check with pingou that this is now returning the same
-        # format as the collection names in api/vcs
-        # By moving the data from gitbranchname into branchname, I think
-        # that the data will now match
-        branch_names.add(collection['branchname'])
-
     if tag.startswith('epel'):
         # Ex: epel7 => epel7
         reponame = tag
@@ -118,6 +109,16 @@ if __name__ == '__main__':
 {% else %}
         arches = ["primary", "arm", "ppc", "s390"]
 {% endif %}
+
+    data = requests.get(urljoin(BASEURL, 'api/collections'), verify=VERIFY).json()
+    branch_names = set()
+    for collection in (c for c in data['collections'] if c['status'] != 'EOL'):
+        ### TODO: check with pingou that this is now returning the same
+        # format as the collection names in api/vcs
+        # By moving the data from gitbranchname into branchname, I think
+        # that the data will now match
+        branch_names.add(collection['branchname'])
+
     if reponame not in branch_names:
         print 'tag %s => repo %s: does not seem to be a non-EOL branch' % (tag, reponame)
         sys.exit(1)
