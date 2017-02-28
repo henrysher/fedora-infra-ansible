@@ -8,6 +8,14 @@ tcp_ports: [80, 443, 9418,
     3000, 3001, 3002, 3003, 3004, 3005, 3006, 3007,
     3008, 3009, 3010, 3011, 3012, 3013, 3014, 3015]
 
+# Definining these vars has a number of effects
+# 1) mod_wsgi is configured to use the vars for its own setup
+# 2) iptables opens enough ports for all threads for fedmsg
+# 3) roles/fedmsg/base/ declares enough fedmsg endpoints for all threads
+wsgi_fedmsg_service: pagure
+wsgi_procs: 4
+wsgi_threads: 4
+
 fas_client_groups: sysadmin-main,sysadmin-cvs,sysadmin-releng,sysadmin-noc
 fas_client_restricted_app: HOME=/srv/git /usr/share/gitolite3/gitolite-shell %(username)s
 fas_client_admin_app: HOME=/srv/git /usr/share/gitolite3/gitolite-shell -s %(username)s
