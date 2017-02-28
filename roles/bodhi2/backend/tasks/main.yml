@@ -178,6 +178,15 @@
   when: inventory_hostname.startswith('bodhi-backend01') and env == "production"
   tags:
   - bodhi
+
+# See https://pagure.io/releng/issue/6663 and https://pagure.io/fm-orchestrator/issue/333
+- name: sync packages from pkgdb2 to koji fedora (modules)
+  cron: name="owner-sync-modules" minute="9,19,29,39,49,59" user="root"
+        job="/usr/local/bin/owner-sync-pkgdb module-package-list"
+        cron_file=update-koji-owner-modules
+  when: inventory_hostname.startswith('bodhi-backend01') and env == "production"
+  tags:
+  - bodhi
 #
 # cron job that syncs updates to master mirror
 #
