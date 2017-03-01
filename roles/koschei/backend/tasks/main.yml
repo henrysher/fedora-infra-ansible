@@ -13,11 +13,7 @@
   file: >
     path="/etc/systemd/system/{{ item }}.service.d"
     state=directory
-  with_items:
-  - koschei-polling
-  - koschei-resolver
-  - koschei-scheduler
-  - koschei-watcher
+  with_items: "{{ koschei_backend_services }}"
   notify:
   - reload systemd
   tags:
@@ -48,10 +44,7 @@
   - config-admin.cfg
   - config-backend.cfg
   notify:
-  - restart koschei-polling
-  - restart koschei-resolver
-  - restart koschei-scheduler
-  - restart koschei-watcher
+  - restart koschei backend services
   tags:
   - koschei
   - config
@@ -59,10 +52,7 @@
 - name: install koschei fedmsg config
   copy: src=koschei.py dest=/etc/fedmsg.d/koschei.py
   notify:
-  - restart koschei-polling
-  - restart koschei-resolver
-  - restart koschei-scheduler
-  - restart koschei-watcher
+  - restart koschei backend services
   tags:
   - koschei
   - config
@@ -78,11 +68,7 @@
 
 - name: enable services to start on boot
   service: name={{ item }} state=running enabled=true
-  with_items:
-  - koschei-polling
-  - koschei-resolver
-  - koschei-scheduler
-  - koschei-watcher
+  with_items: "{{ koschei_backend_services }}"
   tags:
   - koschei
   - service
