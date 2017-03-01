@@ -11,9 +11,12 @@ config = {
 
     'robosignatory.enabled.tagsigner': True,
     'robosignatory.enabled.atomicsigner': True,
-    'robosignatory.signing.user': 'autopen',
-    'robosignatory.signing.passphrase_file': '/etc/sigul/autosign.pass',
-    'robosignatory.signing.config_file': '/etc/sigul/client.conf',
+    'robosignstory.signing': {
+        'backend': 'sigul',
+        'user': 'autopen',
+        'passphrase_file': '/etc/sigul/autosign.pass',
+        'config_file': '/etc/sigul/client.conf'
+    },
 
     # The keys here need to be the same in the sigul bridge
     'robosignatory.koji_instances': {
