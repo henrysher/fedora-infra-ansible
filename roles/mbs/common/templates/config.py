@@ -78,6 +78,14 @@ class BaseConfiguration(object):
 class ProdConfiguration(BaseConfiguration):
     DEBUG = False  # Don't turn this on.
 
+    # These groups are allowed to submit builds.
+    ALLOWED_GROUPS = [
+        'factory2',
+        'modularity-wg',
+        # Not allowed until FESCo approves us in the F27 timeframe.
+        #'packager',
+    ]
+
 {% if env == 'staging' %}
     SECRET_KEY = '{{ mbs_stg_secret_key }}'
     SQLALCHEMY_DATABASE_URI = 'postgresql://mbs:{{mbs_stg_db_password}}@db-mbs/mbs'
@@ -123,5 +131,14 @@ class ProdConfiguration(BaseConfiguration):
     SCMURLS = ["git://pkgs.fedoraproject.org/modules/"]
 {% endif %}
 
+    # This is a whitelist of prefixes of koji tags we're allowed to manipulate
+    KOJI_TAG_PREFIXES = ['modules']
+
     # These aren't really secret.
     OIDC_CLIENT_SECRETS = path.join(confdir, 'client_secrets.json')
+
+    # yes, we want everyone to authenticate
+    NO_AUTH = False  # Obviously.
+
+    # Don't let people submit yaml directly.  it has to come from dist-git
+    YAML_SUBMIT_ALLOWED = False
