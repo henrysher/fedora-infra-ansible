@@ -32,21 +32,9 @@
         owner=root group=root mode=0644
   with_items:
   - account-scopes
-  notify:
-  - reload apache
-  tags:
-  - ipsilon
-  - ipsilon/oidc_scopes
-
-- name: Copy additional OpenID Connect scope registrations for staging
-  copy: src=oidc_scopes/{{item}}.py
-        dest=/usr/lib/python2.7/site-packages/ipsilon/providers/openidc/plugins/{{item}}.py
-        owner=root group=root mode=0644
-  with_items:
   - mbs
   notify:
   - reload apache
-  when: env == 'staging'
   tags:
   - ipsilon
   - ipsilon/oidc_scopes
