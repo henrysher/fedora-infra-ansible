@@ -33,7 +33,8 @@ config = {
                     "key": "fedora-26",
                     "keyid": "64dab85d"
                 },
-                # Normal tags
+
+                # Infra tags
                 {
                     "from": "epel6-infra-candidate",
                     "to": "epel6-infra",
@@ -65,56 +66,33 @@ config = {
                     "keyid": "47dd8ef9"
                 },
                 {
-                    "from": "f26",
-                    "to": "f26",
-                    "key": "fedora-26",
-                    "keyid": "64dab85d"
+                    "from": "f26-infra-candidate",
+                    "to": "f26-infra",
+                    "key": "fedora-infra",
+                    "keyid": "47dd8ef9"
                 },
+
+                # Gated rawhide and branched
                 {
                     "from": "f26-pending",
                     "to": "f26",
                     "key": "fedora-26",
                     "keyid": "64dab85d"
                 },
-
                 {
-                    "from": "f25-updates-testing-pending",
-                    "to": "f25-updates-testing-pending",
-                    "key": "fedora-25",
-                    "keyid": "fdb19c98"
-                },
-                {
-                    "from": "f24-updates-testing-pending",
-                    "to": "f24-updates-testing-pending",
-                    "key": "fedora-24",
-                    "keyid": "81b46521"
-                },
-                {
-                    "from": "f23-updates-testing-pending",
-                    "to": "f23-updates-testing-pending",
-                    "key": "fedora-23",
-                    "keyid": "34ec9cba"
-                },
-                {
-                    "from": "epel7-testing-pending",
-                    "to": "epel7-testing-pending",
-                    "key": "epel-7",
-                    "keyid": "352c64e5"
-                },
-                {
-                    "from": "dist-6E-epel-testing-candidate",
-                    "to": "dist-6E-epel-testing-candidate",
-                    "key": "epel-6",
-                    "keyid": "0608b895"
-                },
-                {
-                    "from": "dist-5E-epel-testing-candidate",
-                    "to": "dist-5E-epel-testing-candidate",
-                    "key": "epel-5",
-                    "keyid": "217521f6"
+                    "from": "f27-pending",
+                    "to": "f27",
+                    "key": "fedora-27",
+                    "keyid": "f5282ee4"
                 },
 
-                # For transitional during new bodhi release
+                # Gated bodhi updates
+                {
+                    "from": "f26-signing-pending",
+                    "to": "f26-updates-testing-pending",
+                    "key": "fedora-26",
+                    "keyid": "64dab85d"
+                },
                 {
                     "from": "f25-signing-pending",
                     "to": "f25-updates-testing-pending",
@@ -139,6 +117,20 @@ config = {
                     "key": "epel-7",
                     "keyid": "352c64e5"
                 },
+
+                # Non-gated bodhi triggered
+                {
+                    "from": "dist-6E-epel-testing-candidate",
+                    "to": "dist-6E-epel-testing-candidate",
+                    "key": "epel-6",
+                    "keyid": "0608b895"
+                },
+                {
+                    "from": "dist-5E-epel-testing-candidate",
+                    "to": "dist-5E-epel-testing-candidate",
+                    "key": "epel-5",
+                    "keyid": "217521f6"
+                },
             ]
         },
     },
@@ -155,6 +147,18 @@ config = {
         'fedora/25/x86_64/workstation': {
             'directory': '/mnt/fedora_koji/koji/compose/ostree/25/',
             'key': 'fedora-25'
+        },
+        'fedora-atomic/26/x86_64/updates/docker-host': {
+            'directory': '/mnt/fedora_koji/koji/mash/atomic/26/',
+            'key': 'fedora-26'
+        },
+        'fedora-atomic/26/x86_64/docker-host': {
+            'directory': '/mnt/fedora_koji/koji/mash/atomic/26/',
+            'key': 'fedora-26'
+        },
+        'fedora/26/x86_64/workstation': {
+            'directory': '/mnt/fedora_koji/koji/compose/ostree/26/',
+            'key': 'fedora-26'
         },
         'fedora-atomic/rawhide/x86_64/docker-host': {
             'directory': '/mnt/fedora_koji/koji/compose/atomic/rawhide/',
