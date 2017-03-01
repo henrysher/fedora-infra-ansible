@@ -61,6 +61,8 @@ truncate host_channels;
 select now() as time, 'expiring repos' as msg;
 update repo set state = 3 where state in (0, 1, 2);
 
+-- fix krb_principal for koschei user
+update users set krb_principal='koschei/koschei-backend01.stg.phx2.fedoraproject.org' where name='koschei';
 
 
 -- add our staging builders, dynamically pulled from ansible inventory
