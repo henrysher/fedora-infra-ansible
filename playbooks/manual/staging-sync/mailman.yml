@@ -65,20 +65,6 @@
   # TODO: reindex emails (fulltext)? Not a full-reindex, it may take days.
 
 
-- name: bring staging services up
-  hosts: mailman-stg
-  user: root
-  vars_files:
-   - /srv/web/infra/ansible/vars/global.yml
-   - "/srv/private/ansible/vars.yml"
-   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
-  handlers:
-  - include: "{{ handlers }}/restart_services.yml"
-
-  tasks:
-  - service: name=httpd state=started
-  - service: name=mailman3 state=started
-
 - name: Nuke the prod db dump that we cached on batcave
   hosts: batcave
   user: root
@@ -90,3 +76,17 @@
   tasks:
   - name: Nuke the prod db dump that we cached on batcave
     file: dest=/var/tmp/prod-mailman-dump/ state=absent
+
+
+- name: convert the data to staging and bring services back up.  This will take a while too.
+  hosts: mailman-stg
+  user: root
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"
+
+  tasks:
+  - command: /srv/webui/bin/prod-to-stg.py
