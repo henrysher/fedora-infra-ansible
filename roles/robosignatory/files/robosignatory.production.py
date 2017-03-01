@@ -37,6 +37,12 @@ config = {
                     "key": "fedora-26",
                     "keyid": "64dab85d"
                 },
+                {
+                    "from": "f25-llvm39",
+                    "to": "f25-llvm39",
+                    "key": "fedora-25",
+                    "keyid": "fdb19c98"
+                },
 
                 # Infra tags
                 {
