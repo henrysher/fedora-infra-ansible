@@ -11,7 +11,7 @@ config = {
 
     'robosignatory.enabled.tagsigner': True,
     'robosignatory.enabled.atomicsigner': True,
-    'robosignstory.signing': {
+    'robosignatory.signing': {
         'backend': 'sigul',
         'user': 'autopen',
         'passphrase_file': '/etc/sigul/autosign.pass',
@@ -26,7 +26,8 @@ config = {
                 # Only ssl is supported at the moment
                 'authmethod': 'kerberos',
                 'principal': 'autosign/autosign01.phx2.fedoraproject.org@FEDORAPROJECT.ORG',
-                'keytab': '/etc/krb5.autosign_autosign01.phx2.fedoraproject.org.keytab'
+                'keytab': '/etc/krb5.autosign_autosign01.phx2.fedoraproject.org.keytab',
+                'krb_rdns': False
             },
             'tags': [
                 # Temporary tags
