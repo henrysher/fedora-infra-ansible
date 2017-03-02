@@ -132,7 +132,12 @@ class ProdConfiguration(BaseConfiguration):
 {% endif %}
 
     # This is a whitelist of prefixes of koji tags we're allowed to manipulate
-    KOJI_TAG_PREFIXES = ['module']
+    KOJI_TAG_PREFIXES = [
+        # This is our standard prefix.  All module tags should start with this.
+        'module',
+        # Our very first manually bootstrapped tag has this name.
+        'f26-modularity',
+    ]
 
     # These aren't really secret.
     OIDC_CLIENT_SECRETS = path.join(confdir, 'client_secrets.json')
