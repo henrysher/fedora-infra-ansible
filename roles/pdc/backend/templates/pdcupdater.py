@@ -57,7 +57,7 @@ config = {
     {% if env == 'staging' %}
     'pdcupdater.old_composes_url': 'https://kojipkgs.stg.fedoraproject.org/compose/',
     {% else %}
-    'pdcupdater.old_composes_url': 'http://kojipkgs01.phx2.fedoraproject.org/compose/',
+    'pdcupdater.old_composes_url': 'https://kojipkgs.fedoraproject.org/compose/',
     {% endif %}
 
     # Where to find the fedora-atomic json definitions.
