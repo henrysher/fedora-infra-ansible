@@ -157,6 +157,21 @@
   tags:
   - koji_builder
 
+# install libvirtd.conf
+#
+# This provides us with the ability to use virt-manager from non root accounts.
+# This is useful in the oz/imagefactory context for debugging
+
+- name: install libvirtd.conf
+  copy: src="{{ files }}/virthost/libvirtd.conf" dest=/etc/libvirt/libvirtd.conf
+  notify:
+  - restart libvirtd
+  tags:
+  - koji_builder
+
+- name: enable libvirtd
+  service: name=libvirtd state=started enabled=yes
+
 #
 # On primary we want to make a /mnt/koji link to /mnt/fedora_koji/koji
 #
