@@ -24,10 +24,14 @@
 - name: install systemd config files
   copy: >
     src=systemd-memory-limit.conf
-    dest=/etc/systemd/system/koschei-resolver.service.d/memory-limit.conf
+    dest=/etc/systemd/system/{{ item }}.service.d/memory-limit.conf
+  with_items:
+  - koschei-build-resolver
+  - koschei-repo-resolver
   notify:
   - reload systemd
-  - restart koschei-resolver
+  - restart koschei-build-resolver
+  - restart koschei-repo-resolver
   tags:
   - koschei
   - config
