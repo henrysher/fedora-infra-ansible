@@ -20,3 +20,20 @@ fedmsg_error_recipients:
 - mprahl@redhat.com
 - jkaluza@redhat.com
 - fvalder@redhat.com
+
+csi_security_category: Moderate
+csi_primary_contact: Ralph Bean <rbean@redhat.com>
+csi_purpose:  fedmsg-hub daemon that ferries data from fedmsg to PDC.
+csi_relationship: |
+ NOTICE - pdc-backend01 and pdc-backend02 do *different* things.  They both run
+ a fedmsg-hub daemon that loads the pdc-updater consumer plugin.  However, the
+ pdc-updater plugin is configured to do different things in each place.
+
+ On pdc-updater01, the compose handler is enabled which listens for new pungi
+ composes, and stores them in PDC.  Fedora QE uses this data.  The consumer
+ has only a single thread enabled to avoid OOMing itself with more than one
+ compose at a time.
+
+ On pdc-updater02, the dep chain and modularity handlers are enabled which
+ listen for koji and MBS activity, and store that in PDC.  Multiple threads
+ are enabled so that it can work more efficiently on these smaller tasks.

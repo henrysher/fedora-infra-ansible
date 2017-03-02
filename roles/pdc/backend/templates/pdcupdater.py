@@ -4,10 +4,14 @@ config = {
     # Should we turn on the realtime updater?
     'pdcupdater.enabled': True,
 
+    {% if inventory_hostname.startswith('pdc-backend01') %}
     # Use only one thread at a time to handle messages.  If we have more than
     # one, then we can end up POSTing multiple enormous JSON blobs to the PDC
     # web frontend, and we'll send it into OOM death.  One at a time, people..
     "moksha.workers_per_consumer": 1,
+    {% else %}
+    "moksha.workers_per_consumer": 8,
+    {% endif %}
 
     # Credentials to talk to PDC
     'pdcupdater.pdc': {
@@ -62,23 +66,19 @@ config = {
     # We have an explicit list of these in the config so we can turn them on
     # and off individually in production if one is causing an issue.
     'pdcupdater.handlers': [
+        # See CSI information on host for info on the different handlers.
+        {% if inventory_hostname.startswith('pdc-backend01') %}
         'pdcupdater.handlers.compose:NewComposeHandler',
-        'pdcupdater.handlers.atomic:AtomicComponentGroupHandler',
-
+        {% elif inventory_hostname.startswith('pdc-backend02') %}
         # https://fedoraproject.org/wiki/User:Ralph/Drafts/Infrastructure/Factory2/ModellingDeps
         'pdcupdater.handlers.depchain.rpms:NewRPMBuildTimeDepChainHandler',
         'pdcupdater.handlers.depchain.rpms:NewRPMRunTimeDepChainHandler',
 
-        # The new version of PDC broke all of these.  There are different
-        # endpoints, etc.
-        ##'pdcupdater.handlers.pkgdb:NewPackageHandler',
-        ##'pdcupdater.handlers.pkgdb:NewPackageBranchHandler',
-        ##'pdcupdater.handlers.rpms:NewRPMHandler',
-        ##'pdcupdater.handlers.persons:NewPersonHandler',
-
-        {% if env == 'staging' %}
         # For MBS https://fedoraproject.org/wiki/Changes/ModuleBuildService
         'pdcupdater.handlers.modules:ModuleStateChangeHandler',
+
+        # This just isn't used for now.. but we can re-enable it if we need it.
+        #'pdcupdater.handlers.atomic:AtomicComponentGroupHandler',
         {% endif %}
     ],
 
