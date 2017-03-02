@@ -19,11 +19,7 @@
   tasks:
   - service: name={{ item }} state=stopped
     when: '"backend" in ansible_hostname'
-    with_items:
-    - koschei-resolver
-    - koschei-scheduler
-    - koschei-watcher
-    - koschei-polling
+    with_items: "{{ koschei_backend_services }}"
   - service: name=httpd state=stopped
     when: '"web" in ansible_hostname'
 
@@ -76,10 +72,6 @@
   tasks:
   - service: name={{ item }} state=started
     when: '"backend" in ansible_hostname'
-    with_items:
-    - koschei-resolver
-    - koschei-scheduler
-    - koschei-watcher
-    - koschei-polling
+    with_items: "{{ koschei_backend_services }}"
   - service: name=httpd state=started
     when: '"web" in ansible_hostname'

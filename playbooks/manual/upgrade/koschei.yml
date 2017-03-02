@@ -43,11 +43,7 @@
     command: dnf {% for repo in fedora_repos %}--enablerepo {{ repo }} {% endfor %} makecache
   - name: stop services
     service: name="{{ item }}" state=stopped
-    with_items:
-    - koschei-scheduler
-    - koschei-polling
-    - koschei-resolver
-    - koschei-watcher
+    with_items: "{{ koschei_backend_services }}"
   - name: upgrade koschei
     dnf:
       name: "{{ item }}"
