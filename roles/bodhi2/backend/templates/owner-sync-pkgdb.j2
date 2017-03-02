@@ -115,7 +115,10 @@ if __name__ == '__main__':
 {% if env == 'staging' %}
         arches = ["primary"]
 {% else %}
-        arches = ["primary", "arm", "ppc", "s390"]
+        if version <= "25":
+            arches = ["primary", "arm", "ppc", "s390"]
+        else:
+            arches = ["primary", "s390"]
 {% endif %}
 
     data = requests.get(urljoin(BASEURL, 'api/collections'), verify=VERIFY).json()
