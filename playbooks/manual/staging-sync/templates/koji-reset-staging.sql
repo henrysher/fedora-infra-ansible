@@ -34,11 +34,6 @@ alter sequence imageinfo_id_seq restart with 900000;
 select now() as time, 'truncating sessions' as msg;
 truncate table sessions;
 
--- prod volume
-select now() as time, 'setting up prod volume' as msg;
-insert into volume(name) values('prod');
-update build set volume_id=(select id from volume where name='prod') where volume_id=0;
-
 -- cancel any open tasks
 select now() as time, 'canceling open tasks' as msg;
 update task set state=3 where state in (0,1,4);
@@ -46,6 +41,19 @@ update task set state=3 where state in (0,1,4);
 -- cancel any builds in progress
 select now() as time, 'canceling builds in progress' as msg;
 update build set state=4, completion_time=now() where state=0;
+
+-- set prod volume - only for complete builds; failed, canceled and
+-- deleted ones should stay on default (staging) volume so that when
+-- they are resubmitted or imported in staging, koji won't try to put
+-- them on prod volume (and fall because of read-only filesystem)
+select now() as time, 'setting up prod volume' as msg;
+insert into volume(name) values('prod');
+update build set volume_id=(select id from volume where name='prod') where volume_id=0 and state=1;
+
+-- delete files from incomplete builds to keep DB in sync with
+-- filesystem; these builds are on default (staging) volume and their
+-- files are not there; keeping rpminfo's ma
+delete from rpminfo where build_id in (select id from build where state<>1);
 
 -- expire any active buildroots
 select now() as time, 'expiring active buildroots' as msg;
