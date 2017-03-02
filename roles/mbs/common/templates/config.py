@@ -132,7 +132,7 @@ class ProdConfiguration(BaseConfiguration):
 {% endif %}
 
     # This is a whitelist of prefixes of koji tags we're allowed to manipulate
-    KOJI_TAG_PREFIXES = ['modules']
+    KOJI_TAG_PREFIXES = ['module']
 
     # These aren't really secret.
     OIDC_CLIENT_SECRETS = path.join(confdir, 'client_secrets.json')
