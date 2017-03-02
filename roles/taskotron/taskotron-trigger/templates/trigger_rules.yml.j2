@@ -40,4 +40,10 @@
 - when: {message_type: DistGitCommit, namespace: modules}
   do:
     - {tasks: [check_modulemd]}
+
+# trigger off of scratch builds in dev
+- when: {message_type: KojiTaskCompleted}
+  do:
+    - {discover: {repo: '{{ trigger_distgit_repo_url }}/rpms/${name}.git', branch: "${distgit_branch}", fallback_branch: 'master'}}
+    - {tasks: [rpmlint-scratch]}
 {% endif %}
