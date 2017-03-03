@@ -15,8 +15,11 @@
   - mbs
   - mbs/common
 
-- name: kill development config
-  file: path=/etc/fedmsg.d/module_build_service.py state=absent
+- name: kill development configs
+  file: path=/etc/fedmsg.d/{{ item }} state=absent
+  with_items:
+  - module_build_service.py
+  - mbs-logging.py
   notify:
   - restart apache
   - restart fedmsg-hub
