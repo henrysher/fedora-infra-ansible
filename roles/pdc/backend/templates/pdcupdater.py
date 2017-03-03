@@ -70,9 +70,10 @@ config = {
         {% if inventory_hostname.startswith('pdc-backend01') %}
         'pdcupdater.handlers.compose:NewComposeHandler',
         {% elif inventory_hostname.startswith('pdc-backend02') %}
-        # https://fedoraproject.org/wiki/User:Ralph/Drafts/Infrastructure/Factory2/ModellingDeps
-        'pdcupdater.handlers.depchain.rpms:NewRPMBuildTimeDepChainHandler',
-        'pdcupdater.handlers.depchain.rpms:NewRPMRunTimeDepChainHandler',
+        # Disable these for now as they clog up the queue for the MBS handler
+        ## https://fedoraproject.org/wiki/User:Ralph/Drafts/Infrastructure/Factory2/ModellingDeps
+        #'pdcupdater.handlers.depchain.rpms:NewRPMBuildTimeDepChainHandler',
+        #'pdcupdater.handlers.depchain.rpms:NewRPMRunTimeDepChainHandler',
 
         # For MBS https://fedoraproject.org/wiki/Changes/ModuleBuildService
         'pdcupdater.handlers.modules:ModuleStateChangeHandler',
