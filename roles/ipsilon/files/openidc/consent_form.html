@@ -1,0 +1,58 @@
+{% extends "master-user.html" %}
+{% block main %}
+
+<div>
+  <p>The OpenID Connect client <b>
+{%- if client['homepage'] %}
+    <a href="{{ client['homepage'] }}">{{ client['name'] }}</a>
+{% else %}
+  {{ client['name'] }}
+{%- endif %}
+  </b> is asking
+     to authorize access for <b>{{ username }}</b>.</p>
+  <p>Please review the authorization details</p>
+
+{%- if client['policy'] %}
+  <p><a href="{{ client['policy'] }}">Client privacy policy</a></p>
+{% endif %}
+{%- if client['tos'] %}
+  <p><a href="{{ client['tos'] }}">Client terms of service</a></p>
+{%- endif %}
+</div>
+
+<div>
+  <form class="form-horizontal" role="form" id="consent_form" action="{{ action }}" method="post" enctype="application/x-www-form-urlencoded">
+    <input type="hidden" name="ipsilon_transaction_id" id="ipsilon_transaction_id" value="{{ ipsilon_transaction_id }}">
+
+    <div class="list-group">
+{%- for item in claim_requests|dictsort %}
+        <div class="list-group-item">
+            <div>
+              <strong>{{ item[1]['display_name'] }}</strong>
+            </div>
+            <div>{{ item[1]['value'] }}</div>
+        </div>
+{%- endfor %}
+{%- for item in scopes|dictsort %}
+      <div class="m-t-md"><strong>{{ item[0] }}</strong></div>
+{%- for item in item[1]|dictsort %}
+        <div class="list-group-item">
+            <div>
+              <!-- Empty, so that values come on the right hand -->
+            </div>
+            <div>{{ item[1] }}</div>
+        </div>
+{%- endfor %}
+{%- endfor %}
+    </div>
+
+    <div class="form-group text-right m-t-md">
+      <div class="submit">
+        <button type="submit" name="decided_deny" value="Reject" class="btn btn-secondary btn-lg" tabindex="3">Reject</button>
+        <button type="submit" name="decided_allow" value="Allow" class="btn btn-primary btn-lg" tabindex="3">Allow</button>
+      </div>
+    </div>
+  </form>
+</div>
+
+{% endblock %}
