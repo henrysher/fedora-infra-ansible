@@ -129,6 +129,33 @@ c['schedulers'].append(ForceScheduler(
                                             default='x86_64',
                                             size=128)]))
 
+{% if deployment_type in ['stg'] %}
+c['schedulers'].append(ForceScheduler(
+                            name="distgit_checks",
+                            builderNames=["distgit"],
+                            properties=[
+                            StringParameter(name='taskname',
+                                            label='name of check to run',
+                                            default='',
+                                            size=256),
+                            StringParameter(name='item',
+                                            label='object to use',
+                                            default='',
+                                            size=256),
+                            StringParameter(name='item_type',
+                                            label='type of object to use',
+                                            default='',
+                                            size=256),
+                            StringParameter(name='uuid',
+                                            label='UUID of the build in progress',
+                                            default='',
+                                            size=256),
+                            StringParameter(name='arch',
+                                            label='arch of rpm to test',
+                                            default='x86_64',
+                                            size=128)]))
+{% endif %}
+
 ####### BUILDERS
 
 # The 'builders' list defines the Builders, which tell Buildbot how to perform a build:
@@ -211,6 +238,55 @@ factory.addStep(FileUpload(slavesrc='/var/log/taskotron/taskotron.log',
                            mode=0644))
 {% endif %}
 
+{% if deployment_type in ['stg'] %}
+# this is for package-specific tasks
+#
+# clean out /var/tmp/taskotron (see T253)
+distgit_factory.addStep(ShellCommand(command=Interpolate("rm -rf /var/tmp/taskotron/%(prop:slavename)s/*"), name="rm_tmp", descriptionDone=['Clean tmp']))
+{% endif %}
+
+# check out the source
+distgit_factory.addStep(Git(repourl=Property('repo', default=Interpolate('http://pkgs01.stg.phx2.fedoraproject.org/rpms/{}/'.format(%(prop:item)s.split('-'_[0])))),
+                    branch=Property('branch', default='{{ grokmirror_default_branch }}'),
+                    mode='full',
+                    method='clobber',
+                    shallow=True))
+
+# run the runner
+distgit_factory.addStep(ShellCommand(command=["runtask",
+                                        '-i', Interpolate('%(prop:item)s'),
+                                        '-t', Interpolate('%(prop:item_type)s'),
+                                        '-a', Interpolate('%(prop:arch)s'),
+                                        '-j', Interpolate('%(prop:buildername)s/%(prop:buildnumber)s'),
+                                        '--uuid', Interpolate('%(prop:uuid)s'),
+                                        'runtask.yml'],
+                             descriptionDone=[Interpolate('%(prop:taskname)s on %(prop:item)s')],
+                             name='runtask',
+                             timeout=2400,
+                             logfiles={
+                                 'taskotron-overlord.log': {'filename': Interpolate('/var/lib/taskotron/artifacts/%(prop:uuid)s/taskotron-overlord.log')},
+                                 'taskotron-stdio.log': {'filename': Interpolate('/var/lib/taskotron/artifacts/%(prop:uuid)s/taskotron-stdio.log')},
+                                 'taskotron.log': {'filename': Interpolate('/var/lib/taskotron/artifacts/%(prop:uuid)s/taskotron.log')}
+                             }
+))
+
+
+distgit_factory.addStep(ShellCommand(command=Interpolate('testcloud instance remove --force taskotron-%(prop:uuid)s; true'),
+                                   descriptionDone=['Make sure the minion is removed']))
+
+# create artifacts dir on master
+distgit_factory.addStep(MasterShellCommand(command=["mkdir", '-m', '0755', Interpolate('{{ public_artifacts_dir }}/%(prop:uuid)s')],
+                                   descriptionDone=['Create artifacs dir']))
+
+# copy artifacts to master
+distgit_factory.addStep(DirectoryUpload(slavesrc=Interpolate('/var/lib/taskotron/artifacts/%(prop:uuid)s/'),
+                                masterdest=Interpolate('{{ public_artifacts_dir }}/%(prop:uuid)s/task_output')))
+
+# gzip artifacts
+distgit_factory.addStep(MasterShellCommand(command=Interpolate('gzip -r {{ public_artifacts_dir }}/%(prop:uuid)s/task_output/*'),
+                                   descriptionDone=['gzip artifacs dir content']))
+
+{% endif %}
 import datetime
 from buildbot.process.properties import renderer
 
@@ -259,6 +335,13 @@ c['builders'].append(
       factory=factory, locks=[build_lock.access('counting')],
       mergeRequests=False))
 
+{% if deployment_type in ['stg'] %}
+c['builders'].append(
+    BuilderConfig(name="distgit",
+      slavenames=[{% for buildslave in x86_64_buildslaves %}"{{ buildslave }}",{% endfor %}],
+      factory=distgit_factory, locks=[build_lock.access('counting')],
+      mergeRequests=False))
+{% endif %}
 ####### STATUS TARGETS
 
 # 'status' is a list of Status Targets. The results of each build will be
