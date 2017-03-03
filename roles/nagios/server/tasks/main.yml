@@ -133,6 +133,18 @@
   tags:
   - nagios/server
 
+- name: Copy over our custom nagios 4.2 selinux module
+  copy: src=selinux/nagios_42.pp dest=/usr/local/share/nagios-policy/nagios_42.pp
+  register: selinux_module
+  tags:
+  - nagios/server
+
+- name: Install our custom nagios 4.2 selinux module
+  command: semodule -i /usr/local/share/nagios-policy/nagios_42.pp
+  when: selinux_module|changed
+  tags:
+  - nagios/server
+
 - name: Start and autostart services
   service: name={{item}} state=started enabled=yes
   with_items:
