@@ -22,7 +22,7 @@
   dnf: state=latest name="dist-git"
 
 - name: set home for copr-dist-git user
-  user: name="copr-dist-git" home=/srv/git
+  user: name="copr-dist-git" home=/var/lib/dist-git/git
   when: devel
 
 - name: install packages
@@ -65,7 +65,7 @@
   when: not devel
 
 - name: make sure directories are owned by root:root user
-  file: path=/srv/git owner=root group=root mode=0755
+  file: path=/var/lib/dist-git/git owner=root group=root mode=0755
   when: devel
 
 # set ssh key, so that copr-service could access gitolite
@@ -79,12 +79,12 @@
 
 - debug: msg={{pubkey}}
 
-- name: prepare authorized key, so copr-service could interact with gitolite
+- name: prepare authorized key for copr-dist-git
   authorized_key: user="copr-dist-git" key="{{pubkey}}"
   when: devel
 
 - name: set correct selinux policy for copr-dist-git's .ssh dir
-  shell: 'semanage fcontext -a -t ssh_home_t "/srv/git/.ssh(/.*)?" && restorecon -R /srv/git/.ssh'
+  shell: 'semanage fcontext -a -t ssh_home_t "/var/lib/dist-git/git/.ssh(/.*)?" && restorecon -R /var/lib/dist-git/git/.ssh'
   when: devel
 
 - name: prepare authorized key, so copr-service could interact with gitolite
