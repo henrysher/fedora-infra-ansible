@@ -1,6 +1,7 @@
 sudo sh -c 'echo -e "\n10.5.126.23 infrastructure.fedoraproject.org\n10.5.125.44	pkgs.fedoraproject.org	pkgs\n10.5.126.51	download.fedora.redhat.com\n10.5.125.63	koji.fedoraproject.org\n10.5.126.51 mirrors.fedoraproject.org\n10.5.125.36	kojipkgs.fedoraproject.org" >> /etc/hosts'
 curl -O http://infrastructure.fedoraproject.org/infra/autocloud/tunirtests.tar.gz
 tar -xzvf tunirtests.tar.gz
+sudo python3 -m unittest tunirtests.atomictests.TestAtomic01Status -v
 ## sudo python3 -m unittest tunirtests.nongatingtests.TunirNonGatingtests -v
 ## sudo python3 -m unittest tunirtests.nongatingtests.TunirNonGatingtestBzip2 -v
 ## sudo python3 -m unittest tunirtests.nongatingtests.TunirNonGatingtestsCpio -v
@@ -17,12 +18,12 @@ sudo python3 -m unittest tunirtests.cloudtests.Testnetname -v
 sudo python3 -m unittest tunirtests.cloudservice.TestServiceStop -v
 sudo python3 -m unittest tunirtests.cloudservice.TestServiceDisable -v
 @@ sudo reboot
-SLEEP 30
+POLL
 ## sudo python3 -m unittest tunirtests.testreboot.TestReboot -v
 sudo python3 -m unittest tunirtests.cloudservice.TestServiceManipulation -v
 ## python3 -m unittest tunirtests.cloudtests.TestJournalWrittenAfterReboot -v
 @@ sudo reboot
-SLEEP 30
+POLL
 sudo python3 -m unittest tunirtests.cloudservice.TestServiceAfter -v
 sudo python3 -m unittest tunirtests.atomictests.TestDockerInstalled -v
 sudo python3 -m unittest tunirtests.atomictests.TestDockerStorageSetup -v
