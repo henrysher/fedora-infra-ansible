@@ -130,6 +130,14 @@ c['schedulers'].append(ForceScheduler(
                                             size=128)]))
 
 {% if deployment_type in ['stg'] %}
+c['schedulers'].append(JobScheduler(
+                            name="jobsched-distgit",
+                            builderNames=['distgit'],
+                            treeStableTimer=None,
+                            change_filter=filter.ChangeFilter(project='distgit_checks',
+                                                                category='x86_64')))
+
+
 c['schedulers'].append(ForceScheduler(
                             name="distgit_checks",
                             builderNames=["distgit"],
