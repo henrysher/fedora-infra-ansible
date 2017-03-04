@@ -132,7 +132,7 @@ backend kerneltest {
 
 backend paste {
     .host = "localhost";
-    .port = "10027";
+    .port = "10055";
 }
 
 backend koschei {
@@ -272,12 +272,7 @@ sub vcl_recv {
     }
     if (req.http.X-Forwarded-Server ~ "^paste.fedoraproject.org") {
         set req.backend_hint = paste;
-        if (req.url ~ "^/skins/") {
-            unset req.http.cookie;
-            set req.http.clear-cookies = "yes";
-            set req.url = regsub(req.url, "\?.*", "");
-        }
-        if (req.url ~ "^/addons/") {
+        if (req.url ~ "^/static/") {
             unset req.http.cookie;
             set req.http.clear-cookies = "yes";
             set req.url = regsub(req.url, "\?.*", "");
