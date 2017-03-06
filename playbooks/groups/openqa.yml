@@ -58,6 +58,12 @@
 
 - name: set up openQA server data NFS mounts (staging)
   hosts: openqa-stg
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
   roles:
   - role: nfs/client
     mnt_dir: '/var/lib/openqa/testresults'
@@ -70,8 +76,17 @@
     nfs_mount_opts: 'rw,bg,nfsvers=3'
     tags: ['nfs_client']
 
+  handlers:
+   - include: "{{ handlers }}/restart_services.yml"
+
 - name: set up openQA server data NFS mounts (prod)
   hosts: openqa
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
   roles:
   - role: nfs/client
     mnt_dir: '/var/lib/openqa/testresults'
@@ -83,3 +98,6 @@
     nfs_src_dir: 'fedora_openqa/images'
     nfs_mount_opts: 'rw,bg,nfsvers=3'
     tags: ['nfs_client']
+
+  handlers:
+   - include: "{{ handlers }}/restart_services.yml"
