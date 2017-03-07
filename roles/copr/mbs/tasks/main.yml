@@ -56,9 +56,15 @@
 
 # Post-install stuff
 
-# We need to remove this file or otherwise MBS Builder code is not executed at all
-- name: Remove /etc/fedmsg.d/relay.py
-  file: path=/etc/fedmsg.d/relay.py state=absent
+# We don't need following configs because everything required is set in
+# module_build_service.py. It only causes problems with overriding our settings
+- name: Remove redundant fedmsg.d files
+  file: path="{{item}}" state=absent
+  with_items:
+    - /etc/fedmsg.d/endpoints.py
+    - /etc/fedmsg.d/relay.py
+    - /etc/fedmsg.d/ssl.py
+
 
 # We want to run fedmsg-hub as 'mbs' user, because we don't want to rpmbuild as 'fedmsg'
 - name: Copy modified fedmsg-hub.service file
