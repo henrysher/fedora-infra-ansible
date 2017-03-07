@@ -66,6 +66,13 @@
     - /etc/fedmsg.d/ssl.py
 
 
+- name: Don't listen to fedora-infra hub
+  lineinfile:
+    dest: /etc/fedmsg.d/module_build_service.py
+    regexp: '"tcp://stg.fedoraproject.org:9940"'
+    line: '#"tcp://stg.fedoraproject.org:9940"'
+
+
 # We want to run fedmsg-hub as 'mbs' user, because we don't want to rpmbuild as 'fedmsg'
 - name: Copy modified fedmsg-hub.service file
   copy: src=fedmsg-hub.service dest=/etc/systemd/system/fedmsg-hub.service
