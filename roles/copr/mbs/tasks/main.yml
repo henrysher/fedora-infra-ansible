@@ -124,6 +124,11 @@
 - name: Add copr-fe to mbs group
   user: name=copr-fe groups=mbs append=yes
 
+- name: Allow writing into DB file in SELinux
+  file: path="{{item}}" setype=httpd_sys_rw_content_t
+  with_items:
+    - /etc/module-build-service
+    - /etc/module-build-service/module_build_service.db
 
 # Run module-build-service processes
 - name: Enable fedmsg-relay
