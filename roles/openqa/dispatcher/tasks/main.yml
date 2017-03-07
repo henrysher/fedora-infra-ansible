@@ -45,11 +45,17 @@
 #  tags:
 #  - packages
 
+# fileglob doesn't do directory names, so we can't really do this
+# ansiblifically
+- name: Remove old from-source openQA-python-client install
+  shell: "rm -rf /usr/lib/python2.?/site-packages/openqa_client*"
+
 - name: Install required packages
   dnf: name={{ item }} state=present
   with_items:
   - python2-fedfind
   - python2-fedmsg-consumers
+  - python2-openqa_client
   - python2-requests
   - python-resultsdb_api
   - python-setuptools
@@ -57,25 +63,6 @@
   - python2-wikitcms
   tags:
   - packages
-
-- name: Check out openQA-python-client
-  git:
-    repo: https://github.com/os-autoinst/openQA-python-client.git
-    dest: /root/openQA-python-client
-  register: gitclient
-
-- name: Check if python-client has ever been installed
-  command: "python -c 'import openqa_client'"
-  register: instclient
-  changed_when: "1 != 1"
-  failed_when: "1 != 1"
-  check_mode: no
-
-- name: Install openQA-python-client
-  command: "python setup.py install"
-  args:
-    chdir: /root/openQA-python-client
-  when: "gitclient|changed or instclient.rc > 0"
 
 - name: Remove old openqa_fedora_tools checkout
   file: path=/root/openqa_fedora_tools-dispatcher state=absent
