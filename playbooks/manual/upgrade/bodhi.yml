@@ -32,9 +32,15 @@
     command: yum clean all {%if testing%} --enablerepo=infrastructure-testing {%endif%}
     check_mode: no
   - name: yum update bodhi-server packages from main repo
-    yum: name="bodhi-server" state=latest
+    yum: name="{{ item }}" state=latest
+    with_items:
+     - bodhi-docs
+     - bodhi-server
   - name: yum update bodhi-server packages from testing repo
-    yum: name="bodhi-server" state=latest enablerepo=infrastructure-testing
+    yum: name="{{ item }}" state=latest enablerepo=infrastructure-testing
+    with_items:
+     - bodhi-docs
+     - bodhi-server
     when: testing
 
 - name: verify the frontend and stop it
