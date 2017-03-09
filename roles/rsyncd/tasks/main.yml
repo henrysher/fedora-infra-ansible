@@ -11,6 +11,7 @@
   - libsemanage-python
   tags:
   - packages
+  - rsyncd
   when: ansible_distribution_major_version|int < 22
 
 - name: install rnecessary packages
@@ -21,6 +22,7 @@
   - libsemanage-python
   tags:
   - packages
+  - rsyncd
   when: ansible_distribution_major_version|int > 21
 
 - name: rsyncd.conf file
@@ -35,6 +37,7 @@
   - restart xinetd
   tags:
   - config
+  - rsyncd
 
 - name: xinetd rsync file
   copy: src={{ item }} dest=/etc/xinetd.d/rsync mode=0644
@@ -48,14 +51,17 @@
   - restart xinetd
   tags:
   - config
+  - rsyncd
 
 - name: make sure xinetd is started
   service: name=xinetd state=started
   tags:
   - services
+  - rsyncd
 
 - name: set sebooleans so rsync can read dirs
   seboolean: name=rsync_export_all_ro
                     state=true
                     persistent=true
-
+  tags:
+  - rsyncd
