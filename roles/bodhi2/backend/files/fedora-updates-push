@@ -6,7 +6,11 @@ ATOMICSOURCE=/mnt/koji/mash/atomic/
 ATOMICDEST=/mnt/koji/atomic/
 
 OPTIONS="-rlptDvHh --stats --delay-updates $RSYNC_OPTS"
+#f26 exlcude 
+PRIMARY_EXCLUDES=" --exclude=aarch64 --exclude=ppc64 --exclude=ppc64le --exclude=s390x "
+ALT_EXCLUDES=" --exclude=armhfp --exclude=SRPMS --exclude=x86_64 --exclude=s390x"
 
+#old style simple sync
 for rel in 24 25; do
 
     OUTPUT1=$(rsync $OPTIONS --exclude "repodata/*" \
@@ -49,6 +53,93 @@ for rel in 24 25; do
     fi
 
 done
+#new style primary sync
+for rel in 26; do
+
+    OUTPUT1=$(rsync $OPTIONS --exclude "repodata/*" $PRIMARY_EXCLUDES \
+            $SOURCE/f$rel-updates/ $DEST/$rel/ --link-dest $DEST/testing/$rel/)
+    OUTPUT2=$(rsync $OPTIONS --delete --delete-delay $PRIMARY_EXCLUDES --exclude=Live --exclude=Images \
+            $SOURCE/f$rel-updates/ $DEST/$rel/)
+
+    # Grep out some signals from the stats
+    bytes=$(echo "$OUTPUT1" | grep "Literal data" | awk ' { print $3 } ')
+    deleted=$(echo "$OUTPUT2" | grep "deleting " | wc -l)
+
+    # If anything changed, then publish a fedmsg message as bodhi.updates.sync
+    if [ "$bytes" != "0" -o "$deleted" != "0" ]; then
+      echo "{\"bytes\": \"$bytes\", \"deleted\": \"$deleted\", \"repo\": \"updates\", \"release\": \"$rel\"}" | fedmsg-logger \
+          --cert-prefix ftpsync \
+          --modname bodhi \
+          --topic updates.fedora.sync \
+          --json-input &> /dev/null
+    fi
+
+done
+for rel in 26; do
+
+    OUTPUT1=$(rsync $OPTIONS --exclude "repodata/*" $PRIMARY_EXCLUDES \
+            $SOURCE/f$rel-updates-testing/ $DEST/testing/$rel/)
+    OUTPUT2=$(rsync $OPTIONS --delete --delete-delay $PRIMARY_EXCLUDES --exclude=Live --exclude=Images \
+            $SOURCE/f$rel-updates-testing/ $DEST/testing/$rel/)
+
+    # Grep out some signals from the stats
+    bytes=$(echo "$OUTPUT1" | grep "Literal data" | awk ' { print $3 } ')
+    deleted=$(echo "$OUTPUT2" | grep "deleting " | wc -l)
+
+    # If anything changed, then publish a fedmsg message as bodhi.updates.sync
+    if [ "$bytes" != "0" -o "$deleted" != "0" ]; then
+      echo "{\"bytes\": \"$bytes\", \"deleted\": \"$deleted\", \"repo\": \"updates-testing\", \"release\": \"$rel\"}" | fedmsg-logger \
+          --cert-prefix ftpsync \
+          --modname bodhi \
+          --topic updates.fedora.sync \
+          --json-input &> /dev/null
+    fi
+
+done
+# new style alternative sync
+for rel in 26; do
+
+    OUTPUT1=$(rsync $OPTIONS --exclude "repodata/*" $ALT_EXCLUDES \
+            $SOURCE/f$rel-updates/ $DEST/$rel/ --link-dest $DEST/testing/$rel/)
+    OUTPUT2=$(rsync $OPTIONS --delete --delete-delay $ALT_EXCLUDES --exclude=Live --exclude=Images \
+            $SOURCE/f$rel-updates/ $DEST/$rel/)
+
+    # Grep out some signals from the stats
+    bytes=$(echo "$OUTPUT1" | grep "Literal data" | awk ' { print $3 } ')
+    deleted=$(echo "$OUTPUT2" | grep "deleting " | wc -l)
+
+    # If anything changed, then publish a fedmsg message as bodhi.updates.sync
+    if [ "$bytes" != "0" -o "$deleted" != "0" ]; then
+      echo "{\"bytes\": \"$bytes\", \"deleted\": \"$deleted\", \"repo\": \"updates\", \"release\": \"$rel\"}" | fedmsg-logger \
+          --cert-prefix ftpsync \
+          --modname bodhi \
+          --topic updates.fedora.sync \
+          --json-input &> /dev/null
+    fi
+
+done
+for rel in 26; do
+
+    OUTPUT1=$(rsync $OPTIONS --exclude "repodata/*" $ALT_EXCLUDES \
+            $SOURCE/f$rel-updates-testing/ $DEST/testing/$rel/)
+    OUTPUT2=$(rsync $OPTIONS --delete --delete-delay $ALT_EXCLUDES --exclude=Live --exclude=Images \
+            $SOURCE/f$rel-updates-testing/ $DEST/testing/$rel/)
+
+    # Grep out some signals from the stats
+    bytes=$(echo "$OUTPUT1" | grep "Literal data" | awk ' { print $3 } ')
+    deleted=$(echo "$OUTPUT2" | grep "deleting " | wc -l)
+
+    # If anything changed, then publish a fedmsg message as bodhi.updates.sync
+    if [ "$bytes" != "0" -o "$deleted" != "0" ]; then
+      echo "{\"bytes\": \"$bytes\", \"deleted\": \"$deleted\", \"repo\": \"updates-testing\", \"release\": \"$rel\"}" | fedmsg-logger \
+          --cert-prefix ftpsync \
+          --modname bodhi \
+          --topic updates.fedora.sync \
+          --json-input &> /dev/null
+    fi
+
+done
+
 for rel in 24 25; do
 
     OUTPUT1=$(rsync $OPTIONS --ignore-existing \
