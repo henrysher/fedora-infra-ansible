@@ -2,6 +2,7 @@
 
 SOURCE=/mnt/koji/mash/updates
 DEST=/pub/fedora/linux/updates/
+ALTDEST=/pub/fedora-secondary/updates/
 ATOMICSOURCE=/mnt/koji/mash/atomic/
 ATOMICDEST=/mnt/koji/atomic/
 
@@ -100,9 +101,9 @@ done
 for rel in 26; do
 
     OUTPUT1=$(rsync $OPTIONS --exclude "repodata/*" $ALT_EXCLUDES \
-            $SOURCE/f$rel-updates/ $DEST/$rel/ --link-dest $DEST/testing/$rel/)
+            $SOURCE/f$rel-updates/ $ALTDEST/$rel/ --link-dest $ALTDEST/testing/$rel/)
     OUTPUT2=$(rsync $OPTIONS --delete --delete-delay $ALT_EXCLUDES --exclude=Live --exclude=Images \
-            $SOURCE/f$rel-updates/ $DEST/$rel/)
+            $SOURCE/f$rel-updates/ $ALTDEST/$rel/)
 
     # Grep out some signals from the stats
     bytes=$(echo "$OUTPUT1" | grep "Literal data" | awk ' { print $3 } ')
@@ -121,9 +122,9 @@ done
 for rel in 26; do
 
     OUTPUT1=$(rsync $OPTIONS --exclude "repodata/*" $ALT_EXCLUDES \
-            $SOURCE/f$rel-updates-testing/ $DEST/testing/$rel/)
+            $SOURCE/f$rel-updates-testing/ $ALTDEST/testing/$rel/)
     OUTPUT2=$(rsync $OPTIONS --delete --delete-delay $ALT_EXCLUDES --exclude=Live --exclude=Images \
-            $SOURCE/f$rel-updates-testing/ $DEST/testing/$rel/)
+            $SOURCE/f$rel-updates-testing/ $ALTDEST/testing/$rel/)
 
     # Grep out some signals from the stats
     bytes=$(echo "$OUTPUT1" | grep "Literal data" | awk ' { print $3 } ')
