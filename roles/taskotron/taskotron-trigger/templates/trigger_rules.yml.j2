@@ -49,3 +49,15 @@
   do:
     - {discover: {repo: '{{ trigger_distgit_repo_url }}/rpms/${name}.git', branch: "${distgit_branch}", fallback_branch: 'master', recursive: true}}
 {% endif %}
+
+{% if deployment_type in ['dev'] %}
+- when:
+    message_type: AtomicCompose
+  do:
+    - {tasks: [upstream-atomic, fedora-cloud-tests]}
+
+- when:
+    message_type: CloudCompose
+  do:
+    - {tasks: [fedora-cloud-tests]}
+{% endif %}
