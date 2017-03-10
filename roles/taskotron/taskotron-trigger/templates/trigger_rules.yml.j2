@@ -31,7 +31,7 @@
 {% else %}
     - {tasks: [depcheck]}
 {% endif %}
-{% if deployment_type not in ['dev', 'stg'] %}
+{% if deployment_type not in ['stg'] %}
 {# stg bodhi doesn't have the info we need, stg koji doesn't have the builds from prod bodhi #}
 - when:
     message_type: KojiTagChanged
@@ -39,7 +39,7 @@
   do:
     - {tasks: [upgradepath]}
 {% endif %}
-{% if deployment_type in ['dev', 'stg'] %}
+{% if deployment_type in ['stg'] %}
 - when: {message_type: DistGitCommit, namespace: modules}
   do:
     - {tasks: [check_modulemd]}
