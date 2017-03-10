@@ -1,0 +1,22 @@
+---
+- name: add loopabull user loopabull_{{ loopabull_role }}
+  user: name=loopabull_{{ loopabull_role }}
+        state=present
+        home=/home/loopabull_{{loopabull_role}}
+        createhome=yes
+  tags:
+  - loopabull/target
+
+- name: add authorized_keys for loopabull_{{ loopabull_role }}
+  authorized_key: key="{{ item }}" user=loopabull_{{ loopabull_role }} state=present
+  with_file:
+  - "{{private}}/files/loopabull/keys/{{env}}_{{lookabull_role}}.pub"
+  tags:
+  - loopabull/target
+
+- name: add loopabull_{{ loopabull_role }} sudoers file
+  copy: src="{{private}}/files/loopabull/sudo/{{ loopabull_role }}"
+        dest="/etc/sudoers.d/loopabull_{{ loopabull_role }}"
+  ignore_errors: True
+  tags:
+  - loopabull/target
