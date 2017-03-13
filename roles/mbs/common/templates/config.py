@@ -50,6 +50,9 @@ class BaseConfiguration(object):
     RPMS_DEFAULT_CACHE = 'http://pkgs.fedoraproject.org/repo/pkgs/'
     RPMS_ALLOW_CACHE = False
 
+    MODULES_DEFAULT_REPOSITORY = 'git://pkgs.fedoraproject.org/modules/'
+    MODULES_ALLOW_REPOSITORY = False
+
     # Available backends are: console, file, journal.
     LOG_BACKEND = 'journal'
 
@@ -139,8 +142,12 @@ class ProdConfiguration(BaseConfiguration):
         'f26-modularity',
     ]
 
+    # If this is too long, we could change it to 'fm_' some day.
+    DEFAULT_DIST_TAG_PREFIX = 'module_'
+
     # These aren't really secret.
     OIDC_CLIENT_SECRETS = path.join(confdir, 'client_secrets.json')
+    OIDC_REQUIRED_SCOPE = 'https://mbs.fedoraproject.org/oidc/submit-build'
 
     # yes, we want everyone to authenticate
     NO_AUTH = False  # Obviously.
