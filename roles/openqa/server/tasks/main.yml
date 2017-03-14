@@ -35,9 +35,9 @@
 ##             FIXME: this only works for pgsql ATM
 # - deployment_type
 ##      string - Fedora Infrastructure thing; for this role, decides
-##               whether to enable some openQA plugins and an Apache
-##               module that should be enabled only in Fedora infra.
-##               Don't set it on deployments outside Fedora infra.
+##               whether to enable some openQA plugins that should be
+##               enabled only in Fedora infra. Don't set it outside
+##               Fedora infra.
 #
 # If openqa_dbhost is set, the others must be too, and the server will be
 # configured to use a pgsql database accordingly. If openqa_dbhost is not
@@ -173,14 +173,6 @@
 
 - name: Set up Apache config
   template: src=openqa.conf.httpd.j2 dest=/etc/httpd/conf.d/openqa.conf owner=root group=root mode=0644
-  notify:
-  - reload httpd
-  tags:
-  - config
-
-- name: Enable mod_status (for Fedora infrastructure)
-  template: src="{{ files }}/httpd/apachestatus.conf" dest=/etc/httpd/conf.d/apachestatus.conf
-  when: deployment_type is defined
   notify:
   - reload httpd
   tags:
