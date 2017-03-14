@@ -1,4 +1,11 @@
 <VirtualHost *:80>
     ServerName {{ external_hostname|default(ansible_nodename) }}
     Include conf.d/openqa-common.inc
+
+{% if deployment_type is defined %}
+    ExtendedStatus on
+    <Location /apache-status>
+        SetHandler server-status
+    </Location>
+{% endif %}
 </VirtualHost>
