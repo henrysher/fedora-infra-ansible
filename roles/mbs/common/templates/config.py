@@ -145,6 +145,8 @@ class ProdConfiguration(BaseConfiguration):
     # If this is too long, we could change it to 'fm_' some day.
     DEFAULT_DIST_TAG_PREFIX = 'module_'
 
+    NUM_CONSECUTIVE_BUILDS = 15
+
     # These aren't really secret.
     OIDC_CLIENT_SECRETS = path.join(confdir, 'client_secrets.json')
     OIDC_REQUIRED_SCOPE = 'https://mbs.fedoraproject.org/oidc/submit-build'
