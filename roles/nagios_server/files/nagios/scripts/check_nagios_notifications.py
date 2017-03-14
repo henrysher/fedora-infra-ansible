@@ -17,7 +17,7 @@ debug = 0
 EMAIL_FROM="nagios@fedoraproject.org"
 EMAIL_TO="sysadmin-noc-members@fedoraproject.org"
 #EMAIL_TO="athmane@fedoraproject.org"
-nagios_status_file = '/var/log/nagios/status.dat'
+nagios_status_file = '/var/spool/nagios/status.dat'
 
 class NagiosStatus:
     def __init__(self, filename):
