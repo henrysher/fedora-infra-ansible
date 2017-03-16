@@ -129,7 +129,7 @@ c['schedulers'].append(ForceScheduler(
                                             default='x86_64',
                                             size=128)]))
 
-{% if deployment_type in ['dev', 'stg'] %}
+{% if deployment_type in ['dev', 'stg', 'prod'] %}
 c['schedulers'].append(JobScheduler(
                             name="jobsched-distgit",
                             builderNames=['distgit'],
@@ -246,7 +246,7 @@ factory.addStep(FileUpload(slavesrc='/var/log/taskotron/taskotron.log',
                            mode=0644))
 {% endif %}
 
-{% if deployment_type in ['dev', 'stg'] %}
+{% if deployment_type in ['dev', 'stg', 'prod'] %}
 # this is for package-specific tasks
 distgit_factory = BuildFactory()
 
@@ -255,7 +255,7 @@ distgit_factory.addStep(ShellCommand(command=Interpolate("rm -rf /var/tmp/taskot
 
 {% if deployment_type in ['dev', 'prod'] %}
 # check out the source from prod dist-git
-distgit_factory.addStep(Git(repourl=Property('repo', default=Interpolate('http://pkgs01.phx2.fedoraproject.org/rpms/{}/'.format("%(prop:item)s".split('-')[0]))),
+distgit_factory.addStep(Git(repourl=Property('repo', default=Interpolate('http://pkgs02.phx2.fedoraproject.org/rpms/{}/'.format("%(prop:item)s".split('-')[0]))),
                     branch=Property('branch', default='master'),
                     mode='full',
                     method='clobber',
@@ -351,13 +351,11 @@ c['builders'].append(
       factory=factory, locks=[build_lock.access('counting')],
       mergeRequests=False))
 
-{% if deployment_type in ['dev', 'stg'] %}
 c['builders'].append(
     BuilderConfig(name="distgit",
       slavenames=[{% for buildslave in x86_64_buildslaves %}"{{ buildslave }}",{% endfor %}],
       factory=distgit_factory, locks=[build_lock.access('counting')],
       mergeRequests=False))
-{% endif %}
 ####### STATUS TARGETS
 
 # 'status' is a list of Status Targets. The results of each build will be
