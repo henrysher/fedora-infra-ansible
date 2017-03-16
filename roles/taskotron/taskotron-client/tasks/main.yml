@@ -44,7 +44,12 @@
 
 # hotfixing correct yumrepoinfo until libtaskotron is updated
 - name: upload yumrepoinfo.conf
+  when: deployment_type in ['stg', 'prod']
   copy: src=yumrepoinfo.conf dest=/etc/taskotron/yumrepoinfo.conf owner=root group=root mode=0644
+
+- name: upload yumrepoinfo.conf
+  when: deployment_type in ['dev']
+  copy: src=yumrepoinfo-dev.conf dest=/etc/taskotron/yumrepoinfo.conf owner=root group=root mode=0644
 
 - name: set baseurl of yumrepoinfo.conf
   replace: dest=/etc/taskotron/yumrepoinfo.conf regexp='baseurl = http://download\.fedoraproject\.org/.*' replace='baseurl = http://infrastructure.fedoraproject.org/pub/fedora/linux'
