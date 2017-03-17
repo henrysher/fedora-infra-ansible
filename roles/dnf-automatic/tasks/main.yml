@@ -43,7 +43,7 @@
 
   - name: enable and start dnf-automatic f26+
     command: systemctl enable dnf-automatic-install.timer
-    when: ansible_distribution_major_version|int => 26
+    when: ansible_distribution_major_version|int >= 26
     args:
       creates: /etc/systemd/system/basic.target.wants/dnf-automatic-install.timer
     tags:
@@ -55,10 +55,10 @@
     check_mode: no
     changed_when: 1 != 1
     ignore_errors: true
-    when: ansible_distribution_major_version|int => 26
+    when: ansible_distribution_major_version|int >= 26
 
   - name: start dnf-automatic-install.timer if it is not active
     command: systemctl start dnf-automatic-install.timer
-    when: automaticative|failed and ansible_distribution_major_version|int => 26
+    when: automaticative|failed and ansible_distribution_major_version|int >= 26
 
   when: ansible_pkg_mgr == 'dnf'
