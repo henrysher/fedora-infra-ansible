@@ -1,0 +1,244 @@
+#!/bin/bash
+
+RSYNC_FLAGS='-az --no-motd'
+
+function syncHttpLogs {
+
+    # in case we missed a run or two.. try to catch up the last 3 days.
+    for d in 1 2 3
+    do
+        HOST=$1
+	# some machines store stuff in old format. some new.
+        if [ "$2" = "old" ]; then
+            YESTERDAY=$(/bin/date -d "-$d days" +%Y-%m-%d)
+        else
+            YESTERDAY=$(/bin/date -d "-$d days" +%Y%m%d)
+        fi
+        YEAR=$(/bin/date -d "-$d days" +%Y)
+        MONTH=$(/bin/date -d "-$d days" +%m)
+        DAY=$(/bin/date -d "-$d days" +%d)
+        /bin/mkdir -p /var/log/hosts/$HOST/$YEAR/$MONTH/$DAY/http
+        cd /var/log/hosts/$HOST/$YEAR/$MONTH/$DAY/http/
+
+        for f in $(/usr/bin/rsync $RSYNC_FLAGS --list-only $HOST::log/httpd/*$YESTERDAY* | awk '{ print $5 }')
+        do
+            DEST=$(echo $f | /bin/sed s/-$YESTERDAY//)
+            /usr/bin/rsync $RSYNC_FLAGS $HOST::log/httpd/$f ./$DEST
+        done
+    done
+}
+
+## Sync up all proxies
+{% for host in groups['proxies'] %}
+syncHttpLogs {{host}}
+{% endfor %}
+
+## Sync up all staging proxies
+{% for host in groups['proxies-stg'] %}
+syncHttpLogs {{host}}
+{% endfor %}
+
+## Sync up all fas servers
+{% for host in groups['fas'] %}
+syncHttpLogs {{host}}
+{% endfor %}
+
+{% for host in groups['fas-stg'] %}
+syncHttpLogs {{host}}
+{% endfor %}
+
+## Sync up all fedocal hosts
+{% for host in groups['fedocal'] %}
+syncHttpLogs {{host}}
+{% endfor %}
+
+{% for host in groups['fedocal-stg'] %}
+syncHttpLogs {{host}}
+{% endfor %}
+
+## Sync up all data grepper hosts
+{% for host in groups['datagrepper'] %}
+syncHttpLogs {{host}}
+{% endfor %}
+
+{% for host in groups['datagrepper-stg'] %}
+syncHttpLogs {{host}}
+{% endfor %}
+
+## Sync up all ipsilon hosts
+{% for host in groups['ipsilon'] %}
+syncHttpLogs {{host}}
+{% endfor %}
+
+{% for host in groups['ipsilon-stg'] %}
+syncHttpLogs {{host}}
+{% endfor %}
+
+## Sync up all ask hosts
+{% for host in groups['ask'] %}
+syncHttpLogs {{host}}
+{% endfor %}
+
+{% for host in groups['ask-stg'] %}
+syncHttpLogs {{host}}
+{% endfor %}
+
+## Sync up all badges hosts
+{% for host in groups['badges-web'] %}
+syncHttpLogs {{host}}
+{% endfor %}
+
+{% for host in groups['badges-web-stg'] %}
+syncHttpLogs {{host}}
+{% endfor %}
+
+## Sync up all elections hosts
+{% for host in groups['elections'] %}
+syncHttpLogs {{host}}
+{% endfor %}
+
+{% for host in groups['elections-stg'] %}
+syncHttpLogs {{host}}
+{% endfor %}
+
+## Sync up all tagger hosts
+{% for host in groups['tagger'] %}
+syncHttpLogs {{host}}
+{% endfor %}
+
+{% for host in groups['tagger-stg'] %}
+syncHttpLogs {{host}}
+{% endfor %}
+
+## Sync up all bodhi hosts
+{% for host in groups['bodhi2'] %}
+syncHttpLogs {{host}}
+{% endfor %}
+
+{% for host in groups['bodhi2-stg'] %}
+syncHttpLogs {{host}}
+{% endfor %}
+
+## Sync up packages hosts
+{% for host in groups['packages'] %}
+syncHttpLogs {{host}}
+{% endfor %}
+
+{% for host in groups['packages-stg'] %}
+syncHttpLogs {{host}}
+{% endfor %}
+
+## Sync up blockerbugs
+{% for host in groups['blockerbugs'] %}
+syncHttpLogs {{host}}
+{% endfor %}
+
+{% for host in groups['blockerbugs-stg'] %}
+syncHttpLogs {{host}}
+{% endfor %}
+
+## Sync up value
+{% for host in groups['value'] %}
+syncHttpLogs {{host}}
+{% endfor %}
+
+{% for host in groups['value-stg'] %}
+syncHttpLogs {{host}}
+{% endfor %}
+
+## Sync up secondary
+{% for host in groups['secondary'] %}
+syncHttpLogs {{host}}
+{% endfor %}
+
+## Sync up hosted
+{% for host in groups['hosted'] %}
+syncHttpLogs {{host}} old
+{% endfor %}
+
+## sync up people
+{% for host in groups['people'] %}
+syncHttpLogs {{host}} old
+{% endfor %}
+
+## sync up nagios
+{% for host in groups['nagios'] %}
+syncHttpLogs {{host}}
+{% endfor %}
+
+{% for host in groups['nagios-new'] %}
+syncHttpLogs {{host}}
+{% endfor %}
+
+{% for host in groups['nagios-new-stg'] %}
+syncHttpLogs {{host}}
+{% endfor %}
+
+## sync up download
+{% for host in groups['download-phx2'] %}
+syncHttpLogs {{host}}
+{% endfor %}
+
+{% for host in groups['download-ibiblio'] %}
+syncHttpLogs {{host}}
+{% endfor %}
+
+{% for host in groups['download-rdu2'] %}
+syncHttpLogs {{host}}
+{% endfor %}
+
+## sync up sundries
+{% for host in groups['sundries'] %}
+syncHttpLogs {{host}}
+{% endfor %}
+
+{% for host in groups['sundries-stg'] %}
+syncHttpLogs {{host}}
+{% endfor %}
+
+
+## sync up statscache
+{% for host in groups['statscache-web'] %}
+syncHttpLogs {{host}}
+{% endfor %}
+
+{% for host in groups['statscache-web-stg'] %}
+syncHttpLogs {{host}}
+{% endfor %}
+
+## sync up autocloud
+{% for host in groups['autocloud-web'] %}
+syncHttpLogs {{host}}
+{% endfor %}
+
+{% for host in groups['autocloud-web-stg'] %}
+syncHttpLogs {{host}}
+{% endfor %}
+
+## sync up koschei
+{% for host in groups['koschei-web'] %}
+syncHttpLogs {{host}}
+{% endfor %}
+
+{% for host in groups['koschei-web-stg'] %}
+syncHttpLogs {{host}}
+{% endfor %}
+
+## sync up notifs
+{% for host in groups['notifs-web'] %}
+syncHttpLogs {{host}}
+{% endfor %}
+
+{% for host in groups['notifs-web-stg'] %}
+syncHttpLogs {{host}}
+{% endfor %}
+
+## Sync up pdc
+{% for host in groups['pdc-web'] %}
+syncHttpLogs {{host}}
+{% endfor %}
+
+{% for host in groups['pdc-web-stg'] %}
+syncHttpLogs {{host}}
+{% endfor %}
+
