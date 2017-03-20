@@ -1,0 +1,41 @@
+---
+
+- name: erase faf packages
+  yum: pkg="faf-*" state=absent
+  when: faf_force_reinstall
+
+- name: install core faf packages
+  yum: pkg={{ item }} state=installed
+  with_items: "{{ faf_packages }}"
+
+- name: install faf problem packages
+  yum: pkg={{ item }} state=installed
+  with_items: "{{ faf_problem_packages }}"
+
+- name: install faf opsys packages
+  yum: pkg={{ item }} state=installed
+  with_items: "{{ faf_opsys_packages }}"
+
+- name: install faf action packages
+  yum: pkg={{ item }} state=installed
+  with_items: "{{ faf_action_packages }}"
+
+- name: install faf bugtracker packages
+  yum: pkg={{ item }} state=installed
+  with_items: "{{ faf_bugtracker_packages }}"
+  when: faf_with_bugtrackers
+
+- name: install faf celery packages
+  yum: pkg={{ item }} state=installed
+  with_items: "{{ faf_celery_packages }}"
+  when: faf_with_celery
+
+- name: install faf fedmsg packages
+  yum: pkg={{ item }} state=installed
+  with_items: "{{ faf_fedmsg_packages }}"
+  when: faf_with_fedmsg
+
+- name: install faf solutionfinder packages
+  yum: pkg={{ item }} state=installed
+  with_items: "{{ faf_solutionfinder_packages }}"
+  when: faf_with_solutionfinders

@@ -1,0 +1,28 @@
+- name: install faf web celery packages
+  yum: pkg={{ item }} state=installed
+  with_items: "{{ faf_web_celery_packages }}"
+  tags:
+  - packages
+
+- name: install redis package
+  yum : name={{ item }} state=installed
+  with_items:
+  - redis
+  - python-redis
+  tags:
+  - packages
+
+- name: enable redis service
+  service: name=redis state=started enabled=yes
+  tags:
+  - service
+
+- name: enable faf-celery-worker
+  service: name=faf-celery-worker state=started enabled=yes
+  tags:
+  - service
+
+- name: enable faf-celery-beat
+  service: name=faf-celery-beat state=started enabled=yes
+  tags:
+  - service

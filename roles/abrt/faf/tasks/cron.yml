@@ -1,0 +1,30 @@
+---
+
+- name: cron save-reports
+  cron:
+    name: "faf save-reports"
+    user: faf
+    job: "faf save-reports >> /var/log/faf/save-reports.log 2>&1"
+    minute: "*/5"
+    state: present
+  become: yes
+
+- name: cron create-problems
+  cron:
+    name: "faf create-problems"
+    user: faf
+    job: "faf create-problems >> /var/log/faf/create-problems.log 2>&1"
+    minute: 30
+    hour: "*/4"
+    state: present
+  become: yes
+
+- name: cron reposync
+  cron:
+    name: "faf reposync"
+    user: faf
+    job: "faf reposync >> /var/log/faf/reposync.log 2>&1"
+    minute: 5
+    hour: 3
+    state: present
+  become: yes

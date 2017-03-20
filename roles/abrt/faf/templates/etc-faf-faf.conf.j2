@@ -1,0 +1,31 @@
+#{{ ansible_managed }}
+# Faf site-wide configuration file
+
+[Main]
+PluginsDir = /etc/faf/plugins/
+TemplatesDir = /etc/faf/templates/
+AutoEnablePlugins = False
+
+[Storage]
+ConnectString = {{ faf_db_connectstring }}
+LobDir = /var/spool/faf/lob
+# Using platform-specific location by default.
+# Uncomment and change if needed.
+# TmpDir = /tmp
+
+[Mail]
+# where to send notification emails, comma separated list
+Admins = {{ faf_admin_mail }}
+Server = {{ smtp_server }}
+Port = {{ smtp_port }}
+Username = {{ smtp_username|default("", true) }}
+Password = {{ smtp_password|default("", true) }}
+
+[uReport]
+# The directory that holds 'reports' and 'attachments' subdirectories
+Directory = /var/spool/faf
+CreateComponents = False
+# attachments accepted by this server
+# allowed values: fedora-bugzilla rhel-bugzilla centos-mantisb comment email url
+# or * to allow all attachments
+AcceptAttachments = fedora-bugzilla rhel-bugzilla centos-mantisbt

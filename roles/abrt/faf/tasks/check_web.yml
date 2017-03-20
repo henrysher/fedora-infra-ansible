@@ -1,0 +1,34 @@
+
+# check web functionality
+#
+- set_fact:
+    url_suffix: ""
+  when: faf_web_on_root
+
+- set_fact:
+    url_suffix: "/faf"
+  when: not faf_web_on_root
+
+- set_fact:
+    main_url: "https://{{ ansible_default_ipv4.address }}{{ url_suffix }}"
+    problems_url: "https://{{ ansible_default_ipv4.address }}{{ url_suffix }}/problems/"
+
+- name: check main
+  local_action: uri url={{ main_url }}
+    return_content=yes
+    validate_certs=no
+  register: uri_res
+
+- fail: msg="{{ main_url }} doesn't contain 'FAF' string"
+  when:
+    "'FAF' not in uri_res.content"
+
+- name: fetch problems
+  local_action: uri url={{ problems_url }}
+    return_content=yes
+    validate_certs=no
+  register: uri_res
+
+- fail: msg="{{ main_url }} doesn't contain 'State' string"
+  when:
+    "'State' not in uri_res.content"

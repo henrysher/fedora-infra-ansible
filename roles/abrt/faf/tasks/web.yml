@@ -1,0 +1,26 @@
+- name: install faf-webui packages
+  yum : name={{ item }} state=latest
+  with_items: "{{ faf_web_packages }}"
+
+- include: celery.yml
+  when: faf_with_celery
+
+- name: install faf web symboltransfer packages
+  yum: pkg={{ item }} state=installed
+  with_items: "{{ faf_web_symboltransfer_packages }}"
+  when: faf_with_symboltransfer
+
+- name: provide /etc/faf/plugins/web.conf
+  template: src=etc-faf-plugins-web.conf.j2
+    dest=/etc/faf/plugins/web.conf
+  notify:
+  - restart httpd
+
+  # faf installs this file by itself if faf_web_on_root
+  # is disabled and is available under <hosts>/faf
+- name: put webfaf on root (/) if configured
+  template: src=etc-httpd-conf.d-faf-web.conf.j2
+    dest=/etc/httpd/conf.d/faf-web.conf
+  when: faf_web_on_root
+  notify:
+  - restart httpd

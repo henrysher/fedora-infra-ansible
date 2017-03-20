@@ -1,0 +1,178 @@
+---
+# SMTP server to use
+smtp_server: localhost
+smtp_port: 25
+
+# domain of web service as seen from internet
+domain: example.org
+
+# default port for memcached
+memcached_port: 11211
+
+# connectstring to use for faf web & storage in format:
+# driver://user:password@host:port/database
+faf_db_connectstring: postgresql:///faf
+
+# set to true if this is the very first run of this playbook
+# it will set-up postgresql database and initial data for faf
+faf_first_time_setup: false
+
+# dangerous, delete and re-create PostgreSQL database
+# (will wipe Postgre's data dir and re-create from scratch)
+faf_recreate_database: false
+
+# update faf packages
+faf_update: true
+
+# force faf packages reinstallation (for testing instances)
+faf_force_reinstall: false
+
+# run faf's database migrations
+faf_migrate_db: true
+
+# set up cron jobs for faf
+faf_cron_jobs: true
+
+faf_admin_mail: root@localhost
+
+###########################
+# features configuration  #
+###########################
+
+faf_with_bugtrackers: true
+faf_with_celery: true
+faf_with_fedmsg: false
+faf_with_solutionfinders: true
+faf_with_symboltransfer: false
+faf_with_web: true
+
+###########################
+# faf-webui configuration #
+###########################
+
+# faf_server_name is the bare URL without protocols and trailing slash
+faf_server_name: "example-faf.org"
+
+faf_web_brand_title: "FAF"
+faf_web_brand_subtitle: "Fedora Analysis Framework"
+
+# perms
+faf_web_everyone_is_admin: false
+faf_web_everyone_is_maintainer: false
+
+# enable debugging
+faf_web_debug: false
+
+# set to true if faf's running behind proxy like varnish
+faf_web_proxy_setup: false
+
+# enable OpenID
+faf_web_openid: true
+
+# Comma-separated list of teams provided by OpenID via
+# https://github.com/puiterwijk/python-openid-teams
+# Members of these teams will be granted maintainer privileges
+faf_web_openid_privileged_teams:
+# provenpackager,proventesters
+
+faf_web_fedmenu_url:
+# https://apps.fedoraproject.org/fedmenu
+faf_web_fedmenu_data_url:
+# https://apps.fedoraproject.org/js/data.js
+
+# cache type either: memcached/simple/none
+faf_web_cache_type: memcached
+
+# faf reachable on httpd root (http://hostname/)
+# if false it's (http://hostname/faf/)
+faf_web_on_root: true
+
+# important for production deployments
+faf_web_secret_key: not_a_secret
+
+##############################
+# functionality checking     #
+##############################
+
+faf_check: false
+faf_check_web: false
+
+##############################
+# faf packages configuration #
+##############################
+#
+# Removing some packaging allows you to install
+# only components relevant for your deployment
+
+faf_packages:
+  - faf
+  - faf-migrations
+  - faf-yum
+
+faf_problem_packages:
+  - faf-problem-coredump
+  - faf-problem-java
+  - faf-problem-kerneloops
+  - faf-problem-python
+  - faf-problem-ruby
+
+faf_opsys_packages:
+  - faf-opsys-centos
+  - faf-opsys-fedora
+  - faf-opsys-rhel
+
+faf_action_packages:
+  - faf-action-add-compat-hashes
+  - faf-action-arch
+  - faf-action-archive-reports
+  - faf-action-assign-release-to-builds
+  - faf-action-attach-centos-bugs
+  - faf-action-c2p
+  - faf-action-cleanup-task-results
+  - faf-action-create-problems
+  - faf-action-external-faf
+  - faf-action-external-faf-clone-bz
+  - faf-action-find-components
+  - faf-action-find-crash-function
+  - faf-action-mark-probably-fixed
+  - faf-action-pull-associates
+  - faf-action-pull-components
+  - faf-action-pull-releases
+  - faf-action-pull-reports
+  - faf-action-repo
+  - faf-action-retrace
+  - faf-action-retrace-remote
+  - faf-action-save-reports
+  - faf-action-shell
+  - faf-action-stats
+
+faf_bugtracker_packages:
+  - faf-action-bugtracker
+  - faf-bugtracker-bugzilla
+  - faf-bugtracker-centos-mantis
+  - faf-bugtracker-fedora-bugzilla
+  - faf-bugtracker-mantis
+  - faf-bugtracker-rhel-bugzilla
+
+faf_celery_packages:
+  - faf-celery-tasks
+  - faf-celery-tasks-systemd-services
+
+faf_fedmsg_packages:
+  - faf-action-fedmsg-notify
+  - faf-fedmsg
+  - faf-fedmsg-realtime
+
+faf_solutionfinder_packages:
+  - faf-action-sf-prefilter
+  - faf-solutionfinder-prefilter
+  - faf-solutionfinder-probable-fix
+
+faf_web_packages:
+  - faf-webui
+
+faf_web_celery_packages:
+  - faf-blueprint-celery-tasks
+
+faf_web_symboltransfer_packages:
+  - faf-blueprint-symbol-transfer

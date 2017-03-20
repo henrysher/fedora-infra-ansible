@@ -1,0 +1,24 @@
+---
+
+# check backend functionality
+
+- name: faf
+  shell: faf {{ item }}
+  become: yes
+  become_user: faf
+  with_items:
+    - "releaseadd -o fedora --opsys-release 42"
+    - "releaselist | grep 'Fedora 42'"
+    - "compadd -o fedora --opsys-release 42 meta_faf"
+
+- name: cpf
+  copy: src=ureport_sample dest=/var/spool/faf/reports/incoming
+    owner=faf group=faf
+
+- name: faf
+  shell: faf {{ item }}
+  become: yes
+  become_user: faf
+  with_items:
+    - "save-reports -v"
+    - "create-problems -v"
