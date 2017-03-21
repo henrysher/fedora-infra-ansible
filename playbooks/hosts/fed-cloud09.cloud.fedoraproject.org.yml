@@ -1228,6 +1228,30 @@
           remote_ip_prefix: "0.0.0.0/0"
     with_items: "{{all_tenants}}"
 
+  - name: "Create 'fedmsg-relay-persistent' security group"
+    neutron_sec_group:
+      login_username: "admin"
+      login_password: "{{ ADMIN_PASS }}"
+      login_tenant_name: "admin"
+      auth_url: "https://{{controller_publicname}}:35357/v2.0"
+      state: "present"
+      name: 'fedmsg-relay-persistent'
+      description: "allow incoming 2003 and 4001 from internal network"
+      tenant_name: "{{item}}"
+      rules:
+        - direction: "ingress"
+          port_range_min: "2003"
+          port_range_max: "2003"
+          ethertype: "IPv4"
+          protocol: "tcp"
+          remote_ip_prefix: "172.25.80.1/16"
+        - direction: "ingress"
+          port_range_min: "4001"
+          port_range_max: "4001"
+          ethertype: "IPv4"
+          protocol: "tcp"
+          remote_ip_prefix: "172.25.80.1/16"
+    with_items: "{{all_tenants}}"
 
   # Update quota for Copr
   #   SEE:
