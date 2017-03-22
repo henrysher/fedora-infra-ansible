@@ -72,6 +72,16 @@
     regexp: '"tcp://stg.fedoraproject.org:9940"'
     line: '#"tcp://stg.fedoraproject.org:9940"'
 
+- name: Listen to copr-be-dev
+  lineinfile:
+    dest: /etc/fedmsg.d/module_build_service.py
+    insertafter:
+    line: "{{ item }}"
+  with_items:
+    - "    config['endpoints']['relay_outbound'].append('tcp://172.25.32.160:4001')"
+    - "    config['relay_inbound'].append('tcp://172.25.32.160:2003')"
+  when: env == "staging"
+
 
 # We want to run fedmsg-hub as 'mbs' user, because we don't want to rpmbuild as 'fedmsg'
 - name: Copy modified fedmsg-hub.service file
