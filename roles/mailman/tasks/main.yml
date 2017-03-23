@@ -431,6 +431,15 @@
             dest=/etc/yum/post-actions/hyperkitty.action
   tags: mailman
 
+# Systemd
+- name: install the systemd service file
+  template: src=webui-qcluster.service.j2 dest=/etc/systemd/system/webui-qcluster.service
+  notify:
+  - systemctl daemon-reload
+  tags:
+  - config
+  - mailman
+
 #
 # Only run this on mailman01 for now.
 # TODO: run it on lists-dev too
@@ -469,5 +478,6 @@
   - httpd
   - mailman3
   - postfix
+  - webui-qcluster
   tags: mailman
   when: inventory_hostname.startswith('mailman01.phx2') or inventory_hostname.startswith('lists-dev')

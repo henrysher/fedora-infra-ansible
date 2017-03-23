@@ -66,6 +66,7 @@ INSTALLED_APPS = (
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
+    'django_q',
     'django_mailman3.lib.auth.fedora',
     {% for service_name, service_data in mailman_login.items() %}
     'allauth.socialaccount.providers.{{ service_data.provider }}',
@@ -311,6 +312,16 @@ HAYSTACK_CONNECTIONS = {
         'ENGINE': 'xapian_backend.XapianEngine',
         'PATH': "{{ mailman_webui_basedir }}/fulltext_index",
     },
+}
+
+
+#
+# Asynchronous tasks
+#
+Q_CLUSTER = {
+    'timeout': 300,
+    'save_limit': 500,
+    'orm': 'default',
 }
 
 

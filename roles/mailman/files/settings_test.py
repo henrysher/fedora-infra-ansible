@@ -44,7 +44,38 @@ HAYSTACK_CONNECTIONS = {
 }
 HAYSTACK_SIGNAL_PROCESSOR = 'haystack.signals.RealtimeSignalProcessor'
 
-LOGGING = {}
+#
+# Asynchronous tasks
+#
+Q_CLUSTER = {
+    'orm': 'default',
+    'sync': True,
+}
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'loggers': {
+        'hyperkitty': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+        'django_mailman3.lib.mailman': {
+            'handlers': ['console'],
+            'level': 'ERROR',
+        },
+        'django-q': {
+            'handlers': ['console'],
+            'level': 'WARNING',
+        },
+    },
+}
 
 # Disable caching
 CACHES = {
