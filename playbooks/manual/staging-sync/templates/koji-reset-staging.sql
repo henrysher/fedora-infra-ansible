@@ -153,7 +153,8 @@ insert into user_perms (user_id, perm_id, active, creator_id) values (
 -- Fix krb principals for some users
 {% for username, principal in [('releng', 'compose/koji.stg.fedoraproject.org'),
                                ('koschei', 'koschei/koschei-backend01.stg.phx2.fedoraproject.org'),
-                               ('hotness', 'hotness/hotness01.stg.phx2.fedoraproject.org')] %}
+                               ('hotness', 'hotness/hotness01.stg.phx2.fedoraproject.org'),
+                               ('containerbuild', 'osbs/osbs.stg.fedoraproject.org@STG.FEDORAPROJECT.ORG')] %}
 update users set krb_principal='{{principal}}@STG.FEDORAPROJECT.ORG' where username='{{username}}';
 {% endfir %}
 
