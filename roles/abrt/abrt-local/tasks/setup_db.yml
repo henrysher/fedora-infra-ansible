@@ -1,0 +1,44 @@
+---
+- name: drop faf database
+  postgresql_db: name=faf
+                 owner=postgres
+                 state=absent
+  when: faf_recreate_database
+
+- name: check postgresql initdb
+  stat: path=/usr/bin/postgresql-setup
+  register: st
+
+- name: initdb postgresql
+  command: postgresql-setup initdb
+  when: st.stat.exists == False
+  become: true
+
+- name: start service postgresql
+  service: name=postgresql
+           state=started
+           enabled=yes
+  become: true
+
+- name: pgsql create db faf
+  postgresql_db: name=faf
+                 owner=postgres
+                 state=present
+  become: true
+  become_user: postgres
+
+- name: pgsql create user faf
+  postgresql_user: db=faf
+                   name=faf
+                   priv=ALL
+                   role_attr_flags=SUPERUSER
+                   state=present
+  become: true
+  become_user: postgres
+
+- name: create extension for faf
+  postgresql_ext: name=semver
+                  db=faf
+                  state=present
+  become: true
+  become_user: postgres
