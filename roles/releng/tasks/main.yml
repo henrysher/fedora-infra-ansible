@@ -167,6 +167,13 @@
     - packagedb-cli
   when: "'releng-compose' in group_names"
 
+# Add skopeo for OCI Image management, only in stage first for testing
+- name: add pkgs for OCI Image management
+  package:  state=present pkg={{ item }}
+  with_items:
+    - skopeo
+  when: env == "staging"
+
 # put cron job in for branched compose
 - name: branched compose cron
   copy: src="branched" dest=/etc/cron.d/branched
