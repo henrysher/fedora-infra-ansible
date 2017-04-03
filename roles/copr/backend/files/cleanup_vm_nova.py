@@ -1,8 +1,6 @@
 #!/usr/bin/python
 # coding: utf-8
 
-# TODO: remove from ansible when new release on copr-backend become available
-
 import os
 import sys
 import time
@@ -14,24 +12,17 @@ from dateutil.parser import parse as dt_parse
 
 import psutil
 import yaml
-from novaclient.v1_1.client import Client
+from novaclient.client import Client
 
 sys.path.append("/usr/share/copr/")
 
+from backend.helpers import BackendConfigReader
+from backend.helpers import utc_now
+
 try:
-    from backend.helpers import utc_now
+    from backend.vm_manage.manager import VmManager
 except ImportError:
-    # TODO: remove when updated version of copr-backend will be released
-    import pytz
-
-    def utc_now():
-        """
-        :return datetime.datetime: Current utc datetime with specified timezone
-        """
-        u = datetime.utcnow()
-        u = u.replace(tzinfo=pytz.utc)
-        return u
-
+    VmManager = None
 
 logging.getLogger("requests").setLevel(logging.ERROR)
 
@@ -46,24 +37,26 @@ def read_config():
 
 
 def get_client(conf):
-    return Client(username=conf["OS_USERNAME"],
-                  api_key=conf["OS_PASSWORD"],
-                  project_id=conf["OS_TENANT_NAME"],
-                  auth_url=conf["OS_AUTH_URL"],
-                  insecure=True)
+    username = conf["OS_USERNAME"]
+    password = conf["OS_PASSWORD"]
+    tenant_name = conf["OS_TENANT_NAME"]
+    auth_url = conf["OS_AUTH_URL"]
+    return Client('2', username, password, tenant_name, auth_url)
+
+
+def get_managed_vms_names():
+    result = []
+    if VmManager:
+        opts = BackendConfigReader().read()
+        vmm = VmManager(opts, log)
+        result.extend(vmd.vm_name.lower() for vmd in vmm.get_all_vm())
+    return result
 
 
 class Cleaner(object):
     def __init__(self, conf):
         self.conf = conf
         self.nt = None
-        self.ps_set = None
-
-    def post_init(self):
-        self.nt = get_client(self.conf)
-        # TODO: use VM management after release
-        self.ps_set = "\n".join(p.name + " ".join(p.cmdline) for p in psutil.process_iter())
-        # log.debug("ps_set: \n{}".format(self.ps_set))
 
     @staticmethod
     def terminate(srv):
@@ -77,32 +70,32 @@ class Cleaner(object):
     def old_enough(srv):
         dt_created = dt_parse(srv.created)
         delta = (utc_now() - dt_created).total_seconds()
-        # log.debug("Server {} created {} now {}; delta: {}".format(srv, dt_created, utc_now(), delta))
-        return delta > 60 * 10  # 10 minutes
+        # log.info("Server {} created {} now {}; delta: {}".format(srv, dt_created, utc_now(), delta))
+        return delta > 60 * 5  # 5 minutes
 
-    def check_one(self, srv_id):
+    def check_one(self, srv_id, vms_names):
         srv = self.nt.servers.get(srv_id)
-        log.debug("checking vm: {}".format(srv))
+        log.info("checking vm: {}".format(srv))
         srv.get()
-        if srv.status == u"ERROR":
-            log.info("server {} got into the error state, deleting".format(srv))
+        if srv.status.lower().strip() == "error":
+            log.info("server {} got into the error state, terminating".format(srv))
             self.terminate(srv)
-        elif self.old_enough(srv) and srv.human_id not in self.ps_set:
-            log.info("server {} not used by any builder".format(srv))
+        elif self.old_enough(srv) and srv.human_id.lower() not in vms_names:
+            log.info("server {} not placed in our db, terminating".format(srv))
             self.terminate(srv)
-        # elif not self.old_enough(srv):
-        #     log.info("Server {} not old enough".format(srv))
 
     def main(self):
         """
         Terminate erred VM's and VM's with uptime > 10 minutes and which doesn't have associated process
         """
-        self.post_init()
         start = time.time()
+        log.info("Cleanup start")
 
+        self.nt = get_client(self.conf)
         srv_list = self.nt.servers.list(detailed=False)
+        vms_names = get_managed_vms_names()
         with ThreadPoolExecutor(max_workers=20) as executor:
-            future_check = {executor.submit(self.check_one, srv.id): srv.id for srv in srv_list}
+            future_check = {executor.submit(self.check_one, srv.id, vms_names): srv.id for srv in srv_list}
             for future in as_completed(future_check):
                 try:
                     future.result()
@@ -113,14 +106,13 @@ class Cleaner(object):
 
 if __name__ == "__main__":
     logging.basicConfig(
-        filename="/var/log/copr/cleanup_vms.log",
+        filename="/var/log/copr-backend/cleanup_vms.log",
         # filename="/tmp/cleanup_vms.log",
         # stream=sys.stdout,
         format='[%(asctime)s][%(thread)s][%(levelname)6s]: %(message)s',
         level=logging.INFO)
 
     log = logging.getLogger(__name__)
-    log.info("Logger done")
 
     cleaner = Cleaner(read_config())
     cleaner.main()
