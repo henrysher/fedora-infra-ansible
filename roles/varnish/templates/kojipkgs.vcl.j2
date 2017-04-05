@@ -43,7 +43,7 @@ sub vcl_recv {
         return(purge);
     }
 
-    if (req.url ~ "^/repo/" && !(client.ip ~ repoallowed)) {
+    if (req.url ~ "^/repo/" && !(req.http.x-forwarded-for ~ repoallowed)) {
         return(synth(403, "Access denied."));
     }
     if (req.url ~ "^/mash/") {
