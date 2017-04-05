@@ -32,6 +32,9 @@ backend localapache {
 }
 
 sub vcl_recv {
+    # This gets arround the silly, ::1 that Apache adds on the proxies (still need to look at that)
+    set req.http.X-Forwarded-For = regsub(req.http.X-Forwarded-For, "^([a-f0-9:.]+), .+$", "\1");
+
     set req.backend_hint = localapache;
     unset req.http.cookie;
     set req.http.clear-cookies = "yes";
