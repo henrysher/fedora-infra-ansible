@@ -15,19 +15,24 @@
   - varnish
   - selinux
 
-- name: install varnish /etc/sysconfig/varnish
-  copy: src={{ item.file }} dest={{ item.dest }}
-        owner=root group=root
-  with_items:
-  - { file: varnish, dest: /etc/sysconfig/varnish }
+- name: install varnish /etc/sysconfig/varnish file (el7
+  copy: src=varnish.el7 dest=/etc/sysconfig/varnish owner=root group=root
   notify:
   - restart varnish
   tags:
   - varnish
+  when: ansible_distribution_major_version|int == 7
 
-- name: install /etc/varnish/default.vcl
-  template: src=proxy.vcl.j2 dest=/etc/varnish/default.vcl
-            owner=root group=root
+- name: install varnish /etc/sysconfig/varnish file (fedora)
+  copy: src=varnish.f25 dest=/etc/varnish/varnish.params owner=root group=root
+  notify:
+  - restart varnish
+  tags:
+  - varnish
+  when: ansible_distribution_major_version|int > 24
+
+- name: install /etc/varnish/default.vcl (proxies)
+  template: src={{ varnish_group }}.vcl.j2 dest=/etc/varnish/default.vcl owner=root group=root
   notify:
   - restart varnish
   tags:
