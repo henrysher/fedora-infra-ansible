@@ -6,6 +6,7 @@
   tags:
   - packages
   - kojipkgs
+  when: inventory_hostname.startswith('kojipkgs01')
 
 - name: install squid server packages
   package: name={{ item }} state=present
@@ -17,11 +18,13 @@
   tags:
   - packages
   - kojipkgs
+  when: inventory_hostname.startswith('kojipkgs01')
 
 - name: set seboolean for squid server
   seboolean: name=httpd_can_network_connect state=true persistent=true
   tags:
   - kojipkgs
+  when: inventory_hostname.startswith('kojipkgs01')
 
 - name: set seboolean for nfs httpd
   seboolean: name=httpd_use_nfs state=true persistent=true
@@ -37,6 +40,7 @@
   - restart squid
   tags:
   - kojipkgs
+  when: inventory_hostname.startswith('kojipkgs01')
 
 - name: install apache config files for squid
   copy: src={{ item }} dest=/etc/httpd/conf.d/{{ item }} owner=root group=root mode=644
@@ -71,6 +75,7 @@
   - kojipkgs
   notify:
   - reload httpd
+  when: inventory_hostname.startswith('kojipkgs01')
 
 - name: Copy squid ssl key from puppet private
   copy: >
@@ -81,9 +86,11 @@
   - kojipkgs
   notify:
   - reload httpd
+  when: inventory_hostname.startswith('kojipkgs01')
 
 - name: set squid to start on boot
   service: name=squid enabled=true state=running
   tags:
   - services
   - kojipkgs
+  when: inventory_hostname.startswith('kojipkgs01')
