@@ -1,16 +1,26 @@
 ---
 
-- name: create faf's database schema
-  command: faf-migrate-db --create-all
+- name: check for count of faf tables
+  shell: psql -c "SELECT COUNT(*) FROM pg_stat_user_tables"
+  register: count_tables
+  changed_when: "( count_tables.stdout_lines[2]|int ) == 0"
   become: yes
   become_user: faf
 
-- name: stamp database as migrated to latest version
-  command: faf-migrate-db --stamp-only
-  become: yes
-  become_user: faf
+# Skip whole block if faf owns atleast 1 table in db
+- block:
+  - name: create faf's database schema
+    command: faf-migrate-db --create-all
+    become: yes
+    become_user: faf
 
-- name: init faf
-  command: faf init
-  become: yes
-  become_user: faf
+  - name: stamp database as migrated to latest version
+    command: faf-migrate-db --stamp-only
+    become: yes
+    become_user: faf
+
+  - name: init faf
+    command: faf init
+    become: yes
+    become_user: faf
+  when: ( count_tables.stdout_lines[2]|int ) == 0
