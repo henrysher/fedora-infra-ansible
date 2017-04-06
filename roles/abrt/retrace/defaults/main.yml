@@ -1,0 +1,182 @@
+---
+
+# Which group is used for authentication
+rs_auth_group: retrace
+
+# Force to use HTTPS - only disable on trusted network
+rs_require_https: true
+
+# Allow to delete task data via HTTP API (https://server/<task_id>/delete)
+rs_allow_api_delete: false
+
+# Allow interactive tasks (security risk, do not use on public systems)
+rs_allow_interactive: false
+
+# Allow X-CoreFileDirectory header
+rs_allow_external_dir: false
+
+# Allow to create tasks owned by task manager (security risk)
+rs_allow_task_manager: false
+
+# Allow to create VMCore tasks in the task manager
+rs_allow_vmcore_task: true
+
+# Allow to create VMCore tasks in the task manager
+rs_allow_usrcore_task: true
+
+# If white list is disabled, anyone can delete tasks
+rs_task_manager_auth_delete: false
+
+# Whitespace-separated list of users allowed to delete tasks
+rs_task_manager_delete_users:
+
+# If set to non-empty string, makes the case number clickable in task manager
+# The string is expanded by python, with the case number passed
+# as the only argument, do not forget %d
+rs_case_number_url:
+
+# Verify GPG signatures of installed packages
+rs_require_gpg_check: true
+
+# Maximum tasks running at one moment
+rs_max_parallel_tasks: 5
+
+# Maximum size of archive uploaded by user (MB)
+rs_max_packed_size: 50
+
+# Maximum size of archive contents (MB)
+rs_max_unpacked_size: 1024
+
+# Minimal storage left on WorkDir FS after unpacking archive (MB)
+rs_min_storage_left: 1024
+
+# Delete old tasks after (hours); <= 0 means never
+# This is mutually exclusive with ArchiveTasksAfter (see below)
+# The one that occurs first removes the task from the system
+# In case DeleteTaskAfter = ArchiveTaskAfter, archiving executes first
+rs_delete_task_after: 0
+
+# Delete old failed tasks after (hours); <= 0 means never
+# This is useful for cleanup of failed tasks before the standard
+# mechanisms do (DeleteTaskAfter or ArchiveTaskAfter)
+# In case DeleteFailedTaskAfter > DeleteTaskAfter
+# or DeleteFailedTaskAfter > ArchiveTaskAfter, this option does nothing
+rs_delete_failed_task_after: 0
+
+# Archive old task after (hours); <= 0 means never
+# This is mutually exclusive with DeleteTasksAfter (see above)
+# The one that occurs first removes the task from the system
+# In case DeleteTaskAfter = ArchiveTaskAfter, archiving executes first
+rs_archive_task_after: 0
+
+# SQLite statistics DB filename
+rs_db_file: stats.db
+
+# Log directory
+rs_log_dir: /var/log/retrace-server
+
+# Local repos directory
+rs_repo_dir: /var/cache/retrace-server
+
+# Directory where the crashes and results are saved
+rs_save_dir: /var/spool/retrace-server
+
+# Directory where old tasks are moved
+rs_drop_dir: /srv/retrace/archive
+
+# Whether to use explicit working directory, otherwise default mock settings are used
+rs_use_work_dir: false
+
+# Working directory
+rs_work_dir: /tmp/retrace-server
+
+# Whether to use createrepo's --update option (faster, but requires a lot of memory)
+rs_use_createrepo_update: false
+
+# How many latest packages to keep for rawhide
+rs_keep_rawhide_latest: 3
+
+# Repo used to install chroot for vmcores
+rs_kernel_chroot_repo: http://dl.fedoraproject.org/pub/fedora/linux/releases/16/Everything/$ARCH/os/
+
+# Koji directory structure can be used to search for kernel debuginfo
+rs_koji_root: /mnt/koji
+
+# Whether task manager should look to an external FTP for task data
+rs_use_ftp_tasks: false
+
+# FTP connection parameters
+rs_ftp_ssl: false
+rs_ftp_host:
+rs_ftp_user:
+rs_ftp_password:
+rs_ftp_dir: /
+
+# Size of buffer for downloading from FTP (MB)
+rs_ftp_buffer_size: 16
+
+# Whether to use wget as a fallback to finding kernel debuginfos
+rs_wget_kernel_debuginfos: false
+
+# Where to download kernel debuginfos from
+# $VERSION $RELEASE and $ARCH are replaced by the appropriate value
+# kernel-debuginfo-VRA.rpm is appended to the end
+rs_kernel_debuginfo_url: http://kojipkgs.fedoraproject.org/packages/$BASENAME/$VERSION/$RELEASE/$ARCH/
+
+# Run makedumpfile with specified dumplevel; <= 0 or >= 32 means disabled
+rs_vmcore_dump_level: 0
+
+# Whether to run kmem command by default (this may take a long time on large vmcores)
+# 1 => run 'kmem -f'; 2 => run 'kmem -f' with 'set hash off'; 3 => run 'kmem -z'; anything else => do not run kmem
+rs_vmcore_run_kmem: 0
+
+# EXPERIMENTAL! Use ABRT Server's storage to map build-ids
+# into debuginfo packages and resolve dependencies
+# Requires support from ABRT Server
+rs_use_faf_packages: false
+
+# Where to hardlink faf packages
+rs_faf_link_dir: /var/spool/faf/retrace-tmp
+
+# Whether to enable e-mail notifications
+rs_email_notify: false
+
+# Who sends the e-mail notifications
+rs_email_notify_from_user: retrace
+
+rs_archhosts:
+  - { arch: i386, url: }
+  - { arch: x86_64, url: }
+  - { arch: ppc64, url: }
+  - { arch: armhfp, url: }
+  - { arch: s390x, url: }
+
+# Parameters are replaced using python's format.
+# Available parameters: hook_name, task_id, task_dir
+# Example: pre_start = /bin/echo {hook_name} {task_id} {task_dir}
+# When worker.start() is called
+rs_hookscripts:
+  - { hook: pre_start, cmd: }
+  - { hook: start, cmd: }
+  - { hook: pre_prepare_debuginfo, cmd: }
+  - { hook: post_prepare_debuginfo, cmd: }
+  - { hook: pre_prepare_mock, cmd: }
+  - { hook: post_prepare_mock, cmd: }
+  - { hook: pre_retrace, cmd: }
+  - { hook: post_retrace, cmd: }
+  - { hook: success, cmd: }
+  - { hook: fail, cmd: }
+  - { hook: pre_remove_task, cmd: }
+  - { hook: post_remove_task, cmd: }
+  - { hook: pre_clean_task, cmd: }
+  - { hook: post_clean_task, cmd: }
+
+
+# Force package reinstall
+rs_force_reinstall: false
+
+# Check server health after installation
+rs_check_health: true
+
+# Hostname
+hostname: example.org
