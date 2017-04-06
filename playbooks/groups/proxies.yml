@@ -23,9 +23,14 @@
       when: env == "staging" or "'mirrorlist-proxy' in group_names" }
   - { role: openvpn/client,
       when: env != "staging" }
+  - { role: certbot,
+      when: inventory_hostname == 'proxy01.phx2.fedoraproject.org' }
   - apache
 
   tasks:
+  - name: install special fpaste.conf with letsencrypt info
+    copy: src={{ files }}/files/httpd/fpaste.conf dest=/etc/httpd/conf.d/fpaste.org/fpaste.org.conf
+    when: inventory_hostname == 'proxy01.phx2.fedoraproject.org'
   - include: "{{ tasks }}/yumrepos.yml"
   - include: "{{ tasks }}/2fa_client.yml"
   - include: "{{ tasks }}/motd.yml"
