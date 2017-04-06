@@ -1,5 +1,6 @@
 vcl 4.0;
 
+import std;
 import directors;
 
 #
@@ -46,7 +47,7 @@ sub vcl_recv {
         return(purge);
     }
 
-    if (req.url ~ "^/repo/" && !(req.http.x-forwarded-for ~ repoallowed)) {
+    if (req.url ~ "^/repo/" && !(std.ip(req.http.X-Forwarded-For, "0.0.0.0") ~ repoallowed)) {
         return(synth(403, "Access denied."));
     }
     if (req.url ~ "^/mash/") {
