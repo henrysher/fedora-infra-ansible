@@ -31,6 +31,21 @@
   - name: install special fpaste.conf with letsencrypt info
     copy: src={{ files }}/httpd/fpaste.org.conf dest=/etc/httpd/conf.d/fpaste.org/fpaste.org.conf
     when: inventory_hostname == 'proxy01.phx2.fedoraproject.org'
+
+  - name: setup link to letsencrypt certs on proxy01
+    file: >
+        path=/etc/pki/tls/certs/fpaste.org.intermediate.cert
+        src=/etc/letsencrypt/live/fpaste.org/fullchain.pem
+        state=link
+    when: inventory_hostname == 'proxy01.phx2.fedoraproject.org'
+
+  - name: setup link to letsencrypt certs on proxy01
+    file: >
+        path=/etc/pki/tls/certs/fpaste.org.cert
+        src=/etc/letsencrypt/live/fpaste.org/cert.pem
+        state=link
+    when: inventory_hostname == 'proxy01.phx2.fedoraproject.org'
+
   - include: "{{ tasks }}/yumrepos.yml"
   - include: "{{ tasks }}/2fa_client.yml"
   - include: "{{ tasks }}/motd.yml"
