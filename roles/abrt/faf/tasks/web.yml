@@ -16,11 +16,16 @@
   notify:
   - restart httpd
 
-  # faf installs this file by itself if faf_web_on_root
-  # is disabled and is available under <hosts>/faf
+- set_fact:
+    url_suffix: ""
+  when: faf_web_on_root
+
+- set_fact:
+    url_suffix: "/faf"
+  when: not faf_web_on_root
+
 - name: put webfaf on root (/) if configured
   template: src=etc-httpd-conf.d-faf-web.conf.j2
     dest=/etc/httpd/conf.d/faf-web.conf
-  when: faf_web_on_root
   notify:
   - restart httpd
