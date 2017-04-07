@@ -19,20 +19,22 @@ else
 fi
 
 INFILE=${INPUT}-${DATE}.xz
-INFILE_CONTAINER1=${CONTAINER1}-${DATE}.xz
-INFILE_CONTAINER2=${CONTAINER2}-${DATE}.xz
 
 OUTPUT=`mktemp -d`
 
-#trap "rm -f ${OUTPUT}/*; rmdir ${OUTPUT}" QUIT TERM INT HUP EXIT
+trap "rm -f ${OUTPUT}/*; rmdir ${OUTPUT}" QUIT TERM INT HUP EXIT
 
 # Fetch compressed log files
 for s in ${MIRRORLIST_SERVERS}; do
 	ssh $s "( xzcat $INFILE | gzip -4 )" >> ${OUTPUT}/mirrorlist.log.gz
 done
 for s in ${MIRRORLIST_PROXIES}; do
-	ssh $s "( xzcat $INFILE_CONTAINER1 | gzip -4 )" >> ${OUTPUT}/mirrorlist.log.gz
-	ssh $s "( xzcat $INFILE_CONTAINER2 | gzip -4 )" >> ${OUTPUT}/mirrorlist.log.gz
+	ssh $s "( cat $CONTAINER1 | gzip -4 )" >> ${OUTPUT}/mirrorlist.log.gz
+	ssh $s "( cat $CONTAINER2 | gzip -4 )" >> ${OUTPUT}/mirrorlist.log.gz
+	if [ "$1" == "yesterday" ]; then
+		ssh $s "( xzcat $CONTAINER1-${DATE}.xz | gzip -4 )" >> ${OUTPUT}/mirrorlist.log.gz
+		ssh $s "( xzcat $CONTAINER2-${DATE}.xz | gzip -4 )" >> ${OUTPUT}/mirrorlist.log.gz
+	fi
 done
 
 ${STATISTICS} -l ${OUTPUT}/mirrorlist.log.gz -d ${OUTPUT}/
