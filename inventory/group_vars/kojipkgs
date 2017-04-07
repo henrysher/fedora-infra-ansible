@@ -1,9 +1,9 @@
 ---
 # Define resources for this group of hosts here.
-lvm_size: 150000
-mem_size: 65536
-max_mem_size: 65536
-num_cpus: 8
+lvm_size: 50000
+mem_size: 98304
+max_mem_size: 98304
+num_cpus: 16
 
 custom_rules: [
     # Need for rsync from log01 for logs.
@@ -11,7 +11,7 @@ custom_rules: [
     '-A INPUT -p tcp -m tcp -s 192.168.1.59 --dport 873 -j ACCEPT',
  ]
 
-tcp_ports: [80, 443, 8080]
+tcp_ports: [80, 8080]
 
 fas_client_groups: sysadmin-releng,sysadmin-noc
 
@@ -24,11 +24,11 @@ csi_purpose: Cache packages from koji for builders and others
 csi_relationship: |
     There are a few things running here:
 
-    - apache web server and squid caching proxy. 
+    - apache web server and varnish caching proxy. 
 
     - This host relies on:
       - koji nfs storage
-      - koji itself
+      - proxy01/10 to proxy requests to it.
 
     - Things that rely on this host:
       - all koji builders/buildsystem
