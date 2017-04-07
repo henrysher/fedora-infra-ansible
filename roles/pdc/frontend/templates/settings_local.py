@@ -129,6 +129,10 @@ EMAIL_HOST = 'bastion'
 SERVER_EMAIL = 'nobody@fedoraproject.org'
 EMAIL_SUBJECT_PREFIX = '[PDC]'
 
+# Use this to deny people creating new "epel" or "fedora" branches after we
+# import the existing oldschool branches.
+#COMPONENT_BRANCH_NAME_BLACKLIST_REGEX = r'^(epel\d+|el\d+|f\d+|fc\d+)'
+
 # un-comment below 4 lines if enable email notification as meet any error
 #get_setting('LOGGING').get('loggers').update({'pdc.apps.common.handlers': {
 #    'handlers': ['mail_admins'],
