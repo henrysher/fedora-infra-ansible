@@ -447,12 +447,13 @@ config = dict(
             nickname='fm-magazine',
             {% endif %}
             channel='#fedora-magazine',
-            # If the word modularity appears in any message, forward it.
+            # If the word magazine appears in any message, forward it.
             filters=dict(
                 topic=[
                     '^((?!(pagure|planet|badges|fas.group|mailman|meetbot\.meeting)).)*$',
                 ],
-                body=['^((?!(magazine|Magazine)).)*$'],
+                body=['^((?!(magazine|Magazine)).)*$',
+                      "u'namespace': u'Fedora-Council'"],
             ),
         ),
 
