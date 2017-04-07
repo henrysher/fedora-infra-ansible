@@ -1,59 +1,13 @@
-#
-# This is before squid is installed on initial setup so it runs on squid install
-#
-#- name: add squid tmpfiles.d to make run dir for smp ipc sockets.
-#  copy: src=squid-tmpfiles dest=/etc/tmpfiles.d/squid.conf owner=root group=root mode=644
-#  tags:
-#  - packages
-#  - kojipkgs
-#  when: inventory_hostname.startswith('kojipkgs01')
-
-#- name: install squid server packages
-#  package: name={{ item }} state=present
-#  with_items:
-#  - squid
-#  - httpd
-#  - mod_ssl
-#  - libsemanage-python
-#  tags:
-#  - packages
-#  - kojipkgs
-#  when: inventory_hostname.startswith('kojipkgs01')
-
-#- name: set seboolean for squid server
-#  seboolean: name=httpd_can_network_connect state=true persistent=true
-#  tags:
-#  - kojipkgs
-#  when: inventory_hostname.startswith('kojipkgs01')
-
 - name: set seboolean for nfs httpd
   seboolean: name=httpd_use_nfs state=true persistent=true
   tags:
   - kojipkgs
 
-#- name: install squid config files
-#  copy: src={{ item }} dest=/etc/squid/{{ item }} owner=root group=root mode=644
-#  with_items:
-#  - squid.conf
-#  - cachemgr.conf
-#  notify:
-#  - restart squid
-#  tags:
-#  - kojipkgs
-#  when: inventory_hostname.startswith('kojipkgs01')
-
-- name: install apache config files for squid
+- name: install apache config files for local apache
   copy: src={{ item }} dest=/etc/httpd/conf.d/{{ item }} owner=root group=root mode=644
   with_items:
   - kojipkgs.conf
   - infrastructure.conf
-  notify:
-  - reload httpd
-  tags:
-  - kojipkgs
-
-- name: make sure httpd ssl.conf is not around (conflicts with squid)
-  copy: dest=/etc/httpd/conf.d/ssl.conf content='# this is a simple file to make apache not listen on 443'
   notify:
   - reload httpd
   tags:
@@ -65,32 +19,3 @@
   - reload httpd
   tags:
   - kojipkgs
-
-#- name: Copy squid ssl cert from puppet private
-#  copy: >
-#    src="{{private}}/files/httpd/wildcard-2017.squid.cert"
-#    dest=/etc/pki/tls/certs/wildcard-2017.squid.cert
-#    owner=root group=root mode=0644
-#  tags:
-#  - kojipkgs
-#  notify:
-#  - reload httpd
-#  when: inventory_hostname.startswith('kojipkgs01')
-
-#- name: Copy squid ssl key from puppet private
-#  copy: >
-#    src="{{private}}/files/httpd/wildcard-2017.fedoraproject.org.key"
-#    dest=/etc/pki/tls/private/wildcard-2017.fedoraproject.org.key
-#    owner=root group=root mode=0600
-#  tags:
-#  - kojipkgs
-#  notify:
-#  - reload httpd
-#  when: inventory_hostname.startswith('kojipkgs01')
-
-#- name: set squid to start on boot
-#  service: name=squid enabled=true state=running
-#  tags:
-#  - services
-#  - kojipkgs
-#  when: inventory_hostname.startswith('kojipkgs01')
