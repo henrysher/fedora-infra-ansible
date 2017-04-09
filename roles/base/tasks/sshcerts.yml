@@ -44,21 +44,24 @@
 
 # TODO: Get expired certificates, and add them to certs_to_sign
 
-- name: Create directory for storing pubkeys
-  command: "mktemp -d --suffix=sshkeysign"
-  delegate_to: "batcave01.phx2.fedoraproject.org"
-  run_once: true
-  register: pubkeydirout
-  when: env == "staging" and certs_to_sign != []
+- set_fact:
+    pubkeydir: "/tmp/sshkeysign"
+  when: env == "staging"
   tags:
   - sshd_config
   - config
   - sshd
   - base
 
-- set_fact:
-    pubkeydir: "{{pubkeydirout.stdout}}"
-  when: env == "staging" and certs_to_sign != []
+- name: Create directory for storing pubkeys
+  file: path="{{pubkeydir}}"
+        owner=root
+        group=root
+        mode=0600
+        state=directory
+  delegate_to: "batcave01.phx2.fedoraproject.org"
+  run_once: true
+  when: env == "staging"
   tags:
   - sshd_config
   - config
