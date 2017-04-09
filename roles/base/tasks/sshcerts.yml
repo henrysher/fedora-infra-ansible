@@ -3,7 +3,7 @@
         file_type=file
       patterns="ssh_host_*_key"
   register: ssh_key_files
-  when: "env == 'staging'"
+  when: env == "staging"
   tags:
   - sshd_config
   - config
@@ -14,7 +14,7 @@
   stat: path="{{item.path}}-cert.pub"
   with_items: "{{ssh_key_files.files}}"
   register: ssh_cert_files
-  when: "env == 'staging'"
+  when: env == "staging"
   tags:
   - sshd_config
   - config
@@ -24,7 +24,7 @@
 - name: Set lists of certs to sign to empty
   set_fact:
     certs_to_sign: "[]"
-  when: "env == 'staging'"
+  when: env == "staging"
   tags:
   - sshd_config
   - config
@@ -35,7 +35,7 @@
   set_fact:
     certs_to_sign: "{{certs_to_sign}} + [ '{{item.item.path}}' ]"
   with_items: "{{ssh_cert_files.results}}"
-  when: "env == 'staging' and not item.stat.exists"
+  when: env == "staging" and not item.stat.exists
   tags:
   - sshd_config
   - config
@@ -49,7 +49,7 @@
   delegate_to: "batcave01.phx2.fedoraproject.org"
   run_once: true
   register: pubkeydirout
-  when: "env == 'staging' and {{certs_to_sign}} != []"
+  when: env == "staging" and certs_to_sign != []
   tags:
   - sshd_config
   - config
@@ -58,7 +58,7 @@
 
 - set_fact:
     pubkeydir: "{{pubkeydirout.stdout}}"
-  when: "env == 'staging' and {{certs_to_sign}} != []"
+  when: env == "staging" and certs_to_sign != []
   tags:
   - sshd_config
   - config
@@ -70,7 +70,7 @@
          dest="{{pubkeydir}}"
          fail_on_missing=true
   with_items: "{{certs_to_sign}}"
-  when: "env == 'staging'"
+  when: env == "staging"
   tags:
   - sshd_config
   - config
@@ -81,7 +81,7 @@
   set_fact:
     sign_hostnames: "{{inventory_hostname}}"
     sign_validity: "-1h:+2w"
-  when: "env == 'staging'"
+  when: env == "staging"
   tags:
   - sshd_config
   - config
@@ -93,7 +93,7 @@
   command: "ssh-keygen -s {{private}}/files/ssh/staging_ca_host_key -I {{inventory_hostname}} -h -n {{ sign_hostnames }} -V {{sign_validity}} -z {{ansible_date_time.epoch}} {{pubkeydir}}/{{inventory_hostname}}{{item}}.pub"
   delegate_to: "batcave01.phx2.fedoraproject.org"
   with_items: "{{certs_to_sign}}"
-  when: "env == 'staging'"
+  when: env == "staging"
   tags:
   - sshd_config
   - config
@@ -104,7 +104,7 @@
   copy: src="{{pubkeydir}}/{{inventory_hostname}}{{item}}-cert.pub"
         dest="{{item}}-cert.pub"
   with_items: "{{certs_to_sign}}"
-  when: "env == 'staging'"
+  when: env == "staging"
   notify:
   - restart sshd
   tags:
