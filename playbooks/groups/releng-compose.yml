@@ -48,6 +48,20 @@
   - { role: nfs/client, when: "'releng-stg' in group_names", mnt_dir: '/mnt/fedora_koji_prod',  nfs_src_dir: "{{ koji_hub_nfs }}" }
   - fedmsg/base
   - releng
+  - {
+    role: "manage-container-images",
+      cert_dest_dir: "/etc/docker/certs.d/registry.stg.fedoraproject.org",
+      cert_src: "{{private}}/files/docker-registry/{{env}}/docker-registry-internal.pem",
+      key_src: "{{private}}/files/docker-registry/{{env}}/docker-registry-internal.key",
+    when: env == "staging"
+  }
+  - {
+    role: "manage-container-images",
+      cert_dest_dir: "/etc/docker/certs.d/candidate-registry.stg.fedoraproject.org",
+      cert_src: "{{private}}/files/docker-registry/{{env}}/docker-registry-internal.pem",
+      key_src: "{{private}}/files/docker-registry/{{env}}/docker-registry-internal.key",
+    when: env == "staging"
+  }
 
   tasks:
   # this is how you include other task lists
