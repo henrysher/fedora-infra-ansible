@@ -13,8 +13,18 @@
   - fedora-web
   - fedora-web/registry
 
+- name: Copy over the registry CA
+  copy: src="{{private}}/files/docker-registry/{{env}}/docker-registry-ca.pem"
+        dest="/etc/pki/httpd/registry-ca-{{env}}.cert"
+        owner=root group=root mode=0644
+  notify:
+  - reload proxyhttpd
+  tags:
+  - fedora-web
+  - fedora-web/candidate-registry
+
 - name: Copy over the registry passwd
-  copy: src=passwd dest=/etc/httpd/conf.d/registry.fedoraproject.org/passwd
+  copy: src="passwd-{{env}}" dest=/etc/httpd/conf.d/registry.fedoraproject.org/passwd
         owner=root group=root mode=0644
   notify:
   - reload proxyhttpd
