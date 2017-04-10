@@ -1,104 +1,59 @@
 - include: "mount_fs.yml"
 
-#- copy: src="dist-git-epel-7.repo" dest="/etc/yum.repos.d/"
-
 # pre-create users/groups and copy uids/gids from the current prod copr-dist-git
 - group: name="packager" state=present gid=987
-- group: name="cvsadmin" state=present gid=1001
-- group: name="copr-dist-git" state=present gid=1002
-- group: name="copr-service" state=present gid=1003
+- group: name="copr-dist-git" state=present gid=1003
 
-- name: create user for git repos
-  user: name="copr-dist-git" group=copr-dist-git groups=cvsadmin,packager uid=1001
-
-- name: create user for copr-dist-git service
-  user: name="copr-service" group=copr-service groups=packager,docker,apache,mock generate_ssh_key=yes ssh_key_bits=2048 ssh_key_file=.ssh/id_rsa uid=1002
+- name: create user for git repos and copr-dist-git service
+  user: name="copr-dist-git" group=copr-dist-git groups=packager,docker,apache,mock uid=1002
 
 - name: enable copr dist-git repo
   shell: "dnf -y copr enable clime/dist-git"
-  when: devel
-
-- name: install dist-git
-  dnf: state=latest name="dist-git"
 
 - name: install packages
   dnf: state=present name={{ item }}
   with_items:
-  #- epel-release
   - cgit
-#  - dist-git
   - copr-dist-git
   - rdiff-backup
   - tmpwatch
   - highlight
 
-- name: install copr-dist-git
+- name: install latest dist-git and copr-dist-git
   dnf: state=latest name={{ item }}
   with_items:
+    - dist-git
+    - dist-git-selinux
     - copr-dist-git
 
 - name: switch selinux to permissive
   selinux: policy=targeted state=permissive
 
-- name: ensure git storage path exists
-  file: path="/var/lib/dist-git/git" state=directory group=packager mode=0775
-#- file: path="/var/lib/dist-git/git/pkgs-git-repos-list" state=file group=packager
-# - file: path="/var/lib/dist-git/git/rpms/" state=directory group=packager
-  when: not devel
-
-- name: install packages which should be added as requirements
-  dnf: state=present name={{ item }}
-  with_items:
-  - pyrpkg
-
-- name: make sure directories are owned by copr-service user
-  file: path={{ item }} owner=copr-service group=copr-service state=directory recurse=yes
+- name: make sure directories are owned by copr-dist-git user
+  file: path={{ item }} owner=copr-dist-git group=copr-dist-git state=directory recurse=yes
   with_items:
   - /var/lib/copr-dist-git/
   - /var/log/copr-dist-git/
-
-- name: make sure directories are owned by copr-service:packager user
-  file: path=/var/lib/dist-git/git owner=copr-service group=packager
-  when: not devel
-
-# set ssh key, so that copr-service could access gitolite
-- name: read pub key into var
-  command: cat /home/copr-service/.ssh/id_rsa.pub
-  register: cat_pubkey
-  check_mode: no
-  changed_when: false
-
-- set_fact: pubkey="{{cat_pubkey.stdout|join('')}}"
-
-- debug: msg={{pubkey}}
-
-- name: prepare authorized key, so copr-service could interact with gitolite
-  authorized_key: user="copr-dist-git" key="{{pubkey}}" key_options="command=\"HOME=/var/lib/dist-git/git/ /usr/share/gitolite3/gitolite-shell $USER \"'"
-  when: not devel
-## keys done
 
 - name: install config for copr-dist-git
   template: src=copr-dist-git.conf.j2 dest=/etc/copr/copr-dist-git.conf mode=0644
   tags:
   - config
 
-- name: set git variables for copr-service user
-  copy: src=".gitconfig" dest="/home/copr-service/.gitconfig"
+- name: set git variables for copr-dist-git user
+  copy: src=".gitconfig" dest="/home/copr-dist-git/.gitconfig"
 
 - name: set git config username
   git_config: name=user.name scope=global value="Copr dist git"
 
-- name: install httpd config to serve lookaside and smart-git
+- name: install httpd config needed for COPR lookaside cache
   copy: src="httpd/dist-git/{{ item }}" dest="/etc/httpd/conf.d/dist-git/{{ item }}"
   with_items:
-  - lookaside.conf
   - lookaside-copr.conf
-  - git-smart-http.conf
   tags:
   - config
   notify:
   - reload httpd
-
 
 - name: install copr-dist-git httpd config
   copy: src="httpd/{{ item }}" dest="/etc/httpd/conf.d/{{ item }}"
@@ -117,14 +72,9 @@
   tags:
   - config
 
-- copy: src="ssh_config" dest="/home/copr-service/.ssh/config" owner=copr-service group=copr-service mode=0600
-
 - template: src="cgitrc" dest="/etc/cgitrc" owner=root group=root mode=0644
 
 - template: src="cgitrc.slow" dest="/etc/cgitrc.slow" owner=root group=root mode=0644
-
-- command: "/usr/share/dist-git/dist_git_sync.sh"
-  when: not devel
 
 - name: allow httpd to run cgit
   seboolean: name=httpd_enable_cgi state=true persistent=true
@@ -146,8 +96,3 @@
 
 - name: Create /var/cache/cgit/repo-list.rc if does not exists (it last 30 minutes to generate)
   command: /etc/cron.hourly/copr-dist-git creates=/var/cache/cgit/repo-list.rc
-
-- name: install dist-git-selinux package
-  dnf: state=present name={{ item }}
-  with_items:
-  - dist-git-selinux # this takes several hours to finish due to fs relabelling
