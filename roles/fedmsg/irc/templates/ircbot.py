@@ -16,6 +16,7 @@ config = dict(
             filters=dict(
                 topic=[
                     # Ignore some of the koji spamminess
+                    'buildsys.package.list.change',
                     'buildsys.repo.init',
                     'buildsys.repo.done',
                     'buildsys.untag',
