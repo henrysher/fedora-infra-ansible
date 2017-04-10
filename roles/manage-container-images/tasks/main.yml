@@ -1,0 +1,28 @@
+---
+# tasks file for push-docker
+#
+- name: install necessary packages
+  package:
+    name: "{{item}}"
+    state: present
+  with_items:
+    - skopeo
+
+- name: ensure cert dir exists
+  file:
+    path: "{{container_dest_dir}}"
+    state: directory
+
+- name: install docker client cert for registry
+  copy:
+    src: "{{cert_src}}"
+    dest: "{{container_dest_dir}}/client.cert"
+    owner: root
+    mode: 0600
+
+- name: install docker client key for registry
+  copy:
+    src: "{{key_src}}"
+    dest: "{{container_dest_dir}}/client.key"
+    owner: root
+    mode: 0600
