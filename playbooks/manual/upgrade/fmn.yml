@@ -18,7 +18,11 @@
     yum: name="python-fmn*" state=latest
     when: not testing
   - name: yum update FMN packages from testing repo
-    yum: name="python-fmn*" state=latest enablerepo=infrastructure-testing
+    yum: pkg={{ item }} state=latest enablerepo=infrastructure-testing
+    with_items:
+      - python-fmn
+      - python-fmn-sse
+      - python-fmn-web
     when: testing
 
 - name: verify the frontend and stop it
@@ -77,6 +81,7 @@
 
   - name: Upgrade the database
     command: /usr/bin/alembic -c /usr/share/fmn.lib/alembic.ini upgrade head
+    when: env != "staging"
     args:
       chdir: /usr/share/fmn.lib/
 

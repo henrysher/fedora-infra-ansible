@@ -13,6 +13,16 @@
   - notifs
   - notifs/backend
 
+- name: install backend and sse packages
+  yum: pkg={{ item }} state=present
+  with_items:
+  - python-fmn
+  - python-fmn-sse
+  when: env == "staging"
+  tags:
+  - notifs
+  - notifs/backend
+
 - name: copy database configuration
   template: >
     src={{ item }} dest=/etc/fedmsg.d/{{ item }}
@@ -25,10 +35,35 @@
   - notifs
   - notifs/backend
 
+- name: Install fmn SSE configuration
+  template: >
+    src={{ item }} dest=/etc/fedmsg.d/{{ item }}
+    owner=fedmsg group=fedmsg mode=0600
+  with_items:
+  - fmn.sse.py
+  when: env == "staging"
+  notify:
+  - restart fedmsg-hub
+  tags:
+  - notifs
+  - notifs/backend
+
 - name: copy the alembic configuration for DBAs
   template: >
     src=alembic.ini dest=/usr/share/fmn.lib/alembic.ini
     owner=root group=sysadmin-dba mode=0660
+  when: env != "staging"
+  notify:
+  - restart fedmsg-hub
+  tags:
+  - notifs
+  - notifs/backend
+
+- name: copy the alembic configuration for DBAs
+  template: >
+    src=alembic.ini dest=/usr/share/fmn/alembic.ini
+    owner=root group=sysadmin-dba mode=0660
+  when: env == "staging"
   notify:
   - restart fedmsg-hub
   tags:
