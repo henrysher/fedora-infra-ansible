@@ -117,6 +117,7 @@ plot ["2014-01-01":"2017-12-31"] \
      '/var/www/html/csv-reports/mirrors/mirrorsdata-all-7day-ma.csv' using 1:26 title 'fed23' with lines lw 3,\
      '/var/www/html/csv-reports/mirrors/mirrorsdata-all-7day-ma.csv' using 1:27 title 'fed24' with lines lw 3,\
      '/var/www/html/csv-reports/mirrors/mirrorsdata-all-7day-ma.csv' using 1:28 title 'fed25' with lines lw 3,\
+     '/var/www/html/csv-reports/mirrors/mirrorsdata-all-7day-ma.csv' using 1:29 title 'fed26' with lines lw 3,\
      '/var/www/html/csv-reports/mirrors/mirrorsdata-all-7day-ma.csv' using 1:33 title 'rawhide' with lines lw 3,\
      '/var/www/html/csv-reports/mirrors/mirrorsdata-all-7day-ma.csv' using 1:34 title 'unk_rel' with lines lw 3
 unset output
@@ -125,14 +126,15 @@ set output "/var/www/html/csv-reports/images/fedora-os-latest-stacked-ma.png"
 set title "Fedora Selected Versions Unique IPs"
 plot ["2013-01-01":"2017-12-31"] \
      '/var/www/html/csv-reports/mirrors/mirrorsdata-all-7day-ma.csv' using 1:31 title 'Fedora' with lines lw 3,\
-     '/var/www/html/csv-reports/mirrors/mirrorsdata-all-7day-ma.csv' using 1:($21+$22+$23+$24+$25+$26+$27+$28+$33) title 'fed18' with filledcurves x1,\
-     '/var/www/html/csv-reports/mirrors/mirrorsdata-all-7day-ma.csv' using 1:($22+$23+$24+$25+$26+$27+$28+$33) title 'fed19' with filledcurves x1,\
-     '/var/www/html/csv-reports/mirrors/mirrorsdata-all-7day-ma.csv' using 1:($23+$24+$25+$26+$27+$28+$33) title 'fed20' with filledcurves x1,\
-     '/var/www/html/csv-reports/mirrors/mirrorsdata-all-7day-ma.csv' using 1:($24+$25+$26+$27+$28+$33) title 'fed21' with filledcurves x1,\
-     '/var/www/html/csv-reports/mirrors/mirrorsdata-all-7day-ma.csv' using 1:($25+$26+$27+$28+$33) title 'fed22' with filledcurves x1,\
-     '/var/www/html/csv-reports/mirrors/mirrorsdata-all-7day-ma.csv' using 1:($26+$27+$28+$33) title 'fed23' with filledcurves x1,\
-     '/var/www/html/csv-reports/mirrors/mirrorsdata-all-7day-ma.csv' using 1:($27+$28+$33) title 'fed24' with filledcurves x1,\
-     '/var/www/html/csv-reports/mirrors/mirrorsdata-all-7day-ma.csv' using 1:($28+$33) title 'fed25' with filledcurves x1,\
+     '/var/www/html/csv-reports/mirrors/mirrorsdata-all-7day-ma.csv' using 1:($21+$22+$23+$24+$25+$26+$27+$28+$29+$33) title 'fed18' with filledcurves x1,\
+     '/var/www/html/csv-reports/mirrors/mirrorsdata-all-7day-ma.csv' using 1:($22+$23+$24+$25+$26+$27+$28+$29+$33) title 'fed19' with filledcurves x1,\
+     '/var/www/html/csv-reports/mirrors/mirrorsdata-all-7day-ma.csv' using 1:($23+$24+$25+$26+$27+$28+$29+$33) title 'fed20' with filledcurves x1,\
+     '/var/www/html/csv-reports/mirrors/mirrorsdata-all-7day-ma.csv' using 1:($24+$25+$26+$27+$28+$29+$33) title 'fed21' with filledcurves x1,\
+     '/var/www/html/csv-reports/mirrors/mirrorsdata-all-7day-ma.csv' using 1:($25+$26+$27+$28+$29+$33) title 'fed22' with filledcurves x1,\
+     '/var/www/html/csv-reports/mirrors/mirrorsdata-all-7day-ma.csv' using 1:($26+$27+$28+$29+$33) title 'fed23' with filledcurves x1,\
+     '/var/www/html/csv-reports/mirrors/mirrorsdata-all-7day-ma.csv' using 1:($27+$28+$29+$33) title 'fed24' with filledcurves x1,\
+     '/var/www/html/csv-reports/mirrors/mirrorsdata-all-7day-ma.csv' using 1:($28+$29+$33) title 'fed25' with filledcurves x1,\
+     '/var/www/html/csv-reports/mirrors/mirrorsdata-all-7day-ma.csv' using 1:($29+$33) title 'fed26' with filledcurves x1,\
      '/var/www/html/csv-reports/mirrors/mirrorsdata-all-7day-ma.csv' using 1:($33) title 'rawhide' with filledcurves x1
 unset output
 
