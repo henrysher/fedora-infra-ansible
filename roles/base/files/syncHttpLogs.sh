@@ -50,9 +50,6 @@ syncHttpLogs fas01.stg.phx2.fedoraproject.org
 syncHttpLogs fedocal01.phx2.fedoraproject.org
 syncHttpLogs fedocal02.phx2.fedoraproject.org
 syncHttpLogs fedocal01.stg.phx2.fedoraproject.org
-syncHttpLogs paste01.phx2.fedoraproject.org
-syncHttpLogs paste02.phx2.fedoraproject.org
-syncHttpLogs paste01.stg.phx2.fedoraproject.org
 syncHttpLogs datagrepper01.phx2.fedoraproject.org
 syncHttpLogs datagrepper02.phx2.fedoraproject.org
 syncHttpLogs datagrepper01.stg.phx2.fedoraproject.org
