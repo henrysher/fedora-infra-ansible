@@ -7,7 +7,7 @@ config = dict(
         # This is the output side of the relay to which all other
         # services can listen.
         "relay_outbound": [
-            "tcp://172.25.32.160:4001",
+            "tcp://{{ copr_backend_ips[0] }}:4001",
         ],
     },
 
@@ -18,6 +18,6 @@ config = dict(
     # It is also used by the mediawiki php plugin which, due to the oddities of
     # php, can't maintain a single passive-bind endpoint of it's own.
     relay_inbound=[
-        "tcp://172.25.32.160:2003",
+        "tcp://{{ copr_backend_ips[0] }}:2003",
     ],
 )
