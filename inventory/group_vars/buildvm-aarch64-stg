@@ -1,0 +1,47 @@
+---
+# common items for the buildvm-* koji builders
+volgroup: /dev/vg_guests
+lvm_size: 150000
+mem_size: 10240
+max_mem_size: "{{ mem_size }}"
+num_cpus: 4
+ks_url: http://10.5.126.23/repo/rhel/ks/buildvm-fedora-25
+ks_repo: http://10.5.126.23/pub/fedora/linux/releases/25/Server/x86_64/os/
+nm: 255.255.255.0
+gw: 10.5.126.254
+dns: 10.5.126.21
+
+# for systems that do not match the above - specify the same parameter in
+# the host_vars/$hostname file
+host_group: kojibuilder
+fas_client_groups: sysadmin-releng
+sudoers: "{{ private }}/files/sudo/00releng-sudoers"
+datacenter: staging
+nfs_mount_opts: "rw,hard,bg,intr,noatime,nodev,nosuid,nfsvers=4"
+
+koji_hub_nfs: "fedora_koji"
+koji_server_url: "https://koji.stg.fedoraproject.org/kojihub"
+koji_weburl: "https://koji.stg.fedoraproject.org/koji"
+koji_topurl: "https://kojipkgs.stg.fedoraproject.org/"
+# These variables are pushed into /etc/system_identification by the base role.
+# Groups and individual hosts should ovveride them with specific info.
+# See http://infrastructure.fedoraproject.org/csi/security-policy/
+
+csi_security_category: High
+csi_primary_contact: Fedora Admins - admin@fedoraproject.org
+csi_purpose: Koji service employs a set of machines to build packages for the Fedora project. This playbook builds vm builders (staging).
+csi_relationship: |
+  * VMs built on top of buildvmhost
+  * Relies on koji-hub, Packages, PkgDB, apache, fedmsg, fas, virthost, and is monitored by nagios
+  * Several services rely on the builders, including koschei, Bodhi, Tagger, SCM, Darkserver.
+  * Produces automated builds of packages for the architecture listed. Builders can be scaled by adding new
+
+# this is to enable nested virt, which we need for some builds
+virt_install_command: "{{ virt_install_command_one_nic }} --cpu=host-passthrough,+vmx"
+
+# These variables are for koji-containerbuild/osbs
+osbs_url: "osbs.stg.fedoraproject.org"
+source_registry: "registry.stg.fedoraproject.org"
+docker_registry: "candidate-registry.stg.fedoraproject.org"
+koji_root: "koji.stg.fedoraproject.org/koji"
+koji_hub: "koji.stg.fedoraproject.org/kojihub"
