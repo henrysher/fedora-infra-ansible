@@ -8,8 +8,8 @@ from base_config import confdir, dbdir
 class ProdConfiguration(base.ProdConfiguration):
     SYSTEM = 'copr'
     REQUIRE_PACKAGER = False
-    OIDC_CLIENT_SECRETS = '/etc/module-build-service/client_secrets.json'
     SECRET_KEY = '{{ copr_mbs_secret_key }}'
+    NO_AUTH = True
 
 
 class DevConfiguration(base.DevConfiguration):
