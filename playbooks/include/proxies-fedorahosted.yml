@@ -1,0 +1,20 @@
+- name: Fedorahosted. No more on our servers, but still in our hearts... 
+  hosts: proxies-stg:proxies
+  user: root
+  gather_facts: True
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  handlers:
+  - include: "{{ handlers }}/restart_services.yml"
+
+  tasks:
+  - name: install special fedorahosted-redirects.conf with fedorahosted redirects
+    copy: src={{ files }}/httpd/fedorahosted-redirects.conf dest=/etc/httpd/conf.d/fedorahosted.org/fedorahosted-redirects.conf
+
+  - name: install special git.fedorahosted-redirects.conf with letsencrypt info
+    copy: src={{ files }}/httpd/git.fedorahosted-redirects.conf dest=/etc/httpd/conf.d/git.fedorahosted.org/fedorahosted-redirects.conf
+
