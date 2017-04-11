@@ -81,7 +81,6 @@ syncHttpLogs blockerbugs02.phx2.fedoraproject.org
 syncHttpLogs blockerbugs01.stg.phx2.fedoraproject.org
 syncHttpLogs value01.phx2.fedoraproject.org
 syncHttpLogs secondary01
-syncHttpLogs hosted03.vpn.fedoraproject.org old
 syncHttpLogs people02.vpn.fedoraproject.org old
 syncHttpLogs noc01.phx2.fedoraproject.org
 syncHttpLogs download01.phx2.fedoraproject.org
