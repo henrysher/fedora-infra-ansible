@@ -246,6 +246,20 @@ factory.addStep(FileUpload(slavesrc='/var/log/taskotron/taskotron.log',
                            mode=0644))
 {% endif %}
 
+# move the artifacts to the correct dir on the master
+import datetime
+from buildbot.process.properties import renderer
+
+@renderer
+def today(props):
+    return datetime.datetime.now().strftime("%Y%m%d")
+
+# move artifacts dir
+factory.addStep(MasterShellCommand(command=Interpolate('mkdir -p -m 0755 {{ public_artifacts_dir }}/%(kw:today)s && mkdir -p -m 0755 {{ public_artifacts_dir }}/all && mv {{ public_artifacts_dir }}/%(prop:uuid)s/ {{ public_artifacts_dir }}/%(kw:today)s/ && ln -s {{ public_artifacts_dir }}/%(kw:today)s/%(prop:uuid)s {{ public_artifacts_dir }}/all/', today=today),
+                                   descriptionDone=['Move artifacs dir']))
+
+
+
 {% if deployment_type in ['dev', 'stg', 'prod'] %}
 # this is for package-specific tasks
 distgit_factory = BuildFactory()
@@ -303,17 +317,10 @@ distgit_factory.addStep(MasterShellCommand(command=Interpolate('gzip -r {{ publi
                                    descriptionDone=['gzip artifacs dir content']))
 
 {% endif %}
-import datetime
-from buildbot.process.properties import renderer
-
-@renderer
-def today(props):
-    return datetime.datetime.now().strftime("%Y%m%d")
 
 # move artifacts dir
-factory.addStep(MasterShellCommand(command=Interpolate('mkdir -p -m 0755 {{ public_artifacts_dir }}/%(kw:today)s && mkdir -p -m 0755 {{ public_artifacts_dir }}/all && mv {{ public_artifacts_dir }}/%(prop:uuid)s/ {{ public_artifacts_dir }}/%(kw:today)s/ && ln -s {{ public_artifacts_dir }}/%(kw:today)s/%(prop:uuid)s {{ public_artifacts_dir }}/all/', today=today),
+distgit_factory.addStep(MasterShellCommand(command=Interpolate('mkdir -p -m 0755 {{ public_artifacts_dir }}/%(kw:today)s && mkdir -p -m 0755 {{ public_artifacts_dir }}/all && mv {{ public_artifacts_dir }}/%(prop:uuid)s/ {{ public_artifacts_dir }}/%(kw:today)s/ && ln -s {{ public_artifacts_dir }}/%(kw:today)s/%(prop:uuid)s {{ public_artifacts_dir }}/all/', today=today),
                                    descriptionDone=['Move artifacs dir']))
-
 ####### RESOURCE LOCKS
 #
 # This is a set of resource locks to make sure that we don't have too many things
