@@ -27,13 +27,6 @@
   - python-glanceclient
   - python-neutronclient
   - python-keystoneclient
-  - logstash
-
-- name: set correct fcontext for logstash launcher, note that there is equivalency between /usr/lib and /usr/lib64
-  command: semanage fcontext -a -t bin_t /usr/lib/logstash/bin/logstash
-
-- name: restorecon on the logstash launcher
-  command: restorecon /usr/lib64/logstash/bin/logstash
 
 - name: make copr dirs
   file: state=directory path={{ item }}
@@ -161,11 +154,6 @@
   tags:
   - config
 
-- name: copy logstash config
-  template: src=logstash.d/copr_backend.conf dest=/etc/logstash.d/copr_backend.conf owner=root group=copr
-  notify:
-  - restart logstash
-
 - name: get owner for results dir
   stat: path=/var/lib/copr/public_html
   register: copr_results_dir_st
@@ -185,18 +173,13 @@
   # TODO: remove this when fed-cloud09 receives external cert
   include: install_cloud_cert.yml
 
-- name: set acl for logstash to access httpd logs
-  acl: name=/var/log/lighttpd entity=logstash etype=user permissions=rx state=present
-
 - name: enable and run copr-backend services
   service: name="{{ item }}" enabled=yes state=running
   with_items:
   - redis       # TODO: .service in copr-backend should depend on redis
-  - logstash
   - copr-backend
 
 - copy: src="cleanup_vm_nova.py" dest=/home/copr/ mode=755
-- copy: src="cron/restart_logstash.sh" dest=/etc/cron.hourly/restart_logstash.sh mode=755
 
 - copy: src="cleanup_vms.sh" dest=/etc/cron.hourly/copr_cleanup_vms.sh mode=755
   when: not devel
