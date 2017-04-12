@@ -82,5 +82,5 @@ fi
 cd /srv/web/budget.fedoraproject.org
 /usr/bin/git clean -q -fdx || exit 1
 /usr/bin/git reset -q --hard || exit 1
-/usr/bin/git checkout -q stg || exit 1
+/usr/bin/git checkout -q prod || exit 1
 /usr/bin/git pull -q --ff-only || exit 1
