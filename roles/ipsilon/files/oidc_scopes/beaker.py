@@ -8,7 +8,7 @@ class OpenidCExtension(OpenidCExtensionBase):
     display_name = 'Beaker Jobs'
     scopes = {
         'https://beaker-project.org/oidc/scope': {
-            'display_name': 'Full CRUD permissions to your beaker account',
+            'display_name': 'Full access to your beaker account',
             'claims': [],
         },
     }
