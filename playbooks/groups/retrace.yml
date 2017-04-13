@@ -28,7 +28,7 @@
   - include: "{{ handlers }}/restart_services.yml"
 
 - name: setup FAF server
-  hosts: faf-stg
+  hosts: retrace:faf-stg
   gather_facts: True
 
   vars_files:
@@ -37,5 +37,18 @@
    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
 
   roles:
-  - abrt/abrt-local
+  - abrt/faf-local
   - { role: abrt/faf, faf_web_on_root: false, faf_admin_mail: admin@fedoraproject.org, faf_web_openid_privileged_teams: "provenpackager,proventesters", faf_web_secret_key: "{{fedora_faf_web_secret_key}}"  }
+
+- name: setup retrace server
+  hosts: retrace:retrace-stg
+  gather_facts: True
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "{{ private }}/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  roles:
+  - abrt/retrace-local
+  - { abrt/retrace, rs_require_gpg_check: false, rs_max_parallel_tasks: 12, rs_max_packed_size: 1024, rs_max_unpacked_size: 1280, rs_min_storage_left: 1280, rs_delete_task_after: 8, rs_delete_failed_task_after: 1, rs_repo_dir: /srv/retrace/repos, rs_save_dir: /srv/retrace/tasks, rs_use_faf_packages: true, rs_faf_link_dir: /srv/retrace/hardlink-local, hostname: retrace.fedoraproject.org }
