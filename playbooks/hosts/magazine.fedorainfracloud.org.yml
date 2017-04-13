@@ -39,9 +39,16 @@
     - php-mbstring
     - wget
     - unzip
+    - postfix
 
   - name: enable httpd service
     service: name=httpd enabled=yes state=started
+
+  - name: configure postfix for ipv4 only
+    raw: postconf -e inet_protocols=ipv4
+
+  - name: enable local postfix service
+    service: name=postfix enabled=yes state=started
 
   roles:
   - nagios/client
