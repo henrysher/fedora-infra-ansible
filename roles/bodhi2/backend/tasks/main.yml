@@ -184,6 +184,16 @@
   cron: name="owner-sync-fedora" minute="7,17,27,37,47,57" user="root"
         job="/usr/local/bin/owner-sync-pkgdb f24-docker;/usr/local/bin/owner-sync-pkgdb f25-docker;/usr/local/bin/owner-sync-pkgdb f26-docker;/usr/local/bin/owner-sync-pkgdb f27-docker"
         cron_file=update-koji-owner-fedora-docker
+        state=absent
+  when: inventory_hostname.startswith('bodhi-backend01') and env == "production"
+  tags:
+  - bodhi
+  - cron
+
+- name: sync packages from pkgdb2 to koji fedora (container)
+  cron: name="owner-sync-fedora" minute="7,17,27,37,47,57" user="root"
+        job="/usr/local/bin/owner-sync-pkgdb f24-container;/usr/local/bin/owner-sync-pkgdb f25-container;/usr/local/bin/owner-sync-pkgdb f26-container;/usr/local/bin/owner-sync-pkgdb f27-container"
+        cron_file=update-koji-owner-fedora-container
   when: inventory_hostname.startswith('bodhi-backend01') and env == "production"
   tags:
   - bodhi
