@@ -27,6 +27,19 @@
   delay: 10
   when: inventory_hostname not in result.list_vms
 
+- name: ARMv7 copy the kernel out
+  command: virt-builder --get-kernel {{ volgroup }}/{{ inventory_hostname }} --output /var/lib/libvirt/images/  | awk -F/ '{print $NF}' > /var/lib/libvirt/images/{{ inventory_hostname }}-details.txt
+  when: inventory_hostname.startswith('buildvm-armv7')
+
+- name: ARMv7 copy the cmdline out
+  command: virt-cat -a {{ volgroup }}/{{ inventory_hostname }} /boot/extlinux/extlinux.conf | grep -m1 append | sed -e 's/append //'
+  register: host_cmdline
+  when: inventory_hostname.startswith('buildvm-armv7')
+
+- name: ARMv7 update the virt parameters
+  virt_boot: kernel="/var/lib/libvirt/images/vmlinuz-4.10.8-200.fc25.armv7hl+lpae" initrd="/var/lib/libvirt/images/initramfs-4.10.8-200.fc25.armv7hl+lpae.img" cmdline={{ host_cmdline }}
+  when: inventory_hostname.startswith('buildvm-armv7')
+
 - name: start the vm up
   virt: state=started name={{ inventory_hostname }}
   delegate_to: "{{ vmhost }}"

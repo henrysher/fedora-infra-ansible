@@ -70,7 +70,7 @@ nfs_bridge: br1
 virt_install_command_one_nic: virt-install -n {{ inventory_hostname }}
                  --memory={{ mem_size }},maxmemory={{ max_mem_size }} --memballoon virtio
                  --disk bus=virtio,path={{ volgroup }}/{{ inventory_hostname }}
-                 --vcpus={{ num_cpus }},maxvcpus={{ max_cpu }}  -l {{ ks_repo }} -x
+                 --vcpus={{ num_cpus }},maxvcpus={{ max_cpu }} -l {{ ks_repo }} -x
                  'net.ifnames=0 ksdevice=eth0 ks={{ ks_url }} console=tty0 console=ttyS0
                   hostname={{ inventory_hostname }} nameserver={{ dns }}
                   ip={{ eth0_ip }}::{{ gw }}:{{ nm }}:{{ inventory_hostname }}:eth0:none'
@@ -80,7 +80,7 @@ virt_install_command_one_nic: virt-install -n {{ inventory_hostname }}
 virt_install_command_two_nic: virt-install -n {{ inventory_hostname }}
                  --memory={{ mem_size }},maxmemory={{ max_mem_size }} --memballoon virtio
                  --disk bus=virtio,path={{ volgroup }}/{{ inventory_hostname }}
-                 --vcpus={{ num_cpus }},maxvcpus={{ max_cpu }}  -l {{ ks_repo }} -x
+                 --vcpus={{ num_cpus }},maxvcpus={{ max_cpu }} -l {{ ks_repo }} -x
                  'net.ifnames=0 ksdevice=eth0 ks={{ ks_url }} console=tty0 console=ttyS0
                   hostname={{ inventory_hostname }} nameserver={{ dns }}
                   ip={{ eth0_ip }}::{{ gw }}:{{ nm }}:{{ inventory_hostname }}:eth0:none
@@ -91,7 +91,7 @@ virt_install_command_two_nic: virt-install -n {{ inventory_hostname }}
 virt_install_command_aarch64_one_nic: virt-install -n {{ inventory_hostname }}
                  --memory={{ mem_size }},maxmemory={{ max_mem_size }} --memballoon virtio
                  --disk bus=virtio,path={{ volgroup }}/{{ inventory_hostname }}
-                 --vcpus={{ num_cpus }},maxvcpus={{ max_cpu }}  -l {{ ks_repo }} -x
+                 --vcpus={{ num_cpus }},maxvcpus={{ max_cpu }} -l {{ ks_repo }} -x
                  'net.ifnames=0 ksdevice=eth0 ks={{ ks_url }} console=tty0 console=ttyAMA0
                   hostname={{ inventory_hostname }} nameserver={{ dns }}
                   ip={{ eth0_ip }}::{{ gw }}:{{ nm }}:{{ inventory_hostname }}:eth0:none'
@@ -101,7 +101,7 @@ virt_install_command_aarch64_one_nic: virt-install -n {{ inventory_hostname }}
 virt_install_command_aarch64_two_nic: virt-install -n {{ inventory_hostname }}
                  --memory={{ mem_size }},maxmemory={{ max_mem_size }} --memballoon virtio
                  --disk bus=virtio,path={{ volgroup }}/{{ inventory_hostname }}
-                 --vcpus={{ num_cpus }},maxvcpus={{ max_cpu }}  -l {{ ks_repo }} -x
+                 --vcpus={{ num_cpus }},maxvcpus={{ max_cpu }} -l {{ ks_repo }} -x
                  'net.ifnames=0 ksdevice=eth0 ks={{ ks_url }} console=tty0 console=ttyAMA0
                   hostname={{ inventory_hostname }} nameserver={{ dns }}
                   ip={{ eth0_ip }}::{{ gw }}:{{ nm }}:{{ inventory_hostname }}:eth0:none
@@ -109,10 +109,20 @@ virt_install_command_aarch64_two_nic: virt-install -n {{ inventory_hostname }}
                  --network bridge={{ main_bridge }},model=virtio --network=bridge={{ nfs_bridge }},model=virtio
                  --autostart --noautoconsole
 
+virt_install_command_armv7_one_nic: virt-install -n {{ inventory_hostname }} --arch armv7l
+                 --memory={{ mem_size }},maxmemory={{ max_mem_size }} --memballoon virtio
+                 --disk bus=virtio,path={{ volgroup }}/{{ inventory_hostname }}
+                 --vcpus={{ num_cpus }},maxvcpus={{ max_cpu }} -l {{ ks_repo }} -x
+                 'net.ifnames=0 ksdevice=eth0 ks={{ ks_url }} console=tty0 console=ttyAMA0
+                  hostname={{ inventory_hostname }} nameserver={{ dns }}
+                  ip={{ eth0_ip }}::{{ gw }}:{{ nm }}:{{ inventory_hostname }}:eth0:none'
+                 --network bridge={{ main_bridge }},model=virtio
+                 --autostart --noautoconsole
+
 virt_install_command_rhel6: virt-install -n {{ inventory_hostname }}
                  --memory={{ mem_size }},maxmemory={{ max_mem_size }}
                  --disk bus=virtio,path={{ volgroup }}/{{ inventory_hostname }}
-                 --vcpus={{ num_cpus }},maxvcpus={{ max_cpu }}  -l {{ ks_repo }} -x
+                 --vcpus={{ num_cpus }},maxvcpus={{ max_cpu }} -l {{ ks_repo }} -x
                  "ksdevice=eth0 ks={{ ks_url }} ip={{ eth0_ip }} netmask={{ nm }}
                   gateway={{ gw }} dns={{ dns }} console=tty0 console=ttyS0
                   hostname={{ inventory_hostname }}"
