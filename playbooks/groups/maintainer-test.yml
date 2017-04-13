@@ -9,7 +9,7 @@
    - /srv/private/ansible/files/openstack/passwords.yml
 
   tasks:
-  - include: "{{ tasks }}/persistent_cloud.yml"
+  - include: "{{ tasks_path }}/persistent_cloud.yml"
 
 - name: Do some basic cloud setup on them
   hosts: maintainer-test
@@ -21,7 +21,7 @@
    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
 
   pre_tasks:
-  - include: "{{ tasks }}/cloud_setup_basic.yml"
+  - include: "{{ tasks_path }}/cloud_setup_basic.yml"
   - name: set hostname (required by some services, at least postfix need it)
     hostname: name="{{inventory_hostname}}"
 
@@ -37,7 +37,7 @@
    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
 
   pre_tasks:
-  - include: "{{ tasks }}/yumrepos.yml"
+  - include: "{{ tasks_path }}/yumrepos.yml"
 
   roles:
   - base
@@ -48,7 +48,7 @@
 
   tasks:
   # this is how you include other task lists
-  - include: "{{ tasks }}/motd.yml"
+  - include: "{{ tasks_path }}/motd.yml"
 
   - name: install packager tools (dnf)
     dnf: state=present pkg={{ item }}
@@ -68,4 +68,4 @@
     - config
 
   handlers:
-  - include: "{{ handlers }}/restart_services.yml"
+  - include: "{{ handlers_path }}/restart_services.yml"

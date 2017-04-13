@@ -16,7 +16,7 @@
    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
 
   pre_tasks:
-  - include: "{{ tasks }}/yumrepos.yml"
+  - include: "{{ tasks_path }}/yumrepos.yml"
 
   roles:
   - base
@@ -43,9 +43,9 @@
     when: env == "staging"
 
   tasks:
-  - include: "{{ tasks }}/2fa_client.yml"
+  - include: "{{ tasks_path }}/2fa_client.yml"
     when: not inventory_hostname.startswith('bkernel')
-  - include: "{{ tasks }}/motd.yml"
+  - include: "{{ tasks_path }}/motd.yml"
     when: not inventory_hostname.startswith('bkernel')
 
   - name: make sure httpd is running
@@ -55,7 +55,7 @@
     service: name=kojid state=started enabled=yes
 
   handlers:
-  - include: "{{ handlers }}/restart_services.yml"
+  - include: "{{ handlers_path }}/restart_services.yml"
 
 - name: configure osbs on koji builders
   hosts: buildvm:buildvm-stg
@@ -70,8 +70,8 @@
    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
 
   pre_tasks:
-  - include: "{{ tasks }}/osbs_certs.yml"
-  - include: "{{ tasks }}/osbs_repos.yml"
+  - include: "{{ tasks_path }}/osbs_certs.yml"
+  - include: "{{ tasks_path }}/osbs_repos.yml"
 
   roles:
   - {
@@ -140,4 +140,4 @@
     }
 
   handlers:
-  - include: "{{ handlers }}/restart_services.yml"
+  - include: "{{ handlers_path }}/restart_services.yml"
