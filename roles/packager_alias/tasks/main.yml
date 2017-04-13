@@ -1,13 +1,34 @@
 ---
 # Email alias set-up
+- name: Install the Python script to get the <pkg>-owner email alias (non-staging)
+  copy:
+    src: owner-email.py
+    dest: /usr/local/bin/owner-email.py
+    owner: root
+    group: root
+    mode: 0755
+  when: env != 'staging'
+  tags:
+  - install
 
-- name: Install the script generating the <pkg>-owner email alias
-  copy: src={{ item.file }}
-        dest={{ item.dest }}
-        owner=root group=root mode=0755
-  with_items:
-  - { file: owner-email.py, dest: /usr/local/bin/owner-email.py }
-  - { file: package-owner-aliases.sh, dest: /etc/cron.hourly/package-owner-aliases.sh }
+- name: Install the Python script to get the <pkg>-owner email alias (staging)
+  copy:
+    src: owner-email-from-pagure.py
+    dest: /usr/local/bin/owner-email.py
+    owner: root
+    group: root
+    mode: 0755
+  when: env == 'staging'
+  tags:
+  - install
+
+- name: Install the script to generate the <pkg>-owner email alias
+  copy:
+    src: package-owner-aliases.sh
+    dest: /etc/cron.hourly/package-owner-aliases.sh
+    owner: root
+    group: root
+    mode: 0755
   tags:
   - install
 
