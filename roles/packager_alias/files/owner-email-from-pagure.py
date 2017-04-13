@@ -29,10 +29,15 @@ for project in pagure_projects:
             pagure_group_url.format(group=group)).json()['members']
         users = users | set(group_members)
 
+    project_alias = '{0}-owner'.format(project['name'])
+    # If there is a namespace, prefix the email with it plus a dash
+    if project['namespace'] and project['namespace'] != 'rpms':
+        project_alias = '{0}-{1}'.format(project['namespace'], project_alias)
+
     # Use the @fedoraproject.org email alias instead of looking their email up
     # in FAS
-    project_to_email[project['name']] = \
+    project_to_email[project_alias] = \
         ['{0}@fedoraproject.org'.format(user) for user in users]
 
-for project, emails in project_to_email.items():
-    print('{0}: {1}'.format(project, ','.join(sorted(emails))))
+for project_alias, emails in project_to_email.items():
+    print('{0}: {1}'.format(project_alias, ','.join(sorted(emails))))
