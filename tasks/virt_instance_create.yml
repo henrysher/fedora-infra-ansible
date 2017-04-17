@@ -65,16 +65,16 @@
   tags:
     - armv7-kernel
 
+- name: start the vm up
+  virt: state=started name={{ inventory_hostname }}
+  delegate_to: "{{ vmhost }}"
+  when: inventory_hostname not in result.list_vms
+
 - name: ARMv7 pause while VM updates
   pause: seconds=5
   when: inventory_hostname.startswith('buildvm-armv7') and inventory_hostname not in result.list_vms
   tags:
     - armv7-kernel
-
-- name: start the vm up
-  virt: state=started name={{ inventory_hostname }}
-  delegate_to: "{{ vmhost }}"
-  when: inventory_hostname not in result.list_vms
 
 - name: set it to autostart
   virt: command=autostart name={{ inventory_hostname }}
