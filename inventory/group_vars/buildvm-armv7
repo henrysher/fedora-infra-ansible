@@ -1,0 +1,46 @@
+---
+# common items for the buildvm-aarmv7* koji builders
+volgroup: /dev/vg_Server
+lvm_size: 150000
+mem_size: 24576
+max_mem_size: "{{ mem_size }}"
+num_cpus: 4
+max_cpu: "{{ num_cpus }}"
+ks_url: http://10.5.126.23/repo/rhel/ks/buildvm-fedora-25-armv7
+ks_repo: http://10.5.126.23/pub/fedora-secondary/releases/25/Everything/armhfp/os/
+nm: 255.255.255.0
+gw: 10.5.129.254
+dns: 10.5.126.21
+# This is reverted so that eth1 gets br0 and eth0 gets br1
+# This seems some kind of bug where in the guest kernel the devices are swapped around
+# when compared to the host.
+main_bridge: br1
+nfs_bridge: br0
+virt_install_command: "{{ virt_install_command_armv7_one_nic }}"
+
+# for systems that do not match the above - specify the same parameter in
+# the host_vars/$hostname file
+host_group: kojibuilder
+fas_client_groups: sysadmin-releng
+sudoers: "{{ private }}/files/sudo/00releng-sudoers"
+
+koji_hub_nfs: "fedora_koji"
+koji_server_url: "https://koji.fedoraproject.org/kojihub"
+koji_weburl: "https://koji.fedoraproject.org/koji"
+koji_topurl: "https://kojipkgs.fedoraproject.org/"
+
+csi_security_category: High
+csi_primary_contact: Fedora Admins - admin@fedoraproject.org
+csi_purpose: Koji service employs a set of machines to build packages for the Fedora project. This playbook builds vm builders.
+csi_relationship: |
+  * VMs built on top of buildvmhost
+  * Relies on koji-hub, Packages, PkgDB, apache, fedmsg, fas, virthost, and is monitored by nagios
+  * Several services rely on the builders, including koschei, Bodhi, Tagger, SCM, Darkserver.
+  * Produces automated builds of packages for the architecture listed. Builders can be scaled by adding new
+
+# These variables are for koji-containerbuild/osbs
+osbs_url: "osbs.fedoraproject.org"
+docker_registry: "candidate-registry.fedoraproject.org"
+source_registry: "registry.fedoraproject.org"
+koji_root: "koji.fedoraproject.org/koji"
+koji_hub: "koji.fedoraproject.org/kojihub"
