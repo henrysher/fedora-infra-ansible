@@ -34,6 +34,22 @@
   tags:
     - armv7-kernel
 
+- name: ARMv7 extract the kernel details
+  command: "head -n1 /var/lib/libvirt/images/{{ inventory_hostname }}-details.txt"
+  delegate_to: "{{ vmhost}}"
+  register: host_armv7kernel
+  when: inventory_hostname.startswith('buildvm-armv7') and inventory_hostname not in result.list_vms
+  tags:
+    - armv7-kernel
+
+- name: ARMv7 extract the initrd details
+  command: "tail -n1 /var/lib/libvirt/images/{{ inventory_hostname }}-details.txt"
+  delegate_to: "{{ vmhost}}"
+  register: host_armv7initrd
+  when: inventory_hostname.startswith('buildvm-armv7') and inventory_hostname not in result.list_vms
+  tags:
+    - armv7-kernel
+
 - name: ARMv7 copy the cmdline out
   shell: "virt-cat -a {{ volgroup }}/{{ inventory_hostname }} /boot/extlinux/extlinux.conf | grep -m1 append | sed -e 's/append //'"
   delegate_to: "{{ vmhost}}"
@@ -43,7 +59,7 @@
     - armv7-kernel
 
 - name: ARMv7 update the virt parameters
-  virt_boot: domain={{ inventory_hostname }} kernel="/var/lib/libvirt/images/vmlinuz-4.10.10-200.fc25.armv7hl+lpae" initrd="/var/lib/libvirt/images/initramfs-4.10.10-200.fc25.armv7hl+lpae.img" cmdline={{ host_cmdline.stdout }}
+  virt_boot: domain={{ inventory_hostname }} kernel=/var/lib/libvirt/images/{{ host_armv7kernel.stdout }} initrd=/var/lib/libvirt/images/{{ host_armv7initrd.stdout }} cmdline={{ host_cmdline.stdout }}
   delegate_to: "{{ vmhost }}"
   when: inventory_hostname.startswith('buildvm-armv7') and inventory_hostname not in result.list_vms
   tags:
