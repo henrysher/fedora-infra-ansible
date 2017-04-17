@@ -93,6 +93,28 @@
     - pykickstart
   tags:
   - koji_builder
+  when: ansible_architecture != 's390x'
+
+- name: add pkgs (s390x)
+  dnf: state=present pkg={{ item }}
+  with_items:
+    - yum-utils
+    - koji-builder
+    - python-osbs-client
+    - koji-containerbuild-builder
+    - strace
+    - mock
+    - kernel-firmware
+    - ntp
+    - ntpdate
+    - rsyslog
+    - audit
+    - pycdio
+    - python-kickstart
+    - pykickstart
+  tags:
+  - koji_builder
+  when: ansible_architecture == 's390x'
 
 - name: enable virtlogd service
   service: name=virtlogd state=started enabled=yes
