@@ -35,6 +35,10 @@ Change:
 %(change)s
 
 Thanks.
+
+
+Full change:
+%(full_change)s
 """
 
 def read_output(cmd, abspath, input=None, keepends=False, **kw):
@@ -158,11 +162,14 @@ def run_as_post_receive_hook():
         if DEBUG:
             print('List of commits:', new_commits_list)
 
+        full_change = ''
         exclude_arch = {}
         for commit in new_commits_list:
             if DEBUG:
                 print('Diff of commit:', commit)
+            full_change += '\nCommit: %s\n' % commit
             for line in read_git_lines(['show', commit], abspath):
+                full_change += '%s\n' % line
                 if DEBUG:
                     print(line)
                 if line.strip().startswith(PATTERNS):
@@ -185,7 +192,8 @@ def run_as_post_receive_hook():
 
             send_email(
                 text=TEXT % dict(
-                    pkg=package, url='\n'.join(links), change="\n".join(diffs)
+                    pkg=package, url='\n'.join(links), change="\n".join(diffs),
+                    full_change=full_change
                 ),
                 subject='Architecture specific change in %s' % package,
                 to_mail=TO_MAIL
