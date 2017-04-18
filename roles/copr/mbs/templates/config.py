@@ -32,6 +32,10 @@ class ProdConfiguration(base.ProdConfiguration):
     MESSAGING_TOPIC_PREFIX = ['org.fedoraproject.prod']
 {% endif %}
 
+    # Allow custom component repositories
+    RPMS_ALLOW_REPOSITORY = True
+    RPMS_ALLOW_CACHE = True
+    MODULES_ALLOW_REPOSITORY = True
 
 
 class DevConfiguration(base.DevConfiguration):
