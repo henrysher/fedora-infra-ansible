@@ -220,34 +220,6 @@
   - koji_builder
 
 #
-# We want more loop devices on builders to allow more image creates
-#
-
-- name: check for max_loop with grub2
-  command: cat /etc/grub2.cfg
-  register: max_loop
-  check_mode: no
-  changed_when: '1 != 1'
-  when: ansible_distribution_major_version|int != 6 and ansible_architecture == 'x86_64'
-  tags:
-  - koji_builder
-
-- name: check for max_loop with grub1
-  command: cat /etc/grub.conf
-  register: max_loop
-  check_mode: no
-  changed_when: '1 != 1'
-  when: ansible_distribution == 'RedHat' and ansible_architecture == 'x86_64' and ansible_distribution_major_version|int == 6
-  tags:
-  - koji_builder
-
-- name: set kernel params for more loops
-  command: /sbin/grubby --update-kernel=ALL --args=max_loop=64
-  when: max_loop is defined and ansible_architecture == 'x86_64'
-  tags:
-  - koji_builder
-
-#
 # x86_64 builders run pungify, that needs hfs module in order to make
 # The efi/mac images. This module is only needed on rhel.
 #
