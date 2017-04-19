@@ -27,9 +27,9 @@ class ProdConfiguration(base.ProdConfiguration):
                "git://pkgs.fedoraproject.org/modules/"]
 
 {% if env == 'staging' %}
-    MESSAGING_TOPIC_PREFIX = ['org.fedoraproject.dev', 'org.fedoraproject.stg']
+    MESSAGING_TOPIC_PREFIX = ['org.fedoraproject.dev.copr', 'org.fedoraproject.stg.copr']
 {% else %}
-    MESSAGING_TOPIC_PREFIX = ['org.fedoraproject.prod']
+    MESSAGING_TOPIC_PREFIX = ['org.fedoraproject.prod.copr']
 {% endif %}
 
     # Allow custom component repositories
