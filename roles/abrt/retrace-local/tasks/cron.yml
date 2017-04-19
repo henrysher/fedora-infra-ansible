@@ -10,6 +10,7 @@
       - "{{ rs_internal_arch_list }}"
     special_time: daily
     state: present
+  when: deployment_type != 'stg'
 
 - name: Create cron job for retrace-server
   cron:
@@ -18,6 +19,7 @@
     job: "retrace-server-reposync centos 7 x86_64 >> /var/log/retrace-server/reposync_error.log 2>&1"
     special_time: daily
     state: present
+  when: deployment_type != 'stg'
 
 - name: Create cron job for retrace-server
   cron:
@@ -26,3 +28,4 @@
     job: "/usr/bin/retrace-server-cleanup >> /var/log/retrace-server/cleanup_error.log 2>&1"
     special_time: daily
     state: present
+  when: deployment_type != 'stg'
