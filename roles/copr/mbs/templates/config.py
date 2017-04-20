@@ -29,7 +29,7 @@ class ProdConfiguration(base.ProdConfiguration):
 {% if env == 'staging' %}
     MESSAGING_TOPIC_PREFIX = ['org.fedoraproject.dev', 'org.fedoraproject.stg']
 {% else %}
-    MESSAGING_TOPIC_PREFIX = ['org.fedoraproject.prod']
+    MESSAGING_TOPIC_PREFIX = ['org.fedoraproject.prod', 'org.fedoraproject.dev']
 {% endif %}
 
     # Allow custom component repositories
