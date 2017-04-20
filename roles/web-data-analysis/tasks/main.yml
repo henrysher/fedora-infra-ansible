@@ -21,6 +21,33 @@
   tags:
     - web-data
 
+- name: copy over website index.
+  copy: src=html/main-index.html dest=/var/www/html/index.html mode=0644
+  tags:
+    - web-data
+
+- name: make a css tree
+  file: path=/var/www/html/css/  state=directory mode=0755
+  tags:
+    - web-data
+
+
+- name: css files
+  copy: src={{item}} dest=/var/www/html/css/ mode=0644
+  with_items: [ html/css/awstats-reports.css,  html/css/normalize.css ]
+  tags:
+    - web-data
+
+- name: make an awstats directory
+  file: path=/var/www/html/awstats-reports/  state=directory mode=0755
+  tags:
+    - web-data
+
+- name: copy over its index
+  copy: src=html/awstats-index.html  dest=/var/www/html/awstats-reports/index.html mode=0644
+  tags:
+    - web-data
+
 - name: make the web directory exists
   file: path=/var/www/html/csv-reports/  state=directory mode=0755
   tags:
@@ -33,7 +60,7 @@
     - web-data
 
 - name: make the web directory summary.
-  copy: src=summary.html dest=/var/www/html/csv-reports/images/ mode=0644
+  copy: src=html/summary.html dest=/var/www/html/csv-reports/images/ mode=0644
   tags:
     - web-data
 
