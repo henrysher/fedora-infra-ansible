@@ -28,6 +28,9 @@ ExtFilterDefine gz-to-plain mode=output \
 intype=application/x-gzip outtype=text/plain \
 cmd="/bin/gunzip -c -"
 
+ExtFilterDefine gz-to-html mode=output \
+intype=application/x-gzip outtype=text/html \
+cmd="/bin/gunzip -c -"
 
 <DirectoryMatch "^{{ public_artifacts_dir }}/all/(.+)/task_output/">
     RewriteEngine on
@@ -38,7 +41,12 @@ cmd="/bin/gunzip -c -"
 
     # mod_deflate doesnt work as expected for some reason
     # use custom filter instead
-    SetOutputFilter gz-to-plain
+    <FilesMatch "(?!html)">
+        SetOutputFilter gz-to-plain
+    </FilesMatch>
+    <FilesMatch "(\.html\.gz|\.html)$">
+        SetOutputFilter gz-to-html
+    </FilesMatch>
 
     # keep the mod_deflate for reference though
     #AddEncoding x-gzip .gz
