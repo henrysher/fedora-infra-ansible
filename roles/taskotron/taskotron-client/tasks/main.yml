@@ -42,17 +42,12 @@
   when: deployment_type in ['dev', 'stg', 'prod']
   template: src=settings.py.testcloud.j2 dest=/etc/testcloud/settings.py owner=root group=root mode=0644
 
-# hotfixing correct yumrepoinfo until libtaskotron is updated
 - name: upload yumrepoinfo.conf
-  when: deployment_type in ['stg', 'prod']
+  when: deployment_type in ['dev', 'stg', 'prod']
   copy: src=yumrepoinfo.conf dest=/etc/taskotron/yumrepoinfo.conf owner=root group=root mode=0644
 
-- name: upload yumrepoinfo.conf
-  when: deployment_type in ['dev']
-  copy: src=yumrepoinfo-dev.conf dest=/etc/taskotron/yumrepoinfo.conf owner=root group=root mode=0644
-
 - name: set baseurl of yumrepoinfo.conf
-  replace: dest=/etc/taskotron/yumrepoinfo.conf regexp='baseurl = http://download\.fedoraproject\.org/.*' replace='baseurl = http://infrastructure.fedoraproject.org/pub/fedora/linux'
+  replace: dest=/etc/taskotron/yumrepoinfo.conf regexp='//download\.fedoraproject\.org/' replace='//infrastructure.fedoraproject.org/'
 
 - name: create /var/log/taskotron for task logfiles
   file: path=/var/log/taskotron state=directory owner={{ slave_user }} group={{ slave_user }} mode=1755
