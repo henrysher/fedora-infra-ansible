@@ -235,9 +235,11 @@ factory.addStep(MasterShellCommand(command=["mkdir", '-m', '0755', Interpolate('
 factory.addStep(DirectoryUpload(slavesrc=Interpolate('/var/lib/taskotron/artifacts/%(prop:uuid)s/'),
                                 masterdest=Interpolate('{{ public_artifacts_dir }}/%(prop:uuid)s/task_output')))
 
+{% if deployment_type in ['stg', 'prod'] %}
 # gzip artifacts
 factory.addStep(MasterShellCommand(command=Interpolate('gzip -r {{ public_artifacts_dir }}/%(prop:uuid)s/task_output/*'),
                                    descriptionDone=['gzip artifacs dir content']))
+{% endif %}
 
 {% if deployment_type in ['local'] %}
 # copy taskotron log to master
