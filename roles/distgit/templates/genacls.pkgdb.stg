@@ -60,6 +60,7 @@ def get_user_info(username):
 
 def create_user_obj(session, username, userinfo=None):
     ''' Creates a sqlalchemy user object for pagure db '''
+    user = None
     try:
         if not userinfo:
             userinfo = get_user_info(username)
@@ -93,7 +94,7 @@ def create_groups_in_db(groups):
         for guser in group_users:
             user_obj = pagure.lib.search_user(SESSION, username=guser)
             if not user_obj:
-                user_obj = create_user_obj(guser)
+                user_obj = create_user_obj(SESSION, guser)
 
         # check if the groups are present in the db
         group_obj = pagure.lib.search_groups(SESSION, group_name=groupname)
