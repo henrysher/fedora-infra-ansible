@@ -6,9 +6,9 @@ from urlparse import urljoin
 
 import resultsdb_api
 
-# taken from http://docs.resultsdb.apiary.io/#post-%2Fapi%2Fv1.0%2Fresults
+# taken from http://docs.resultsdb20.apiary.io
 OKAYISH = ["PASSED", "INFO"]
-FAILISH = ["FAILED", "ERROR", "WAIVED", "NEEDS_INSPECTION"]
+FAILISH = ["FAILED", "NEEDS_INSPECTION"]
 
 
 def main(resultsdb_url, frontend_url, timeparam):
