@@ -17,11 +17,9 @@ config = {
     'pdcupdater.pdc': {
         {% if env == 'staging' %}
         'server': 'http://pdc-web01.stg.phx2.fedoraproject.org/rest_api/v1/',
-        'insecure': True,
         'token': '{{pdc_updater_api_token_stg }}',
         {% else %}
         'server': 'http://pdc-web01.phx2.fedoraproject.org/rest_api/v1/',
-        'insecure': True,
         'token': '{{pdc_updater_api_token_prod }}',
         {% endif %}
     },
