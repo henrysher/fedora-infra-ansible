@@ -1,0 +1,52 @@
+---
+nm: 255.255.255.0
+gw: 10.5.124.254
+dns: 10.5.126.21
+ks_url: http://10.5.126.23/repo/rhel/ks/kvm-rhel-7
+ks_repo: http://10.5.126.23/repo/rhel/RHEL7-x86_64/
+volgroup: /dev/VirtGuests
+eth0_ip: 10.5.124.144
+eth0_nm: 255.255.255.128
+vmhost: virthost-comm03.qa.fedoraproject.org
+datacenter: phx2
+
+# This is a generic list, monitored by collectd
+databases:
+- postgres
+- buildmaster
+- execdb
+- openqa
+- resultsdb
+
+# This is a more strict list, to be made publicly available
+dbs_to_backup:
+- postgres
+- buildmaster
+- buildmaster_dev
+- buildmaster_stg
+- execdb
+- execdb_stg
+- execdb_dev
+# these names are also stored as host vars 'openqa_dbname',
+# make sure to keep in sync
+- openqa
+- openqa-stg
+- resultsdb
+- resultsdb_stg
+- resultsdb_dev
+
+mariadb_root_password: "{{ dbqa01_mysql_root_password }}"
+
+# These are normally group variables, but in this case db servers are often different
+lvm_size: 300000
+mem_size: 16384
+num_cpus: 2
+tcp_ports: [ 5432, 443, 3306 ]
+fas_client_groups: sysadmin-qa,sysadmin-noc,sysadmin-veteran
+
+# kernel SHMMAX value
+kernel_shmmax: 68719476736
+
+host_backup_targets: ['/backups']
+shared_buffers: "2GB"
+effective_cache_size: "6GB"
