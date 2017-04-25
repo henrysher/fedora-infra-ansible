@@ -44,7 +44,7 @@ config = {
 
     # Koji details
     {% if env == 'staging' %}
-    'pdcupdater.koji_url': 'http://koji.stg.fedoraproject.org/kojihub',
+    'pdcupdater.koji_url': 'https://koji.stg.fedoraproject.org/kojihub',
     {% else %}
     'pdcupdater.koji_url': 'http://koji01.phx2.fedoraproject.org/kojihub',
     {% endif %}
