@@ -83,7 +83,11 @@ config = {
             },
         },
     },
+    {% if env == 'staging' %}
+    "plugins": ['pkgdb', 'fedmsg', 'copr'],
+    {% else %}
     "plugins": ['pkgdb', 'fedmsg'],
+    {% endif %}
     "fedmsg": {
         {% if env == 'staging' %}
         "topic": "org.fedoraproject.stg.buildsys",
@@ -126,6 +130,15 @@ config = {
         "topic_re": r'\.prod\.pkgdb\.',
         {% endif %}
         "sync_tracked": True,
+    },
+    "copr": {
+        "require_admin": True,
+        "copr_owner": "mizdebsk",
+        "config_path": "/etc/koschei/copr-config",
+        "chroot_name": "custom-1-x86_64",
+        "max_builds": 15,
+        "default_schedule_count": 8,
+        "fedmsg_topic": "org.fedoraproject.prod.copr.build.end",
     },
 }
 
