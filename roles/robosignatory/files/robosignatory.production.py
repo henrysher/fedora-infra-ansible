@@ -11,6 +11,12 @@ config = {
 
     'robosignatory.enabled.tagsigner': True,
     'robosignatory.enabled.atomicsigner': True,
+
+    # Used for signing modules.
+    'robosignatory.pdc_url': 'https://pdc.fedoraproject.org/rest_api/v1',
+    # Any tag prefixed with "module-" will be considered a module.
+    'robosignatory.module_prefixes': ['module-'],
+
     'robosignatory.signing': {
         'backend': 'sigul',
         'user': 'autopen',
@@ -141,7 +147,21 @@ config = {
                     "key": "epel-5",
                     "keyid": "217521f6"
                 },
-            ]
+            ],
+            "module_streams": [
+                # Any module built against the base-runtime master stream
+                {
+                    "stream": "master",
+                    "key": "fedora-27",
+                    "keyid": "f5282ee4"
+                },
+                # Any module built against the base-runtime f26 stream
+                {
+                    "stream": "f26",
+                    "key": "fedora-26",
+                    "keyid": "64dab85d"
+                },
+            ],
         },
     },
 
