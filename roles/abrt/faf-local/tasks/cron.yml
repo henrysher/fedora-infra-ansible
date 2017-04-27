@@ -61,3 +61,67 @@
     - { what: "pull-releases", distro: "centos" }
     - { what: "pull-components", distro: "centos" }
     - { what: "find-components", distro: "centos" }
+
+- name: pull associates
+  cron:
+    name: "cron for pull associates for f{{ item }}"
+    user: faf
+    job: "faf pull-associates -o fedora --opsys-release {{ item }} >> /var/log/faf/pull-associates-f{{ item }}.log 2>&1"
+    special_time: monthly
+    state: present
+  when: not devel
+  with_items:
+    - "24"
+    - "25"
+    - "26"
+
+- name: koops_to_xorg.py
+  cron:
+    name: "koops_to_xorg.py"
+    user: faf
+    job: "/etc/faf/koops_to_xorg.py >> /var/log/faf/koops-to-xorg.log"
+    special_time: daily
+    state: present
+  when: not devel
+
+- name: probable fixes
+  cron:
+    name: "cron for probable fixes for f{{ item }}"
+    user: faf
+    job: "faf mark-probably-fixed -o fedora --opsys-release {{ item }} >> /var/log/faf/mark-probably-fixed-f{{ item }}.log 2>&1"
+    special_time: daily
+    state: present
+  when: not devel
+  with_items:
+    - "24"
+    - "25"
+    - "26"
+
+- name: update BZ bugs fedora
+  cron:
+    name: "cron for update BZ bugs fedora"
+    user: faf
+    job: "faf update-bugs -db fedora-bugzilla >> /var/log/faf/update-bugs.log 2>&1"
+    special_time: daily
+    state: present
+  when: not devel
+
+- name: update BZ bugs centos
+  cron:
+    name: "cron for update BZ bugs centos"
+    user: faf
+    job: "faf update-bugs -db centos-mantisbt >> /var/log/faf/update-bugs-centos.log 2>&1"
+    special_time: daily
+    state: present
+  when: not devel
+
+- name: attach BZ bugs centos
+  cron:
+    name: "cron for attach BZ bugs centos"
+    user: faf
+    job: "faf update-bugs -db centos-mantisbt >> /var/log/faf/update-bugs-centos.log 2>&1"
+    special_time: daily
+    state: present
+  when: not devel
+
+
