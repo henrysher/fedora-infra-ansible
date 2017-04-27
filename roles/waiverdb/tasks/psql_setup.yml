@@ -1,0 +1,53 @@
+- name: install postresql
+  yum: state=present pkg={{ item }}
+  with_items:
+  - "postgresql-server"
+  - "postgresql-contrib"
+
+- name: See if postgreSQL is installed
+  stat: path=/var/lib/pgsql/initdb.log
+  register: pgsql_installed
+
+- name: init postgresql
+  shell: "postgresql-setup initdb"
+  when: not pgsql_installed.stat.exists
+
+- name: copy pg_hba.conf
+  copy: src="pg/pg_hba.conf" dest=/var/lib/pgsql/data/pg_hba.conf owner=postgres group=postgres mode=0600
+  notify:
+  - restart postgresql
+  tags:
+  - config
+
+- name: Ensure postgres has a place to backup to
+  file: dest=/backups state=directory owner=postgres
+  tags:
+  - config
+
+- name: Copy over backup scriplet
+  copy: src="{{ files }}/../roles/postgresql_server/files/backup-database" dest=/usr/local/bin/backup-database mode=0755
+  tags:
+  - config
+
+- name: Set up some cronjobs to backup databases as configured
+  template: >
+    src="{{ files }}/../roles/postgresql_server/templates/cron-backup-database"
+    dest="/etc/cron.d/cron-backup-database-{{ item }}"
+  with_items:
+  - "{{ dbs_to_backup }}"
+  when: dbs_to_backup != []
+  tags:
+  - config
+
+- name: enable Pg service
+  service: state=started enabled=yes name=postgresql
+
+- name: Create db
+  postgresql_db: name="waiverdb" encoding='UTF-8'
+  become: yes
+  become_user: postgres
+
+- name: Create db user
+  postgresql_user: db="waiverdb" name="wavierdb-user" role_attr_flags=SUPERUSER,NOCREATEDB,NOCREATEROLE
+  become: yes
+  become_user: postgres
