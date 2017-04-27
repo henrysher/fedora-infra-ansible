@@ -1,0 +1,229 @@
+#!/usr/bin/python2
+"""
+This script updates the packageList ownership in Koji based on repo ownership
+in Pagure.
+
+This is heavily based on "owner-sync-pkgdb.j2" which was introduced in commit
+8c2130080c by Luke Macken.
+"""
+
+# cronjobs are run on releng01.stg
+# Looks like:
+# /usr/local/bin/owner-sync-pkgdb f19 
+# /usr/local/bin/owner-sync-pkgdb dist-5E-epel 
+# /usr/local/bin/owner-sync-pkgdb dist-6E-epel
+# /usr/local/bin/owner-sync-pkgdb epel7 
+
+import sys
+import os
+import ConfigParser
+from urlparse import urljoin
+import requests
+import koji
+
+
+# Ansible configured global variables
+STAGING = {{ 'True' if env == 'staging' else 'False' }}
+HOSTNAME = '{{ inventory_hostname }}'
+IPA_REALM = '{{ ipa_realm }}'
+ENV_SUFFIX = '{{ env_suffix }}'
+if STAGING:
+    PAGURE_URL = 'https://src.stg.fedoraproject.org/pagure/'
+else:
+    PAGURE_URL = 'https://src.fedoraproject.org/pagure/'
+# In case the above variables end up being filled in by Ansible
+if not PAGURE_URL.endswith('/'):
+    PAGURE_URL = PAGURE_URL + '/'
+
+RAWHIDE = '27'
+EXTRA_ARCH_LIST = {
+    'kernel': ('i586', 'i686', 'noarch'),
+    'kernel-xen-2.6': ('i586', 'i686', 'noarch'),
+    'glibc': ('i686',),
+    'openssl': ('i686',),
+    'em8300-kmod': ('i586', 'i686'),
+    'sysprof-kmod': ('i586', 'i686'),
+}
+VERIFY = True
+
+
+def usage():
+    print('Usage: owner-sync <tag>\n\t<tag>: tag to synchronize owners for')
+    sys.exit(1)
+
+
+def get_options():
+    # shamelessly stolen from koji CLI
+    if STAGING:
+        opts = {
+            'server': 'https://koji.stg.fedoraproject.org/kojihub',
+            'weburl': 'https://koji.stg.fedoraproject.org/koji',
+        }
+    else:
+        opts = {
+            'server': 'https://koji.fedoraproject.org/kojihub',
+            'weburl': 'https://koji.fedoraproject.org/koji',
+        }
+    opts['principal'] = 'pkgdb/{0}@{1}'.format(HOSTNAME, IPA_REALM),
+    opts['keytab'] = '/etc/krb5.pkgdb_{0}.keytab'.format(HOSTNAME),
+
+    for configFile in ('/etc/koji.conf', os.path.expanduser('~/.koji/config')):
+        if os.access(configFile, os.F_OK):
+            f = open(configFile)
+            config = ConfigParser.ConfigParser()
+            config.readfp(f)
+            f.close()
+            if config.has_section('koji'):
+                for name, value in config.items('koji'):
+                    if opts.has_key(name):
+                        opts[name] = value
+    for entry in opts.keys():
+        if entry == 'server' or entry == 'weburl':
+            pass
+    return opts
+
+
+def get_namespace_and_version_from_tag(tag):
+    if 'container' in tag:
+        namespace = 'container'
+        version = tag.split('-')[0].split('f')[1]
+    elif tag == 'module-package-list':
+        # See https://pagure.io/releng/issue/6663
+        # and https://pagure.io/fm-orchestrator/issue/333
+        namespace = 'rpms'
+        version = RAWHIDE
+    else:
+        namespace = 'rpms'
+        if tag.startswith('epel'):
+            version = tag.split('epel')[1]
+        elif tag.startswith('f'):
+            version = tag.split('f')[1]
+        elif tag.endswith('epel') and tag.startswith('dist'):
+            # This is for older EPEL tags such as dit-6E-epel
+            version = tag.split('-')[1][:-1]
+        else:
+            print('Error: an invalid tag was specified')
+            sys.exit(1)
+
+    return namespace, version
+
+
+def get_repo_name_and_arches(tag, version):
+    if tag.startswith('epel'):
+        # Ex: epel7 => epel7
+        repo_name = tag
+        arches = ["primary"]
+    elif tag.endswith('epel'):
+        # Ex: dist-6E-epel => el6
+        repo_name = 'el%s' % version
+        arches = ["primary"]
+    elif tag == 'module-package-list':
+        repo_name = 'master'
+        arches = ["primary"]
+    else:
+        # Fedora
+        if version == RAWHIDE:
+            repo_name = 'master'
+        else:
+            repo_name = tag.split('-')[0]
+
+        if STAGING:
+            arches = ["primary"]
+        else:
+            if version <= "25":
+                arches = ["primary", "arm", "ppc", "s390"]
+            else:
+                arches = ["primary", "s390"]
+
+    return repo_name, arches
+
+
+def get_project_ownership(tag, namespace):
+    PAGURE_PROJECTS_API_URL = \
+        urljoin(PAGURE_URL, 'api/0/projects?namespace={0}'.format(namespace))
+    projects_rv = requests.get(PAGURE_PROJECTS_API_URL, verify=VERIFY).json()
+    projects = {}
+    for project in projects_rv['projects']:
+        # Check if this project has the branch we are interested in
+        project_branches_url = '{0}api/0/{1}/{2}/git/branches'.format(
+            PAGURE_URL, namespace, project['name'])
+        project_branches_rv = \
+            requests.get(project_branches_url, verify=VERIFY).json()
+
+        # The tag and branch names are the same for "old-style" branches
+        if tag in project_branches_rv['branches']:
+            # Although this is a list, Pagure only supports one owner for now
+            projects[project['name']] = project['access_users']['owner'][0]
+
+    if tag == 'module-package-list' and not 'module-build-macros' in projects:
+        projects['module-build-macros'] = 'releng'
+
+    return projects
+
+
+def set_koji_ownership(pkgs_to_ownership, arches):
+    koji_options = get_options()
+
+    for arch in arches:
+        if arch == 'primary':
+            session = koji.ClientSession(
+                'https://koji{0}.fedoraproject.org/kojihub'.format(ENV_SUFFIX),
+                {'krb_rdns': False}
+            )
+        else:
+            session = koji.ClientSession(
+                'https://{0}.koji.fedoraproject.org/kojihub'.format(arch),
+                {'krb_rdns': False}
+            )
+
+        try:
+            session.krb_login(koji_options['principal'], koji_options['keytab'])
+        except:
+            print('Unable to sync to "{0}" hub'.format(arch))
+            continue
+
+        kojitag = session.getTag(tag)
+        if kojitag is None:
+            print('Error: tag "{0}" does not exist for arch "{1}"'
+                  .format(tag, arch))
+            sys.exit(1)
+
+        koji_pkgs = {}
+        koji_users = [user['name'] for user in session.listUsers()]
+
+        for p in session.listPackages(tagID=tag, inherited=True):
+            koji_pkgs[p['package_name']] = p
+
+        for pkg in pkgs_to_ownership.keys().sort():
+            owner = pkgs[pkg]
+
+            if owner not in koji_users:
+                # add the user first
+                try:
+                    session.createUser(owner)
+                except:
+                    # user already exists
+                    continue
+                koji_users.append(owner)
+
+            if pkg not in koji_pkgs:
+                extra_arches = None
+                if pkg in EXTRA_ARCH_LIST:
+                    extra_arches = EXTRA_ARCH_LIST[pkg]
+                session.packageListAdd(
+                    tag, pkg, owner=owner, extra_arches=extra_arches)
+            elif koji_pkgs[pkg]['owner_name'] != owner:
+                session.packageListSetOwner(tag, pkg, owner, force=True)
+
+
+if __name__ == '__main__':
+    try:
+        tag = sys.argv[1]
+    except IndexError:
+        print('Error: no tag specified')
+        usage()
+
+    namespace, version = get_namespace_and_version_from_tag(tag)
+    repo_name, arches = get_repo_name_and_arches(tag, version)
+    pkgs = get_project_ownership(tag, namespace)
+    set_koji_ownership(pkgs, arches)
