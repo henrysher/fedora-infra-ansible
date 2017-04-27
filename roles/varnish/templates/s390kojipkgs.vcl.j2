@@ -13,8 +13,8 @@ acl repoallowed {
 acl purge {
   "127.0.0.1"/32;
 }
-backend proxy01 {
-    .host = "proxy01.phx2.fedoraproject.org";
+backend kojipkgs01 {
+    .host = "kojipkgs01.phx2.fedoraproject.org";
     .probe = {
         .url = "/";
         .timeout = 1s;
@@ -24,8 +24,8 @@ backend proxy01 {
     }
 }
 
-backend proxy10 {
-    .host = "proxy10.phx2.fedoraproject.org";
+backend kojipkgs02 {
+    .host = "kojipkgs02.phx2.fedoraproject.org";
     .probe = {
         .url = "/";
         .timeout = 1s;
@@ -37,8 +37,8 @@ backend proxy10 {
 
 sub vcl_init {
     new primarykojipkgs = directors.round_robin();
-    primarykojipkgs.add_backend(proxy01);
-    primarykojipkgs.add_backend(proxy10);
+    primarykojipkgs.add_backend(kojipkgs01);
+    primarykojipkgs.add_backend(kojipkgs02);
 }
 
 sub vcl_recv {
