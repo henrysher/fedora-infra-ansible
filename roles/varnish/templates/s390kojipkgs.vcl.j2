@@ -7,37 +7,45 @@ import directors;
 # These nets/machines are allowed /repo access
 #
 acl repoallowed {
-  "10.5.125.0"/24;
-  "10.5.127.0"/24;
-  "10.5.129.0"/24;
-  "10.5.126.14"/32;
-  "10.5.126.223"/32;
-  "10.5.126.224"/32;
-  "10.5.126.225"/32;
-  "10.5.126.226"/32;
   "10.16.0.0"/24;
 }
 
 acl purge {
   "127.0.0.1"/32;
 }
+backend proxy01 {
+    .host = "proxy01.phx2.fedoraproject.org";
+    .probe = {
+        .url = "/";
+        .timeout = 1s;
+        .interval = 5s;
+        .window = 5;
+        .threshold = 3;
+    }
+}
 
-backend localapache { 
-  .host = "127.0.0.1"; 
-  .port = "8080";
-  .probe = { 
-      .url = "/"; 
-      .interval = 5s; 
-      .timeout = 1s;
-      .window = 5;
-      .threshold = 3; }
+backend proxy10 {
+    .host = "proxy10.phx2.fedoraproject.org";
+    .probe = {
+        .url = "/";
+        .timeout = 1s;
+        .interval = 5s;
+        .window = 5;
+        .threshold = 3;
+    }
+}
+
+sub vcl_init {
+    new primarykojipkgs = directors.round_robin();
+    primarykojipkgs.add_backend(proxy01);
+    primarykojipkgs.add_backend(proxy10);
 }
 
 sub vcl_recv {
     # This gets arround the silly, ::1 that Apache adds on the proxies (still need to look at that)
     set req.http.X-Forwarded-For = regsub(req.http.X-Forwarded-For, "^([a-f0-9:.]+), .+$", "\1");
 
-    set req.backend_hint = localapache;
+    set req.backend_hint = primarykojipkgs.backend();
     unset req.http.cookie;
     set req.http.clear-cookies = "yes";
 

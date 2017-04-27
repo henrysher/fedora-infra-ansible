@@ -139,5 +139,20 @@
         }
     }
 
+- name: configure varnish cache on buildvm-s390x-07.s390.fedoraproject.org
+  hosts: buildvm-s390x-07.s390.fedoraproject.org
+  tags:
+    - varnish
+  user: root
+  gather_facts: True
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  roles:
+  - varnish
+
   handlers:
   - include: "{{ handlers_path }}/restart_services.yml"
