@@ -1,0 +1,33 @@
+- name: install nginx
+  dnf:
+    name: nginx
+    state: present
+
+- name: Ensure nginx is started and enabled to start at boot.
+  service: name=nginx state=started enabled=yes
+
+- name: install nginx logrotation file
+  copy:
+    src: etc/logrotate.d/nginx
+    dest: /etc/logrotate.d/nginx
+    owner: root
+    group: root
+    mode: 0644
+
+- name: install /etc/nginx/nginx.conf
+  template:
+    src: etc/nginx/nginx.conf.j2
+    dest: /etc/nginx/nginx.conf
+    owner: root
+    group: root
+    mode: 0644
+  notify: restart nginx
+
+- name: install /etc/nginx/conf.d/default.conf
+  copy:
+    src: etc/nginx/conf.d/default.conf
+    dest: /etc/nginx/conf.d/default.conf
+    owner: root
+    group: root
+    mode: 0644
+  notify: restart nginx

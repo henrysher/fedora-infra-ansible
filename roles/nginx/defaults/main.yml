@@ -1,0 +1,18 @@
+---
+## set some defaults with the expectation that they will be set in/from calling role
+service_name: "{{ inventory_hostname }}"
+
+## nginx core configuration defaults
+nginx_default_port: 80
+nginx_error_level: "warn"
+nginx_worker_processes: 1
+nginx_gzip_status: "on"
+
+## variables unset by default
+httpd_no_ssl: false
+httpd_ssl_key_file: "{{ ssl_key_file | default('/THIS/FILE/PROBABLY/DOESNT/EXIST') }}"
+httpd_ssl_crt_file: "{{ ssl_crt_file | default('/THIS/FILE/PROBABLY/DOESNT/EXIST') }}"
+httpd_ssl_pem_file: "{{ ssl_pem_file | default('/THIS/FILE/PROBABLY/DOESNT/EXIST') }}"
+ssl_self_signed_string: "/C=US/ST=New York/L=New York City/O=My Department/CN={{ service_name }}"
+ssl_fast_dh: false
+nginx_ssl_ca_line: "#ssl_client_certificate /path/to/ca/file;"
