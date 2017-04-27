@@ -1,0 +1,63 @@
+---
+
+- name: cron for faf reposync
+  cron:
+    name: "cron for faf reposync {{ item.repos }}"
+    user: faf
+    job: "faf reposync -d {{ item.repos }} >> /var/log/faf/{{ item.log }} 2>&1"
+    special_time: daily
+    state: present
+  when: not devel
+  with_items:
+    # rawhide
+    - { log: "reposync-fedora-rawhide.log", repos: "fedora-rawhide-source fedora-rawhide-x86_64 fedora-rawhide-x86_64-debug fedora-rawhide-i386 fedora-rawhide-i386-debug fedora-rawhide-armhfp fedora-rawhide-armhfp-debug" }
+    # Fedora 24
+    - { log: "reposync-fedora-24.log", repos: "fedora-24-source fedora-24-x86_64 fedora-24-x86_64-debug fedora-24-i386 fedora-24-i386-debug fedora-24-armhfp fedora-24-armhfp-debug" }
+    - { log: "reposync-fedora-24-updates.log", repos: "fedora-24-updates-source fedora-24-x86_64-updates fedora-24-x86_64-updates-debug fedora-24-i386-updates fedora-24-i386-updates-debug fedora-24-armhfp-updates fedora-24-armhfp-updates-debug" }
+    - { log: "reposync-fedora-24-testing.log", repos: "fedora-24-testing-source fedora-24-x86_64-testing fedora-24-x86_64-testing-debug fedora-24-i386-testing fedora-24-i386-testing-debug fedora-24-armhfp-testing fedora-24-armhfp-testing-debug" }
+    - { log: "reposync-fedora-24-kernel-rt.log", repos: "fedora-24-x86_64-kernel-rt fedora-24-x86_64-kernel-rt-testing fedora-24-i386-kernel-rt fedora-24-i386-kernel-rt-testing" }
+    # Fedora 25
+    - { log: "reposync-fedora-25.log", repos: "fedora-25-source fedora-25-x86_64 fedora-25-x86_64-debug fedora-25-i386 fedora-25-i386-debug fedora-25-armhfp fedora-25-armhfp-debug" }
+    - { log: "reposync-fedora-25-updates.log", repos: "fedora-25-updates-source fedora-25-x86_64-updates fedora-25-x86_64-updates-debug fedora-25-i386-updates fedora-25-i386-updates-debug fedora-25-armhfp-updates fedora-25-armhfp-updates-debug" }
+    - { log: "reposync-fedora-25-testing.log", repos: "fedora-25-testing-source fedora-25-x86_64-testing fedora-25-x86_64-testing-debug fedora-25-i386-testing fedora-25-i386-testing-debug fedora-25-armhfp-testing fedora-25-armhfp-testing-debug" }
+    - { log: "reposync-fedora-25-kernel-rt.log", repos: "fedora-25-x86_64-kernel-rt fedora-25-x86_64-kernel-rt-testing fedora-25-i386-kernel-rt fedora-25-i386-kernel-rt-testing" }
+    # Fedora 26
+    - { log: "reposync-fedora-26.log", repos: "fedora-26-source fedora-26-x86_64 fedora-26-x86_64-debug fedora-26-i386 fedora-26-i386-debug fedora-26-armhfp fedora-26-armhfp-debug"}
+    - { log: "reposync-fedora-26-updates.log", repos: "fedora-26-updates-source fedora-26-x86_64-updates fedora-26-x86_64-updates-debug fedora-26-i386-updates fedora-26-i386-updates-debug fedora-26-armhfp-updates fedora-26-armhfp-updates-debug" }
+    - { log: "reposync-fedora-26-testing.log", repos: "fedora-26-testing-source fedora-26-x86_64-testing fedora-26-x86_64-testing-debug fedora-26-i386-testing fedora-26-i386-testing-debug fedora-26-armhfp-testing fedora-26-armhfp-testing-debug" }
+    - { log: "reposync-fedora-26-kernel-rt.log", repos: "fedora-26-x86_64-kernel-rt fedora-26-x86_64-kernel-rt-testing fedora-26-i386-kernel-rt fedora-26-i386-kernel-rt-testing" }
+    # Centos
+    - { log: "reposync-centos-7.log", repos: "centos-7-x86_64 centos-7-x86_64-updates centos-7-x86_64-centosplus centos-7-x86_64-extras centos-7-x86_64-fasttrack centos-7-i386-debug centos-7-x86_64-debug" }
+    - { log: "reposync-epel-7.log", repos: "epel-7-x86_64 epel-7-x86_64-debug" }
+
+- name: backup database
+  cron:
+    name: "backup database"
+    user: faf
+    job: "( pg_dump -Fc faf > /srv/faf/db-backup/backup-$(date '+\%F').dump ) >> /var/log/faf/db_backup.log 2>&1"
+    special_time: daily
+    state: present
+
+- name: match unknown packages
+  cron:
+    name: "match unknown packages"
+    user: faf
+    job: "faf match-unknown-packages -d >> /var/log/faf/match-unknown-packages.log 2>&1"
+    special_time: daily
+    state: present
+
+- name: pull releases, components and associates
+  cron:
+    name: "cron for {{ item.what }} {{ item.distro }}"
+    user: faf
+    job: "faf {{ item.what }} -o {{ item.distro }} -d >> /var/log/faf/{{ item.what }}-{{ item.distro }}.log 2>&1"
+    special_time: daily
+    state: present
+  when: not devel
+  with_items:
+    - { what: "pull-releases", distro: "fedora" }
+    - { what: "pull-components", distro: "fedora" }
+    - { what: "find-components", distro: "fedora" }
+    - { what: "pull-releases", distro: "centos" }
+    - { what: "pull-components", distro: "centos" }
+    - { what: "find-components", distro: "centos" }
