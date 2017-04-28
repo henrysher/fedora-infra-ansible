@@ -4,20 +4,25 @@
   cron:
     name: "faf save-reports"
     user: faf
-    job: "faf save-reports >> /var/log/faf/save-reports.log 2>&1"
+    job: "faf save-reports --speedup >> /var/log/faf/save-reports.log 2>&1"
     minute: "*/5"
     state: present
   become: yes
 
 - name: cron create-problems
   cron:
-    name: "faf create-problems"
+    name: "faf create-problems with type {{ item}}"
     user: faf
-    job: "faf create-problems >> /var/log/faf/create-problems.log 2>&1"
+    job: "faf create-problems -p {{ item }} >> /var/log/faf/create-problems.log 2>&1"
     minute: 30
-    hour: "*/4"
+    hour: "2"
     state: present
   become: yes
+  with_items:
+    - "core"
+    - "kerneloops"
+    - "python"
+    - "ruby"
 
 - name: cron reposync
   cron:
@@ -28,3 +33,17 @@
     hour: 3
     state: present
   become: yes
+
+- name: retrace symbols
+  cron:
+    name: "retrace symbols with type {{ item.type }}"
+    user: faf
+    job: "faf retrace --workers 4 -dp {{ item.type }} --max-fail-count 1 >> /var/log/faf/retrace-{{ item.type }}.log 2>&1"
+    minute: 32
+    hour: 2
+    weekday: "{{ item.day }}"
+    state: present
+  become: yes
+  with_items:
+    - { type: "core", day: "2,4,6" }
+    - { type: "kerneloops", day: "1,3,5" }
