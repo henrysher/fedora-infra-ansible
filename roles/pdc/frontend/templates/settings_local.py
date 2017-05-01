@@ -129,6 +129,12 @@ EMAIL_HOST = 'bastion'
 SERVER_EMAIL = 'nobody@fedoraproject.org'
 EMAIL_SUBJECT_PREFIX = '[PDC]'
 
+{% if env == 'staging' %}
+DIST_GIT_WEB_ROOT_URL = 'https://src.stg.fedoraproject.org/cgit/'
+{% else %}
+DIST_GIT_WEB_ROOT_URL = 'https://src.fedoraproject.org/cgit/'
+{% endif %}
+
 # Use this to deny people creating new "epel" or "fedora" branches after we
 # import the existing oldschool branches.
 #COMPONENT_BRANCH_NAME_BLACKLIST_REGEX = r'^(epel\d+|el\d+|f\d+|fc\d+)'
