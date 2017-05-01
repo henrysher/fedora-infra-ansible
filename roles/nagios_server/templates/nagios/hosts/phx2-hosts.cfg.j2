@@ -85,7 +85,6 @@ define host {
 define host {
   host_name                    virthost20.phx2.fedoraproject.org
   alias                        virthost20.phx2.fedoraproject.org
-  use                          mincheck
   check_command                check-host-alive
   address                      10.5.126.160
   parents                      phx2-gw
@@ -96,7 +95,11 @@ define host {
 {% for host in groups['all'] %}
 {% if hostvars[host].datacenter == 'phx2' %}
 define host {
+{% if hostvars[host].nagios_services['nrpe'] == true %}
    use                     defaulttemplate
+{% else %}
+  use                          mincheck
+{% endif %}
   host_name               {{ host }}
 {% if hostvars[host].ansible_hostname is defined %}
    alias                   {{ hostvars[host].ansible_hostname }}
