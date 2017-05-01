@@ -21,6 +21,7 @@
   - hosts
   - fas_client
   - collectd/base
+  - { role: rsyncd, when: datacenter == 'phx2' }
   - sudo
   - { role: openvpn/client,
       when: env != "staging" }
@@ -38,9 +39,9 @@
   handlers:
   - include: "{{ handlers_path }}/restart_services.yml"
 
-- name: deploy nagios service config
-  hosts: nagios-new
-  user:
+- name: deploy service-specific config (just for production)
+  hosts: nagios
+  user: root
   gather_facts: True
 
   vars_files:
@@ -53,5 +54,7 @@
   - include: "{{ handlers_path }}/restart_services.yml"
 
   roles:
-  - nagios_server
+  - { role: dhcp_server, when: datacenter == 'phx2' }
+  - { role: tftp_server, when: datacenter == 'phx2' }
+  - nagios/server
   - fedmsg/base
