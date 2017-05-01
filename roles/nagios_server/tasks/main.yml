@@ -119,6 +119,27 @@
 ## Copy over the command scripts
 - name: Copy /etc/nagios/commands
   synchronize: src=nagios/commands/ dest=/etc/nagios/commands/
+  copy: src=nagios/commands/{{ item }} dest=/etc/nagios/commands/{{ item }}
+  with_items:
+    - bzr.cfg
+    - disk.cfg
+    - dns.cfg
+    - git.cfg
+    - httpd.cfg
+    - koji.cfg
+    - local.cfg
+    - misc.cfg
+    - notify.cfg
+    - nrpe.cfg
+    - perfdata.cfg
+    - ping.cfg
+    - rsyslog.cfg
+    - smtp.cfg
+    - ssh.cfg
+    - tcp.cfg
+    - testcloud.cfg
+    - udp.cfg
+    - unbound.cfg
   tags:
   - nagios-config
   - nagios_server
@@ -238,6 +259,13 @@
 
 - name: Override config.inc.php for the given environment
   template: src=nagios/config.inc.php.j2 dest=/usr/share/nagios/html/config.inc.php mode=0640 owner=root group=apache
+  tags:
+  - nagios_server
+
+- name: Template over commands
+  template: src=nagios/templates/{{item}}.j2 dest=/etc/nagios/commands/{{item}} mode=0644 owner=root group=root
+  with_items:
+    - postgres.cfg
   tags:
   - nagios_server
 
