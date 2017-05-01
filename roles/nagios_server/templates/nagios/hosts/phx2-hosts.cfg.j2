@@ -1,101 +1,7 @@
-{% if env == "staging" %}
-{% for host in groups['all'] %}
-{% if hostvars[host].datacenter == 'phx2' and hostvars[host].env == 'staging' %}
-define host {
-   use                     defaulttemplate
-  host_name               {{ host }}
-{% if hostvars[host].ansible_hostname is defined %}
-   alias                   {{ hostvars[host].ansible_hostname }}
-{% else %}
-   alias                   {{ host }}
-{% endif %}
-{% if hostvars[host].eth0_ip is defined %}
-   address                 {{ hostvars[host].eth0_ip }}
-{% elif hostvars[host].ansible_default_ipv4 is defined %}
-{% if hostvars[host].ansible_default_ipv4.address is defined %}
-   address                 {{ hostvars[host].ansible_default_ipv4.address }}
-{% endif %}
-{% else %}
-   address                 {{ host }}
-{% endif %}
-{% if hostvars[host]['vmhost'] is defined %}
-   parents                 {{ hostvars[host]['vmhost'] }}
-{% elif hostvars[host].datacenter is defined %}
-   parents                 phx2-gw
-{% endif %}
-}
-
-{% endif %}
-{% endfor %}
-
-## Staging virthosts
-# 'virthost-comm04.qa.fedoraproject.org'
-# 'virthost04.phx2.fedoraproject.org'
-# 'virthost11.phx2.fedoraproject.org'
-# 'virthost12.phx2.fedoraproject.org'
-# 'virthost16.phx2.fedoraproject.org'
-# 'virthost20.phx2.fedoraproject.org'
-
-
-define host {
-  host_name                    virthost-comm04.qa.fedoraproject.org
-  alias                        virthost-comm04.qa.fedoraproject.org
-  use                          mincheck
-  check_command                check-host-alive
-  address                      10.5.131.10
-  parents                      phx2-gw
-}
-
-define host {
-  host_name                    virthost04.phx2.fedoraproject.org
-  alias                        virthost04.phx2.fedoraproject.org
-  use                          mincheck
-  check_command                check-host-alive
-  address                      10.5.126.144
-  parents                      phx2-gw
-}
-
-define host {
-  host_name                    virthost11.phx2.fedoraproject.org
-  alias                        virthost11.phx2.fedoraproject.org
-  use                          mincheck
-  check_command                check-host-alive
-  address                      10.5.126.104
-  parents                      phx2-gw
-}
-
-define host {
-  host_name                    virthost12.phx2.fedoraproject.org
-  alias                        virthost12.phx2.fedoraproject.org
-  use                          mincheck
-  check_command                check-host-alive
-  address                      10.5.126.152
-  parents                      phx2-gw
-}
-
-define host {
-  host_name                    virthost16.phx2.fedoraproject.org
-  alias                        virthost16.phx2.fedoraproject.org
-  use                          mincheck
-  check_command                check-host-alive
-  address                      10.5.126.156
-  parents                      phx2-gw
-}
-
-define host {
-  host_name                    virthost20.phx2.fedoraproject.org
-  alias                        virthost20.phx2.fedoraproject.org
-  check_command                check-host-alive
-  address                      10.5.126.160
-  parents                      phx2-gw
-}
-
-
-{% else %}
 {% for host in groups['all'] %}
 {% if hostvars[host].datacenter == 'phx2' %}
 define host {
-{% if hostvars[host].nagios_services['nrpe'] == true %}
+{% if hostvars[host].nagios_Check_Services['nrpe'] == true %}
    use                     defaulttemplate
 {% else %}
   use                          mincheck
@@ -124,4 +30,3 @@ define host {
 
 {% endif %}
 {% endfor %}
-{% endif %}
