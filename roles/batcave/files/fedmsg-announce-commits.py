@@ -49,10 +49,21 @@ def build_stats(commit):
 
     for diff in diffs:
         for patch in diff:
-            path = patch.new_file_path
-            files[path]['additions'] += patch.additions
-            files[path]['deletions'] += patch.deletions
-            files[path]['lines'] += patch.additions + patch.deletions
+           if hasattr(patch, 'new_file_path'):
+               path = patch.new_file_path
+           else:
+               path = patch.delta.new_file.path
+
+           if hasattr(patch, 'additions'):
+               files[path]['additions'] += patch.additions
+               files[path]['deletions'] += patch.deletions
+               files[path]['lines'] += patch.additions + patch.deletions
+           else:
+               files[path]['additions'] += patch.line_stats[1]
+               files[path]['deletions'] += patch.line_stats[2]
+               files[path]['lines'] += patch.line_stats[1] \
+                                       + patch.line_stats[2]
+
 
     total = defaultdict(int)
     for name, stats in files.items():

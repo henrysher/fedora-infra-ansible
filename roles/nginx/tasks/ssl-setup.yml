@@ -1,0 +1,45 @@
+- name: copy over ssl key
+  copy:
+    src: "{{ item }}"
+    dest: "/etc/nginx/conf.d/ssl.key"
+  with_first_found:
+  - files:
+    - "{{ httpd_ssl_key_file }}"
+    skip: True
+  register: setup_ssl_key
+  notify: restart nginx service
+  no_log: True
+  tags:
+  - update_ssl_certs
+
+- name: copy over ssl pem file
+  copy:
+    src: "{{ item }}"
+    dest: "/etc/nginx/conf.d/ssl.pem"
+  with_first_found:
+  - files:
+    - "{{ httpd_ssl_pem_file }}"
+    - "{{ httpd_ssl_crt_file }}"
+    skip: True
+  register: setup_ssl_pem
+  when: setup_ssl_key|success
+  tags:
+  - update_ssl_certs
+
+  #  generate our own key/crt if pem is missing
+- name: generate self signed ssl certificate
+  command: openssl req -new -nodes -x509 -subj "{{ ssl_self_signed_string }}" -days 3650 -keyout /etc/nginx/conf.d/ssl.key -out /etc/nginx/conf.d/ssl.pem -extensions v3_ca
+  args:
+    creates: /etc/nginx/conf.d/ssl.pem
+  when: setup_ssl_key|failed or setup_ssl_pem|failed
+
+- name: warn that the next step takes a while
+  debug:
+    msg: "the next step can take around 15 minutes if it hasn't already been done"
+
+- name: create Diffie Hellman ephemeral parameters
+  # https://raymii.org/s/tutorials/Strong_SSL_Security_On_nginx.html
+  command: openssl dhparam {{ '-dsaparam' if ssl_fast_dh else '' }} -out dhparam.pem 4096
+  args:
+    chdir: /etc/ssl/certs
+    creates: /etc/ssl/certs/dhparam.pem

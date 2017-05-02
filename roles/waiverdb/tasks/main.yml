@@ -1,0 +1,49 @@
+---
+- include: psql_setup.yml
+
+- name: install needed packages (yum)
+  yum: pkg={{ item }} state=present
+  with_items:
+  - waiverdb
+  - gunicorn
+  - python-psycopg2
+  notify:
+  - restart waiverdb
+  when: ansible_distribution_major_version|int < 22
+
+- name: install needed packages (dnf)
+  dnf: pkg={{ item }} state=present
+  with_items:
+  - waiverdb
+  - gunicorn
+  - python-psycopg2
+  notify:
+  - restart waiverdb
+  when: ansible_distribution_major_version|int > 21
+
+- name: start waiverdb on boot
+  systemd:
+    name: waiverdb.socket
+    enabled: yes
+
+- name: copy client secrets
+  template:
+    src: etc/waiverdb/client_secrets.json
+    dest: /etc/wavierdb/client_secrets.json
+    owner: root
+    group: root
+    mode: 0640
+  notify:
+  - restart waiverdb
+
+- name: generate the app config
+  template:
+    src: etc/waiverdb/settings.py.j2
+    dest: /etc/waiverdb/settings.py
+    owner: root
+    group: root
+    mode: 0660
+    backup: yes
+    force: yes
+  notify:
+  - restart waiverdb

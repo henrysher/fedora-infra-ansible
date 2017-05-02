@@ -1,0 +1,50 @@
+user  nginx;
+worker_processes  {{ nginx_worker_processes }};
+
+error_log  /var/log/nginx/error.log {{ nginx_error_level }};
+{% if ansible_distribution_major_version == "7" %}
+pid        /run/nginx.pid;
+{% else %}
+pid        /var/run/nginx.pid;
+{% endif %}
+
+# Load dynamic modules. See /usr/share/nginx/README.dynamic.
+include /usr/share/nginx/modules/*.conf;
+
+
+events {
+    worker_connections  1024;
+}
+
+
+http {
+    log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
+                      '$status $body_bytes_sent "$http_referer" '
+                      '"$http_user_agent" "$http_x_forwarded_for"';
+
+    access_log  /var/log/nginx/access.log  main;
+
+    sendfile        on;
+    tcp_nopush     on;
+    tcp_nodelay         on;
+    keepalive_timeout   65;
+    types_hash_max_size 2048;
+    server_names_hash_bucket_size  128;
+
+    include       /etc/nginx/mime.types;
+    default_type  application/octet-stream;
+
+    gzip  {{ nginx_gzip_status }};
+
+    include /etc/nginx/conf.d/*.conf;
+
+    # bind server context for status explicitly to loopback to allow local only actions
+    server {
+        listen      [::1]:{{ nginx_default_port }} default_server;
+	    listen      127.0.0.1:{{ nginx_default_port }} default_server;
+        server_name  _;
+        root         /usr/share/nginx/html;
+       # Load configuration files for the default server block.
+        include /etc/nginx/default.d/*.conf;
+    }
+}
