@@ -66,21 +66,21 @@
 
 # -- Dist Git --------------------------------------------
 # This is the Git setup itself: group, root directory, scripts,...
-- name: install the Dist Git-related httpd config
-  copy: src=clime-dist-git-epel-7.repo dest=/etc/yum.repos.d/clime-dist-git-epel-7.repo
+- name: install dist-git
+  yum: pkg=dist-git state=latest
   when: env == "staging" and inventory_hostname.startswith('pkgs02')
   tags:
   - distgit
 
-- name: install dist-git
-  yum: pkg=dist-git state=present
+- name: install the dist-git config
+  copy: src=dist-git.conf dest=/etc/dist-git/dist-git.conf
   when: env == "staging" and inventory_hostname.startswith('pkgs02')
   tags:
+  - config
   - distgit
 
 - name: create the distgit root directory (/srv/git)
   file: dest=/srv/git state=directory mode=0755
-  when: env != "staging" or inventory_hostname.startswith('pkgs01')
   tags:
   - distgit
 
@@ -104,7 +104,6 @@
 
 - name: create the distgit root directory (/srv/git/repositories)
   file: dest=/srv/git/repositories state=directory mode=2775 group=packager
-  when: env != "staging" or inventory_hostname.startswith('pkgs01')
   tags:
   - distgit
 
@@ -126,18 +125,10 @@
 - name: install the distgit scripts
   copy: src={{item}} dest=/usr/local/bin/{{item}} owner=root group=root mode=0755
   with_items:
-    - pkgdb2-clone
-  tags:
-  - config
-  - distgit
-
-- name: install the distgit scripts
-  copy: src={{item}} dest=/usr/local/bin/{{item}} owner=root group=root mode=0755
-  with_items:
     - setup_git_package
     - mkbranch
     - mkbranch_branching
-  when: env != "staging" or inventory_hostname.startswith('pkgs01')
+    - pkgdb2-clone
   tags:
   - config
   - distgit
