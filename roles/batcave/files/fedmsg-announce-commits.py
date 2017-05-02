@@ -52,7 +52,7 @@ def build_stats(commit):
            if hasattr(patch, 'new_file_path'):
                path = patch.new_file_path
            else:
-               path = patch.old_file_path
+               path = patch.delta.new_file_path
 
            if hasattr(patch, 'additions'):
                files[path]['additions'] += patch.additions
