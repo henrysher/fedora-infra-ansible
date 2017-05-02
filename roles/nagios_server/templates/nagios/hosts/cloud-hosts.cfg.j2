@@ -1,7 +1,11 @@
 {% for host in groups['all'] %}
-{% if hostvars[host].datacenter == 'cloud' and hostvars[host].nagios_Check_Services['nrpe'] == true %}
+{% if hostvars[host].datacenter == 'cloud' %}
 define host {
-   use                     mincheck
+{% if hostvars[host].nagios_Check_Services['nrpe'] == true %}
+   use                     defaulttemplate
+{% else %}
+  use                      nocheck
+{% endif %}
    host_name               {{ host }}
 {% if hostvars[host].ansible_hostname is defined %}
    alias                   {{ hostvars[host].ansible_hostname }}
