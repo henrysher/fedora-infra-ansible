@@ -1,8 +1,16 @@
-- name: install postresql
+- name: install postresql (yum)
   yum: state=present pkg={{ item }}
   with_items:
   - "postgresql-server"
   - "postgresql-contrib"
+  when: ansible_distribution_major_version|int < 22
+
+- name: install postresql (dnf)
+  dnf: state=present pkg={{ item }}
+  with_items:
+  - "postgresql-server"
+  - "postgresql-contrib"
+  when: ansible_distribution_major_version|int > 21
 
 - name: See if postgreSQL is installed
   stat: path=/var/lib/pgsql/initdb.log

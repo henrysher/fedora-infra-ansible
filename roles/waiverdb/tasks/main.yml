@@ -1,13 +1,23 @@
 ---
 - include: psql_setup.yml
 
-- name: install needed packages
+- name: install needed packages (yum)
+  yum: pkg={{ item }} state=present
+  with_items:
+  - waiverdb
+  - gunicorn
+  notify:
+  - restart waiverdb
+  when: ansible_distribution_major_version|int < 22
+
+- name: install needed packages (dnf)
   dnf: pkg={{ item }} state=present
   with_items:
   - waiverdb
   - gunicorn
   notify:
   - restart waiverdb
+  when: ansible_distribution_major_version|int > 21
 
 - name: start waiverdb on boot
   systemd:
