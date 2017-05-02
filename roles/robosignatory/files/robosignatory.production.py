@@ -195,15 +195,15 @@ config = {
         },
         'fedora-atomic/rawhide/x86_64/docker-host': {
             'directory': '/mnt/fedora_koji/koji/compose/atomic/rawhide/',
-            'key': 'fedora-26'
+            'key': 'fedora-27'
         },
         'fedora-atomic/rawhide/aarch64/docker-host': {
             'directory': '/mnt/fedora_koji/koji/compose/atomic/rawhide/',
-            'key': 'fedora-26'
+            'key': 'fedora-27'
         },
         'fedora/rawhide/x86_64/workstation': {
             'directory': '/mnt/fedora_koji/koji/compose/ostree/rawhide/',
-            'key': 'fedora-26'
+            'key': 'fedora-27'
         },
     }
 }
