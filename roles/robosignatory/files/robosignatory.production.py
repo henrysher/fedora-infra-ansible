@@ -16,6 +16,9 @@ config = {
     'robosignatory.pdc_url': 'https://pdc.fedoraproject.org/rest_api/v1',
     # Any tag prefixed with "module-" will be considered a module.
     'robosignatory.module_prefixes': ['module-'],
+    # These are the base modules which, when found, determine the signing key.
+    'robosignatory.base_module_names': ['base-runtime', 'bootstrap'],
+
 
     'robosignatory.signing': {
         'backend': 'sigul',
