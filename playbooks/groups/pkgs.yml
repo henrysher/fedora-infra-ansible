@@ -10,14 +10,6 @@
   - "/srv/private/ansible/vars.yml"
   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
 
-  pre_tasks:
-  - name: Copy keytab
-    copy: src={{private}}/files/keytabs/{{env}}/pkgs
-          dest=/etc/httpd.keytab
-          owner=apache group=apache mode=0600
-    tags:
-    - krb5
-
   roles:
   - base
   - rkhunter
@@ -44,6 +36,13 @@
   - { role: distgit/pagure, when: env == "staging" and inventory_hostname.startswith('pkgs01') }
 
   tasks:
+  - name: Copy keytab
+    copy: src={{private}}/files/keytabs/{{env}}/pkgs
+          dest=/etc/httpd.keytab
+          owner=apache group=apache mode=0600
+    tags:
+    - krb5
+
   - include: "{{ tasks_path }}/yumrepos.yml"
   - include: "{{ tasks_path }}/motd.yml"
   - include: "{{ tasks_path }}/2fa_client.yml"
