@@ -1,0 +1,52 @@
+#{{ ansible_managed }}
+# WSGI handler
+WSGIPythonOptimize 1
+WSGISocketPrefix {{ faf_spool_dir }} /wsgi
+WSGIDaemonProcess faf user=faf group=faf processes=3 threads=5
+
+{% set python = 'python2.7' %}
+
+WSGIScriptAlias /{{ url_suffix }} /usr/lib/{{ python }}/site-packages/webfaf/hub.wsgi process-group=faf application-group=%{GLOBAL}
+
+<Location /{{ url_suffix }} >
+    <IfModule mod_authz_core.c>
+        # Apache 2.4
+       Require all granted
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        # Apache 2.2
+        Order allow,deny
+        Allow from all
+    </IfModule>
+</Location>
+
+# project main
+<Directory "/usr/lib/{{ python }}/site-packages/webfaf/">
+    Options Indexes
+    IndexOptions FancyIndexing
+    <IfModule mod_authz_core.c>
+        # Apache 2.4
+       Require all granted
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        # Apache 2.2
+        Order allow,deny
+        Allow from all
+    </IfModule>
+</Directory>
+
+# static
+Alias {{ url_suffix }}/static "/usr/share/faf/web/static"
+<Directory "/usr/share/faf/web/static">
+    Options Indexes
+    IndexOptions FancyIndexing
+    <IfModule mod_authz_core.c>
+        # Apache 2.4
+       Require all granted
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        # Apache 2.2
+        Order allow,deny
+        Allow from all
+    </IfModule>
+</Directory>

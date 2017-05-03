@@ -1,0 +1,162 @@
+#{{ ansible_managed }}
+
+[retrace]
+# Which group is used for authentication
+# Do not change AuthGroup if you really don't need to!
+# When using non-default group "foo", you also need to
+# 1) Set group=foo in WSGIDaemonProcess in /etc/httpd/conf.d/retrace-server-httpd.conf
+# 2) Make LogDir, SaveDir and RepoDir readable and writable for foo
+# 3) Execute all retrace-server-* scripts (including cron jobs!) with foo membership
+AuthGroup = {{ rs_auth_group }}
+
+# Force to use HTTPS - only disable on trusted network
+RequireHTTPS = {{ rs_require_https|int }}
+
+# Allow to delete task data via HTTP API (https://server/<task_id>/delete)
+AllowAPIDelete = {{ rs_allow_api_delete|int }}
+
+# Allow interactive tasks (security risk, do not use on public systems)
+AllowInteractive = {{ rs_allow_interactive|int }}
+
+# Allow X-CoreFileDirectory header
+AllowExternalDir = {{ rs_allow_external_dir|int }}
+
+# Allow to create tasks owned by task manager (security risk)
+AllowTaskManager = {{ rs_allow_task_manager|int }}
+
+# Allow to create VMCore tasks in the task manager
+AllowVMCoreTask = {{ rs_allow_vmcore_task|int }}
+
+# Allow to create Userspace core tasks in the task manager
+AllowUsrCoreTask = {{ rs_allow_usrcore_task|int }}
+
+# If white list is disabled, anyone can delete tasks
+TaskManagerAuthDelete = {{ rs_task_manager_auth_delete|int }}
+
+# Whitespace-separated list of users allowed to delete tasks
+TaskManagerDeleteUsers = {{ rs_task_manager_delete_users|default('', true) }}
+
+# If set to non-empty string, makes the case number clickable in task manager
+# The string is expanded by python, with the case number passed
+# as the only argument, do not forget %d
+CaseNumberURL = {{ rs_case_number_url|default('', true) }}
+
+# Verify GPG signatures of installed packages
+RequireGPGCheck = {{ rs_require_gpg_check|int }}
+
+# Maximum tasks running at one moment
+MaxParallelTasks = {{ rs_max_parallel_tasks|int }}
+
+# Maximum size of archive uploaded by user (MB)
+MaxPackedSize = {{ rs_max_packed_size|int }}
+
+# Maximum size of archive contents (MB)
+MaxUnpackedSize = {{ rs_max_unpacked_size|int }}
+
+# Minimal storage left on WorkDir FS after unpacking archive (MB)
+MinStorageLeft = {{ rs_min_storage_left|int }}
+
+# Delete old tasks after (hours); <= 0 means never
+# This is mutually exclusive with ArchiveTasksAfter (see below)
+# The one that occurs first removes the task from the system
+# In case DeleteTaskAfter = ArchiveTaskAfter, archiving executes first
+DeleteTaskAfter = {{ rs_delete_task_after|int }}
+
+# Delete old failed tasks after (hours); <= 0 means never
+# This is useful for cleanup of failed tasks before the standard
+# mechanisms do (DeleteTaskAfter or ArchiveTaskAfter)
+# In case DeleteFailedTaskAfter > DeleteTaskAfter
+# or DeleteFailedTaskAfter > ArchiveTaskAfter, this option does nothing
+DeleteFailedTaskAfter = {{ rs_delete_failed_task_after|int }}
+
+# Archive old task after (hours); <= 0 means never
+# This is mutually exclusive with DeleteTasksAfter (see above)
+# The one that occurs first removes the task from the system
+# In case DeleteTaskAfter = ArchiveTaskAfter, archiving executes first
+ArchiveTaskAfter = {{ rs_archive_task_after|int }}
+
+# SQLite statistics DB filename
+DBFile = {{ rs_db_file }}
+
+# Log directory
+LogDir = {{ rs_log_dir }}
+
+# Local repos directory
+# if changed, you also need to update httpd config
+RepoDir = {{ rs_repo_dir }}
+
+# Directory where the crashes and results are saved
+SaveDir = {{ rs_save_dir }}
+
+# Directory where old tasks are moved
+DropDir = {{ rs_drop_dir }}
+
+# Whether to use explicit working directory, otherwise default mock settings are used
+UseWorkDir = {{ rs_use_work_dir|int }}
+
+# Working directory
+WorkDir = {{ rs_work_dir }}
+
+# Whether to use createrepo's --update option (faster, but requires a lot of memory)
+UseCreaterepoUpdate = {{ rs_use_createrepo_update|int }}
+
+# How many latest packages to keep for rawhide
+KeepRawhideLatest = {{ rs_keep_rawhide_latest|int }}
+
+# Repo used to install chroot for vmcores
+KernelChrootRepo = {{ rs_kernel_chroot_repo }}
+
+# Koji directory structure can be used to search for kernel debuginfo
+KojiRoot = {{ rs_koji_root }}
+
+# Whether task manager should look to an external FTP for task data
+UseFTPTasks = {{ rs_use_ftp_tasks|int }}
+
+# FTP connection parameters
+FTPSSL = {{ rs_ftp_ssl|int }}
+FTPHost = {{ rs_ftp_host|default('', true) }}
+FTPUser = {{ rs_ftp_user|default('', true) }}
+FTPPass = {{ rs_ftp_password|default('', true) }}
+FTPDir = {{ rs_ftp_dir|default('', true) }}
+
+# Size of buffer for downloading from FTP (MB)
+FTPBufferSize = {{ rs_ftp_buffer_size|int }}
+
+# Whether to use wget as a fallback to finding kernel debuginfos
+WgetKernelDebuginfos = {{ rs_wget_kernel_debuginfos|int }}
+
+# Where to download kernel debuginfos from
+# $VERSION $RELEASE and $ARCH are replaced by the appropriate value
+# kernel-debuginfo-VRA.rpm is appended to the end
+KernelDebuginfoURL = {{ rs_kernel_debuginfo_url }}
+
+# Run makedumpfile with specified dumplevel; <= 0 or >= 32 means disabled
+VmcoreDumpLevel = {{ rs_vmcore_dump_level|int }}
+
+# Whether to run kmem command by default (this may take a long time on large vmcores)
+# 1 => run 'kmem -f'; 2 => run 'kmem -f' with 'set hash off'; 3 => run 'kmem -z'; anything else => do not run kmem
+VmcoreRunKmem = {{ rs_vmcore_run_kmem|int }}
+
+# EXPERIMENTAL! Use ABRT Server's storage to map build-ids
+# into debuginfo packages and resolve dependencies
+# Requires support from ABRT Server
+UseFafPackages = {{ rs_use_faf_packages|int }}
+
+# Where to hardlink faf packages
+FafLinkDir = {{ rs_faf_link_dir }}
+
+# Whether to enable e-mail notifications
+EmailNotify = {{ rs_email_notify|int }}
+
+# Who sends the e-mail notifications
+EmailNotifyFrom = {{ rs_email_notify_from_user }}@{{ hostname }}
+
+[archhosts]
+{% for a in rs_archhosts %}
+{{ a.arch }} = {{ a.url|default('', true) }}
+{% endfor %}
+
+[hookscripts]
+{% for h in rs_hookscripts %}
+{{ h.hook }} = {{ h.cmd|default('', true) }}
+{% endfor %}
