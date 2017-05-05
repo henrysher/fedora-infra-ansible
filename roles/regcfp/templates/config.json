@@ -1,5 +1,6 @@
 {
   "production": {
+    "site_url": "https://register.flocktofedora.org",
     "theming": {
       "theme": "fedora",
       "site_name": "Flock 2016 Registration",
@@ -43,8 +44,14 @@
     },
 
     "auth": {
-      "module": "persona",
-      "persona_audience": "https://register.flocktofedora.org"
+      "module": "openid",
+      "openid_connect_providers": {
+        "fedora": {
+          "discovery_url": "https://id.fedoraproject.org/openidc/.well-known/openid-configuration",
+          "client_id": "regcfp",
+          "client_secret": "{{ regcfp_openidc_secret}}"
+        }
+      }
     },
 
     "permissions": {
@@ -70,14 +77,16 @@
         "accept": ["pfrields@fedoraproject.org", "jwboyer@fedoraproject.org", "spot@fedoraproject.org"]
       },
       "registration": {
-        "register": [""],
+        "register": [],
         "pay": [],
         "request_receipt": [],
         "view_public": ["*authenticated*"],
-        "view_all": ["*authenticated*"],
+        "view_all": [""],
         "add_payment": [],
-        "print_badge": ["puiterwijk@fedoraproject.org", "pfrields@fedoraproject.org", "jwboyer@fedoraproject.org", "jzb@fedoraproject.org", "rsuehle@fedoraproject.org", "spot@fedoraproject.org", "decause@fedoraproject.org"],
-        "desk": ["puiterwijk@fedoraproject.org", "pfrields@fedoraproject.org", "jwboyer@fedoraproject.org", "jzb@fedoraproject.org", "rsuehle@fedoraproject.org", "spot@fedoraproject.org", "decause@fedoraproject.org"]
+        "print_badge": [],
+        "desk": [],
+        "cancel": [],
+        "cancel_all": []
       }
     },
     
@@ -276,28 +285,22 @@
 
       "payment_product_name": "My Event Registration Fee",
       "currencies": {
-        "EUR": {
-          "symbol": "€",
+        "USD": {
+          "symbol": "$",
           "min_amount_for_receipt": 20,
           "default_amount": 40,
           "conversion_rate": 1
-        },
-        "SEK": {
-          "symbol": "kr",
-          "min_amount_for_receipt": 190,
-          "default_amount": 380,
-          "conversion_rate": 0.11
         }
       },
-      "main_currency": "EUR",
+      "main_currency": "USD",
       "paypal_experience_profile": "",
       "desk_word": "something",
 
       "paypal": {
         "api_credentials": {
           "mode": "live",
-          "client_id": "",
-          "client_secret": ""
+          "client_id": "{{ regcfp_paypal_client_id }}",
+          "client_secret": "{{ regcfp_paypal_client_secret }}"
         },
 
         "profile": {
