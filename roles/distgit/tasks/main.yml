@@ -19,6 +19,15 @@
 
 - name: install the httpd config file
   copy: src=pkgs.fedoraproject.org.conf dest=/etc/httpd/conf.d/pkgs.fedoraproject.org.conf
+  when: env != "staging"
+  notify:
+  - reload httpd
+  tags:
+  - distgit
+
+- name: uninstall the httpd config file
+  file: dest=/etc/httpd/conf.d/pkgs.fedoraproject.org.conf state=absent
+  when: env == "staging"
   notify:
   - reload httpd
   tags:
@@ -26,6 +35,7 @@
 
 - name: install the httpd config directory
   file: dest=/etc/httpd/conf.d/pkgs.fedoraproject.org state=directory
+  when: env != "staging"
   notify:
   - reload httpd
   tags:
@@ -68,13 +78,13 @@
 # This is the Git setup itself: group, root directory, scripts,...
 - name: install dist-git
   yum: pkg=dist-git state=latest
-  when: env == "staging" and inventory_hostname.startswith('pkgs02')
+  when: env == "staging"
   tags:
   - distgit
 
 - name: install the dist-git config
   copy: src=dist-git.conf dest=/etc/dist-git/dist-git.conf
-  when: env == "staging" and inventory_hostname.startswith('pkgs02')
+  when: env == "staging"
   tags:
   - config
   - distgit
@@ -135,6 +145,15 @@
 
 - name: install the Dist Git-related httpd config
   copy: src=git-smart-http.conf dest=/etc/httpd/conf.d/pkgs.fedoraproject.org/git-smart-http.conf
+  when: env != "staging"
+  notify:
+  - reload httpd
+  tags:
+  - distgit
+
+- name: install the Dist Git-related httpd config
+  copy: src=git-smart-http.conf dest=/etc/httpd/conf.d/dist-git/git-smart-http.conf
+  when: env == "staging"
   notify:
   - reload httpd
   tags:
@@ -142,6 +161,15 @@
 
 - name: Symlink pkgs-git-repos-list
   copy: src=repolist.conf dest=/etc/httpd/conf.d/pkgs.fedoraproject.org/repolist.conf
+  when: env != "staging"
+  notify:
+  - reload httpd
+  tags:
+  - distgit
+
+- name: Symlink pkgs-git-repos-list
+  copy: src=repolist.conf dest=/etc/httpd/conf.d/dist-git/repolist.conf
+  when: env == "staging"
   notify:
   - reload httpd
   tags:
@@ -331,6 +359,16 @@
 
 - name: install the CGit-related httpd redirect config
   copy: src=redirect.conf dest=/etc/httpd/conf.d/pkgs.fedoraproject.org/redirect.conf
+  when: env != "staging"
+  tags:
+  - distgit
+  - cgit
+  notify:
+  - reload httpd
+
+- name: install the CGit-related httpd redirect config
+  copy: src=redirect.conf dest=/etc/httpd/conf.d/dist-git/redirect.conf
+  when: env == "staging"
   tags:
   - distgit
   - cgit
@@ -353,6 +391,18 @@
   with_items:
   - lookaside.conf
   - lookaside-upload.conf
+  when: env != "staging"
+  notify:
+  - reload httpd
+  tags:
+  - distgit
+
+- name: install the Lookaside Cache httpd configs
+  template: src={{item}} dest=/etc/httpd/conf.d/dist-git/{{item}}
+  with_items:
+  - lookaside.conf
+  - lookaside-upload-stg.conf
+  when: env == "staging"
   notify:
   - reload httpd
   tags:
@@ -451,6 +501,14 @@
 
 - name: install the upload CGI script
   copy: src=dist-git-upload.cgi dest=/srv/web/upload.cgi owner=root group=root mode=0755
+  notify:
+  - reload httpd
+  tags:
+  - distgit
+
+- name: uninstall the httpd config directory
+  file: dest=/etc/httpd/conf.d/pkgs.fedoraproject.org state=absent
+  when: env == "staging"
   notify:
   - reload httpd
   tags:
