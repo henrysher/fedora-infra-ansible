@@ -12,10 +12,12 @@
 - name: Clone the regcfp master branch
   git: repo=https://github.com/puiterwijk/regcfp.git
        dest=/srv/regcfp
-       version=master
+       version=develop
        clone=yes update=yes
   register: git_result
   changed_when: "git_result.after|default('after') != git_result.before|default('before')"
+  tags:
+  - regcfp
   notify:
   - restart regcfp
 
@@ -25,9 +27,13 @@
            chdir=/srv/regcfp
   register: deps
   changed_when: "deps.stdout|length > 0"
+  tags:
+  - regcfp
 
 - name: copy over the server config
   template: src=config.json dest=/srv/regcfp/config/config.json mode=0640
+  tags:
+  - regcfp
   notify:
   - restart regcfp
 
@@ -37,19 +43,27 @@
   with_items:
   - flocktofedora.org.cert
   - flocktofedora.org.intermediate.cert
+  tags:
+  - regcfp
   notify:
   - restart regcfp
 
 - name: Copy over the ftf cert key
   copy: src="{{private}}/files/httpd/flocktofedora.org.key"
         dest=/etc/pki/tls/private
+  tags:
+  - regcfp
   notify:
   - restart regcfp
 
 - name: copy over the systemd file
   copy: src=regcfp.service dest=/etc/systemd/system/regcfp.service mode=0640
+  tags:
+  - regcfp
   notify:
   - restart regcfp
 
 - name: regcfp service
   service: name=regcfp state=started enabled=yes
+  tags:
+  - regcfp
