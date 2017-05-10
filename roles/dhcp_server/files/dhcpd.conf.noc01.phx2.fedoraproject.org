@@ -10,6 +10,11 @@ subnet 10.5.126.0 netmask 255.255.255.0 {
     option domain-name-servers 10.5.126.21, 10.5.126.22;
     option routers 10.5.126.254;
     option log-servers 10.5.126.29;
+
+    range 10.5.126.170 10.5.126.175;
+    next-server 10.5.126.41;
+    filename "pxelinux.0";
+
 #    option vendor-class-identifier "PXEClient";
 #    option vendor-encapsulated-options 09:0f:80:00:0c:4e:65:74:77:6f:72:6b:20:62:6f:6f:74:0a:07:00:50:72:6f:6d:70:74:06:01:02:08:03:80:00:00:47:04:80:00:00:00:ff;
 
@@ -159,9 +164,6 @@ subnet 10.5.126.0 netmask 255.255.255.0 {
         next-server 10.5.126.41;
     }
 
-    range 10.5.126.170 10.5.126.175;
-    next-server 10.5.126.41;
-    filename "pxelinux.0";
 }
 
 subnet 10.5.127.0 netmask 255.255.255.0 {
@@ -199,6 +201,263 @@ group macs {
     option dhcp-parameter-request-list = concat(
            option dhcp-parameter-request-list,
            dc, dd, e6, e8, e9, ea, eb, ec, ed, ee); # mac options
+
+}
+
+# staging network (sits on vlan 658)
+subnet 10.5.128.0 netmask 255.255.255.0 {
+    allow booting;
+    allow bootp;
+
+    option domain-name "phx2.fedoraproject.org qa.fedoraproject.org fedoraproject.org";
+    option domain-name-servers 10.5.126.21, 10.5.126.22;
+    option routers 10.5.128.254;
+    option log-servers 10.5.126.29;
+
+    range 10.5.128.10 10.5.128.20;
+    next-server 10.5.126.41;
+    filename "pxelinux.0";
+
+
+}
+
+# secondary arch net
+subnet 10.5.129.0 netmask 255.255.255.0 {
+    allow booting;
+    allow bootp;
+
+    option domain-name "secarch.fedoraproject.org ppc.fedoraproject.org arm.fedoraproject.org phx2.fedoraproject.org fedoraproject.org";
+    option domain-name-servers 10.5.126.21, 10.5.126.22;
+    option routers 10.5.129.254;
+    option log-servers 10.5.126.29;
+
+    host ppc8-01 {
+	hardware ethernet 40:f2:e9:5d:39:43;
+	fixed-address 10.5.129.20;
+	option host-name "ppc8-01";
+	filename "pxelinux.0";
+    }
+
+    host ppc8-02 {
+	hardware ethernet 40:f2:e9:5d:3c:67;
+	fixed-address 10.5.129.21;
+	option host-name "ppc8-02";
+	filename "pxelinux.0";
+    }
+
+    host ppc8-03 {
+	hardware ethernet 40:f2:e9:5d:3c:33;
+	fixed-address 10.5.129.22;
+	option host-name "ppc8-03";
+	filename "pxelinux.0";
+    }
+
+    host ppc8-04 {
+	hardware ethernet 40:f2:e9:5d:3b:c7;
+	fixed-address 10.5.129.23;
+	option host-name "ppc8-04";
+	filename "pxelinux.0";
+    }
+
+    host aarch64-c01n1 {
+        hardware ethernet 14:58:D0:58:E5:32;
+        fixed-address 10.5.129.101;
+        next-server 10.5.126.41;
+        option host-name "aarch64-c01n1";
+        filename "grubaa64.efi";
+    }
+
+    host aarch64-c02n1 {
+        hardware ethernet 14:58:D0:58:95:32;
+        fixed-address 10.5.129.102;
+        next-server 10.5.126.41;
+        option host-name "aarch64-c02n1";
+        filename "grubaa64.efi";
+    }
+
+    host aarch64-c03n1 {
+        hardware ethernet 14:58:D0:58:36:02;
+        fixed-address 10.5.129.103;
+        next-server 10.5.126.41;
+        option host-name "aarch64-c03n1";
+        filename "grubaa64.efi";
+    }
+
+    host aarch64-c04n1 {
+        hardware ethernet 14:58:D0:58:16:82;
+        fixed-address 10.5.129.104;
+        next-server 10.5.126.41;
+        option host-name "aarch64-c04n1";
+        filename "grubaa64.efi";
+    }
+
+    host aarch64-c05n1 {
+        hardware ethernet 14:58:D0:58:16:D2;
+        fixed-address 10.5.129.105;
+        next-server 10.5.126.41;
+        option host-name "aarch64-c05n1";
+        filename "grubaa64.efi";
+    }
+
+    host aarch64-c06n1 {
+        hardware ethernet 14:58:D0:58:F5:82;
+        fixed-address 10.5.129.106;
+        next-server 10.5.126.41;
+        option host-name "aarch64-c06n1";
+        filename "grubaa64.efi";
+    }
+
+    host aarch64-c07n1 {
+        hardware ethernet 14:58:D0:58:D5:B2;
+        fixed-address 10.5.129.107;
+        next-server 10.5.126.41;
+        option host-name "aarch64-c07n1";
+        filename "grubaa64.efi";
+    }
+
+    host aarch64-c08n1 {
+        hardware ethernet 14:58:D0:58:36:62;
+        fixed-address 10.5.129.108;
+        next-server 10.5.126.41;
+        option host-name "aarch64-c08n1";
+        filename "grubaa64.efi";
+    }
+
+    host aarch64-c09n1 {
+        hardware ethernet 14:58:D0:58:E5:B2;
+        fixed-address 10.5.129.109;
+        next-server 10.5.126.41;
+        option host-name "aarch64-c09n1";
+        filename "grubaa64.efi";
+    }
+
+    host aarch64-c10n1 {
+        hardware ethernet 14:58:D0:58:B5:72;
+        fixed-address 10.5.129.110;
+        next-server 10.5.126.41;
+        option host-name "aarch64-c10n1";
+        filename "grubaa64.efi";
+    }
+
+    host aarch64-c11n1 {
+        hardware ethernet 14:58:D0:58:B5:A2;
+        fixed-address 10.5.129.111;
+        next-server 10.5.126.41;
+        option host-name "aarch64-c11n1";
+        filename "grubaa64.efi";
+    }
+
+    host aarch64-c12n1 {
+        hardware ethernet 14:58:D0:58:B2:F2;
+        fixed-address 10.5.129.112;
+        next-server 10.5.126.41;
+        option host-name "aarch64-c12n1";
+        filename "grubaa64.efi";
+    }
+
+    host aarch64-c13n1 {
+        hardware ethernet 14:58:D0:58:95:22;
+        fixed-address 10.5.129.113;
+        next-server 10.5.126.41;
+        option host-name "aarch64-c13n1";
+        filename "grubaa64.efi";
+    }
+
+    host aarch64-c14n1 {
+        hardware ethernet 14:58:D0:58:75:32;
+        fixed-address 10.5.129.114;
+        next-server 10.5.126.41;
+        option host-name "aarch64-c14n1";
+        filename "grubaa64.efi";
+    }
+
+    host aarch64-c15n1 {
+        hardware ethernet 14:58:D0:58:C5:52;
+        fixed-address 10.5.129.115;
+        next-server 10.5.126.41;
+        option host-name "aarch64-c15n1";
+        filename "grubaa64.efi";
+    }
+
+    host aarch64-c16n1 {
+        hardware ethernet 14:58:D0:58:35:12;
+        fixed-address 10.5.129.116;
+        next-server 10.5.126.41;
+        option host-name "aarch64-c16n1";
+        filename "grubaa64.efi";
+    }
+
+    host aarch64-c17n1 {
+        hardware ethernet 14:58:D0:58:C4:F2;
+        fixed-address 10.5.129.117;
+        next-server 10.5.126.41;
+        option host-name "aarch64-c17n1";
+        filename "grubaa64.efi";
+    }
+
+    host aarch64-c18n1 {
+        hardware ethernet 14:58:D0:58:74:32;
+        fixed-address 10.5.129.118;
+        next-server 10.5.126.41;
+        option host-name "aarch64-c18n1";
+        filename "grubaa64.efi";
+    }
+
+    host aarch64-c19n1 {
+        hardware ethernet 14:58:D0:58:D4:12;
+        fixed-address 10.5.129.119;
+        next-server 10.5.126.41;
+        option host-name "aarch64-c19n1";
+        filename "grubaa64.efi";
+    }
+
+    host aarch64-c20n1 {
+        hardware ethernet 14:58:D0:58:E4:B2;
+        fixed-address 10.5.129.120;
+        next-server 10.5.126.41;
+        option host-name "aarch64-c20n1";
+        filename "grubaa64.efi";
+    }
+
+    host aarch64-c21n1 {
+        hardware ethernet 14:58:D0:58:E4:A2;
+        fixed-address 10.5.129.121;
+        next-server 10.5.126.41;
+        option host-name "aarch64-c21n1";
+        filename "grubaa64.efi";
+    }
+
+    host aarch64-c22n1 {
+        hardware ethernet 14:58:D0:58:25:02;
+        fixed-address 10.5.129.122;
+        next-server 10.5.126.41;
+        option host-name "aarch64-c22n1";
+        filename "grubaa64.efi";
+    }
+
+    host aarch64-c23n1 {
+        hardware ethernet 14:58:D0:58:05:72;
+        fixed-address 10.5.129.123;
+        next-server 10.5.126.41;
+        option host-name "aarch64-c23n1";
+        filename "grubaa64.efi";
+    }
+
+    host aarch64-c24n1 {
+        hardware ethernet 14:58:D0:58:35:C2;
+        fixed-address 10.5.129.124;
+        next-server 10.5.126.41;
+        option host-name "aarch64-c24n1";
+        filename "grubaa64.efi";
+    }
+
+    host aarch64-c25n1 {
+        hardware ethernet 14:58:D0:58:64:82;
+        fixed-address 10.5.129.125;
+        next-server 10.5.126.41;
+        option host-name "aarch64-c25n1";
+        filename "grubaa64.efi";
+    }
 
 }
 
@@ -2124,243 +2383,4 @@ shared-network qa {
 
 }
 
-# secondary arch net
-subnet 10.5.129.0 netmask 255.255.255.0 {
-    allow booting;
-    allow bootp;
-
-    option domain-name "secarch.fedoraproject.org ppc.fedoraproject.org arm.fedoraproject.org phx2.fedoraproject.org fedoraproject.org";
-    option domain-name-servers 10.5.126.21, 10.5.126.22;
-    option routers 10.5.129.254;
-    option log-servers 10.5.126.29;
-
-    host ppc8-01 {
-	hardware ethernet 40:f2:e9:5d:39:43;
-	fixed-address 10.5.129.20;
-	option host-name "ppc8-01";
-	filename "pxelinux.0";
-    }
-
-    host ppc8-02 {
-	hardware ethernet 40:f2:e9:5d:3c:67;
-	fixed-address 10.5.129.21;
-	option host-name "ppc8-02";
-	filename "pxelinux.0";
-    }
-
-    host ppc8-03 {
-	hardware ethernet 40:f2:e9:5d:3c:33;
-	fixed-address 10.5.129.22;
-	option host-name "ppc8-03";
-	filename "pxelinux.0";
-    }
-
-    host ppc8-04 {
-	hardware ethernet 40:f2:e9:5d:3b:c7;
-	fixed-address 10.5.129.23;
-	option host-name "ppc8-04";
-	filename "pxelinux.0";
-    }
-
-    host aarch64-c01n1 {
-        hardware ethernet 14:58:D0:58:E5:32;
-        fixed-address 10.5.129.101;
-        next-server 10.5.126.41;
-        option host-name "aarch64-c01n1";
-        filename "grubaa64.efi";
-    }
-
-    host aarch64-c02n1 {
-        hardware ethernet 14:58:D0:58:95:32;
-        fixed-address 10.5.129.102;
-        next-server 10.5.126.41;
-        option host-name "aarch64-c02n1";
-        filename "grubaa64.efi";
-    }
-
-    host aarch64-c03n1 {
-        hardware ethernet 14:58:D0:58:36:02;
-        fixed-address 10.5.129.103;
-        next-server 10.5.126.41;
-        option host-name "aarch64-c03n1";
-        filename "grubaa64.efi";
-    }
-
-    host aarch64-c04n1 {
-        hardware ethernet 14:58:D0:58:16:82;
-        fixed-address 10.5.129.104;
-        next-server 10.5.126.41;
-        option host-name "aarch64-c04n1";
-        filename "grubaa64.efi";
-    }
-
-    host aarch64-c05n1 {
-        hardware ethernet 14:58:D0:58:16:D2;
-        fixed-address 10.5.129.105;
-        next-server 10.5.126.41;
-        option host-name "aarch64-c05n1";
-        filename "grubaa64.efi";
-    }
-
-    host aarch64-c06n1 {
-        hardware ethernet 14:58:D0:58:F5:82;
-        fixed-address 10.5.129.106;
-        next-server 10.5.126.41;
-        option host-name "aarch64-c06n1";
-        filename "grubaa64.efi";
-    }
-
-    host aarch64-c07n1 {
-        hardware ethernet 14:58:D0:58:D5:B2;
-        fixed-address 10.5.129.107;
-        next-server 10.5.126.41;
-        option host-name "aarch64-c07n1";
-        filename "grubaa64.efi";
-    }
-
-    host aarch64-c08n1 {
-        hardware ethernet 14:58:D0:58:36:62;
-        fixed-address 10.5.129.108;
-        next-server 10.5.126.41;
-        option host-name "aarch64-c08n1";
-        filename "grubaa64.efi";
-    }
-
-    host aarch64-c09n1 {
-        hardware ethernet 14:58:D0:58:E5:B2;
-        fixed-address 10.5.129.109;
-        next-server 10.5.126.41;
-        option host-name "aarch64-c09n1";
-        filename "grubaa64.efi";
-    }
-
-    host aarch64-c10n1 {
-        hardware ethernet 14:58:D0:58:B5:72;
-        fixed-address 10.5.129.110;
-        next-server 10.5.126.41;
-        option host-name "aarch64-c10n1";
-        filename "grubaa64.efi";
-    }
-
-    host aarch64-c11n1 {
-        hardware ethernet 14:58:D0:58:B5:A2;
-        fixed-address 10.5.129.111;
-        next-server 10.5.126.41;
-        option host-name "aarch64-c11n1";
-        filename "grubaa64.efi";
-    }
-
-    host aarch64-c12n1 {
-        hardware ethernet 14:58:D0:58:B2:F2;
-        fixed-address 10.5.129.112;
-        next-server 10.5.126.41;
-        option host-name "aarch64-c12n1";
-        filename "grubaa64.efi";
-    }
-
-    host aarch64-c13n1 {
-        hardware ethernet 14:58:D0:58:95:22;
-        fixed-address 10.5.129.113;
-        next-server 10.5.126.41;
-        option host-name "aarch64-c13n1";
-        filename "grubaa64.efi";
-    }
-
-    host aarch64-c14n1 {
-        hardware ethernet 14:58:D0:58:75:32;
-        fixed-address 10.5.129.114;
-        next-server 10.5.126.41;
-        option host-name "aarch64-c14n1";
-        filename "grubaa64.efi";
-    }
-
-    host aarch64-c15n1 {
-        hardware ethernet 14:58:D0:58:C5:52;
-        fixed-address 10.5.129.115;
-        next-server 10.5.126.41;
-        option host-name "aarch64-c15n1";
-        filename "grubaa64.efi";
-    }
-
-    host aarch64-c16n1 {
-        hardware ethernet 14:58:D0:58:35:12;
-        fixed-address 10.5.129.116;
-        next-server 10.5.126.41;
-        option host-name "aarch64-c16n1";
-        filename "grubaa64.efi";
-    }
-
-    host aarch64-c17n1 {
-        hardware ethernet 14:58:D0:58:C4:F2;
-        fixed-address 10.5.129.117;
-        next-server 10.5.126.41;
-        option host-name "aarch64-c17n1";
-        filename "grubaa64.efi";
-    }
-
-    host aarch64-c18n1 {
-        hardware ethernet 14:58:D0:58:74:32;
-        fixed-address 10.5.129.118;
-        next-server 10.5.126.41;
-        option host-name "aarch64-c18n1";
-        filename "grubaa64.efi";
-    }
-
-    host aarch64-c19n1 {
-        hardware ethernet 14:58:D0:58:D4:12;
-        fixed-address 10.5.129.119;
-        next-server 10.5.126.41;
-        option host-name "aarch64-c19n1";
-        filename "grubaa64.efi";
-    }
-
-    host aarch64-c20n1 {
-        hardware ethernet 14:58:D0:58:E4:B2;
-        fixed-address 10.5.129.120;
-        next-server 10.5.126.41;
-        option host-name "aarch64-c20n1";
-        filename "grubaa64.efi";
-    }
-
-    host aarch64-c21n1 {
-        hardware ethernet 14:58:D0:58:E4:A2;
-        fixed-address 10.5.129.121;
-        next-server 10.5.126.41;
-        option host-name "aarch64-c21n1";
-        filename "grubaa64.efi";
-    }
-
-    host aarch64-c22n1 {
-        hardware ethernet 14:58:D0:58:25:02;
-        fixed-address 10.5.129.122;
-        next-server 10.5.126.41;
-        option host-name "aarch64-c22n1";
-        filename "grubaa64.efi";
-    }
-
-    host aarch64-c23n1 {
-        hardware ethernet 14:58:D0:58:05:72;
-        fixed-address 10.5.129.123;
-        next-server 10.5.126.41;
-        option host-name "aarch64-c23n1";
-        filename "grubaa64.efi";
-    }
-
-    host aarch64-c24n1 {
-        hardware ethernet 14:58:D0:58:35:C2;
-        fixed-address 10.5.129.124;
-        next-server 10.5.126.41;
-        option host-name "aarch64-c24n1";
-        filename "grubaa64.efi";
-    }
-
-    host aarch64-c25n1 {
-        hardware ethernet 14:58:D0:58:64:82;
-        fixed-address 10.5.129.125;
-        next-server 10.5.126.41;
-        option host-name "aarch64-c25n1";
-        filename "grubaa64.efi";
-    }
-
-}
 
