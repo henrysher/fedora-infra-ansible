@@ -348,6 +348,30 @@
   - rsyslogd
   - config
 
+# Custom selinux policy to allow rsyslog to read and send audit to log01
+- name: ensure a directory exists for our custom selinux module
+  file: dest=/usr/local/share/rsyslog state=directory
+  tags:
+  - rsyslogd
+  - config
+  - rsyslog-audit
+
+- name: copy over our custom selinux module
+  copy: src=selinux/rsyslog-audit.pp dest=/usr/local/share/rsyslog/rsyslog-audit.pp
+  register: selinux_module
+  tags:
+  - rsyslogd
+  - config
+  - rsyslog-audit
+
+- name: install our custom selinux module
+  command: semodule -i /usr/local/share/rsyslog/rsyslog-audit.pp
+  when: selinux_module|changed
+  tags:
+  - rsyslogd
+  - config
+  - rsyslog-audit
+
 - name: Setup postfix
   include: postfix.yml
 

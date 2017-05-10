@@ -12,3 +12,32 @@ datacenter: phx2
 
 # Need a eth0/eth1 install here.
 virt_install_command: "{{ virt_install_command_two_nic }}"
+
+# We override fedmsg_certs here because pkgs02.stg doesn't have pagure on it.
+# These are consumed by a task in roles/fedmsg/base/main.yml
+fedmsg_certs:
+- service: shell
+  owner: root
+  group: sysadmin
+  can_send:
+  - logger.log
+  - git.branch
+  - git.mass_branch.complete
+  - git.mass_branch.start
+  - git.pkgdb2branch.complete
+  - git.pkgdb2branch.start
+- service: scm
+  owner: root
+  group: packager
+  can_send:
+  - git.branch
+  - git.mass_branch.complete
+  - git.mass_branch.start
+  - git.pkgdb2branch.complete
+  - git.pkgdb2branch.start
+  - git.receive
+- service: lookaside
+  owner: root
+  group: apache
+  can_send:
+  - git.lookaside.new

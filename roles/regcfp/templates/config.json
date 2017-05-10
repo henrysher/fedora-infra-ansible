@@ -1,5 +1,6 @@
 {
   "production": {
+    "site_url": "https://register.flocktofedora.org",
     "theming": {
       "theme": "fedora",
       "site_name": "Flock 2016 Registration",
@@ -43,8 +44,15 @@
     },
 
     "auth": {
-      "module": "persona",
-      "persona_audience": "https://register.flocktofedora.org"
+      "module": "openid",
+      "openid_connect_providers": {
+        "fedora": {
+          "discovery_url": "https://id.fedoraproject.org/openidc/.well-known/openid-configuration",
+          "email_domain": "fedoraproject.org",
+          "client_id": "regcfp",
+          "client_secret": "{{ regcfp_openidc_secret}}"
+        }
+      }
     },
 
     "permissions": {
@@ -70,14 +78,16 @@
         "accept": ["pfrields@fedoraproject.org", "jwboyer@fedoraproject.org", "spot@fedoraproject.org"]
       },
       "registration": {
-        "register": [""],
+        "register": [],
         "pay": [],
         "request_receipt": [],
         "view_public": ["*authenticated*"],
-        "view_all": ["*authenticated*"],
+        "view_all": [""],
         "add_payment": [],
-        "print_badge": ["puiterwijk@fedoraproject.org", "pfrields@fedoraproject.org", "jwboyer@fedoraproject.org", "jzb@fedoraproject.org", "rsuehle@fedoraproject.org", "spot@fedoraproject.org", "decause@fedoraproject.org"],
-        "desk": ["puiterwijk@fedoraproject.org", "pfrields@fedoraproject.org", "jwboyer@fedoraproject.org", "jzb@fedoraproject.org", "rsuehle@fedoraproject.org", "spot@fedoraproject.org", "decause@fedoraproject.org"]
+        "print_badge": [],
+        "desk": [],
+        "cancel": [],
+        "cancel_all": []
       }
     },
     
@@ -95,39 +105,71 @@
       ]
     },
 
+
     "registration": {
       "enabled": true,
       "fields": {
+        "doc1": {
+          "type": "documentation",
+          "display_name": "",
+          "html": [
+            "We are excited to see you at this year's Flock!",
+            "We're doing things a little differently this year in order to make sure it is a",
+            "productive event that helps us achieve our goals as a community.",
+            "Explain regfee etc"
+          ],
+          "split": 0
+        },
         "country": {
           "display_name": "Country",
 	  "short_display_name": "Ctr",
-          "type": "country",
+          "type": "select",
           "required": true,
           "message": "This will be kept private",
           "private": true,
-          "placeholder": "Country of origin"
+          "placeholder": "Country of origin",
+          "options": [
+            "United States",
+            "Netherlands"
+          ],
+          "onchange": "javascript:update_regfee();",
+          "split": 0
         },
-	"subsidyreq": {
-	    "display_name": "Apply for sponsored funding for flight/hotel?",
-	    "short_display_name": "Sub",
-	    "type": "select",
-	    "required": true,
+        "regfee": {
+          "display_name": "Registration Fee",
+          "type": "string",
+          "required": true,
+          "private": true,
+          "placeholder": "25.00",
+          "readonly": true,
+          "split": 0
+        },
+        "reason": {
+          "display_name": "Why are you interested in attending flock?",
+          "type": "string",
+          "required": true,
+          "private": true,
+          "placeholder": "",
+          "split": 0
+        },
+
+        "ircnick": {
+          "display_name": "IRC Nickname",
+	  "short_display_name": "IRC",
+          "type": "string",
+          "required": false,
+          "private": false,
+          "placeholder": "IRC Nickname",
+          "split": 1
+        },
+	"badgeextra": {
+	    "display_name": "Extra line for badges (if available)",
+	    "short_display_name": "Badge",
+	    "type": "string",
+	    "required": false,
 	    "private": false,
 	    "placeholder": "",
-	    "options": [
-		"Yes", "No"
-	    ]
-	},
-	"inviteletter": {
-	    "display_name": "Do you need an invitation letter to attend?",
-	    "short_display_name": "Inv",
-	    "type": "select",
-	    "required": true,
-	    "private": false,
-	    "placeholder": "",
-	    "options": [
-		"Yes", "No"
-	    ]
+            "split": 1
 	},
 	"veg": {
 	  "display_name": "Vegetarian",
@@ -139,7 +181,8 @@
 	  "placeholder": "",
 	  "options": [
 	    "Yes", "No"
-	  ]
+	  ],
+          "split": 1
 	},
 	"dietary": {
 	  "display_name": "Medical dietary restrictions",
@@ -148,30 +191,20 @@
 	  "required": false,
           "message": "This will be kept private; note that no guarantees are made, but we will do our best",
 	  "private": true,
-	  "placeholder": ""
+	  "placeholder": "",
+          "split": 1
 	},
-	"volunteer": {
-	    "display_name": "Are you willing to work as a volunteer at the event?",
-	    "short_display_name": "Vol",
+	"inviteletter": {
+	    "display_name": "Do you need an invitation letter to attend?",
+	    "short_display_name": "Inv",
 	    "type": "select",
 	    "required": true,
-            "message": "This will be kept private",
-	    "private": true,
+	    "private": false,
 	    "placeholder": "",
 	    "options": [
 		"Yes", "No"
-	    ]
-	},
-	"family": {
-	    "display_name": "Are you bringing family with you to the location?",
-	    "short_display_name": "Fam",
-	    "type": "select",
-	    "required": true,
-	    "private": true,
-	    "placeholder": "",
-	    "options": [
-		"Yes", "No"
-	    ]
+	    ],
+            "split": 1
 	},
         "shirtsize": {
           "display_name": "T-shirt size",
@@ -194,110 +227,165 @@
 	    "Ladies M",
 	    "Ladies L",
 	    "Ladies XL"
-          ]
+          ],
+          "split": 1
         },
-	"roomshare": {
-	    "display_name": "Will you share a room?",
-	    "short_display_name": "RmSh",
-	    "type": "select",
+
+	"needassistance": {
+	    "display_name": "Do you need financial assistance in order to attend Flock?",
+	    "short_display_name": "Sub",
+	    "type": "boolean",
 	    "required": true,
-	    "private": false,
-	    "placeholder": "",
-	    "options": [
-		"Yes", "No"
-	    ]
+	    "private": true,
+            "split": 2
 	},
-	"roommate": {
-	    "display_name": "If sharing a room, enter a name if you know your roommate",
-	    "short_display_name": "RmWho",
-	    "type": "string",
-	    "required": false,
-	    "private": false,
-	    "placeholder": ""
-	},
-	"hotelbooked": {
-	    "display_name": "Have you booked, or will you book, your hotel reservation?",
-	    "short_display_name": "Bkd",
-	    "type": "select",
-	    "required": true,
-	    "private": false,
-	    "placeholder": "",
-	    "options": [
-		"Yes", "No"
-	    ]
-	},
-	"brnobus": {
-	    "display_name": "Are you interested in a bus from Brno, in case that option is offered?",
-	    "short_display_name": "Bus",
-	    "type": "select",
-	    "required": true,
-	    "private": false,
-	    "placeholder": "",
-	    "options": [
-		"Yes", "No"
-	    ]
-	},
-        "ircnick": {
-          "display_name": "IRC Nickname",
-	  "short_display_name": "IRC",
+
+        "sponsor_additional": {
+          "display_name": "Would you like to help sponsor a Fedora volunteer's attendance?",
+          "short_display_name": "Spon",
+          "type": "boolean",
+          "required": false,
+          "private": true,
+          "shownifnot": "needassistance",
+          "split": 2
+        },
+        "sponsor_additional_amount": {
+          "display_name": "Amount",
+          "short_display_name": "SponAmnt",
           "type": "string",
           "required": false,
-          "private": false,
-          "placeholder": "IRC Nickname"
+          "private": true,
+          "shownif": "sponsor_additional",
+          "split": 2
         },
-	"blog": {
-	    "display_name": "Blog URL",
-	    "short_display_name": "Blog",
-	    "type": "string",
-	    "required": false,
-	    "private": false,
-	    "placeholder": "https://example.com/blog"
-	},
-	"twitter": {
-	    "display_name": "Twitter handle",
-	    "short_display_name": "Twt",
-	    "type": "string",
-	    "required": false,
-	    "private": false,
-	    "placeholder": ""
-	},
-	"badgeextra": {
-	    "display_name": "Extra line for badges (if available)",
-	    "short_display_name": "Badge",
-	    "type": "string",
-	    "required": false,
-	    "private": false,
-	    "placeholder": ""
-	}
+
+        "travel_circumstances": {
+          "display_name": "If there are any...",
+          "short_display_name": "travel_circum",
+          "type": "string",
+          "required": false,
+          "private": true,
+          "shownif": "needassistance",
+          "split": 2
+        },
+        "flights_needed": {
+          "display_name": "My trip to flock requires air travel",
+          "type": "boolean",
+          "required": false,
+          "private": true,
+          "shownif": "needassistance",
+          "split": 2
+        },
+        "doc_flights": {
+          "display_name": "",
+          "type": "documentation",
+          "html": [
+            "Show calendar information here"
+          ],
+          "shownif": "flights_needed",
+          "split": 2
+        },
+        "flight_homeairport": {
+          "display_name": "Preferred home airport codes",
+          "type": "string",
+          "required": false,
+          "private": true,
+          "shownif": "flights_needed",
+          "split": 2
+        },
+        "flight_price": {
+          "display_name": "Estimated round-trip airfare (in USD)",
+          "type": "string",
+          "required": false,
+          "private": true,
+          "shownif": "flights_needed",
+          "split": 2
+        },
+        "busservice": {
+          "display_name": "Do you intend to use the Boston-to-Cape Cod bus service",
+          "type": "boolean",
+          "required": false,
+          "private": true,
+          "shownif": "needassistance",
+          "split": 2
+        },
+        "other_transit": {
+          "display_name": "Please describe any other transit-related costs you anticipate",
+          "type": "string",
+          "required": false,
+          "private": true,
+          "shownif": "needassistance",
+          "split": 2
+        },
+        "total_othertransit": {
+          "display_name": "Total cost of other estimated transit costs",
+          "type": "string",
+          "required": false,
+          "private": true,
+          "shownif": "needassistance",
+          "split": 2
+        },
+        "lodging_needed": {
+          "display_name": "I would like lodging to be part of my travel funding request",
+          "type": "boolean",
+          "required": false,
+          "private": true,
+          "shownif": "needassistance",
+          "split": 2
+        },
+        "lodging_doc": {
+          "display_name": "",
+          "type": "documentation",
+          "html": [
+            "Show lodging calendar and other info here..."
+          ],
+          "shownif": "lodgin_needed",
+          "split": 2
+        },
+        "lodging_nights": {
+          "display_name": "How many nights of lodging will you require to attend Flock?",
+          "type": "select",
+          "options": [
+            "1 night",
+            "2 nights",
+            "3 nights",
+            "4 nights",
+            "5 nights",
+            "other"
+          ],
+          "required": false,
+          "private": true,
+          "shownif": "lodging_needed",
+          "split": 2
+        },
+        "lodging_roommate": {
+          "display_name": "Do you have a preferred roommate?",
+          "type": "string",
+          "required": false,
+          "private": true,
+          "shownif": "lodging_needed",
+          "split": 2
+        }
       },
-
-
-
-
+      "max_split": 2,
       "payment_product_name": "My Event Registration Fee",
       "currencies": {
-        "EUR": {
-          "symbol": "€",
+        "USD": {
+          "symbol": "$",
           "min_amount_for_receipt": 20,
           "default_amount": 40,
           "conversion_rate": 1
-        },
-        "SEK": {
-          "symbol": "kr",
-          "min_amount_for_receipt": 190,
-          "default_amount": 380,
-          "conversion_rate": 0.11
         }
       },
-      "main_currency": "EUR",
+      "main_currency": "USD",
       "paypal_experience_profile": "",
       "desk_word": "something",
 
       "paypal": {
         "api_credentials": {
           "mode": "live",
-          "client_id": "",
-          "client_secret": ""
+          "client_id": "{{ regcfp_paypal_client_id }}",
+          "client_secret": "{{ regcfp_paypal_client_secret }}"
         },
 
         "profile": {
