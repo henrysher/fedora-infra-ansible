@@ -26,6 +26,7 @@
    - { role: sudo, tags: ['sudo'] }
    - { role: openvpn/client,
        when: deployment_type == "prod", tags: ['openvpn_client'] }
+   - postgresql_server
    - apache
    - { role: fedmsg/base }
 
@@ -34,6 +35,25 @@
   - include: "{{ tasks_path }}/yumrepos.yml"
   - include: "{{ tasks_path }}/2fa_client.yml"
   - include: "{{ tasks_path }}/motd.yml"
+
+  handlers:
+   - include: "{{ handlers_path }}/restart_services.yml"
+
+- name: configure resultsdb production
+  hosts: ci
+  user: root
+  gather_facts: True
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  roles:
+   - { role: taskotron/resultsdb-fedmsg, tags: ['resultsdb-fedmsg']}
+   - { role: taskotron/resultsdb-backend, tags: ['resultsdb-be'] }
+   - { role: taskotron/resultsdb-frontend, tags: ['resultsdb-fe'] }
+   - { role: taskotron/execdb, tags: ['execdb'] }
 
   handlers:
    - include: "{{ handlers_path }}/restart_services.yml"

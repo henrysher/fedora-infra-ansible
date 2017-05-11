@@ -1,0 +1,78 @@
+---
+############################################################
+# general information
+############################################################
+# common items for the releng-* boxes
+lvm_size: 50000
+mem_size: 4096
+num_cpus: 4
+# for systems that do not match the above - specify the same parameter in
+# the host_vars/$hostname file
+
+tcp_ports: [ 80, 443, "{{ resultsdb_db_port }}" ]
+fas_client_groups: sysadmin-qa,sysadmin-noc,sysadmin-web
+nrpe_procs_warn: 250
+nrpe_procs_crit: 300
+
+external_hostname: resultsdb.ci.centos.org
+deployment_type: prod
+
+
+############################################################
+# resultsdb details
+############################################################
+
+# the db_host_machine bits are so that delegation continues to work, even if
+# that db is localhost relative to resultsdb
+
+resultsdb_db_host_machine: ci-cc-rdu01.fedoraproject.org
+resultsdb_db_host: "{{ resultsdb_db_host_machine }}"
+resultsdb_db_port: 5432
+resultsdb_endpoint: 'resultsdb_api'
+resultsdb_db_name: resultsdb
+resultsdb_db_user: "{{ ci_resultsdb_db_user }}"
+resultsdb_db_password: "{{ ci_resultsdb_db_password }}"
+resultsdb_secret_key: "{{ ci_resultsdb_secret_key }}"
+
+allowed_hosts:
+    - 10.5.124
+    - 10.5.131
+
+
+############################################################
+# resultsdb-frontend details
+############################################################
+resultsdb_fe_endpoint: "resultsdb"
+resultsdb_frontend_secret_key: "{{ ci_resultsdb_frontend_secret_key }}"
+
+
+###########################################################
+# execdb details
+############################################################
+execdb_db_host_machine: ci-cc-rdu01.fedoraproject.org
+execdb_db_host: "{{ execdb_db_host_machine }}"
+execdb_db_port: 5432
+execdb_endpoint: 'execdb'
+execdb_db_name: execdb
+execdb_db_user: "{{ ci_execdb_db_user }}"
+execdb_db_password: "{{ ci_execdb_db_password }}"
+execdb_secret_key: "{{ ci_execdb_secret_key }}"
+
+
+############################################################
+# fedmsg details
+############################################################
+fedmsg_active: False
+fedmsg_cert_prefix: ci.resultsdb
+
+fedmsg_certs:
+- service: shell
+  owner: root
+  group: sysadmin
+  can_send:
+  - logger.log
+- service: resultsdb
+  owner: root
+  group: apache
+  can_send:
+  - taskotron.result.new
