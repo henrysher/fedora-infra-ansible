@@ -23,6 +23,11 @@
     - sudo
 
   tasks:
+    - name: Deploy controller public ssh keys to osbs cluster hosts
+      authorized_key:
+        user: root
+        key: "{{ lookup('file', '{{private}}/files/os/{{env}}/control_key.pub') }}"
+
     - include: "{{ tasks_path }}/yumrepos.yml"
     - include: "{{ tasks_path }}/2fa_client.yml"
     - include: "{{ tasks_path }}/motd.yml"
@@ -73,10 +78,10 @@
     - {
       role: ansible-ansible-openshift-ansible,
         cluster_inventory_filename: "cluster-inventory-stg",
-        openshift_release: "v3.5",
+        openshift_release: "v3.4",
         openshift_ansible_path: "/root/openshift-ansible",
         openshift_ansible_playbook: "playbooks/byo/config.yml",
-        openshift_ansible_version: "openshift-ansible-3.5.69-1",
+        openshift_ansible_version: "openshift-ansible-3.4.88-1",
         openshift_ansible_ssh_user: root,
         openshift_ansible_install_examples: true,
         openshift_ansible_containerized_deploy: true,
