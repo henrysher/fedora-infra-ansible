@@ -155,12 +155,12 @@ openshift_master_identity_providers=[{'name': 'htpasswd_auth', 'login': 'true', 
 #openshift_master_htpasswd_file=<path to local pre-generated htpasswd file>
 
 # OSBS Specific Auth
-{% if openshift_auth_profile="osbs" %}
+{% if openshift_auth_profile == "osbs" %}
 openshift_master_manage_htpasswd=false
 openshift_master_identity_providers=[{'name': 'htpasswd_auth', 'login': 'true', 'challenge': 'true', 'kind': 'HTPasswdPasswordIdentityProvider', 'filename': '{{ openshift_htpasswd_file }}'}]
 {% endif %}
 
-{% if openshift_auth_profile="fedoraidp" %}
+{% if openshift_auth_profile == "fedoraidp" %}
 openshift_master_identity_providers=[{"name": "fedoraidp", "login": "true", "challenge": "false", "kind": "OpenIDIdentityProvider", "client_id": "openshift", "client_secret": "{{openshift_client_secret}}", "claims": {"id": ["sub"], "preferredUsername": ["sub"], "name": ["name"], "email": ["email"]}, "urls": {"authorize": "https://id{{env_suffix}}.fedoraproject.org/openidc/Authorization", "token": "https://id{{env_suffix}}.fedoraproject.org/openidc/Token"}, "userInfo": "https://id{{env_suffix}}.fedoraproject.org/openidc/UserInfo"}]
 {% endif %}
 
@@ -581,7 +581,7 @@ openshift_master_default_subdomain={{openshift_app_subdomain}}
 # the CIDRs reserved for external IPs, nodes, pods, or services.
 #openshift_master_ingress_ip_network_cidr=172.46.0.0/16
 
-# Configure number of bits to allocate to each host’s subnet e.g. 9
+# Configure number of bits to allocate to each host's subnet e.g. 9
 # would mean a /23 network on the host.
 #osm_host_subnet_length=9
 
