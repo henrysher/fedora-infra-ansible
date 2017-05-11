@@ -147,8 +147,6 @@ openshift_install_examples={{openshift_ansible_install_examples}}
 # Additional yum repos to install
 #openshift_additional_repos=[{'id': 'ose-devel', 'name': 'ose-devel', 'baseurl': 'http://example.com/puddle/build/AtomicOpenShift/3.1/latest/RH7-RHOSE-3.0/$basearch/os', 'enabled': 1, 'gpgcheck': 0}]
 
-# htpasswd auth
-openshift_master_identity_providers=[{'name': 'htpasswd_auth', 'login': 'true', 'challenge': 'true', 'kind': 'HTPasswdPasswordIdentityProvider', 'filename': '/etc/origin/master/htpasswd'}]
 # Defining htpasswd users
 #openshift_master_htpasswd_users={'user1': '<pre-hashed password>', 'user2': '<pre-hashed password>'}
 # or
@@ -165,7 +163,7 @@ openshift_master_identity_providers=[{"name": "fedoraidp", "login": "true", "cha
 {% endif %}
 
 {% if openshift_auth_profile == "fedoraidp-stg" %}
-openshift_master_identity_providers=[{"name": "fedoraidp", "login": "true", "challenge": "false", "kind": "OpenIDIdentityProvider", "client_id": "openshift", "client_secret": "{{openshift_stg_client_secret}}", "claims": {"id": ["sub"], "preferredUsername": ["sub"], "name": ["name"], "email": ["email"]}, "urls": {"authorize": "https://id{{env_suffix}}.fedoraproject.org/openidc/Authorization", "token": "https://id{{env_suffix}}.fedoraproject.org/openidc/Token"}, "userInfo": "https://id{{env_suffix}}.fedoraproject.org/openidc/UserInfo"}]
+openshift_master_identity_providers=[{"name": "fedoraidp", "login": "true", "challenge": "false", "kind": "OpenIDIdentityProvider", "client_id": "openshift", "client_secret": "{{openshift_stg_client_secret}}", "claims": {"id": ["sub"], "preferredUsername": ["sub"], "name": ["name"], "email": ["email"]}, "urls": {"authorize": "https://id{{env_suffix}}.fedoraproject.org/openidc/Authorization", "token": "https://id{{env_suffix}}.fedoraproject.org/openidc/Token", "userInfo": "https://id{{env_suffix}}.fedoraproject.org/openidc/UserInfo"}}]
 {% endif %}
 
 # Allow all auth
@@ -213,6 +211,7 @@ openshift_master_identity_providers=[{"name": "fedoraidp", "login": "true", "cha
 # or
 #openshift_master_request_header_ca_file=<path to local ca file to use>
 
+{% if openshift_master_ha is defined %}
 {% if openshift_master_ha %}
 # Native high availability cluster method with optional load balancer.
 # If no lb group is defined, the installer assumes that a load balancer has
@@ -223,6 +222,7 @@ openshift_master_identity_providers=[{"name": "fedoraidp", "login": "true", "cha
 openshift_master_cluster_method=native
 openshift_master_cluster_hostname={{openshift_cluster_url}}
 openshift_master_cluster_public_hostname={{openshift_cluster_url}}
+{% endif %}
 {% endif %}
 
 # Override the default controller lease ttl
