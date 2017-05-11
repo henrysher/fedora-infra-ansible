@@ -33,7 +33,7 @@ ansible_become=yes
 debug_level={{openshift_debug_level}}
 
 # Specify the deployment type. Valid values are origin and openshift-enterprise.
-openshift_deployment_type={{openshift_deployment_type}}
+deployment_type={{openshift_deployment_type}}
 
 # Specify the generic release of OpenShift to install. This is used mainly just during installation, after which we
 # rely on the version running on the first master. Works best for containerized installs where we can usually
@@ -235,7 +235,11 @@ openshift_master_cluster_public_hostname={{openshift_cluster_url}}
 #osm_api_server_args={'max-requests-inflight': ['400']}
 
 # default subdomain to use for exposed routes
+{% if openshift_app_subdomain is defined %}
+{% if openshift_app_subdomain %}
 openshift_master_default_subdomain={{openshift_app_subdomain}}
+{% endif %}
+{% endif %}
 
 # additional cors origins
 #osm_custom_cors_origins=['foo.example.com', 'bar.example.com']
