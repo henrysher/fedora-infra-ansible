@@ -164,6 +164,10 @@ openshift_master_identity_providers=[{'name': 'htpasswd_auth', 'login': 'true', 
 openshift_master_identity_providers=[{"name": "fedoraidp", "login": "true", "challenge": "false", "kind": "OpenIDIdentityProvider", "client_id": "openshift", "client_secret": "{{openshift_client_secret}}", "claims": {"id": ["sub"], "preferredUsername": ["sub"], "name": ["name"], "email": ["email"]}, "urls": {"authorize": "https://id{{env_suffix}}.fedoraproject.org/openidc/Authorization", "token": "https://id{{env_suffix}}.fedoraproject.org/openidc/Token"}, "userInfo": "https://id{{env_suffix}}.fedoraproject.org/openidc/UserInfo"}]
 {% endif %}
 
+{% if openshift_auth_profile == "fedoraidp-stg" %}
+openshift_master_identity_providers=[{"name": "fedoraidp", "login": "true", "challenge": "false", "kind": "OpenIDIdentityProvider", "client_id": "openshift", "client_secret": "{{openshift_stg_client_secret}}", "claims": {"id": ["sub"], "preferredUsername": ["sub"], "name": ["name"], "email": ["email"]}, "urls": {"authorize": "https://id{{env_suffix}}.fedoraproject.org/openidc/Authorization", "token": "https://id{{env_suffix}}.fedoraproject.org/openidc/Token"}, "userInfo": "https://id{{env_suffix}}.fedoraproject.org/openidc/UserInfo"}]
+{% endif %}
+
 # Allow all auth
 #openshift_master_identity_providers=[{'name': 'allow_all', 'login': 'true', 'challenge': 'true', 'kind': 'AllowAllPasswordIdentityProvider'}]
 
