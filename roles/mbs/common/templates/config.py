@@ -147,6 +147,9 @@ class ProdConfiguration(BaseConfiguration):
 
     NUM_CONSECUTIVE_BUILDS = 20
 
+    # Delete module-* targets one hour after build
+    KOJI_TARGET_DELETE_TIME = 3600
+
     # These aren't really secret.
     OIDC_CLIENT_SECRETS = path.join(confdir, 'client_secrets.json')
     OIDC_REQUIRED_SCOPE = 'https://mbs.fedoraproject.org/oidc/submit-build'
