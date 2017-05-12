@@ -784,6 +784,24 @@ openshift_master_console_port={{openshift_console_port}}
 {{ host }}
 {% endfor %}
 
+{% if openshift_shared_infra is defined %}
+{% if openshift_shared_infra %}
+
+[lb]
+{% for host in groups[openshift_cluster_nodes_group] %}
+{{ host }} containerized=false
+{% endfor %}
+
+[nodes]
+{% for host in groups[openshift_cluster_masters_group] %}
+{{ host }} openshift_schedulable=False
+{% endfor %}
+{% for host in groups[openshift_cluster_nodes_group] %}
+{{ host }} openshift_node_labels="{'region': 'infra', 'zone': 'default'}"
+{% endfor %}
+
+{% else %}
+
 [lb]
 {% for host in groups[openshift_cluster_infra_group] %}
 {{ host }} containerized=false
@@ -799,3 +817,25 @@ openshift_master_console_port={{openshift_console_port}}
 {% for host in groups[openshift_cluster_nodes_group] %}
 {{ host }} openshift_node_labels="{'region': 'primary', 'zone': 'default'}"
 {% endfor %}
+
+{% endif %}
+
+{% else %}
+
+[lb]
+{% for host in groups[openshift_cluster_infra_group] %}
+{{ host }} containerized=false
+{% endfor %}
+
+[nodes]
+{% for host in groups[openshift_cluster_infra_group] %}
+{{ host }} openshift_node_labels="{'region':'infra'}"
+{% endfor %}
+{% for host in groups[openshift_cluster_masters_group] %}
+{{ host }} openshift_schedulable=False
+{% endfor %}
+{% for host in groups[openshift_cluster_nodes_group] %}
+{{ host }} openshift_node_labels="{'region': 'primary', 'zone': 'default'}"
+{% endfor %}
+
+{% endif %}
