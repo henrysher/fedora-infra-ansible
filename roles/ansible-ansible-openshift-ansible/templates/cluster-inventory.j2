@@ -8,7 +8,6 @@
 masters
 nodes
 etcd
-lb
 
 # Add this if using nfs and have defined the nfs group
 #nfs
@@ -787,11 +786,6 @@ openshift_master_console_port={{openshift_console_port}}
 {% if openshift_shared_infra is defined %}
 {% if openshift_shared_infra %}
 
-[lb]
-{% for host in groups[openshift_cluster_masters_group] %}
-{{ host }} containerized=false
-{% endfor %}
-
 [nodes]
 {% for host in groups[openshift_cluster_masters_group] %}
 {{ host }} openshift_schedulable=False
@@ -801,11 +795,6 @@ openshift_master_console_port={{openshift_console_port}}
 {% endfor %}
 
 {% else %}
-
-[lb]
-{% for host in groups[openshift_cluster_infra_group] %}
-{{ host }} containerized=false
-{% endfor %}
 
 [nodes]
 {% for host in groups[openshift_cluster_infra_group] %}
@@ -821,11 +810,6 @@ openshift_master_console_port={{openshift_console_port}}
 {% endif %}
 
 {% else %}
-
-[lb]
-{% for host in groups[openshift_cluster_infra_group] %}
-{{ host }} containerized=false
-{% endfor %}
 
 [nodes]
 {% for host in groups[openshift_cluster_infra_group] %}
