@@ -65,9 +65,9 @@
 #  - restart openvpn (RHEL6)
   when: ( ansible_distribution_major_version|int == 6 or ansible_distribution_major_version|int == 24) and ansible_cmdline.ostree is not defined
 
-- name: enable openvpn service for rhel 6
+- name: enable openvpn service for rhel 6 or fedora 24
   service: name=openvpn state=started enabled=true
-  when: ansible_distribution_major_version|int == 6
+  when: ansible_distribution_major_version|int == 6 or ansible_distribution_major_version|int == 24
   tags:
   - service
   - openvpn
@@ -88,14 +88,14 @@
 
 - name: disable old openvpn service for Fedora
   service: name=openvpn@openvpn state=stopped enabled=false
-  when: is_fedora is defined
+  when: is_fedora is defined and ansible_distribution_major_version|int != 24
   tags:
   - service
   - openvpn
 
 - name: enable openvpn service for Fedora
   service: name=openvpn-client@openvpn state=started enabled=true
-  when: is_fedora is defined
+  when: is_fedora is defined and ansible_distribution_major_version|int != 24
   tags:
   - service
   - openvpn
