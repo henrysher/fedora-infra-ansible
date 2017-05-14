@@ -25,7 +25,7 @@
         owner=root group=root mode={{ item.mode }}
   with_items:
   - { file: client.conf,
-      dest: /etc/openvpn/openvpn.conf,
+      dest: /etc/openvpn/client/openvpn.conf,
       mode: '0644' }
   - { file: "{{ private }}/files/vpn/openvpn/keys/{{ inventory_hostname }}.crt",
       dest: "/etc/openvpn/client.crt",
@@ -48,17 +48,30 @@
   - service
   - openvpn
 
-- name: Make sure openvpn is running in rhel 7.1
-  service: name=openvpn@openvpn state=started enabled=true
+- name: Make sure old openvpn is not running in rhel 7
+  service: name=openvpn@openvpn state=stopped enabled=false
   when: ansible_distribution_major_version|int == 7
   tags:
   - service
   - openvpn
 
-- name: enable openvpn service for Fedora
-  service: name=openvpn@openvpn state=started enabled=true
+- name: Make sure openvpn is running in rhel 7
+  service: name=openvpn-client@openvpn state=started enabled=true
+  when: ansible_distribution_major_version|int == 7
+  tags:
+  - service
+  - openvpn
+
+- name: disable old openvpn service for Fedora
+  service: name=openvpn@openvpn state=stopped enabled=false
   when: is_fedora is defined
   tags:
   - service
   - openvpn
 
+- name: enable openvpn service for Fedora
+  service: name=openvpn-client@openvpn state=started enabled=true
+  when: is_fedora is defined
+  tags:
+  - service
+  - openvpn
