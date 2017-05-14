@@ -17,7 +17,7 @@
   - packages
   when: ansible_distribution_major_version|int > 7 and ansible_cmdline.ostree is not defined
 
-- name: Install certificate and key (rhel6)
+- name: Install certificate and key (rhel6 and fedora24 and older)
   copy: src={{ private }}/files/vpn/openvpn/keys/ca.crt
         dest=/etc/openvpn/ca.crt
         owner=root group=root mode=0600
@@ -28,7 +28,7 @@
   #- restart openvpn (Fedora)
   #- restart openvpn (RHEL7)
   #- restart openvpn (RHEL6)
-  when: ansible_distribution_major_version|int < 7
+  when: ansible_distribution_major_version|int < 25
 
 - name: Install certificate and key (rhel7 or fedora) for client
   copy: src={{ private }}/files/vpn/openvpn/keys/ca.crt
@@ -54,7 +54,7 @@
   #- restart openvpn (Fedora)
   #- restart openvpn (RHEL7)
   #- restart openvpn (RHEL6)
-  when: ansible_distribution_major_version|int > 6 and ansible_cmdline.ostree is not defined
+  when: inventory_hostname.startswith('bastion0')
 
 - name: install fix-routes.sh script
   copy: src=fix-routes.sh
