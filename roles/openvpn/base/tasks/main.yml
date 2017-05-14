@@ -30,9 +30,22 @@
   #- restart openvpn (RHEL6)
   when: ansible_distribution_major_version|int < 7
 
-- name: Install certificate and key (rhel7 or fedora)
+- name: Install certificate and key (rhel7 or fedora) for client
   copy: src={{ private }}/files/vpn/openvpn/keys/ca.crt
         dest=/etc/openvpn/client/ca.crt
+        owner=root group=root mode=0600
+  tags:
+  - install
+  - openvpn
+  #notify:
+  #- restart openvpn (Fedora)
+  #- restart openvpn (RHEL7)
+  #- restart openvpn (RHEL6)
+  when: ansible_distribution_major_version|int > 6 and ansible_cmdline.ostree is not defined
+
+- name: Install certificate and key (rhel7 or fedora) for server
+  copy: src={{ private }}/files/vpn/openvpn/keys/ca.crt
+        dest=/etc/openvpn/server/ca.crt
         owner=root group=root mode=0600
   tags:
   - install
