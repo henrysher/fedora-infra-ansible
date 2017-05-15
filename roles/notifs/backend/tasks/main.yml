@@ -1,10 +1,15 @@
 ---
 # Configuration for the notifications consumer
 
+- name: remove new fmn
+  yum: pkg=python2-fmn state=absent
+
 - name: install needed packages
   yum: pkg={{ item }} state=present
   with_items:
-  - python-fmn
+  - python-fmn-consumer
+  - python-fmn-lib
+  - python-fmn-rules
   - python-psycopg2
   - libsemanage-python
   # Needed to produce nice long emails about koji builds
@@ -16,6 +21,7 @@
 - name: install backend and sse packages
   yum: pkg={{ item }} state=present
   with_items:
+  - python-fmn
   - python-fmn-sse
   when: env == "staging"
   tags:
@@ -49,8 +55,20 @@
 
 - name: copy the alembic configuration for DBAs
   template: >
+    src=alembic.ini dest=/usr/share/fmn.lib/alembic.ini
+    owner=root group=sysadmin-dba mode=0660
+  when: env != "staging"
+  notify:
+  - restart fedmsg-hub
+  tags:
+  - notifs
+  - notifs/backend
+
+- name: copy the alembic configuration for DBAs
+  template: >
     src=alembic.ini dest=/usr/share/fmn/alembic.ini
     owner=root group=sysadmin-dba mode=0660
+  when: env == "staging"
   notify:
   - restart fedmsg-hub
   tags:
