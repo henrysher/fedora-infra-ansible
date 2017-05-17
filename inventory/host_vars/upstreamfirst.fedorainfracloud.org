@@ -1,15 +1,14 @@
 ---
 
+############################################################
+# Persistent Cloud
+############################################################
+
 instance_type: m1.medium
 image: CentOS-7-x86_64-GenericCloud-1503
 keypair: fedora-admin-20130801
 security_group: default  # NOTE: security_group MUST contain default.
 zone: nova
-tcp_ports: [ 22, 25, 80, 443, 9418,
-    # Used for the eventsource server
-    8088,
-    # This is for the pagure public fedmsg relay
-    9940]
 
 inventory_tenant: persistent
 inventory_instance_name: upstreamfirst
@@ -26,25 +25,51 @@ volumes:
 cloud_networks:
   # persistent-net
   - net-id: "67b77354-39a4-43de-b007-bb813ac5c35f"
-#
+
+############################################################
+# General configuration
+############################################################
+
+tcp_ports: [ 22, 25, 80, 443, 9418,
+    # Used for the eventsource server
+    8088,
+    # This is for the pagure public fedmsg relay
+    9940]
+
+external_hostname: 'upstreamfirst.fedorainfracloud.org'
+
+############################################################
 # PostgreSQL configuration
-#
+############################################################
 
 shared_buffers: "2GB"
 effective_cache_size: "6GB"
 
-#
-# Pagure Config
-#
 
-pagure_db_admin_user: "{{ upstreamfirst_pagure_db_admin_user }}"
-pagure_db_admin_pass: "{{ upstreamfirst_pagure_db_admin_pass }}"
-pagure_db_user:  "{{ upstreamfirst_pagure_db_user }}"
-pagure_db_pass:  "{{ upstreamfirst_pagure_db_pass }}"
-pagure_db_host:  "{{ upstreamfirst_pagure_db_host }}"
-pagure_db_name:  "{{ upstreamfirst_pagure_db_name }}"
-pagure_secret_key: "{{ upstreamfirst_pagure_db_admin_user }}"
-pagure_secret_salt_email: "{{ upstreamfirst_pagure_secret_salt_email }}"
+############################################################
+# Pagure Config
+############################################################
+
+
+new_pagure_db_admin_user: "{{ upstreamfirst_pagure_db_admin_user }}"
+new_pagure_db_admin_pass: "{{ upstreamfirst_pagure_db_admin_pass }}"
+new_pagure_db_user:  "{{ upstreamfirst_pagure_db_user }}"
+new_pagure_db_pass:  "{{ upstreamfirst_pagure_db_pass }}"
+new_pagure_db_host:  "{{ upstreamfirst_pagure_db_host }}"
+new_pagure_db_name:  "{{ upstreamfirst_pagure_db_name }}"
+new_pagure_secret_key: "{{ upstreamfirst_pagure_db_admin_user }}"
+new_pagure_secret_salt_email: "{{ upstreamfirst_pagure_secret_salt_email }}"
+
+pagure_admin_email: 'tflink@fedoraproject.org'
+
+pagure_ssh_host_pubkey: 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC/bYFmX8pthJHcM2J85+mmN8pGJ/EJMcsdwoazihcooIBONcUazYF/BVV5/3nK7H3shq2nLR7vmdd2NuFHOPNsaAMK6nlADEg2tsKMC3UHHnwo1/iIO21pvf7+w2KIKCNIhiYA70W1aIxFBMZ7oo0VXjZ19PBwg6huAh0CBrLBP+XU4QN6LgLd87T5qMN/7g/QVqDforeoL8NUSQXMfzYNbxXPdRvMc5vbEMS/QNu5I8Ycu6FDqChnWc5Qd2orVCNreEMKwkgW27+FTpxzAnq3avotb0Cv1WuZjd8q402ldvp+ELcS8WHc+Mx41KaR//QTlSIYeX4OlcX/pl6C+Sdz'
+
+# ssh-keygen -lf /etc/ssh/ssh_host_rsa_key.pub
+pagure_ssh_host_fingerprint: '2048 6b:d8:48:27:5a:11:d1:14:e0:c1:91:23:45:c7:fb:6d   (RSA)'
+
+# awk '{print $2}' /etc/ssh/ssh_host_rsa_key.pub | base64 -d | sha256sum -b | awk '{print $1}' | xxd -r -p | base64_
+pagure_ssh_host_sha256: 'SHA256:ggRdzg+ugyR6WIzeiuyASAdEHf+HG5yZqJJIu/YTtHI='
+
 
 stunnel_service: "eventsource"
 stunnel_source_port: 8088
