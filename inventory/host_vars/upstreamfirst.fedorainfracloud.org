@@ -1,0 +1,98 @@
+---
+
+instance_type: m1.medium
+image: CentOS-7-x86_64-GenericCloud-1503
+keypair: fedora-admin-20130801
+security_group: default  # NOTE: security_group MUST contain default.
+zone: nova
+tcp_ports: [ 22, 25, 80, 443, 9418,
+    # Used for the eventsource server
+    8088,
+    # This is for the pagure public fedmsg relay
+    9940]
+
+inventory_tenant: persistent
+inventory_instance_name: upstreamfirst
+hostbase: upstreamfirst
+public_ip: 209.132.184.153
+root_auth_users:  tflink roshi
+description: upstream-first pagure server
+security_group: ssh-anywhere-persistent,web-443-anywhere-persistent,web-80-anywhere-persistent,default,all-icmp-persistent,mail-25-anywhere-persistent,allow-nagios-persistent,fedmsg-relay-persistent,pagure-ports
+
+volumes:
+  - volume_id: 81c1cb3e-5fb0-4abd-a252-b0102f1378de
+    device: /dev/vdc
+
+cloud_networks:
+  # persistent-net
+  - net-id: "67b77354-39a4-43de-b007-bb813ac5c35f"
+
+stunnel_service: "eventsource"
+stunnel_source_port: 8088
+stunnel_destination_port: 8080
+
+# not doing anything with fedmsg right now
+## These are consumed by a task in roles/fedmsg/base/main.yml
+#fedmsg_certs:
+#- service: shell
+#  owner: root
+#  group: sysadmin
+#  can_send:
+#  - logger.log
+#- service: pagure
+#  owner: git
+#  group: apache
+#  can_send:
+#  - pagure.issue.assigned.added
+#  - pagure.issue.assigned.reset
+#  - pagure.issue.comment.added
+#  - pagure.issue.dependency.added
+#  - pagure.issue.dependency.removed
+#  - pagure.issue.edit
+#  - pagure.issue.new
+#  - pagure.issue.tag.added
+#  - pagure.issue.tag.removed
+#  - pagure.project.edit
+#  - pagure.project.forked
+#  - pagure.project.new
+#  - pagure.project.tag.edited
+#  - pagure.project.tag.removed
+#  - pagure.project.user.added
+#  - pagure.pull-request.closed
+#  - pagure.pull-request.comment.added
+#  - pagure.pull-request.flag.added
+#  - pagure.pull-request.flag.updated
+#  - pagure.request.assigned.added
+#  - pagure.pull-request.new
+#
+#fedmsg_prefix: io.pagure
+#fedmsg_env: stg
+
+fas_client_groups: sysadmin-noc,sysadmin-web,sysadmin-qa
+
+freezes: false
+#env: pagure-staging
+#postfix_group: vpn.pagure-stg
+
+# Configuration for the git-daemon/server
+git_group: git
+git_port: 9418
+git_server: /usr/libexec/git-core/git-daemon
+git_server_args: --export-all --syslog --inetd --verbose
+git_basepath: /srv/git/repositories
+git_daemon_user: git
+
+# For the MOTD
+csi_security_category: Low
+csi_primary_contact: Fedora admins - admin@fedoraproject.org
+csi_purpose: Stage testcases being submitted upstream to Fedora
+csi_relationship: |
+    There are a few things running here:
+
+    - The apache/mod_wsgi app for pagure
+
+    - This host relies on:
+      - A postgres db server running locally
+
+    - Things that rely on this host:
+      - nothing currently
