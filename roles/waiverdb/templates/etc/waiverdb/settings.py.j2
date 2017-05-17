@@ -1,6 +1,6 @@
-{% if env == "production" %}
+{% if deployment_type == "prod" %}
 SECRET_KEY = '{{ prod_waiverdb_secret_key }}'
-{% elif env == "staging" %}
+{% elif deployment_type == "stg" %}
 SECRET_KEY = '{{ stg_waiverdb_secret_key }}'
 {% else %}
 SECRET_KEY = '{{ dev_waiverdb_secret_key }}'
@@ -9,8 +9,6 @@ SQLALCHEMY_DATABASE_URI = 'postgresql://waiverdb-user@:{{ waiverdb_db_port }}/wa
 OIDC_CLIENT_SECRETS = '/etc/waiverdb/client_secrets.json'
 OIDC_REQUIRED_SCOPE = 'https://waiverdb.fedoraproject.org/oidc/create-waiver'
 OIDC_RESOURCE_SERVER_ONLY = True
-{% if env == "production" or env == "staging" %}
-ZEROMQ_PUBLISH = True
-{% else %}
+{% if deployment_type == "dev" %}
 ZEROMQ_PUBLISH = False
 {% endif %}
