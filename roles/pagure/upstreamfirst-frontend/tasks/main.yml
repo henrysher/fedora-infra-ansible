@@ -213,12 +213,18 @@
   become: true
   become_user: postgres
   postgresql_db: db={{ new_pagure_db_name }}
+  tags:
+  - web
+  - pagure
 
 - name: ensure pagure db user has access to database
   delegate_to: "{{ new_pagure_db_host }}"
   become: true
   become_user: postgres
   postgresql_user: db={{ new_pagure_db_name }} user={{ new_pagure_db_user }} password={{ new_pagure_db_password }} role_attr_flags=NOSUPERUSER
+  tags:
+  - web
+  - pagure
 
 - name: create the database scheme
   command: /usr/bin/python2 /usr/share/pagure/pagure_createdb.py
