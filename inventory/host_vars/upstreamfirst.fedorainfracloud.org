@@ -55,7 +55,14 @@ new_pagure_db_admin_user: "{{ upstreamfirst_pagure_db_admin_user }}"
 new_pagure_db_admin_pass: "{{ upstreamfirst_pagure_db_admin_pass }}"
 new_pagure_db_user:  "{{ upstreamfirst_pagure_db_user }}"
 new_pagure_db_pass:  "{{ upstreamfirst_pagure_db_pass }}"
-new_pagure_db_host:  "{{ inventory_hostname }}"
+
+# there are two db hosts here to work around the pg_hba that's in postgres_server
+# we need to delegate postgres admin commands to a host that is remote from where
+# this playbook is run but have to use localhost for the application to run in the
+# case where we're using a local postgres instance
+new_pagure_db_host:  "127.0.0.1"
+new_pagure_db_command_host:  "{{ inventory_hostname }}"
+
 new_pagure_db_name:  "{{ upstreamfirst_pagure_db_name }}"
 new_pagure_secret_key: "{{ upstreamfirst_pagure_db_admin_user }}"
 new_pagure_secret_salt_email: "{{ upstreamfirst_pagure_secret_salt_email }}"
