@@ -3,9 +3,10 @@
     "site_url": "https://register.flocktofedora.org",
     "theming": {
       "theme": "fedora",
-      "site_name": "Flock 2016 Registration",
-      "event_name": "Flock 2016",
-      "logo": ""
+      "site_name": "Flock 2017 Registration",
+      "event_name": "Flock 2017",
+      "logo": "",
+      "event_location": "Hyannis, Cape Cod"
     },
     "secret": "{{ regcfp_secret }}",
     "database": {
@@ -58,18 +59,18 @@
     "permissions": {
       "admin": ["puiterwijk@fedoraproject.org", "pfrields@fedoraproject.org", "jwboyer@fedoraproject.org", "duffy@fedoraproject.org", "decause@fedoraproject.org", "spot@fedoraproject.org", "robyduck@fedoraproject.org", "rsuehle@fedoraproject.org", "mattdm@fedoraproject.org"],
       "papers": {
-        "submit": [],
+        "submit": ["*authenticated*"],
         "list": {
           "accepted": ["jwboyer@fedoraproject.org", "spot@fedoraproject.org"],
           "own": ["*authenticated*"],
           "all": ["pfrields@fedoraproject.org", "jwboyer@fedoraproject.org", "rsuehle@fedoraproject.org", "duffy@fedoraproject.org", "mattdm@fedoraproject.org", "decause@fedoraproject.org", "robyduck@fedoraproject.org", "spot@fedoraproject.org"]
         },
         "edit": {
-          "own": [],
+          "own": ["*authenticated*"],
           "all": ["jwboyer@fedoraproject.org", "pfrields@fedoraproject.org", "spot@fedoraproject.org"]
         },
         "delete": {
-          "own": [],
+          "own": ["*authenticated*"],
           "all": ["jwboyer@fedoraproject.org", "pfrields@fedoraproject.org", "spot@fedoraproject.org"]
         },
         "tag": ["*authenticated*"],
@@ -78,10 +79,10 @@
         "accept": ["pfrields@fedoraproject.org", "jwboyer@fedoraproject.org", "spot@fedoraproject.org"]
       },
       "registration": {
-        "register": [],
-        "pay": [],
+        "register": ["*authenticated*"],
+        "pay": ["*authenticated*"],
         "request_receipt": [],
-        "view_public": ["*authenticated*"],
+        "view_public": [],
         "view_all": [""],
         "add_payment": [],
         "print_badge": [],
@@ -90,18 +91,14 @@
         "cancel_all": []
       }
     },
-    
+
     "papers": {
       "enabled": true,
       "tracks": [
-	"Building a Better Distro",
-	"Growing the Fedora Userbase",
-	"Making Life Better for Contributors",
-	"Prepared Lightning Talk",
-	"Workshop - Team Planning",
-	"Workshop - Hackfest",
-	"Workshop - Drop-in Clinic",
-	"Other"
+	"Talk (30 min)",
+	"Talk (60 min)",
+	"Do-Session (120 min)",
+	"Do-Session (180 min)"
       ]
     },
 
@@ -109,14 +106,18 @@
     "registration": {
       "enabled": true,
       "fields": {
+        "reglegend": {
+          "type": "legend",
+          "display_name": "Registration Fee",
+          "split": 0
+        },
         "doc1": {
           "type": "documentation",
           "display_name": "",
           "html": [
-            "We are excited to see you at this year's Flock!",
-            "We're doing things a little differently this year in order to make sure it is a",
-            "productive event that helps us achieve our goals as a community.",
-            "Explain regfee etc"
+            "The registration fee below is determined by your current country selection. ",
+            "This is in order to keep the fee fair and nominal across all regions. ",
+            "If your country isn't listed, please choose a country or region with a similar economic situation."
           ],
           "split": 0
         },
@@ -125,32 +126,92 @@
 	  "short_display_name": "Ctr",
           "type": "select",
           "required": true,
-          "message": "This will be kept private",
+          "message" : "Choose a region with a similar economic situation if your country is not listed.",
+          "privmsg": "This will be kept private.",
           "private": true,
           "placeholder": "Country of origin",
           "options": [
+            "Argentina",
+            "Australia",
+            "Brazil",
+            "Britain",
+            "Canada",
+            "Chile",
+            "China",
+            "Colombia",
+            "Costa Rica",
+            "Czech Republic",
+            "Denmark",
+            "Egypt",
+            "Euro area",
+            "Hong Kong",
+            "Hungary",
+            "India",
+            "Indonesia",
+            "Israel",
+            "Japan",
+            "Malaysia",
+            "Mexico",
+            "New Zealand",
+            "Norway",
+            "Pakistan",
+            "Peru",
+            "Philippines",
+            "Poland",
+            "Russia",
+            "Saudi Arabia",
+            "Singapore",
+            "South Africa",
+            "South Korea",
+            "Sri Lanka",
+            "Sweden",
+            "Switzerland",
+            "Taiwan",
+            "Thailand",
+            "Turkey",
+            "UAE",
+            "Ukraine",
             "United States",
-            "Netherlands"
+            "Uruguay",
+            "Venezuela",
+            "Vietnam",
+            "Austria",
+            "Belgium",
+            "Estonia",
+            "Finland",
+            "France",
+            "Germany",
+            "Greece",
+            "Ireland",
+            "Italy",
+            "Netherlands",
+            "Portugal",
+            "Spain"
           ],
-          "onchange": "javascript:update_regfee();",
+          "onchange": "javascript:update_regfee(); javascript:update_estimates();",
           "split": 0
         },
         "regfee": {
           "display_name": "Registration Fee",
           "type": "string",
-          "required": true,
+          "required": false,
           "private": true,
           "placeholder": "25.00",
-          "readonly": true,
-          "split": 0
+          "readonly": false,
+          "split": 0,
+          "onchange": "javascript:update_estimates();"
         },
         "reason": {
-          "display_name": "Why are you interested in attending flock?",
-          "type": "string",
+          "display_name": "Why are you interested in attending Flock?",
+          "type": "textarea",
           "required": true,
           "private": true,
-          "placeholder": "",
           "split": 0
+        },
+        "soclegend": {
+          "type": "legend",
+          "display_name": "Social Details",
+          "split": 1
         },
 
         "ircnick": {
@@ -171,13 +232,20 @@
 	    "placeholder": "",
             "split": 1
 	},
+        "reqslegend": {
+          "type": "legend",
+          "display_name": "Personal Requirements",
+          "split": 1
+        },
+
 	"veg": {
 	  "display_name": "Vegetarian",
 	  "short_display_name": "Veg",
 	  "type": "select",
 	  "required": true,
-          "message": "This will be kept private; note that a selection here does not guarantee availability of vegetarian options",
-	  "private": true,
+          "message": "This does not guarantee availability of vegetarian options.",
+          "privmsg": "This will be kept private.",
+          "private": true,
 	  "placeholder": "",
 	  "options": [
 	    "Yes", "No"
@@ -189,7 +257,8 @@
 	  "short_display_name": "Diet",
 	  "type": "string",
 	  "required": false,
-          "message": "This will be kept private; note that no guarantees are made, but we will do our best",
+          "message": "No guarantees are made here, but we will do our best!",
+          "privmsg": "This will be kept private.",
 	  "private": true,
 	  "placeholder": "",
           "split": 1
@@ -210,7 +279,7 @@
           "display_name": "T-shirt size",
 	  "short_display_name": "Sz",
           "type": "select",
-          "message": "This will be kept private",
+          "message": "This will be kept private.",
           "required": false,
           "private": true,
           "placeholder": "",
@@ -230,23 +299,38 @@
           ],
           "split": 1
         },
+	"assistlegend": {
+          "type": "legend",
+          "display_name": "Financial Assistance",
+          "split": 2
+        },
 
 	"needassistance": {
 	    "display_name": "Do you need financial assistance in order to attend Flock?",
 	    "short_display_name": "Sub",
-	    "type": "boolean",
+	    "type": "radio",
 	    "required": true,
 	    "private": true,
+            "onchange": "javascript:update_regfee(); javascript:update_estimates();",
+            "options": [
+              "No, I / my employer can cover my expenses.",
+              "Yes, my attendance requires financial assistance."
+             ],
             "split": 2
 	},
 
         "sponsor_additional": {
           "display_name": "Would you like to help sponsor a Fedora volunteer's attendance?",
           "short_display_name": "Spon",
-          "type": "boolean",
+          "type": "radio",
           "required": false,
           "private": true,
-          "shownifnot": "needassistance",
+          "shownifkey": "needassistance",
+          "shownifval": "No, I / my employer can cover my expenses.",
+          "options": [
+            "No, thank you.",
+            "Yes, I will sponsor the amount that follows."
+          ],
           "split": 2
         },
         "sponsor_additional_amount": {
@@ -255,42 +339,105 @@
           "type": "string",
           "required": false,
           "private": true,
-          "shownif": "sponsor_additional",
+          "shownifkey": "sponsor_additional",
+          "shownifval": "Yes, I will sponsor the amount that follows.",
           "split": 2
         },
-
+	"circumlegend": {
+          "type": "legend",
+          "display_name": "Special Travel Circumstances",
+          "shownifkey": "needassistance",
+          "shownifval": "Yes, my attendance requires financial assistance.",
+          "split": 2
+        },
         "travel_circumstances": {
-          "display_name": "If there are any...",
+          "display_name": "If there are any special circumstances or logistics regarding your travel and/or funding for Flock, please note them here.",
           "short_display_name": "travel_circum",
-          "type": "string",
+          "type": "textarea",
           "required": false,
           "private": true,
-          "shownif": "needassistance",
+          "shownifkey": "needassistance",
+          "shownifval": "Yes, my attendance requires financial assistance.",
+          "split": 2
+        },
+	"flightlegend": {
+          "type": "legend",
+          "display_name": "Flights",
+          "shownifkey": "needassistance",
+          "shownifval": "Yes, my attendance requires financial assistance.",
           "split": 2
         },
         "flights_needed": {
           "display_name": "My trip to flock requires air travel",
-          "type": "boolean",
+          "type": "radio",
           "required": false,
           "private": true,
-          "shownif": "needassistance",
+          "onchange": "javascript:update_regfee(); javascript:update_estimates();",
+          "shownifkey": "needassistance",
+          "shownifval": "Yes, my attendance requires financial assistance.",
+          "options": [
+            "My trip to Flock requires air travel.",
+            "My trip to Flock does not require air travel."
+          ],
           "split": 2
         },
         "doc_flights": {
           "display_name": "",
           "type": "documentation",
           "html": [
-            "Show calendar information here"
-          ],
-          "shownif": "flights_needed",
+            "<table class='calendar'>",
+            "<tr>",
+            "<th>Sat</th><th>Sun</th><th>Mon</th><th>Tue</th><th>Wed</th><th>Thu</th><th>Fri</th><th>Sat</th><th>Sun</th>",
+            "</tr>",
+            "<tr class='flock'>",
+            "<td></td><td></td><td></td><td class='flock' colspan='4'>Flock</td><td></td><td></td>",
+            "</tr>",
+            "<tr>",
+            "<td>Aug <span>26</span></td><td>Aug <span>27</span></td><td>Aug <span>28</span></td>",
+            "<td class='flock'>Aug <span>29</span></td><td class='flock'>Aug <span>30</span></td>",
+            "<td class='flock'>Aug <span>31</span></td><td class='flock'>Sep <span>01</span></td>",
+            "<td>Sep <span>02</span></td><td>Sep <span>03</span></td>",
+            "</tr>",
+            "<tr class='bus-notes'>",
+            "<th colspan='5'>",
+            "<p>First bus departs Logan Airport at <strong>6:15 AM</strong>.</p>",
+            "<p>Last bus departs Logan Airport at <strong>11:15 PM</strong>.</p>",
+            "</th>",
+            "<th colspan='4'>",
+            "<p>First bus arrives at Logan at <strong>4:30 AM</strong>.</p>",
+            "<p>Last bus arrives at Logan at <strong>10:30 PM</strong>.</p>",
+            "</th>",
+            "</tr>",
+            "</table>"
+         ],
+          "shownifkey": "flights_needed",
+          "shownifval": "My trip to Flock requires air travel.",
           "split": 2
         },
+        "doc_research": {
+          "type": "documentation",
+          "display_name": "",
+          "html": [
+            "<p>Please research round trip flights to Boston's Logan Airport for Flock. Note that there is a 2-hour long",
+            " bus ride from the airport to the conference site; we have provided a rough schedule of this bus above but ",
+            "<a href='http://www.p-b.com/Sched-Logan.html'>please verify the schedule</a>, particularly if you plan to ",
+            "ride on a weekend as the schedule may vary based on what we've posted above.</p>",
+            "<p>Plan to arrive in Hyannis, MA by the evening of Monday, August 28 and depart no sooner than 2 PM on Friday, ",
+            "keeping the bus times and schedule in account."
+          ],
+          "shownifkey": "flights_needed",
+          "shownifval": "My trip to Flock requires air travel.",
+          "split": 2
+        },
+
         "flight_homeairport": {
           "display_name": "Preferred home airport codes",
           "type": "string",
           "required": false,
           "private": true,
-          "shownif": "flights_needed",
+          "shownifkey": "flights_needed",
+          "shownifval": "My trip to Flock requires air travel.",
+          "message": "Ex. 'PRG', 'BRQ'",
           "split": 2
         },
         "flight_price": {
@@ -298,23 +445,53 @@
           "type": "string",
           "required": false,
           "private": true,
-          "shownif": "flights_needed",
+          "shownifkey": "flights_needed",
+          "shownifval": "My trip to Flock requires air travel.",
+          "onchange": "javascript:update_estimates();",
+          "split": 2
+        },
+        "doc_research2": {
+          "type": "documentation",
+          "display_name": "",
+          "shownifkey": "flights_needed",
+          "shownifval": "My trip to Flock requires air travel.",
+          "html": [
+            "<p>Please make your best guess on your estimated airfare cost based on your research. If you underestimate, ",
+            "there may not be enough funding for your trip; if you overestimate, other attendees may not receive funding. ",
+            "We rely on the honesty and integrity of our community members to fill this form out accurately."
+          ],
+          "split": 2
+        },
+
+ 
+	"othertransitlegend": {
+          "type": "legend",
+          "display_name": "Other Transit Costs",
+          "shownifkey": "needassistance",
+          "shownifval": "Yes, my attendance requires financial assistance.",
           "split": 2
         },
         "busservice": {
-          "display_name": "Do you intend to use the Boston-to-Cape Cod bus service",
-          "type": "boolean",
+          "display_name": "Do you intend to use the Cape Cod bus service from Boston's Logan Airport?",
+          "type": "radio",
           "required": false,
           "private": true,
-          "shownif": "needassistance",
+          "shownifkey": "needassistance",
+          "shownifval": "Yes, my attendance requires financial assistance.",
+          "options": [
+            "Yes (+ $47 / roundtrip)",
+            "No"
+          ],
+          "onchange": "javascript:update_estimates();",
           "split": 2
         },
         "other_transit": {
           "display_name": "Please describe any other transit-related costs you anticipate",
-          "type": "string",
+          "type": "textarea",
           "required": false,
           "private": true,
-          "shownif": "needassistance",
+          "shownifkey": "needassistance",
+          "shownifval": "Yes, my attendance requires financial assistance.",
           "split": 2
         },
         "total_othertransit": {
@@ -322,24 +499,80 @@
           "type": "string",
           "required": false,
           "private": true,
-          "shownif": "needassistance",
+          "shownifkey": "needassistance",
+          "shownifval": "Yes, my attendance requires financial assistance.",
+          "onchange": "javascript:update_estimates();",
           "split": 2
         },
+	"lodginglegend": {
+          "type": "legend",
+          "display_name": "Lodging",
+          "shownifkey": "needassistance",
+          "shownifval": "Yes, my attendance requires financial assistance.",
+          "split": 2
+        },
+
         "lodging_needed": {
           "display_name": "I would like lodging to be part of my travel funding request",
-          "type": "boolean",
+          "type": "radio",
           "required": false,
           "private": true,
-          "shownif": "needassistance",
+          "shownifkey": "needassistance",
+          "shownifval": "Yes, my attendance requires financial assistance.",
+          "options": [
+            "I would like lodging to be part of my travel funding request.",
+            "I will make my own arrangements for lodging."
+          ],
+          "onchange": "javascript:update_estimates();",
           "split": 2
         },
-        "lodging_doc": {
+        "lodging_calendar": {
           "display_name": "",
           "type": "documentation",
           "html": [
-            "Show lodging calendar and other info here..."
+            "<table class='calendar'>",
+            "<tr>",
+            "<th>Sat</th><th>Sun</th><th>Mon</th><th>Tue</th><th>Wed</th><th>Thu</th><th>Fri</th><th>Sat</th><th>Sun</th>",
+            "</tr>",
+            "<tr class='flock'>",
+            "<td></td><td></td><td></td><td class='flock' colspan='4'>Flock</td><td></td><td></td>",
+            "</tr>",
+            "<tr>",
+            "<td>Aug <span>26</span></td><td>Aug <span>27</span></td><td>Aug <span>28</span></td>",
+            "<td class='flock'>Aug <span>29</span></td><td class='flock'>Aug <span>30</span></td>",
+            "<td class='flock'>Aug <span>31</span></td><td class='flock'>Sep <span>01</span></td>",
+            "<td>Sep <span>02</span></td><td>Sep <span>03</span></td>",
+            "</tr>",
+            "<tr class='bus-notes'>",
+            "<th colspan='5'>",
+            "<p>First bus departs Logan Airport at <strong>6:15 AM</strong>.</p>",
+            "<p>Last bus departs Logan Airport at <strong>11:15 PM</strong>.</p>",
+            "</th>",
+            "<th colspan='4'>",
+            "<p>First bus arrives at Logan at <strong>4:30 AM</strong>.</p>",
+            "<p>Last bus arrives at Logan at <strong>10:30 PM</strong>.</p>",
+            "</th>",
+            "</tr>",
+            "</table>"
           ],
-          "shownif": "lodgin_needed",
+          "shownifkey": "lodging_needed",
+          "shownifval": "I would like lodging to be part of my travel funding request.",
+          "split": 2
+        },
+        "doc_lodging": {
+          "type": "documentation",
+          "display_name": "",
+          "shownifkey": "lodging_needed",
+          "shownifval": "I would like lodging to be part of my travel funding request.",
+          "html": [
+            "<p>Please indicate below how many nights' lodging you anticipate needing based on your above travel estimate.</p>",
+            "<p><strong>Note:</strong> We will fund up to <strong>four nights' stay</strong> for funded Flock attendees ",
+            "traveling <strong>domestically</strong>, and <strong>five nights' stay</strong> for <strong>international</strong>",
+            "travellers, with the exception of travel-related additional lodging requirements.</p>",
+            "<p>All funded attendees will share a double room with an attendee of the same gender. You may request an ",
+            "exception to this policy by emailing <a href='mail:flock-staff@fedoraproject.org'>flock-staff@fedoraproject.org</a>, ",
+            "which is a private address for Flock organizers."
+          ],
           "split": 2
         },
         "lodging_nights": {
@@ -355,7 +588,9 @@
           ],
           "required": false,
           "private": true,
-          "shownif": "lodging_needed",
+          "shownifkey": "lodging_needed",
+          "shownifval": "I would like lodging to be part of my travel funding request.",
+          "onchange": "javascript:update_estimates();",
           "split": 2
         },
         "lodging_roommate": {
@@ -363,12 +598,54 @@
           "type": "string",
           "required": false,
           "private": true,
-          "shownif": "lodging_needed",
+          "shownifkey": "lodging_needed",
+          "shownifval": "I would like lodging to be part of my travel funding request.",
+          "message": "Provide name or FAS ID of a mutually-agreed upon roommate.",
+          "split": 2
+        },
+
+        "doc_estimated_cost": {
+          "type": "documentation",
+          "display_name": "",
+          "shownifkey": "needassistance",
+          "shownifval": "Yes, my attendance requires financial assistance.",
+          "html": [
+            "<p>Estimated costs for funding request</p>",
+            "<p>Estimated round trip airfare: $<span id='estimate_airfare'>--</span> USD</p>",
+            "<p>Airfare booking fee: $<span id='estimate_airfare_booking'>--</span></p>",
+            "<p>Boston-to-Cape-Cod bus (round-trip): $<span id='estimate_bus_service'>--</span></p>",
+            "<p>Other transit-related costs: $<span id='estimate_other_transit'>--</span></p>",
+            "<p>Lodging, <span id='estimate_lodging_nights'>X</span> nights x ($139.99 + 15.40): $<span id='estimate_lodging_cost'>--</span></p>",
+            "<p>Registration fee: $<span id='estimate_regfee'>--</span></p>",
+            "<hr>",
+            "<p>Total: $<span id='estimate_total'>--</span> USD</p>"
+          ],
+          "split": 2
+        },
+        "afford_to_pay": {
+          "display_name": "If I am funded, I can afford to pay:",
+          "type": "radio",
+          "options": [20, 40, 60, 80, 90, "other"],
+          "required": false,
+          "private": true,
+          "shownifkey": "needassistance",
+          "shownifval": "Yes, my attendance requires financial assistance.",
+          "split": 2
+        },
+        "afford_to_pay_custom": {
+          "display_name": "Amount",
+          "short_display_name": "AffAmnt",
+          "type": "string",
+          "required": false,
+          "private": true,
+          "shownifkey": "afford_to_pay",
+          "shownifval": "other",
           "split": 2
         }
+
       },
       "max_split": 2,
-      "payment_product_name": "My Event Registration Fee",
+      "payment_product_name": "Flock 2017 Registration Fee",
       "currencies": {
         "USD": {
           "symbol": "$",
@@ -378,7 +655,7 @@
         }
       },
       "main_currency": "USD",
-      "paypal_experience_profile": "",
+      "paypal_experience_profile": "XP-KZGG-W7U6-E9QN-AHRF",
       "desk_word": "something",
 
       "paypal": {
@@ -389,7 +666,7 @@
         },
 
         "profile": {
-          "name": "Event Registration Profile",
+          "name": "Flock 2017",
           "presentation": {
             "brand_name": "Fedora Project",
             "logo_image": "https://getfedora.org/static/images/fedora_infinity_140x140.png",
