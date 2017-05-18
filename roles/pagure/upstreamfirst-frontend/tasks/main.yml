@@ -235,23 +235,6 @@
   - web
   - pagure
 
-- name: Install the SSL cert so that we can use https
-  copy: >
-      src={{ private}}/files/httpd/{{ item }} dest=/etc/pki/tls/certs/{{ item }}
-      owner=root group=root mode=0600
-  notify: restart stunnel
-  with_items:
-  - pagure.io.cert
-  - pagure.io.key
-  - pagure.io.intermediate.cert
-  - docs.pagure.org.crt
-  - docs.pagure.org.intermediate.crt
-  - docs.pagure.org.key
-  tags:
-  - config
-  - pagure
-  - httpd/certificate
-
 - name: Install the configuration file to activate https
   template: src={{ item }} dest=/etc/httpd/conf.d/{{ item }}
             owner=root group=root mode=0644
