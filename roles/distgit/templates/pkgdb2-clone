@@ -13,6 +13,12 @@ NEW_EPEL_VERSION = '7'
 NEW_EPEL_SOURCE_BRANCH = 'f19'
 RHEL_PKGS_PATH = '/var/lib/rhel/rhel' + NEW_EPEL_VERSION
 
+{% if env == 'staging' -%}
+MKBRANCH = '/usr/share/dist-git/mkbranch'
+{%- else -%}
+MKBRANCH = '/usr/local/bin/mkbranch'
+{%- endif %}
+
 # parse_page :: String -> IO (Map String String)
 # This returns a dictionary of {"pkg_name": "branch"}
 def parse_page(url):
@@ -140,7 +146,7 @@ def main(args):
                       "name, " + src_branchname + " -> " + dest_branchname
             else:
                 if process_package(pkgdb, key, src_branchname, dest_branchname):
-                    subprocess.call(["mkbranch",
+                    subprocess.call([MKBRANCH,
                                      "-s",
                                      NEW_EPEL_SOURCE_BRANCH,
                                      "epel" + NEW_EPEL_VERSION,

@@ -70,8 +70,17 @@ PKGDB_URL = 'https://admin.fedoraproject.org/pkgdb'
 
 GIT_FOLDER = '/srv/git/repositories/'
 
+{% if env == 'staging' -%}
+MKBRANCH = '/usr/share/dist-git/mkbranch'
+{%- else -%}
 MKBRANCH = '/usr/local/bin/mkbranch'
+{%- endif %}
+
+{% if env == 'staging' -%}
+SETUP_PACKAGE = '/usr/share/dist-git/setup_git_package'
+{%- else -%}
 SETUP_PACKAGE = '/usr/local/bin/setup_git_package'
+{%- endif %}
 
 THREADS = 20
 VERBOSE = False
