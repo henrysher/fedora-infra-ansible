@@ -54,8 +54,14 @@
         src: "{{ private }}/files/loopabull/keys/{{ env }}_ociimage"
         dest: "/home/root/.ssh/id_rsa.loopabull_ociimage"
         mode: 0600
+    - name: Install required packages
+      package:
+        name: python-fedmsg-rabbitmq-serializer
+        state: latest
 
   roles:
+    - rabbitmq
+    - fedmsg/base
     - {
       role: loopabull,
         plugin: fedmsg,
@@ -68,3 +74,18 @@
     }
 
 
+- name: Post Loopabull install configuration
+  hosts: loopabull-stg
+  user: root
+  gather_facts: True
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - "/srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml"
+
+  tasks:
+    - name: Enable fedmsg-rabbitmq-serializer
+      copy:
+        src: files/loopabull/serializer.py
+        dest: /etc/fedmsg.d/serializer.py
