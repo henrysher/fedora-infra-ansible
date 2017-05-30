@@ -1,0 +1,82 @@
+---
+- name: install ccsdb and its dependencies
+  yum: name={{ item }} state=present
+  with_items:
+    - ccsdb
+    - mod_wsgi
+    - python-psycopg2
+    - libsemanage-python
+  when: ansible_distribution_major_version|int < 22
+  tags:
+  - ccsdb
+
+- name: install ccsdb and its dependencies
+  dnf: name={{ item }} state=present enablerepo={{ extra_enablerepos }}
+  with_items:
+    - ccsdb
+    - mod_wsgi
+    - python-psycopg2
+    - libsemanage-python
+  when: ansible_distribution_major_version|int > 21 and ansible_cmdline.ostree is not defined
+  tags:
+  - ccsdb
+
+- name: ensure database is created
+  delegate_to: "{{ ccsdb_db_host_machine }}"
+  become_user: postgres
+  become: true
+  postgresql_db: db={{ ccsdb_db_name }}
+  tags:
+  - ccsdb
+
+- name: ensure ccsdb db user has access to database
+  delegate_to: "{{ ccsdb_db_host_machine }}"
+  become_user: postgres
+  become: true
+  postgresql_user: db={{ ccsdb_db_name }}
+                   user={{ ccsdb_db_user }}
+                   password={{ ccsdb_db_password }}
+                   role_attr_flags=NOSUPERUSER
+  tags:
+  - ccsdb
+
+- name: ensure selinux lets httpd talk to postgres
+  seboolean: name=httpd_can_network_connect_db persistent=yes state=yes
+  tags:
+  - ccsdb
+
+- name: generate ccsdb config
+  template: src=ccsdb.cfg dest=/etc/ccsdb/ccsdb.cfg
+            owner=root group=root mode=0644
+  notify:
+    - reload httpd
+  tags:
+  - ccsdb
+
+- name: generate ccsdb apache config
+  template: src=ccsdb.conf dest=/etc/httpd/conf.d/ccsdb.conf
+            owner=root group=root mode=0644
+  notify:
+    - reload httpd
+  tags:
+  - ccsdb
+
+- name: create the /usr/share/ccsdb folder
+  file: state=directory
+               path=/usr/share/ccsdb
+               owner=root group=root mode=0755
+  tags:
+  - ccsdb
+
+- name: install the wsgi file
+  template: src=ccsdb.wsgi dest=/usr/share/ccsdb/ccsdb.wsgi
+            owner=root group=root mode=0644
+  notify:
+    - reload httpd
+  tags:
+  - ccsdb
+
+- name: initialize execdb database
+  shell: ccsdb-cli init_db
+  tags:
+  - ccsdb
