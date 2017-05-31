@@ -1,17 +1,10 @@
 # -*- coding: utf-8 -*-
-from datetime import datetime
 
-import requests
 import fedmsg.consumers
-import fedfind.release
+import koji
 
-from sqlalchemy import exc
-
+from autocloud.utils import get_image_url, produce_jobs, get_image_name
 import autocloud
-
-from autocloud.models import init_model, ComposeDetails
-from autocloud.producer import publish_to_fedmsg
-from autocloud.utils import is_valid_image, produce_jobs
 
 import logging
 log = logging.getLogger("fedmsg")
@@ -20,110 +13,151 @@ DEBUG = autocloud.DEBUG
 
 
 class AutoCloudConsumer(fedmsg.consumers.FedmsgConsumer):
-    """
-    Fedmsg consumer for Autocloud
-    """
 
     if DEBUG:
         topic = [
-            'org.fedoraproject.dev.__main__.pungi.compose.status.change'
+            'org.fedoraproject.dev.__main__.buildsys.build.state.change',
+            'org.fedoraproject.dev.__main__.buildsys.task.state.change',
         ]
 
     else:
         topic = [
-            'org.fedoraproject.prod.pungi.compose.status.change'
+            'org.fedoraproject.prod.buildsys.build.state.change',
+            'org.fedoraproject.prod.buildsys.task.state.change',
         ]
 
     config_key = 'autocloud.consumer.enabled'
 
     def __init__(self, *args, **kwargs):
-        log.info("Autocloud Consumer is ready for action.")
         super(AutoCloudConsumer, self).__init__(*args, **kwargs)
+
+    def _get_tasks(self, builds):
+        """ Takes a list of koji createImage task IDs and returns dictionary of
+        build ids and image url corresponding to that build ids"""
+
+        if autocloud.VIRTUALBOX:
+            _supported_images = ('Fedora-Cloud-Base-Vagrant',
+                                 'Fedora-Cloud-Atomic-Vagrant',)
+        else:
+            _supported_images = ('Fedora-Cloud-Base-Vagrant',
+                                 'Fedora-Cloud-Atomic-Vagrant',
+                                 'Fedora-Cloud-Atomic', 'Fedora-Cloud-Base',)
+
+        for build in builds:
+            log.info('Got Koji build {0}'.format(build))
+
+        # Create a Koji connection to the Fedora Koji instance
+        koji_session = koji.ClientSession(autocloud.KOJI_SERVER_URL)
+
+        image_files = []  # list of full URLs of files
+
+        if len(builds) == 1:
+            task_result = koji_session.getTaskResult(builds[0])
+            name = task_result.get('name')
+            #TODO: Change to get the release information from PDC instead
+            # of koji once it is set up
+            release = task_result.get('version')
+            if name in _supported_images:
+                task_relpath = koji.pathinfo.taskrelpath(int(builds[0]))
+                url = get_image_url(task_result.get('files'), task_relpath)
+                if url:
+                    name = get_image_name(image_name=name)
+                    data = {
+                        'buildid': builds[0],
+                        'image_url': url,
+                        'name': name,
+                        'release': release,
+                    }
+                    image_files.append(data)
+        elif len(builds) >= 2:
+            koji_session.multicall = True
+            for build in builds:
+                koji_session.getTaskResult(build)
+            results = koji_session.multiCall()
+            for result in results:
+
+                if not result:
+                    continue
+
+                name = result[0].get('name')
+                if name not in _supported_images:
+                    continue
+
+                #TODO: Change to get the release information from PDC instead
+                # of koji once it is set up
+                release = result[0].get('version')
+                task_relpath = koji.pathinfo.taskrelpath(
+                    int(result[0].get('task_id')))
+                url = get_image_url(result[0].get('files'), task_relpath)
+                if url:
+                    name = get_image_name(image_name=name)
+                    data = {
+                        'buildid': result[0]['task_id'],
+                        'image_url': url,
+                        'name': name,
+                        'release': release,
+                    }
+                    image_files.append(data)
+
+        return image_files
 
     def consume(self, msg):
         """ This is called when we receive a message matching the topic. """
 
+        if msg['topic'].endswith('.buildsys.task.state.change'):
+            # Do the thing you've always done...  this will go away soon.
+            # releng is transitioning away from it.
+            self._consume_scratch_task(msg)
+        elif msg['topic'].endswith('.buildsys.build.state.change'):
+            # Do the new thing we need to do.  handle a 'real build' from koji,
+            # not just a scratch task.
+            self._consume_real_build(msg)
+        else:
+            raise NotImplementedError("Should be impossible to get here...")
+
+    def _consume_real_build(self, msg):
+        builds = list()  # These will be the Koji task IDs to upload, if any.
+
+        msg = msg['body']['msg']
+        if msg['owner'] != 'releng':
+            log.debug("Dropping message.  Owned by %r" % msg['owner'])
+            return
+
+        if msg['instance'] != 'primary':
+            log.info("Dropping message.  From %r instance." % msg['instance'])
+            return
+
+        # Don't upload *any* images if one of them fails.
+        if msg['new'] != 1:
+            log.info("Dropping message.  State is %r" % msg['new'])
+            return
+
+        koji_session = koji.ClientSession(autocloud.KOJI_SERVER_URL)
+        children = koji_session.getTaskChildren(msg['task_id'])
+        for child in children:
+            if child["method"] == "createImage":
+                builds.append(child["id"])
+
+        if len(builds) > 0:
+            produce_jobs(self._get_tasks(builds))
+
+    def _consume_scratch_task(self, msg):
+        builds = list()  # These will be the Koji build IDs to upload, if any.
+
+        msg_info = msg["body"]["msg"]["info"]
+
         log.info('Received %r %r' % (msg['topic'], msg['body']['msg_id']))
 
-        STATUS_F = ('FINISHED_INCOMPLETE', 'FINISHED',)
-        VARIANTS_F = ('CloudImages',)
+        # If the build method is "image", we check to see if the child
+        # task's method is "createImage".
+        if msg_info["method"] == "image":
+            if isinstance(msg_info["children"], list):
+                for child in msg_info["children"]:
+                    if child["method"] == "createImage":
+                        # We only care about the image if the build
+                        # completed successfully (with state code 2).
+                        if child["state"] == 2:
+                            builds.append(child["id"])
 
-        images = []
-        compose_db_update = False
-        msg_body = msg['body']
-        status = msg_body['msg']['status']
-        compose_images_json = None
-
-        if status in STATUS_F:
-            location = msg_body['msg']['location']
-            json_metadata = '{}/metadata/images.json'.format(location)
-            resp = requests.get(json_metadata)
-            compose_images_json = getattr(resp, 'json', False)
-
-        if compose_images_json is not None:
-            compose_images_json = compose_images_json()
-            compose_images = compose_images_json['payload']['images']
-            compose_details = compose_images_json['payload']['compose']
-            compose_images = dict((variant, compose_images[variant])
-                                  for variant in VARIANTS_F
-                                  if variant in compose_images)
-            compose_id = compose_details['id']
-            rel = fedfind.release.get_release(cid=compose_id)
-            release = rel.release
-            compose_details.update({'release': release})
-
-            compose_images_variants = [variant for variant in VARIANTS_F
-                                       if variant in compose_images]
-
-            for variant in compose_images_variants:
-                compose_image = compose_images[variant]
-                for arch, payload in compose_image.iteritems():
-                    for item in payload:
-                        relative_path = item['path']
-                        if not is_valid_image(relative_path):
-                            continue
-                        absolute_path = '{}/{}'.format(location, relative_path)
-                        item.update({
-                            'compose': compose_details,
-                            'absolute_path': absolute_path,
-                        })
-                        images.append(item)
-                        compose_db_update = True
-
-            if compose_db_update:
-                session = init_model()
-                compose_date = datetime.strptime(compose_details['date'], '%Y%m%d')
-                try:
-                    cd = ComposeDetails(
-                        date=compose_date,
-                        compose_id=compose_details['id'],
-                        respin=compose_details['respin'],
-                        type=compose_details['type'],
-                        status=u'q',
-                        location=location,
-                    )
-
-                    session.add(cd)
-                    session.commit()
-
-                    compose_details.update({
-                        'status': 'queued',
-                        'compose_job_id': cd.id,
-                    })
-                    publish_to_fedmsg(topic='compose.queued',
-                                      **compose_details)
-                except exc.IntegrityError:
-                    session.rollback()
-                    cd = session.query(ComposeDetails).filter_by(
-                        compose_id=compose_details['id']).first()
-                    log.info('Compose already exists %s: %s' % (
-                        compose_details['id'],
-                        cd.id
-                    ))
-                session.close()
-
-            num_images = len(images)
-            for pos, image in enumerate(images):
-                image.update({'pos': (pos+1, num_images)})
-
-            produce_jobs(images)
+        if len(builds) > 0:
+            produce_jobs(self._get_tasks(builds))
