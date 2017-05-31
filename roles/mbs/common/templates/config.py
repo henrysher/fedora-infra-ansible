@@ -125,6 +125,8 @@ class ProdConfiguration(BaseConfiguration):
     MESSAGING_TOPIC_PREFIX = ['org.fedoraproject.stg']
     PDC_URL = 'https://pdc.stg.fedoraproject.org/rest_api/v1'
     SCMURLS = ["git://pkgs.stg.fedoraproject.org/modules/"]
+    # Blocked on https://pagure.io/releng/issue/6799
+    KOJI_ENABLE_CONTENT_GENERATOR = False
 {% else %}
     KOJI_PROFILE = 'production'
     KOJI_ARCHES = ['aarch64', 'armv7hl', 'i686', 'ppc64', 'ppc64le', 'x86_64']
@@ -132,6 +134,8 @@ class ProdConfiguration(BaseConfiguration):
     MESSAGING_TOPIC_PREFIX = ['org.fedoraproject.prod']
     PDC_URL = 'https://pdc.fedoraproject.org/rest_api/v1'
     SCMURLS = ["git://pkgs.fedoraproject.org/modules/"]
+    # Blocked on https://pagure.io/releng/issue/6799
+    KOJI_ENABLE_CONTENT_GENERATOR = False
 {% endif %}
 
     # This is a whitelist of prefixes of koji tags we're allowed to manipulate
