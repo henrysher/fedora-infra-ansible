@@ -78,12 +78,6 @@ class AutoCloudConsumer(fedmsg.consumers.FedmsgConsumer):
             for variant in compose_images_variants:
                 compose_image = compose_images[variant]
                 for arch, payload in compose_image.iteritems():
-
-                    # aarch64 is not supported so filter if the arch is
-                    # 'aarch64'
-                    if arch == 'aarch64':
-                        continue
-
                     for item in payload:
                         relative_path = item['path']
                         if not is_valid_image(relative_path):

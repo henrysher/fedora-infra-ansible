@@ -27,7 +27,7 @@ def produce_jobs(infox):
     session = init_model()
     timestamp = datetime.datetime.now()
     for info in infox:
-        image_name = info['path'].split('/')[-1].split(info['arch'])[0]
+        image_name = info['path'].split('.x86_64')[0].split('/')[-1]
         jd = ComposeJobDetails(
             arch=info['arch'],
             compose_id=info['compose']['id'],

@@ -86,8 +86,7 @@ class ComposeJobDetails(Base):
 
     ARCH_TYPES = (
         ('i386', 'i386'),
-        ('x86_64', 'x86_64'),
-        ('aarch64', 'aarch64')
+        ('x86_64', 'x86_64')
     )
 
     id = Column(Integer, primary_key=True)
