@@ -138,3 +138,17 @@
   tags:
   - autocloud
   - autocloud/backend
+
+#
+# Install hotfix to ignore new architectures
+# See PR - https://github.com/kushaldas/autocloud/pull/56/
+#
+- name: hotfix - copy over consumer files
+  copy: src='{{ files }}/{{ item.src }}' dest={{ item.dest }}
+  with_items:
+  - { src: 'hotfix/autocloud/consumer.py', dest: '/usr/lib/python2.7/site-packages/autocloud' }
+  notify:
+  - restart fedmsg-hub
+  tags:
+  - autocloud
+  - hotfix
