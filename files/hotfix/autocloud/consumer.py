@@ -9,7 +9,7 @@ from sqlalchemy import exc
 
 import autocloud
 
-from autocloud.models import init_model, ComposeDetails
+from autocloud.models import init_model, ComposeDetails, ComposeJobDetails
 from autocloud.producer import publish_to_fedmsg
 from autocloud.utils import is_valid_image, produce_jobs
 
@@ -37,6 +37,8 @@ class AutoCloudConsumer(fedmsg.consumers.FedmsgConsumer):
     config_key = 'autocloud.consumer.enabled'
 
     def __init__(self, *args, **kwargs):
+        self.supported_archs = [arch for arch, _ in ComposeJobDetails.ARCH_TYPES]
+
         log.info("Autocloud Consumer is ready for action.")
         super(AutoCloudConsumer, self).__init__(*args, **kwargs)
 
@@ -78,6 +80,10 @@ class AutoCloudConsumer(fedmsg.consumers.FedmsgConsumer):
             for variant in compose_images_variants:
                 compose_image = compose_images[variant]
                 for arch, payload in compose_image.iteritems():
+
+                    if arch not in self.supported_archs:
+                        continue
+
                     for item in payload:
                         relative_path = item['path']
                         if not is_valid_image(relative_path):
