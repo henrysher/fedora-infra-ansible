@@ -64,4 +64,11 @@
     - reload httpd
 
 - name: initialize execdb database
-  shell: ccsdb-cli init_db
+  shell: CCSDB_CONFIG=/etc/ccsdb/ccsdb.cfg ccsdb-cli init_db
+
+- name: Start and enable the different services required
+  service: name={{ item }} enabled=yes state=started
+  with_items:
+  - httpd
+  - fedmsg-hub
+
