@@ -43,6 +43,9 @@ class BaseConfiguration(object):
 
     # Determines how many builds that can be submitted to the builder
     # and be in the build state at a time. Set this to 0 for no restrictions
+    # New name
+    NUM_CONCURRENT_BUILDS = 5
+    # Old name https://pagure.io/fm-orchestrator/issue/574
     NUM_CONSECUTIVE_BUILDS = 5
 
     RPMS_DEFAULT_REPOSITORY = 'git://pkgs.fedoraproject.org/rpms/'
@@ -149,6 +152,9 @@ class ProdConfiguration(BaseConfiguration):
     # If this is too long, we could change it to 'fm_' some day.
     DEFAULT_DIST_TAG_PREFIX = 'module_'
 
+    # New name
+    NUM_CONCURRENT_BUILDS = 20
+    # Old name https://pagure.io/fm-orchestrator/issue/574
     NUM_CONSECUTIVE_BUILDS = 20
 
     # Delete module-* targets one hour after build
