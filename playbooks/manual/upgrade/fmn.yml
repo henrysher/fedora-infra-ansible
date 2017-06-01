@@ -18,12 +18,11 @@
     yum: name="python-fmn*" state=latest
     when: not testing
   - name: yum update FMN packages from testing repo
-    yum: pkg={{ item }} state=latest enablerepo=infrastructure-testing
-    with_items:
-      - python-fmn
-      - python-fmn-sse
-      - python-fmn-web
+    yum: pkg=python-fmn state=latest enablerepo=infrastructure-testing
     when: testing
+  - name: yum update FMN packages from testing repo
+    yum: pkg=python-fmn state=latest enablerepo=epel-testing
+    when: env == "staging"
 
 - name: verify the frontend and stop it
   hosts: notifs-web:notifs-web-stg

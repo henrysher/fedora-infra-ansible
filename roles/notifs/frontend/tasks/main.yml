@@ -17,6 +17,17 @@
   - notifs
   - notifs/frontend
 
+- name: Install epel-testing fmn on stage
+  yum: pkg={{ item }} state=present enablerepo=epel-testing
+  with_items:
+  - python-fmn
+  when: env == "staging"
+  notify:
+  - restart apache
+  tags:
+  - notifs
+  - notifs/frontend
+
 - name: install packages needed from epel testing
   yum: pkg={{ item }} state=present enablerepo=epel-testing
   with_items:
