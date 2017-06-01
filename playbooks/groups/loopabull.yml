@@ -67,6 +67,7 @@
     - fedmsg/base
     - {
       role: loopabull,
+        loglevel: info,
         plugin: fedmsg,
         routing_keys: [
           "org.fedoraproject.prod.buildsys.build.state.change"
@@ -95,3 +96,19 @@
       copy:
         src: "{{files}}/loopabull/serializer.py"
         dest: "/etc/fedmsg.d/serializer.py"
+    - name: Install the loopabull@.service template
+      copy:
+        src: "{{files}}/loopabull/loopabull@.service"
+        dest: "/usr/lib/systemd/system/loopabull@.service"
+    - name: start and enable loopabull@
+      service:
+        name: "{{ item }}"
+        state: started
+        enabled: yes
+      with_items:
+        - loopabull@1
+        - loopabull@2
+        - loopabull@3
+        - loopabull@4
+        - loopabull@5
+
