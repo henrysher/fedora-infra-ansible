@@ -32,6 +32,12 @@ ExtFilterDefine gz-to-html mode=output \
 intype=application/x-gzip outtype=text/html \
 cmd="/bin/gunzip -c -"
 
+{% if deployment_type in ['dev', 'stg'] %}
+ExtFilterDefine gz-to-css mode=output \
+intype=application/x-gzip outtype=text/css \
+cmd="/bin/gunzip -c -"
+{% endif %}
+
 <DirectoryMatch "^{{ public_artifacts_dir }}/all/(.+)/task_output/">
     RewriteEngine on
 
@@ -44,6 +50,11 @@ cmd="/bin/gunzip -c -"
     <FilesMatch "(?!html)">
         SetOutputFilter gz-to-plain
     </FilesMatch>
+{% if deployment_type in ['dev', 'stg'] %}
+    <FilesMatch "(?!css)">
+        SetOutputFilter gz-to-css
+    </FilesMatch>
+{% endif %}
     <FilesMatch "(\.html\.gz|\.html)$">
         SetOutputFilter gz-to-html
     </FilesMatch>
