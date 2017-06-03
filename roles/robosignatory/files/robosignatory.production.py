@@ -181,11 +181,11 @@ config = {
             'directory': '/mnt/fedora_koji/koji/compose/ostree/25/',
             'key': 'fedora-25'
         },
-        'fedora-atomic/26/x86_64/updates/docker-host': {
+        'fedora/26/x86_64/updates/atomic-host': {
             'directory': '/mnt/fedora_koji/koji/mash/atomic/26/',
             'key': 'fedora-26'
         },
-        'fedora-atomic/26/x86_64/docker-host': {
+        'fedora/26/x86_64/atomic-host': {
             'directory': '/mnt/fedora_koji/koji/mash/atomic/26/',
             'key': 'fedora-26'
         },
@@ -193,11 +193,11 @@ config = {
             'directory': '/mnt/fedora_koji/koji/compose/ostree/26/',
             'key': 'fedora-26'
         },
-        'fedora-atomic/rawhide/x86_64/docker-host': {
+        'fedora/rawhide/x86_64/atomic-host': {
             'directory': '/mnt/fedora_koji/koji/compose/atomic/rawhide/',
             'key': 'fedora-27'
         },
-        'fedora-atomic/rawhide/aarch64/docker-host': {
+        'fedora/rawhide/aarch64/atomic-host': {
             'directory': '/mnt/fedora_koji/koji/compose/atomic/rawhide/',
             'key': 'fedora-27'
         },
