@@ -92,6 +92,12 @@ class ProdConfiguration(BaseConfiguration):
         #'packager',
     ]
 
+    # These groups are allowed to cancel the builds of other users.
+    ADMIN_GROUPS = [
+        'factory2',
+        'releng',
+    ]
+
 {% if env == 'staging' %}
     SECRET_KEY = '{{ mbs_stg_secret_key }}'
     SQLALCHEMY_DATABASE_URI = 'postgresql://mbs:{{mbs_stg_db_password}}@db-mbs/mbs'
