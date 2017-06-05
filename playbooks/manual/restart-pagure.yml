@@ -1,0 +1,19 @@
+- name: reload the frontend
+  hosts: pagure:pagure-stg
+  user: root
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+  handlers:
+  - include: "{{ handlers_path }}/restart_services.yml"
+
+  tasks:
+  - name: Reload apache...
+    service: name="httpd" state=reloaded
+
+  post_tasks:
+  - name: tell nagios to unshush w.r.t. apache
+    nagios: action=unsilence service=host host={{ inventory_hostname_short }}{{ env_suffix }}
+    delegate_to: noc01.phx2.fedoraproject.org
+    ignore_errors: true
