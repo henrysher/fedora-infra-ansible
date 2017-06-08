@@ -1,109 +1,51 @@
-- name: install copr repo
-  copy: src="copr.repo" dest="/etc/yum.repos.d/copr.repo"
+- shell: dnf -y upgrade
+  when: prepare_base_image is defined
 
 - name: set bigger timeout for yum
   ini_file: dest=/etc/yum.conf section=main option=timeout value=1000
 
+- name: set bigger timeout for dnf
+  ini_file: dest=/etc/dnf/dnf.conf section=main option=timeout value=1000
+
 - name: install pkgs
-  yum: state=present pkg={{ item }}
+  dnf: state=present pkg={{ item }}
   with_items:
     - dnf
     - dnf-plugins-core
     - mock
-#    - mock-lvm
     - createrepo_c
     - yum-utils
     - pyliblzma
     - rsync
     - openssh-clients
-    - rsync
     - libselinux-python
     - libsemanage-python
     - yum
     - scl-utils-build
     - ethtool
-#    - fedpkg-copr
     - nosync
     - expect
 
-- name: set bigger timeout for dnf
-  ini_file: dest=/etc/dnf/dnf.conf section=main option=timeout value=1000
-
-# this comes from https://copr-be.cloud.fedoraproject.org/results/%40copr/copr/fedora-23-x86_64/00179756-fedpkg-copr/fedpkg-copr-0.3-1.fc23.noarch.rpm
-# TODO put it in correct place
-# BZ 1241507
-- shell: yum-deprecated install -y fedpkg-copr || yum install -y fedpkg-copr
-
-- shell: yum-deprecated install -y fedpkg || yum install -y fedpkg
-
-# This needs to be updated for python-fedora
-- shell: yum-deprecated update -y python-requests || yum install -y python-requests
+- name: enable @copr/copr for now
+  shell: dnf copr -y enable @copr/copr
 
 - name: make sure newest rpm
-  dnf: name={{ item }} state=latest
+  dnf: state=latest pkg={{ item }}
   with_items:
     - rpm
     - glib2
     - ca-certificates
     - mock
     - dnf
-    - koji
-    - dnf-plugins-core
-    - libsolv
-    - hawkey
-
-- copy: src=files/fedpkg-copr.conf dest=/etc/rpkg/fedpkg-copr.conf
+    - copr-rpmbuild
 
 - name: put updated mock configs into /etc/mock
   template: src=files/mock/{{ item }} dest=/etc/mock
   with_items:
     - site-defaults.cfg
-    - custom-1-x86_64.cfg
-    - custom-1-i386.cfg
-    - custom-1-ppc64le.cfg
-    - fedora-26-x86_64.cfg
-    - fedora-26-i386.cfg
 
-# TODO: file globs or ansible escaping works strange, now using predefined file location
-#- name: "fix mock configs to use nearest mirror"
-#  # Affects only some fedora configs ... repo urls are tricky. TODO: add for epel
-#  shell: "ls -1 /etc/mock/fedora*.cfg"
-#  register: mock_fedora_configs_to_patch
-
-- name: "patch mock.cfg (updates)"
-  replace: >
-        dest={{ item }}
-        regexp='^metalink=https://mirrors.fedoraproject.org/metalink\?repo=updates-released-f\$releasever&arch=\$basearch'
-        replace='baseurl=http://infrastructure.fedoraproject.org/pub/fedora/linux/updates/$releasever/$basearch/'
-  with_items: #mock_fedora_configs_to_patch.stdout_lines
-  -  /etc/mock/fedora-24-i386.cfg
-  -  /etc/mock/fedora-24-x86_64.cfg
-  -  /etc/mock/fedora-25-i386.cfg
-  -  /etc/mock/fedora-25-x86_64.cfg
-  -  /etc/mock/fedora-26-i386.cfg
-  -  /etc/mock/fedora-26-x86_64.cfg
-
-- name: "patch mock.cfg (main)"
-  replace: >
-        dest={{ item }}
-        regexp='^metalink=https://mirrors.fedoraproject.org/metalink\?repo=fedora-f\$releasever&arch=\$basearch'
-        replace='baseurl=http://infrastructure.fedoraproject.org/pub/fedora/linux/releases/$releasever/Everything/$basearch/os/'
-  with_items: #mock_fedora_configs_to_patch.stdout_lines
-  -  /etc/mock/fedora-24-i386.cfg
-  -  /etc/mock/fedora-24-x86_64.cfg
-  -  /etc/mock/fedora-25-i386.cfg
-  -  /etc/mock/fedora-25-x86_64.cfg
-  -  /etc/mock/fedora-26-i386.cfg
-  -  /etc/mock/fedora-26-x86_64.cfg
-
-
-
-# ansible doesn't support simultaneously usage of async and with_* options
-# it's not even planned for implementation, see https://github.com/ansible/ansible/issues/5841
-- name: prepare cache
-  when: prepare_base_image is defined
-  async: 14400
-  shell: "for i in epel-5-i386 epel-5-x86_64 epel-6-i386 epel-6-x86_64 epel-7-x86_64 fedora-23-i386 fedora-23-x86_64 fedora-24-i386 fedora-24-x86_64 fedora-25-i386 fedora-25-x86_64 fedora-26-i386 fedora-26-x86_64 fedora-rawhide-i386 fedora-rawhide-x86_64; do mock --init -r $i; done"
+- name: put copr-rpmbuild configuration file in the right place
+  copy: src=files/main.ini dest=/etc/copr-rpmbuild/main.ini
 
 - name: mockbuilder user
   user: name=mockbuilder groups=mock
@@ -122,11 +64,3 @@
 
 - name: disable core dumps
   ini_file: dest=/etc/systemd/coredump.conf section=Coredump option=Storage value=none
-#  notify:
-#  - systemctl daemon-reload
-
-- name: 'Remove %_install_langs from /etc/rpm/macros.image-language-conf so that `yum-deprecated --installroot=<chroot-path> install glibc-all-langpacks` installs all possible locale into build chroots'
-  lineinfile:
-    dest: '/etc/rpm/macros.image-language-conf'
-    regexp: '^%_install_lang.*'
-    state: 'absent'
