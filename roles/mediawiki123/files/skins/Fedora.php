@@ -91,22 +91,6 @@ class FedoraTemplate extends QuickTemplate {
 		if($this->data['trackbackhtml']) print $this->data['trackbackhtml']; ?>
 		<!-- Head Scripts -->
 <?php $this->html('headscripts') ?>
-                <!-- Piwik -->
-                <script type="text/javascript">
-                  var _paq = _paq || [];
-                  _paq.push(["setDomains", ["*.fedoraproject.org"]]);
-                  _paq.push(['trackPageView']);
-                  _paq.push(['enableLinkTracking']);
-                  (function() {
-                    var u="//piwik.fedorainfracloud.org/piwik/";
-                    _paq.push(['setTrackerUrl', u+'piwik.php']);
-                    _paq.push(['setSiteId', 12]);
-                    var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
-                    g.type='text/javascript'; g.async=true; g.defer=true; g.src=u+'piwik.js'; s.parentNode.insertBefore(g,s);
-                  })();
-                </script>
-                <noscript><p><img src="//piwik.fedorainfracloud.org/piwik/piwik.php?idsite=12" style="border:0;" alt="" /></p></noscript>
-                <!-- End Piwik Code -->
 	</head>
 <body <?php if($this->data['body_ondblclick']) { ?>ondblclick="<?php $this->text('body_ondblclick') ?>"<?php } ?>
 <?php if($this->data['body_onload'    ]) { ?>onload="<?php     $this->text('body_onload')     ?>"<?php } ?>
