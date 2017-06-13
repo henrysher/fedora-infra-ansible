@@ -1,5 +1,5 @@
 --- /usr/lib/python2.7/site-packages/koschei/backend/__init__.py~	2017-06-13 21:31:05.170580184 +0200
-+++ /usr/lib/python2.7/site-packages/koschei/backend/__init__.py	2017-06-13 22:16:19.333831662 +0200
++++ /usr/lib/python2.7/site-packages/koschei/backend/__init__.py	2017-06-13 22:24:19.798558738 +0200
 @@ -94,13 +94,15 @@
          return self._repo_cache
  
@@ -11,10 +11,11 @@
      name = package.name
      build_opts = {}
 -    if package.arch_override:
-+    if True:
-         override = package.arch_override
-+        if not override and 'noarch' not in arches:
-+            override = '^'
+-        override = package.arch_override
++    override = package.arch_override
++    if not override and 'noarch' not in arches:
++        override = '^'
++    if override:
          if override.startswith('^'):
              excludes = override[1:].split()
              build_arches = get_config('koji_config').get('build_arches')
