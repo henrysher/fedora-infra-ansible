@@ -155,14 +155,14 @@ config = {
                 # Any module built against the base-runtime master stream
                 {
                     "stream": "master",
-                    "key": "fedora-27",
-                    "keyid": "f5282ee4"
+                    "key": "fedora-modularity",
+                    "keyid": "a3cc4e62"
                 },
                 # Any module built against the base-runtime f26 stream
                 {
                     "stream": "f26",
-                    "key": "fedora-26",
-                    "keyid": "64dab85d"
+                    "key": "fedora-modularity",
+                    "keyid": "a3cc4e62"
                 },
             ],
         },

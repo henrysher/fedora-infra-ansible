@@ -17,25 +17,15 @@
   tags:
   - distgit
 
-- name: install the httpd config file
-  copy: src=pkgs.fedoraproject.org.conf dest=/etc/httpd/conf.d/pkgs.fedoraproject.org.conf
-  when: env != "staging"
-  notify:
-  - reload httpd
-  tags:
-  - distgit
-
-- name: uninstall the httpd config file
+- name: uninstall the httpd config file of non-packaged dist-git
   file: dest=/etc/httpd/conf.d/pkgs.fedoraproject.org.conf state=absent
-  when: env == "staging"
   notify:
   - reload httpd
   tags:
   - distgit
 
-- name: install the httpd config directory
-  file: dest=/etc/httpd/conf.d/pkgs.fedoraproject.org state=directory
-  when: env != "staging"
+- name: uninstall the httpd config directory of non-packaged dist-git
+  file: dest=/etc/httpd/conf.d/pkgs.fedoraproject.org state=absent
   notify:
   - reload httpd
   tags:
@@ -81,13 +71,11 @@
   with_items:
   - dist-git
   - dist-git-selinux
-  when: env == "staging"
   tags:
   - distgit
 
 - name: install the dist-git config
   copy: src=dist-git.conf dest=/etc/dist-git/dist-git.conf
-  when: env == "staging"
   tags:
   - config
   - distgit
@@ -135,36 +123,18 @@
   tags:
   - distgit
 
-- name: install the distgit scripts
-  copy: src={{item}} dest=/usr/local/bin/{{item}} owner=root group=root mode=0755
+- name: uninstall the distgit scripts of non-packaged dist-git
+  file: dest=/usr/local/bin/{{item}} state=absent
   with_items:
     - setup_git_package
     - mkbranch
     - mkbranch_branching
-    - pkgdb2-clone
   tags:
   - config
   - distgit
 
-- name: install the Dist Git-related httpd config
-  copy: src=git-smart-http.conf dest=/etc/httpd/conf.d/pkgs.fedoraproject.org/git-smart-http.conf
-  when: env != "staging"
-  notify:
-  - reload httpd
-  tags:
-  - distgit
-
-- name: install the Dist Git-related httpd config
+- name: install the DistGit related httpd config
   copy: src=git-smart-http.conf dest=/etc/httpd/conf.d/dist-git/git-smart-http.conf
-  when: env == "staging"
-  notify:
-  - reload httpd
-  tags:
-  - distgit
-
-- name: Symlink pkgs-git-repos-list
-  copy: src=repolist.conf dest=/etc/httpd/conf.d/pkgs.fedoraproject.org/repolist.conf
-  when: env != "staging"
   notify:
   - reload httpd
   tags:
@@ -172,16 +142,16 @@
 
 - name: Symlink pkgs-git-repos-list
   copy: src=repolist.conf dest=/etc/httpd/conf.d/dist-git/repolist.conf
-  when: env == "staging"
   notify:
   - reload httpd
   tags:
   - distgit
 
-- name: install the pkgdb_sync_git_branches.py scripts
+- name: install the pkgdb_sync_git_branches.py and pkgdb2-clone scripts
   template: src={{item}} dest=/usr/local/bin/{{item}} owner=root group=root mode=0755
   with_items:
     - pkgdb_sync_git_branches.py
+    - pkgdb2-clone
   tags:
   - config
   - distgit
@@ -361,17 +331,7 @@
   - reload httpd
 
 - name: install the CGit-related httpd redirect config
-  copy: src=redirect.conf dest=/etc/httpd/conf.d/pkgs.fedoraproject.org/redirect.conf
-  when: env != "staging"
-  tags:
-  - distgit
-  - cgit
-  notify:
-  - reload httpd
-
-- name: install the CGit-related httpd redirect config
   copy: src=redirect.conf dest=/etc/httpd/conf.d/dist-git/redirect.conf
-  when: env == "staging"
   tags:
   - distgit
   - cgit
@@ -390,22 +350,10 @@
 # -- Lookaside Cache -------------------------------------
 # This is the annex to Dist Git, where we host source tarballs.
 - name: install the Lookaside Cache httpd configs
-  template: src={{item}} dest=/etc/httpd/conf.d/pkgs.fedoraproject.org/{{item}}
-  with_items:
-  - lookaside.conf
-  - lookaside-upload.conf
-  when: env != "staging"
-  notify:
-  - reload httpd
-  tags:
-  - distgit
-
-- name: install the Lookaside Cache httpd configs
   template: src={{item}} dest=/etc/httpd/conf.d/dist-git/{{item}}
   with_items:
   - lookaside.conf
-  - lookaside-upload-stg.conf
-  when: env == "staging"
+  - lookaside-upload.conf
   notify:
   - reload httpd
   tags:
@@ -499,41 +447,12 @@
   tags:
   - distgit
 
-- name: create /srv/web directory
-  file: dest=/srv/web state=directory
-
-- name: install the upload CGI script
-  copy: src=dist-git-upload.cgi dest=/srv/web/upload.cgi owner=root group=root mode=0755
+- name: uninstall the upload CGI script of non-packaged dist-git
+  file: dest=/srv/web/upload.cgi state=absent
   notify:
   - reload httpd
   tags:
   - distgit
-
-- name: uninstall the httpd config directory
-  file: dest=/etc/httpd/conf.d/pkgs.fedoraproject.org state=absent
-  when: env == "staging"
-  notify:
-  - reload httpd
-  tags:
-  - distgit
-
-- name: check the selinux context of the upload CGI script
-  command: matchpathcon /srv/web/upload.cgi
-  register: upcgicontext
-  check_mode: no
-  changed_when: false
-  tags:
-  - config
-  - lookaside
-  - selinux
-
-- name: set the SELinux policy for the upload CGI script
-  command: semanage fcontext -a -t git_script_exec_t "/srv/web/upload.cgi"
-  when: upcgicontext.stdout.find('git_script_exec_t') == -1
-  tags:
-  - config
-  - lookaside
-  - selinux
 
 # Three tasks for handling our selinux policy for upload.cgi
 - name: ensure a directory exists for our SELinux policy

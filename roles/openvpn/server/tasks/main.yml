@@ -9,9 +9,9 @@
   - packages
   - openvpn
 
-- name: Create the /etc/openvpn/ccd/ directory
+- name: Create the /etc/openvpn/server/ccd/ directory
   file: >
-    dest=/etc/openvpn/ccd/
+    dest=/etc/openvpn/server/ccd/
     mode=0755
     owner=root
     group=root
@@ -25,31 +25,38 @@
         owner=root group=root mode={{ item.mode }}
   with_items:
   - { file: server.conf,
-      dest: /etc/openvpn/openvpn.conf,
+      dest: /etc/openvpn/server/openvpn.conf,
       mode: '0644' }
   - { file: "{{ private }}/files/vpn/openvpn/keys/crl.pem",
-      dest: /etc/openvpn/crl.pem,
+      dest: /etc/openvpn/server/crl.pem,
       mode: '0644' }
   - { file: "{{ private }}/files/vpn/openvpn/keys/server.crt",
-      dest: /etc/openvpn/server.crt,
+      dest: /etc/openvpn/server/server.crt,
       mode: '0644' }
   - { file: "{{ private }}/files/vpn/openvpn/keys/server.key",
-      dest: /etc/openvpn/server.key,
+      dest: /etc/openvpn/server/server.key,
       mode: '0600' }
   - { file: "{{ private }}/files/vpn/openvpn/keys/dh2048.pem",
-      dest: /etc/openvpn/dh2048.pem,
+      dest: /etc/openvpn/server/dh2048.pem,
       mode: '0644' }
   tags:
   - install
   - openvpn
 
 - name: Install the ccd files
-  copy: src=ccd/ dest=/etc/openvpn/ccd/
+  copy: src=ccd/ dest=/etc/openvpn/server/ccd/
   tags:
   - openvpn
 
+- name: disable old openvpn service for rhel 7 or Fedora
+  service: name=openvpn@openvpn state=stopped enabled=false
+  when: ( ansible_distribution_version[0] == 7 or is_fedora is defined ) and openvpn_master is defined
+  tags:
+  - service
+  - openvpn
+
 - name: enable openvpn service for rhel 7 or Fedora
-  service: name=openvpn@openvpn state=started enabled=true
+  service: name=openvpn-server@openvpn state=started enabled=true
   when: ( ansible_distribution_version[0] == 7 or is_fedora is defined ) and openvpn_master is defined
   tags:
   - service

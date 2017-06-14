@@ -8,7 +8,7 @@
   tags:
   - packages
   - openvpn
-  when: ansible_distribution_major_version|int < 22
+  when: ansible_distribution_major_version|int < 8
 
 - name: Install needed packages
   dnf: pkg={{ item }} state=present
@@ -17,9 +17,32 @@
   tags:
   - packages
   - openvpn
-  when: ansible_distribution_major_version|int > 21 and ansible_cmdline.ostree is not defined
+  when: ansible_distribution_major_version|int > 7 and ansible_cmdline.ostree is not defined
 
-- name: Install configuration files
+- name: Install configuration files (rhel7 and fedora)
+  copy: src={{ item.file }}
+        dest={{ item.dest }}
+        owner=root group=root mode={{ item.mode }}
+  with_items:
+  - { file: client.conf,
+      dest: /etc/openvpn/client/openvpn.conf,
+      mode: '0644' }
+  - { file: "{{ private }}/files/vpn/openvpn/keys/{{ inventory_hostname }}.crt",
+      dest: "/etc/openvpn/client/client.crt",
+      mode: '0600' }
+  - { file: "{{ private }}/files/vpn/openvpn/keys/{{ inventory_hostname }}.key",
+      dest: "/etc/openvpn/client/client.key",
+      mode: '0600' }
+  tags:
+  - install
+  - openvpn
+#  notify:
+#  - restart openvpn (Fedora)
+#  - restart openvpn (RHEL7)
+#  - restart openvpn (RHEL6)
+  when: ( ansible_distribution_major_version|int != 6 and ansible_distribution_major_version|int != 24) and ansible_cmdline.ostree is not defined
+
+- name: Install configuration files (rhel6)
   copy: src={{ item.file }}
         dest={{ item.dest }}
         owner=root group=root mode={{ item.mode }}
@@ -40,6 +63,7 @@
 #  - restart openvpn (Fedora)
 #  - restart openvpn (RHEL7)
 #  - restart openvpn (RHEL6)
+  when: ( ansible_distribution_major_version|int == 6 or ansible_distribution_major_version|int == 24) and ansible_cmdline.ostree is not defined
 
 - name: enable openvpn service for rhel 6
   service: name=openvpn state=started enabled=true
@@ -48,17 +72,37 @@
   - service
   - openvpn
 
-- name: Make sure openvpn is running in rhel 7.1
+- name: enable openvpn service for fedora 24
   service: name=openvpn@openvpn state=started enabled=true
+  when: ansible_distribution_major_version|int == 24
+  tags:
+  - service
+  - openvpn
+
+- name: Make sure old openvpn is not running in rhel 7
+  service: name=openvpn@openvpn state=stopped enabled=false
   when: ansible_distribution_major_version|int == 7
   tags:
   - service
   - openvpn
 
-- name: enable openvpn service for Fedora
-  service: name=openvpn@openvpn state=started enabled=true
-  when: is_fedora is defined
+- name: Make sure openvpn is running in rhel 7
+  service: name=openvpn-client@openvpn state=started enabled=true
+  when: ansible_distribution_major_version|int == 7
   tags:
   - service
   - openvpn
 
+- name: disable old openvpn service for Fedora
+  service: name=openvpn@openvpn state=stopped enabled=false
+  when: is_fedora is defined and ansible_distribution_major_version|int != 24
+  tags:
+  - service
+  - openvpn
+
+- name: enable openvpn service for Fedora
+  service: name=openvpn-client@openvpn state=started enabled=true
+  when: is_fedora is defined and ansible_distribution_major_version|int != 24
+  tags:
+  - service
+  - openvpn

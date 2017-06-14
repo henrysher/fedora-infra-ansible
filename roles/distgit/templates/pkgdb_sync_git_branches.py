@@ -70,8 +70,8 @@ PKGDB_URL = 'https://admin.fedoraproject.org/pkgdb'
 
 GIT_FOLDER = '/srv/git/repositories/'
 
-MKBRANCH = '/usr/local/bin/mkbranch'
-SETUP_PACKAGE = '/usr/local/bin/setup_git_package'
+MKBRANCH = '/usr/share/dist-git/mkbranch'
+SETUP_PACKAGE = '/usr/share/dist-git/setup_git_package'
 
 THREADS = 20
 VERBOSE = False

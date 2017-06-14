@@ -3,7 +3,7 @@
   gather_facts: False
 
   vars_files:
-    - nova_cloud_vars_ppc64le.yml
+    - nova_cloud_vars.yml
 
   vars:
     # _OS_AUTH_OPTS: "--os-auth-url {{OS_AUTH_URL}} --os-username {{OS_USERNAME}} --os-password {{OS_PASSWORD}} --os-tenant-name {{OS_TENANT_NAME}} --os-tenant-id {{OS_TENANT_ID}} "
@@ -11,6 +11,7 @@
     keypair: buildsys
     max_spawn_time: 600
     spawning_vm_user: "fedora"
+    image_name: "copr-builder-f26-ppc64le-beta"
 
   tasks:
     - name: generate builder name
@@ -41,7 +42,10 @@
     #prepare_base_image: True
 
   tasks:
-  - include: "provision_builder_tasks_ppc64le.yml"
+  - name: swap on /dev/vda 100GB volume for tmpfs mock plugin
+    command: swapon /dev/vda
+
+  - include: "provision_builder_tasks.yml"
 
   - name: disable offloading
     command: ethtool -K eth0 tso off gro off gso off

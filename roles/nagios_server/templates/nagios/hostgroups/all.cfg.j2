@@ -3,19 +3,8 @@
 ###############
 ## {{ env }}
 
-{% if env == "staging" %}
-
-define hostgroup{
-       hostgroup_name all
-       alias          all
-       members        {% for host in groups['all'] %}{% if (hostvars[host].env is defined) and (hostvars[host].env == 'staging') and ( hostvars[host].datacenter == 'phx2') %}{{host}}, {% endif %} {% endfor %} 
-
-}
-
-{% else %}
-
 {% for key, value in groups.iteritems() %}
-{% if groups[key] %}
+{% if groups[key] and key !='all' %}
 define hostgroup{
        hostgroup_name {{ key }}
        alias          {{ key }}
@@ -25,7 +14,6 @@ define hostgroup{
 {% endif %}
 {% endfor %}
 
-{% endif %}
 
 ##
 ## Management hardware

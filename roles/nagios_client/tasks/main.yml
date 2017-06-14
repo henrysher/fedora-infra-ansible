@@ -37,6 +37,20 @@
   - nagios_client
   when: ansible_distribution_major_version|int > 21
 
+- name: install nagios tcp check for mirrorlist proxies
+  yum: name=nagios-plugins-tcp state=present
+  tags:
+  - packages
+  - nagios_client
+  when: ansible_distribution_major_version|int < 22 and 'mirrorlist-proxies' in group_names
+
+- name: install nagios tcp check for mirrorlist proxies
+  dnf: name=nagios-plugins-tcp state=present
+  tags:
+  - packages
+  - nagios_client
+  when: ansible_distribution_major_version|int > 21 and 'mirrorlist-proxies' in group_names
+
 - name: install local nrpe check scripts that are not packaged
   copy: src="scripts/{{ item }}" dest="{{ libdir }}/nagios/plugins/{{ item }}" mode=0755 owner=nagios group=nagios
   with_items:
@@ -59,6 +73,7 @@
   - check_osbs_builds.py
   - check_osbs_api.py
   - check_ipa_replication
+  - check_redis_queue.sh
   when: not inventory_hostname.startswith('noc')
   tags:
   - nagios_client
@@ -131,6 +146,8 @@
   - check_koschei_scheduler_proc.cfg
   - check_koschei_watcher_proc.cfg
   - check_testcloud.cfg
+  - check_mirrorlist_docker_proxy.cfg
+  - check_celery_redis_queue.cfg
   notify:
   - restart nrpe
   tags:

@@ -83,12 +83,31 @@
 
 - name: Make sure apache autoindex.conf is replaced with ours
   copy: src=httpd/dl.fedoraproject.org/autoindex.conf dest=/etc/httpd/conf.d/autoindex.conf
+  tags:
+  - httpd
+  - config
   notify:
   - reload httpd
 
 - name: Configure httpd dl sub conf
   copy: src=httpd/dl.fedoraproject.org/ dest=/etc/httpd/conf.d/dl.fedoraproject.org/
+  tags:
+  - httpd
+  - config
   notify:
   - reload httpd
+
+- name: Install haveged for entropy
+  yum: name=haveged state=installed
+  tags:
+  - httpd
+  - httpd/proxy
+
+- name: Set haveged running/enabled
+  service: name=haveged enabled=yes state=started
+  tags:
+  - service
+  - httpd
+  - httpd/proxy
 
 ##

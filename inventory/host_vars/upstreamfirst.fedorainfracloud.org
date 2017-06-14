@@ -1,0 +1,165 @@
+---
+
+############################################################
+# Persistent Cloud
+############################################################
+
+instance_type: m1.medium
+image: CentOS-7-x86_64-GenericCloud-1503
+keypair: fedora-admin-20130801
+zone: nova
+
+inventory_tenant: persistent
+inventory_instance_name: upstreamfirst
+hostbase: upstreamfirst
+public_ip: 209.132.184.153
+root_auth_users:  tflink roshi
+description: upstream-first pagure server
+security_group: ssh-anywhere-persistent,web-443-anywhere-persistent,web-80-anywhere-persistent,default,all-icmp-persistent,mail-25-anywhere-persistent,allow-nagios-persistent,fedmsg-relay-persistent,pagure-ports
+
+volumes:
+  - volume_id: 81c1cb3e-5fb0-4abd-a252-b0102f1378de
+    device: /dev/vdc
+
+cloud_networks:
+  # persistent-net
+  - net-id: "67b77354-39a4-43de-b007-bb813ac5c35f"
+
+############################################################
+# General configuration
+############################################################
+
+tcp_ports: [ 22, 25, 80, 443, 9418,
+    # Used for the eventsource server
+    8088,
+    # This is for the pagure public fedmsg relay
+    9940]
+
+external_hostname: 'upstreamfirst.fedorainfracloud.org'
+
+############################################################
+# Backup
+############################################################
+
+dbs_to_backup:
+- postgres
+- pagure
+
+host_backup_targets:
+  - '/backups'
+  - '/srv/git'
+
+############################################################
+# PostgreSQL configuration
+############################################################
+
+shared_buffers: "2GB"
+effective_cache_size: "6GB"
+
+
+############################################################
+# Pagure Config
+############################################################
+
+
+new_pagure_db_admin_user: "{{ upstreamfirst_pagure_db_admin_user }}"
+new_pagure_db_admin_pass: "{{ upstreamfirst_pagure_db_admin_pass }}"
+new_pagure_db_user:  "{{ upstreamfirst_pagure_db_user }}"
+new_pagure_db_pass:  "{{ upstreamfirst_pagure_db_pass }}"
+
+# there are two db hosts here to work around the pg_hba that's in postgres_server
+# we need to delegate postgres admin commands to a host that is remote from where
+# this playbook is run but have to use localhost for the application to run in the
+# case where we're using a local postgres instance
+new_pagure_db_host:  "127.0.0.1"
+new_pagure_db_command_host:  "{{ inventory_hostname }}"
+
+new_pagure_db_name:  "{{ upstreamfirst_pagure_db_name }}"
+new_pagure_secret_key: "{{ upstreamfirst_pagure_db_admin_user }}"
+new_pagure_secret_salt_email: "{{ upstreamfirst_pagure_secret_salt_email }}"
+
+pagure_admin_email: 'tflink@fedoraproject.org'
+
+pagure_ssh_host_pubkey: 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC/bYFmX8pthJHcM2J85+mmN8pGJ/EJMcsdwoazihcooIBONcUazYF/BVV5/3nK7H3shq2nLR7vmdd2NuFHOPNsaAMK6nlADEg2tsKMC3UHHnwo1/iIO21pvf7+w2KIKCNIhiYA70W1aIxFBMZ7oo0VXjZ19PBwg6huAh0CBrLBP+XU4QN6LgLd87T5qMN/7g/QVqDforeoL8NUSQXMfzYNbxXPdRvMc5vbEMS/QNu5I8Ycu6FDqChnWc5Qd2orVCNreEMKwkgW27+FTpxzAnq3avotb0Cv1WuZjd8q402ldvp+ELcS8WHc+Mx41KaR//QTlSIYeX4OlcX/pl6C+Sdz'
+
+# ssh-keygen -lf /etc/ssh/ssh_host_rsa_key.pub
+pagure_ssh_host_fingerprint: '2048 6b:d8:48:27:5a:11:d1:14:e0:c1:91:23:45:c7:fb:6d   (RSA)'
+
+# awk '{print $2}' /etc/ssh/ssh_host_rsa_key.pub | base64 -d | sha256sum -b | awk '{print $1}' | xxd -r -p | base64_
+pagure_ssh_host_sha256: 'SHA256:ggRdzg+ugyR6WIzeiuyASAdEHf+HG5yZqJJIu/YTtHI='
+
+new_pagure_admin_groups: ['sysadmin-main', 'sysadmin-qa']
+
+pagure_instance_name: "Upstream First Pagure"
+pagure_theme_static_dir: "/var/www/upstreamfirst-paguretheme/static"
+pagure_theme_template_dir: "/var/www/upstreamfirst-paguretheme/templates"
+
+stunnel_service: "eventsource"
+stunnel_source_port: 8088
+stunnel_destination_port: 8080
+
+# not doing anything with fedmsg right now
+## These are consumed by a task in roles/fedmsg/base/main.yml
+#fedmsg_certs:
+#- service: shell
+#  owner: root
+#  group: sysadmin
+#  can_send:
+#  - logger.log
+#- service: pagure
+#  owner: git
+#  group: apache
+#  can_send:
+#  - pagure.issue.assigned.added
+#  - pagure.issue.assigned.reset
+#  - pagure.issue.comment.added
+#  - pagure.issue.dependency.added
+#  - pagure.issue.dependency.removed
+#  - pagure.issue.edit
+#  - pagure.issue.new
+#  - pagure.issue.tag.added
+#  - pagure.issue.tag.removed
+#  - pagure.project.edit
+#  - pagure.project.forked
+#  - pagure.project.new
+#  - pagure.project.tag.edited
+#  - pagure.project.tag.removed
+#  - pagure.project.user.added
+#  - pagure.pull-request.closed
+#  - pagure.pull-request.comment.added
+#  - pagure.pull-request.flag.added
+#  - pagure.pull-request.flag.updated
+#  - pagure.request.assigned.added
+#  - pagure.pull-request.new
+#
+#fedmsg_prefix: io.pagure
+#fedmsg_env: stg
+
+fas_client_groups: sysadmin-noc,sysadmin-web,sysadmin-qa
+
+freezes: false
+#env: pagure-staging
+#postfix_group: vpn.pagure-stg
+
+# Configuration for the git-daemon/server
+git_group: git
+git_port: 9418
+git_server: /usr/libexec/git-core/git-daemon
+git_server_args: --export-all --syslog --inetd --verbose
+git_basepath: /srv/git/repositories
+git_daemon_user: git
+
+# For the MOTD
+csi_security_category: Low
+csi_primary_contact: Fedora admins - admin@fedoraproject.org
+csi_purpose: Stage testcases being submitted upstream to Fedora
+csi_relationship: |
+    There are a few things running here:
+
+    - The apache/mod_wsgi app for pagure
+
+    - This host relies on:
+      - A postgres db server running locally
+
+    - Things that rely on this host:
+      - nothing currently

@@ -65,8 +65,8 @@
   tags:
     - armv7-kernel
 
-- name: start the vm up
-  virt: state=running name={{ inventory_hostname }}
+- name: start the vm up and set it to autostart
+  virt: state=running name={{ inventory_hostname }} autostart=True
   delegate_to: "{{ vmhost }}"
   when: inventory_hostname not in result.list_vms
 
@@ -75,11 +75,6 @@
   when: inventory_hostname.startswith('buildvm-armv7') and ( inventory_hostname not in result.list_vms or armv7kernelupdate is defined )
   tags:
     - armv7-kernel
-
-- name: set it to autostart
-  virt: autostart=True name={{ inventory_hostname }}
-  delegate_to: "{{ vmhost }}"
-  when: inventory_hostname not in result.list_vms
 
 - name: make sure there is no old ssh host key for the host still around
   local_action: known_hosts path={{item}} host={{ inventory_hostname }} state=absent

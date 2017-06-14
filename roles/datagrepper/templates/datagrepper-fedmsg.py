@@ -17,4 +17,8 @@ config = {
     'fedmenu_url': 'https://apps.fedoraproject.org/fedmenu',
     'fedmenu_data_url': 'https://apps.fedoraproject.org/js/data.js',
     {% endif %}
+
+    # Only allow ajax/websockets connections back to our domains.
+    # https://github.com/fedora-infra/datagrepper/pull/192
+    'content_security_policy': 'connect-src https://*.fedoraproject.org wss://*.fedoraproject.org'
 }

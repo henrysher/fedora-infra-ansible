@@ -18,12 +18,11 @@
     yum: name="python-fmn*" state=latest
     when: not testing
   - name: yum update FMN packages from testing repo
-    yum: pkg={{ item }} state=latest enablerepo=infrastructure-testing
-    with_items:
-      - python-fmn
-      - python-fmn-sse
-      - python-fmn-web
+    yum: pkg=python-fmn state=latest enablerepo=infrastructure-testing
     when: testing
+  - name: yum update FMN packages from testing repo
+    yum: pkg=python-fmn state=latest enablerepo=epel-testing
+    when: env == "staging"
 
 - name: verify the frontend and stop it
   hosts: notifs-web:notifs-web-stg
@@ -80,10 +79,10 @@
     - fmn-worker@4
 
   - name: Upgrade the database
-    command: /usr/bin/alembic -c /usr/share/fmn.lib/alembic.ini upgrade head
+    command: /usr/bin/alembic -c /usr/share/fmn/alembic.ini upgrade head
     when: env != "staging"
     args:
-      chdir: /usr/share/fmn.lib/
+      chdir: /usr/share/fmn/
 
   - name: Re-start the workers and the backend
     service: name={{ item }} state=started

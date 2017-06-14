@@ -1,0 +1,70 @@
+- name: check/create instance
+  hosts: upstreamfirst.fedorainfracloud.org
+  gather_facts: False
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - /srv/private/ansible/vars.yml
+   - /srv/web/infra/ansible/vars/fedora-cloud.yml
+   - /srv/private/ansible/files/openstack/passwords.yml
+
+  tasks:
+  - include: "{{ tasks_path }}/persistent_cloud.yml"
+
+- name: do base configuration
+  hosts: upstreamfirst.fedorainfracloud.org
+  user: root
+  gather_facts: True
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  roles:
+  - base
+  - rkhunter
+  - nagios_client
+  - hosts
+  - fas_client
+  - sudo
+  - collectd/base
+  - postgresql_server
+  - certbot
+
+  tasks:
+  - include: "{{ tasks_path }}/yumrepos.yml"
+  - include: "{{ tasks_path }}/2fa_client.yml"
+  - include: "{{ tasks_path }}/motd.yml"
+
+  handlers:
+  - include: "{{ handlers_path }}/restart_services.yml"
+
+- name: deploy pagure
+  hosts: upstreamfirst.fedorainfracloud.org
+  user: root
+  gather_facts: True
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - "{{ vars_path }}/{{ ansible_distribution }}.yml"
+
+#  pre_tasks:
+#  - name: install fedmsg-relay
+#    yum: pkg=fedmsg-relay state=present
+#    tags:
+#    - pagure
+#    - pagure/fedmsg
+#  - name: and start it
+#    service: name=fedmsg-relay state=started
+#    tags:
+#    - pagure
+#    - pagure/fedmsg
+#
+  roles:
+      - pagure/upstreamfirst-frontend
+        #  - pagure/fedmsg
+
+  handlers:
+  - include: "{{ handlers_path }}/restart_services.yml"

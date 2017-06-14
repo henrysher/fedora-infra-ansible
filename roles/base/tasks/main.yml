@@ -233,7 +233,7 @@
    - iptables/iptables.{{ host_group }}
    - iptables/iptables.{{ env }}
    - iptables/iptables
-  when: not inventory_hostname.startswith(('fed-cloud','osbs'))
+  when: baseiptables == true
   notify:
   - restart iptables
   - reload libvirtd
@@ -248,6 +248,7 @@
   - iptables
   - service
   - base
+  when: baseiptables == true
 
 - name: ip6tables
   template: src={{ item }} dest=/etc/sysconfig/ip6tables mode=0600 backup=yes
@@ -257,7 +258,7 @@
    - iptables/ip6tables.{{ host_group }}
    - iptables/ip6tables.{{ env }}
    - iptables/ip6tables
-  when: not inventory_hostname.startswith('fed-cloud09')
+  when: baseiptables == true
   notify:
   - restart ip6tables
   - reload libvirtd
@@ -272,6 +273,7 @@
   - ip6tables
   - service
   - base
+  when: baseiptables == true
 
 - name: enable journald persistence
   file: path=/var/log/journal state=directory

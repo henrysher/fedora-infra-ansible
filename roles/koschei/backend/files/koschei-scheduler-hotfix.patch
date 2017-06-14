@@ -1,0 +1,32 @@
+--- /usr/lib/python2.7/site-packages/koschei/backend/__init__.py~	2017-06-13 21:31:05.170580184 +0200
++++ /usr/lib/python2.7/site-packages/koschei/backend/__init__.py	2017-06-13 22:24:19.798558738 +0200
+@@ -94,13 +94,15 @@
+         return self._repo_cache
+ 
+ 
+-def submit_build(session, package):
++def submit_build(session, package, arches=[]):
+     assert package.collection.latest_repo_id
+     build = Build(package_id=package.id, state=Build.RUNNING)
+     name = package.name
+     build_opts = {}
+-    if package.arch_override:
+-        override = package.arch_override
++    override = package.arch_override
++    if not override and 'noarch' not in arches:
++        override = '^'
++    if override:
+         if override.startswith('^'):
+             excludes = override[1:].split()
+             build_arches = get_config('koji_config').get('build_arches')
+--- /usr/lib/python2.7/site-packages/koschei/backend/services/scheduler.py~	2017-06-13 22:15:27.907396051 +0200
++++ /usr/lib/python2.7/site-packages/koschei/backend/services/scheduler.py	2017-06-13 22:15:45.077207616 +0200
+@@ -72,7 +72,7 @@
+ 
+             self.log.info('Scheduling build for {}, priority {}'
+                           .format(package.name, priority))
+-            build = backend.submit_build(self.session, package)
++            build = backend.submit_build(self.session, package, arches)
+             package.current_priority = None
+             package.scheduler_skip_reason = None
+             package.manual_priority = 0

@@ -1,0 +1,26 @@
+#!/bin/bash
+TYPE=$1
+NAME=$2
+STATE=$3
+
+#
+# We are becoming master node
+#
+if [ $STATE == "MASTER" ]; then
+	logger "just became keepalived master"
+
+fi
+#
+# We are becoming the backup node
+#
+if [ $STATE == "BACKUP" ]; then
+        systemctl restart posgresql-9.4
+	logger "just became keepalived backup"
+fi
+#
+# something horrible has gone wrong
+#
+if [ $STATE == "FAULT" ]; then
+        systemctl stop posgresql-9.4
+	logger "just had a keepalived fault"
+fi

@@ -37,6 +37,11 @@ class ProdConfiguration(base.ProdConfiguration):
     RPMS_ALLOW_CACHE = True
     MODULES_ALLOW_REPOSITORY = True
 
+    # Determines how many builds can be submitted to the builder
+    # and be in the build state at a time. Set this to 0 for no restrictions
+    # We can set some limit in the future, once we need it
+    NUM_CONSECUTIVE_BUILDS = 0
+
 
 class DevConfiguration(base.DevConfiguration):
     SYSTEM = 'copr'

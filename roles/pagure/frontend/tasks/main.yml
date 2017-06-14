@@ -30,6 +30,11 @@
   tags:
   - pagure
 
+- name: Put in robots.txt
+  copy: src=robots.txt dest=/var/www/html/robots.txt
+  tags:
+  - pagure
+
 
 # Set-up gitolite
 
@@ -78,17 +83,22 @@
   - gitolite
   - pagure
 
+- name: create the /attachments folder
+  file: state=directory
+         path=/srv/attachments
+         owner=git group=git mode=0775
+  tags:
+  - pagure
+
 - name: Adjust owner of /srv/git
   file: name=/srv/git state=directory recurse=yes owner=git group=git
   tags:
   - gitolite
-  - pagure
 
 - name: Adjust permissions of /srv/git/.gitolite
   file: name=/srv/git/.gitolite state=directory recurse=yes owner=git group=git
   tags:
   - gitolite
-  - pagure
 
 - name: install our own gitolite configuration
   template: src=gitolite.rc
@@ -274,6 +284,43 @@
   command: /usr/bin/setfacl -Rm user:apache:rx /srv/git
   tags:
   - pagure
+
+- name: check the selinux context of the git repo directory
+  command: matchpathcon /srv/git
+  register: distgitcontext
+  check_mode: no
+  changed_when: false
+  tags:
+  - config
+  - pagure
+  - selinux
+
+- name: set the SELinux policy for the distgit root directory
+  command: semanage fcontext -a -t gitosis_var_lib_t "/srv/git(/.*)?"
+  when: distgitcontext.stdout.find('gitosis_var_lib_t') == -1
+  tags:
+  - config
+  - pagure
+  - selinux
+
+- name: check the selinux context of the releases directory
+  command: matchpathcon /var/www/releases
+  register: distgitcontext
+  check_mode: no
+  changed_when: false
+  tags:
+  - config
+  - pagure
+  - selinux
+
+# Note: On Fedora its httpd_sys_content_rw_t - Don't we love confusions?
+- name: set the SELinux policy for the releases directory
+  command: semanage fcontext -a -t httpd_sys_rw_content_t "/var/www/releases(/.*)?"
+  when: distgitcontext.stdout.find('httpd_sys_rw_content_t') == -1
+  tags:
+  - config
+  - pagure
+  - selinux
 
 - name: copy over our custom selinux module
   copy: src=selinux/pagure.pp dest=/usr/local/share/pagure.pp

@@ -43,6 +43,9 @@ class BaseConfiguration(object):
 
     # Determines how many builds that can be submitted to the builder
     # and be in the build state at a time. Set this to 0 for no restrictions
+    # New name
+    NUM_CONCURRENT_BUILDS = 5
+    # Old name https://pagure.io/fm-orchestrator/issue/574
     NUM_CONSECUTIVE_BUILDS = 5
 
     RPMS_DEFAULT_REPOSITORY = 'git://pkgs.fedoraproject.org/rpms/'
@@ -89,6 +92,12 @@ class ProdConfiguration(BaseConfiguration):
         #'packager',
     ]
 
+    # These groups are allowed to cancel the builds of other users.
+    ADMIN_GROUPS = [
+        'factory2',
+        'releng',
+    ]
+
 {% if env == 'staging' %}
     SECRET_KEY = '{{ mbs_stg_secret_key }}'
     SQLALCHEMY_DATABASE_URI = 'postgresql://mbs:{{mbs_stg_db_password}}@db-mbs/mbs'
@@ -125,6 +134,8 @@ class ProdConfiguration(BaseConfiguration):
     MESSAGING_TOPIC_PREFIX = ['org.fedoraproject.stg']
     PDC_URL = 'https://pdc.stg.fedoraproject.org/rest_api/v1'
     SCMURLS = ["git://pkgs.stg.fedoraproject.org/modules/"]
+    # Blocked on https://pagure.io/releng/issue/6799
+    KOJI_ENABLE_CONTENT_GENERATOR = False
 {% else %}
     KOJI_PROFILE = 'production'
     KOJI_ARCHES = ['aarch64', 'armv7hl', 'i686', 'ppc64', 'ppc64le', 'x86_64']
@@ -132,6 +143,8 @@ class ProdConfiguration(BaseConfiguration):
     MESSAGING_TOPIC_PREFIX = ['org.fedoraproject.prod']
     PDC_URL = 'https://pdc.fedoraproject.org/rest_api/v1'
     SCMURLS = ["git://pkgs.fedoraproject.org/modules/"]
+    # Blocked on https://pagure.io/releng/issue/6799
+    KOJI_ENABLE_CONTENT_GENERATOR = False
 {% endif %}
 
     # This is a whitelist of prefixes of koji tags we're allowed to manipulate
@@ -145,7 +158,13 @@ class ProdConfiguration(BaseConfiguration):
     # If this is too long, we could change it to 'fm_' some day.
     DEFAULT_DIST_TAG_PREFIX = 'module_'
 
+    # New name
+    NUM_CONCURRENT_BUILDS = 20
+    # Old name https://pagure.io/fm-orchestrator/issue/574
     NUM_CONSECUTIVE_BUILDS = 20
+
+    # Delete module-* targets one hour after build
+    KOJI_TARGET_DELETE_TIME = 3600
 
     # These aren't really secret.
     OIDC_CLIENT_SECRETS = path.join(confdir, 'client_secrets.json')

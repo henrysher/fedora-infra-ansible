@@ -1,11 +1,15 @@
 ---
 - include: psql_setup.yml
 
+# Need to set selinux to permissive for now due to https://bugzilla.redhat.com/show_bug.cgi?id=1291940
+- name: switch selinux to permissive
+  selinux: policy=targeted state=permissive
+
 - name: install needed packages (yum)
   yum: pkg={{ item }} state=present
   with_items:
   - waiverdb
-  - gunicorn
+  - python-gunicorn
   - python-psycopg2
   notify:
   - restart waiverdb
@@ -15,7 +19,7 @@
   dnf: pkg={{ item }} state=present
   with_items:
   - waiverdb
-  - gunicorn
+  - python-gunicorn
   - python-psycopg2
   notify:
   - restart waiverdb
@@ -29,7 +33,7 @@
 - name: copy client secrets
   template:
     src: etc/waiverdb/client_secrets.json
-    dest: /etc/wavierdb/client_secrets.json
+    dest: /etc/waiverdb/client_secrets.json
     owner: root
     group: root
     mode: 0640
@@ -47,3 +51,14 @@
     force: yes
   notify:
   - restart waiverdb
+
+- name: install the nginx config
+  template:
+    src: etc/nginx/conf.d/waiverdb.conf.j2
+    dest: /etc/nginx/conf.d/waiverdb.conf
+    owner: nginx
+    group: nginx
+    mode: 0640
+  notify:
+  - restart nginx
+ 
