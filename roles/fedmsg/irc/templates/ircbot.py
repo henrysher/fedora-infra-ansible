@@ -480,6 +480,29 @@ config = dict(
                 ],
             ),
         ),
+
+        # And #rit-foss
+        dict(
+            network='chat.freenode.net',
+            port=6667,
+            make_pretty=True,
+            make_terse=True,
+
+            {% if env == 'staging' %}
+            nickname='fm-stg-rit',
+            {% else %}
+            nickname='fm-rit',
+            {% endif %}
+            channel='rit-foss',
+            filters=dict(
+                topic=[
+                    '^((?!(mailman)).)*$',
+                ],
+                body=[
+                    "^((?!((u)?'namespace': (u)?'fossrit')).)*$",
+                ],
+            ),
+        ),
     ],
 
     ### Possible colors are ###
