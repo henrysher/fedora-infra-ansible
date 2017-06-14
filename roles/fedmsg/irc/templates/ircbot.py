@@ -453,6 +453,7 @@ config = dict(
                     '^((?!(pagure|planet|badges|fas.group|mailman|meetbot\.meeting)).)*$',
                 ],
                 body=['^((?!(magazine|Magazine)).)*$',
+                      '((?!(fedoramagazine-tips)).)*$',
                       "u'namespace': u'Fedora-Council'"],
             ),
         ),
