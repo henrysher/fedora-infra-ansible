@@ -169,7 +169,7 @@
   notify: restart nagios
 
 ## Copy over the services
-- name: Copy /etc/nagios/services (production)
+- name: Copy /etc/nagios/services (PHX2)
   copy: src=nagios/services/{{ item }} dest=/etc/nagios/services/{{ item }}
   with_items:
     - autocloud.cfg
@@ -200,14 +200,40 @@
     - ssh.cfg
     - ssl.cfg
     - swap.cfg
+    - templates.cfg
     - unbound.cfg
     - vpnclients.cfg
     - websites.cfg
-    - templates.cfg
   tags:
   - nagios-config
   - nagios_server
-  when: env == "production"
+  when: env == "production" and location == "internal"
+  notify: restart nagios
+
+## Copy over the services
+- name: Copy /etc/nagios/services (External)
+  copy: src=nagios/services/{{ item }} dest=/etc/nagios/services/{{ item }}
+  with_items:
+    - copr.cfg
+    - db_backups.cfg
+    - dns.cfg
+    - haproxy.cfg
+    - mail_queue.cfg
+    - pagure_redis.cfg
+    - ping.cfg
+    - procs.cfg
+    - raid.cfg
+    - smtp-mm.cfg
+    - ssh.cfg
+    - ssl.cfg
+    - swap.cfg
+    - templates.cfg
+    - unbound.cfg
+    - websites.cfg
+  tags:
+  - nagios-config
+  - nagios_server
+  when: env == "production" and location == "external"
   notify: restart nagios
 
 ## Copy over the services
@@ -229,6 +255,7 @@
   tags:
   - nagios-config
   - nagios_server
+  when: location == "internal"
   notify: restart nagios
 
 ## Copy over the plugins
@@ -284,18 +311,38 @@
     - coloamer-hosts.cfg
     - dedicatedsolutions-hosts.cfg
     - host1plus-hosts.cfg
+    - gateway-hosts.cfg
     - ibiblio-hosts.cfg
     - internetx-hosts.cfg
     - osuosl-hosts.cfg
-    - phx2-hosts.cfg
-    - staging-hosts.cfg
-    - phx2-mgmt-hosts.cfg
+    - other.cfg
     - rdu-cc-hosts.cfg
     - rdu-hosts.cfg
     - tummy-hosts.cfg
   when: env == "production"
   tags:
   - nagios_server
+
+## These are only available to the internal server
+- name: Build out nagios host templates (production)
+  template: src=nagios/hosts/{{item}}.j2 dest=/etc/nagios/hosts/{{item}} mode=0644 owner=root group=root
+  with_items:
+    - phx2-hosts.cfg
+    - phx2-mgmt-hosts.cfg
+    - staging-hosts.cfg
+  when: env == "production" and nagios_location == "internal"
+  tags:
+  - nagios_server
+
+- name: Build out nagios host templates (production)
+  template: src=nagios/hosts/{{item}}.j2 dest=/etc/nagios/hosts/{{item}} mode=0644 owner=root group=root
+  with_items:
+    - phx2-external.cfg
+  when: env == "production" and nagios_location == "external"
+  tags:
+  - nagios_server
+
+
 
 - name: Build out nagios host templates (staging)
   template: src=nagios/hosts/{{item}}.j2 dest=/etc/nagios/hosts/{{item}} mode=0644 owner=root group=root
@@ -314,6 +361,15 @@
     - vpnclients.cfg
     - nomail.cfg
     - checkswap.cfg
+  when: nagios_location == "internal"
+  tags:
+  - nagios_server
+
+- name: Build out nagios hostgroup templates
+  template: src=nagios/hostgroups/{{item}}.j2 dest=/etc/nagios/hostgroups/{{item}} mode=0644 owner=root group=root
+  with_items:
+    - all-external.cfg
+  when: nagios_location == "external"
   tags:
   - nagios_server
 
@@ -329,6 +385,7 @@
     - ipa.cfg
     - mgmt-http.cfg
     - mirrorlist.cfg
+  when: nagios_location == "internal"
   tags:
   - nagios_server
 
