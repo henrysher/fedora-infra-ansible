@@ -9,45 +9,44 @@ exec >> $2
 exec 2>&1
 
 CURDATE=`date +%s`
-LAST_SYNC_ARG=""
-ALWAYS_RUN=false
 
-if [ "${1}" ==  "Linux" ]; then
-	LAST_SYNC_ARG="-f -r"
-	CATEGORY="${1}"
-elif [ "${1}" ==  "EPEL" ]; then
-	LAST_SYNC_ARG="-e"
-	CATEGORY="${1}"
-elif [ "${1}" ==  "Secondary" ]; then
-	LAST_SYNC_ARG="-s"
+
+if [ "${1}" ==  "fedora" ]; then
+	CATEGORY="Linux"
+elif [ "${1}" ==  "epel" ]; then
+	CATEGORY="EPEL"
+elif [ "${1}" ==  "alt" ]; then
+	CATEGORY="Other"
+elif [ "${1}" ==  "fedora-secondary" ]; then
 	CATEGORY="Secondary Arches"
-	# Skipping umdl check since we have no notifs for secondary
-	ALWAYS_RUN=true
-fi
-
-if [ "${LAST_SYNC_ARG}" == "" ]; then
-	echo "Category is either Linux or EPEL"
-	exit 1
+elif [ "${1}" ==  "archive" ]; then
+	CATEGORY="Archive"
 fi
 
 if [ -e /var/run/mirrormanager/umdl-${1} ]; then
 	. /var/run/mirrormanager/umdl-${1}
 else
-	# 48 hours -> 172800 seconds
-	let LASTRUN=CURDATE-172800
+	# 24 hours -> 86400 seconds
+	let LASTRUN=CURDATE-86400
 fi
 
-let DELTA=CURDATE-LASTRUN
+# FULLFILETIMELIST -> FFTL
+FFTL="/srv/pub/${1}/fullfiletimelist-${1}"
 
-/usr/local/bin/last-sync -d ${DELTA} -q ${LAST_SYNC_ARG}
+FILEDATE=`stat -c %Z ${FFTL} 2> /dev/null`
 
-if [ "$?" -ne "0" -a "$ALWAYS_RUN" = false ]; then
+if [ "$?" -eq "1" ]; then
+	echo "Error stat() of ${FFTL} failed. This should not happen."
+	exit 1
+fi
+
+if [ "$LASTRUN" -gt "$FILEDATE" ]; then
 	# no changes on the master mirror
 	# abort
 	exit 0
 fi
 
-echo -n "Last sync more than ${DELTA} seconds ago. Running umdl for Fedora ${CATEGORY} at "
+echo -n "${FFTL} has changed since last run. Running umdl for Fedora ${CATEGORY} at "
 date
 
 /usr/local/bin/lock-wrapper umdl-${1} "/usr/bin/mm2_update-master-directory-list --category \"Fedora ${CATEGORY}\""
