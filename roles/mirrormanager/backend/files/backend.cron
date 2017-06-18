@@ -7,14 +7,14 @@ MAILTO=root
 # update master directory
 # logs sent to /var/log/mirrormanager/umdl.log by default
 # check if category Fedora EPEL needs updating every 30 minutes
-0,30 * * * * mirrormanager /usr/local/bin/umdl-required EPEL /var/log/mirrormanager/umdl-required.log
+0,30 * * * * mirrormanager /usr/local/bin/umdl-required epel /var/log/mirrormanager/umdl-required.log
 # check if category Fedora Linux needs updating every 30 minutes
-10,40 * * * * mirrormanager /usr/local/bin/umdl-required Linux /var/log/mirrormanager/umdl-required.log
-# check if category Fedora Secondary Arches needs updating every hour (will always run)
-20 * * * * mirrormanager /usr/local/bin/umdl-required Secondary /var/log/mirrormanager/umdl-required.log
-# the remaining categories are updated once a day
-15 0 * * * mirrormanager /usr/bin/mm2_update-master-directory-list --category="Fedora Archive"
-15 12  * * * mirrormanager /usr/bin/mm2_update-master-directory-list --category="Fedora Other"
+10,40 * * * * mirrormanager /usr/local/bin/umdl-required fedora /var/log/mirrormanager/umdl-required.log
+# check if category Fedora Secondary Arches needs updating every 30 minutes
+20,50 * * * * mirrormanager /usr/local/bin/umdl-required fedora-secondary /var/log/mirrormanager/umdl-required.log
+# the remaining categories are updated every two hours
+15 */2 * * * mirrormanager /usr/local/bin/umdl-required archive /var/log/mirrormanager/umdl-required.log
+45 */2  * * * mirrormanager /usr/local/bin/umdl-required alt /var/log/mirrormanager/umdl-required.log
 
 # Sync netblocks list once a day
 30 0 * * * mirrormanager cd /usr/share/mirrormanager2 && /usr/bin/mm2_get_global_netblocks /var/lib/mirrormanager/global_netblocks.txt
