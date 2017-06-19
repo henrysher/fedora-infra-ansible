@@ -65,6 +65,33 @@ define service {
   use                   websitetemplate
 }
 
+define service {
+  hostgroup_name        proxies
+  service_description   http-moby-registry
+  check_command         check_website_ssl!registry.fedoraproject.org!/v2/!{}
+  max_check_attempts    8
+  use                   websitetemplate
+}
+
+
+##
+## Individual hosts
+
+define service {
+  host_name             status-fedora2
+  service_description   http-status.fedoraproject.org
+  check_command         check_website!status-fedora2.rhcloud.com!/index.html!All systems go
+  use                   websitetemplate
+}
+
+define service {
+  host_name             magazine2.fedorainfracloud.org
+  service_description   http-magazine
+  use                   websitetemplate
+  check_command         check_website!magazine2.fedorainfracloud.org!/
+}
+
+{% if vars['nagios_location'] == 'internal' %}
 ##
 ## Other Frontend Websites 
 
@@ -139,15 +166,6 @@ define service {
 }
 
 define service {
-  hostgroup_name        proxies
-  service_description   http-moby-registry
-  check_command         check_website_ssl!registry.fedoraproject.org!/v2/!{}
-  max_check_attempts    8
-  use                   websitetemplate
-}
-
-
-define service {
   hostgroup_name        fas
   service_description   http-accounts
   check_command         check_website!localhost!/accounts/help/get_help/user_telephone!emergency
@@ -189,13 +207,6 @@ define service {
   use                   internalwebsitetemplate
 }
 
-
-define service {
-  hostgroup_name        koji
-  service_description   http-koji
-  check_command         check_website!koji.fedoraproject.org!/koji/hosts!fedoraproject.org
-  use                   websitetemplate
-}
 
 define service {
   hostgroup_name        mm-frontend
@@ -270,6 +281,8 @@ define service {
   #event_handler         restart_httpd
 }
 
+## Internal services 
+
 define service {
   hostgroup_name        value
   service_description   http-møte
@@ -277,10 +290,12 @@ define service {
   use                   websitetemplate
 }
 
-
-
-##
-## Individual hosts
+define service {
+  hostgroup_name        koji
+  service_description   http-koji
+  check_command         check_website!koji.fedoraproject.org!/koji/hosts!fedoraproject.org
+  use                   websitetemplate
+}
 
 define service {
   hostgroup_name        koji
@@ -289,16 +304,4 @@ define service {
   use                   ppc-secondarytemplate
 }
 
-define service {
-  host_name             status-fedora2
-  service_description   http-status.fedoraproject.org
-  check_command         check_website!status-fedora2.rhcloud.com!/index.html!All systems go
-  use                   websitetemplate
-}
-
-define service {
-  host_name             magazine2.fedorainfracloud.org
-  service_description   http-magazine
-  use                   websitetemplate
-  check_command         check_website!magazine2.fedorainfracloud.org!/
-}
+{% endif %}

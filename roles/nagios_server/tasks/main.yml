@@ -203,7 +203,6 @@
     - templates.cfg
     - unbound.cfg
     - vpnclients.cfg
-    - websites.cfg
   tags:
   - nagios-config
   - nagios_server
@@ -295,7 +294,7 @@
   tags:
   - nagios_server
 
-- name: Template over services
+- name: Template over services (internal)
   template: src=nagios/services/{{item}}.j2 dest=/etc/nagios/services/{{item}} mode=0644 owner=root group=root
   with_items:
     - phx2-mgmt.cfg
@@ -303,6 +302,16 @@
   when: env == "production" and nagios_location == "internal"
   tags:
   - nagios_server
+
+- name: Template over services (both)
+  template: src=nagios/services/{{item}}.j2 dest=/etc/nagios/services/{{item}} mode=0644 owner=root group=root
+  with_items:
+    - websites.cfg
+  when: env == "production"
+  tags:
+  - nagios_server
+
+
 
 - name: Build out nagios host templates (production)
   template: src=nagios/hosts/{{item}}.j2 dest=/etc/nagios/hosts/{{item}} mode=0644 owner=root group=root
