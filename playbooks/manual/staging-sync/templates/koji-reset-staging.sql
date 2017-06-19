@@ -165,5 +165,6 @@ insert into user_perms (user_id, perm_id, active, creator_id) values (
                                ('containerbuild', 'osbs/osbs.stg.fedoraproject.org')] %}
 update users set krb_principal='{{principal}}@STG.FEDORAPROJECT.ORG' where username='{{username}}';
 {% endfor %}
+update users set krb_principal=replace(krb_principal, '@FEDORAPROJECT.ORG', '@STG.FEDORAPROJECT.ORG');
 
 VACUUM ANALYZE;
