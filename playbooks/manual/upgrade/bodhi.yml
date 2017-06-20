@@ -91,16 +91,10 @@
     service: name="fedmsg-hub" state=stopped
 
   - name: Upgrade the database
-    command: /usr/bin/alembic -c /usr/share/bodhi/alembic.ini upgrade head
-    args:
-      chdir: /usr/share/bodhi/
-    when: inventory_hostname.startswith(('bodhi-backend01.phx2',))
-
-  - name: Upgrade the database
     command: /usr/bin/alembic -c /etc/bodhi/alembic.ini upgrade head
     args:
       chdir: /usr/share/bodhi/
-    when: inventory_hostname.startswith(('bodhi-backend01.stg.phx2',))
+    when: inventory_hostname.startswith(('bodhi-backend01.phx2', 'bodhi-backend01.stg.phx2'))
 
   - name: And... start the backend again
     service: name="fedmsg-hub" state=started
