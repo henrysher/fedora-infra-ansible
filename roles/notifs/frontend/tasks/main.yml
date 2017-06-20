@@ -4,9 +4,7 @@
 - name: install needed packages
   yum: pkg={{ item }} state=present
   with_items:
-  - python-fmn-web
-  - python-fmn-lib
-  - python-fmn-rules
+  - python-fmn
   - python-psycopg2
   - libsemanage-python
   - python-memcached
@@ -60,20 +58,9 @@
 
 - name: setup symlink to fedora theme
   file: >
-    src=/usr/share/fmn.web/static/bootstrap-3.3.4-fedora
-    dest=/usr/share/fmn.web/static/bootstrap
-    state=link
-  when: env != "staging"
-  tags:
-  - notifs
-  - notifs/frontend
-
-- name: setup symlink to fedora theme
-  file: >
     src=/usr/share/fmn/static/bootstrap-3.3.4-fedora
     dest=/usr/share/fmn/static/bootstrap
     state=link
-  when: env == "staging"
   tags:
   - notifs
   - notifs/frontend
@@ -89,16 +76,7 @@
   - notifs/frontend
 
 - name: copy custom wsgi file
-  copy: src=fmn.web.wsgi dest=/usr/share/fmn.web/fmn.web.wsgi mode=0644
-  notify:
-  - restart apache
-  tags:
-  - notifs
-  - notifs/frontend
-
-- name: copy custom wsgi file
   copy: src=fmn.web.wsgi dest=/usr/share/fmn/fmn.web.wsgi mode=0644
-  when: env == "staging"
   notify:
   - restart apache
   tags:
@@ -132,7 +110,7 @@
 
 - name: apply selinux type to static files
   file: >
-    dest=/usr/share/fmn.web/static
+    dest=/usr/share/fmn/static
     setype=httpd_sys_content_t
     state=directory
     recurse=yes
