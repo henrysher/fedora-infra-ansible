@@ -26,6 +26,8 @@
   with_items:
   - php
   - nagios.x86_64
+  - nagios-selinux
+  - nrpe-selinux
   - nagios-plugins
   - nagios-plugins-dig
   - nagios-plugins-disk
@@ -78,19 +80,6 @@
   - nagios_server
 
 ## Copy over system configs
-# TODO: Make this a template once they're closer together
-- name: Copy httpd config (production)
-  copy: src=httpd/nagios.conf dest=/etc/httpd/conf.d/nagios.conf
-  when: env == "production"
-  tags:
-  - nagios_server
-
-- name: Copy httpd config (staging)
-  copy: src=httpd/nagios-new.conf dest=/etc/httpd/conf.d/nagios.conf
-  when: env == "staging"
-  tags:
-  - nagios_server
-
 - name: Copy specialized nrpe.cfg for nagios server
   copy: src=nrpe/nrpe.cfg dest=/etc/nagios/nrpe.cfg mode=0644 group=root owner=root
   notify:
@@ -265,6 +254,11 @@
 
 ## Build template files
 # This one may go to being just a regular config file if we can make remote monitoring work
+- name: Template out the nagios httpd conf
+  template: src=httpd/nagios.conf.j2 dest=/etc/httpd/conf.d/nagios.conf
+  tags:
+  - nagios_server
+
 - name: Template out the cgi.cfg 
   template: src=nagios/configs/cgi.cfg.j2 dest=/etc/nagios/cgi.cfg mode=0644 owner=root group=root
   tags:

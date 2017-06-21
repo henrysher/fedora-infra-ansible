@@ -5,7 +5,19 @@ ScriptAlias	/tac.cgi	/usr/lib64/nagios/cgi-bin/tac.cgi
 
 <Location />
   AuthName "Nagios GSSAPI Login"
+{% if env == "production" %}
+{% if vars['nagios_location'] == 'internal' %}
+  GssapiCredStore keytab:/etc/krb5.HTTP_nagios.fedoraproject.org.keytab
+{% else %}
+  GssapiCredStore keytab:/etc/krb5.HTTP_nagios-external.fedoraproject.org.keytab
+{% endif %}
+{% else %}
+{% if vars['nagios_location'] == 'internal' %}
   GssapiCredStore keytab:/etc/krb5.HTTP_nagios.stg.fedoraproject.org.keytab
+{% else %}
+  GssapiCredStore keytab:/etc/krb5.HTTP_nagios-external.stg.fedoraproject.org.keytab
+{% endif %}
+{% endif %}
   AuthType GSSAPI
   # This is off because Apache (and thus mod_auth_gssapi) doesn't know this is proxied over TLS
   GssapiSSLonly Off
