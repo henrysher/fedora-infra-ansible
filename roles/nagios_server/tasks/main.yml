@@ -53,6 +53,13 @@
   tags:
   - nagios_server
 
+- name: Install the SSL apache module
+  yum: name={{ item }} state=present
+  with_items:
+  - mod_ssl
+  when: env == "production" and nagios_location == "external"
+
+
 ## Copy over the httpd SSL certs for external
 - name: Install the SSL cert so that we can use https
   copy: >
