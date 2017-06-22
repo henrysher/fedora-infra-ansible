@@ -26,11 +26,19 @@
   - { role: openvpn/client,
       when: env != "staging" }
   - mod_wsgi
-  - role: keytab/service
+  - { role: keytab/service
     owner_user: apache
     owner_group: apache
     service: HTTP
-    host: "nagios{{env_suffix}}.fedoraproject.org"
+    host: "nagios{{env_suffix}}.fedoraproject.org",
+    when: datacenter == 'phx2' }
+  - { role: keytab/service
+    owner_user: apache
+    owner_group: apache
+    service: HTTP
+    host: "nagios-external{{env_suffix}}.fedoraproject.org",
+    when: datacenter != 'phx2' }
+   
 
   tasks:
   - include: "{{ tasks_path }}/2fa_client.yml"
