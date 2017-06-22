@@ -53,6 +53,22 @@
   tags:
   - nagios_server
 
+## Copy over the httpd SSL certs for external
+- name: Install the SSL cert so that we can use https
+  copy: >
+      src={{ private}}/files/httpd/{{ item }} dest=/etc/pki/tls/certs/{{ item }}
+      owner=root group=root mode=0600
+  notify: restart stunnel
+  when: env == "production" and nagios_location == "external"
+  with_items:
+  - noc02.fedoraproject.org.cert
+  - noc02.fedoraproject.org.key
+  - noc02.fedoraproject.org.intermediate.cert
+  tags:
+  - config
+  - httpd/certificate
+
+
 ## Setup directories for files to be copied
 - name: Create or confirm directories to be made
   file: dest={{item}} mode=0755 owner=root group=root state=directory
