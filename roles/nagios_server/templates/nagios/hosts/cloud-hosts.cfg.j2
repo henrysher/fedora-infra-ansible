@@ -1,4 +1,6 @@
 {% for host in groups['cloud'] %}
+{% if host.startswith('copr') and nagios_location == 'external' %}
+{% else %}
 define host {
 {% if hostvars[host].nagios_Check_Services['nrpe'] == true and nagios_location == 'internal' %}
    use                     defaulttemplate
@@ -26,4 +28,5 @@ define host {
    parents                 cloud-gw
 {% endif %}
 }
+{% endif %}
 {% endfor %}
