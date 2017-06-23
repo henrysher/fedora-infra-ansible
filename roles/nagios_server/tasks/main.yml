@@ -288,11 +288,15 @@
   template: src=nagios/configs/cgi.cfg.j2 dest=/etc/nagios/cgi.cfg mode=0644 owner=root group=root
   tags:
   - nagios_server
+  - nagios-config
+  notify: restart nagios
 
 - name: Override config.inc.php for the given environment
   template: src=nagios/config.inc.php.j2 dest=/usr/share/nagios/html/config.inc.php mode=0640 owner=root group=apache
   tags:
   - nagios_server
+  - nagios-config
+  notify: restart nagios
 
 - name: Template over commands
   template: src=nagios/commands/{{item}}.j2 dest=/etc/nagios/commands/{{item}} mode=0644 owner=root group=root
@@ -300,6 +304,8 @@
     - postgres.cfg
   tags:
   - nagios_server
+  - nagios-config
+  notify: restart nagios
 
 - name: Template over services (internal)
   template: src=nagios/services/{{item}}.j2 dest=/etc/nagios/services/{{item}} mode=0644 owner=root group=root
@@ -309,6 +315,8 @@
   when: env == "production" and nagios_location == "internal"
   tags:
   - nagios_server
+  - nagios-config
+  notify: restart nagios
 
 - name: Template over services (both)
   template: src=nagios/services/{{item}}.j2 dest=/etc/nagios/services/{{item}} mode=0644 owner=root group=root
@@ -317,6 +325,8 @@
   when: env == "production"
   tags:
   - nagios_server
+  - nagios-config
+  notify: restart nagios
 
 
 
@@ -339,6 +349,8 @@
   when: env == "production"
   tags:
   - nagios_server
+  - nagios-config
+  notify: restart nagios
 
 ## These are only available to the internal server
 - name: Build out nagios host templates (production)
@@ -350,6 +362,8 @@
   when: env == "production" and nagios_location == "internal"
   tags:
   - nagios_server
+  - nagios-config
+  notify: restart nagios
 
 - name: Build out nagios host templates (production)
   template: src=nagios/hosts/{{item}}.j2 dest=/etc/nagios/hosts/{{item}} mode=0644 owner=root group=root
@@ -358,6 +372,8 @@
   when: env == "production" and nagios_location == "external"
   tags:
   - nagios_server
+  - nagios-config
+  notify: restart nagios
 
 
 
@@ -370,6 +386,8 @@
   when: env == "staging"
   tags:
   - nagios_server
+  - nagios-config
+  notify: restart nagios
 
 - name: Build out nagios hostgroup templates
   template: src=nagios/hostgroups/{{item}}.j2 dest=/etc/nagios/hostgroups/{{item}} mode=0644 owner=root group=root
@@ -381,6 +399,8 @@
   when: nagios_location == "internal"
   tags:
   - nagios_server
+  - nagios-config
+  notify: restart nagios
 
 - name: Build out nagios hostgroup templates
   template: src=nagios/hostgroups/{{item}}.j2 dest=/etc/nagios/hostgroups/{{item}} mode=0644 owner=root group=root
@@ -389,6 +409,8 @@
   when: nagios_location == "external"
   tags:
   - nagios_server
+  - nagios-config
+  notify: restart nagios
 
 - name: Build out nagios servicegroup templates
   template: src=nagios/servicegroups/{{item}}.j2 dest=/etc/nagios/servicegroups/{{item}} mode=0644 owner=root group=root
@@ -405,6 +427,8 @@
   when: nagios_location == "internal"
   tags:
   - nagios_server
+  - nagios-config
+  notify: restart nagios
 
 
 ## Copy over the servicedeps
