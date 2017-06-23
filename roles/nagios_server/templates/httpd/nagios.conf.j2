@@ -29,32 +29,27 @@ Alias /nagios /usr/share/nagios/html/
 </Directory>
 
 {% else %}
-<Directory "/usr/lib64/nagios/cgi-bin/">
-  SSLRequireSSL
-  Options ExecCGI
-  AllowOverride None
-  AuthName "Nagios GSSAPI Login"
-  GssapiCredStore keytab:/etc/krb5.HTTP_nagios-external{{env_suffix}}.fedoraproject.org.keytab
-  AuthType GSSAPI
-  # This is off because Apache (and thus mod_auth_gssapi) doesn't know this is proxied over TLS
-  GssapiSSLonly Off
-  GssapiLocalName on
-  Require valid-user
-</Directory>
 
 Alias /nagios "/usr/share/nagios/html"
-<Directory "/usr/share/nagios/html">
-  SSLRequireSSL
-  Options None
-  AllowOverride None
+
+<Location ~ /nagios/>
   AuthName "Nagios GSSAPI Login"
   GssapiCredStore keytab:/etc/krb5.HTTP_nagios-external{{env_suffix}}.fedoraproject.org.keytab
   AuthType GSSAPI
-  # This is off because Apache (and thus mod_auth_gssapi) doesn't know this is proxied over TLS
-  GssapiSSLonly Off
+  GssapiSSLonly On
   GssapiLocalName on
+  GssapiPublishErrors On
   Require valid-user
+</Location>
+
+<Location ~ "/nagios/cgi-bin/">
+  Options ExecCGI
+</Location>
+
+<Directory "/usr/share/nagios/html">
+  Options None
 </Directory>
+
 
 {% endif %}
 
