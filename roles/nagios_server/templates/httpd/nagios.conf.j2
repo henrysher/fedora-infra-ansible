@@ -1,23 +1,14 @@
-# noc1
+# Set up the script aliases
 ScriptAlias /nagios/cgi-bin/ /usr/lib64/nagios/cgi-bin/
+ScriptAlias /tac.cgi         /usr/lib64/nagios/cgi-bin/tac.cgi
 
-ScriptAlias	/tac.cgi	/usr/lib64/nagios/cgi-bin/tac.cgi
+# Set up the authorization
+
+{% if vars['nagios_location'] == 'internal' %}
 
 <Location />
   AuthName "Nagios GSSAPI Login"
-{% if env == "production" %}
-{% if vars['nagios_location'] == 'internal' %}
-  GssapiCredStore keytab:/etc/krb5.HTTP_nagios.fedoraproject.org.keytab
-{% else %}
-  GssapiCredStore keytab:/etc/krb5.HTTP_nagios-external.fedoraproject.org.keytab
-{% endif %}
-{% else %}
-{% if vars['nagios_location'] == 'internal' %}
-  GssapiCredStore keytab:/etc/krb5.HTTP_nagios.stg.fedoraproject.org.keytab
-{% else %}
-  GssapiCredStore keytab:/etc/krb5.HTTP_nagios-external.stg.fedoraproject.org.keytab
-{% endif %}
-{% endif %}
+  GssapiCredStore keytab:/etc/krb5.HTTP_nagios{{env_suffix}}.fedoraproject.org.keytab
   AuthType GSSAPI
   # This is off because Apache (and thus mod_auth_gssapi) doesn't know this is proxied over TLS
   GssapiSSLonly Off
@@ -29,12 +20,43 @@ ScriptAlias	/tac.cgi	/usr/lib64/nagios/cgi-bin/tac.cgi
   Options ExecCGI
 </Location>
 
-<Directory "/usr/share/nagios/html">
-  Options None
-</Directory>
-
 RewriteEngine on
 RewriteRule ^/$ /nagios/ [R]
 
 Alias /nagios /usr/share/nagios/html/
+<Directory "/usr/share/nagios/html">
+  Options None
+</Directory>
+
+{% else %}
+<Directory "/usr/lib64/nagios/cgi-bin/">
+  SSLRequireSSL
+  Options ExecCGI
+  AllowOverride None
+  AuthName "Nagios GSSAPI Login"
+  GssapiCredStore keytab:/etc/krb5.HTTP_nagios-external{{env_suffix}}.fedoraproject.org.keytab
+  AuthType GSSAPI
+  # This is off because Apache (and thus mod_auth_gssapi) doesn't know this is proxied over TLS
+  GssapiSSLonly Off
+  GssapiLocalName on
+  Require valid-user
+</Directory>
+
+Alias /nagios "/usr/share/nagios/html"
+<Directory "/usr/share/nagios/html">
+  SSLRequireSSL
+  Options None
+  AllowOverride None
+  AuthName "Nagios GSSAPI Login"
+  GssapiCredStore keytab:/etc/krb5.HTTP_nagios-external{{env_suffix}}.fedoraproject.org.keytab
+  AuthType GSSAPI
+  # This is off because Apache (and thus mod_auth_gssapi) doesn't know this is proxied over TLS
+  GssapiSSLonly Off
+  GssapiLocalName on
+  Require valid-user
+</Directory>
+
+{% endif %}
+
+
 
