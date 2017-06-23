@@ -23,10 +23,16 @@ ScriptAlias /tac.cgi         /usr/lib64/nagios/cgi-bin/tac.cgi
   Options ExecCGI
 </Location>
 
-{% if vars['nagios_location'] == 'internal' %}
+{% if vars['nagios_location'] == 'external' %}
+<Location /apache-status>
+    SetHandler server-status
+    Require ip 2610:28:3090:3001:dead:beef:cafe:fed9
+</Location>
+{% endif %}
+
 RewriteEngine on
 RewriteRule ^/$ /nagios/ [R]
-{% endif %}
+
 
 Alias /nagios /usr/share/nagios/html/
 <Directory "/usr/share/nagios/html">
