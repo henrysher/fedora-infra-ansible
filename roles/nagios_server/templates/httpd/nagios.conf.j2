@@ -23,12 +23,14 @@ ScriptAlias /tac.cgi         /usr/lib64/nagios/cgi-bin/tac.cgi
   Options ExecCGI
 </Location>
 
-{% if vars['nagios_location'] == 'external' %}
 <Location /apache-status>
     SetHandler server-status
+{% if vars['nagios_location'] == 'external' %}
     Require ip 2610:28:3090:3001:dead:beef:cafe:fed9
-</Location>
+{% else %}
+    Require ip 127.0.0.1
 {% endif %}
+</Location>
 
 RewriteEngine on
 RewriteRule ^/$ /nagios/ [R]
