@@ -1,7 +1,12 @@
 {% for host in groups['all'] %}
 {% if hostvars[host].datacenter == 'bodhost' %}
 define host {
+{% if vars['nagios_location'] == 'internal' %}
    use                     defaulttemplate
+{% else %}
+  use                          mincheck
+{% endif %}
+
    host_name               {{ host }}
 {% if hostvars[host].ansible_hostname is defined %}
    alias                   {{ hostvars[host].ansible_hostname }}
