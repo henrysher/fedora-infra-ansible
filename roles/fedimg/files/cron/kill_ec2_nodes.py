@@ -12,7 +12,6 @@ from libcloud.compute.providers import get_driver
 import datetime
 import fedimg
 
-
 EC2_ACCESS_ID = fedimg.AWS_ACCESS_ID
 EC2_SECRET_KEY = fedimg.AWS_SECRET_KEY
 
@@ -22,8 +21,8 @@ def kill_all_instances(region):
 
     :param region: AWS region
     """
-    cls = get_driver(region)
-    driver = cls(EC2_ACCESS_ID, EC2_SECRET_KEY)
+    cls = get_driver(Provider.EC2)
+    driver = cls(EC2_ACCESS_ID, EC2_SECRET_KEY, region=region)
     nodes = driver.list_nodes()
     for n in nodes:
         d1 = datetime.datetime.strptime(n.extra['launch_time'], '%Y-%m-%dT%H:%M:%S.000Z')
@@ -34,9 +33,7 @@ def kill_all_instances(region):
 
 
 if __name__ == '__main__':
-    regions = [Provider.EC2_AP_NORTHEAST, Provider.EC2_AP_SOUTHEAST,
-                Provider.EC2_AP_SOUTHEAST2, Provider.EC2_EU_WEST,
-                Provider.EC2_SA_EAST, Provider.EC2_US_EAST,
-                Provider.EC2_US_WEST, Provider.EC2_US_WEST_OREGON]
+    regions = set([metadata.split('|')[0]
+                   for metadata in fedimg.AWS_AMIS.split('\n')])
     for region in regions:
         kill_all_instances(region)
