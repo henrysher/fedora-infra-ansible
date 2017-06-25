@@ -39,4 +39,5 @@ echo "unit tests"
 django-admin test --pythonpath $CONFDIR --settings settings_test django_mailman3 hyperkitty postorius
 
 # Restart services
+echo "Start services"
 systemctl start httpd mailman3 crond webui-qcluster

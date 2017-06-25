@@ -412,6 +412,13 @@
   - import-mm2.py
   - periodic.py
 
+- name: install the templatized scripts
+  template: src={{ item }}.j2 dest="{{ mailman_webui_basedir }}/bin/{{ item }}"
+            owner=root group=root mode=0755
+  tags: mailman
+  with_items:
+  - manage.py
+
 - name: install the staging-sync script
   copy: src=prod-to-stg.py dest="{{ mailman_webui_basedir }}/bin/prod-to-stg.py"
   when: env == "staging"
