@@ -1,3 +1,4 @@
+# This is a basic playbook
 - include: "/srv/web/infra/ansible/playbooks/include/virt-create.yml myhosts=nagios"
 
 - name: make the box be real
@@ -9,6 +10,9 @@
    - /srv/web/infra/ansible/vars/global.yml
    - "/srv/private/ansible/vars.yml"
    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  pre_tasks:
+  - include: "{{ tasks_path }}/yumrepos.yml"
 
   roles:
   - base
@@ -26,11 +30,17 @@
     owner_user: apache
     owner_group: apache
     service: HTTP
-    host: "admin.fedoraproject.org"
-    when: env == "production"
+    host: "nagios{{env_suffix}}.fedoraproject.org"
+    when: datacenter == 'phx2' 
+  - role: keytab/service
+    owner_user: apache
+    owner_group: apache
+    service: HTTP
+    host: "nagios-external{{env_suffix}}.fedoraproject.org"
+    when: datacenter != 'phx2' 
+   
 
   tasks:
-  - include: "{{ tasks_path }}/yumrepos.yml"
   - include: "{{ tasks_path }}/2fa_client.yml"
   - include: "{{ tasks_path }}/motd.yml"
 
@@ -46,7 +56,6 @@
    - /srv/web/infra/ansible/vars/global.yml
    - "/srv/private/ansible/vars.yml"
    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
-   - "/srv/web/infra/ansible/vars/nagios.{{ inventory_hostname_short }}.yml"
 
   handlers:
   - include: "{{ handlers_path }}/restart_services.yml"
@@ -54,5 +63,12 @@
   roles:
   - { role: dhcp_server, when: datacenter == 'phx2' }
   - { role: tftp_server, when: datacenter == 'phx2' }
-  - nagios/server
+  - nagios_server
   - fedmsg/base
+
+  tasks:
+  - name: install some packages which arent in playbooks
+    yum: pkg={{ item }} state=present
+    with_items:
+      - nmap
+      - tcpdump
