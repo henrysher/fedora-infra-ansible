@@ -41,6 +41,8 @@ aws_idp_arn = 'arn:aws:iam::125523088429:saml-provider/id.fedoraproject.org'
 aws_groups = {
     'aws-master': 'arn:aws:iam::125523088429:role/aws-master',
     'aws-iam': 'arn:aws:iam::125523088429:role/aws-iam',
+    'aws-billing': 'arn:aws:iam::125523088429:role/aws-billing',
+    'aws-atomic': 'arn:aws:iam::125523088429:role/aws-atomic'
 }
 
 
