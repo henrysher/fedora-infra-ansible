@@ -1,0 +1,12 @@
+[Unit]
+Description=Mailman web UI warm up cache
+Requires=memcached.service
+After=memcached.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/django-admin hyperkitty_warm_up_cache --pythonpath {{ mailman_webui_confdir }} --settings settings -v 2
+User=apache
+
+[Install]
+WantedBy=multi-user.target

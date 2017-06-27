@@ -439,8 +439,11 @@
   tags: mailman
 
 # Systemd
-- name: install the systemd service file
-  template: src=webui-qcluster.service.j2 dest=/etc/systemd/system/webui-qcluster.service
+- name: install the systemd service files
+  template: src={{ item }}.service.j2 dest=/etc/systemd/system/{{ item }}.service
+  with_items:
+  - webui-qcluster
+  - webui-warm-up-cache
   notify:
   - systemctl daemon-reload
   tags:
@@ -486,5 +489,12 @@
   - mailman3
   - postfix
   - webui-qcluster
+  tags: mailman
+  when: inventory_hostname.startswith('mailman01.phx2') or inventory_hostname.startswith('lists-dev')
+
+- name: enable one-shot services
+  service: enabled=yes name={{ item }}
+  with_items:
+  - webui-warm-up-cache
   tags: mailman
   when: inventory_hostname.startswith('mailman01.phx2') or inventory_hostname.startswith('lists-dev')
