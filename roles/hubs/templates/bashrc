@@ -1,0 +1,45 @@
+# .bashrc
+
+# Source global definitions
+if [ -f /etc/bashrc ]; then
+    . /etc/bashrc
+fi
+
+# Uncomment the following line if you don't like systemctl's auto-paging feature:
+# export SYSTEMD_PAGER=
+
+# User specific aliases and functions
+# If adding new functions to this file, note that you can add help text to the function
+# by defining a variable with name _<function>_help containing the help text
+
+
+export HUBS_CONFIG={{ hubs_conf_dir }}/hubs_config.py
+export FLASK_APP={{ hubs_code_dir }}/hubs/app.py
+
+
+workon() {
+    [ "$1" == "hubs" ] || ( echo "No such virtualenv."; exit 1 )
+    source {{ hubs_venv_dir }}/bin/activate
+    cd {{ hubs_code_dir }}
+}
+
+hup() {
+    source {{ hubs_venv_dir }}/bin/activate
+    pushd {{ hubs_code_dir }}
+    FLASK_DEBUG=1 flask run --host 0.0.0.0 --port 5000
+}
+
+hreset() {
+    source {{ hubs_venv_dir }}/bin/activate
+    {% if hubs_db_type == "postgresql" %}
+    sudo -u postgres dropdb hubs
+    sudo -u postgres createdb -O hubs hubs
+    {% else %}
+    rm {{ hubs_var_dir }}/hubs.db
+    {% endif %}
+    rm {{ hubs_var_dir }}/cache.db
+    pushd {{ hubs_code_dir }}
+    python populate.py
+    popd
+    deactivate
+}

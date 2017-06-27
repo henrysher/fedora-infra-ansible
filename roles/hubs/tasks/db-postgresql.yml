@@ -1,0 +1,56 @@
+# Set up Postgres, create the database, and populate it.
+
+- name: Install dependencies
+  dnf: name={{ item }} state=present
+  with_items:
+    - postgresql-server
+    - python-psycopg2
+
+- name: Set up postgresql database
+  command: postgresql-setup --initdb
+  args:
+      creates: /var/lib/pgsql/data/base
+
+- name: Set up postgresql access rules to allow local access
+  copy:
+      src: pg_hba.conf
+      dest: /var/lib/pgsql/data/pg_hba.conf
+      owner: postgres
+      group: postgres
+      mode: 0600
+  notify: restart postgresql
+
+- name: Start and enable postgresql
+  service: name=postgresql state=started enabled=yes
+
+- name: Set up the DB user
+  postgresql_user:
+      name: hubs
+      password: "{{ hubs_db_password }}"
+      role_attr_flags: NOSUPERUSER,NOCREATEROLE,NOCREATEDB
+  become_user: postgres
+
+- name: Create the database
+  postgresql_db:
+      name: hubs
+      owner: hubs
+  register: db_creation
+  become_user: postgres
+
+- name: Ease local access to the database
+  copy:
+    content: "*:*:hubs:hubs:{{ hubs_db_password }}"
+    dest: /home/{{ main_user }}/.pgpass
+    mode: 600
+    owner: "{{ main_user }}"
+    group: "{{ main_user }}"
+
+- name: Populate the Fedora Hubs database
+  command: "{{ hubs_venv_dir }}/bin/python {{ hubs_code_dir }}/populate.py"
+  args:
+    chdir: "{{ hubs_code_dir }}"
+  environment:
+    HUBS_CONFIG: "{{ hubs_conf_dir }}/hubs_config.py"
+  become_user: "{{ main_user }}"
+  when: db_creation|succeeded
+

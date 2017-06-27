@@ -11,6 +11,7 @@
   tasks:
   - include: "{{ tasks_path }}/persistent_cloud.yml"
 
+
 - name: setup all the things
   hosts: hubs-dev.fedorainfracloud.org
   gather_facts: True
@@ -20,107 +21,54 @@
    - /srv/private/ansible/files/openstack/passwords.yml
    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
 
-  roles:
-  - certbot
 
   pre_tasks:
   - include: "{{ tasks_path }}/cloud_setup_basic.yml"
+
   - name: set hostname (required by some services, at least postfix need it)
     hostname: name="{{inventory_hostname}}"
 
-  tasks:
   - include: "{{ tasks_path }}/yumrepos.yml"
+
   - dnf: name={{item}} state=present
     with_items:
     - git
 
-  - file: dest=/srv/git state=directory
-  - git: repo=https://pagure.io/fedora-hubs.git
-         dest=/srv/git/fedora-hubs
+  - name: create the code directory
+    file: dest=/srv/hubs state=directory owner=fedora group=fedora
+
+  - name: git clone the code
+    git: repo=https://pagure.io/fedora-hubs.git
+         dest=/srv/hubs/fedora-hubs
          version=develop
-    ignore_errors: true
-  - file: dest=/etc/fedmsg.d/ state=directory
-  - name: copy around a number of files we want
-    command: cp {{item.src}} {{item.dest}}
-    with_items:
-    - src: /srv/git/fedora-hubs/fedmsg.d/testconfig.py
-      dest: /etc/fedmsg.d/testconfig.py
-      remote_src: True
-    - src: /srv/git/fedora-hubs/fedmsg.d/base.py
-      dest: /etc/fedmsg.d/base.py
-      remote_src: True
-    - src: /srv/git/fedora-hubs/fedmsg.d/logging.py
-      dest: /etc/fedmsg.d/logging.py
-      remote_src: True
-    - src: /srv/git/fedora-hubs/systemd/hubs-worker@.service
-      dest: /usr/lib/systemd/system/hubs-worker@.service
-      remote_src: True
-    - src: /srv/git/fedora-hubs/systemd/hubs-triage@.service
-      dest: /usr/lib/systemd/system/hubs-triage@.service
-      remote_src: True
-    - src: /srv/git/fedora-hubs/systemd/hubs-webapp.service
-      dest: /usr/lib/systemd/system/hubs-webapp.service
-      remote_src: True
+    become_user: fedora
+    #ignore_errors: true
+
+
+  roles:
+  - certbot
+
+  - role: hubs
+    main_user: fedora
+    hubs_url_hostname: hubs-dev.fedorainfracloud.org
+    hubs_secret_key: demotestinghubsmachine
+    hubs_db_type: sqlite
+    hubs_dev_mode: false
+    hubs_ssl_cert: /etc/letsencrypt/live/hubs-dev.fedorainfracloud.org/cert.pem
+    hubs_ssl_key: /etc/letsencrypt/live/hubs-dev.fedorainfracloud.org/privkey.pem
+
+
+  tasks:
   - dnf: name={{item}} state=present
     with_items:
     - htop
     - tmux
     - vim
-    - redis
-    - python-pip
-    - gcc
-    - gcc-c++
-    - sqlite-devel
-    - libffi-devel
-    - openssl-devel
-    - python-datanommer-consumer
-    - datanommer-commands
-    - fedmsg-hub
-    - python-flask
-    - python-oauth2client
-    - python-bleach
-    - python-dogpile-cache
-    - python-psycopg2
-    - postgresql-devel
-    - postgresql-server
-  - command: pip install -r requirements.txt
-             chdir=/srv/git/fedora-hubs
-             creates=/usr/lib/python2.7/site-packages/fedmsg/
 
-  # The one in epel7 is too old... :(
-  - command: pip install --upgrade pygments
-
-  - command: pip install futures
-             creates=/usr/lib/python2.7/site-packages/concurrent/futures/
-  - command: python setup.py develop
-             chdir=/srv/git/fedora-hubs
-             creates=/usr/lib/python2.7/site-packages/fedora-hubs.egg-link
-
-  - command: systemctl daemon-reload
-
-  - service: name={{item}} enabled=yes state=started
+  - name: add more hubs workers
+    service: name={{item}} enabled=yes state=started
     with_items:
-    - redis
-    - hubs-webapp
-    - hubs-worker@1
-    - hubs-worker@2
-    - hubs-worker@3
-    - hubs-worker@4
-    - hubs-worker@5
-    - hubs-worker@6
-    - hubs-worker@7
-    - hubs-worker@8
-    - hubs-triage@1
-    - hubs-triage@2
     - hubs-triage@3
     - hubs-triage@4
-    - hubs-triage@5
-    - hubs-triage@6
-
-
-  # Set up the db for datanommer
-  - command: postgresql-setup initdb creates=/var/lib/pgsql/data/pg_hba.conf
-  - service: name=postgresql enabled=yes state=started
-  # TODO -- createdb -E utf-8 datanommer
-  # TODO -- `datanommer-create-db`
-  - service: name=fedmsg-hub enabled=yes state=started
+    - hubs-worker@3
+    - hubs-worker@4

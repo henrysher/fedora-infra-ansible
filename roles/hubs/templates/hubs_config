@@ -1,0 +1,20 @@
+# Enter any hubs configuration here
+
+SECRET_KEY = "{{ hubs_secret_key }}"
+
+{% if hubs_dev_mode %}
+# Allow the cookie to be sent of http since we work on localhost
+OIDC_ID_TOKEN_COOKIE_SECURE = False
+{% endif %}
+
+OIDC_CLIENT_SECRETS = "{{ hubs_conf_dir }}/client_secrets.json"
+OIDC_OPENID_REALM = "{{ hubs_url }}/oidc_callback"
+
+SSE_URL = {
+    # "host": "sse.example.com",
+    {% if hubs_dev_mode %}
+    "port": "8080",
+    {% else %}
+    "path": "/sse",
+    {% endif %}
+}

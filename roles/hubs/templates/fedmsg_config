@@ -1,0 +1,23 @@
+config = {
+
+    # Database
+    {% if hubs_db_type == "postgresql" %}
+    'hubs.sqlalchemy.uri': 'postgresql://hubs:{{ hubs_db_password }}@localhost/hubs',
+    {% else %}
+    'hubs.sqlalchemy.uri': 'sqlite:///{{ hubs_var_dir }}/hubs.db',
+    {% endif %}
+
+    # Some configuration for the general hubs cache.
+    "fedora-hubs.cache": {
+        "backend": "dogpile.cache.dbm",
+        #"expiration_time": 0,
+        "arguments": {
+            "filename": "{{ hubs_var_dir }}/cache.db",
+        },
+    },
+
+    # Fedmsg hub consumer
+    'hubs.consumer.enabled': True,
+    'hubs.redis.triage-queue-name': 'fedora-hubs-triage-queue',
+}
+

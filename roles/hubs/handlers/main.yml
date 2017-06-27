@@ -1,0 +1,21 @@
+- name: restart postgresql
+  service: name=postgresql state=restarted
+
+- name: restart the hubs-specific fedmsg-hub
+  service: name=hubs-fedmsg-hub state=restarted
+  listen: "hubs configuration change"
+
+- name: restart hubs triage
+  service: name=hubs-triage@* state=restarted
+  listen: "hubs configuration change"
+
+- name: restart hubs workers
+  service: name=hubs-worker@* state=restarted
+  listen: "hubs configuration change"
+
+- name: restart hubs SSE server
+  service: name=hubs-sse state=restarted
+  listen: "hubs configuration change"
+
+# Webserver
+- include: webserver.yml

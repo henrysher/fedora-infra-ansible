@@ -1,0 +1,20 @@
+[Unit]
+Description=fedora-hubs frontend webapp
+After=network.target
+Documentation=https://pagure.io/fedora-hubs/
+
+[Service]
+ExecStart= \
+    {{ hubs_venv_dir }}/bin/python \
+    /usr/bin/gunicorn -b 127.0.0.1:8000 --threads 12 \
+    --log-config {{ hubs_conf_dir }}/logging.ini \
+    {% if hubs_dev_mode %}--reload{% endif %} \
+    hubs.app:app
+Environment=HUBS_CONFIG={{ hubs_conf_dir }}/hubs_config.py
+Type=simple
+User={{ main_user }}
+Group={{ main_user }}
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

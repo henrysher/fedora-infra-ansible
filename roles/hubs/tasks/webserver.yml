@@ -1,0 +1,87 @@
+# Webserver config
+
+- name: Install the webserver packages
+  dnf: name={{ item }} state=present
+  with_items:
+    - python-gunicorn
+    - nginx
+    - libsemanage-python
+
+
+- name: Generate SSL certificate and key
+  shell:
+    echo -e "--\nSomeState\nSomeCity\nSomeOrganization\nSomeOrganizationalUnit\nlocalhost.localdomain\nroot@localhost.localdomain"
+    | openssl req -utf8 -newkey rsa:2048
+    -keyout /etc/pki/tls/private/localhost.key
+    -nodes -x509 -days 365
+    -out /etc/pki/tls/certs/localhost.crt
+  args:
+    creates: /etc/pki/tls/certs/localhost.crt
+
+
+- name: Gunicorn logging configuration
+  copy:
+    src: logging.ini
+    dest: "{{ hubs_conf_dir }}/logging.ini"
+    owner: "{{ main_user }}"
+    group: "{{ main_user }}"
+  notify:
+    - restart hubs webapp
+
+
+- name: Nginx configuration for hubs
+  template:
+    src: nginx.conf
+    dest: /etc/nginx/conf.d/hubs.conf
+  notify:
+    - restart nginx
+
+
+- name: Nginx SSL configuration
+  template:
+    src: "{{ item }}"
+    dest: /etc/nginx/ssl_params
+  with_first_found:
+    - nginx_ssl_params.{{ ansible_hostname }}
+    - nginx_ssl_params
+  notify:
+    - restart nginx
+
+
+- name: Nginx proxy configuration
+  copy:
+    src: "{{ item }}"
+    dest: /etc/nginx/proxy_params
+  with_first_found:
+    - nginx_proxy_params.{{ ansible_hostname }}
+    - nginx_proxy_params
+  notify:
+    - restart nginx
+
+
+- name: Allow network connection for Nginx
+  seboolean:
+    name: httpd_can_network_connect
+    state: yes
+    persistent: yes
+
+
+- name: Install the service files
+  template:
+    src: "{{ item }}.service"
+    dest: /etc/systemd/system/{{ item }}.service
+  with_items:
+    - hubs-webapp
+  register: service_installed
+
+
+- name: reload systemd
+  command: systemctl daemon-reload
+  when: service_installed|changed
+
+
+- name: Start and enable the services
+  service: name={{ item }} state=started enabled=yes
+  with_items:
+    - hubs-webapp
+    - nginx
