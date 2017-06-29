@@ -20,7 +20,12 @@
     - {tasks: [abicheck]}
 - when: {message_type: KojiTagChanged}
   do:
+{% if deployment_type in ['dev', 'stg'] %}
+    - {tasks: [rpmdeplint]}
+{% else %}
     - {tasks: [depcheck, rpmdeplint]}
+{% endif %}
+
 {% if deployment_type not in ['stg'] %}
 {# stg bodhi doesn't have the info we need, stg koji doesn't have the builds from prod bodhi #}
 - when:
