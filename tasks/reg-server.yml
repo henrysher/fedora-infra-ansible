@@ -2,24 +2,35 @@
   package:
     name: reg-server
     state: latest
+  tags:
+  - regserver
 
 - name: Copy reg-server repositories html template
   copy:
     src: "{{files}}/reg-server/repositories.html"
     dest: "/var/lib/reg-server/templates/repositories.html"
+  tags:
+  - regserver
 
 - name: Copy reg-server tags html template
   copy:
     src: "{{files}}/reg-server/tags.html"
     dest: "/var/lib/reg-server/templates/tags.html"
+  tags:
+  - regserver
 
 - name: Install cronjob file
   copy:
     src: "{{files}}/reg-server/cron-prod"
     dest: "/etc/cron.d/reg-server"
+  when: env == "production"
+  tags:
+  - regserver
 
 - name: Install cronjob file - stg
   copy:
     src: "{{files}}/reg-server/cron-stg"
     dest: "/etc/cron.d/reg-server"
   when: env == "staging"
+  tags:
+  - regserver
