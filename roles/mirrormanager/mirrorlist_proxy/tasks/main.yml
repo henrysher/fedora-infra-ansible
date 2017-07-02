@@ -97,3 +97,24 @@
         cron_file=restart-mirrorlist-containers
   tags:
   - mirrorlist_proxy
+
+# Custom selinux policy to allow logrotate to rotate our mirrorlist logs
+- name: ensure a directory exists for our custom selinux module
+  file: dest=/usr/local/share/mirrorlist-logrotate state=directory
+  tags:
+  - selinux
+  - mirrorlist_proxy
+
+- name: copy over our custom selinux module
+  copy: src=selinux/mirrorlist-logrotate.pp dest=/usr/local/share/mirrorlist-logrotate/mirrorlist-logrotate.pp
+  register: selinux_module
+  tags:
+  - selinux
+  - mirrorlist_proxy
+
+- name: install our custom selinux module
+  command: semodule -i /usr/local/share/mirrorlist-logrotate/mirrorlist-logrotate.pp
+  when: selinux_module|changed
+  tags:
+  - selinux
+  - mirrorlist_proxy
