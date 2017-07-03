@@ -22,7 +22,7 @@
   - config
   - service
 
-- name: install systemd config files
+- name: install systemd config files (memory)
   copy: >
     src=systemd-memory-limit.conf
     dest=/etc/systemd/system/{{ item }}.service.d/memory-limit.conf
@@ -33,6 +33,18 @@
   - reload systemd
   - restart koschei-build-resolver
   - restart koschei-repo-resolver
+  tags:
+  - koschei
+  - config
+  - service
+
+- name: install systemd config files (restart)
+  template: >
+    src=systemd-restart.conf.j2
+    dest=/etc/systemd/system/{{ item }}.service.d/restart.conf
+  with_items: "{{ koschei_backend_services }}"
+  notify:
+  - reload systemd
   tags:
   - koschei
   - config
