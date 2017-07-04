@@ -1,10 +1,9 @@
 ---
 - name: check if faf installed
-  yum: list=faf
-  register: is_installed
-
-- fail: msg="faf is not installed!"
-  when: '"installed" not in "{{ is_installed.results }}"'
+  command: rpm -q faf
+  args:
+    warn: no
+  changed_when: false
 
 - name: add user retrace to faf db
   postgresql_user: db=faf
