@@ -46,6 +46,10 @@
   when: deployment_type in ['dev', 'stg', 'prod']
   copy: src=yumrepoinfo.conf dest=/etc/taskotron/yumrepoinfo.conf owner=root group=root mode=0644
 
+- name: upload yumrepoinfo.conf to dev (temp workaround for kparal)
+  when: deployment_type in ['dev']
+  copy: src=yumrepoinfo.conf.dev dest=/etc/taskotron/yumrepoinfo.conf owner=root group=root mode=0644
+
 - name: create /var/log/taskotron for task logfiles
   file: path=/var/log/taskotron state=directory owner={{ slave_user }} group={{ slave_user }} mode=1755
   when: deployment_type == 'local'
