@@ -181,12 +181,16 @@ config = {
             'directory': '/mnt/fedora_koji/koji/compose/ostree/25/',
             'key': 'fedora-25'
         },
+        'fedora/26/x86_64/testing/atomic-host': {
+            'directory': '/mnt/fedora_koji/koji/mash/atomic/26/',
+            'key': 'fedora-26'
+        },
         'fedora/26/x86_64/updates/atomic-host': {
-            'directory': '/mnt/fedora_koji/koji/compose/atomic/26/',
+            'directory': '/mnt/fedora_koji/koji/mash/atomic/26/',
             'key': 'fedora-26'
         },
         'fedora/26/x86_64/atomic-host': {
-            'directory': '/mnt/fedora_koji/koji/compose/atomic/26/',
+            'directory': '/mnt/fedora_koji/koji/mash/atomic/26/',
             'key': 'fedora-26'
         },
         'fedora/26/x86_64/workstation': {
