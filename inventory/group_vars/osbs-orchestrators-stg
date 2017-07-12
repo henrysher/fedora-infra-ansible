@@ -1,0 +1,34 @@
+---
+osbs_manage_firewalld: false
+osbs_namespace: "osbs"
+# Allow 'oc' command to find its configuration file
+osbs_kubeconfig_path: /etc/origin/master/admin.kubeconfig
+osbs_environment:
+  HOME: "{{ lookup('env', 'HOME') }}"
+  KUBECONFIG: "{{ osbs_kubeconfig_path }}"
+osbs_service_accounts:
+- koji
+- metrics
+osbs_readonly_users:
+- "system:serviceaccount:{{ osbs_namespace }}:metrics"
+osbs_readonly_groups:
+- "system:authenticated"
+osbs_readwrite_groups: []
+osbs_readwrite_users:
+- "{{ ansible_hostname }}"
+- "system:serviceaccount:{{ osbs_namespace }}:default"
+- "system:serviceaccount:{{ osbs_namespace }}:builder"
+osbs_admin_users:
+- kevin
+- puiterwijk
+- maxamillion
+- dgilmore
+osbs_admin_groups: []
+env: prod
+osbs_ha_install: true
+osbs_nodes: "{{ groups['osbs-orchestrator-' + env + '-nodes'] }}"
+
+
+#nodeselectors
+osbs_orchestrator_default_nodeselector: "orchestrator=true"
+osbs_worker_default_nodeselector: "worker=true"

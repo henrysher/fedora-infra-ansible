@@ -1,0 +1,23 @@
+---
+- name: Install python-six package
+  package:
+    name: python-six
+    state: present
+
+- name: Install libselinux-python package
+  package:
+    name: libselinux-python
+    state: present
+
+- name: Configure SELinux
+  selinux:
+    state: enforcing
+    policy: targeted
+
+- name: enable/disable sebools
+  seboolean:
+    name: "{{ item.name }}"
+    state: "{{ item.state }}"
+    persistent: "{{ item.persistent }}"
+  with_items: "{{ openshift_sebools }}"
+  when: openshift_sebools != ""

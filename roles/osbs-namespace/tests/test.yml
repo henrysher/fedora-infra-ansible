@@ -1,0 +1,313 @@
+# Standards: 1.8
+---
+# Run playbook
+#   ansible-playbook -i test-inventory test.yml
+# During active development, you can re-use the same
+# environment setup:
+#   ansible-playbook -i test-inventory test.yml --skip-tags 'environment-setup'
+- name: setup environment
+  hosts: masters
+  tasks:
+  - name: cleanup existing cluster
+    command: >
+      oc cluster down
+    register: cmd_cluster_down
+    changed_when: cmd_cluster_down.rc == 0
+
+  - name: bring up new cluster
+    command: >
+      oc cluster up
+      --version v3.4.1.10
+      --image registry.access.redhat.com/openshift3/ose
+    register: cmd_cluster_up
+    changed_when: cmd_cluster_up.rc == 0
+
+  - name: login as admin
+    command: >
+      oc login -u system:admin
+    register: cmd_login_admin
+    changed_when: cmd_login_admin.rc == 0
+
+  - name: cleanup tmp folder
+    file:
+      path: tmp
+      state: absent
+
+  - name: setup tmp folder
+    file:
+      path: tmp
+      state: directory
+
+  tags:
+  - environment-setup
+
+- name: setup worker namespace
+  hosts: masters
+  roles:
+  - role: "{{ playbook_dir }}/../."
+    osbs_kubeconfig_path: "{{ lookup('env','HOME') }}/.kube/config"
+    osbs_openshift_home: tmp
+    osbs_namespace: test-worker
+    osbs_nodeselector: "worker=true"
+    osbs_service_accounts:
+    - orchestrator
+
+- name: test worker namespace
+  hosts: masters
+  tasks:
+  - name: namespace worker created
+    command: >
+      oc get project test-worker
+    changed_when: false
+
+  - name: orchestrator service account created in worker namespace
+    command: >
+      oc -n test-worker get serviceaccount orchestrator
+    changed_when: false
+
+  - name: policy binding created
+    command: >
+      oc -n test-worker get policybinding ':default'
+    changed_when: false
+
+  - name: custom builds roles created
+    command: >
+      oc -n test-worker get role osbs-custom-build
+    changed_when: false
+
+  - name: expected rolebindings created in worker namespace
+    command: >
+      oc -n test-worker get rolebinding {{ item }}
+    with_items:
+    - osbs-admin
+    - osbs-admin
+    - osbs-custom-build-admin
+    - osbs-custom-build-readwrite
+    - osbs-custom-build-serviceaccounts
+    - osbs-readonly
+    - osbs-readwrite
+    - osbs-readwrite-serviceaccounts
+    changed_when: false
+
+  - name: nodeselector exists
+    shell: >
+       oc get namespace test-worker -o json |grep 'node-selector'
+    register: node_selector_exists
+    failed_when: "'node-selector' not in node_selector_exists.stdout"
+
+- name: setup orchestrator namespace
+  hosts: masters
+  tags:
+    orchestrator
+  roles:
+  - role: "{{ playbook_dir }}/../."
+    osbs_kubeconfig_path: "{{ lookup('env','HOME') }}/.kube/config"
+    osbs_openshift_home: tmp
+    osbs_generated_config_path: tmp
+    osbs_namespace: test-orchestrator
+    osbs_orchestrator: true
+
+- name: test orchestrator namespace
+  hosts: masters
+  tags:
+    orchestrator
+  tasks:
+  - name: reactor config secret generated
+    stat:
+      path: tmp/test-orchestrator-reactor-config-secret.yml
+    register: stat_reactor_config_secret
+    changed_when: false
+
+  - name: fail if reactor config secret was generated
+    fail:
+      msg: Reactor config secret file not created!
+    when: not stat_reactor_config_secret.stat.exists
+
+  - name: client-config-secret was generated properly
+    command: >
+      diff {{ playbook_dir }}/files/expected-client-config-secret.conf
+      {{ playbook_dir }}/tmp/test-orchestrator-client-config-secret.conf
+    changed_when: false
+
+
+- name: setup namespace as non admin
+  hosts: masters
+  pre_tasks:
+  - name: Login with non cluster admin account
+    command: >
+      oc login -u non-admin -p non-admin
+    register: cmd_login_non_admin
+    changed_when: cmd_login_non_admin.rc == 0
+  roles:
+  - role: "{{ playbook_dir }}/../."
+    osbs_kubeconfig_path: "{{ lookup('env','HOME') }}/.kube/config"
+    osbs_openshift_home: tmp
+    osbs_namespace: test-non-admin
+    osbs_is_admin: false
+    osbs_service_accounts:
+    - orchestrator
+  post_tasks:
+  - name: Log back in with cluster admin account
+    command: >
+      oc login -u system:admin
+    register: cmd_login_admin
+    changed_when: cmd_login_admin.rc == 0
+
+- name: test non-admin namespace
+  hosts: masters
+  tasks:
+  - name: namespace non-admin created
+    command: >
+      oc get project test-non-admin
+    changed_when: false
+
+  - name: orchestrator service account created in non-admin namespace
+    command: >
+      oc -n test-non-admin get serviceaccount orchestrator
+    changed_when: false
+
+  - name: custom builds roles NOT created in non-admin namespace
+    command: >
+      oc -n test-non-admin get role osbs-custom-build
+    register: cmd_role
+    failed_when: "'No resources found' not in cmd_role.stderr"
+    changed_when: false
+
+  - name: custom rolebindings NOT created in non-admin namespace
+    command: >
+      oc -n test-non-admin get rolebinding {{ item }}
+    register: cmd_rolebinding
+    failed_when: "'No resources found' not in cmd_rolebinding.stderr"
+    with_items:
+    - osbs-admin
+    - osbs-admin
+    - osbs-custom-build-admin
+    - osbs-custom-build-readwrite
+    - osbs-custom-build-serviceaccounts
+    - osbs-readonly
+    - osbs-readwrite
+    - osbs-readwrite-serviceaccounts
+    changed_when: false
+
+- name: create limitrange namespace
+  hosts: masters
+  roles:
+  - role: "{{ playbook_dir }}/../."
+    osbs_kubeconfig_path: "{{ lookup('env','HOME') }}/.kube/config"
+    osbs_openshift_home: tmp
+    osbs_namespace: test-limitrange
+    osbs_cpu_limitrange: '100m'
+
+- name: test limitrange namespace
+  hosts: masters
+  tasks:
+  - name: namespace limitrange created
+    command: >
+      oc get project test-limitrange
+    changed_when: false
+
+  - name: limitrange created
+    command: >
+      oc -n test-limitrange get limitrange cpureq
+    changed_when: false
+
+- name: update limitrange namespace
+  hosts: masters
+  roles:
+  - role: "{{ playbook_dir }}/../."
+    osbs_kubeconfig_path: "{{ lookup('env','HOME') }}/.kube/config"
+    osbs_openshift_home: tmp
+    osbs_namespace: test-limitrange
+    # No osbs_cpu_limitrage provided should trigger removal
+
+- name: test updated limitrange namespace
+  hosts: masters
+  tasks:
+  - name: limitrange deleted
+    command: >
+      oc -n test-limitrange get limitrange cpureq
+    register: cmd_limitrange
+    failed_when: "'No resources found' not in cmd_limitrange.stderr"
+    changed_when: false
+
+- name: setup policybinding dedicated-admin namespace
+  hosts: masters
+  pre_tasks:
+  - name: login as admin
+    command: >
+      oc login -u system:admin
+    register: cmd_login_admin
+    changed_when: cmd_login_admin.rc == 0
+  - name: Create dedicated-poject-admin clusterrole
+    command: >
+      oc create -f {{ playbook_dir }}/files/dedicated-project-admin.yaml
+    register: cmd_create_clusterrole
+    changed_when: cmd_create_clusterrole.rc == 0
+  - name: Create the namespace as cluster admin
+    command: >
+      oc new-project test-policybinding-dedicated-admin
+    register: cmd_pre_create_namespace
+    changed_when: cmd_pre_create_namespace.rc == 0
+  - name: Create dedicated-admin user
+    command: >
+      oc -n test-policybinding-dedicated-admin
+      create user dedicated-admin
+    register: cmd_create_user
+    changed_when: cmd_create_user.rc == 0
+  - name: Add dedicated-project-admin role to dedicated-admin
+    command: >
+      oc -n test-policybinding-dedicated-admin
+      policy add-role-to-user dedicated-project-admin dedicated-admin
+    register: cmd_role_dedicated_project_admin
+    changed_when: cmd_role_dedicated_project_admin.rc == 0
+  - name: Create policybinding as cluster admin
+    command: >
+      oc -n test-policybinding-dedicated-admin
+      create policybinding test-policybinding-dedicated-admin
+    register: cmd_pre_create_policybinding
+    changed_when: cmd_pre_create_policybinding.rc == 0
+  # This is only needed because the project was created
+  # by a different user: system:admin.
+  - name: Give dedicated-admin user project admin access
+    command: >
+      oc -n test-policybinding-dedicated-admin
+      adm policy add-role-to-user admin dedicated-admin
+    register: cmd_role_project_admin
+    changed_when: cmd_role_project_admin.rc == 0
+  - name: Login with non cluster admin account
+    command: >
+      oc login -u dedicated-admin -p dedicated-admin
+    register: cmd_login_dedicated_admin
+    changed_when: cmd_login_dedicated_admin.rc == 0
+  roles:
+  - role: "{{ playbook_dir }}/../."
+    osbs_kubeconfig_path: "{{ lookup('env','HOME') }}/.kube/config"
+    osbs_openshift_home: tmp
+    osbs_namespace: test-policybinding-dedicated-admin
+    osbs_is_admin: true
+    osbs_service_accounts:
+    - orchestrator
+  post_tasks:
+  - name: Log back in with cluster admin account
+    command: >
+      oc login -u system:admin
+    register: cmd_login_admin
+    changed_when: cmd_login_admin.rc == 0
+
+- name: test policybinding dedicated-admin namespace
+  hosts: masters
+  tasks:
+  - name: custom rolebindings created in dedicated-admin namespace
+    command: >
+      oc -n test-policybinding-dedicated-admin get rolebinding {{ item }}
+    register: cmd_rolebinding
+    with_items:
+    - osbs-admin
+    - osbs-admin
+    - osbs-custom-build-admin
+    - osbs-custom-build-readwrite
+    - osbs-custom-build-serviceaccounts
+    - osbs-readonly
+    - osbs-readwrite
+    - osbs-readwrite-serviceaccounts
+    changed_when: false

@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: RoleBinding
+metadata:
+  name: {{ item.name }}
+  namespace: {{ osbs_namespace }}
+
+roleRef:
+  name: {{ item.role }}
+  namespace: {{ item.role_namespace | default() }}
+
+subjects:
+
+{% for sa in item.serviceaccounts | default([]) %}
+- kind: 'ServiceAccount'
+  namespace: {{ osbs_namespace }}
+  name: {{ sa }}
+{% endfor %}
+
+{% for u in item.users | default([]) %}
+- kind: 'User'
+  namespace: {{ osbs_namespace }}
+  name: {{ u }}
+{% endfor %}
+
+{% for g in item.groups | default([]) %}
+- kind: 'Group'
+  namespace: {{ osbs_namespace }}
+  name: {{ g }}
+{% endfor %}

@@ -1,0 +1,192 @@
+---
+# Create namespace
+- name: create osbs namespace
+  command: oc new-project {{ osbs_namespace }}
+  register: new_project
+  failed_when: new_project.rc != 0 and ('already exists' not in new_project.stderr)
+  changed_when: new_project.rc == 0
+  environment: "{{ osbs_environment }}"
+  tags:
+  - oc
+
+# Setup service account
+- name: copy service accounts
+  template:
+    src: openshift-serviceaccount.yml.j2
+    dest: "{{ osbs_openshift_home }}/{{ inventory_hostname }}-{{ osbs_namespace }}-serviceaccount-{{ item }}.yml"
+  with_items: "{{ osbs_service_accounts }}"
+  register: yaml_sa
+  tags:
+  - oc
+
+- name: import service accounts
+  command: >
+    oc create
+    --namespace={{ osbs_namespace }}
+    --filename={{ osbs_openshift_home }}/{{ inventory_hostname }}-{{ osbs_namespace }}-serviceaccount-{{ item.item }}.yml
+  register: service_account_import
+  failed_when: service_account_import.rc != 0 and ('already exists' not in service_account_import.stderr)
+  environment: "{{ osbs_environment }}"
+  with_items: "{{ yaml_sa.results | default([]) }}"
+  when: item.changed
+  tags:
+  - oc
+
+# Setup policy binding
+- name: query policybinding
+  command: oc get policybinding {{ osbs_namespace }}:default --namespace {{ osbs_namespace }}
+  environment: "{{ osbs_environment }}"
+  register: policybinding_query
+  failed_when: policybinding_query.rc != 0 and ('not found' not in policybinding_query.stderr)
+  changed_when: false
+  when: osbs_is_admin
+  tags:
+  - oc
+
+- name: create a policybinding
+  command: oc create policybinding {{ osbs_namespace }} --namespace {{ osbs_namespace }}
+  environment: "{{ osbs_environment }}"
+  when: "osbs_is_admin and 'not found' in policybinding_query.stderr"
+  tags:
+  - oc
+
+# Setup role
+- name: copy role
+  template:
+    src: role-osbs-custom-build.yml.j2
+    dest: "{{ osbs_openshift_home }}/{{ inventory_hostname }}-{{ osbs_namespace }}-role-osbs-custom-build.yml"
+  environment: "{{ osbs_environment }}"
+  register: yaml_role
+  when: osbs_is_admin
+  tags:
+  - oc
+
+- name: import role
+  command: >
+    oc replace
+    --namespace={{ osbs_namespace }}
+    --force=true
+    --filename={{ osbs_openshift_home }}/{{ inventory_hostname }}-{{ osbs_namespace }}-role-osbs-custom-build.yml
+  environment: "{{ osbs_environment }}"
+  when: yaml_role.changed
+  tags:
+  - oc
+
+# Setup role bindings
+- name: copy role bindings
+  template:
+    src: "openshift-rolebinding.{{ item.yaml_version | default('v2') }}.yml.j2"
+    dest: "{{ osbs_openshift_home }}/{{ inventory_hostname }}-{{ osbs_namespace }}-rolebinding-{{ item.name }}.yml"
+  with_items:
+
+  - name: osbs-readonly
+    role: view
+    yaml_version: v1
+    users: "{{ osbs_readonly_users }}"
+    groups: "{{ osbs_readonly_groups }}"
+
+  - name: osbs-readwrite
+    role: edit
+    yaml_version: v1
+    users: "{{ osbs_readwrite_users }}"
+    groups: "{{ osbs_readwrite_groups }}"
+
+  - name: osbs-admin
+    role: admin
+    yaml_version: v1
+    users: "{{ osbs_admin_users }}"
+    groups: "{{ osbs_admin_groups }}"
+
+  - name: osbs-custom-build-readwrite
+    role: osbs-custom-build
+    yaml_version: v1
+    role_namespace: "{{ osbs_namespace }}"
+    users: "{{ osbs_readwrite_users }}"
+    groups: "{{ osbs_readwrite_groups }}"
+
+  - name: osbs-custom-build-admin
+    role: osbs-custom-build
+    yaml_version: v1
+    role_namespace: "{{ osbs_namespace }}"
+    users: "{{ osbs_admin_users }}"
+    groups: "{{ osbs_admin_groups }}"
+
+  - name: osbs-readwrite-serviceaccounts
+    role: edit
+    serviceaccounts: "{{ osbs_service_accounts }}"
+
+  - name: osbs-custom-build-serviceaccounts
+    role: osbs-custom-build
+    role_namespace: "{{ osbs_namespace }}"
+    serviceaccounts: "{{ osbs_service_accounts }}"
+
+  register: yaml_rolebindings
+  when: osbs_is_admin
+  tags:
+  - oc
+
+- name: import the role bindings
+  command: >
+    oc replace
+    --namespace={{ osbs_namespace }}
+    --force=true
+    --filename={{ osbs_openshift_home }}/{{ inventory_hostname }}-{{ osbs_namespace }}-rolebinding-{{ item.item.name }}.yml
+  environment: "{{ osbs_environment }}"
+  with_items: "{{ yaml_rolebindings.results }}"
+  when: item.changed
+  tags:
+  - oc
+
+- name: copy cpu limitrange
+  template:
+    src: openshift-limitrange.yml.j2
+    dest: "{{ osbs_openshift_home }}/{{ inventory_hostname }}-{{ osbs_namespace }}-limitrange.yml"
+  when: osbs_cpu_limitrange and osbs_is_admin
+  register: yaml_limitrange
+  tags:
+  - oc
+
+- name: import cpu limitrange
+  command: >
+    oc replace
+    --namespace={{ osbs_namespace }}
+    --force=true
+    --filename={{ osbs_openshift_home }}/{{ inventory_hostname }}-{{ osbs_namespace }}-limitrange.yml
+  environment: "{{ osbs_environment }}"
+  when: yaml_limitrange.changed
+  tags:
+  - oc
+
+- name: delete cpu limitrange
+  command: >
+    oc delete
+    --namespace={{ osbs_namespace }}
+    --ignore-not-found=true
+    limitrange cpureq
+  environment: "{{ osbs_environment }}"
+  when: not osbs_cpu_limitrange and osbs_is_admin
+  tags:
+  - oc
+
+- name: get nodeselector value
+  command: >
+     oc get namespace {{ osbs_namespace }} -o go-template
+     --template={% raw %}'{{index .metadata.annotations "openshift.io/node-selector"}}'{% endraw %}
+  environment: "{{ osbs_environment }}"
+  register: node_selector_value
+  when: osbs_nodeselector != ''
+  changed_when: false
+  tags:
+  - oc
+
+- name: set default node selector
+  command: >
+    oc patch namespace {{ osbs_namespace }}
+    -p '{"metadata":{"annotations":{"openshift.io/node-selector": "{{ osbs_nodeselector }}"}}}'
+  environment: "{{ osbs_environment }}"
+  when: osbs_nodeselector != '' and osbs_nodeselector != node_selector_value.stdout
+  tags:
+  - oc
+
+- include: orchestrator.yml
+  when: osbs_orchestrator

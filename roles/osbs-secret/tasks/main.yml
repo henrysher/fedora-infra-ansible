@@ -1,0 +1,40 @@
+---
+- set_fact:
+    osbs_secret_files_exist: true
+  tags:
+  - oc
+
+- set_fact:
+    osbs_secret_files_exist: false
+  when: lookup('file', lookup('first_found', [item.source, '/dev/null'])) == ''
+  with_items: "{{ osbs_secret_files }}"
+  tags:
+  - oc
+
+- fail:
+    msg: Some of the source secret files do not exist (and osbs_secret_can_fail is false)
+  when: not (osbs_secret_files_exist or osbs_secret_can_fail)
+  tags:
+  - oc
+
+- debug:
+    msg: Some of the source secret files do not exist, skipping import
+  when: not osbs_secret_files_exist
+  tags:
+  - oc
+
+- name: create secrets resource file
+  template:
+    src: openshift-secret.yml.j2
+    dest: "{{ osbs_secret_remote_dir }}/openshift-secret-{{ inventory_hostname }}-{{ osbs_namespace }}-{{ osbs_secret_name }}.yml"
+    mode: "0600"
+  when: osbs_secret_files_exist
+  notify:
+  - import osbs secret
+  - delete secret resource file
+  tags:
+  - oc
+
+- meta: flush_handlers
+  tags:
+  - oc

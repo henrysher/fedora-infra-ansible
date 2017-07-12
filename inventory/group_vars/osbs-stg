@@ -1,2 +1,103 @@
 ---
+
 baseiptables: False
+
+fas_client_groups: sysadmin-releng,fi-apprentice,sysadmin-noc,sysadmin-veteran
+sudoers: "{{ private }}/files/sudo/00releng-sudoers"
+
+docker_cert_dir: "/etc/docker/certs.d/candidate-registry.stg.fedoraproject.org"
+stable_registry: "registry.stg.fedoraproject.org"
+candidate_registry: "candidate-registry.stg.fedoraproject.org"
+
+osbs_url: "osbs.stg.fedoraproject.org"
+osbsworker_x86_64_url: "osbsworker-x86-64.stg.fedoraproject.org"
+
+koji_url: "koji.stg.fedoraproject.org"
+
+osbs_builder_user: builder
+koji_builder_user: dockerbuilder
+
+osbs_client_conf_path: /etc/osbs.conf
+
+openshift_htpasswd_file: /etc/origin/htpasswd
+openshift_ansible_version: openshift-ansible-3.5.97-1
+openshift_ansible_ssh_user: root
+openshift_ansible_install_examples: false
+openshift_ansible_containerized_deploy: false
+openshift_auth_profile: osbs
+origin_release: v1.5.1
+openshift_debug_level: 2
+
+osbs_namespace: "osbs"
+osbs_koji_username: "kojibuilder_stg"
+
+osbs_openshift_home: /var/lib/origin
+osbs_kubeconfig_path: /etc/origin/master/admin.kubeconfig
+osbs_generated_config_path: /tmp
+
+osbs_environment:
+  KUBECONFIG: "{{ osbs_kubeconfig_path }}"
+
+osbs_is_admin: true
+
+osbs_service_accounts:
+- worker
+- orchestrator
+- metrics
+
+osbs_cpu_limitrange: '200m'
+
+# FIXME
+# I'm not sure who all should be admins and we might want some read-only user
+# for the purpose of monitoring
+osbs_admin_groups: []
+osbs_admin_users: []
+osbs_readonly_groups: []
+osbs_readonly_users: []
+osbs_readwrite_groups: []
+osbs_readwrite_users: []
+
+osbs_orchestrator: false
+
+osbs_worker_namespace: "worker"
+
+osbs_worker_service_accounts:
+- worker
+- orchestrator
+
+osbs_worker_clusters:
+  x86_64:
+  - name: osbsworker-x86-64
+    max_concurrent_builds: 12
+    openshift_url: "https://{{ osbsworker_x86_64_url }}"
+    verify_ssl: 'false'
+    artifacts_allowed_domains:
+    - "{{stable_registry}}"
+    - "{{candidate_registry}}"
+
+osbs_koji_hub: "https://{{koji_url}}/kojihub
+osbs_koji_root: https://{{koji_url}}/koji
+
+osbs_pulp_registry_name: brew-prod
+
+osbs_registry_uri: https://{{candidate_registry}}/v2
+
+osbs_source_registry_uri: http://brew-pulp-docker01.web.prod.ext.phx2.redhat.com:8888
+
+osbs_koji_secret_name: koji
+osbs_distribution_scope: public
+osbs_authoritative_registry: "{{ stable_registry }}"
+osbs_registry_api_versions:
+- v2
+osbs_registry_secret_name: v2-registry-dockercfg
+osbs_registry_uri: ''
+osbs_source_registry_uri: ''
+osbs_build_json_dir: /usr/share/osbs
+osbs_sources_command: fedpkg sources
+osbs_vendor: Fedora Project
+
+#nodeselectors
+osbs_orchestrator_default_nodeselector: "orchestrator=true"
+osbs_worker_default_nodeselector: "worker=true"
+
+
