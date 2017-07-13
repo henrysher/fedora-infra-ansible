@@ -17,20 +17,6 @@
   tags:
   - distgit
 
-- name: uninstall the httpd config file of non-packaged dist-git
-  file: dest=/etc/httpd/conf.d/pkgs.fedoraproject.org.conf state=absent
-  notify:
-  - reload httpd
-  tags:
-  - distgit
-
-- name: uninstall the httpd config directory of non-packaged dist-git
-  file: dest=/etc/httpd/conf.d/pkgs.fedoraproject.org state=absent
-  notify:
-  - reload httpd
-  tags:
-  - distgit
-
 - name: install the mod_ssl configuration
   copy: src=ssl.conf dest=/etc/httpd/conf.d/ssl.conf
   notify:
@@ -121,16 +107,6 @@
   - test-modules
   - test-docker
   tags:
-  - distgit
-
-- name: uninstall the distgit scripts of non-packaged dist-git
-  file: dest=/usr/local/bin/{{item}} state=absent
-  with_items:
-    - setup_git_package
-    - mkbranch
-    - mkbranch_branching
-  tags:
-  - config
   - distgit
 
 - name: install the DistGit related httpd config
@@ -434,13 +410,6 @@
     minute=0
     user=root
     job="/usr/local/bin/updatecrl.sh"
-  tags:
-  - distgit
-
-- name: uninstall the upload CGI script of non-packaged dist-git
-  file: dest=/srv/web/upload.cgi state=absent
-  notify:
-  - reload httpd
   tags:
   - distgit
 
