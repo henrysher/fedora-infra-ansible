@@ -297,10 +297,10 @@ class FedoraTemplate extends QuickTemplate {
       Copyright &copy; <?php echo date('Y');?> Red Hat, Inc. and others. For comments or queries, <a href="/wiki/Communicating_and_getting_help">please contact us</a>.
       </p>
       <p class="disclaimer">
-      Content is available under <a href="/wiki/Legal:Main">Attribution-Share Alike 3.0 Unported</a> unless otherwise noted.
+      Content is available under <a href="/wiki/Legal:Main">Attribution-Share Alike 3.0 Unported</a> unless otherwise noted.<br />
       Red Hat, Red Hat Enterprise Linux, the Shadowman logo, and JBoss are trademarks or registered trademarks of
-      Red Hat, Inc. or its subsidiaries in the United States and other countries. Linux&reg; is the registered
-      trademark of Linus Torvalds in the U.S. and other countries.
+      Red Hat, Inc. or its subsidiaries in the United States and other countries.<br />
+      Linux&reg; is the registered trademark of Linus Torvalds in the U.S. and other countries.<br />
       The Fedora Project is maintained and driven by the community and sponsored by Red Hat. This is a community
       maintained site. Red Hat is not responsible for content.
       </p>
