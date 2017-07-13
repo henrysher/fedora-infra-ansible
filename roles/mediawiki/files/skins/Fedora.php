@@ -298,20 +298,10 @@ class FedoraTemplate extends QuickTemplate {
       </p>
       <p class="disclaimer">
       Content is available under <a href="/wiki/Legal:Main">Attribution-Share Alike 3.0 Unported</a> unless otherwise noted.
-      </p>
-      <p class="disclaimer">
       Red Hat, Red Hat Enterprise Linux, the Shadowman logo, and JBoss are trademarks or registered trademarks of
-      </p>
-      <p class="disclaimer">
       Red Hat, Inc. or its subsidiaries in the United States and other countries. Linux&reg; is the registered
-      </p>
-      <p class="disclaimer">
       trademark of Linus Torvalds in the U.S. and other countries.
-      </p>
-      <p class="disclaimer">
       The Fedora Project is maintained and driven by the community and sponsored by Red Hat. This is a community
-      </p>
-      <p class="disclaimer">
       maintained site. Red Hat is not responsible for content.
       </p>
 			<ul>
