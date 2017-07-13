@@ -503,6 +503,29 @@ config = dict(
                 ],
             ),
         ),
+
+        # For #fedora-workstation
+        dict(
+            network='chat.freenode.net',
+            port=6667,
+            make_pretty=True,
+            make_terse=True,
+
+            {% if env == 'staging' %}
+            nickname='fm-stg-workstation',
+            {% else %}
+            nickname='fm-workstation',
+            {% endif %}
+            channel='#fedora-workstation',
+            filters=dict(
+                topic=[
+                    '^((?!(pagure)).)*$',
+                ],
+                body=[
+                    "^((?!(fedora-workstation)).)*$",
+                ],
+            ),
+        ),
     ],
 
     ### Possible colors are ###
