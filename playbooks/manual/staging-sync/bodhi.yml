@@ -47,31 +47,42 @@
   - command: sed -i "s/connect bodhi2/connect bodhi2\nSET bdr.permit_ddl_locking = true;/" /var/tmp/bodhi2.dump
   - shell: >
       psql bodhi2 <<< "
+      \set ON_ERROR_STOP on;
       BEGIN;
       SET LOCAL bdr.permit_ddl_locking = on;
       DELETE FROM alembic_version;
-      DROP TABLE comments CASCADE;
-      DROP TABLE groups CASCADE;
-      DROP TABLE cves CASCADE;
-      DROP TABLE packages CASCADE;
-      DROP TABLE stacks CASCADE;
-      DROP TABLE stack_user_table CASCADE;
-      DROP TABLE update_cve_table CASCADE;
-      DROP TABLE releases CASCADE;
-      DROP TABLE comment_bug_assoc CASCADE;
-      DROP TABLE comment_testcase_assoc CASCADE;
-      DROP TABLE stack_group_table CASCADE;
-      DROP TABLE testcases CASCADE;
-      DROP TABLE buildroot_overrides CASCADE;
-      DROP TABLE bug_cve_table CASCADE;
-      DROP TABLE users CASCADE;
-      DROP TABLE builds CASCADE;
-      DROP TABLE updates CASCADE;
-      DROP TABLE bugs CASCADE;
-      DROP TABLE update_bug_table CASCADE;
-      DROP TABLE user_group_table CASCADE;
-      DROP TABLE user_package_table CASCADE;
-      DROP TYPE ck_update_request CASCADE;
+      DROP TABLE IF EXISTS comments CASCADE;
+      DROP TABLE IF EXISTS groups CASCADE;
+      DROP TABLE IF EXISTS cves CASCADE;
+      DROP TABLE IF EXISTS packages CASCADE;
+      DROP TABLE IF EXISTS stacks CASCADE;
+      DROP TABLE IF EXISTS stack_user_table CASCADE;
+      DROP TABLE IF EXISTS update_cve_table CASCADE;
+      DROP TABLE IF EXISTS releases CASCADE;
+      DROP TABLE IF EXISTS comment_bug_assoc CASCADE;
+      DROP TABLE IF EXISTS comment_testcase_assoc CASCADE;
+      DROP TABLE IF EXISTS stack_group_table CASCADE;
+      DROP TABLE IF EXISTS testcases CASCADE;
+      DROP TABLE IF EXISTS buildroot_overrides CASCADE;
+      DROP TABLE IF EXISTS bug_cve_table CASCADE;
+      DROP TABLE IF EXISTS users CASCADE;
+      DROP TABLE IF EXISTS builds CASCADE;
+      DROP TABLE IF EXISTS updates CASCADE;
+      DROP TABLE IF EXISTS bugs CASCADE;
+      DROP TABLE IF EXISTS update_bug_table CASCADE;
+      DROP TABLE IF EXISTS user_group_table CASCADE;
+      DROP TABLE IF EXISTS user_package_table CASCADE;
+      DROP TYPE IF EXISTS ck_ci_status CASCADE;
+      DROP TYPE IF EXISTS ck_content_type CASCADE;
+      DROP TYPE IF EXISTS ck_release_state CASCADE;
+      DROP TYPE IF EXISTS ck_update_request CASCADE;
+      DROP TYPE IF EXISTS ck_update_severity CASCADE;
+      DROP TYPE IF EXISTS ck_update_status CASCADE;
+      DROP TYPE IF EXISTS ck_update_suggestion CASCADE;
+      DROP TYPE IF EXISTS ck_update_type CASCADE;
+      DROP TYPE IF EXISTS bug_cve_table CASCADE;
+      DROP TYPE IF EXISTS bugs CASCADE;
+      DROP TYPE IF EXISTS buildroot_overrides CASCADE;
       COMMIT;
       "
     register: drop_script
