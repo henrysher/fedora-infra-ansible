@@ -77,6 +77,7 @@
     register: drop_script
   - name: Import the prod db.
     shell: cat /var/tmp/bodhi2.dump | psql bodhi2
+    register: import_script
   - file: path=/var/tmp/bodhi2.dump state=absent
 
 - name: Debug the psql drop script
@@ -85,7 +86,10 @@
   tasks:
   - copy:
       content: "{{ hostvars['pgbdr01.stg.phx2.fedoraproject.org']['drop_script'].stdout }}\n{{ hostvars['pgbdr01.stg.phx2.fedoraproject.org']['drop_script'].stderr }}"
-      dest: /tmp/bodhi.debug
+      dest: /tmp/bodhi_drop.debug
+  - copy:
+      content: "{{ hostvars['pgbdr01.stg.phx2.fedoraproject.org']['import_script'].stdout }}\n{{ hostvars['pgbdr01.stg.phx2.fedoraproject.org']['import_script'].stderr }}"
+      dest: /tmp/bodhi_import.debug
 
 - name: bring staging services up (httpd)
   hosts: bodhi2-stg
