@@ -46,7 +46,7 @@
   - command: sed -i "s/CREATE DATABASE bodhi2.*/SET bdr.permit_ddl_locking = true;/" /var/tmp/bodhi2.dump
   - command: sed -i "s/connect bodhi2/connect bodhi2\nSET bdr.permit_ddl_locking = true;/" /var/tmp/bodhi2.dump
   - shell: >
-      psql bodhi2 <<< "
+      psql --set ON_ERROR_STOP=on bodhi2 <<< "
       BEGIN;
       SET LOCAL bdr.permit_ddl_locking = on;
       DELETE FROM alembic_version;
