@@ -385,11 +385,6 @@
 
 - name: Setup Koji auth for OpenShift Orchestrator
   hosts: osbs-masters-stg[0]
-  tags:
-    - osbs-cluster-req
-  user: root
-  gather_facts: True
-
   vars_files:
     - /srv/web/infra/ansible/vars/global.yml
     - "/srv/private/ansible/vars.yml"
@@ -413,7 +408,7 @@
       when: env == "staging"
 
     - name: set policy for koji builder in openshift for atomic-reactor
-      shell: "oadm policy add-role-to-user -n {{ osbs_namespace }} edit system:serviceaccount:{{osbs_namespace}}:{{osbs_ && touch /etc/origin/atomic-reactor-policy-added"
+      shell: "oadm policy add-role-to-user -n {{ osbs_namespace }} edit system:serviceaccount:{{osbs_namespace}}:{{osbs_builder_user}} && touch /etc/origin/atomic-reactor-policy-added"
       args:
         creates: "/etc/origin/atomic-reactor-policy-added"
 
