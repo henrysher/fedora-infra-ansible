@@ -30,44 +30,32 @@ oa_debug_level: 2
 oa_htpasswd_file: /etc/origin/htpasswd
 origin_release: v1.5.1
 
-osbs_namespace: "osbs"
 osbs_koji_username: "kojibuilder_stg"
 
-osbs_openshift_home: /var/lib/origin
-osbs_kubeconfig_path: /etc/origin/master/admin.kubeconfig
-osbs_generated_config_path: /tmp
+openshift_home: /var/lib/origin
+generated_config_path: /tmp
 
-osbs_environment:
-  KUBECONFIG: "{{ osbs_kubeconfig_path }}"
+osbs_admin: true
 
-osbs_is_admin: true
-
-osbs_service_accounts:
+osbs_orchestrator_service_accounts:
 - worker
 - orchestrator
 - metrics
 
-osbs_cpu_limitrange: '200m'
+os_cpu_limitrange: '200m'
 
 # FIXME
-# I'm not sure who all should be admins and we might want some read-only user
-# for the purpose of monitoring
-osbs_admin_groups: []
-osbs_admin_users: []
-osbs_readonly_groups: []
-osbs_readonly_users: []
-osbs_readwrite_groups: []
-osbs_readwrite_users: []
 
 osbs_orchestrator: false
 
 osbs_worker_namespace: "worker"
+osbs_orchestrator_namespace: "osbs"
 
 osbs_worker_service_accounts:
 - worker
 - orchestrator
 
-osbs_worker_clusters:
+worker_clusters:
   x86_64:
   - name: osbsworker-x86-64
     max_concurrent_builds: 12
@@ -77,8 +65,8 @@ osbs_worker_clusters:
     - "{{stable_registry}}"
     - "{{candidate_registry}}"
 
-osbs_koji_hub: "https://{{koji_url}}/kojihub"
-osbs_koji_root: "https://{{koji_url}}/koji"
+koji_hub: "https://{{koji_url}}/kojihub"
+koji_root: "https://{{koji_url}}/koji"
 
 osbs_pulp_registry_name: brew-prod
 
@@ -86,18 +74,47 @@ osbs_registry_uri: "https://{{candidate_registry}}/v2"
 
 osbs_source_registry_uri: http://brew-pulp-docker01.web.prod.ext.phx2.redhat.com:8888
 
-osbs_koji_secret_name: koji
-osbs_distribution_scope: public
-osbs_authoritative_registry: "{{ stable_registry }}"
-osbs_registry_api_versions:
+koji_secret_name: kojisecret
+distribution_scope: public
+authoritative_registry: "{{ stable_registry }}"
+registry_api_versions:
 - v2
-osbs_registry_secret_name: v2-registry-dockercfg
-osbs_build_json_dir: /usr/share/osbs
-osbs_sources_command: fedpkg sources
-osbs_vendor: Fedora Project
+registry_secret_name: v2-registry-dockercfg
+build_json_dir: /usr/share/osbs
+sources_command: fedpkg sources
+vendor: Fedora Project
 
 #nodeselectors
 osbs_orchestrator_default_nodeselector: "orchestrator=true"
 osbs_worker_default_nodeselector: "worker=true"
 
+build_json_dir: /usr/share/osbs
 
+
+osbs_manage_firewalld: false
+
+kubeconfig_path: /etc/origin/master/admin.kubeconfig
+osbs_env:
+  HOME: "{{ lookup('env', 'HOME') }}"
+  KUBECONFIG: "{{ osbs_kubeconfig_path }}"
+os_readonly_users:
+- "system:serviceaccount:{{ osbs_namespace }}:metrics"
+os_readonly_groups:
+- "system:authenticated"
+os_readwrite_groups: []
+os_readwrite_users:
+- "{{ ansible_hostname }}"
+- "system:serviceaccount:{{ osbs_namespace }}:default"
+- "system:serviceaccount:{{ osbs_namespace }}:builder"
+os_admin_users:
+- kevin
+- puiterwijk
+- maxamillion
+- dgilmore
+os_admin_groups: []
+osbs_nodes: "{{ groups['osbs-orchestrator-' + env + '-nodes'] }}"
+
+
+#nodeselectors
+osbs_orchestrator_default_nodeselector: "orchestrator=true"
+osbs_worker_default_nodeselector: "worker=true"

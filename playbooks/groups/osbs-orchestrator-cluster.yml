@@ -327,13 +327,38 @@
 
   roles:
   - role: osbs-namespace
+    osbs_namespace: "{{ osbs_orchestrator_namespace }}"
+    osbs_openshift_home: "{{ openshift_home}}"
+    osbs_kubeconfig_path: "{{ kubeconfig_path }}"
+    osbs_generated_config_path: "{{ generated_config_path }}"
+    osbs_environmnet: "{{ osbs_env }}"
+    osbs_is_admin: "{{ osbs_admin }}"
+    osbs_service_accounts: "{{ osbs_orchestrator_service_accounts }}"
+    osbs_cpu_limitrange: "{{ os_cpu_limitrange }}"
+    osbs_admin_groups: "{{ os_admin_groups }}"
+    osbs_admin_users: "{{ os_admin_users }}"
+    osbs_readonly_groups: "{{ os_readonly_groups }}"
+    osbs_readonly_users: "{{ os_readonly_users }}"
+    osbs_readwrite_groups: "{{ os_readwrite_groups }}"
+    osbs_readwrite_users: "{{ os_readwrite_users }}"
     osbs_orchestrator: true
-    osbs_cpu_limitrange: "{{ osbs_orchestrator_cpu_limitrange }}"
+    osbs_worker_clusters: "{{ worker_clusters }}"
+    osbs_koji_secret_name: "{{ koji_secret_name }}"
+    osbs_distribution_scope: "{{ distribution_scope }}"
+    osbs_authoritative_registry: "{{ authoritative_registry }}"
+    osbs_koji_hub: "{{ koji_hub }}"
+    osbs_koji_root: "{{ koji_root }}"
+    osbs_registry_api_versions: "{{ registry_api_versions }}"
+    osbs_registry_uri: "{{ candidate_registry }}"
+    osbs_source_registry_uri: "{{ stable_registry }}"
+    osbs_build_json_dir: "{{ build_json_dir }}"
+    osbs_sources_command: "fedpkg sources"
+    osbs_cpu_limitrange: "{{ os_cpu_limitrange }}"
     osbs_nodeselector: "{{ osbs_orchestrator_default_nodeselector|default('') }}"
 
   - role: osbs-secret
     osbs_namespace: "{{ osbs_worker_namespace }}"
-    osbs_secret_name: kojisecret
+    osbs_secret_name: "{{ koji_secret_name }}"
     osbs_secret_files:
     - source: "{{ secret_repo }}/groups/osbs-{{ env }}/koji/cert"
       dest: cert
@@ -371,8 +396,33 @@
   roles:
   - role: osbs-namespace
     osbs_namespace: "{{ osbs_worker_namespace }}"
+    osbs_openshift_home: "{{ openshift_home}}"
+    osbs_kubeconfig_path: "{{ kubeconfig_path }}"
+    osbs_generated_config_path: "{{ generated_config_path }}"
+    osbs_environmnet: "{{ osbs_env }}"
+    osbs_is_admin: "{{ osbs_admin }}"
     osbs_service_accounts: "{{ osbs_worker_service_accounts }}"
-    osbs_nodeselector: "{{ osbs_worker_default_nodeselector|default('') }}"
+    osbs_cpu_limitrange: "{{ os_cpu_limitrange }}"
+    osbs_admin_groups: "{{ os_admin_groups }}"
+    osbs_admin_users: "{{ os_admin_users }}"
+    osbs_readonly_groups: "{{ os_readonly_groups }}"
+    osbs_readonly_users: "{{ os_readonly_users }}"
+    osbs_readwrite_groups: "{{ os_readwrite_groups }}"
+    osbs_readwrite_users: "{{ os_readwrite_users }}"
+    osbs_orchestrator: false
+    osbs_worker_clusters: "{{ worker_clusters }}"
+    osbs_koji_secret_name: "{{ koji_secret_name }}"
+    osbs_distribution_scope: "{{ distribution_scope }}"
+    osbs_authoritative_registry: "{{ authoritative_registry }}"
+    osbs_koji_hub: "{{ koji_hub }}"
+    osbs_koji_root: "{{ koji_root }}"
+    osbs_registry_api_versions: "{{ registry_api_versions }}"
+    osbs_registry_uri: "{{ candidate_registry }}"
+    osbs_source_registry_uri: "{{ stable_registry }}"
+    osbs_build_json_dir: "{{ build_json_dir }}"
+    osbs_sources_command: "fedpkg sources"
+    osbs_cpu_limitrange: "{{ os_cpu_limitrange }}"
+    osbs_nodeselector: "{{ osbs_orchestrator_default_nodeselector|default('') }}"
 
   - role: osbs-secret
     osbs_namespace: "{{ osbs_worker_namespace }}"
@@ -506,8 +556,8 @@
           registry_uri: 'https://{{candidate_registry}}/v2',
           source_registry_uri: 'https://{{stable_registry}}/v2',
           build_host: '{{osbs_url}}',
-          koji_root: '{{osbs_koji_root}}',
-          koji_hub: '{{osbs_koji_hub}}',
+          koji_root: '{{koji_root}}',
+          koji_hub: '{{koji_hub}}',
           sources_command: 'fedpkg sources',
           build_type: 'prod',
           authoritative_registry: '{{stable_registry}}',
