@@ -232,3 +232,23 @@
   when: is_rhel is defined and ansible_architecture == 'x86_64' and ansible_distribution_major_version|int == '6'
   tags:
   - koji_builder
+
+- name: Add the Apache group
+  group: name=apache 
+         gid=48
+         system=yes
+         state=present
+  tags:
+  - koji_builder
+
+- name: Create the apache user
+  user: name=apache
+        uid=48 
+        createhome=no
+        group=apache
+        home=/usr/share/httpd
+        shell=/sbin/nologin
+        system=yes
+        state=present
+  tags:
+  - koji_builder
