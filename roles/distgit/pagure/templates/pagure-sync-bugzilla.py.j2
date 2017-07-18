@@ -1,0 +1,471 @@
+#!/usr/bin/python -tt
+# -*- coding: utf-8 -*-
+#
+# Copyright © 2013-2016  Red Hat, Inc.
+#
+# This copyrighted material is made available to anyone wishing to use, modify,
+# copy, or redistribute it subject to the terms and conditions of the GNU
+# General Public License v.2, or (at your option) any later version.  This
+# program is distributed in the hope that it will be useful, but WITHOUT ANY
+# WARRANTY expressed or implied, including the implied warranties of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General
+# Public License for more details.  You should have received a copy of the GNU
+# General Public License along with this program; if not, write to the Free
+# Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+# 02110-1301, USA. Any Red Hat trademarks that are incorporated in the source
+# code or documentation are not subject to the GNU General Public License and
+# may only be used or replicated with the express permission of Red Hat, Inc.
+#
+# Red Hat Author(s): Toshio Kuratomi <tkuratom@redhat.com>
+#         Author(s): Mike Watters <valholla75@fedoraproject.org>
+#         Author(s): Pierre-Yves Chibon <pingou@pingoured.fr>
+#
+'''
+sync information from the packagedb into bugzilla
+
+This short script takes information about package onwership and imports it
+into bugzilla.
+'''
+
+## These two lines are needed to run on EL6
+__requires__ = ['SQLAlchemy >= 0.7', 'jinja2 >= 2.4']
+import pkg_resources
+
+import argparse
+import datetime
+import time
+import sys
+import os
+import itertools
+import json
+import xmlrpclib
+import codecs
+import smtplib
+import bugzilla
+import requests
+from email.Message import Message
+from fedora.client.fas2 import AccountSystem
+
+
+if 'PKGDB2_CONFIG' not in os.environ \
+        and os.path.exists('/etc/pkgdb2/pkgdb2.cfg'):
+    print 'Using configuration file `/etc/pkgdb2/pkgdb2.cfg`'
+    os.environ['PKGDB2_CONFIG'] = '/etc/pkgdb2/pkgdb2.cfg'
+
+
+try:
+    import pkgdb2
+except ImportError:
+    sys.path.insert(
+        0, os.path.join(os.path.dirname(os.path.realpath(__file__)), '..'))
+    import pkgdb2
+
+
+BZSERVER = pkgdb2.APP.config.get('PKGDB2_BUGZILLA_URL')
+BZUSER = pkgdb2.APP.config.get('PKGDB2_BUGZILLA_NOTIFY_USER')
+BZPASS = pkgdb2.APP.config.get('PKGDB2_BUGZILLA_NOTIFY_PASSWORD')
+BZCOMPAPI = pkgdb2.APP.config.get('BUGZILLA_COMPONENT_API')
+FASURL = pkgdb2.APP.config.get('PKGDB2_FAS_URL')
+FASUSER = pkgdb2.APP.config.get('PKGDB2_FAS_USER')
+FASPASS = pkgdb2.APP.config.get('PKGDB2_FAS_PASSWORD')
+FASINSECURE = pkgdb2.APP.config.get('PKGDB2_FAS_INSECURE')
+NOTIFYEMAIL = pkgdb2.APP.config.get('PKGDB2_BUGZILLA_NOTIFY_EMAIL')
+PKGDBSERVER = pkgdb2.APP.config.get('SITE_URL')
+DRY_RUN = pkgdb2.APP.config.get('PKGDB2_BUGZILLA_DRY_RUN', False)
+
+EMAIL_FROM = 'accounts@fedoraproject.org'
+DATA_CACHE = '/var/tmp/pkgdb_sync_bz.json'
+
+PRODUCTS = {
+    'Fedora': 'Fedora',
+    'Fedora Docker': 'Fedora Docker Images',
+    'Fedora Container': 'Fedora Container Images',
+    'Fedora EPEL': 'Fedora EPEL',
+}
+
+PRODUCTS = pkgdb2.APP.config.get('BZ_PRODUCTS', PRODUCTS)
+
+# When querying for current info, take segments of 1000 packages a time
+BZ_PKG_SEGMENT = 1000
+
+
+TMPL_EMAIL_ADMIN = '''
+The following errors were encountered while updating bugzilla with information
+from the Package Database.  Please have the problems taken care of:
+
+%s
+'''
+
+
+class DataChangedError(Exception):
+    '''Raised when data we are manipulating changes while we're modifying it.'''
+    pass
+
+
+def segment(iterable, chunk, fill=None):
+    '''Collect data into `chunk` sized block'''
+    args = [iter(iterable)] * chunk
+    return itertools.izip_longest(*args, fillvalue=fill)
+
+
+class ProductCache(dict):
+    def __init__(self, bz, acls):
+        self.bz = bz
+        self.acls = acls
+
+    # Ask bugzilla for a section of the pkglist.
+    # Save the information from the section that we want.
+    def __getitem__(self, key):
+        try:
+            return super(ProductCache, self).__getitem__(key)
+        except KeyError:
+            # We can only cache products we have pkgdb information for
+            if key not in self.acls:
+                raise
+
+        if BZCOMPAPI == 'getcomponentsdetails':
+            # Old API -- in python-bugzilla.  But with current server, this
+            # gives ProxyError
+            products = self.server.getcomponentsdetails(key)
+        elif BZCOMPAPI == 'component.get':
+            # Way that's undocumented in the partner-bugzilla api but works
+            # currently
+            pkglist = acls[key].keys()
+            products = {}
+            for pkg_segment in segment(pkglist, BZ_PKG_SEGMENT):
+                # Format that bugzilla will understand.  Strip None's that segment() pads
+                # out the final data segment() with
+                query = [
+                    dict(product=PRODUCTS[key], component=p)
+                    for p in pkg_segment if p is not None
+                ]
+                raw_data = self.bz._proxy.Component.get(dict(names=query))
+                for package in raw_data['components']:
+                    # Reformat data to be the same as what's returned from
+                    # getcomponentsdetails
+                    product = dict(initialowner=package['default_assignee'],
+                                   description=package['description'],
+                                   initialqacontact=package['default_qa_contact'],
+                                   initialcclist=package['default_cc'])
+                    products[package['name'].lower()] = product
+        self[key] = products
+
+        return super(ProductCache, self).__getitem__(key)
+
+
+class Bugzilla(object):
+
+    def __init__(self, bzServer, username, password, acls):
+        self.bzXmlRpcServer = bzServer
+        self.username = username
+        self.password = password
+
+        self.server = bugzilla.Bugzilla(
+            url=self.bzXmlRpcServer,
+            user=self.username,
+            password=self.password)
+        self.productCache = ProductCache(self.server, acls)
+
+        # Connect to the fedora account system
+        self.fas = AccountSystem(
+            base_url=FASURL,
+            username=FASUSER,
+            password=FASPASS)
+        self.userCache = self.fas.people_by_key(
+            key='username',
+            fields=['bugzilla_email'])
+
+    def _get_bugzilla_email(self, username):
+        '''Return the bugzilla email address for a user.
+
+        First looks in a cache for a username => bugzilla email.  If not found,
+        reloads the cache from fas and tries again.
+        '''
+        try:
+            return self.userCache[username]['bugzilla_email'].lower()
+        except KeyError:
+            if username.startswith('@'):
+                group = self.fas.group_by_name(username[1:])
+                self.userCache[username] = {
+                    'bugzilla_email': group.mailing_list}
+            else:
+                person = self.fas.person_by_username(username)
+                bz_email = person.get('bugzilla_email', None)
+                if bz_email is None:
+                    print '%s has no bugzilla email, valid account?' % username
+                else:
+                    self.userCache[username] = {'bugzilla_email': bz_email}
+        return self.userCache[username]['bugzilla_email'].lower()
+
+    def add_edit_component(self, package, collection, owner, description,
+            qacontact=None, cclist=None):
+        '''Add or update a component to have the values specified.
+        '''
+        # Turn the cclist into something usable by bugzilla
+        if not cclist or 'people' not in cclist:
+            initialCCList = list()
+        else:
+            initialCCList = [
+                self._get_bugzilla_email(cc) for cc in cclist['people']]
+        if 'groups' in cclist:
+            group_cc = [
+                self._get_bugzilla_email(cc) for cc in cclist['groups']]
+            initialCCList.extend(group_cc)
+
+        # Add owner to the cclist so comaintainers taking over a bug don't
+        # have to do this manually
+        owner = self._get_bugzilla_email(owner)
+        if owner not in initialCCList:
+            initialCCList.append(owner)
+
+        # Lookup product
+        try:
+            product = self.productCache[collection]
+        except xmlrpclib.Fault as e:
+            # Output something useful in args
+            e.args = (e.faultCode, e.faultString)
+            raise
+        except xmlrpclib.ProtocolError as e:
+            e.args = ('ProtocolError', e.errcode, e.errmsg)
+            raise
+
+        pkgKey = package.lower()
+        if pkgKey in product:
+            # edit the package information
+            data = {}
+
+            # Grab bugzilla email for things changable via xmlrpc
+            if qacontact:
+                qacontact = self._get_bugzilla_email(qacontact)
+            else:
+                qacontact = 'extras-qa@fedoraproject.org'
+
+            # Check for changes to the owner, qacontact, or description
+            if product[pkgKey]['initialowner'] != owner:
+                data['initialowner'] = owner
+
+            if product[pkgKey]['description'] != description:
+                data['description'] = description
+            if product[pkgKey]['initialqacontact'] != qacontact and (
+                    qacontact or product[pkgKey]['initialqacontact']):
+                data['initialqacontact'] = qacontact
+
+            if len(product[pkgKey]['initialcclist']) != len(initialCCList):
+                data['initialcclist'] = initialCCList
+            else:
+                for ccMember in product[pkgKey]['initialcclist']:
+                    if ccMember not in initialCCList:
+                        data['initialcclist'] = initialCCList
+                        break
+
+            if data:
+                ### FIXME: initialowner has been made mandatory for some
+                # reason.  Asking dkl why.
+                data['initialowner'] = owner
+
+                # Changes occurred.  Submit a request to change via xmlrpc
+                data['product'] = PRODUCTS[collection]
+                data['component'] = package
+                if DRY_RUN:
+                    print '[EDITCOMP] Changing via editComponent(' \
+                          '%s, %s, "xxxxx")' % (data, self.username)
+                    print '[EDITCOMP] Former values: %s|%s|%s|%s' % (
+                            product[pkgKey]['initialowner'],
+                            product[pkgKey]['description'],
+                            product[pkgKey]['initialqacontact'],
+                            product[pkgKey]['initialcclist'])
+                else:
+                    try:
+                        self.server.editcomponent(data)
+                    except xmlrpclib.Fault, e:
+                        # Output something useful in args
+                        e.args = (data, e.faultCode, e.faultString)
+                        raise
+                    except xmlrpclib.ProtocolError, e:
+                        e.args = ('ProtocolError', e.errcode, e.errmsg)
+                        raise
+        else:
+            # Add component
+            if qacontact:
+                qacontact = self._get_bugzilla_email(qacontact)
+            else:
+                qacontact = 'extras-qa@fedoraproject.org'
+
+            data = {
+                'product': PRODUCTS[collection],
+                'component': package,
+                'description': description,
+                'initialowner': owner,
+                'initialqacontact': qacontact
+            }
+            if initialCCList:
+                data['initialcclist'] = initialCCList
+
+            if DRY_RUN:
+                print '[ADDCOMP] Adding new component AddComponent:(' \
+                      '%s, %s, "xxxxx")' % (data, self.username)
+            else:
+                try:
+                    self.server.addcomponent(data)
+                except xmlrpclib.Fault, e:
+                    # Output something useful in args
+                    e.args = (data, e.faultCode, e.faultString)
+                    raise
+
+
+def send_email(fromAddress, toAddress, subject, message, ccAddress=None):
+    '''Send an email if there's an error.
+
+    This will be replaced by sending messages to a log later.
+    '''
+    msg = Message()
+    msg.add_header('To', ','.join(toAddress))
+    msg.add_header('From', fromAddress)
+    msg.add_header('Subject', subject)
+    if ccAddress is not None:
+        msg.add_header('Cc', ','.join(ccAddress))
+        toAddress = toAddress + ccAddress
+    msg.set_payload(message)
+    smtp = smtplib.SMTP('bastion')
+    smtp.sendmail(fromAddress, toAddress, msg.as_string())
+    smtp.quit()
+
+
+def notify_users(errors):
+    ''' Browse the list of errors and when we can retrieve the email
+    address, use it to notify the user about the issue.
+    '''
+    tmpl_email = pkgdb2.APP.config.get('PKGDB_SYNC_BUGZILLA_EMAIL', None)
+    if not tmpl_email:
+        print 'No template email configured in the configuration file, '\
+            'no notification sent to the users'
+        return
+
+    data = {}
+    if os.path.exists(DATA_CACHE):
+        try:
+            with open(DATA_CACHE) as stream:
+                data = json.load(stream)
+        except Exception as err:
+            print 'Could not read the json file at %s: \nError:  %s' % (
+                DATA_CACHE, err)
+
+    new_data = {}
+    seen = []
+    for error in errors:
+        notify_user = False
+        if 'The name ' in error and ' is not a valid username' in error:
+            user_email = error.split(' is not a valid username')[0].split(
+                'The name ')[1].strip()
+            now = datetime.datetime.utcnow()
+
+            # See if we already know about this user
+            if user_email in data and data[user_email]['last_update']:
+                last_update = datetime.datetime.fromtimestamp(
+                    int(data[user_email]['last_update']))
+                # Only notify users once per hour
+                if (now - last_update).seconds >= 3600:
+                    notify_user = True
+                else:
+                    new_data[user_email] = data[user_email]
+            elif not data or user_email not in data:
+                notify_user = True
+
+            # Ensure we notify the user only once, no matter how many errors we
+            # got concerning them.
+            if user_email not in seen:
+                seen.append(user_email)
+            else:
+                notify_user = False
+
+            if notify_user:
+                send_email(
+                    EMAIL_FROM,
+                    [user_email],
+                    subject='Please fix your bugzilla.redhat.com account',
+                    message=tmpl_email,
+                    ccAddress=NOTIFYEMAIL,
+                )
+
+                new_data[user_email] = {
+                    'last_update': time.mktime(now.timetuple())
+                }
+
+    with open(DATA_CACHE, 'w') as stream:
+        json.dump(new_data, stream)
+
+
+if __name__ == '__main__':
+    sys.stdout = codecs.getwriter('utf-8')(sys.stdout)
+
+
+    parser = argparse.ArgumentParser(
+        description='Script syncing information between pkgdb and bugzilla'
+    )
+    parser.add_argument(
+        '--debug', dest='debug', action='store_true', default=False,
+        help='Print the changes instead of making them in bugzilla')
+
+    args = parser.parse_args()
+
+    if args.debug:
+        DRY_RUN = True
+
+    # Non-fatal errors to alert people about
+    errors = []
+
+    # Get bugzilla information from the package database
+    req = requests.get('%s/api/bugzilla/?format=json' % PKGDBSERVER)
+    acls = req.json()['bugzillaAcls']
+
+    # Initialize the connection to bugzilla
+    bugzilla = Bugzilla(BZSERVER, BZUSER, BZPASS, acls)
+
+    for product in acls.keys():
+        if product not in PRODUCTS:
+            continue
+        for pkg in sorted(acls[product]):
+            if DRY_RUN:
+                print pkg
+            pkgInfo = acls[product][pkg]
+            try:
+                bugzilla.add_edit_component(
+                        pkg,
+                        product,
+                        pkgInfo['owner'],
+                        pkgInfo['summary'],
+                        pkgInfo['qacontact'],
+                        pkgInfo['cclist'])
+            except ValueError, e:
+                # A username didn't have a bugzilla address
+                errors.append(str(e.args))
+            except DataChangedError, e:
+                # A Package or Collection was returned via xmlrpc but wasn't
+                # present when we tried to change it
+                errors.append(str(e.args))
+            except xmlrpclib.ProtocolError, e:
+                # Unrecoverable and likely means that nothing is going to
+                # succeed.
+                errors.append(str(e.args))
+                break
+            except xmlrpclib.Error, e:
+                # An error occurred in the xmlrpc call.  Shouldn't happen but
+                # we better see what it is
+                errors.append('%s -- %s' % (pkg, e.args[-1]))
+
+    # Send notification of errors
+    if errors:
+        if DRY_RUN:
+            print '[DEBUG]', '\n'.join(errors)
+        else:
+            notify_users(errors)
+            send_email(
+                EMAIL_FROM,
+                NOTIFYEMAIL,
+                'Errors while syncing bugzilla with the PackageDB',
+                TMPL_EMAIL_ADMIN % ('\n'.join(errors),))
+    else:
+        with open(DATA_CACHE, 'w') as stream:
+            json.dump({}, stream)
+
+    sys.exit(0)
