@@ -63,6 +63,37 @@
     group: root
     mountdir: "/srv/docker"
 
+- name: set up gluster on prod
+  hosts:
+  - docker-registry02.phx2.fedoraproject.org
+  user: root
+  gather_facts: True
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  roles:
+  - role: gluster/server
+    name: gluster
+    username: "{{ registry_gluster_username_prod }}"
+    password: "{{ registry_gluster_password_prod }}"
+    owner: root
+    group: root
+    datadir: /srv/glusterfs/registry
+
+  - role: gluster/client
+    name: gluster
+    servers:
+    - docker-registry02.phx2.fedoraproject.org
+    username: "{{ registry_gluster_username_prod }}"
+    password: "{{ registry_gluster_password_prod }}"
+    owner: root
+    group: root
+    mountdir: "/srv/docker"
+
+
 - name: setup docker distribution registry
   hosts: docker-registry:docker-registry-stg
   vars_files:
