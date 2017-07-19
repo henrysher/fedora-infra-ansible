@@ -27,5 +27,5 @@ class NoLocalSignUpAdapter(DefaultAccountAdapter):
 
 class SignUpEnabledSocialAdapter(DefaultSocialAccountAdapter):
 
-    def is_open_for_signup(self, request):
+    def is_open_for_signup(self, request, sociallogin):
         return True
