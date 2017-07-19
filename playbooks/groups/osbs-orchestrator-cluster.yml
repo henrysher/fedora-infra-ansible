@@ -256,7 +256,7 @@
 
 
 - name: Setup OSBS requirements for OpenShift cluster hosts
-  hosts: osbs-masters-stg:osbs-nodes-stg:osbsworker-masters-stg:osbsworker-nodes-stg
+  hosts: osbs-orchestrators-stg:osbs-workers-stg
   tags:
     - osbs-cluster-req
   user: root
@@ -292,6 +292,11 @@
         state: restarted
 
   tasks:
+
+    - name: ensure dnsmasq is installed
+      package:
+        name: dnsmasq
+        state: latest
 
     - name: install fedora dnsmasq specific config
       copy:
@@ -434,7 +439,7 @@
       dest: serverca
 
 - name: Setup Koji auth for OpenShift Orchestrator
-  hosts: osbs-masters-stg[0]
+  hosts: osbs-masters-stg[0]:osbsworker-x86-64-masters-stg[0]
   tags:
     - osbs-master-req
   user: root
@@ -505,7 +510,7 @@
         creates: /etc/origin/fedoraimagestreamcreated
 
 - name: post-install osbs tasks
-  hosts: osbs-masters-stg:osbs-nodes-stg
+  hosts: osbs-orchestrators-stg:osbs-workers-stg
   tags:
     - osbs-post-install
   vars_files:
@@ -536,39 +541,40 @@
     - name: systemctl daemon-reload
       shell: 'systemctl daemon-reload'
 
-  roles:
-    - {
-      role: osbs-client,
-        general: {
-          verbose: 0,
-          build_json_dir: '/etc/osbs/input/',
-          openshift_required_version: 1.1.0,
-        },
-        default: {
-          username: "{{ osbs_koji_stg_username }}",
-          password: "{{ osbs_koji_stg_password }}",
-          koji_use_kerberos: True,
-          koji_kerberos_keytab: "FILE:/etc/krb5.osbs_{{osbs_url}}.keytab",
-          koji_kerberos_principal: "osbs/{{osbs_url}}@{{ipa_realm}}",
-          openshift_url: 'https://{{osbs_url}}/',
-          registry_uri: 'https://{{candidate_registry}}/v2',
-          source_registry_uri: 'https://{{stable_registry}}/v2',
-          build_host: '{{osbs_url}}',
-          koji_root: '{{koji_root}}',
-          koji_hub: '{{koji_hub}}',
-          sources_command: 'fedpkg sources',
-          build_type: 'prod',
-          authoritative_registry: '{{stable_registry}}',
-          vendor: 'Fedora Project',
-          verify_ssl: true,
-          use_auth: true,
-          builder_use_auth: true,
-          distribution_scope: 'private',
-          registry_api_versions: 'v2',
-          builder_openshift_url: 'https://{{osbs_url}}'
-        },
-      when: env == "staging"
-      }
+# FIXME - Not sure if this is needed anymore because of the osbs-namespace role
+#  roles:
+#    - {
+#      role: osbs-client,
+#        general: {
+#          verbose: 0,
+#          build_json_dir: '/etc/osbs/input/',
+#          openshift_required_version: 1.1.0,
+#        },
+#        default: {
+#          username: "{{ osbs_koji_stg_username }}",
+#          password: "{{ osbs_koji_stg_password }}",
+#          koji_use_kerberos: True,
+#          koji_kerberos_keytab: "FILE:/etc/krb5.osbs_{{osbs_url}}.keytab",
+#          koji_kerberos_principal: "osbs/{{osbs_url}}@{{ipa_realm}}",
+#          openshift_url: 'https://{{osbs_url}}/',
+#          registry_uri: 'https://{{candidate_registry}}/v2',
+#          source_registry_uri: 'https://{{stable_registry}}/v2',
+#          build_host: '{{osbs_url}}',
+#          koji_root: '{{koji_root}}',
+#          koji_hub: '{{koji_hub}}',
+#          sources_command: 'fedpkg sources',
+#          build_type: 'prod',
+#          authoritative_registry: '{{stable_registry}}',
+#          vendor: 'Fedora Project',
+#          verify_ssl: true,
+#          use_auth: true,
+#          builder_use_auth: true,
+#          distribution_scope: 'private',
+#          registry_api_versions: 'v2',
+#          builder_openshift_url: 'https://{{osbs_url}}'
+#        },
+#      when: env == "staging"
+#      }
 
   tasks:
     - name: copy docker iptables script
@@ -694,5 +700,5 @@
     - name: enable nrpe for monitoring (noc01)
       iptables: action=insert chain=INPUT destination_port=5666 protocol=tcp source=10.5.126.41 state=present jump=ACCEPT
 
-#    - name: enable nrpe for monitoring (noc01.stg)
-#      iptables: action=insert chain=INPUT destination_port=5666 protocol=tcp source=1#0.5.126.2 state=present jump=ACCEPT
+    - name: enable nrpe for monitoring (noc01.stg)
+      iptables: action=insert chain=INPUT destination_port=5666 protocol=tcp source=10.5.126.2 state=present jump=ACCEPT
