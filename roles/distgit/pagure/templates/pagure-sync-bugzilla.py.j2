@@ -21,16 +21,13 @@
 #         Author(s): Pierre-Yves Chibon <pingou@pingoured.fr>
 #
 '''
-sync information from the packagedb into bugzilla
+sync information from the Pagure into bugzilla
 
 This short script takes information about package onwership and imports it
 into bugzilla.
 '''
 
-## These two lines are needed to run on EL6
-__requires__ = ['SQLAlchemy >= 0.7', 'jinja2 >= 2.4']
-import pkg_resources
-
+import re
 import argparse
 import datetime
 import time
@@ -43,47 +40,44 @@ import codecs
 import smtplib
 import bugzilla
 import requests
-from email.Message import Message
+try:
+    from email.Message import Message
+except ImportError:
+    from email.message import EmailMessage as Message
 from fedora.client.fas2 import AccountSystem
 
+BZSERVER = 'https://bugzilla.redhat.com'
+BZUSER = '{{ bugzilla_user }}'
+BZPASS = '{{ bugzilla_password }}'
+BZCOMPAPI = 'component.get'
+FASUSER = '{{ fedorathirdpartyUser }}'
+FASPASS = '{{ fedorathirdpartyPassword }}'
+NOTIFYEMAIL = [
+    'kevin@fedoraproject.org',
+    'pingou@fedoraproject.org']
+DRY_RUN = False
 
-if 'PKGDB2_CONFIG' not in os.environ \
-        and os.path.exists('/etc/pkgdb2/pkgdb2.cfg'):
-    print 'Using configuration file `/etc/pkgdb2/pkgdb2.cfg`'
-    os.environ['PKGDB2_CONFIG'] = '/etc/pkgdb2/pkgdb2.cfg'
+{% if env == 'staging' %}
+FASURL = 'https://admin.stg.fedoraproject.org/accounts'
+FASINSECURE = True
+PAGUREURL = 'https://src.stg.fedoraproject.org/pagure/'
+MDAPIURL = 'https://apps.stg.fedoraproject.org/mdapi/'
+{% else %}
+FASURL = 'https://admin.fedoraproject.org/accounts'
+FASINSECURE = False
+PAGUREURL = 'https://src.fedoraproject.org/pagure/'
+MDAPIURL = 'https://apps.fedoraproject.org/mdapi/'
+{% endif %}
 
-
-try:
-    import pkgdb2
-except ImportError:
-    sys.path.insert(
-        0, os.path.join(os.path.dirname(os.path.realpath(__file__)), '..'))
-    import pkgdb2
-
-
-BZSERVER = pkgdb2.APP.config.get('PKGDB2_BUGZILLA_URL')
-BZUSER = pkgdb2.APP.config.get('PKGDB2_BUGZILLA_NOTIFY_USER')
-BZPASS = pkgdb2.APP.config.get('PKGDB2_BUGZILLA_NOTIFY_PASSWORD')
-BZCOMPAPI = pkgdb2.APP.config.get('BUGZILLA_COMPONENT_API')
-FASURL = pkgdb2.APP.config.get('PKGDB2_FAS_URL')
-FASUSER = pkgdb2.APP.config.get('PKGDB2_FAS_USER')
-FASPASS = pkgdb2.APP.config.get('PKGDB2_FAS_PASSWORD')
-FASINSECURE = pkgdb2.APP.config.get('PKGDB2_FAS_INSECURE')
-NOTIFYEMAIL = pkgdb2.APP.config.get('PKGDB2_BUGZILLA_NOTIFY_EMAIL')
-PKGDBSERVER = pkgdb2.APP.config.get('SITE_URL')
-DRY_RUN = pkgdb2.APP.config.get('PKGDB2_BUGZILLA_DRY_RUN', False)
 
 EMAIL_FROM = 'accounts@fedoraproject.org'
-DATA_CACHE = '/var/tmp/pkgdb_sync_bz.json'
+DATA_CACHE = '/var/tmp/pagure_sync_bz.json'
 
 PRODUCTS = {
     'Fedora': 'Fedora',
-    'Fedora Docker': 'Fedora Docker Images',
     'Fedora Container': 'Fedora Container Images',
     'Fedora EPEL': 'Fedora EPEL',
 }
-
-PRODUCTS = pkgdb2.APP.config.get('BZ_PRODUCTS', PRODUCTS)
 
 # When querying for current info, take segments of 1000 packages a time
 BZ_PKG_SEGMENT = 1000
@@ -95,6 +89,41 @@ from the Package Database.  Please have the problems taken care of:
 
 %s
 '''
+
+# PkgDB sync bugzilla email
+PKGDB_SYNC_BUGZILLA_EMAIL = """Greetings.
+
+You are receiving this email because there's a problem with your
+bugzilla.redhat.com account.
+
+If you recently changed the email address associated with your
+Fedora account in the Fedora Account System, it is now out of sync
+with your bugzilla.redhat.com account. This leads to problems
+with Fedora packages you own or are CC'ed on bug reports for.
+
+Please take one of the following actions:
+
+a) login to your old bugzilla.redhat.com account and change the email
+address to match your current email in the Fedora account system.
+https://bugzilla.redhat.com login, click preferences, account
+information and enter new email address.
+
+b) Create a new account in bugzilla.redhat.com to match your
+email listed in your Fedora account system account.
+https://bugzilla.redhat.com/ click 'new account' and enter email
+address.
+
+c) Change your Fedora Account System email to match your existing
+bugzilla.redhat.com account.
+https://admin.fedoraproject.org/accounts login, click on 'my account',
+then 'edit' and change your email address.
+
+If you have questions or concerns, please let us know.
+
+Your prompt attention in this matter is appreciated.
+
+The Fedora admins.
+"""
 
 
 class DataChangedError(Exception):
@@ -119,7 +148,7 @@ class ProductCache(dict):
         try:
             return super(ProductCache, self).__getitem__(key)
         except KeyError:
-            # We can only cache products we have pkgdb information for
+            # We can only cache products we have pagure information for
             if key not in self.acls:
                 raise
 
@@ -130,7 +159,7 @@ class ProductCache(dict):
         elif BZCOMPAPI == 'component.get':
             # Way that's undocumented in the partner-bugzilla api but works
             # currently
-            pkglist = acls[key].keys()
+            pkglist = projects_dict[key].keys()
             products = {}
             for pkg_segment in segment(pkglist, BZ_PKG_SEGMENT):
                 # Format that bugzilla will understand.  Strip None's that segment() pads
@@ -192,12 +221,13 @@ class Bugzilla(object):
                 person = self.fas.person_by_username(username)
                 bz_email = person.get('bugzilla_email', None)
                 if bz_email is None:
-                    print '%s has no bugzilla email, valid account?' % username
+                    print('%s has no bugzilla email, valid account?'
+                          % username)
                 else:
                     self.userCache[username] = {'bugzilla_email': bz_email}
         return self.userCache[username]['bugzilla_email'].lower()
 
-    def add_edit_component(self, package, collection, owner, description,
+    def add_edit_component(self, package, collection, owner, description=None,
             qacontact=None, cclist=None):
         '''Add or update a component to have the values specified.
         '''
@@ -244,7 +274,7 @@ class Bugzilla(object):
             if product[pkgKey]['initialowner'] != owner:
                 data['initialowner'] = owner
 
-            if product[pkgKey]['description'] != description:
+            if description and product[pkgKey]['description'] != description:
                 data['description'] = description
             if product[pkgKey]['initialqacontact'] != qacontact and (
                     qacontact or product[pkgKey]['initialqacontact']):
@@ -267,21 +297,21 @@ class Bugzilla(object):
                 data['product'] = PRODUCTS[collection]
                 data['component'] = package
                 if DRY_RUN:
-                    print '[EDITCOMP] Changing via editComponent(' \
-                          '%s, %s, "xxxxx")' % (data, self.username)
-                    print '[EDITCOMP] Former values: %s|%s|%s|%s' % (
-                            product[pkgKey]['initialowner'],
-                            product[pkgKey]['description'],
-                            product[pkgKey]['initialqacontact'],
-                            product[pkgKey]['initialcclist'])
+                    print('[EDITCOMP] Changing via editComponent('
+                          '%s, %s, "xxxxx")' % (data, self.username))
+                    print('[EDITCOMP] Former values: %s|%s|%s|%s' % (
+                          product[pkgKey]['initialowner'],
+                          product[pkgKey]['description'],
+                          product[pkgKey]['initialqacontact'],
+                          product[pkgKey]['initialcclist']))
                 else:
                     try:
                         self.server.editcomponent(data)
-                    except xmlrpclib.Fault, e:
+                    except xmlrpclib.Fault as e:
                         # Output something useful in args
                         e.args = (data, e.faultCode, e.faultString)
                         raise
-                    except xmlrpclib.ProtocolError, e:
+                    except xmlrpclib.ProtocolError as e:
                         e.args = ('ProtocolError', e.errcode, e.errmsg)
                         raise
         else:
@@ -294,7 +324,7 @@ class Bugzilla(object):
             data = {
                 'product': PRODUCTS[collection],
                 'component': package,
-                'description': description,
+                'description': description or 'NA',
                 'initialowner': owner,
                 'initialqacontact': qacontact
             }
@@ -302,12 +332,12 @@ class Bugzilla(object):
                 data['initialcclist'] = initialCCList
 
             if DRY_RUN:
-                print '[ADDCOMP] Adding new component AddComponent:(' \
-                      '%s, %s, "xxxxx")' % (data, self.username)
+                print('[ADDCOMP] Adding new component AddComponent:('
+                      '%s, %s, "xxxxx")' % (data, self.username))
             else:
                 try:
                     self.server.addcomponent(data)
-                except xmlrpclib.Fault, e:
+                except xmlrpclib.Fault as e:
                     # Output something useful in args
                     e.args = (data, e.faultCode, e.faultString)
                     raise
@@ -335,20 +365,14 @@ def notify_users(errors):
     ''' Browse the list of errors and when we can retrieve the email
     address, use it to notify the user about the issue.
     '''
-    tmpl_email = pkgdb2.APP.config.get('PKGDB_SYNC_BUGZILLA_EMAIL', None)
-    if not tmpl_email:
-        print 'No template email configured in the configuration file, '\
-            'no notification sent to the users'
-        return
-
     data = {}
     if os.path.exists(DATA_CACHE):
         try:
             with open(DATA_CACHE) as stream:
                 data = json.load(stream)
         except Exception as err:
-            print 'Could not read the json file at %s: \nError:  %s' % (
-                DATA_CACHE, err)
+            print('Could not read the json file at %s: \nError:  %s' % (
+                  DATA_CACHE, err))
 
     new_data = {}
     seen = []
@@ -383,7 +407,7 @@ def notify_users(errors):
                     EMAIL_FROM,
                     [user_email],
                     subject='Please fix your bugzilla.redhat.com account',
-                    message=tmpl_email,
+                    message=PKGDB_SYNC_BUGZILLA_EMAIL,
                     ccAddress=NOTIFYEMAIL,
                 )
 
@@ -395,12 +419,68 @@ def notify_users(errors):
         json.dump(new_data, stream)
 
 
+def pagure_project_to_acl_schema(pagure_project):
+    """
+    This function translates the JSON of a Pagure project to what PkgDB used to
+    output in the Bugzilla API.
+    :param pagure_project: a dictionary of the JSON of a Pagure project
+    :return: a dictionary of the content that the Bugzilla API would output
+    """
+    base_error_msg = ('The connection to "{0}" failed with the status code '
+                      '{1} and output "{2}"')
+    watchers_api_url = '{0}/api/0/{1}/{2}/watchers'.format(
+        PAGUREURL.rstrip('/'), pagure_project['namespace'],
+        pagure_project['name'])
+    if DRY_RUN:
+        print('Querying {0}'.format(watchers_api_url))
+    watchers_rv = requests.get(watchers_api_url, timeout=60)
+    if not watchers_rv.ok:
+        error_msg = base_error_msg.format(
+            watchers_api_url, watchers_rv.status_code, watchers_rv.text)
+        raise RuntimeError(error_msg)
+    watchers_rv_json = watchers_rv.json()
+
+    user_cc_list = []
+    for user, watch_levels in watchers_rv_json['watchers'].items():
+        # Only people watching commits should be CC'd
+        if 'commit' in watch_levels:
+            user_cc_list.append(user)
+
+    summary = None
+    if pagure_project['namespace'] != 'rpms':
+        mdapi_url = '{0}/rawhide/srcpkg/{1}'.format(
+            MDAPIURL.rstrip('/'), pagure_project['name'])
+        if DRY_RUN:
+            print('Querying {0}'.format(mdapi_url))
+        mdapi_rv = requests.get(mdapi_url, timeout=60)
+        if mdapi_rv.ok:
+            mdapi_rv_json = mdapi_rv.json()
+            summary = mdapi_rv_json['summary']
+        elif not mdapi_rv.ok and mdapi_rv.status_code != 404:
+            error_msg = base_error_msg.format(
+                mdapi_url, mdapi_rv.status_code, mdapi_rv.text)
+            raise RuntimeError(error_msg)
+
+    return {
+        'cclist': {
+            # Groups is empty because you can't have groups watch projects.
+            # This is done only at the user level.
+            'groups': [],
+            'people': user_cc_list
+        },
+        'owner': pagure_project['access_users']['owner'][0],
+        # No package has this set in PkgDB's API, so it can be safely turned
+        # off and set to the defaults later on in the code
+        'qacontact': None,
+        'summary': summary
+    }
+
+
 if __name__ == '__main__':
     sys.stdout = codecs.getwriter('utf-8')(sys.stdout)
 
-
     parser = argparse.ArgumentParser(
-        description='Script syncing information between pkgdb and bugzilla'
+        description='Script syncing information between Pagure and bugzilla'
     )
     parser.add_argument(
         '--debug', dest='debug', action='store_true', default=False,
@@ -414,41 +494,93 @@ if __name__ == '__main__':
     # Non-fatal errors to alert people about
     errors = []
 
-    # Get bugzilla information from the package database
-    req = requests.get('%s/api/bugzilla/?format=json' % PKGDBSERVER)
-    acls = req.json()['bugzillaAcls']
+    projects_dict = {
+        'Fedora': {},
+        'Fedora Container': {},
+        'Fedora EPEL': {},
+    }
+    pagure_rpms_api_url = ('{0}/api/0/projects?&namespace=rpms&page=1&'
+                           'per_page=100'.format(PAGUREURL.rstrip('/')))
+    while True:
+        if DRY_RUN:
+            print('Querying {0}'.format(pagure_rpms_api_url))
+        rv_json = requests.get(pagure_rpms_api_url, timeout=120).json()
+        for project in rv_json['projects']:
+            pagure_project_branches_api_url = (
+                '{0}/api/0/rpms/{1}/git/branches'
+                .format(PAGUREURL.rstrip('/'), project['name']))
+            branch_rv_json = requests.get(
+                pagure_project_branches_api_url, timeout=60).json()
+            project_pkgdb_schema = pagure_project_to_acl_schema(project)
+            epel = False
+            fedora = False
+            for branch in branch_rv_json['branches']:
+                if re.match(r'epel\d+', branch):
+                    epel = True
+                    projects_dict['Fedora EPEL'][project['name']] = \
+                        project_pkgdb_schema
+                else:
+                    fedora = True
+                    projects_dict['Fedora'][project['name']] = \
+                        project_pkgdb_schema
+
+                if fedora and epel:
+                    break
+
+        if rv_json['pagination']['next']:
+            pagure_rpms_api_url = rv_json['pagination']['next']
+        else:
+            break
+
+    pagure_container_api_url = (
+        '{0}/api/0/projects?&namespace=container&page=1&per_page=100'
+        .format(PAGUREURL))
+    while True:
+        if DRY_RUN:
+            print('Querying {0}'.format(pagure_container_api_url))
+        rv_json = requests.get(pagure_container_api_url, timeout=120).json()
+        for project in rv_json['projects']:
+            project_pkgdb_schema = pagure_project_to_acl_schema(project)
+            projects_dict['Fedora Container'][project['name']] = \
+                project_pkgdb_schema
+
+        if rv_json['pagination']['next']:
+            pagure_container_api_url = rv_json['pagination']['next']
+        else:
+            break
 
     # Initialize the connection to bugzilla
-    bugzilla = Bugzilla(BZSERVER, BZUSER, BZPASS, acls)
+    bugzilla = Bugzilla(BZSERVER, BZUSER, BZPASS, projects_dict)
 
-    for product in acls.keys():
+    for product in projects_dict.keys():
         if product not in PRODUCTS:
             continue
-        for pkg in sorted(acls[product]):
+        for pkg in sorted(projects_dict[product]):
             if DRY_RUN:
-                print pkg
-            pkgInfo = acls[product][pkg]
+                print(pkg)
+            pkgInfo = projects_dict[product][pkg]
             try:
                 bugzilla.add_edit_component(
-                        pkg,
-                        product,
-                        pkgInfo['owner'],
-                        pkgInfo['summary'],
-                        pkgInfo['qacontact'],
-                        pkgInfo['cclist'])
-            except ValueError, e:
+                    pkg,
+                    product,
+                    pkgInfo['owner'],
+                    pkgInfo['summary'],
+                    pkgInfo['qacontact'],
+                    pkgInfo['cclist']
+                )
+            except ValueError as e:
                 # A username didn't have a bugzilla address
                 errors.append(str(e.args))
-            except DataChangedError, e:
+            except DataChangedError as e:
                 # A Package or Collection was returned via xmlrpc but wasn't
                 # present when we tried to change it
                 errors.append(str(e.args))
-            except xmlrpclib.ProtocolError, e:
+            except xmlrpclib.ProtocolError as e:
                 # Unrecoverable and likely means that nothing is going to
                 # succeed.
                 errors.append(str(e.args))
                 break
-            except xmlrpclib.Error, e:
+            except xmlrpclib.Error as e:
                 # An error occurred in the xmlrpc call.  Shouldn't happen but
                 # we better see what it is
                 errors.append('%s -- %s' % (pkg, e.args[-1]))
@@ -456,7 +588,7 @@ if __name__ == '__main__':
     # Send notification of errors
     if errors:
         if DRY_RUN:
-            print '[DEBUG]', '\n'.join(errors)
+            print('[DEBUG]', '\n'.join(errors))
         else:
             notify_users(errors)
             send_email(

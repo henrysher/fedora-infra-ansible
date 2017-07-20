@@ -14,6 +14,9 @@
   - libsemanage-python
   - python-fedora-flask
   - python2-pagure-dist-git
+  # For the pagure-sync-bugzilla.py script
+  - python-bugzilla
+  - python2-requests
     #  - mod_ssl
     #  - stunnel
   tags:
@@ -170,6 +173,29 @@
   - web
   - pagure
 
+
+- name: generate pagure-sync-bugzilla.py script
+  template:
+      src: pagure-sync-bugzilla.py.j2
+      dest: /usr/local/bin/pagure-sync-bugzilla.py
+      owner: root
+      group: root
+      mode: 0700
+  tags:
+  - pagure
+
+
+- name: Configure cron job for a daily pagure-sync-bugzilla.py script run
+  cron:
+    name: pagure-sync-bugzilla
+    user: root
+    minute: 0
+    hour: 18
+    job: /usr/local/bin/pagure-sync-bugzilla
+    cron_file: pagure-sync-bugzilla
+    state: present
+  tags:
+  - pagure
 
 # Ensure all the services are up and running
 
