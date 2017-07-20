@@ -14,6 +14,18 @@
     repo: "https://github.com/openshift/openshift-ansible.git"
     dest: "{{ openshift_ansible_path }}"
     version: "{{ openshift_ansible_version }}"
+  when: env == "production"
+
+# FIXME - Use my branch and fork for stage until this issue is resolved:
+#
+#   https://github.com/openshift/openshift-ansible/issues/4801
+#
+- name: git clone the openshift-ansible repo
+  git:
+    repo: "https://github.com/maxamillion/openshift-ansible.git"
+    dest: "{{ openshift_ansible_path }}"
+    version: "{{ openshift_ansible_version }}"
+  when: env == "staging"
 
 - name: generate the inventory file
   template:
