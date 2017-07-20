@@ -38,12 +38,15 @@ import json
 import xmlrpclib
 import codecs
 import smtplib
-import bugzilla
-import requests
 try:
     from email.Message import Message
 except ImportError:
     from email.message import EmailMessage as Message
+
+import bugzilla
+import requests
+import yaml
+from six import string_types
 from fedora.client.fas2 import AccountSystem
 
 BZSERVER = 'https://bugzilla.redhat.com'
@@ -419,7 +422,7 @@ def notify_users(errors):
         json.dump(new_data, stream)
 
 
-def pagure_project_to_acl_schema(pagure_project):
+def pagure_project_to_acl_schema(pagure_project, product):
     """
     This function translates the JSON of a Pagure project to what PkgDB used to
     output in the Bugzilla API.
@@ -461,6 +464,20 @@ def pagure_project_to_acl_schema(pagure_project):
                 mdapi_url, mdapi_rv.status_code, mdapi_rv.text)
             raise RuntimeError(error_msg)
 
+    # Check if the Bugzilla ticket assignee has been overridden
+    owner = pagure_project['access_users']['owner'][0]
+    pagure_override_url = (
+        'https://pagure.io/bugzilla-assignee-override/raw/master/f/{0}/{1}'
+        .format(project['namespace'], project['name']))
+
+    override_rv = requests.get(pagure_override_url, timeout=30)
+    if override_rv.status_code == 200:
+        override_yaml = yaml.load(override_rv.text)
+        if override_yaml.get(product) \
+                and isinstance(override_yaml[product], string_types) \
+                and '@' in override_yaml[product]:
+            owner = override_yaml[product]
+
     return {
         'cclist': {
             # Groups is empty because you can't have groups watch projects.
@@ -468,7 +485,7 @@ def pagure_project_to_acl_schema(pagure_project):
             'groups': [],
             'people': user_cc_list
         },
-        'owner': pagure_project['access_users']['owner'][0],
+        'owner': owner,
         # No package has this set in PkgDB's API, so it can be safely turned
         # off and set to the defaults later on in the code
         'qacontact': None,
@@ -511,18 +528,17 @@ if __name__ == '__main__':
                 .format(PAGUREURL.rstrip('/'), project['name']))
             branch_rv_json = requests.get(
                 pagure_project_branches_api_url, timeout=60).json()
-            project_pkgdb_schema = pagure_project_to_acl_schema(project)
             epel = False
             fedora = False
             for branch in branch_rv_json['branches']:
                 if re.match(r'epel\d+', branch):
                     epel = True
                     projects_dict['Fedora EPEL'][project['name']] = \
-                        project_pkgdb_schema
+                        pagure_project_to_acl_schema(project, 'epel')
                 else:
                     fedora = True
                     projects_dict['Fedora'][project['name']] = \
-                        project_pkgdb_schema
+                        pagure_project_to_acl_schema(project, 'fedora')
 
                 if fedora and epel:
                     break
