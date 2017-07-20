@@ -247,10 +247,11 @@ set output "/var/www/html/csv-reports/images/fedora-select-stacked.png"
 set title "Fedora Yum Unique IPs"
 plot ["2007-05-17":"2017-12-31"] \
      '/var/www/html/csv-reports/mirrors/mirrorsdata-all.csv' using 1:($6+$7+$8+$9+$10+$11+$12+$13+$14+$15+$16+$17+$18+$19+$20+$21+$22+$23+$24+$25+$26+$27+$28+$29+$30+$31+$32+$33)  title 'fedora-future' w filledcurves x1, \
-     '/var/www/html/csv-reports/mirrors/mirrorsdata-all.csv' using 1:($6+$7+$8+$9+$10+$11+$12+$13+$14+$15+$16+$17+$18+$19+$20+$21+$22+$23+$24+$25+$26+$27)  title 'fed21-24' w filledcurves x1, \
-     '/var/www/html/csv-reports/mirrors/mirrorsdata-all.csv' using 1:($6+$7+$8+$9+$10+$11+$12+$13+$14+$15+$16+$17+$18+$19+$20+$21+$22+$23)  title 'fed16-20' w filledcurves x1, \
-     '/var/www/html/csv-reports/mirrors/mirrorsdata-all.csv' using 1:($6+$7+$8+$9+$10+$11+$12+$13+$14+$15+$16+$17+$18)  title 'fed09-15' w filledcurves x1, \
-     '/var/www/html/csv-reports/mirrors/mirrorsdata-all.csv' using 1:($6+$7+$8+$9+$10+$11)  title 'fed03-07' w filledcurves x1
+     '/var/www/html/csv-reports/mirrors/mirrorsdata-all.csv' using 1:($6+$7+$8+$9+$10+$11+$12+$13+$14+$15+$16+$17+$18+$19+$20+$21+$22+$23+$24+$25+$26+$27+$28+$29+$30+$31+$32)  title 'fed25-30' w filledcurves x1, \
+     '/var/www/html/csv-reports/mirrors/mirrorsdata-all.csv' using 1:($6+$7+$8+$9+$10+$11+$12+$13+$14+$15+$16+$17+$18+$19+$20+$21+$22+$23+$24+$25+$26+$27)  title 'fed19-24' w filledcurves x1, \
+     '/var/www/html/csv-reports/mirrors/mirrorsdata-all.csv' using 1:($6+$7+$8+$9+$10+$11+$12+$13+$14+$15+$16+$17+$18+$19+$20+$21)  title 'fed13-18' w filledcurves x1, \
+     '/var/www/html/csv-reports/mirrors/mirrorsdata-all.csv' using 1:($6+$7+$8+$9+$10+$11+$12+$13+$14+$15)  title 'fed07-12' w filledcurves x1, \
+     '/var/www/html/csv-reports/mirrors/mirrorsdata-all.csv' using 1:($6+$7+$8+$9)  title 'fed03-06' w filledcurves x1
 unset output
 
 ##
