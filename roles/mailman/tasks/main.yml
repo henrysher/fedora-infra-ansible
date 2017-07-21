@@ -267,10 +267,13 @@
   - config
   - mailman
 
-- name: install the django_fedora module
-  copy: src=django_fedora.py
-        dest="{{ mailman_webui_confdir }}/django_fedora.py"
+- name: install the fedora-specific modules
+  copy: src={{ item }}.py
+        dest="{{ mailman_webui_confdir }}/{{ item }}.py"
         owner=root group=root mode=0644
+  with_items:
+  - django_fedora
+  - django_fedora_nosignup
   tags:
   - config
   - mailman
