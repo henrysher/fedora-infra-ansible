@@ -60,6 +60,13 @@
         option: pipelining
         value: "True"
 
+    - name: Install necessary packages that openshift-ansible control host needs
+      package: name="{{ item }}" state=installed
+      with_items:
+        - ansible
+        - git
+        - java-1.8.0-openjdk-headless
+
 
 # This section sets up the SSL Certs for "public facing" which is how Koji will
 # interact with the OSBS Orchestration cluster. This is not needed on the worker
@@ -138,6 +145,7 @@
         - libselinux-python3
         - origin
         - python3-PyYAML
+        - java-1.8.0-openjdk-headless
 
     - name: Deploy controller public ssh keys to osbs cluster hosts
       authorized_key:
