@@ -1,18 +1,23 @@
 - name: Create temporary file
   tempfile: state=file
   register: tmpfile
+  suffix: yml
   run_once: true
 
 - name: Copy template {{template}} to temporary file ({{tmpfile.path}})
-  template: src={{roles_path}}/openshift-apps/{{app}}/templates/{{template}} dest={{tmpfile.path}}.yml
+  template: src={{roles_path}}/openshift-apps/{{app}}/templates/{{template}} dest={{tmpfile.path}}
   when: template is defined
   run_once: true
 
 - name: Copy file {{file}} to temporary file ({{tmpfile.path}})
-  copy: src={{roles_path}}/openshift-apps/{{app}}/files/{{file}} dest={{tmpfile.path}}.yml
+  copy: src={{roles_path}}/openshift-apps/{{app}}/files/{{file}} dest={{tmpfile.path}}
   when: file is defined
   run_once: true
 
 - name: Call `oc apply` on the copied file
-  shell: oc -n {{app}} apply -f {{tmpfile.path}}.yml
+  shell: oc -n {{app}} apply -f {{tmpfile.path}}
+  run_once: true
+
+- name: Delete temporary file
+  file: path={{tmpfile.path}} state=absent
   run_once: true
