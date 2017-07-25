@@ -8,5 +8,5 @@ config = {
     'gitoliteprefix.consumer.filename': '/var/tmp/gitolite-prefix.txt',
     'gitoliteprefix.consumer.fasurl': 'https://admin.fedoraproject.org/accounts',
     'gitoliteprefix.consumer.username': "fasreadonly",
-    'gitoliteprefix.consumer.password': {{ fasReadOnlyPassword }},
+    'gitoliteprefix.consumer.password': '{{ fasReadOnlyPassword }}',
 }
