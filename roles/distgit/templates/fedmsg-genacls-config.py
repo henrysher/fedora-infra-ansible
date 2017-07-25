@@ -7,6 +7,6 @@ config = {
     'gitoliteprefix.consumer.delay': 5, # 5 seconds
     'gitoliteprefix.consumer.filename': '/var/tmp/gitolite-prefix.txt',
     'gitoliteprefix.consumer.fasurl': 'https://admin.fedoraproject.org/accounts',
-    'gitoliteprefix.consumer.username': "fasreadonly",
-    'gitoliteprefix.consumer.password': '{{ fasReadOnlyPassword }}',
+    'gitoliteprefix.consumer.username': "{{ blockerbugs_fas_user }}",
+    'gitoliteprefix.consumer.password': '{{ blockerbugs_fas_password }}',
 }
