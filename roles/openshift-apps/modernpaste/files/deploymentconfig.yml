@@ -1,0 +1,50 @@
+- apiVersion: v1
+  kind: DeploymentConfig
+  metadata:
+    name: "modernpaste-web"
+    labels:
+      environment: "modernpaste"
+      service: web
+  spec:
+    replicas: 1
+    selector:
+      environment: "modernpaste"
+      service: web
+    template:
+      metadata:
+        labels:
+          environment: "modernpaste"
+          service: web
+      spec:
+        containers:
+        - name: web
+          image: 172.30.53.136:5000/modernpaste/inframodernpaste:latest
+          ports:
+          - containerPort: 8080
+          volumeMounts:
+          - name: config-volume
+            mountPath: /etc/modern-paste
+            readOnly: true
+          - name: secret-volume
+            mountPath: /etc/secret
+            readOnly: true
+          env:
+          - name: ENCRYPTION_KEY
+            valueFrom:
+              secretKeyRef:
+                name: "modernpaste-secret"
+                key: encryption-key
+          - name: SESSION_KEY
+            valueFrom:
+              secretKeyRef:
+                name: "modernpaste-secret"
+                key: session-key
+          - name: DATABASE_URI
+            valueFrom:
+              secretKeyRef:
+                name: "modernpaste-secret"
+                key: database-uri
+          #- name: DOMAIN
+          #  value: ${DOMAIN}
+          readinessProbe:
+            timeoutSeconds: 1
