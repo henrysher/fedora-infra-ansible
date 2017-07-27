@@ -1,0 +1,74 @@
+
+apiVersion: v1
+kind: DeploymentConfig
+metadata:
+  name: waiverdb-stg-web
+  labels:
+    app: waiverdb
+    service: web
+spec:
+  replicas: 2
+  selector:
+    app: waiverdb
+    service: web
+  template:
+    metadata:
+      labels:
+        app: waiverdb
+        service: web
+    spec:
+      containers:
+      - name: web
+        image: waiverdb
+        ports:
+        - containerPort: 8080
+        volumeMounts:
+        - name: config-volume
+          mountPath: /etc/waiverdb
+          readOnly: true
+        - name: secret-volume
+          mountPath: /etc/secret
+          readOnly: true
+        env:
+        - name: DATABASE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: waiverdb-stg-secret
+              key: database-password
+        - name: SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: waiverdb-stg-secret
+              key: flask-secret-key
+        readinessProbe:
+          timeoutSeconds: 1
+          initialDelaySeconds: 5
+          httpGet:
+            path: /healthcheck
+            port: 8080
+        livenessProbe:
+          timeoutSeconds: 1
+          initialDelaySeconds: 30
+          httpGet:
+            path: /healthcheck
+            port: 8080
+        resources:
+          limits:
+            memory: 384Mi
+      volumes:
+      - name: config-volume
+        configMap:
+          name: waiverdb-stg-configmap
+      - name: secret-volume
+        secret:
+          secretName: waiverdb-stg-secret
+  triggers:
+  - type: ImageChange
+    imageChangeParams:
+      automatic: true
+      containerNames:
+      - web
+      from:
+        kind: ImageStreamTag
+        name: waiverdb:latest
+  - type: ConfigChange
