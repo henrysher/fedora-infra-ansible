@@ -12,7 +12,7 @@
 
   pre_tasks:
 
-  - yum: name=libsemanage-python state=present
+  - dnf: name=libsemanage-python state=present
   - name: "Set SElinux booleans"
     seboolean: name=httpd_can_network_connect_db state=yes persistent=yes
 
@@ -65,7 +65,9 @@
    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
 
   roles:
+  - fedmsg/base
   - fedmsg/hub
+  - rabbitmq
   - darkserver/backend
   - role: collectd/fedmsg-service
     process: fedmsg-hub

@@ -41,16 +41,10 @@ config = {
             'tags': [
                 # Temporary tags
                 {
-                    "from": "f26-rebuild",
-                    "to": "f26-rebuild",
-                    "key": "fedora-26",
-                    "keyid": "64dab85d"
-                },
-                {
-                    "from": "f25-llvm39",
-                    "to": "f25-llvm39",
-                    "key": "fedora-25",
-                    "keyid": "fdb19c98"
+                    "from": "f27-rebuild",
+                    "to": "f27-rebuild",
+                    "key": "fedora-27",
+                    "keyid": "f5282ee4"
                 },
 
                 # Infra tags

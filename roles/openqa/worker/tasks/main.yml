@@ -23,9 +23,15 @@
   dnf: name={{ item }} state=present
   with_items:
   - libselinux-python
-  - edk2-ovmf
+  - git
   tags:
   - packages
+
+- name: Install UEFI firmware package (x86_64 only)
+  dnf: name=edk2-ovmf state=present
+  tags:
+  - packages
+  when: "ansible_architecture is defined and ansible_architecture == 'x86_64'"
 
 - include: nfs-client.yml
   when: openqa_hostname is defined and openqa_hostname != "localhost"
