@@ -175,3 +175,6 @@ class ProdConfiguration(BaseConfiguration):
 
     # Don't let people submit yaml directly.  it has to come from dist-git
     YAML_SUBMIT_ALLOWED = False
+
+    # Set the priority to 4 to have higher priority than F27 mass rebuild.
+    KOJI_BUILD_PRIORITY = 4
