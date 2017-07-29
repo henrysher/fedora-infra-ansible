@@ -44,6 +44,10 @@ class ProdConfiguration(base.ProdConfiguration):
     # We can set some limit in the future, once we need it
     NUM_CONSECUTIVE_BUILDS = 0
 
+    # When MBS frontend runs on same machine as scheduler,
+    # it is fine to set this to localhost
+    SERVER_NAME = 'localhost'
+
 
 class DevConfiguration(base.DevConfiguration):
     SYSTEM = 'copr'
