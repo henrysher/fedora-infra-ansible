@@ -42,3 +42,31 @@
     - php-mbstring
     - wget
     - unzip
+    - postfix
+    - wordpress
+
+  - name: enable httpd service
+    service: name=httpd enabled=yes state=started
+
+  - name: configure postfix for ipv4 only
+    raw: postconf -e inet_protocols=ipv4
+
+  - name: enable local postfix service
+    service: name=postfix enabled=yes state=started
+
+  roles:
+  - nagios_client
+  - mariadb_server
+
+  post_tasks:
+  - name: create databaseuser
+    mysql_user: name=commbloguser
+                host=localhost
+                state=present
+                password="{{ communityblog_mariadb_password }}"
+                priv="commbloguser.*:ALL"
+
+  - name: Wordpress cron
+    cron: name="Wordpress cron"
+          minute="*/10"
+          job="curl http://localhost:8008/wp-cron.php >/dev/null"
