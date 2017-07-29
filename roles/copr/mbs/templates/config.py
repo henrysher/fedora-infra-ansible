@@ -11,6 +11,8 @@ class ProdConfiguration(base.ProdConfiguration):
 
     YAML_SUBMIT_ALLOWED = True
 
+    PDC_INSECURE = False
+
     # Only copr-frontend is allowed to communicate with this mbs instance
     # Therefore we don't require it to authenicate first, we trust it
     NO_AUTH = True
