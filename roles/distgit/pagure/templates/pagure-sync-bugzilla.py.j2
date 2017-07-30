@@ -1,7 +1,7 @@
 #!/usr/bin/python -tt
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2013-2016  Red Hat, Inc.
+# Copyright © 2013-2017  Red Hat, Inc.
 #
 # This copyrighted material is made available to anyone wishing to use, modify,
 # copy, or redistribute it subject to the terms and conditions of the GNU
@@ -19,6 +19,7 @@
 # Red Hat Author(s): Toshio Kuratomi <tkuratom@redhat.com>
 #         Author(s): Mike Watters <valholla75@fedoraproject.org>
 #         Author(s): Pierre-Yves Chibon <pingou@pingoured.fr>
+#         Author(s): Matt Prahl <mprahl@redhat.com>
 #
 '''
 sync information from the Pagure into bugzilla
@@ -55,6 +56,7 @@ BZPASS = '{{ bugzilla_password }}'
 BZCOMPAPI = 'component.get'
 FASUSER = '{{ fedorathirdpartyUser }}'
 FASPASS = '{{ fedorathirdpartyPassword }}'
+BUGZILLA_OVERRIDE_REPO = 'dist-git-requests'
 NOTIFYEMAIL = [
     'kevin@fedoraproject.org',
     'pingou@fedoraproject.org']
@@ -63,12 +65,14 @@ DRY_RUN = False
 {% if env == 'staging' %}
 FASURL = 'https://admin.stg.fedoraproject.org/accounts'
 FASINSECURE = True
-PAGUREURL = 'https://src.stg.fedoraproject.org/pagure/'
+PAGUREURL = 'https://stg.pagure.io'
+PAGURE_DIST_GIT_URL = 'https://src.stg.fedoraproject.org/pagure/'
 MDAPIURL = 'https://apps.stg.fedoraproject.org/mdapi/'
 {% else %}
 FASURL = 'https://admin.fedoraproject.org/accounts'
 FASINSECURE = False
-PAGUREURL = 'https://src.fedoraproject.org/pagure/'
+PAGUREURL = 'https://pagure.io'
+PAGURE_DIST_GIT_URL = 'https://src.fedoraproject.org/pagure/'
 MDAPIURL = 'https://apps.fedoraproject.org/mdapi/'
 {% endif %}
 
@@ -158,7 +162,7 @@ class ProductCache(dict):
         if BZCOMPAPI == 'getcomponentsdetails':
             # Old API -- in python-bugzilla.  But with current server, this
             # gives ProxyError
-            products = self.server.getcomponentsdetails(key)
+            products = self.bz.getcomponentsdetails(key)
         elif BZCOMPAPI == 'component.get':
             # Way that's undocumented in the partner-bugzilla api but works
             # currently
@@ -432,7 +436,7 @@ def pagure_project_to_acl_schema(pagure_project, product):
     base_error_msg = ('The connection to "{0}" failed with the status code '
                       '{1} and output "{2}"')
     watchers_api_url = '{0}/api/0/{1}/{2}/watchers'.format(
-        PAGUREURL.rstrip('/'), pagure_project['namespace'],
+        PAGURE_DIST_GIT_URL.rstrip('/'), pagure_project['namespace'],
         pagure_project['name'])
     if DRY_RUN:
         print('Querying {0}'.format(watchers_api_url))
@@ -466,16 +470,15 @@ def pagure_project_to_acl_schema(pagure_project, product):
 
     # Check if the Bugzilla ticket assignee has been overridden
     owner = pagure_project['access_users']['owner'][0]
-    pagure_override_url = (
-        'https://pagure.io/bugzilla-assignee-override/raw/master/f/{0}/{1}'
-        .format(project['namespace'], project['name']))
+    pagure_override_url = '{0}/{1}/raw/master/f/{2}/{3}'.format(
+        PAGUREURL.rstrip('/'), BUGZILLA_OVERRIDE_REPO, project['namespace'],
+        project['name'])
 
     override_rv = requests.get(pagure_override_url, timeout=30)
     if override_rv.status_code == 200:
         override_yaml = yaml.load(override_rv.text)
         if override_yaml.get(product) \
-                and isinstance(override_yaml[product], string_types) \
-                and '@' in override_yaml[product]:
+                and isinstance(override_yaml[product], string_types):
             owner = override_yaml[product]
 
     return {
@@ -517,7 +520,8 @@ if __name__ == '__main__':
         'Fedora EPEL': {},
     }
     pagure_rpms_api_url = ('{0}/api/0/projects?&namespace=rpms&page=1&'
-                           'per_page=100'.format(PAGUREURL.rstrip('/')))
+                           'per_page=100'.format(
+                               PAGURE_DIST_GIT_URL.rstrip('/')))
     while True:
         if DRY_RUN:
             print('Querying {0}'.format(pagure_rpms_api_url))
@@ -525,7 +529,7 @@ if __name__ == '__main__':
         for project in rv_json['projects']:
             pagure_project_branches_api_url = (
                 '{0}/api/0/rpms/{1}/git/branches'
-                .format(PAGUREURL.rstrip('/'), project['name']))
+                .format(PAGURE_DIST_GIT_URL.rstrip('/'), project['name']))
             branch_rv_json = requests.get(
                 pagure_project_branches_api_url, timeout=60).json()
             epel = False
@@ -534,11 +538,11 @@ if __name__ == '__main__':
                 if re.match(r'epel\d+', branch):
                     epel = True
                     projects_dict['Fedora EPEL'][project['name']] = \
-                        pagure_project_to_acl_schema(project, 'epel')
+                        pagure_project_to_acl_schema(project, 'Fedora EPEL')
                 else:
                     fedora = True
                     projects_dict['Fedora'][project['name']] = \
-                        pagure_project_to_acl_schema(project, 'fedora')
+                        pagure_project_to_acl_schema(project, 'Fedora')
 
                 if fedora and epel:
                     break
@@ -550,7 +554,7 @@ if __name__ == '__main__':
 
     pagure_container_api_url = (
         '{0}/api/0/projects?&namespace=container&page=1&per_page=100'
-        .format(PAGUREURL))
+        .format(PAGURE_DIST_GIT_URL))
     while True:
         if DRY_RUN:
             print('Querying {0}'.format(pagure_container_api_url))
