@@ -73,28 +73,7 @@
     yum: name=koji state=absent
     when: db_upgrade_file is defined
 
-- name: update the hubs and the builders
-  hosts: koji:koji-stg:builders:builders-stg
-  user: root
-  vars_files: 
-   - /srv/web/infra/ansible/vars/global.yml
-   - "/srv/private/ansible/vars.yml"
-   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
-  tasks:
-  - yum: package=koji state=latest
-
-- name: restart the koji builders
-  hosts: koji:koji-stg:builders:builders-stg
-  user: root
-  vars_files: 
-   - /srv/web/infra/ansible/vars/global.yml
-   - "/srv/private/ansible/vars.yml"
-   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
-  tasks:
-  - name: restart all the builders.  so many.
-    service: name="kojid" state=restarted
-
-- name: restart the koji hubs
+- name: update and restart the koji hubs before we touch the builders
   hosts: koji:koji-stg
   user: root
   vars_files: 
@@ -102,9 +81,22 @@
    - "/srv/private/ansible/vars.yml"
    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
   tasks:
+  - yum: package=koji state=latest
   - name: restart httpd on the koji-hubs.
     service: name="httpd" state=started
   - name: unsilence nagios
     nagios: action=unsilence service=host host={{ inventory_hostname_short }}{{ env_suffix }}
     delegate_to: noc01.phx2.fedoraproject.org
     ignore_errors: true
+
+- name: update and restart the koji builders, now that we're done with the hubs
+  hosts: builders:builders-stg
+  user: root
+  vars_files: 
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+  tasks:
+  - yum: package=koji state=latest
+  - name: restart all the builders.  so many.
+    service: name="kojid" state=restarted
