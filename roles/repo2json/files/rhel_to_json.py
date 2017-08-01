@@ -207,6 +207,9 @@ def main():
                             pkg.basename]['channel']:
                         output['packages'][pkg.basename]['channel'].append(
                             channel)
+                    if channel not in output['packages'][pkg.basename]['channels']:
+                        output['packages'][pkg.basename]['channels'][channel] = []
+
                     output['packages'][pkg.basename][
                            'channels'][channel].append({
                         'epoch': pkg.epoch,
