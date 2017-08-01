@@ -207,12 +207,14 @@ def main():
                             pkg.basename]['channel']:
                         output['packages'][pkg.basename]['channel'].append(
                             channel)
+                    if channel not in output['packages'][pkg.basename]['channels']:
+                        output['packages'][pkg.basename]['channels'][channel] = []
                     output['packages'][pkg.basename][
-                           'channels'][channel] = {
+                           'channels'][channel].append({
                         'epoch': pkg.epoch,
-                        'version': pkg.version,
+                        'versions': pkg.version,
                         'release': pkg.release,
-                    }
+                    })
 
                     # TODO: checks if the evr is more recent or not
                     # (and update if it is)
