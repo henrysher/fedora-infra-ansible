@@ -207,8 +207,6 @@ def main():
                             pkg.basename]['channel']:
                         output['packages'][pkg.basename]['channel'].append(
                             channel)
-                    if channel not in output['packages'][pkg.basename]['channels']:
-                        output['packages'][pkg.basename]['channels'][channel] = []
                     output['packages'][pkg.basename][
                            'channels'][channel].append({
                         'epoch': pkg.epoch,
@@ -227,11 +225,11 @@ def main():
                         'release': pkg.release,
                         'channel': [channel],
                         'channels': {
-                            channel: {
+                            channel: [{
                                 'epoch': pkg.epoch,
                                 'version': pkg.version,
                                 'release': pkg.release,
-                            }
+                            }]
                         }
                     }
                 cnt += 1
