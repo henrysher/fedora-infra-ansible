@@ -38,6 +38,11 @@
     pause: seconds=30 prompt="You didn't specify a db_upgrade_file extra-var.  Are you sure there is no db upgrade required?"
     when: db_upgrade_file is undefined
 
+  - name: tell nagios that everything is fine
+    nagios: action=downtime minutes=30 service=host host={{ inventory_hostname_short }}{{ env_suffix }}
+    delegate_to: noc01.phx2.fedoraproject.org
+    ignore_errors: true
+
   - name: stop httpd on the koji-hubs.
     service: name="httpd" state=stopped
 
@@ -96,3 +101,7 @@
   tasks:
   - name: restart httpd on the koji-hubs.
     service: name="httpd" state=started
+  - name: unsilence nagios
+    nagios: action=unsilence service=host host={{ inventory_hostname_short }}{{ env_suffix }}
+    delegate_to: noc01.phx2.fedoraproject.org
+    ignore_errors: true
