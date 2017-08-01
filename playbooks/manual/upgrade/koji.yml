@@ -1,0 +1,98 @@
+# How to run this playbook:
+#
+# $ sudo -i ansible-playbook $(pwd)/playbooks/manual/upgrade/koji.yml \
+#         -l \*.stg.\* \
+#         -e db_upgrade_file=/usr/share/doc/koji-1.13.0/docs/schema-upgrade-1.12-1.13.sql
+#
+# The above command will run the playbook and (-l) limit the run to only staging
+# nodes.  The extra var db_upgrade_file is passed in which tells the playbook to
+# run that script on the database after bringing down the koji hubs.
+#
+# Steps (from nirik in #fedora-releng)
+#   1) make outage ticket
+#   2) get reviewed
+#   3) send to devel-announce
+#   4) take down koji01/02 httpds
+#   5) upgrade database
+#   6) update hubs
+#   7) update all builders
+#   8) restart 
+#
+- name: preliminary tasks
+  hosts: koji:koji-stg
+  user: root
+  vars_files: 
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  tasks:
+  - name: ask admin if an outage ticket was created.
+    pause: seconds=30 prompt="Did you file an outage ticket before running this?"
+  - name: ask admin if an outage ticket was reviewed.
+    pause: seconds=30 prompt="Did you have someone review that outage ticket?  This is koji we're talking about here..."
+  - name: ask admin if an outage ticket was announced.
+    pause: seconds=30 prompt="Did you send the outage announcement to devel-announce?  People need to know."
+
+  - name: ask admin if no db upgrade script is ok.
+    pause: seconds=30 prompt="You didn't specify a db_upgrade_file extra-var.  Are you sure there is no db upgrade required?"
+    when: db_upgrade_file is undefined
+
+  - name: stop httpd on the koji-hubs.
+    service: name="httpd" state=stopped
+
+- name: run commands on the database host.
+  # Note that the hosts are used explicitly here to choose only the "primary".
+  # We don't want to run upgrades on both pgbdr nodes at the same time.
+  # ... is anything special needed to upgrade pgbdr nodes?
+  hosts: db-koji01.phx2.fedoraproject.org:db-koji01.stg.phx2.fedoraproject.org
+  user: root
+  vars_files: 
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  tasks:
+  - name: Install the koji package, to get the upgrade script.
+    yum: name=koji state=present
+    when: db_upgrade_file is defined
+  - name: Execute the db upgrade script
+    shell: psql koji  < {{db_upgrade_file}}
+    become: true
+    become_user: postgres
+    when: db_upgrade_file is defined
+  - name: Remove the package, since we no longer need the script.
+    yum: name=koji state=absent
+    when: db_upgrade_file is defined
+
+- name: update the hubs and the builders
+  hosts: koji:koji-stg:builders:builders-stg
+  user: root
+  vars_files: 
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+  tasks:
+  - yum: package=koji state=latest
+
+- name: restart the koji builders
+  hosts: koji:koji-stg:builders:builders-stg
+  user: root
+  vars_files: 
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+  tasks:
+  - name: restart httpd on the koji-hubs.
+    service: name="kojid" state=restarted
+
+- name: restart the koji hubs
+  hosts: koji:koji-stg
+  user: root
+  vars_files: 
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+  tasks:
+  - name: restart httpd on the koji-hubs.
+    service: name="httpd" state=started
