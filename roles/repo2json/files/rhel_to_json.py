@@ -207,6 +207,8 @@ def main():
                             pkg.basename]['channel']:
                         output['packages'][pkg.basename]['channel'].append(
                             channel)
+                    output['packages'][pkg.basename][
+                           'channels'][channel] = pkg.version
 
                     # TODO: checks if the evr is more recent or not
                     # (and update if it is)
@@ -217,7 +219,8 @@ def main():
                         'epoch': pkg.epoch,
                         'version': pkg.version,
                         'release': pkg.release,
-                        'channel': [channel]
+                        'channel': [channel],
+                        'channels': {channel: pkg.version},
                     }
                 cnt += 1
             print '%s packages in %s' % (cnt, cur_fold)
