@@ -165,24 +165,50 @@
   - distgit
 
 - name: create the /etc/gitolite/conf directory
+  file: path=/etc/gitolite/conf owner=pagure group=pagure
+        state=directory mode=0755
+  when: env == "staging"
+  tags:
+  - distgit
+
+- name: create the /etc/gitolite/conf directory
   file: path=/etc/gitolite/conf owner=gen-acls group=gen-acls state=directory mode=0755
+  when: env != "staging"
+  tags:
+  - distgit
+
+- name: create the /etc/gitolite/logs directory
+  file: path=/etc/gitolite/logs owner=pagure group=packager
+        state=directory mode=0775
+  when: env == "staging"
   tags:
   - distgit
 
 - name: create the /etc/gitolite/logs directory
   file: path=/etc/gitolite/logs owner=gen-acls group=packager
         state=directory mode=0775
+  when: env != "staging"
+  tags:
+  - distgit
+
+- name: create the /etc/gitolite/local/VREF directory
+  file: path=/etc/gitolite/local/VREF owner=pagure group=packager
+        state=directory mode=0775
+  when: env == "staging"
   tags:
   - distgit
 
 - name: create the /etc/gitolite/local/VREF directory
   file: path=/etc/gitolite/local/VREF owner=gen-acls group=packager
         state=directory mode=0775
+  when: env != "staging"
   tags:
   - distgit
 
+
 - name: create /etc/gitolite/gitolite.rc
-  template: src=gitolite.rc dest=/etc/gitolite/gitolite.rc owner=root group=root mode=0755
+  template: src=gitolite.rc dest=/etc/gitolite/gitolite.rc
+            owner=root group=root mode=0755
   tags:
   - distgit
 
@@ -208,7 +234,8 @@
   - distgit
 
 - name: Copy in RepoAliases.header
-  copy: src=RepoAliases.header dest=/etc/gitolite/RepoAliases.header owner=root group=root mode=0755
+  copy: src=RepoAliases.header dest=/etc/gitolite/RepoAliases.header
+        owner=root group=root mode=0755
 
 - name: Create the update-block-push-origin symlink
   command: ln -s /usr/share/git-core/update-block-push-origin /etc/gitolite/local/VREF/update-block-push-origin
