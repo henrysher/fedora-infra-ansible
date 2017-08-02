@@ -52,6 +52,20 @@
   - httpd
   - httpd/website
 
+- name: Copy over varnish workaround for {{name}}
+  template: >
+    src=blockchunked.conf
+    dest=/etc/httpd/conf.d/{{name}}/blockchunked.conf
+    owner=root
+    group=root
+    mode=0644
+  notify:
+  - reload proxyhttpd
+  tags:
+  - httpd
+  - httpd/website
+  - security/workaround
+
 - name: And lastly, the robots.txt file
   copy: >
     src={{item}}
