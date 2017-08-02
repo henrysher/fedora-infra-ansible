@@ -63,16 +63,6 @@
   - packages
   - yumrepos
 
-- name: add infrastructure repo
-  file: path="/etc/yum.repos.d/{{ item }}" state=absent
-  with_items:
-  - infrastructure.repo
-  - infrastructure-testing.repo
-  tags:
-  - config
-  - packages
-  - yumrepos
-
 - name: add infrastructure tags repo - RHEL
   copy: src="{{ files }}/common/rhel-infra-tags.repo" dest="/etc/yum.repos.d/infra-tags.repo"
   when: (ansible_distribution == 'RedHat' or ansible_distribution == 'CentOS')
@@ -100,6 +90,20 @@
 - name: add infrastructure STAGING tags repo - Fedora
   copy: src="{{ files }}/common/fedora-infra-tags-stg.repo" dest="/etc/yum.repos.d/infra-tags-stg.repo"
   when: ansible_distribution == 'Fedora' and env == 'staging'
+  tags:
+  - config
+  - packages
+  - yumrepos
+
+- name: Make sure older infrastructure tags repos no longer exist
+  file: path="/etc/yum.repos.d/{{item}}" state=absent
+  with_items:
+  - fedora-infra-tags.repo
+  - fedora-infra-tags-stg.repo
+  - rhel-infra-tags.repo
+  - rhel-infra-tags-stg.repo
+  - infrastructure.repo
+  - infrastructure-testing.repo
   tags:
   - config
   - packages
