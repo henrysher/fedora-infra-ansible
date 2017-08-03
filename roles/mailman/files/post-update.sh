@@ -13,7 +13,7 @@ INDEXDIR=$BASEDIR/fulltext_index
 sleep $[ ( $RANDOM % 10 )  + 1 ]s # avoid simultaneous lockups on parallel servers. Yes, this is dirty.
 
 echo "Stop services"
-systemctl stop webui-qcluster crond mailman3 httpd
+systemctl stop webui-qcluster crond httpd
 
 echo "static files"
 django-admin collectstatic --clear --noinput --verbosity 0 --pythonpath $CONFDIR --settings settings
@@ -40,4 +40,4 @@ django-admin test --pythonpath $CONFDIR --settings settings_test django_mailman3
 
 # Restart services
 echo "Start services"
-systemctl start httpd mailman3 crond webui-qcluster
+systemctl start httpd crond webui-qcluster
