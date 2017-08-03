@@ -121,6 +121,10 @@ class ProdConfiguration(BaseConfiguration):
     LOG_LEVEL = 'debug'
     LOG_BACKEND = 'console'
 
+    # Our per-build logs for the koji-content generator go here.
+    # CG imports are controlled by KOJI_ENABLE_CONTENT_GENERATOR
+    BUILD_LOGS_DIR = '/var/tmp'
+
     # Yes, use tls.
     PDC_INSECURE = False
     # No, don't try to obtain a token (we just read.  we don't write.)
@@ -143,8 +147,8 @@ class ProdConfiguration(BaseConfiguration):
     MESSAGING_TOPIC_PREFIX = ['org.fedoraproject.prod']
     PDC_URL = 'https://pdc.fedoraproject.org/rest_api/v1'
     SCMURLS = ["git://pkgs.fedoraproject.org/modules/"]
-    # Blocked on https://pagure.io/releng/issue/6799
-    KOJI_ENABLE_CONTENT_GENERATOR = False
+    # Made possible by https://pagure.io/releng/issue/6799
+    KOJI_ENABLE_CONTENT_GENERATOR = True
 {% endif %}
 
     # This is a whitelist of prefixes of koji tags we're allowed to manipulate
