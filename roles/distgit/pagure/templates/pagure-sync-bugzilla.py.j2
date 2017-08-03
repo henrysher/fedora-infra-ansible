@@ -477,6 +477,7 @@ def pagure_project_to_acl_schema(pagure_project, product):
     override_rv = requests.get(pagure_override_url, timeout=30)
     if override_rv.status_code == 200:
         override_yaml = yaml.load(override_rv.text)
+        override_yaml = override_yaml.get('bugzilla_contact', {})
         if override_yaml.get(product) \
                 and isinstance(override_yaml[product], string_types):
             owner = override_yaml[product]
