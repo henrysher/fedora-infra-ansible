@@ -265,6 +265,14 @@
     when: env == 'staging'
     tags: ['openshift-cluster','ansible-ansible-openshift-ansible']
 
+  tasks:
+    - name: place osbs_secret_files if they do not exist
+      copy:
+        src: "{{item.source}}"
+        dest: "{{item.dest}}"
+      with_items: "{{ osbs_secret_files_list }}"
+      tags:
+      - oc
 
 - name: Setup OSBS requirements for OpenShift cluster hosts
   hosts: osbs-orchestrators-stg:osbs-workers-stg
@@ -374,13 +382,7 @@
   - role: osbs-secret
     osbs_namespace: "{{ osbs_worker_namespace }}"
     osbs_secret_name: "{{ koji_secret_name }}"
-    osbs_secret_files:
-    - source: "{{ private }}/groups/osbs-{{ env }}/koji/cert"
-      dest: cert
-    - source: "{{ private }}/groups/osbs-{{ env }}/koji/ca"
-      dest: ca
-    - source: "{{ private }}/groups/osbs-{{ env }}/koji/serverca"
-      dest: serverca
+    osbs_secret_files: "{{ osbs_secret_files_list }}"
 
 - name: setup worker namespace
   hosts: osbsworker-x86-64-masters-stg[0]
