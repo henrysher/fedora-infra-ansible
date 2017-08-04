@@ -12,6 +12,7 @@
   - httpd
   - mod_ssl
   - mod_auth_gssapi
+  - python-fedmsg-genacls
   - /usr/sbin/semanage
   tags:
   - distgit
@@ -219,6 +220,12 @@
   - config
   - distgit
 
+- name: install the fedmsg configuration
+  template: src=fedmsg-genacls-config.py dest=/etc/fedmsg.d/genacls.py
+            owner=root group=root mode=0644
+  tags:
+  - distgit
+
 - name: remove file pre-dating pagure over dist-git
   file: path={{ item }} state=absent
   with_items:
@@ -228,13 +235,6 @@
     - /etc/fedmsg.d/genacls.py
   tags:
   - config
-  - distgit
-
-- name: remove packages pre-dating pagure over dist-git
-  yum: pkg={{ item }} state=absent
-  with_items:
-  - python-fedmsg-genacls
-  tags:
   - distgit
 
 - name: Get admin users

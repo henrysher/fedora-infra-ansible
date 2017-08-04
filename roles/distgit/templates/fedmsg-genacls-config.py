@@ -1,5 +1,5 @@
 config = {
-    'genacls.consumer.enabled': True,
+    'genacls.consumer.enabled': False,
     'genacls.consumer.delay': 5, # 5 seconds
 
     # New world
