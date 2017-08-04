@@ -139,9 +139,14 @@
   - pagure
 
 - name: Override the default pagure_worker.service file to change the user it is run under
-  copy: src=pagure_worker.service
-        dest=/etc/systemd/system/pagure_worker.service
+  copy: src={{ item }}.service
+        dest=/etc/systemd/system/{{ item }}.service
         owner=root group=root mode=0755
+  with_items:
+  - pagure_ev
+  - pagure_logcom
+  - pagure_webhook
+  - pagure_worker
   notify:
   - reload systemd
   tags:
@@ -174,10 +179,10 @@
   - httpd
   - postfix
 #  - stunnel
-  - pagure_milter
   - redis
   - pagure_ev
   - pagure_logcom
+  - pagure_milter
   - pagure_webhook
   - pagure_worker
   - fedmsg-relay
