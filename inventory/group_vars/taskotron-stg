@@ -1,7 +1,7 @@
 ---
 ############################################################
 # general information
-###########################################################
+############################################################
 
 tcp_ports: [ 80, 443, "{{ buildslave_port }}" ]
 freezes: false
@@ -10,10 +10,10 @@ external_hostname: taskotron.stg.fedoraproject.org
 deployment_type: stg
 robots_path: /var/www/html
 
-# this enables extra repos during dnf install but that's broken right now, remember to re-enable
+# this enables extra repos during dnf operations
 extra_enablerepos: 'infrastructure-testing'
 
-# make sure we're using the stg fedsmg bus
+# decide whether to use prod or stg fedsmg bus
 fedmsg_env: prod
 
 ############################################################
@@ -41,15 +41,17 @@ grokmirror_default_branch: develop
 # urls and endpoints
 ############################################################
 
-execdb_server: http://resultsdb-stg01.qa.fedoraproject.org/execdb
+execdb_endpoint: execdb
 execdb_statuspush: http://resultsdb-stg01.qa.fedoraproject.org/execdb/buildbottest
-
-resultsdb_url: http://resultsdb-stg01.qa.fedoraproject.org/resultsdb_api/api/v2.0
-resultsdb_frontend_url: http://resultsdb-stg01.qa.fedoraproject.org/
+execdb_server: http://resultsdb-stg01.qa.fedoraproject.org/execdb
+resultsdb_api_endpoint: resultsdb_api
+resultsdb_host: http://resultsdb-stg01.qa.fedoraproject.org/resultsdb_api/
 resultsdb_external_url: https://taskotron.stg.fedoraproject.org/resultsdb/
 resultsdb_fe_endpoint: resultsdb
-
+resultsdb_frontend_url: http://resultsdb-stg01.qa.fedoraproject.org/resultsdb/
+resultsdb_url: http://resultsdb-stg01.qa.fedoraproject.org/resultsdb_api/api/v2.0
 taskotron_docs_url: https://qa.fedoraproject.org/docs/libtaskotron/latest/
+# make sure this doesn't have a trailing slash
 trigger_distgit_repo_url: git://pkgs02.phx2.fedoraproject.org
 trigger_critpath_url: https://admin.fedoraproject.org/pkgdb/api/critpath?format=json
 
@@ -57,6 +59,7 @@ instances:
   - { name: "Production", url: "https://taskotron.fedoraproject.org"}
   - { name: "Staging", url: "https://taskotron.stg.fedoraproject.org"}
   - { name: "Development", url: "http://taskotron-dev.fedoraproject.org"}
+
 
 ############################################################
 # taskotron details
