@@ -148,7 +148,7 @@ class ProdConfiguration(BaseConfiguration):
     PDC_URL = 'https://pdc.fedoraproject.org/rest_api/v1'
     SCMURLS = ["git://pkgs.fedoraproject.org/modules/"]
     # Made possible by https://pagure.io/releng/issue/6799
-    KOJI_ENABLE_CONTENT_GENERATOR = False
+    KOJI_ENABLE_CONTENT_GENERATOR = True
 {% endif %}
 
     # This is a whitelist of prefixes of koji tags we're allowed to manipulate
