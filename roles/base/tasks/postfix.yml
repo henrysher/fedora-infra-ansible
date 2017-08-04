@@ -30,6 +30,23 @@
   - config
   - base
 
+- name: Deploy sender_access file
+  copy: src="{{private}}/files/smtpd/sender_access" dest="/etc/postfix/sender_access
+  when: "{{postfix_group}} == 'smtp-mm'"
+  tags:
+  - postfix
+  - config
+  - base
+
+- name: Create sender_access hash
+  command: postmap hash:/etc/postfix/sender_access
+  changed_when: false
+  when: "{{postfix_group}} == 'smtp-mm'"
+  tags:
+  - postfix
+  - config
+  - base
+
 - name: enable postfix to start
   service: name=postfix state=started enabled=true
   tags:
