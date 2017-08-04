@@ -265,15 +265,6 @@
     when: env == 'staging'
     tags: ['openshift-cluster','ansible-ansible-openshift-ansible']
 
-  tasks:
-    - name: place osbs_secret_files if they do not exist
-      copy:
-        src: "{{item.source}}"
-        dest: "{{item.dest}}"
-      with_items: "{{ osbs_secret_files_list }}"
-      tags:
-      - oc
-
 - name: Setup OSBS requirements for OpenShift cluster hosts
   hosts: osbs-orchestrators-stg:osbs-workers-stg
   tags:
@@ -379,11 +370,6 @@
     osbs_sources_command: "fedpkg sources"
     osbs_nodeselector: "{{ osbs_orchestrator_default_nodeselector|default('') }}"
 
-  - role: osbs-secret
-    osbs_namespace: "{{ osbs_worker_namespace }}"
-    osbs_secret_name: "{{ koji_secret_name }}"
-    osbs_secret_files: "{{ osbs_secret_files_list }}"
-
 - name: setup worker namespace
   hosts: osbsworker-x86-64-masters-stg[0]
   tags:
@@ -440,17 +426,6 @@
     osbs_cpu_limitrange: "{{ os_cpu_limitrange }}"
     osbs_nodeselector: "{{ osbs_orchestrator_default_nodeselector|default('') }}"
 
-  - role: osbs-secret
-    osbs_namespace: "{{ osbs_worker_namespace }}"
-    osbs_secret_name: kojisecret
-    osbs_secret_files:
-    - source: "{{ private }}/groups/osbs-{{ env }}/koji/cert"
-      dest: cert
-    - source: "{{ private }}/groups/osbs-{{ env }}/koji/ca"
-      dest: ca
-    - source: "{{ private }}/groups/osbs-{{ env }}/koji/serverca"
-      dest: serverca
-
 - name: Setup Koji auth for OpenShift Orchestrator
   hosts: osbs-masters-stg[0]:osbsworker-x86-64-masters-stg[0]
   tags:
@@ -476,6 +451,113 @@
       args:
         creates: "/etc/origin/atomic-reactor-policy-added"
 
+- name: post-install orchestrator master host osbs tasks
+  hosts: osbs-masters-stg[0]
+  tags:
+    - osbs-post-install
+  vars_files:
+    - /srv/web/infra/ansible/vars/global.yml
+    - /srv/private/ansible/vars.yml
+    - /srv/private/ansible/files/openstack/passwords.yml
+    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+  vars:
+    osbs_kubeconfig_path: /etc/origin/master/admin.kubeconfig
+    osbs_environment:
+      KUBECONFIG: "{{ osbs_kubeconfig_path }}"
+    koji_pki_dir: /etc/pki/koji
+    koji_ca_cert_path: "{{koji_pki_dir}}/fedora-server-ca.cert"
+    koji_cert_path: "{{koji_pki_dir}}/fedora-builder.pem"
+    koji_builder_user: dockerbuilder
+    osbs_builder_user: builder
+
+
+  handlers:
+    - name: oc secrets new
+    shell: "oc secrets new koji cert={{ koji_cert_path }} ca={{ koji_ca_cert_path }} serverca={{ koji_ca_cert_path }} --namespace={{osbs_orchestrator_namespace}}"
+      environment: "{{ osbs_environment }}"
+      notify: oc secrets add
+
+    - name: oc secrets add
+      shell: "oc secrets add serviceaccount/{{ osbs_builder_user }} secrets/koji --for=mount --namespace={{osbs_orchestrator_namespace}}"
+      environment: "{{ osbs_environment }}"
+
+  tasks:
+    - name: Ensure koji dockerbuilder cert path exists
+      file:
+        path: "{{ koji_pki_dir }}"
+        state: "directory"
+        mode: 0400
+
+    - name: Add koji dockerbuilder cert for Content Generator import
+      copy:
+        src: "{{private}}/files/koji/containerbuild.pem"
+        dest: "{{ koji_cert_path }}"
+      notify: oc secrets new
+
+    - name: Add koji dockerbuilder ca cert for Content Generator import
+      copy:
+        src: "{{private}}/files/koji/buildercerts/fedora-ca.cert"
+        dest: "{{ koji_ca_cert_path }}"
+      notify: oc secrets new
+
+    - name: cron entry to clean up old builds
+      copy:
+        src: "{{files}}/osbs/cleanup-old-osbs-builds"
+        dest: "/etc/cron.d/cleanup-old-osbs-builds"
+
+- name: post-install worker master host osbs tasks
+  hosts: osbsworker-x86-64-masters-stg[0]
+  tags:
+    - osbs-post-install
+  vars_files:
+    - /srv/web/infra/ansible/vars/global.yml
+    - /srv/private/ansible/vars.yml
+    - /srv/private/ansible/files/openstack/passwords.yml
+    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+  vars:
+    osbs_kubeconfig_path: /etc/origin/master/admin.kubeconfig
+    osbs_environment:
+      KUBECONFIG: "{{ osbs_kubeconfig_path }}"
+    koji_pki_dir: /etc/pki/koji
+    koji_ca_cert_path: "{{koji_pki_dir}}/fedora-server-ca.cert"
+    koji_cert_path: "{{koji_pki_dir}}/fedora-builder.pem"
+    koji_builder_user: dockerbuilder
+    osbs_builder_user: builder
+
+
+  handlers:
+    - name: oc secrets new
+    shell: "oc secrets new koji cert={{ koji_cert_path }} ca={{ koji_ca_cert_path }} serverca={{ koji_ca_cert_path }} --namespace={{osbs_worker_namespace}}"
+      environment: "{{ osbs_environment }}"
+      notify: oc secrets add
+
+    - name: oc secrets add
+      shell: "oc secrets add serviceaccount/{{ osbs_builder_user }} secrets/koji --for=mount --namespace={{osbs_worker_namespace}}"
+      environment: "{{ osbs_environment }}"
+
+  tasks:
+    - name: Ensure koji dockerbuilder cert path exists
+      file:
+        path: "{{ koji_pki_dir }}"
+        state: "directory"
+        mode: 0400
+
+    - name: Add koji dockerbuilder cert for Content Generator import
+      copy:
+        src: "{{private}}/files/koji/containerbuild.pem"
+        dest: "{{ koji_cert_path }}"
+      notify: oc secrets new
+
+    - name: Add koji dockerbuilder ca cert for Content Generator import
+      copy:
+        src: "{{private}}/files/koji/buildercerts/fedora-ca.cert"
+        dest: "{{ koji_ca_cert_path }}"
+      notify: oc secrets new
+
+    - name: cron entry to clean up old builds
+      copy:
+        src: "{{files}}/osbs/cleanup-old-osbs-builds"
+        dest: "/etc/cron.d/cleanup-old-osbs-builds"
 
 - name: Manage docker images and image stream
   hosts: osbs-masters-stg[0]:osbsworker-x86-64-masters-stg[0]
