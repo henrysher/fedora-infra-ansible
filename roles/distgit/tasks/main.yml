@@ -12,7 +12,6 @@
   - httpd
   - mod_ssl
   - mod_auth_gssapi
-  - python-fedmsg-genacls
   - /usr/sbin/semanage
   tags:
   - distgit
@@ -167,44 +166,20 @@
 - name: create the /etc/gitolite/conf directory
   file: path=/etc/gitolite/conf owner=pagure group=pagure
         state=directory mode=0755
-  when: env == "staging"
-  tags:
-  - distgit
-
-- name: create the /etc/gitolite/conf directory
-  file: path=/etc/gitolite/conf owner=gen-acls group=gen-acls state=directory mode=0755
-  when: env != "staging"
   tags:
   - distgit
 
 - name: create the /etc/gitolite/logs directory
   file: path=/etc/gitolite/logs owner=pagure group=packager
         state=directory mode=0775
-  when: env == "staging"
-  tags:
-  - distgit
-
-- name: create the /etc/gitolite/logs directory
-  file: path=/etc/gitolite/logs owner=gen-acls group=packager
-        state=directory mode=0775
-  when: env != "staging"
   tags:
   - distgit
 
 - name: create the /etc/gitolite/local/VREF directory
   file: path=/etc/gitolite/local/VREF owner=pagure group=packager
         state=directory mode=0775
-  when: env == "staging"
   tags:
   - distgit
-
-- name: create the /etc/gitolite/local/VREF directory
-  file: path=/etc/gitolite/local/VREF owner=gen-acls group=packager
-        state=directory mode=0775
-  when: env != "staging"
-  tags:
-  - distgit
-
 
 - name: create /etc/gitolite/gitolite.rc
   template: src=gitolite.rc dest=/etc/gitolite/gitolite.rc
@@ -244,36 +219,22 @@
   - config
   - distgit
 
-- name: install the genacls.sh script
-  template: src={{item}} dest=/usr/local/bin/{{item}} mode=0755
+- name: remove file pre-dating pagure over dist-git
+  file: path={{ items }} state=abstent
   with_items:
-    - genacls.sh
+    - /usr/local/bin/genacls.sh
+    - /usr/local/bin/genacls.pkgdb
+    - /etc/cron.d/genacls.cron
+    - /etc/fedmsg.d/genacls.py
   tags:
   - config
   - distgit
 
-- name: install the genacls.pkgdb scripts
-  template: src={{item}} dest=/usr/local/bin/{{item}}
-            owner=root group=root mode=0755
+- name: remove packages pre-dating pagure over dist-git
+  yum: pkg= state=absent
   with_items:
-    - genacls.pkgdb
-  when: env != "staging"
+  - python-fedmsg-genacls
   tags:
-  - config
-  - distgit
-
-- name: Add the genacl daily cron job
-  copy: src=genacls.cron dest=/etc/cron.d/genacls.cron
-        owner=root mode=644
-  tags:
-  - config
-  - distgit
-
-- name: install the fedmsg configuration
-  template: src=fedmsg-genacls-config.py dest=/etc/fedmsg.d/genacls.py
-            owner=root group=root mode=0644
-  tags:
-  - config
   - distgit
 
 - name: Get admin users
