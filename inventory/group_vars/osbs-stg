@@ -91,15 +91,27 @@ kubeconfig_path: /etc/origin/master/admin.kubeconfig
 osbs_env:
   HOME: "{{ lookup('env', 'HOME') }}"
   KUBECONFIG: "{{ osbs_kubeconfig_path }}"
-os_readonly_users:
-- "system:serviceaccount:{{ osbs_namespace }}:metrics"
-os_readonly_groups:
+
+osbs_orchestrator_readonly_users:
+- "system:serviceaccount:{{ osbs_orchestrator_namespace }}:metrics"
+osbs_orchestrator_readonly_groups:
 - "system:authenticated"
-os_readwrite_groups: []
-os_readwrite_users:
+osbs_orchestrator_readwrite_groups: []
+osbs_orchestrator_readwrite_users:
 - "{{ ansible_hostname }}"
-- "system:serviceaccount:{{ osbs_namespace }}:default"
-- "system:serviceaccount:{{ osbs_namespace }}:builder"
+- "system:serviceaccount:{{ osbs_orchestrator_namespace }}:default"
+- "system:serviceaccount:{{ osbs_orchestrator_namespace }}:builder"
+
+osbs_worker_readonly_users:
+- "system:serviceaccount:{{ osbs_worker_namespace }}:metrics"
+osbs_worker_readonly_groups:
+- "system:authenticated"
+osbs_worker_readwrite_groups: []
+osbs_worker_readwrite_users:
+- "{{ ansible_hostname }}"
+- "system:serviceaccount:{{ osbs_worker_namespace }}:default"
+- "system:serviceaccount:{{ osbs_worker_namespace }}:builder"
+
 os_admin_users:
 - kevin
 - puiterwijk
