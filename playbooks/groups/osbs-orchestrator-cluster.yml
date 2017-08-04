@@ -426,8 +426,8 @@
     osbs_cpu_limitrange: "{{ os_cpu_limitrange }}"
     osbs_nodeselector: "{{ osbs_orchestrator_default_nodeselector|default('') }}"
 
-- name: Setup Koji auth for OpenShift Orchestrator
-  hosts: osbs-masters-stg[0]:osbsworker-x86-64-masters-stg[0]
+- name: Setup Koji auth for OSBS Orchestrator Cluster
+  hosts: osbs-masters-stg[0]
   tags:
     - osbs-master-req
   user: root
@@ -441,13 +441,38 @@
 
   tasks:
     - name: set policy for koji builder in openshift for osbs
-      shell: "oadm policy add-role-to-user -n {{ osbs_namespace }} edit htpasswd_provider: {{ osbs_koji_stg_username }} && touch /etc/origin/koji-builder-policy-added"
+      shell: "oadm policy add-role-to-user -n {{ osbs_orchestrator_namespace }} edit htpasswd_provider: {{ osbs_koji_stg_username }} && touch /etc/origin/koji-builder-policy-added"
       args:
         creates: "/etc/origin/koji-builder-policy-added"
       when: env == "staging"
 
     - name: set policy for koji builder in openshift for atomic-reactor
-      shell: "oadm policy add-role-to-user -n {{ osbs_namespace }} edit system:serviceaccount:{{osbs_namespace}}:{{osbs_builder_user}} && touch /etc/origin/atomic-reactor-policy-added"
+      shell: "oadm policy add-role-to-user -n {{ osbs_orchestrator_namespace }} edit system:serviceaccount:{{osbs_orchestrator_namespace}}:{{osbs_builder_user}} && touch /etc/origin/atomic-reactor-policy-added"
+      args:
+        creates: "/etc/origin/atomic-reactor-policy-added"
+
+- name: Setup Koji auth for OSBS Worker Cluster
+  hosts: osbsworker-x86-64-masters-stg[0]
+  tags:
+    - osbs-master-req
+  user: root
+  gather_facts: True
+
+  vars_files:
+    - /srv/web/infra/ansible/vars/global.yml
+    - "/srv/private/ansible/vars.yml"
+    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+
+  tasks:
+    - name: set policy for koji builder in openshift for osbs
+      shell: "oadm policy add-role-to-user -n {{ osbs_worker_namespace }} edit htpasswd_provider: {{ osbs_koji_stg_username }} && touch /etc/origin/koji-builder-policy-added"
+      args:
+        creates: "/etc/origin/koji-builder-policy-added"
+      when: env == "staging"
+
+    - name: set policy for koji builder in openshift for atomic-reactor
+      shell: "oadm policy add-role-to-user -n {{ osbs_worker_namespace }} edit system:serviceaccount:{{osbs_orchestrator_namespace}}:{{osbs_builder_user}} && touch /etc/origin/atomic-reactor-policy-added"
       args:
         creates: "/etc/origin/atomic-reactor-policy-added"
 
