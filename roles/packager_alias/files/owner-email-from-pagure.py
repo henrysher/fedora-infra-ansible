@@ -8,8 +8,7 @@ Its goal is to generate all the <pkg>-owner email aliases we provide
 
 import requests
 
-# TODO: Change me
-pagure_url = 'http://127.0.0.1:5000'
+pagure_url = 'https://src.fedoraproject.org/'
 pagure_group_url = pagure_url + '/api/0/group/{group}'
 pagure_projects_url = pagure_url + '/api/0/projects'
 pagure_projects = requests.get(pagure_projects_url).json()['projects']
