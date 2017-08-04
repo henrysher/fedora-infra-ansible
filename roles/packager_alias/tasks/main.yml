@@ -1,26 +1,15 @@
 ---
 # Email alias set-up
-- name: Install the Python script to get the <pkg>-owner email alias (non-staging)
-  copy:
-    src: owner-email.py
-    dest: /usr/local/bin/owner-email.py
-    owner: root
-    group: root
-    mode: 0755
-  when: env != 'staging'
-  tags:
-  - install
-
-- name: Install the Python script to get the <pkg>-owner email alias (staging)
+- name: Install the Python script to get the <pkg>-owner email alias
   copy:
     src: owner-email-from-pagure.py
     dest: /usr/local/bin/owner-email.py
     owner: root
     group: root
     mode: 0755
-  when: env == 'staging'
   tags:
   - install
+  - packager_alias
 
 - name: Install the script to generate the <pkg>-owner email alias
   copy:
@@ -31,6 +20,7 @@
     mode: 0755
   tags:
   - install
+  - packager_alias
 
 #
 # Since this host has mail aliases, it's a mail hub. Compress logs since there will be a ton of them
@@ -40,3 +30,4 @@
   copy: src=syslog dest=/etc/logrotate.d/syslog owner=root group=root
   tags:
   - install
+  - packager_alias
