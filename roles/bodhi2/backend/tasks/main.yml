@@ -132,8 +132,8 @@
 #
 # cron job that syncs packages to koji
 #
-- name: put owner-sync-pkgdb in place
-  template: src=owner-sync-pkgdb.j2 dest=/usr/local/bin/owner-sync-pkgdb mode=0755
+- name: Remove the old owner-sync-pagure script.
+  file: dest=/usr/local/bin/owner-sync-pagure state=absent
   tags:
   - config
   - bodhi
@@ -146,36 +146,36 @@
   - bodhi
   - cron
 
-- name: sync packages from pkgdb2 to koji (el6)
+- name: sync packages from pagure-on-dist-git to koji (el6)
   cron: name="owner-sync-el6" minute="7,17,27,37,47,57" user="root"
-        job="/usr/local/bin/owner-sync-pkgdb dist-6E-epel"
+        job="/usr/local/bin/owner-sync-pagure dist-6E-epel"
         cron_file=update-koji-owner-EL-6
   when: inventory_hostname.startswith('bodhi-backend01') and env == "production"
   tags:
   - bodhi
   - cron
 
-- name: sync packages from pkgdb2 to koji (epel7)
+- name: sync packages from pagure-on-dist-git to koji (epel7)
   cron: name="owner-sync-epel7" minute="7,17,27,37,47,57" user="root"
-        job="/usr/local/bin/owner-sync-pkgdb epel7"
+        job="/usr/local/bin/owner-sync-pagure epel7"
         cron_file=update-koji-owner-epel7
   when: inventory_hostname.startswith('bodhi-backend01') and env == "production"
   tags:
   - bodhi
   - cron
 
-- name: sync packages from pkgdb2 to koji fedora
+- name: sync packages from pagure-on-dist-git to koji fedora
   cron: name="owner-sync-fedora" minute="7,17,27,37,47,57" user="root"
-        job="/usr/local/bin/owner-sync-pkgdb f24;/usr/local/bin/owner-sync-pkgdb f25;/usr/local/bin/owner-sync-pkgdb f26;/usr/local/bin/owner-sync-pkgdb f27"
+        job="/usr/local/bin/owner-sync-pagure f24;/usr/local/bin/owner-sync-pagure f25;/usr/local/bin/owner-sync-pagure f26;/usr/local/bin/owner-sync-pagure f27"
         cron_file=update-koji-owner-fedora
   when: inventory_hostname.startswith('bodhi-backend01') and env == "production"
   tags:
   - bodhi
   - cron
 
-- name: sync packages from pkgdb2 to koji fedora (container)
+- name: sync packages from pagure-on-dist-git to koji fedora (container)
   cron: name="owner-sync-fedora" minute="7,17,27,37,47,57" user="root"
-        job="/usr/local/bin/owner-sync-pkgdb f25-container;/usr/local/bin/owner-sync-pkgdb f26-container;/usr/local/bin/owner-sync-pkgdb f27-container"
+        job="/usr/local/bin/owner-sync-pagure f25-container;/usr/local/bin/owner-sync-pagure f26-container;/usr/local/bin/owner-sync-pagure f27-container"
         cron_file=update-koji-owner-fedora-container
   when: inventory_hostname.startswith('bodhi-backend01') and env == "production"
   tags:
@@ -183,9 +183,9 @@
   - cron
 
 # See https://pagure.io/releng/issue/6663 and https://pagure.io/fm-orchestrator/issue/333
-- name: sync packages from pkgdb2 to koji fedora (modules)
+- name: sync packages from pagure-on-dist-git to koji fedora (modules)
   cron: name="owner-sync-modules" minute="9,19,29,39,49,59" user="root"
-        job="/usr/local/bin/owner-sync-pkgdb module-package-list"
+        job="/usr/local/bin/owner-sync-pagure module-package-list"
         cron_file=update-koji-owner-modules
   when: inventory_hostname.startswith('bodhi-backend01') and env == "production"
   tags:
