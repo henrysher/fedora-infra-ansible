@@ -144,7 +144,9 @@ def get_pagure_projects(namespace):
     while url:
         response = requests.get(url, verify=VERIFY).json()
         for project in response['projects']:
-            yield project
+            # Skip forks
+            if not project['fullname'].startswith('forks/'):
+                yield project
         url = response['pagination']['next']
 
 
@@ -154,11 +156,17 @@ def get_project_ownership(tag, namespace):
         # Check if this project has the branch we are interested in
         project_branches_url = '{0}api/0/{1}/{2}/git/branches'.format(
             PAGURE_URL, namespace, project['name'])
-        project_branches_rv = \
-            requests.get(project_branches_url, verify=VERIFY).json()
+        project_branches_rv = requests.get(project_branches_url, verify=VERIFY)
+
+        # If the project's branches can't be reported, let's skip the project
+        # for now.
+        if not project_branches_rv.ok:
+            continue
+
+        project_branches_rv_json = project_branches_rv.json()
 
         # The tag and branch names are the same for "old-style" branches
-        if tag in project_branches_rv['branches']:
+        if tag in project_branches_rv_json['branches']:
             # Although this is a list, Pagure only supports one owner for now
             projects[project['name']] = project['access_users']['owner'][0]
 
