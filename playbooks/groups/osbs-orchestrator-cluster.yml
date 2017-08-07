@@ -604,24 +604,12 @@
     koji_builder_user: dockerbuilder
 
   tasks:
-    - name: pull openshift required docker images
-      shell: "docker pull {{item}}:{{origin_release}}"
+    - name: skopeo sync openshift required docker images
+      shell: "skopeo copy docker://docker.io/{{item}}:{{origin_release}} {{candidate_registry}}/{{item}}:{{origin_release}}"
       with_items: "{{openshift_required_images}}"
       delegate_to: compose-x86-01.phx2.fedoraproject.org
       register: docker_pull_openshift_delegated
-      changed_when: "'Downloaded newer image' in docker_pull_openshift_delegated.stdout"
-
-    - name: tag openshift required docker images for our registry
-      shell: "docker tag {{item}}:{{origin_release}} {{candidate_registry}}/{{item}}:{{origin_release}}"
-      with_items: "{{openshift_required_images}}"
-      delegate_to: compose-x86-01.phx2.fedoraproject.org
-      when: docker_pull_openshift_delegated|changed
-
-    - name: push openshift required docker images to our registry
-      shell: "docker push {{candidate_registry}}/{{item}}:{{origin_release}}"
-      with_items: "{{openshift_required_images}}"
-      delegate_to: compose-x86-01.phx2.fedoraproject.org
-      when: docker_pull_openshift_delegated|changed
+      changed_when: "'Skipping fetch of repeat blob' not in docker_pull_openshift_delegated.stdout"
 
     - name: create fedora image stream for OpenShift
       shell: "echo '{ \"apiVersion\": \"v1\", \"kind\": \"ImageStream\", \"metadata\": { \"name\": \"fedora\" }, \"spec\": { \"dockerImageRepository\": \"{{candidate_registry}}/fedora\" } }' | oc create -f - && touch /etc/origin/fedoraimagestreamcreated"
