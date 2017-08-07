@@ -604,12 +604,15 @@
     koji_builder_user: dockerbuilder
 
   tasks:
+    # NOTE: Need to delegate to compose-x86-01.phx2.fedoraproject.org for prod
+    #       because the push keys are split for each env
     - name: skopeo sync openshift required docker images
       shell: "skopeo copy docker://docker.io/{{item}}:{{origin_release}} docker://{{candidate_registry}}/{{item}}:{{origin_release}}"
       with_items: "{{openshift_required_images}}"
-      delegate_to: compose-x86-01.phx2.fedoraproject.org
+      delegate_to: composer-01.stg.phx2.fedoraproject.org
       register: docker_pull_openshift_delegated
       changed_when: "'Skipping fetch of repeat blob' not in docker_pull_openshift_delegated.stdout"
+      when: env == "staging"
 
     - name: create fedora image stream for OpenShift
       shell: "echo '{ \"apiVersion\": \"v1\", \"kind\": \"ImageStream\", \"metadata\": { \"name\": \"fedora\" }, \"spec\": { \"dockerImageRepository\": \"{{candidate_registry}}/fedora\" } }' | oc create -f - && touch /etc/origin/fedoraimagestreamcreated"
