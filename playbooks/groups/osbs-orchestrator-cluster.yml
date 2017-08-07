@@ -584,8 +584,8 @@
         src: "{{files}}/osbs/cleanup-old-osbs-builds"
         dest: "/etc/cron.d/cleanup-old-osbs-builds"
 
-- name: Manage docker images - stage
-  hosts: composer-01.stg.phx2.fedoraproject.org
+- name: Manage docker images
+  hosts: batcave01.phx2.fedoraproject.org
   tags:
     - osbs-post-install
     - manage-docker-images
@@ -601,6 +601,7 @@
     - name: skopeo sync openshift required docker images
       shell: "skopeo copy docker://docker.io/{{item}}:{{origin_release}} docker://{{candidate_registry}}/{{item}}:{{origin_release}}"
       with_items: "{{openshift_required_images}}"
+      delegate_to: composer-01.stg.phx2.fedoraproject.org
       register: docker_pull_openshift_delegated
       changed_when: "'Skipping fetch of repeat blob' not in docker_pull_openshift_delegated.stdout"
       when: env == "staging"
