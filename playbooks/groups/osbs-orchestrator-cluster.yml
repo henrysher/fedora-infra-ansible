@@ -584,8 +584,8 @@
         src: "{{files}}/osbs/cleanup-old-osbs-builds"
         dest: "/etc/cron.d/cleanup-old-osbs-builds"
 
-- name: Manage docker images
-  hosts: batcave01.phx2.fedoraproject.org
+- name: Manage docker images and image stream
+  hosts: osbs-masters-stg[0]:osbsworker-x86-64-masters-stg[0]
   tags:
     - osbs-post-install
     - manage-docker-images
@@ -594,6 +594,14 @@
     - /srv/private/ansible/vars.yml
     - /srv/private/ansible/files/openstack/passwords.yml
     - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+  vars:
+    osbs_kubeconfig_path: /etc/origin/master/admin.kubeconfig
+    osbs_environment:
+      KUBECONFIG: "{{ osbs_kubeconfig_path }}"
+    koji_pki_dir: /etc/pki/koji
+    koji_ca_cert_path: "{{koji_pki_dir}}/fedora-server-ca.cert"
+    koji_cert_path: "{{koji_pki_dir}}/fedora-builder.pem"
+    koji_builder_user: dockerbuilder
 
   tasks:
     # NOTE: Need to delegate to compose-x86-01.phx2.fedoraproject.org for prod
@@ -606,18 +614,6 @@
       changed_when: "'Skipping fetch of repeat blob' not in docker_pull_openshift_delegated.stdout"
       when: env == "staging"
 
-- name: Manage docker images
-  hosts: osbs-masters-stg[0]:osbsworker-x86-64-masters-stg[0]
-  tags:
-    - osbs-post-install
-    - manage-docker-images
-  vars_files:
-    - /srv/web/infra/ansible/vars/global.yml
-    - /srv/private/ansible/vars.yml
-    - /srv/private/ansible/files/openstack/passwords.yml
-    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
-
-  tasks:
     - name: create fedora image stream for OpenShift
       shell: "echo '{ \"apiVersion\": \"v1\", \"kind\": \"ImageStream\", \"metadata\": { \"name\": \"fedora\" }, \"spec\": { \"dockerImageRepository\": \"{{candidate_registry}}/fedora\" } }' | oc create -f - && touch /etc/origin/fedoraimagestreamcreated"
       environment: "{{ osbs_environment }}"
