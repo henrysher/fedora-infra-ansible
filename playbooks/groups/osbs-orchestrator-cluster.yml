@@ -605,20 +605,20 @@
 
   tasks:
     - name: pull openshift required docker images
-      shell: "docker pull {{item}}:v{{origin_release}}"
+      shell: "docker pull {{item}}:{{origin_release}}"
       with_items: "{{openshift_required_images}}"
       delegate_to: compose-x86-01.phx2.fedoraproject.org
       register: docker_pull_openshift_delegated
       changed_when: "'Downloaded newer image' in docker_pull_openshift_delegated.stdout"
 
     - name: tag openshift required docker images for our registry
-      shell: "docker tag {{item}}:v{{origin_release}} {{candidate_registry}}/{{item}}:v{{origin_release}}"
+      shell: "docker tag {{item}}:{{origin_release}} {{candidate_registry}}/{{item}}:{{origin_release}}"
       with_items: "{{openshift_required_images}}"
       delegate_to: compose-x86-01.phx2.fedoraproject.org
       when: docker_pull_openshift_delegated|changed
 
     - name: push openshift required docker images to our registry
-      shell: "docker push {{candidate_registry}}/{{item}}:v{{origin_release}}"
+      shell: "docker push {{candidate_registry}}/{{item}}:{{origin_release}}"
       with_items: "{{openshift_required_images}}"
       delegate_to: compose-x86-01.phx2.fedoraproject.org
       when: docker_pull_openshift_delegated|changed
@@ -788,13 +788,13 @@
       when: etcosbs_kt_stat.stat.exists == false
 
     - name: pull openshift required docker images
-      shell: "docker pull {{candidate_registry}}/{{item}}:v{{origin_release}}"
+      shell: "docker pull {{candidate_registry}}/{{item}}:{{origin_release}}"
       with_items: "{{openshift_required_images}}"
       register: docker_pull_openshift
       changed_when: "'Downloaded newer image' in docker_pull_openshift.stdout"
 
     - name: tag openshift required docker images locally
-      shell: "docker tag {{candidate_registry}}/{{item}}:v{{origin_release}} {{item}}:v{{origin_release}}"
+      shell: "docker tag {{candidate_registry}}/{{item}}:{{origin_release}} {{item}}:{{origin_release}}"
       with_items: "{{openshift_required_images}}"
       when: docker_pull_openshift|changed
 
