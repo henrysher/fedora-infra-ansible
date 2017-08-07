@@ -783,6 +783,12 @@
       register: docker_pull_openshift
       changed_when: "'Downloaded newer image' in docker_pull_openshift.stdout"
 
+    - name: pull fedora required docker images
+      shell: "docker pull {{stable_registry}}/{{item}}"
+      with_items: "{{fedora_required_images}}"
+      register: docker_pull_fedora
+      changed_when: "'Downloaded newer image' in docker_pull_fedora.stdout"
+
     - name: tag openshift required docker images locally
       shell: "docker tag {{candidate_registry}}/{{item}}:{{origin_release}} {{item}}:{{origin_release}}"
       with_items: "{{openshift_required_images}}"
