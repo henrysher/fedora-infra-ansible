@@ -138,12 +138,18 @@ def get_repo_name_and_arches(tag, version):
     return repo_name, arches
 
 
+def get_pagure_projects(namespace):
+    url = urljoin(PAGURE_URL, 'api/0/projects?namespace={0}'.format(namespace))
+    url = url + "&page=1&per_page=50"
+    while url:
+        response = requests.get(url, verify=VERIFY).json()
+        for project in response['projects']:
+            yield project
+        url = response['pagination']['next']
+
+
 def get_project_ownership(tag, namespace):
-    PAGURE_PROJECTS_API_URL = \
-        urljoin(PAGURE_URL, 'api/0/projects?namespace={0}'.format(namespace))
-    projects_rv = requests.get(PAGURE_PROJECTS_API_URL, verify=VERIFY).json()
-    projects = {}
-    for project in projects_rv['projects']:
+    for project in get_pagure_projects(namespace=namespace):
         # Check if this project has the branch we are interested in
         project_branches_url = '{0}api/0/{1}/{2}/git/branches'.format(
             PAGURE_URL, namespace, project['name'])
