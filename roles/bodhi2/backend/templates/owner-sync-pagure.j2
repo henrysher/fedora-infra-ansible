@@ -142,12 +142,16 @@ def get_pagure_projects(namespace):
     url = urljoin(PAGURE_URL, 'api/0/projects?namespace={0}'.format(namespace))
     url = url + "&page=1&per_page=50"
     while url:
-        response = requests.get(url, verify=VERIFY).json()
-        for project in response['projects']:
+        response = requests.get(url, verify=VERIFY)
+        if not bool(response):
+            raise IOError("Failed to talk to %r %r" % (
+                response.request.url, response))
+        data = response.json()
+        for project in data['projects']:
             # Skip forks
             if not project['fullname'].startswith('forks/'):
                 yield project
-        url = response['pagination']['next']
+        url = data['pagination']['next']
 
 
 def get_project_ownership(tag, namespace):
