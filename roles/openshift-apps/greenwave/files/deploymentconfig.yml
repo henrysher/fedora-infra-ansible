@@ -1,0 +1,56 @@
+apiVersion: v1
+kind: DeploymentConfig
+metadata:
+  name: greenwave-stg-web
+  labels:
+    app: greenwave
+    service: web
+spec:
+  replicas: 2
+  selector:
+    app: greenwave
+    service: web
+  template:
+    metadata:
+      labels:
+        app: greenwave
+        service: web
+    spec:
+      containers:
+      - name: web
+        image: 172.30.53.136:5000/greenwave/greenwave:latest
+        ports:
+        - containerPort: 8080
+        volumeMounts:
+        - name: config-volume
+          mountPath: /etc/greenwave
+          readOnly: true
+        readinessProbe:
+          timeoutSeconds: 1
+          initialDelaySeconds: 5
+          httpGet:
+            path: /healthcheck
+            port: 8080
+        livenessProbe:
+          timeoutSeconds: 1
+          initialDelaySeconds: 30
+          httpGet:
+            path: /healthcheck
+            port: 8080
+        resources:
+          limits:
+            memory: 384Mi
+      volumes:
+      - name: config-volume
+        configMap:
+          name: greenwave-stg-configmap
+  triggers:
+  - type: ImageChange
+    imageChangeParams:
+      automatic: true
+      containerNames:
+      - web
+      from:
+        kind: ImageStreamTag
+        name: greenwave:latest
+  - type: ConfigChange

@@ -1,0 +1,20 @@
+- name: make the app be real
+  hosts: os-masters-stg
+  user: root
+  gather_facts: True
+
+  vars_files:
+    - /srv/web/infra/ansible/vars/global.yml
+    - "/srv/private/ansible/vars.yml"
+    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  roles:
+  - { role: openshift/project, app: greenwave, description: greenwave, fas_owner: codeblock }
+  - { role: openshift/object, app: greenwave, file: imagestream.yml }
+  - { role: openshift/object, app: greenwave, file: buildconfig.yml }
+  - { role: openshift/start-build, app: greenwave, name: greenwave-docker-build }
+  - { role: openshift/object, app: greenwave, template: configmap.yml }
+  - { role: openshift/object, app: greenwave, file: service.yml }
+  - { role: openshift/object, app: greenwave, file: route.yml }
+  - { role: openshift/object, app: greenwave, file: deploymentconfig.yml }
+  - { role: openshift/rollout, app: greenwave, name: greenwave-stg-web }
