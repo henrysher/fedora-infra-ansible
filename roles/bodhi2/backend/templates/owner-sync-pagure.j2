@@ -13,9 +13,10 @@ This is heavily based on "owner-sync-pkgdb.j2" which was introduced in commit
 # /usr/local/bin/owner-sync-pkgdb dist-5E-epel 
 # /usr/local/bin/owner-sync-pkgdb dist-6E-epel
 # /usr/local/bin/owner-sync-pkgdb epel7 
-
+from __future__ import print_function
 import sys
 import os
+from time import sleep
 import ConfigParser
 from urlparse import urljoin
 import requests
@@ -48,7 +49,8 @@ VERIFY = True
 
 
 def usage():
-    print('Usage: owner-sync <tag>\n\t<tag>: tag to synchronize owners for')
+    print('Usage: owner-sync <tag>\n\t<tag>: tag to synchronize owners for',
+          file=sys.stderr)
     sys.exit(1)
 
 
@@ -102,7 +104,7 @@ def get_namespace_and_version_from_tag(tag):
             # This is for older EPEL tags such as dit-6E-epel
             version = tag.split('-')[1][:-1]
         else:
-            print('Error: an invalid tag was specified')
+            print('Error: an invalid tag was specified', file=sys.stderr)
             sys.exit(1)
 
     return namespace, version
@@ -141,17 +143,31 @@ def get_repo_name_and_arches(tag, version):
 def get_pagure_projects(namespace):
     url = urljoin(PAGURE_URL, 'api/0/projects?namespace={0}'.format(namespace))
     url = url + "&page=1&per_page=50"
+    attempts_at_current_url = 0
     while url:
-        response = requests.get(url, verify=VERIFY)
+        attempts_at_current_url += 1
+        response = requests.get(url, verify=VERIFY, timeout=120)
         if not bool(response):
-            raise IOError("Failed to talk to %r %r" % (
-                response.request.url, response))
+            # If the current URL has failed 3 or more times, fail the script
+            if attempts_at_current_url >= 3:
+                print("Failed to talk to %r %r after 3 attempts" % (
+                    response.request.url, response), file=sys.stderr)
+                sys.exit(1)
+            else:
+                # Sleep for 30 seconds in the hopes that Pagure is ready to
+                # serve content again.
+                print("Failed to talk to %r %r. Trying again in 30 seconds." %
+                      (response.request.url, response), file=sys.stderr)
+                sleep(30)
+                continue
+
         data = response.json()
         for project in data['projects']:
             # Skip forks
             if not project['fullname'].startswith('forks/'):
                 yield project
         url = data['pagination']['next']
+        attempts_at_current_url = 0
 
 
 def get_project_ownership(tag, namespace):
@@ -160,7 +176,8 @@ def get_project_ownership(tag, namespace):
         # Check if this project has the branch we are interested in
         project_branches_url = '{0}api/0/{1}/{2}/git/branches'.format(
             PAGURE_URL, namespace, project['name'])
-        project_branches_rv = requests.get(project_branches_url, verify=VERIFY)
+        project_branches_rv = requests.get(
+            project_branches_url, verify=VERIFY, timeout=30)
 
         # If the project's branches can't be reported, let's skip the project
         # for now.
@@ -198,13 +215,13 @@ def set_koji_ownership(pkgs_to_ownership, arches):
         try:
             session.krb_login(koji_options['principal'], koji_options['keytab'])
         except:
-            print('Unable to sync to "{0}" hub'.format(arch))
+            print('Unable to sync to "{0}" hub'.format(arch), file=sys.stderr)
             continue
 
         kojitag = session.getTag(tag)
         if kojitag is None:
             print('Error: tag "{0}" does not exist for arch "{1}"'
-                  .format(tag, arch))
+                  .format(tag, arch), file=sys.stderr)
             sys.exit(1)
 
         koji_pkgs = {}
@@ -239,10 +256,11 @@ if __name__ == '__main__':
     try:
         tag = sys.argv[1]
     except IndexError:
-        print('Error: no tag specified')
+        print('Error: no tag specified', file=sys.stderr)
         usage()
 
     namespace, version = get_namespace_and_version_from_tag(tag)
     repo_name, arches = get_repo_name_and_arches(tag, version)
     pkgs = get_project_ownership(tag, namespace)
     set_koji_ownership(pkgs, arches)
+
