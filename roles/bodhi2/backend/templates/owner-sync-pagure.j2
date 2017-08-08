@@ -22,6 +22,24 @@ from urlparse import urljoin
 import requests
 import koji
 
+from requests.adapters import HTTPAdapter
+from requests.packages.urllib3.util.retry import Retry
+
+
+def retry_session():
+    session = requests.Session()
+    retry = Retry(
+        total=5,
+        read=5,
+        connect=5,
+        backoff_factor=0.3,
+        status_forcelist=(500, 502, 504),
+    )
+    adapter = HTTPAdapter(max_retries=retry)
+    session.mount('http://', adapter)
+    session.mount('https://', adapter)
+    return session
+
 
 # Ansible configured global variables
 STAGING = {{ 'True' if env == 'staging' else 'False' }}
@@ -140,26 +158,14 @@ def get_repo_name_and_arches(tag, version):
     return repo_name, arches
 
 
-def get_pagure_projects(namespace):
+def get_pagure_projects(session, namespace):
     url = urljoin(PAGURE_URL, 'api/0/projects?namespace={0}'.format(namespace))
     url = url + "&page=1&per_page=50"
-    attempts_at_current_url = 0
     while url:
-        attempts_at_current_url += 1
-        response = requests.get(url, verify=VERIFY, timeout=120)
+        response = session.get(url, verify=VERIFY, timeout=120)
         if not bool(response):
-            # If the current URL has failed 3 or more times, fail the script
-            if attempts_at_current_url >= 3:
-                print("Failed to talk to %r %r after 3 attempts" % (
-                    response.request.url, response), file=sys.stderr)
-                sys.exit(1)
-            else:
-                # Sleep for 30 seconds in the hopes that Pagure is ready to
-                # serve content again.
-                print("Failed to talk to %r %r. Trying again in 30 seconds." %
-                      (response.request.url, response), file=sys.stderr)
-                sleep(30)
-                continue
+            print("Failed to talk to %r %r." % (
+                response.request.url, response), file=sys.stderr)
 
         data = response.json()
         for project in data['projects']:
@@ -167,16 +173,16 @@ def get_pagure_projects(namespace):
             if not project['fullname'].startswith('forks/'):
                 yield project
         url = data['pagination']['next']
-        attempts_at_current_url = 0
 
 
 def get_project_ownership(tag, namespace):
     projects = {}
-    for project in get_pagure_projects(namespace=namespace):
+    session = retry_session()
+    for project in get_pagure_projects(session, namespace=namespace):
         # Check if this project has the branch we are interested in
         project_branches_url = '{0}api/0/{1}/{2}/git/branches'.format(
             PAGURE_URL, namespace, project['name'])
-        project_branches_rv = requests.get(
+        project_branches_rv = session.get(
             project_branches_url, verify=VERIFY, timeout=30)
 
         # If the project's branches can't be reported, let's skip the project
