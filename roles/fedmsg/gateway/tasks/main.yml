@@ -40,6 +40,15 @@
   notify:
   - restart fedmsg-gateway
 
+- name: "[HOTFIX] Fix consumers/__init__.py"
+  copy: src=consumers-init.py dest=/usr/lib/python2.7/site-packages/fedmsg/consumers/__init__.py
+  tags:
+  - fedmsg/gateway
+  - hotfix
+  when: inventory_hostname.startswith(('proxy11', 'proxy12', 'proxy13'))
+  notify:
+  - restart fedmsg-gateway
+
 - name: enable on boot and start fedmsg-gateway
   service: name=fedmsg-gateway state=started enabled=true
   tags:
