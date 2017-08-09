@@ -277,10 +277,17 @@
 - name: Template out the nagios httpd conf
   template: src=httpd/{{item}}.j2 dest=/etc/httpd/conf.d/{{item}}
   with_items:
-  - 0_nagios-external.conf
   - nagios.conf
   tags:
   - nagios_server
+
+- name: Template out the nagios httpd conf
+  template: src=httpd/{{item}}.j2 dest=/etc/httpd/conf.d/{{item}}
+  with_items:
+  - 0_nagios-external.conf
+  tags:
+  - nagios_server
+  when: env == "production" and nagios_location == "external"
 
 - name: Template out the cgi.cfg 
   template: src=nagios/configs/cgi.cfg.j2 dest=/etc/nagios/cgi.cfg mode=0644 owner=root group=root
