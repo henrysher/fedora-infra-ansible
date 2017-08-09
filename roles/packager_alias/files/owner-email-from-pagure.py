@@ -8,6 +8,25 @@ Its goal is to generate all the <pkg>-owner email aliases we provide
 
 import requests
 
+from requests.adapters import HTTPAdapter
+from requests.packages.urllib3.util.retry import Retry
+
+
+def retry_session():
+    session = requests.Session()
+    retry = Retry(
+        total=5,
+        read=5,
+        connect=5,
+        backoff_factor=0.3,
+        status_forcelist=(500, 502, 504),
+    )
+    adapter = HTTPAdapter(max_retries=retry)
+    session.mount('http://', adapter)
+    session.mount('https://', adapter)
+    return session
+
+
 pagure_url = 'https://src.fedoraproject.org/'
 pagure_group_url = pagure_url + '/api/0/group/{group}'
 project_to_email = {}
@@ -15,8 +34,9 @@ project_to_email = {}
 
 def get_pagure_projects():
     pagure_projects_url = pagure_url + '/api/0/projects?page=1&per_page=100'
+    session = retry_session()
     while pagure_projects_url:
-        response = requests.get(pagure_projects_url)
+        response = session.get(pagure_projects_url)
         data = response.json()
         for project in data['projects']:
             yield project
@@ -24,6 +44,7 @@ def get_pagure_projects():
         pagure_projects_url = data['pagination']['next']
 
 
+session = retry_session()
 for project in get_pagure_projects():
     users = set(project['access_users']['owner']) | \
             set(project['access_users']['admin']) | \
@@ -34,7 +55,7 @@ for project in get_pagure_projects():
             groups.add(group)
 
     for group in groups:
-        group_members = requests.get(
+        group_members = session.get(
             pagure_group_url.format(group=group)).json()['members']
         users = users | set(group_members)
 
