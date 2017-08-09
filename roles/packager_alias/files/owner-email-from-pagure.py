@@ -45,8 +45,15 @@ for project in get_pagure_projects():
 
     # Use the @fedoraproject.org email alias instead of looking their email up
     # in FAS
-    project_to_email[project_alias] = \
-        ['{0}@fedoraproject.org'.format(user) for user in users]
+    emails = ['{0}@fedoraproject.org'.format(user) for user in users]
+
+    # Handle case-insensitivity in postfix by unioning things.
+    project_alias = project_alias.lower()
+    if project_alias in project_to_email:
+        project_to_email[project_alias] = project_to_email[project_alias].union(emails)
+    else:
+        project_to_email[project_alias] = set(emails)
+
 
 for project_alias, emails in project_to_email.items():
     print('{0}: {1}'.format(project_alias, ','.join(sorted(emails))))
