@@ -70,6 +70,8 @@ config = {
         {% elif inventory_hostname.startswith('pdc-backend02') %}
         # For MBS https://fedoraproject.org/wiki/Changes/ModuleBuildService
         'pdcupdater.handlers.modules:ModuleStateChangeHandler',
+        # For https://fedoraproject.org/wiki/Changes/ArbitraryBranching
+        'pdcupdater.handlers.retirement:RetireComponentHandler',
         {% elif inventory_hostname.startswith('pdc-backend03') %}
         ## https://fedoraproject.org/wiki/User:Ralph/Drafts/Infrastructure/Factory2/ModellingDeps
         #'pdcupdater.handlers.depchain.rpms:NewRPMBuildTimeDepChainHandler',
