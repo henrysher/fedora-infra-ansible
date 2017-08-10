@@ -14,12 +14,27 @@
 - name: Install the script to generate the <pkg>-owner email alias
   copy:
     src: package-owner-aliases.sh
-    dest: /etc/cron.hourly/package-owner-aliases.sh
+    dest: /usr/local/bin/package-owner-aliases.sh
     owner: root
     group: root
     mode: 0755
   tags:
   - install
+  - packager_alias
+
+- name: Configure cron to generate the <pkg>-owner email alias
+  cron: name="package-owner-aliases" minute="49" user="root"
+        job="/usr/local/bin/lock-wrapper package-owner-aliases /usr/local/bin/package-owner-aliases.sh"
+        cron_file=package-owner-aliases
+  tags:
+  - install
+  - packager_alias
+
+- name: Remove the old <pkg>-owner email alias script
+  file:
+    path: /etc/cron.hourly/package-owner-aliases.sh
+    state: absent
+  tags:
   - packager_alias
 
 #
