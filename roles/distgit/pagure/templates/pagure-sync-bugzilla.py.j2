@@ -45,6 +45,7 @@ except ImportError:
     from email.message import EmailMessage as Message
 
 import bugzilla
+import dogpile.cache
 import requests
 import yaml
 from six import string_types
@@ -52,6 +53,12 @@ from fedora.client.fas2 import AccountSystem
 
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
+
+
+cache = dogpile.cache.make_region().configure(
+	'dogpile.cache.memory',
+	expiration_time=3600,
+)
 
 
 def retry_session():
@@ -447,16 +454,8 @@ def notify_users(errors):
         json.dump(new_data, stream)
 
 
-def pagure_project_to_acl_schema(pagure_project, product):
-    """
-    This function translates the JSON of a Pagure project to what PkgDB used to
-    output in the Bugzilla API.
-    :param pagure_project: a dictionary of the JSON of a Pagure project
-    :return: a dictionary of the content that the Bugzilla API would output
-    """
-    session = retry_session()
-    base_error_msg = ('The connection to "{0}" failed with the status code '
-                      '{1} and output "{2}"')
+@cache.cache_on_arguments()
+def _get_watchers_rv_json(pagure_project):
     watchers_api_url = '{0}/api/0/{1}/{2}/watchers'.format(
         PAGURE_DIST_GIT_URL.rstrip('/'), pagure_project['namespace'],
         pagure_project['name'])
@@ -467,7 +466,36 @@ def pagure_project_to_acl_schema(pagure_project, product):
         error_msg = base_error_msg.format(
             watchers_api_url, watchers_rv.status_code, watchers_rv.text)
         raise RuntimeError(error_msg)
-    watchers_rv_json = watchers_rv.json()
+    return watchers_rv.json()
+
+
+@cache.cache_on_arguments()
+def _get_override_yaml(project):
+    pagure_override_url = '{0}/{1}/raw/master/f/{2}/{3}'.format(
+        PAGUREURL.rstrip('/'), BUGZILLA_OVERRIDE_REPO, project['namespace'],
+        project['name'])
+
+    if DRY_RUN:
+        print('Querying {0}'.format(pagure_override_url))
+    override_rv = session.get(pagure_override_url, timeout=30)
+    if override_rv.status_code == 200:
+        override_yaml = yaml.load(override_rv.text)
+        return override_yaml.get('bugzilla_contact', {})
+    return {}
+
+
+def pagure_project_to_acl_schema(pagure_project, product):
+    """
+    This function translates the JSON of a Pagure project to what PkgDB used to
+    output in the Bugzilla API.
+    :param pagure_project: a dictionary of the JSON of a Pagure project
+    :return: a dictionary of the content that the Bugzilla API would output
+    """
+    session = retry_session()
+    base_error_msg = ('The connection to "{0}" failed with the status code '
+                      '{1} and output "{2}"')
+
+    watchers_rv_json = _get_watchers_rv_json(pagure_project)
 
     user_cc_list = []
     for user, watch_levels in watchers_rv_json['watchers'].items():
@@ -492,17 +520,10 @@ def pagure_project_to_acl_schema(pagure_project, product):
 
     # Check if the Bugzilla ticket assignee has been overridden
     owner = pagure_project['access_users']['owner'][0]
-    pagure_override_url = '{0}/{1}/raw/master/f/{2}/{3}'.format(
-        PAGUREURL.rstrip('/'), BUGZILLA_OVERRIDE_REPO, project['namespace'],
-        project['name'])
-
-    override_rv = session.get(pagure_override_url, timeout=30)
-    if override_rv.status_code == 200:
-        override_yaml = yaml.load(override_rv.text)
-        override_yaml = override_yaml.get('bugzilla_contact', {})
-        if override_yaml.get(product) \
-                and isinstance(override_yaml[product], string_types):
-            owner = override_yaml[product]
+    override_yaml = _get_override_yaml(project)
+    if override_yaml.get(product) \
+            and isinstance(override_yaml[product], string_types):
+        owner = override_yaml[product]
 
     return {
         'cclist': {
@@ -542,7 +563,7 @@ if __name__ == '__main__':
         'Fedora Container': {},
         'Fedora EPEL': {},
     }
-    pagure_rpms_api_url = ('{0}/api/0/projects?&namespace=rpms&page=1&'
+    pagure_rpms_api_url = ('{0}/api/0/projects?fork=false&namespace=rpms&page=1&'
                            'per_page=100'.format(
                                PAGURE_DIST_GIT_URL.rstrip('/')))
     session = retry_session()
@@ -578,7 +599,7 @@ if __name__ == '__main__':
             break
 
     pagure_container_api_url = (
-        '{0}/api/0/projects?&namespace=container&page=1&per_page=100'
+        '{0}/api/0/projects?fork=false&namespace=container&page=1&per_page=100'
         .format(PAGURE_DIST_GIT_URL))
     while True:
         if DRY_RUN:
