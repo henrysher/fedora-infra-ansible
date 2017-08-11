@@ -54,3 +54,19 @@
   handlers:
    - include: "{{ handlers_path }}/restart_services.yml"
 
+- name: Install rdbsync
+  hosts: resultsdb-stg
+  user: root
+  gather_facts: True
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  roles:
+   - { role: rdbsync, tags: ['rdbsync']}
+
+  handlers:
+   - include: "{{ handlers_path }}/restart_services.yml"
+
