@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <title>{% block title %}{% endblock %} - Upstream First Pagure</title>
+    <link rel="shortcut icon" type="image/vnd.microsoft.icon"
+        href="{{ url_for('static', filename='favicon.ico')}}"/>
+    <link href="{{ config['BOOTSTRAP_URLS_CSS'] }}"
+        type="text/css" rel="stylesheet" />
+    <link href="{{ url_for('static', filename='pagure.css') }}"
+        type="text/css" rel="stylesheet" />
+    <link href="{{ url_for('static', filename='vendor/open-iconic/css/open-iconic.min.css') }}"
+        type="text/css" rel="stylesheet" />
+    <link href="{{ url_for('static', filename='fonts/fonts.css') }}"
+        rel="stylesheet" type="text/css" />
+    <link href="{{ url_for('static', filename='vendor/hack_fonts/css/hack-extended.min.css') }}"
+        type="text/css" rel="stylesheet" />
+    {% block header %}{% endblock %}
+  </head>
+  <body id="{{ tag }}">
+  <!-- start masthead -->
+    <div class="masthead">
+      <div class="container">
+        <div class="row">
+          <div class="col-sm-3">
+            <a href="{{ url_for('index') }}">
+              <img height=40px src="{{ url_for('static', filename='upstreamfirst_plain.png') }}"
+                alt="pagure Logo" id="pagureLogo"/>
+            </a>
+          </div>
+          <div class="col-sm-9">
+            <div class="row">
+
+  <nav class="navbar navbar-light p-t-0 p-b-0">
+      <div class="container">
+        <ul class="nav navbar-nav nav-underline pull-xs-right">
+          {% if not nologin %}
+            {% if g.fas_user %}
+              <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('browse_projects') }}">Browse</a>
+              </li>
+              {% if config.get('ENABLE_NEW_PROJECTS', True) %}
+                <li class="nav-item p-l-1">
+                  <a class="nav-link" href="{{ url_for('new_project') }}">
+                      <span class="oi" data-glyph="plus" title="Create New"
+                          aria-hidden="true">
+                      </span>
+                  </a>
+                </li>
+              {% endif %}
+              <li class="nav-item dropdown p-l-1">
+                <a class="nav-link dropdown-toggle" data-toggle="dropdown"
+                   href="#" role="button" aria-haspopup="true" aria-expanded="false">
+                  {{ g.fas_user.username | avatar(24) | safe }}
+                </a>
+                <div class="dropdown-menu dropdown-menu-right">
+                  <div class="dropdown-header">
+                    <strong>{{ g.fas_user.username }}</strong>
+                  </div>
+                  <div class="dropdown-divider"></div>
+                  <a class="dropdown-item" href="{{
+                    url_for('view_user', username=g.fas_user.username)
+                    }}">My Public Profile</a>
+                  <a class="dropdown-item" href="{{
+                    url_for('user_settings')
+                    }}">My Settings</a>
+                  <div class="dropdown-divider"></div>
+                  {% if config.get('ENABLE_TICKETS', True) %}
+                    <a class="dropdown-item" href="{{
+                      url_for('view_user_issues', username=g.fas_user.username)
+                      }}">My Issues</a>
+                  {% endif %}
+                  <a class="dropdown-item" href="{{
+                    url_for('view_user_requests', username=g.fas_user.username)
+                    }}">My Pull Requests</a>
+                  <div class="dropdown-divider"></div>
+                  <a class="dropdown-item" href="{{ url_for('auth_logout')
+                    }}?next={{request.url}}">Log Out</a>
+                </div>
+              </li>
+            {% else %}
+              <li class="nav-item p-l-1">
+                <a class="nav-link btn btn-primary" href="{{
+                url_for('auth_login') }}?next={{request.url
+                }}">Log In</a>
+              </li>
+            {% endif %}
+         {% endif %}
+        </ul>
+      </div>
+    </nav>
+
+            </div>
+          </div>
+        </div>
+      </div>
+    </div><!-- close masthead-->
+
+    <div class="bodycontent p-b-3">
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                <div class="notification-spacer">
+                <div class="container p-t-2">
+                    {% for category, message in messages %}
+                    <div class="alert {%
+                      if category == 'error' %}alert-warning{%
+                      else %}alert-info{%
+                      endif %} alert-dismissible" role="alert">
+                      <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                        <span class="sr-only">Close</span>
+                      </button>
+                      {{ message }}
+                    </div>
+                    {% endfor %}
+                </div>
+                </div>
+                {% endif %}
+            {% endwith %}
+            {% if new_user %}
+              <div class="notification-spacer">
+                <div class="container p-t-2">
+                    <div class="alert alert-info alert-dismissible" role="alert">
+                      <button type="button" class="close" data-dismiss="alert"
+                          aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                        <span class="sr-only">Close</span>
+                      </button>
+                      <h4 class="modal-title" id="welcome_title">
+                        Welcome to {{ config['INSTANCE_NAME'] }}, {{ g.fas_user.username }}!
+                      </h4>
+                      <div class="modal-body">
+                        <p>
+                          We are glad to welcome you to pagure.
+                        </p>
+                        <p>
+                          In order to get started with pagure, to set-up
+                          your preferred email address or your ssh key,
+                          you may want to read the
+                          <a href="https://docs.pagure.org/pagure/usage/first_steps.html">
+                          First steps in Pagure</a> documentation.
+                        </p>
+                        <p>
+                          You may also find some more information on how to use pagure
+                          in the <a href="https://docs.pagure.org/pagure/usage.html">
+                          usage section of the documentation</a>.
+                        </p>
+                      </div>
+                    </div>
+                </div>
+              </div>
+            {% endif %}
+
+            {% block content %}{% endblock %}
+    </div>
+
+    <div class="footer p-t-1 p-b-1">
+        <div class="container">
+            <p class="text-muted credit">
+         Copyright &copy; 2014-2017 Red Hat
+          <a href="https://pagure.io/pagure">pagure</a> &mdash;
+          {{version}} &mdash; <a href="https://docs.pagure.org/pagure/usage.html">Documentation</a>
+            </p>
+            <p><a href="{{ url_for('ssh_hostkey') }}">SSH Hostkey/Fingerprint</a></p>
+        </div>
+    </div>
+
+    {% block jscripts %}
+    <script type="text/javascript"
+        src="{{ url_for('static',
+            filename='vendor/jquery.min.js') }}">
+    </script>
+    <script type="text/javascript"
+        src="{{ url_for('static',
+            filename='vendor/jquery-ui.min.js') }}">
+    </script>
+    <script type="text/javascript"
+        src="{{ config['BOOTSTRAP_URLS_JS'] }}">
+    </script>
+    <script type="text/javascript">
+$('[data-toggle="tooltip"]').tooltip({placement : 'bottom'});
+    </script>
+    {% endblock %}
+
+{% if config['FEDMENU_URL'] %}
+<script src="{{ config['FEDMENU_URL'] }}/js/fedmenu.js"></script>
+<script src="{{ config['FEDMENU_URL'] }}/js/fedora-libravatar.js"></script>
+<script>
+  fedmenu({
+    'url': '{{ config["FEDMENU_DATA_URL"] }}',
+    'mimeType': 'application/javascript',
+    'position': 'bottom-right',
+    {% if user -%}
+    'user': '{{ user.username }}',
+    {%- endif %}
+  });
+</script>
+{% endif %}
+
+</body>
+</html>
