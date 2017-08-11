@@ -15,6 +15,7 @@ config = {
     # Any tag prefixed with "module-" will be considered a module.
     'robosignatory.module_prefixes': ['module-'],
 
+
     'robosignatory.signing': {
         'backend': 'sigul',
         'user': 'autopen',
@@ -26,8 +27,6 @@ config = {
     'robosignatory.koji_instances': {
         'primary': {
             'url': 'https://koji.fedoraproject.org/kojihub',
-            'module_key': 'fedora-modularity',
-            'module_keyid': 'a3cc4e62',
             'options': {
                 # Only ssl is supported at the moment
                 'authmethod': 'kerberos',
@@ -35,60 +34,38 @@ config = {
                 'keytab': '/etc/krb5.autosign_autosign01.phx2.fedoraproject.org.keytab',
                 'krb_rdns': False
             },
+            'module_key': 'fedora-modularity',
+            'module_keyid': 'a3cc4e62',
             'tags': [
                 # Temporary tags
-                {
-                    "from": "f27-rebuild",
-                    "to": "f27-rebuild",
-                    "key": "fedora-27",
-                    "keyid": "f5282ee4"
-                },
 
                 # Infra tags
                 {
                     "from": "epel6-infra-candidate",
-                    "to": "epel6-infra",
+                    "to": "epel6-infra-stg",
                     "key": "fedora-infra",
                     "keyid": "47dd8ef9"
                 },
                 {
                     "from": "epel7-infra-candidate",
-                    "to": "epel7-infra",
-                    "key": "fedora-infra",
-                    "keyid": "47dd8ef9"
-                },
-                {
-                    "from": "f23-infra-candidate",
-                    "to": "f23-infra",
-                    "key": "fedora-infra",
-                    "keyid": "47dd8ef9"
-                },
-                {
-                    "from": "f24-infra-candidate",
-                    "to": "f24-infra",
+                    "to": "epel7-infra-stg",
                     "key": "fedora-infra",
                     "keyid": "47dd8ef9"
                 },
                 {
                     "from": "f25-infra-candidate",
-                    "to": "f25-infra",
+                    "to": "f25-infra-stg",
                     "key": "fedora-infra",
                     "keyid": "47dd8ef9"
                 },
                 {
                     "from": "f26-infra-candidate",
-                    "to": "f26-infra",
+                    "to": "f26-infra-stg",
                     "key": "fedora-infra",
                     "keyid": "47dd8ef9"
                 },
 
                 # Gated rawhide and branched
-                {
-                    "from": "f26-pending",
-                    "to": "f26",
-                    "key": "fedora-26",
-                    "keyid": "64dab85d"
-                },
                 {
                     "from": "f27-pending",
                     "to": "f27",
