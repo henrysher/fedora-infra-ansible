@@ -78,12 +78,6 @@ c['change_source'].append(GitPoller(
         workdir='gitpoller-workdir-resultsdb_api', branch='develop',
         pollinterval=interval,
         project='resultsdb_api'))
-
-c['change_source'].append(GitPoller(
-        'https://pagure.io/taskotron/fake-fedorainfra.git',
-        workdir='gitpoller-workdir-fake_fedorainfra', branch='develop',
-        pollinterval=interval,
-        project='fake_fedorainfra'))
 {#
 {% endif %}
 #}
@@ -115,16 +109,6 @@ c['schedulers'].append(SingleBranchScheduler(
                             change_filter=filter.ChangeFilter(project='resultsdb', branch='develop'),
                             treeStableTimer=None,
                             builderNames=["resultsdb-builder"]))
-
-c['schedulers'].append(SingleBranchScheduler(
-                            name="fake_fedorainfra-scheduler",
-                            change_filter=filter.ChangeFilter(project='fake_fedorainfra', branch='develop'),
-                            treeStableTimer=None,
-                            builderNames=["fake_fedorainfra-builder"]))
-
-c['schedulers'].append(ForceScheduler(
-                            name="force",
-                            builderNames=["trigger-builder", "libtaskotron-builder", "resultsdb-builder", "resultsdb_api-builder", "fake_fedorainfra-builder"]))
 
 #c['schedulers'].append(ForceScheduler(
 #                            name="openstack-force",
@@ -177,7 +161,6 @@ trigger_factory = create_test_factory('taskotron-trigger')
 libtaskotron_factory = create_test_factory('libtaskotron-docs')
 resultsdb_factory = create_test_factory('resultsdb')
 resultsdb_api_factory = create_test_factory('resultsdb_api')
-fake_fedorainfra_factory = create_test_factory('fake_fedorainfra')
 
 from buildbot.config import BuilderConfig
 
@@ -201,10 +184,6 @@ c['builders'].append(
     BuilderConfig(name="resultsdb_api-builder",
       slavenames=[{% for buildslave in buildslaves %}"{{ buildslave }}",{% endfor %}],
       factory=resultsdb_api_factory))
-c['builders'].append(
-    BuilderConfig(name="fake_fedorainfra-builder",
-      slavenames=[{% for buildslave in buildslaves %}"{{ buildslave }}",{% endfor %}],
-      factory=fake_fedorainfra_factory))
 
 #c['builders'].append(
 #    BuilderConfig(name="openstack-builder",
