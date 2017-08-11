@@ -1,0 +1,14 @@
+[Unit]
+Description=A script to sync CentOS CI ResultsDB to Fedora
+After=network.target
+Documentation=https://github.com/jeremycline/rdbsync
+
+[Service]
+ExecStart=/usr/bin/rdbsync run --log-level=INFO --poll-interval=30 \
+    --centos-url http://resultsdb.ci.centos.org/resultsdb_api/api \
+    --fedora-url http://localhost/resultsdb_api/
+Type=simple
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

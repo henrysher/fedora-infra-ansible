@@ -1,0 +1,26 @@
+---
+# Configuration for the rbsync service
+
+- name: install needed packages
+  yum: pkg={{ item }} state=present
+  with_items:
+  - rdbsync
+  tags:
+  - packages
+  - rdbsync
+
+- name: Override the default systemd service file
+  template: src={{ item.file }}
+            dest={{ item.location }}/{{ item.file }}
+            owner=apache group=apache mode=0600
+  with_items:
+  - { file: rdbsync.service, location: /etc/systemd/system/ }
+  tags:
+  - config
+  notify:
+  - restart systemd
+
+- name: Start and enable the service
+  service: name={{ item }} state=started enabled=yes
+  with_items:
+  - rdbsync
