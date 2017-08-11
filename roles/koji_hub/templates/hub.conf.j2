@@ -114,6 +114,14 @@ tag =
     has_perm autosign && fromtag *-pending && package kernel shim grub2 fedora-release fedora-repos pesign :: allow
     has_perm secure-boot && package kernel shim grub2 fedora-release fedora-repos pesign :: allow
     package kernel shim grub2 fedora-release fedora-repos pesign :: deny
+# Allow people to tag stuff into infra-candidate if they're infra
+    tag *-infra-candidate && has_perm infra :: allow
+    tag *-infra-candidate :: deny
+# Allow people from infra to promote builds from -infra-stg to -infra tags
+    tag *-infra && fromtag *-infra-stg && has_perm infra :: allow
+# These two rules makes sure people can't build srpms in infra tags and tag them into distribution tags
+    tag *infra* && fromtag *infra* && has_perm infra :: allow
+    fromtag *infra* :: deny
     all :: allow
 
 channel =
