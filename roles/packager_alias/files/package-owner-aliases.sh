@@ -11,5 +11,5 @@ fi
 cp $output $dest
 chmod +r $output
 mv $output $dest
-restorecon /etc/postfix/package-owner
-postalias /etc/postfix/package-owner
+/usr/sbin/restorecon /etc/postfix/package-owner
+/usr/sbin/postalias /etc/postfix/package-owner
