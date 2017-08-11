@@ -12,13 +12,8 @@ config = {
     'robosignatory.enabled.tagsigner': True,
     'robosignatory.enabled.atomicsigner': True,
 
-    # Used for signing modules.
-    'robosignatory.pdc_url': 'https://pdc.fedoraproject.org/rest_api/v1',
     # Any tag prefixed with "module-" will be considered a module.
     'robosignatory.module_prefixes': ['module-'],
-    # These are the base modules which, when found, determine the signing key.
-    'robosignatory.base_module_names': ['base-runtime', 'bootstrap'],
-
 
     'robosignatory.signing': {
         'backend': 'sigul',
@@ -31,6 +26,8 @@ config = {
     'robosignatory.koji_instances': {
         'primary': {
             'url': 'https://koji.fedoraproject.org/kojihub',
+            'module_key': 'fedora-modularity',
+            'module_keyid': 'a3cc4e62',
             'options': {
                 # Only ssl is supported at the moment
                 'authmethod': 'kerberos',
@@ -143,20 +140,6 @@ config = {
                     "to": "dist-5E-epel-testing-candidate",
                     "key": "epel-5",
                     "keyid": "217521f6"
-                },
-            ],
-            "module_streams": [
-                # Any module built against the base-runtime master stream
-                {
-                    "stream": "master",
-                    "key": "fedora-modularity",
-                    "keyid": "a3cc4e62"
-                },
-                # Any module built against the base-runtime f26 stream
-                {
-                    "stream": "f26",
-                    "key": "fedora-modularity",
-                    "keyid": "a3cc4e62"
                 },
             ],
         },
