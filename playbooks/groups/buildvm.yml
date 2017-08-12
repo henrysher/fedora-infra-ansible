@@ -157,3 +157,65 @@
 
   handlers:
   - include: "{{ handlers_path }}/restart_services.yml"
+
+- name: configure sshfs on buildvm-s390x-01.s390.fedoraproject.org
+  hosts: buildvm-s390x-01.s390.fedoraproject.org
+  tags:
+    - sshfs
+  user: root
+  gather_facts: True
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  tasks:
+  - name: Put sshfs key in place
+    copy: src="{{ private }}/files/releng/sshkeys/primary-s390x-sshfs"
+          dest="/etc/primary-s390x-sshfs"
+          owner=root group=root mode=0600
+    tags:
+    - sshfs
+
+  - name: Install sshfs
+    package: name=sshfs
+             state=present
+    tags:
+    - sshfs
+
+  - name: Add /mnt/fedora_koji sshfs
+    mount: path="/mnt/fedora_koji"
+           state=present
+           fstype=fuse.sshfs
+           src="root@koji01.phx2.fedoraproject.org:/mnt/fedora_koji"
+           opts="noauto,_netdev,IdentityFile=/etc/primary-s390x-sshfs"
+    tags:
+    - sshfs
+
+  handlers:
+  - include: "{{ handlers_path }}/restart_services.yml"
+
+- name: configure sshfs target on koji01
+  hosts: koji01.phx2.fedoraproject.org
+  tags:
+    - sshfs
+  user: root
+  gather_facts: True
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  tasks:
+  - name: Put public sshfs key in place
+    authorized_key: user="root"
+                    key="{{ lookup('file', '{{ private }}/files/releng/sshkeys/primary-s390x-sshfs.pub') }}"
+                    state=present
+                    key_options='command="internal-sftp",from="10.16.0.11",restrict'
+    tags:
+    - sshfs
+
+  handlers:
+  - include: "{{ handlers_path }}/restart_services.yml"
