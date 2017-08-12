@@ -77,6 +77,10 @@
 # SSH
 -A INPUT -p tcp -m tcp -s 10.5.0.0/16 --dport 22 -j ACCEPT 
 -A OUTPUT -p tcp -m tcp -d 10.5.0.0/16 --sport 22  -j ACCEPT
+{% if inventory_hostname == "buildvm-s390x-01.s390.fedoraproject.org" %}
+# Allow SSHFS binding to koji01
+-A OUTPUT -p tcp -m tcp -d 10.5.125.61 --dport 22  -j ACCEPT
+{% endif %}
 
 # git to pkgs
 -A OUTPUT -m tcp -p tcp --dport 9418 -d 10.5.125.44 -j ACCEPT
