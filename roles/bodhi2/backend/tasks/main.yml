@@ -246,6 +246,16 @@
   - bodhi
   - cron
 
+- name: bodhi-check-policies cron job.
+  cron: name="bodhi-check-policies" hour="*/6" minute=0 user="apache"
+        job="/usr/bin/bodhi-check-policies > /dev/null"
+        cron_file=bodhi-check-policies-job
+  when: inventory_hostname.startswith('bodhi-backend01') and env == "staging"
+  tags:
+  - config
+  - bodhi
+  - cron
+
 - name: bodhi-expire-overrides cron job.
   cron: name="bodhi-expire-overrides" hour="*" minute=0 user="apache"
         job="/usr/bin/bodhi-expire-overrides /etc/bodhi/production.ini 2> /dev/null"
