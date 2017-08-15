@@ -94,7 +94,7 @@
 
 # Currently, we use the epoch as serial. That's unique enough for now
 - name: Sign the certificates
-  command: "ssh-keygen -s {{private}}/files/ssh/{{env}}_ca_host_key -I {{inventory_hostname}} -h -n {{ sign_hostnames|join(',') }} -V {{sign_validity}} -z {{ansible_date_time.epoch}} {{pubkeydir}}/{{inventory_hostname}}{{item}}.pub"
+  shell: "ssh-keygen -s {{private}}/files/ssh/{{env}}_ca_host_key -I {{inventory_hostname}} -h -n {{ sign_hostnames|join(',') }} -V {{sign_validity}} -z `date +%s` {{pubkeydir}}/{{inventory_hostname}}{{item}}.pub"
   delegate_to: "batcave01.phx2.fedoraproject.org"
   with_items: "{{certs_to_sign}}"
   tags:
