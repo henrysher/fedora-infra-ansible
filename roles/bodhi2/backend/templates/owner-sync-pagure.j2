@@ -162,16 +162,20 @@ def get_repo_name_and_arches(tag, version):
     return repo_name, arches
 
 
-def get_pagure_project_name_and_branch(session, namespace, project_name):
+def get_pagure_project_name_and_branch(session, namespace, project_name,
+                                       verbose=False):
     """
     Gets the branches on a project. This function is used for mapping.
     :param namespace: string of the namespace the project is in
     :param project: string of the project
+    :param verbose: prints out verbose information
     :return: a tuple containing the string of the project and a list of
     branches
     """
     project_branches_url = '{0}api/0/{1}/{2}/git/branches'.format(
         PAGURE_URL, namespace, project_name)
+    if verbose:
+        print('- Querying {0}'.format(project_branches_url))
     project_branches_rv = session.get(
         project_branches_url, verify=VERIFY, timeout=60)
 
@@ -183,16 +187,20 @@ def get_pagure_project_name_and_branch(session, namespace, project_name):
     return project_name, project_branches_rv.json()['branches']
 
 
-def get_pagure_project_names_from_page(session, namespace, page):
+def get_pagure_project_names_from_page(session, namespace, page,
+                                       verbose=False):
     """
     Gets the names of all the Pagure projects on a page. This function is to be
     used for mapping.
     :param namespace: string of the namespace to query for projects
     :param page: int of the page to query at
+    :param verbose: prints out verbose information
     :return: list of project names on the page
     """
     url = urljoin(PAGURE_URL, 'api/0/projects?namespace={0}'.format(namespace))
     url = url + '&page={0}&per_page=100&fork=false&short=true'.format(page)
+    if verbose:
+        print('- Querying {0}'.format(url))
     response = session.get(url, verify=VERIFY, timeout=120)
     if not bool(response):
         print("Failed to talk to %r %r." % (
@@ -206,16 +214,19 @@ def get_pagure_project_names_from_page(session, namespace, page):
     return names
 
 
-def get_pagure_project_branches(namespace):
+def get_pagure_project_branches(namespace, verbose=False):
     """
     Gets all the branches of all the Pagure projects in the desired namespace
     :param namespace: string of the namespace to query for projects
+    :param verbose: prints out verbose information
     :return: dictionary in the format of {project_name: [branch_one...]}
     """
     first_page_url_path = ('api/0/projects?namespace={0}&fork=false&short=true'
                            '&page=1&per_page=1'.format(namespace))
     first_page_url = urljoin(PAGURE_URL, first_page_url_path)
     session = retry_session()
+    if verbose:
+        print('- Querying {0}'.format(first_page_url))
     first_page_rv = session.get(first_page_url, verify=VERIFY, timeout=120)
     if not bool(first_page_rv):
         print("Failed to talk to %r %r." % (
@@ -227,9 +238,10 @@ def get_pagure_project_branches(namespace):
     pool = multiprocessing.pool.ThreadPool(8)
     # Since we are going to multi-thread, we need to make a partial function
     # call so that all the function needs is an iterable to run
-    partial_get_pagure_projects_page = partial(
-        get_pagure_project_names_from_page, session, namespace)
-    project_names_sets = pool.map(partial_get_pagure_projects_page,
+    partial_get_pagure_project_names_from_page = partial(
+        get_pagure_project_names_from_page, session, namespace,
+        verbose=verbose)
+    project_names_sets = pool.map(partial_get_pagure_project_names_from_page,
                                   range(1, num_pages + 1))
 
     if project_names_sets:
@@ -243,7 +255,8 @@ def get_pagure_project_branches(namespace):
     # Since we are going to multi-thread, we need to make a partial function
     # call so that all the function needs is an iterable to run
     partial_get_pagure_project_name_and_branch = partial(
-        get_pagure_project_name_and_branch, session, namespace)
+        get_pagure_project_name_and_branch, session, namespace,
+        verbose=verbose)
     # Get a list of tuples in the form of (project, [branch...]), then convert
     # that to a dictionary
     project_names_to_branches = dict(pool.map(
@@ -252,7 +265,7 @@ def get_pagure_project_branches(namespace):
     return project_names_to_branches
 
 
-def set_koji_ownership(tag, packages, arches):
+def set_koji_ownership(tag, packages, arches, verbose=False):
     koji_options = get_options()
 
     for arch in arches:
@@ -281,6 +294,10 @@ def set_koji_ownership(tag, packages, arches):
 
         koji_pkgs = {}
 
+        if verbose:
+            print('- Getting a list of packages in Koji from the tag "{0}" '
+                  'and arch "{1}"'.format(tag, arch))
+
         for p in session.listPackages(tagID=tag, inherited=True):
             koji_pkgs[p['package_name']] = p
 
@@ -290,9 +307,17 @@ def set_koji_ownership(tag, packages, arches):
                 extra_arches = None
                 if pkg in EXTRA_ARCH_LIST:
                     extra_arches = EXTRA_ARCH_LIST[pkg]
+                if verbose:
+                    print('- Adding the package "{0}" to the package list for '
+                          'the tag "{1}" on arch "{2}" and applicable extra '
+                          'arches'.format(pkg, tag, arch))
                 session.packageListAdd(
                     tag, pkg, owner=owner, extra_arches=extra_arches)
             elif koji_pkgs[pkg]['owner_name'] != owner:
+                if verbose:
+                    print('- Setting the owner on package "{0}" for the tag '
+                          '"{1}" on arch "{2}"'
+                          .format(pkg, tag, arch))
                 session.packageListSetOwner(tag, pkg, owner, force=True)
 
 
@@ -300,7 +325,9 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Process some integers.')
     parser.add_argument('tag', nargs='+',
                         help='tag to update the package list on')
+    parser.add_argument('--verbose', action='store_true')
     args = parser.parse_args()
+    verbose = args.verbose
     tags = args.tag
 
     # Get all the info about the tags we are interested in
@@ -320,10 +347,16 @@ if __name__ == '__main__':
     # Get all the project to branch mappings for every namespace
     namespace_to_projects = {}
     for namespace in unique_namespaces:
+        if verbose:
+            print('Querying for all the projects with the namespace "{0}"'
+                  .format(namespace))
         namespace_to_projects[namespace] = \
-            get_pagure_project_branches(namespace)
+            get_pagure_project_branches(namespace, verbose=verbose)
 
     for tag, info in tag_info.items():
+        if verbose:
+            print('Determining which projects have the namespace "{0}" and '
+                  'branch "{1}"'.format(namespace, tag))
         namespace = info['namespace']
         pkgs = []
         for pkg, branches in namespace_to_projects[namespace].items():
@@ -335,4 +368,9 @@ if __name__ == '__main__':
         if namespace == 'rpms':
             pkgs.append('module-build-macros')
 
-        set_koji_ownership(tag, pkgs, info['arches'])
+        if verbose:
+            print('Setting the Koji ownership and package list on packages in '
+                  'the tag "{0}" and namespace "{1}" and for arches "{2}"'
+                  .format(tag, namespace, ', '.join(info['arches'])))
+        set_koji_ownership(tag, pkgs, info['arches'], verbose=verbose)
+
