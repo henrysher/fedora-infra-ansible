@@ -7,22 +7,6 @@
   changed_when: false
   check_mode: no
 
-- name: clean out old known_hosts (name based entries)
-  local_action: known_hosts path={{item}} host={{inventory_hostname}} state=absent
-  ignore_errors: True
-  with_items:
-  - /root/.ssh/known_hosts
-  - /etc/ssh/ssh_known_hosts
-  when: host_is_up|failed
-
-- name: clean out old known_hosts (IP based entries)
-  local_action: known_hosts path={{item}} host={{ lookup('dig', inventory_hostname, wantlist=False) }} state=absent
-  ignore_errors: True
-  with_items:
-  - /root/.ssh/known_hosts
-  - /etc/ssh/ssh_known_hosts
-  when: host_is_up|failed
-
 - name: spin UP VM using nova_compute
   become: False
   local_action:
@@ -43,6 +27,9 @@
         - "{{public_ip}}"
   register: nova_result
   when: host_is_up|failed
+
+- name: Put in SSH cert
+  include: "{{ ansible }}/roles/base/tasks/sshcerts.yml"
 
 # instance can be both id and name, volume must be id
 # volume must be id
