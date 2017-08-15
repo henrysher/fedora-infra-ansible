@@ -826,11 +826,21 @@ openshift_master_console_port={{openshift_console_port}}
 {% for host in groups[openshift_cluster_infra_group] %}
 {{ host }} openshift_node_labels="{'region':'infra'}"
 {% endfor %}
+
 {% for host in groups[openshift_cluster_masters_group] %}
 {{ host }} openshift_schedulable=False
 {% endfor %}
+
 {% for host in groups[openshift_cluster_nodes_group] %}
+
+(% if openshift_nodeselectors is defined %}
+{% if openshift_nodeselectors %}
+{{ host }} openshift_node_labels="{'region': 'primary', 'zone': 'default', {{openshift_nodeselectors}}}"
+{% else %}
 {{ host }} openshift_node_labels="{'region': 'primary', 'zone': 'default'}"
+{% endif %}
+{% endif %}
+
 {% endfor %}
 
 {% endif %}
