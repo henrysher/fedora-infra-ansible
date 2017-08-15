@@ -26,15 +26,10 @@ the missing branches (or even the missing repo)
 
 Here are the different steps of this script:
 
-1/ Query pkgdb for the information about who is allowed to access which git
-   repo
+1/ Check the local repo in each namespace
 
-2/ Check the local repo in each namespace
-
-3/ Create any git repo that could be missing
-
-4/ For each git repo, verifies if all the branch that should be there are,
-   and if not, create them. (multi-threaded this part to save time)
+2/ For each git repo, verifies if the new branch already exists otherwise
+   create it
 
 """
 
@@ -62,13 +57,8 @@ config['active'] = True
 config['endpoints']['relay_inbound'] = config['relay_inbound']
 fedmsg.init(name='relay_inbound', cert_prefix='shell', **config)
 
-{% if env == 'staging' -%}
-PKGDB_URL = 'https://admin.stg.fedoraproject.org/pkgdb'
-{%- else -%}
-PKGDB_URL = 'https://admin.fedoraproject.org/pkgdb'
-{%- endif %}
-
 GIT_FOLDER = '/srv/git/repositories/'
+NEW_BRANCH = 'f27'
 
 MKBRANCH = '/usr/share/dist-git/mkbranch'
 SETUP_PACKAGE = '/usr/share/dist-git/setup_git_package'
@@ -160,29 +150,6 @@ def _create_branch(ns, pkgname, branch, existing_branches):
         raise
 
 
-def pkgdb_pkg_branch():
-    """ Queries pkgdb information about VCS and return a dictionnary of
-    which branches are available for which packages.
-
-    :return: a dict[pkg_name] = [pkg_branches]
-    :rtype: dict
-    """
-    url = '%s/api/vcs' % PKGDB_URL
-    req = requests.get(url, params={'format': 'json'})
-    data = req.json()
-
-    output = {}
-    for key in data:
-        if key == 'title':
-            continue
-        for pkg in data[key]:
-            output.setdefault(
-                key, {}).setdefault(
-                    pkg, set()).update(data[key][pkg].keys())
-
-    return output
-
-
 def get_git_branch(el):
     """ For the specified package name, check the local git and return the
     list of branches found.
@@ -248,32 +215,7 @@ def main():
     branches and fix inconsistencies.
     """
 
-    pkgdb_info = pkgdb_pkg_branch()
-
-    # XXX - Insert artificial namespaces into the set of namespaces returned
-    # by pkgdb.  We want to create a mirror of rpms/PKG in test-rpms/PKG
-    # This hack occurs in two places.  Here, and in genacls.pkgdb.
-    # https://github.com/fedora-infra/pkgdb2/issues/329#issuecomment-207050233
-    # And then, this got renamed from rpms-checks to test-rpms
-    # https://pagure.io/fedora-infrastructure/issue/5570
-    if 'rpms' in pkgdb_info:
-        pkgdb_info['test-rpms'] = copy.copy(pkgdb_info['rpms'])
-    # Also, modules are a thing
-    # https://pagure.io/fedora-infrastructure/issue/5571
-    if 'modules' in pkgdb_info:
-        pkgdb_info['test-modules'] = copy.copy(pkgdb_info['modules'])
-    if 'docker' in pkgdb_info:
-        pkgdb_info['test-docker'] = copy.copy(pkgdb_info['docker'])
-
-    for ns in pkgdb_info:
-        namespace = ns
-        if ns == 'packageAcls':
-            namespace = ''
-
-        pkgdb_pkgs = set(pkgdb_info[ns].keys())
-        if VERBOSE:
-            print "Found %i pkgdb packages (namespace: %s)" % (
-                len(pkgdb_pkgs), ns)
+    for ns in ['rpms', 'modules', 'container']:
 
         local_pkgs = set(os.listdir(os.path.join(GIT_FOLDER, namespace)))
         local_pkgs = set([it.replace('.git', '') for it in local_pkgs])
@@ -281,44 +223,32 @@ def main():
             print "Found %i local packages (namespace: %s)" % (
                 len(local_pkgs), ns)
 
-        ## Commented out as we keep the git of retired packages while they won't
-        ## show up in the information retrieved from pkgdb.
-
-        #if (local_pkgs - pkgdb_pkgs):
-            #print 'Some packages are present locally but not on pkgdb:'
-            #print ', '.join(sorted(local_pkgs - pkgdb_pkgs))
-
-        if (pkgdb_pkgs - local_pkgs):
-            print 'Some packages are present in pkgdb but not locally:'
-            print ', '.join(sorted(pkgdb_pkgs - local_pkgs))
-
 
         if VERBOSE:
             print "Finding the lists of local branches for local repos."
         start = time.time()
         if THREADS == 1:
             git_branch_lookup = map(get_git_branch,
-                itertools.product([namespace], sorted(pkgdb_info[ns])))
+                itertools.product([namespace], sorted(local_pkgs)))
         else:
             threadpool = multiprocessing.pool.ThreadPool(processes=THREADS)
             git_branch_lookup = threadpool.map(get_git_branch,
-                itertools.product([namespace], sorted(pkgdb_info[ns])))
+                itertools.product([namespace], sorted(local_pkgs)))
 
         # Zip that list of results up into a lookup dict.
-        git_branch_lookup = dict(zip(sorted(pkgdb_info[ns]), git_branch_lookup))
+        git_branch_lookup = dict(zip(sorted(local_pkgs), git_branch_lookup))
 
         if VERBOSE:
             print "Found all local git branches in %0.2fs" % (time.time() - start)
 
         tofix = set()
-        for pkg in sorted(pkgdb_info[ns]):
-            pkgdb_branches = pkgdb_info[ns][pkg]
+        for pkg in sorted(local_pkgs):
             git_branches = git_branch_lookup[pkg]
-            diff = (pkgdb_branches - git_branches)
+            diff = (git_branches - set([NEW_BRANCH]))
             if diff:
                 print '%s missing: %s' % (pkg, ','.join(sorted(diff)))
                 tofix.add(pkg)
-                branch_package(namespace, pkg, diff, git_branches)
+                #branch_package(namespace, pkg, diff, git_branches)
 
         if tofix:
             print 'Packages fixed (%s): %s' % (
