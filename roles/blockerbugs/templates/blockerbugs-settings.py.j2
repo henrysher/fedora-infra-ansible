@@ -1,9 +1,5 @@
 SECRET_KEY = '{{ blockerbugs_secret_key }}'
-{% if env == "staging" %}
 SQLALCHEMY_DATABASE_URI = 'postgresql+psycopg2://{{ blockerbugs_db_user }}:{{ blockerbugs_db_password }}@{{ blockerbugs_db_host }}:{{ blockerbugs_db_port }}/{{ blockerbugs_db_name }}'
-{% else %}
-SQLALCHEMY_DATABASE_URI = 'postgresql+psycopg2://{{ blockerbugs_app }}:{{ blockerbugs_appPassword }}@db-blockerbugs/blockerbugs'
-{% endif %}
 FAS_ADMIN_GROUP = "qa-admin"
 FAS_USER = "{{ blockerbugs_fas_user }}@fedoraproject.org"
 FAS_PASSWORD = "{{ blockerbugs_fas_password }}"
@@ -11,18 +7,11 @@ FAS_PASSWORD = "{{ blockerbugs_fas_password }}"
 FAS_FLASK_COOKIE_REQUIRES_HTTPS = False
 FAS_CHECK_CERT = False
 PRODUCTION = False
-# maybe this should be pointing at staging but that makes
-# the app really difficult to test because the data is so old
-#BUGZILLA_URL = 'https://partner-bugzilla.redhat.com/'
-#BODHI_URL = 'https://bodhi.stg.fedoraproject.org/'
-BUGZILLA_URL = 'https://bugzilla.redhat.com/'
-BODHI_URL = 'https://bodhi.fedoraproject.org/'
-{% else %}
-BUGZILLA_URL = 'https://bugzilla.redhat.com/'
-BODHI_URL = 'https://bodhi.fedoraproject.org/'
 {% endif %}
+BUGZILLA_URL = '{{ blockerbugs_bugzilla_url }}'
+BODHI_URL = '{{ blockerbugs_bodhi_url }}'
 BUGZILLA_XMLRPC = BUGZILLA_URL + 'xmlrpc.cgi'
-KOJI_URL = "http://koji.fedoraproject.org/"
+KOJI_URL = "{{ blockerbugs_bugzilla_url }}"
 FILE_LOGGING = False
 SYSLOG_LOGGING = True
 STREAM_LOGGING = True
