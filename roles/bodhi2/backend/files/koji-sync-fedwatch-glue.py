@@ -41,6 +41,6 @@ if __name__ == '__main__':
     topic = sys.argv[-1]
     if topic != 'io.pagure.prod.pagure.issue.edit':
         # This message wasn't meant for me...
-        return
+        sys.exit(0)
     fullname, fields, content = sys.argv[-4:-1]
     main(fullname, fields, content)
