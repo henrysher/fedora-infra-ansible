@@ -188,7 +188,7 @@ def get_pagure_project_name_and_branch(session, namespace, project_name,
 
 
 def get_pagure_project_names_from_page(session, namespace, page,
-                                       verbose=False):
+                                       package=None, verbose=False):
     """
     Gets the names of all the Pagure projects on a page. This function is to be
     used for mapping.
@@ -199,6 +199,8 @@ def get_pagure_project_names_from_page(session, namespace, page,
     """
     url = urljoin(PAGURE_URL, 'api/0/projects?namespace={0}'.format(namespace))
     url = url + '&page={0}&per_page=100&fork=false&short=true'.format(page)
+    if package:
+        url = url + "&pattern={0}".format(package)
     if verbose:
         print('- Querying {0}'.format(url))
     response = session.get(url, verify=VERIFY, timeout=120)
@@ -214,7 +216,7 @@ def get_pagure_project_names_from_page(session, namespace, page,
     return names
 
 
-def get_pagure_project_branches(namespace, verbose=False):
+def get_pagure_project_branches(namespace, package=None, verbose=False):
     """
     Gets all the branches of all the Pagure projects in the desired namespace
     :param namespace: string of the namespace to query for projects
@@ -224,6 +226,8 @@ def get_pagure_project_branches(namespace, verbose=False):
     first_page_url_path = ('api/0/projects?namespace={0}&fork=false&short=true'
                            '&page=1&per_page=1'.format(namespace))
     first_page_url = urljoin(PAGURE_URL, first_page_url_path)
+    if package:
+        first_page_url = first_page_url + "&pattern={0}".format(package)
     session = retry_session()
     if verbose:
         print('- Querying {0}'.format(first_page_url))
@@ -240,7 +244,7 @@ def get_pagure_project_branches(namespace, verbose=False):
     # call so that all the function needs is an iterable to run
     partial_get_pagure_project_names_from_page = partial(
         get_pagure_project_names_from_page, session, namespace,
-        verbose=verbose)
+        package=package, verbose=verbose)
     project_names_sets = pool.map(partial_get_pagure_project_names_from_page,
                                   range(1, num_pages + 1))
 
@@ -325,10 +329,12 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Process some integers.')
     parser.add_argument('tag', nargs='+',
                         help='tag to update the package list on')
+    parser.add_argument('--package', help='Name of an optional single package to sync.')
     parser.add_argument('--verbose', action='store_true')
     args = parser.parse_args()
     verbose = args.verbose
     tags = args.tag
+    package = args.package
 
     # Get all the info about the tags we are interested in
     unique_namespaces = set()
@@ -351,7 +357,7 @@ if __name__ == '__main__':
             print('Querying for all the projects with the namespace "{0}"'
                   .format(namespace))
         namespace_to_projects[namespace] = \
-            get_pagure_project_branches(namespace, verbose=verbose)
+            get_pagure_project_branches(namespace, package=package, verbose=verbose)
 
     for tag, info in tag_info.items():
         if verbose:
