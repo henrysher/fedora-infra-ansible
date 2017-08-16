@@ -26,6 +26,7 @@
   - python-scandir
   - python2-productmd
   - compose-utils
+  - fedwatch
   tags:
   - packages
   - bodhi
@@ -160,6 +161,8 @@
   - cron
 
 - name: sync packages from pagure-on-dist-git to koji (all branches)
+  # XXX If you modify this taglist.  Please also modify the other copy in
+  # bodhi2/backend/tasks/main.yml
   cron: name="owner-sync" minute="15" user="root"
       job="/usr/local/bin/lock-wrapper owner-sync '/usr/local/bin/owner-sync-pagure f27 f26 f25 f27-container f26-container f25-container epel7 dist-6E-epel module-package-list'"
       cron_file=update-koji-owner
@@ -167,6 +170,27 @@
   tags:
   - bodhi
   - cron
+
+- name: configure fedwatch to sync packages as soon as requests are process.
+  copy: src=fedwatch.conf dest=/etc/fedwatch.conf
+  tags:
+  - bodhi
+  - fedwatch
+
+- name: put the fedwatch koji sync glue script in place
+  copy:
+      src: koji-sync-fedwatch-glue.py
+      dest: /etc/fedwatch.d/koji-sync-fedwatch-glue.py
+      mode: 0755
+  tags:
+  - bodhi
+  - fedwatch
+
+- name: start fedwatch
+  service: name=fedwatch enabled=yes state=started
+  tags:
+  - bodhi
+  - fedwatch
 
 #
 # cron job that syncs updates to master mirror
