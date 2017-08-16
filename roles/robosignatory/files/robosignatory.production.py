@@ -64,8 +64,20 @@ config = {
                     "key": "fedora-infra",
                     "keyid": "47dd8ef9"
                 },
+                {
+                    "from": "f27-infra-candidate",
+                    "to": "f27-infra-stg",
+                    "key": "fedora-infra",
+                    "keyid": "47dd8ef9"
+                },
 
                 # Gated rawhide and branched
+                {
+                    "from": "f28-pending",
+                    "to": "f28",
+                    "key": "fedora-28",
+                    "keyid": "9db62fb1"
+                },
                 {
                     "from": "f27-pending",
                     "to": "f27",
@@ -74,6 +86,12 @@ config = {
                 },
 
                 # Gated bodhi updates
+                {
+                    "from": "f27-signing-pending",
+                    "to": "f27-updates-testing-pending",
+                    "key": "fedora-27",
+                    "keyid": "f5282ee4"
+                },
                 {
                     "from": "f26-signing-pending",
                     "to": "f26-updates-testing-pending",
