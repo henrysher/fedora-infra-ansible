@@ -23,15 +23,16 @@ def handle(content):
         '--package', package,
         '--verbose',
     ] + taglist.split()
+    print("Running %r" % cmd)
     sp.Popen(cmd)
 
 
 def main(fullname, fields, content):
     if fullname != 'releng/fedora-scm-requests':
-        print("Dropping %r.  Not scm request.")
+        print("Dropping %r.  Not scm request." % fullname)
         return False
     if 'close_status' not in fields:
-        print("Dropping %r.  Not closed.")
+        print("Dropping %r.  Not closed." % fields)
         return False
 
     handle(content)
