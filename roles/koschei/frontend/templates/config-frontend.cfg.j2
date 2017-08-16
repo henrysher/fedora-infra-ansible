@@ -39,11 +39,33 @@ config = {
         },
     },
     {% if env == 'staging' %}
-    "plugins": ['copr'],
+    "plugins": ['pkgdb', 'copr'],
     {% else %}
-    "plugins": [],
+    "plugins": ['pkgdb'],
     {% endif %}
     "caching": {
+        "plugin": {
+            "pkgdb": {
+                "users": {
+                    "backend": "dogpile.cache.memcached",
+                    "expiration_time": 300,
+                    "arguments": {
+                        "url": "memcached01:11211",
+                        "distributed_lock": True,
+                    },
+                },
+            },
+        },
+    },
+    "pkgdb": {
+        {% if env == 'staging' %}
+        "pkgdb_url": 'https://admin.stg.fedoraproject.org/pkgdb/api',
+        "topic_re": r'\.stg\.pkgdb\.',
+        {% else %}
+        "pkgdb_url": 'https://admin.fedoraproject.org/pkgdb/api',
+        "topic_re": r'\.prod\.pkgdb\.',
+        {% endif %}
+        "sync_tracked": False,
     },
     "frontend": {
         "builds_per_page": 8,
