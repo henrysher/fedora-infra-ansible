@@ -4,6 +4,7 @@
   register: sshd_selinux_port
   check_mode: no
   changed_when: false
+  failed_when: false
   tags:
   - basessh
   - sshd_config
@@ -15,6 +16,7 @@
 - name: allow alternate sshd port
   command: semanage port -a -t ssh_port_t -p tcp {{ sshd_port }}
   when: sshd_selinux_port.stdout.find('{{ sshd_port }}') == -1
+  failed_when: false
   tags:
   - basessh
   - sshd_config
