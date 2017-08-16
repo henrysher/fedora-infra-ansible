@@ -162,8 +162,9 @@
 
 - name: sync packages from pagure-on-dist-git to koji (all branches)
   # XXX If you modify this taglist.  Please also modify the other copy in
-  # bodhi2/backend/tasks/main.yml
-  cron: name="owner-sync" minute="15" user="root"
+  # bodhi2/backend/files/koji-sync-fedwatch-glue.py
+  # This cronjob runs only once a day.  The fedwatch script runs reactively.
+  cron: name="owner-sync" minute="15" hour="4" user="root"
       job="/usr/local/bin/lock-wrapper owner-sync '/usr/local/bin/owner-sync-pagure f27 f26 f25 f27-container f26-container f25-container epel7 dist-6E-epel module-package-list'"
       cron_file=update-koji-owner
   when: inventory_hostname.startswith('bodhi-backend01') and env == "production"
