@@ -78,10 +78,15 @@ config = {
     "moksha.threadpool_size": 12,
 
     # Some configuration for the rule processors
-    "fmn.rules.utils.use_pkgdb2": True,
     {% if env == 'staging' %}
+    "fmn.rules.utils.use_pkgdb2": False,
+    'fmn.rules.utils.use_pagure_for_ownership': True,
+    'fmn.rules.utils.pagure_api_url': 'https://src.stg.fedoraproject.org/api/',
     "fmn.rules.utils.pkgdb_url": "https://admin.stg.fedoraproject.org/pkgdb/api",
     {% else %}
+    "fmn.rules.utils.use_pkgdb2": True,
+    'fmn.rules.utils.use_pagure_for_ownership': False,
+    'fmn.rules.utils.pagure_api_url': 'https://src.fedoraproject.org/api/',
     "fmn.rules.utils.pkgdb_url": "http://pkgdb01.phx2.fedoraproject.org/pkgdb/api",
     {% endif %}
     "fmn.rules.cache": {
