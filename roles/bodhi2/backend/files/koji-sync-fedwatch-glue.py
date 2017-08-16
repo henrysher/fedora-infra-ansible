@@ -38,5 +38,9 @@ def main(fullname, fields, content):
 
 
 if __name__ == '__main__':
-    fullname, fields, content = sys.argv[-3:]
+    topic = sys.argv[-1]
+    if topic != 'io.pagure.prod.pagure.issue.edit':
+        # This message wasn't meant for me...
+        return
+    fullname, fields, content = sys.argv[-4:-1]
     main(fullname, fields, content)
