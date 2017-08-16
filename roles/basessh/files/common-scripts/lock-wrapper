@@ -1,0 +1,41 @@
+#!/bin/bash
+
+if [ $# -lt 2 ]; then
+    echo "Usage: $0 [name] [script]"
+    exit 1;
+fi
+
+NAME=$1
+SCRIPT=$2
+
+LOCKDIR="/var/tmp/$NAME"
+PIDFILE="$LOCKDIR/pid"
+
+function cleanup {
+    rm -rf "$LOCKDIR"
+}
+
+RESTORE_UMASK=$(umask -p)
+umask 0077
+if ! mkdir "$LOCKDIR"; then
+    echo "$LOCKDIR already exists"
+    PID=$(cat "$PIDFILE")
+    if [ -n "$PID" ] && /bin/ps $PID > /dev/null
+    then
+        echo "$PID is still running"
+        /bin/ps -o user,pid,start,time,comm $PID
+        exit 1;
+    else
+        echo "$LOCKDIR exists but $PID is dead"
+        echo "Removing lockdir and re-running"
+        /bin/rm -rf $LOCKDIR
+        mkdir $LOCKDIR || exit
+    fi
+fi
+
+trap cleanup EXIT SIGQUIT SIGHUP SIGTERM
+echo $$ > "$PIDFILE"
+
+$RESTORE_UMASK
+eval "$SCRIPT"
+

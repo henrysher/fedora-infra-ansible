@@ -104,51 +104,11 @@
   - base
   when: ansible_distribution_major_version|int > 21 and ansible_cmdline.ostree is not defined
 
+- name: Set up SSH
+  include_role: basessh
+
 - name: make sure hostname is set right on rhel7 hosts
   hostname: name="{{inventory_hostname}}"
-
-- name: check if sshd port is already known by selinux
-  shell: semanage port -l | grep ssh
-  register: sshd_selinux_port
-  check_mode: no
-  changed_when: false
-  tags:
-  - sshd_config
-  - config
-  - sshd
-  - selinux
-  - base
-
-- name: allow alternate sshd port
-  command: semanage port -a -t ssh_port_t -p tcp {{ sshd_port }}
-  when: sshd_selinux_port.stdout.find('{{ sshd_port }}') == -1
-  tags:
-  - sshd_config
-  - config
-  - sshd
-  - selinux
-  - base
-
-- name: Set up SSH certificates
-  include: sshcerts.yml
-
-- name: sshd_config
-  copy: src={{ item }} dest=/etc/ssh/sshd_config mode=0600
-  with_first_found:
-    - "{{ sshd_config }}"
-    - ssh/sshd_config.{{ inventory_hostname }}
-    - ssh/sshd_config.{{ host_group }}
-    - ssh/sshd_config.{{ dist_tag }}
-    - ssh/sshd_config.{{ ansible_distribution }}
-    - ssh/sshd_config.{{ ansible_distribution_version }}
-    - ssh/sshd_config.default
-  notify:
-  - restart sshd
-  tags:
-  - sshd_config
-  - config
-  - sshd
-  - base
 
 - name: set root passwd
   user: name=root password={{ rootpw }} state=present
