@@ -5,6 +5,7 @@
   check_mode: no
   changed_when: false
   tags:
+  - basessh
   - sshd_config
   - config
   - sshd
@@ -15,6 +16,7 @@
   command: semanage port -a -t ssh_port_t -p tcp {{ sshd_port }}
   when: sshd_selinux_port.stdout.find('{{ sshd_port }}') == -1
   tags:
+  - basessh
   - sshd_config
   - config
   - sshd
@@ -34,6 +36,7 @@
   notify:
   - restart sshd
   tags:
+  - basessh
   - sshd_config
   - config
   - sshd
@@ -45,6 +48,7 @@
       patterns="ssh_host_*_key"
   register: ssh_key_files
   tags:
+  - basessh
   - sshd_cert
   - sshd_config
   - config
@@ -56,6 +60,7 @@
   with_items: "{{ssh_key_files.files}}"
   register: ssh_cert_files
   tags:
+  - basessh
   - sshd_cert
   - sshd_config
   - config
@@ -66,6 +71,7 @@
   set_fact:
     certs_to_sign: "[]"
   tags:
+  - basessh
   - sshd_cert
   - sshd_config
   - config
@@ -78,6 +84,7 @@
   with_items: "{{ssh_cert_files.results}}"
   when: not item.stat.exists
   tags:
+  - basessh
   - sshd_cert
   - sshd_config
   - config
@@ -89,6 +96,7 @@
 - set_fact:
     pubkeydir: "/tmp/sshkeysign"
   tags:
+  - basessh
   - sshd_cert
   - sshd_config
   - config
@@ -104,6 +112,7 @@
   delegate_to: "batcave01.phx2.fedoraproject.org"
   run_once: true
   tags:
+  - basessh
   - sshd_cert
   - sshd_config
   - config
@@ -116,6 +125,7 @@
          fail_on_missing=true
   with_items: "{{certs_to_sign}}"
   tags:
+  - basessh
   - sshd_cert
   - sshd_config
   - config
@@ -127,6 +137,7 @@
     sign_hostnames: "{{ssh_hostnames}} + ['{{inventory_hostname}}']"
     sign_validity: "-1h:+52w"
   tags:
+  - basessh
   - sshd_cert
   - sshd_config
   - config
@@ -139,6 +150,7 @@
   delegate_to: "batcave01.phx2.fedoraproject.org"
   with_items: "{{certs_to_sign}}"
   tags:
+  - basessh
   - sshd_cert
   - sshd_config
   - config
@@ -152,6 +164,7 @@
   notify:
   - restart sshd
   tags:
+  - basessh
   - sshd_cert
   - sshd_config
   - config
