@@ -60,7 +60,7 @@ fedmsg.init(name='relay_inbound', cert_prefix='shell', **config)
 GIT_FOLDER = '/srv/git/repositories/'
 NEW_BRANCH = 'f27'
 
-MKBRANCH = '/usr/share/dist-git/mkbranch'
+MKBRANCH = '/usr/share/dist-git/mkbranch_branching'
 SETUP_PACKAGE = '/usr/share/dist-git/setup_git_package'
 
 THREADS = 20
@@ -132,7 +132,7 @@ def _create_branch(ns, pkgname, branch, existing_branches):
                 branch, os.path.join(ns, pkgname))
 
         if not TEST_ONLY:
-            _invoke(MKBRANCH, [branch, os.path.join(ns, pkgname)])
+            _invoke(MKBRANCH, [branch, pkgname])# os.path.join(ns, pkgname)])
             fedmsg.publish(
                 topic='branch',
                 modname='git',
@@ -215,9 +215,9 @@ def main():
     branches and fix inconsistencies.
     """
 
-    for ns in ['rpms', 'modules', 'container']:
+    for ns in ['rpms']:#, 'modules', 'container']:
 
-        local_pkgs = set(os.listdir(os.path.join(GIT_FOLDER, namespace)))
+        local_pkgs = set(os.listdir(os.path.join(GIT_FOLDER, ns)))
         local_pkgs = set([it.replace('.git', '') for it in local_pkgs])
         if VERBOSE:
             print "Found %i local packages (namespace: %s)" % (
@@ -229,26 +229,26 @@ def main():
         start = time.time()
         if THREADS == 1:
             git_branch_lookup = map(get_git_branch,
-                itertools.product([namespace], sorted(local_pkgs)))
+                itertools.product([ns], sorted(local_pkgs)))
         else:
             threadpool = multiprocessing.pool.ThreadPool(processes=THREADS)
             git_branch_lookup = threadpool.map(get_git_branch,
-                itertools.product([namespace], sorted(local_pkgs)))
+                itertools.product([ns], sorted(local_pkgs)))
 
         # Zip that list of results up into a lookup dict.
         git_branch_lookup = dict(zip(sorted(local_pkgs), git_branch_lookup))
 
         if VERBOSE:
-            print "Found all local git branches in %0.2fs" % (time.time() - start)
+            print "Found all local git branches in %0.2fs" % (
+                time.time() - start)
 
         tofix = set()
         for pkg in sorted(local_pkgs):
             git_branches = git_branch_lookup[pkg]
-            diff = (git_branches - set([NEW_BRANCH]))
-            if diff:
-                print '%s missing: %s' % (pkg, ','.join(sorted(diff)))
+            if NEW_BRANCH not in git_branches:
+                print 'Add %s to : %s' % (NEW_BRANCH, pkg)
                 tofix.add(pkg)
-                #branch_package(namespace, pkg, diff, git_branches)
+                branch_package(ns, pkg, [NEW_BRANCH], git_branches)
 
         if tofix:
             print 'Packages fixed (%s): %s' % (
