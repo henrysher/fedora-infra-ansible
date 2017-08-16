@@ -79,6 +79,12 @@ config = {
                     "keyid": "9db62fb1"
                 },
                 {
+                    "from": "f27",
+                    "to": "f27",
+                    "key": "fedora-28",
+                    "keyid": "9db62fb1"
+                },
+                {
                     "from": "f27-pending",
                     "to": "f27",
                     "key": "fedora-27",
