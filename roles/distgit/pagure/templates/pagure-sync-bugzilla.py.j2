@@ -114,6 +114,19 @@ PRODUCTS = {
     'Fedora EPEL': 'Fedora EPEL',
 }
 
+# This maps bugzilla products to "lead" branches in PDC.  If the lead branch is
+# retired, then we in turn set the default assignee to "orphan" for all new bugs
+# in the given product.
+PRODUCT_TO_LEAD_BRANCH = {
+    # If rawhide is retired, then all new bugs go to orphan for Fedora.
+    'Fedora': 'master',
+    # Same for containers.
+    'Fedora Container': 'master',
+    # If epel7 is retired, then all new epel bugs go to orphan.
+    'Fedora EPEL': 'epel7',
+}
+
+
 # When querying for current info, take segments of 1000 packages a time
 BZ_PKG_SEGMENT = 1000
 
@@ -470,6 +483,22 @@ def _get_watchers_rv_json(pagure_project):
 
 
 @cache.cache_on_arguments()
+def _is_retired_in_pdc(product, project):
+    lead = PRODUCTS_TO_LEAD_BRANCH[product]
+    type = PDC_TYPES[project['namespace']]
+    name = project['name']
+    pdc_url = '{0}/component-branches/?global_component={1}&type={2}&name={3}'\
+            .format(PDCURL.rstrip('/'), name, type, lead)
+
+    if DRY_RUN:
+        print('Querying {0}'.format(pdc_url))
+    pdc_rv = session.get(pdc_url, timeout=30)
+    if not pdc_rv.ok
+        raise RuntimeError("Could not find %r in PDC." % project)
+    return not pdc_rv.json()['active']
+
+
+@cache.cache_on_arguments()
 def _get_override_yaml(project):
     pagure_override_url = '{0}/{1}/raw/master/f/{2}/{3}'.format(
         PAGUREURL.rstrip('/'), BUGZILLA_OVERRIDE_REPO, project['namespace'],
@@ -518,7 +547,12 @@ def pagure_project_to_acl_schema(pagure_project, product):
                 mdapi_url, mdapi_rv.status_code, mdapi_rv.text)
             raise RuntimeError(error_msg)
 
-    # Check if the Bugzilla ticket assignee has been overridden
+    # Check if the branch is retired in PDC, and if so set assignee to orphan.
+    owner = pagure_project['access_users']['owner'][0]
+    if _is_retired_in_pdc(product, project):
+        owner = 'extras-orphan@fedoraproject.org'
+
+    # Check if the Bugzilla ticket assignee has been manually overridden
     owner = pagure_project['access_users']['owner'][0]
     override_yaml = _get_override_yaml(project)
     if override_yaml.get(product) \
