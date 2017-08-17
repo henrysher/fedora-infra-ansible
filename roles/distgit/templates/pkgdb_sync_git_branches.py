@@ -185,7 +185,10 @@ def branch_package(ns, pkgname, requested_branches, existing_branches):
     exists = os.path.exists(new_place)
     if not exists or 'master' not in existing_branches:
         if not TEST_ONLY:
-            _invoke(SETUP_PACKAGE, [os.path.join(ns, pkgname)])
+            try:
+                _invoke(SETUP_PACKAGE, [os.path.join(ns, pkgname)])
+            except:
+                return
             if ns == 'rpms':
                 old_place = os.path.join(GIT_FOLDER, '%s.git' % pkgname)
                 if not os.path.exists(old_place):
