@@ -207,7 +207,7 @@ def get_pagure_project_names_from_page(session, namespace, page,
     if not bool(response):
         print("Failed to talk to %r %r." % (
             response.request.url, response), file=sys.stderr)
-        sys.exit(1)
+        return set()
 
     names = set()
     for project in response.json()['projects']:
@@ -235,7 +235,7 @@ def get_pagure_project_branches(namespace, package=None, verbose=False):
     if not bool(first_page_rv):
         print("Failed to talk to %r %r." % (
             first_page_rv.request.url, first_page_rv), file=sys.stderr)
-        sys.exit(1)
+        return {}
     total_projects = first_page_rv.json()['total_projects']
     num_pages = int(ceil(total_projects / 100.0))
 
@@ -294,7 +294,7 @@ def set_koji_ownership(tag, packages, arches, verbose=False):
         if kojitag is None:
             print('Error: tag "{0}" does not exist for arch "{1}"'
                   .format(tag, arch), file=sys.stderr)
-            sys.exit(1)
+            continue
 
         koji_pkgs = {}
 
