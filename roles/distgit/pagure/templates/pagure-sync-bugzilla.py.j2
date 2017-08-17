@@ -494,12 +494,15 @@ def _is_retired_in_pdc(product, project):
     lead = PRODUCTS_TO_LEAD_BRANCH[product]
     type = PDC_TYPES[project['namespace']]
     name = project['name']
-    pdc_url = '{0}/component-branches/?global_component={1}&type={2}&name={3}'\
-            .format(PDCURL.rstrip('/'), name, type, lead)
-
+    pdc_url = '{0}/component-branches/'.format(PDCURL.rstrip('/'))
+    params = dict(
+        global_component=name,
+        type=type,
+        name=lead,
+    )
     if DRY_RUN:
-        print('Querying {0}'.format(pdc_url))
-    pdc_rv = session.get(pdc_url, timeout=30)
+        print('Querying {0} {1}'.format(pdc_url, params))
+    pdc_rv = session.get(pdc_url, params=params, timeout=30)
     if not pdc_rv.ok:
         raise RuntimeError("Could not find %r in PDC." % project)
     branches = pdc_rv.json()['results']
