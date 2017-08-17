@@ -61,16 +61,17 @@
   notify:
   - restart apache
 
-- name: Install the pkgdb cron jobs - sync bugzilla, update pkg info
-  when: inventory_hostname.startswith('pkgdb02')
-  template: src={{ item.file }}
-            dest={{ item.location }}/{{ item.file }}
+- name: Remove old cronjobs.
+  file:
+      path: "{{ item.location }}/{{ item.file }}"
+      state: absent
   with_items:
   - { file: 'pkgdb-sync-bugzilla.cron', location: /etc/cron.d }
   - { file: 'pkgdb_update_package_info.cron', location: /etc/cron.d }
   tags:
   - config
   - pkgdb
+  - cron
 
 - name: update the base_url in update_package_info
   command: sed -i -e 's|https://dl.fedoraproject.org|http://dl.phx2.fedoraproject.org|' /usr/bin/update_package_info.py
