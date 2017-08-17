@@ -174,6 +174,7 @@
 
 - name: configure fedwatch to sync packages as soon as requests are process.
   copy: src=fedwatch.conf dest=/etc/fedwatch.conf
+  when: inventory_hostname.startswith('bodhi-backend01') and env == "production"
   notify: restart fedwatch
   tags:
   - bodhi
@@ -184,12 +185,14 @@
       src: koji-sync-fedwatch-glue.py
       dest: /etc/fedwatch.d/koji-sync-fedwatch-glue.py
       mode: 0755
+  when: inventory_hostname.startswith('bodhi-backend01') and env == "production"
   tags:
   - bodhi
   - fedwatch
 
 - name: start fedwatch
   service: name=fedwatch enabled=yes state=started
+  when: inventory_hostname.startswith('bodhi-backend01') and env == "production"
   tags:
   - bodhi
   - fedwatch
