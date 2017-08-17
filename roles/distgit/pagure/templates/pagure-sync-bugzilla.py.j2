@@ -502,7 +502,10 @@ def _is_retired_in_pdc(product, project):
     pdc_rv = session.get(pdc_url, timeout=30)
     if not pdc_rv.ok:
         raise RuntimeError("Could not find %r in PDC." % project)
-    return not pdc_rv.json()['active']
+    branches = pdc_rv.json()['results']
+    if not branches:
+        raise RuntimeError("No results for %r in PDC." % project)
+    return branches[0]['active']
 
 
 @cache.cache_on_arguments()
