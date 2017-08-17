@@ -23,8 +23,7 @@ spec:
       RUN ln -s /etc/greenwave/settings.py /srv/greenwave/conf/settings.py
       WORKDIR /srv/greenwave
       EXPOSE 8080
-      #ENTRYPOINT python run-dev-server.py
-      ENTRYPOINT tail -f /dev/null
+      ENTRYPOINT gunicorn --bind 0.0.0.0:8080 --access-logfile=- greenwave.wsgi:app
   strategy:
     type: Docker
   output:
