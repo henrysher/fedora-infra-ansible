@@ -52,11 +52,22 @@ IPA_REALM = '{{ ipa_realm }}'
 ENV_SUFFIX = '{{ env_suffix }}'
 if STAGING:
     PAGURE_URL = 'https://src.stg.fedoraproject.org/'
+    PDC_URL = 'https://pdc.stg.fedoraproject.org/rest_api/v1/'
 else:
     PAGURE_URL = 'https://src.fedoraproject.org/'
+    PDC_URL = 'https://pdc.fedoraproject.org/rest_api/v1/'
 # In case the above variables end up being filled in by Ansible
 if not PAGURE_URL.endswith('/'):
     PAGURE_URL = PAGURE_URL + '/'
+if not PDC_URL.endswith('/'):
+    PDC_URL = PDC_URL + '/'
+
+PDC_TYPES = {
+    'rpms': 'rpm',
+    'modules': 'module',
+    'container': 'container',
+}
+
 
 RAWHIDE = '28'
 EXTRA_ARCH_LIST = {
@@ -165,8 +176,8 @@ def get_repo_name_and_arches(tag, version):
     return repo_name, arches
 
 
-def get_pagure_project_name_and_branch(session, namespace, project_name,
-                                       verbose=False):
+def get_pdc_project_name_and_branch(session, namespace, project_name,
+                                    verbose=False):
     """
     Gets the branches on a project. This function is used for mapping.
     :param namespace: string of the namespace the project is in
@@ -175,19 +186,24 @@ def get_pagure_project_name_and_branch(session, namespace, project_name,
     :return: a tuple containing the string of the project and a list of
     branches
     """
-    project_branches_url = '{0}api/0/{1}/{2}/git/branches'.format(
-        PAGURE_URL, namespace, project_name)
+    project_branches_url = '{0}component-branches/'.format(PDC_URL)
+    params = dict(
+        global_component=project_name,
+        type=PDC_TYPES[namespace],
+        active=True,
+    )
     if verbose:
-        print('- Querying {0}'.format(project_branches_url))
+        print('- Querying {0} {1}'.format(project_branches_url, params))
     project_branches_rv = session.get(
-        project_branches_url, verify=VERIFY, timeout=60)
+        project_branches_url, params=params, verify=VERIFY, timeout=60)
 
     # If the project's branches can't be reported, just return no branches and
     # it will be skipped later on
     if not project_branches_rv.ok:
         return project_name, []
 
-    return project_name, project_branches_rv.json()['branches']
+    data = project_branches_rv.json()
+    return project_name, [branch['name'] for branch in data['results']]
 
 
 def get_pagure_project_names_from_page(session, namespace, page,
@@ -261,13 +277,13 @@ def get_pagure_project_branches(namespace, package=None, verbose=False):
 
     # Since we are going to multi-thread, we need to make a partial function
     # call so that all the function needs is an iterable to run
-    partial_get_pagure_project_name_and_branch = partial(
-        get_pagure_project_name_and_branch, session, namespace,
+    partial_get_pdc_project_name_and_branch = partial(
+        get_pdc_project_name_and_branch, session, namespace,
         verbose=verbose)
     # Get a list of tuples in the form of (project, [branch...]), then convert
     # that to a dictionary
     project_names_to_branches = dict(pool.map(
-        partial_get_pagure_project_name_and_branch, project_names))
+        partial_get_pdc_project_name_and_branch, project_names))
     pool.close()
     return project_names_to_branches
 
