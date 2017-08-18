@@ -172,6 +172,13 @@
   - bodhi
   - cron
 
+- name: Make directory for fedwatch systemd config extension
+  copy: path=/usr/lib/systemd/system/fedwatch.service.d/ state=directory
+  when: inventory_hostname.startswith('bodhi-backend01') and env == "production"
+  tags:
+  - bodhi
+  - fedwatch
+
 - name: extend the fedwatch systemd configuration to restart on failure
   copy: src=fedwatch.service dest=/usr/lib/systemd/system/fedwatch.service.d/fedwatch.conf
   when: inventory_hostname.startswith('bodhi-backend01') and env == "production"
