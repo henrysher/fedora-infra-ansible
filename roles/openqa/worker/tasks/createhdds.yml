@@ -4,15 +4,35 @@
 - name: Install required packages
   dnf: name={{ item }} state=present
   with_items:
+  - libvirt-daemon-kvm
   - libvirt-python3
   - python3-libguestfs
   - python3-fedfind
+  - qemu-kvm
   - virt-install
+  tags:
+  - packages
+
+- name: Install PowerPC-specific packages
+  dnf: name=powerpc-utils state=present
+  when: ansible_architecture == 'ppc64' or ansible_architecture == 'ppc64le'
   tags:
   - packages
 
 - name: Allow libvirt to read/write to NFS
   seboolean: name=virt_use_nfs state=yes persistent=yes
+
+- name: Check if SMT setting needs changing
+  command: "ppc64_cpu --smt"
+  register: smtcheck
+  failed_when: "1 != 1"
+  changed_when: "1 != 1"
+  check_mode: no
+  when: ansible_architecture == 'ppc64' or ansible_architecture == 'ppc64le'
+
+- name: Change SMT setting if necessary
+  command: "ppc64_cpu --smt=off"
+  when: "smtcheck is defined and smtcheck.stdout.find('is off') == -1"
 
 - name: Check out createhdds
   git:
