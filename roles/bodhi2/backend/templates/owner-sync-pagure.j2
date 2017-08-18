@@ -143,24 +143,24 @@ def get_namespace_and_version_from_tag(tag):
     return namespace, version
 
 
-def get_repo_name_and_arches(tag, version):
+def get_branch_and_arches(tag, version):
     if tag.startswith('epel'):
         # Ex: epel7 => epel7
-        repo_name = tag
+        branch = tag
         arches = ["primary"]
     elif tag.endswith('epel'):
         # Ex: dist-6E-epel => el6
-        repo_name = 'el%s' % version
+        branch = 'el%s' % version
         arches = ["primary"]
     elif tag == 'module-package-list':
-        repo_name = 'master'
+        branch = 'master'
         arches = ["primary"]
     else:
         # Fedora
         if version == RAWHIDE:
-            repo_name = 'master'
+            branch = 'master'
         else:
-            repo_name = tag.split('-')[0]
+            branch = tag.split('-')[0]
 
         if STAGING:
             arches = ["primary"]
@@ -173,7 +173,7 @@ def get_repo_name_and_arches(tag, version):
                 # Yay!  Everything in primary.
                 arches = ["primary"]
 
-    return repo_name, arches
+    return branch, arches
 
 
 def get_pdc_project_name_and_branch(session, namespace, project_name,
@@ -360,11 +360,11 @@ if __name__ == '__main__':
     tag_info = {}
     for tag in tags:
         namespace, version = get_namespace_and_version_from_tag(tag)
-        repo_name, arches = get_repo_name_and_arches(tag, version)
+        branch, arches = get_branch_and_arches(tag, version)
         tag_info[tag] = {
             'namespace': namespace,
             'version': version,
-            'repo_name': repo_name,
+            'branch': branch,
             'arches': arches
         }
         unique_namespaces.add(namespace)
@@ -386,7 +386,7 @@ if __name__ == '__main__':
         pkgs = []
         for pkg, branches in namespace_to_projects[namespace].items():
             # The tag and branch names are the same for "old-style" branches
-            if info['repo_name'] in branches or tag == ('f' + RAWHIDE):
+            if info['branch'] in branches or tag == ('f' + RAWHIDE):
                 pkgs.append(pkg)
         # This is a special project, not in dist-git, but which needs to be in
         # the package list.
