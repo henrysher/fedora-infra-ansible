@@ -32,19 +32,28 @@
   when: ansible_distribution_major_version|int > 21 and ansible_cmdline.ostree is not defined
 
 - name: generate taskotron.yaml config file
-  template: src=taskotron.yaml.j2 dest=/etc/taskotron/taskotron.yaml owner=root group=root mode=0644
+  template: src={{ item }} dest=/etc/taskotron/taskotron.yaml owner=root group=root mode=0644
+  with_first_found:
+    - taskotron.yaml.j2.{{ deployment_type }}
+    - taskotron.yaml.j2
 
 - name: generate namespaces.yaml config file
-  template: src=namespaces.yaml.j2 dest=/etc/taskotron/namespaces.yaml owner=root group=root mode=0644
-  when: deployment_type in ['dev', 'stg', 'prod']
+  template: src={{ item }} dest=/etc/taskotron/namespaces.yaml owner=root group=root mode=0644
+  with_first_found:
+    - namespaces.yaml.j2.{{ deployment_type }}
+    - namespaces.yaml.j2
 
 - name: generate testcloud config file
-  when: deployment_type in ['dev', 'stg', 'prod']
-  template: src=settings.py.testcloud.j2 dest=/etc/testcloud/settings.py owner=root group=root mode=0644
+  template: src={{ item }} dest=/etc/testcloud/settings.py owner=root group=root mode=0644
+  with_first_found:
+    - settings.py.testcloud.j2.{{ deployment_type }}
+    - settings.py.testcloud.j2
 
 - name: upload yumrepoinfo.conf
-  when: deployment_type in ['dev', 'stg', 'prod']
-  copy: src=yumrepoinfo.conf dest=/etc/taskotron/yumrepoinfo.conf owner=root group=root mode=0644
+  copy: src={{ item }} dest=/etc/taskotron/yumrepoinfo.conf owner=root group=root mode=0644
+  with_first_found:
+    - yumrepoinfo.conf.{{ deployment_type }}
+    - yumrepoinfo.conf
 
 - name: check that baseurl= line exists in yumrepoinfo.conf
   command: grep -q '^baseurl =' /etc/taskotron/yumrepoinfo.conf
