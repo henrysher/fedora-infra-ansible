@@ -24,6 +24,7 @@
 # XXX fixme # a datacenter 'fact' from setup
 - name: /etc/resolv.conf
   copy: src={{ item }} dest=/etc/resolv.conf
+  when: not nm_controlled_resolv
   with_first_found:
   - "{{ resolvconf }}"
   - resolv.conf/{{ inventory_hostname }}
@@ -53,7 +54,7 @@
   ini_file: dest=/etc/NetworkManager/NetworkManager.conf section=main option=dns value=none
   notify:
   - restart NetworkManager
-  when: ansible_distribution_major_version|int >=7 and nmclitest|success and ( not ansible_ifcfg_blacklist)
+  when: ansible_distribution_major_version|int >=7 and nmclitest|success and ( not ansible_ifcfg_blacklist) and not nm_controlled_resolv
   tags:
    - config
    - resolvconf
@@ -124,6 +125,7 @@
 
 - name: make sure our resolv.conf is the one being used - set RESOLV_MODS=no in /etc/sysconfig/network
   lineinfile: dest=/etc/sysconfig/network create=yes backup=yes state=present line='RESOLV_MODS=no' regexp=^RESOLV_MODS=
+  when: not nm_controlled_resolv
   tags:
   - config
   - base
