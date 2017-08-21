@@ -3,9 +3,11 @@
   do:
     - {tasks: [rpmlint, rpmgrill, python-versions]}
     - {discover: {repo: '{{ trigger_distgit_repo_url }}/rpms/${name}{{'.git' if deployment_type in ['stg'] else ''}}', branch: "${distgit_branch}", fallback_branch: 'master', recursive: true}}
+
 - when: {message_type: KojiBuildPackageCompleted, name: docker}
   do:
     - {tasks: [dockerautotest]}
+
 - when:
     message_type: KojiBuildPackageCompleted
     name:
@@ -15,6 +17,7 @@
       $nin: [firefox,thunderbird,kernel,kdelibs,kdepim,qt,mariadb,java-1.8.0-openjdk,libreoffice]
   do:
     - {tasks: [abicheck]}
+
 - when: {message_type: KojiTagChanged}
   do:
     - {tasks: [rpmdeplint]}
