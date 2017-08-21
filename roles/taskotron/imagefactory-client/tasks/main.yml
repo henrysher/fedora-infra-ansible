@@ -26,7 +26,10 @@
   changed_when: "git_result.after|default('after') != git_result.before|default('before')"
 
 - name: Generate configuration
-  template: src=config.ini.j2 dest=/etc/taskotron_base_images/config.ini owner=root group=root mode=0644
+  template: src={{ item }} dest=/etc/taskotron_base_images/config.ini owner=root group=root mode=0644
+  with_first_found:
+    - config.ini.j2.{{ deployment_type }}
+    - config.ini.j2
 
 - name: Download/update images
   command: '/var/lib/fedoraqa/base_images/process_for_taskotron.py --taskotrondir {{imagesdir}}'
@@ -36,7 +39,6 @@
     name: "Download new images from ImageFactory"
     special_time: hourly
     job: '/var/lib/fedoraqa/base_images/process_for_taskotron.py --taskotrondir {{imagesdir}} > /dev/null'
-
 - name: Create cronjob to prune old images
   cron:
     name: "Clean up images downloaded from ImageFactory"

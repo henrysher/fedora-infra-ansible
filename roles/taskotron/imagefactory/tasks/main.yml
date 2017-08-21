@@ -35,7 +35,10 @@
   file: path=/etc/taskotron_base_images state=directory owner=root group=root mode=0755
 
 - name: Generate configuration
-  template: src=config_server.ini.j2 dest=/etc/taskotron_base_images/config_server.ini owner=root group=root mode=0644
+  template: src={{ item }} dest=/etc/taskotron_base_images/config_server.ini owner=root group=root mode=0644
+  with_first_found:
+    - config_server.ini.j2.{{ deployment_type }}
+    - config_server.ini.j2
 
 - name: Create cronjob to build new Fedora {{ item }} images
   cron:
@@ -45,6 +48,7 @@
   with_items:
     - 25
     - 26
+    - 27
     - rawhide
 
 - name: Create cronjob to report failed builds
