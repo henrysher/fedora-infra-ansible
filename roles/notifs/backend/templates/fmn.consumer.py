@@ -46,6 +46,18 @@ config = {
             "tcp://fedmsg-relay.ci.centos.org:9940",
         ],
     },
+    {% else %}
+    "endpoints": {
+        "centos_ci_relay": [
+            "tcp://fedmsg-relay.ci.centos.org:9940",
+        ],
+    },
+    {% endif %}
+
+    {% if env == 'staging' %}
+    "fmn.topics": [b'org.fedoraproject.*', b'org.centos.*'],
+    {% else %}
+    "fmn.topics": [b'org.fedoraproject.prod.*', b'org.centos.prod.*'],
     {% endif %}
 
     # Consumer stuff
@@ -85,8 +97,8 @@ config = {
     'fmn.rules.utils.pagure_api_url': 'https://src.stg.fedoraproject.org/api/',
     "fmn.rules.utils.pkgdb_url": "https://admin.stg.fedoraproject.org/pkgdb/api",
     {% else %}
-    "fmn.rules.utils.use_pkgdb2": True,
-    'fmn.rules.utils.use_pagure_for_ownership': False,
+    "fmn.rules.utils.use_pkgdb2": False,
+    'fmn.rules.utils.use_pagure_for_ownership': True,
     'fmn.rules.utils.pagure_api_url': 'https://src.fedoraproject.org/api/',
     "fmn.rules.utils.pkgdb_url": "http://pkgdb01.phx2.fedoraproject.org/pkgdb/api",
     {% endif %}
