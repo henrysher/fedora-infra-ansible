@@ -41,7 +41,6 @@ import codecs
 import smtplib
 import multiprocessing.pool
 from math import ceil
-from functools import partial
 try:
     from email.Message import Message
 except ImportError:
@@ -182,6 +181,28 @@ Your prompt attention in this matter is appreciated.
 
 The Fedora admins.
 """
+
+
+def resilient_partial(fn, *initial):
+    """ A decorator that partially applies arguments.
+
+    It additionally catches all raised exceptions, prints them, but then returns
+    None instead of propagating the failures.
+
+    This is used to protect functions used in a threadpool.  If one fails, we
+    want to know about it, but we don't want it to kill the whole program.  So
+    catch its error, log it, but proceed.
+    """
+    def wrapper(*additional):
+        try:
+            full = initial + additional
+            return fn(*full)
+        except Exception as e:
+            traceback.print_exc()
+            return None
+    wrapper.__name__ = fn.__name__
+    wrapper.__doc__ = fn.__doc__
+    return wrapper
 
 
 class DataChangedError(Exception):
@@ -713,10 +734,13 @@ if __name__ == '__main__':
 
         # Since we are going to multi-thread, we need to make a partial
         # function call so that all the function needs is an iterable to run
-        p_get_pagure_projects_from_page = partial(
+        p_get_pagure_projects_from_page = resilient_partial(
             _get_pagure_projects_from_page, session, namespace)
         pagure_namespace_to_project_lists[namespace] = pool.map(
             p_get_pagure_projects_from_page, range(1, num_pages + 1))
+        # Filter out failures.
+        pagure_namespace_to_project_lists[namespace] = [
+            i for i in pagure_namespace_to_project_lists[namespace] if i]
 
     # Flatten the list of lists (each page is a list of a projects)
     pagure_namespace_to_projects = {}
@@ -732,10 +756,14 @@ if __name__ == '__main__':
     # {'python-requests': 'master', 'f27', 'f26'}
     pagure_rpm_project_names = [project['name'] for project in
                                 pagure_namespace_to_projects['rpms']]
-    p_get_pdc_project_name_and_branches = partial(
+    p_get_pdc_project_name_and_branches = resilient_partial(
         _get_pdc_project_name_and_branches, session, 'rpms')
-    pagure_rpm_project_branches = dict(pool.map(
-        p_get_pdc_project_name_and_branches, pagure_rpm_project_names))
+    pagure_rpm_project_branches = pool.map(
+        p_get_pdc_project_name_and_branches, pagure_rpm_project_names)
+    # Filter out failures.
+    pagure_rpm_project_branches = [i for i in pagure_rpm_project_branches if i]
+    # Transform
+    pagure_rpm_project_branches = dict(pagure_rpm_project_branches)
     # This is no longer needed, so we can save some RAM
     del pagure_rpm_project_names
 
@@ -770,11 +798,13 @@ if __name__ == '__main__':
 
     # Now, we must transform the data we collected into something that PkgDB
     # would have returned
-    p_pagure_project_to_acl_schema = partial(
+    p_pagure_project_to_acl_schema = resilient_partial(
         _pagure_project_to_acl_schema, session=session)
     project_to_acl_schemas = pool.map(
         p_pagure_project_to_acl_schema, pagure_rpms_project_products)
     pool.close()
+    # Filter out failures.
+    project_to_acl_schemas = [i for i in project_to_acl_schemas if i]
 
     # Transform the data returned in project_to_acl_schemas to be an orderly
     # dictionary for ease of use later on.
