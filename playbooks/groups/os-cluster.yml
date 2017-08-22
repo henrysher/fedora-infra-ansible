@@ -159,6 +159,18 @@
   tasks:
     - name: enable nrpe for monitoring (noc01)
       iptables: action=insert chain=INPUT destination_port=5666 protocol=tcp source=10.5.126.41 state=present jump=ACCEPT
+
+- name: Post-Install master setup
+  hosts: os-masters-stg:os-masters
+  tags:
+    - os-post-install
+  vars_files:
+    - /srv/web/infra/ansible/vars/global.yml
+    - /srv/private/ansible/vars.yml
+    - /srv/private/ansible/files/openstack/passwords.yml
+    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  tasks:
     - name: Disallow users from provisioning
       command: oadm policy remove-cluster-role-from-group self-provisioner system:authenticated system:authenticated:oauth
       changed_when: false
