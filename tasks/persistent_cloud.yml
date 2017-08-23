@@ -55,20 +55,6 @@
   local_action: wait_for host={{ public_ip }} port=22 delay=1 timeout=600
   when: host_is_up|failed
 
-- name: gather ssh host key from new instance
-  local_action: command ssh-keyscan -t rsa {{ inventory_hostname }}
-  ignore_errors: True
-  register: hostkey
-  when: host_is_up|failed
-
-- name: add new ssh host key (you still need to add it to official ssh_host_keys later)
-  local_action: known_hosts path={{ item }} key={{ hostkey.stdout }} host={{ inventory_hostname }} state=present
-  ignore_errors: True
-  with_items:
-  - /root/.ssh/known_hosts
-  - /etc/ssh/ssh_known_hosts
-  when: host_is_up|failed
-
 # SSH is up and running, however cloud-init still did not deployed ssh keypair
 # we have to wait some time. 10 sec is usually enough, but not always.
 
