@@ -4,10 +4,17 @@ if [ ! -d /srv/web/docs ]
 then
 	echo "/srv/web/docs missing"
 	cd /srv/web
+{% if env == 'staging' %}
+	git clone https://pagure.io/fedora-docs/fedora-docs-web.git docs
+{% else %}
 	git clone https://pagure.io/fedora-docs-web.git docs
+{% endif %}
 fi
 
 
 cd /srv/web/docs
-git reset -q --hard
-git pull -q
+/usr/bin/git reset -q --hard
+{% if env == 'staging' %}
+/usr/bin/git checkout -q stg
+{% endif %}
+/usr/bin/git pull -q --ff-only
