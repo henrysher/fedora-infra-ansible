@@ -1,0 +1,25 @@
+- copy: >
+    src=docs-rsync dest=/usr/local/bin/docs-old-rsync
+    owner=root group=root mode=0755
+  tags:
+  - fedora-docs-old
+  - fedora-docs-old/proxy
+
+- copy: >
+    src=cron-docs-old-rsync dest=/etc/cron.d/docs-old-rsync
+    owner=root group=root mode=0644
+  tags:
+  - fedora-docs-old
+  - fedora-docs-old/proxy
+
+- copy: >
+    src={{item}} dest=/etc/httpd/conf.d/{{website}}/{{item}}
+    owner=root group=root mode=0644
+  with_items:
+  - fedora-docs-old.conf
+  - redirects-old.conf
+  notify:
+  - reload proxyhttpd
+  tags:
+  - fedora-docs-old
+  - fedora-docs-old/proxy
