@@ -6,12 +6,18 @@ metadata:
     app: greenwave
 data:
   settings.py: |-
-    SECRET_KEY = '{{stg_greenwave_secret_key}}'
     HOST= '0.0.0.0'
     PORT = 8080
-    WAIVERDB_API_URL = 'https://waiverdb-stg-web-waiverdb.app.os.stg.fedoraproject.org/api/v1.0'
     DEBUG = False
     POLICIES_DIR = '/etc/greenwave/'
+
+    {% if env == 'staging' %}
+    SECRET_KEY = '{{stg_greenwave_secret_key}}'
+    WAIVERDB_API_URL = 'https://waiverdb-web-waiverdb.app.os.stg.fedoraproject.org/api/v1.0'
+    {% else %}
+    SECRET_KEY = '{{prod_greenwave_secret_key}}'
+    WAIVERDB_API_URL = 'https://waiverdb-web-waiverdb.app.os.fedoraproject.org/api/v1.0'
+    {% endif %}
   fedora.yaml: |-
     --- !Policy
     id: "taskotron_release_critical_tasks"
