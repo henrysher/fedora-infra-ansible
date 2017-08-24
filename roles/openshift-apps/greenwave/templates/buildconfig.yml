@@ -13,17 +13,13 @@ spec:
           name="Greenwave" \
           vendor="Fedora Infrastructure" \
           license="MIT"
-      RUN cat /etc/resolv.conf
-      RUN ping -c 3 10.5.126.22
-      RUN nslookup https://mirrors.fedoraproject.org/
-      RUN curl https://mirrors.fedoraproject.org/
       RUN yum -y install --setopt=tsflags=nodocs \
           python-gunicorn \
           python-requests \
           PyYAML \
           python2-flask
-          RUN yum -y install --setopt=tsflags=nodocs \
-              https://kojipkgs.fedoraproject.org//packages/greenwave/0.1.1/1.02795e8.fc26/noarch/greenwave-0.1.1-1.02795e8.fc26.noarch.rpm
+      RUN yum -y install --setopt=tsflags=nodocs \
+          https://kojipkgs.fedoraproject.org//packages/greenwave/0.1.1/1.02795e8.fc26/noarch/greenwave-0.1.1-1.02795e8.fc26.noarch.rpm
       EXPOSE 8080
       ENTRYPOINT gunicorn --bind 0.0.0.0:8080 --access-logfile=- greenwave.wsgi:app
   strategy:
