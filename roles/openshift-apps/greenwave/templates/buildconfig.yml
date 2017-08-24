@@ -8,7 +8,7 @@ spec:
   runPolicy: Serial
   source:
     dockerfile: |-
-      FROM fedora:25
+      FROM fedora:26
       LABEL \
           name="Greenwave" \
           vendor="Fedora Infrastructure" \
@@ -19,16 +19,8 @@ spec:
           python-requests \
           PyYAML \
           python2-flask
-  {% if env == 'staging' %}
-      # https://pagure.io/greenwave/pull-request/62
-      # https://pagure.io/greenwave/pull-request/63
-      RUN git clone -b special-relevance https://pagure.io/greenwave.git /srv/greenwave
-      RUN ln -s /etc/greenwave/settings.py /srv/greenwave/conf/settings.py
-      WORKDIR /srv/greenwave
-  {% else %}
       RUN yum -y install --setopt=tsflags=nodocs \
-            greenwave
-  {% endif %}
+            https://kojipkgs.fedoraproject.org//packages/greenwave/0.1.1/1.02795e8.fc26/noarch/greenwave-0.1.1-1.02795e8.fc26.noarch.rpm
       EXPOSE 8080
       ENTRYPOINT gunicorn --bind 0.0.0.0:8080 --access-logfile=- greenwave.wsgi:app
   strategy:
