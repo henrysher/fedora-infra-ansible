@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>Upstream First - Monitoring</title>
+
+    <!-- Load c3.css -->
+    <link href="media/css/c3.css" rel="stylesheet">
+
+    <!-- Load d3.js (v4.9.1) and c3.js (v0.4.12) -->
+    <script src="media/js/d3.min.js" charset="utf-8"></script>
+    <script src="media/js/c3.min.js"></script>
+
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+    <!-- Latest compiled and minified CSS -->
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+
+    <!-- Optional theme -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+
+    <!-- Latest compiled and minified JavaScript -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="http://cdnjs.cloudflare.com/ajax/libs/bootstrap-table/1.11.1/bootstrap-table.min.css">
+
+    <!-- Latest compiled and minified JavaScript -->
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/bootstrap-table/1.11.1/bootstrap-table.min.js"></script>
+
+
+
+  </head>
+
+  <body>
+
+    <h1>Background</h1>
+
+    <p>The purpose of this page is to be a quick reference on how far along the "<a href="https://fedoraproject.org/wiki/UpstreamFirstTesting/HowToMoveTests" target="new">Upstream First"</a> initiative is. There are currently 410 packages that Red Hat has internal tests for, which are all being moved upstream to their respective packages. Packages that have a repo on our <a href="https://upstreamfirst.fedorainfracloud.org/">forge</a> are counted as "moved," packages with open issues are counted as "working on." If there is no repo on the forge for a package, it's counted in the "untouched" category.</p>
+
+    <h4>Raw Numbers:</h4>
+    <p>
+      <ul>
+    <li id="total-tests">Total Tests: Loading...</li>
+    <li id="migrated-tests">Migrated: Loading...</li>
+    <li id="working-on">Working on: Loading...</li>
+      </ul>
+    </p>
+
+    <h3>Current Status</h3>
+
+    <div id="chart"></div>
+
+    <div id="tables">
+
+      <h3>Package List</h3>
+      <table id='table' data-search='true'
+         data-show-refresh="true"
+         data-sort-name='name'
+         data-sort-desc='desc'
+         data-show-toggle="true"                                                                                 data-show-columns="true"></table>
+
+    </div> <!-- End of tables div -->
+
+    <p> <sub>(Updated every hour)</sub></p>
+
+    <script type="text/javascript">
+
+      apiRequest = new XMLHttpRequest();
+
+      apiRequest.onreadystatechange = getString;
+      apiRequest.open("GET", "https://status.{{ external_hostname }}/api/all", false);
+      apiRequest.send();
+
+      function getString() {
+          if (apiRequest.readyState === XMLHttpRequest.DONE) {
+              if (apiRequest.status === 200) {
+                 return apiRequest.responseText;
+              }
+          }
+      }
+
+      results = apiRequest.responseText;
+      results = JSON.parse(results);
+
+      $('#table').bootstrapTable({
+      data: results,
+      columns:[{
+        field: 'id',
+        title: 'id'
+      }, {
+        field: 'name',
+        title: 'Name'
+      }, {
+        field: 'status',
+        title: 'Status'
+      }, {
+        field: 'contact',
+        title: 'Contact'
+      }, {
+        field: 'pagure_link',
+        title: 'Forge Link'
+      }]
+      });
+
+
+    </script>
+
+    <script type="text/javascript">
+$(document).ready(function () {
+      var moved = "Moved to Forge";
+      var untouched = "Untouched";
+      var working_on = "Working On";
+
+      <!-- Write out our AJAX calls to update the page counts. -->
+      apiRequest = new XMLHttpRequest();
+
+      apiRequest.onreadystatechange = getString;
+      apiRequest.open("GET", "https://status.{{ external_hostname }}/api/counts", false);
+      apiRequest.send();
+
+      function getString() {
+          if (apiRequest.readyState === XMLHttpRequest.DONE) {
+              if (apiRequest.status === 200) {
+                 return apiRequest.responseText;
+              }
+          }
+      }
+
+      results = apiRequest.responseText;
+      results = JSON.parse(results);
+
+      var moved_number = results.total_moved.valueOf();
+      var working_on_number = results.WORKING.valueOf();
+      var untouched_number = results.UNKNOWN.valueOf();
+
+      // Fill out the actual values in the table
+      document.getElementById("total-tests").innerText = "Total Tests: " + results.total;
+      document.getElementById("migrated-tests").innerText = "Migrated: " + moved_number;
+      document.getElementById("working-on").innerText = "Working-on: " + working_on_number;
+
+
+
+      var chart = c3.generate({
+        data: {
+          columns: [
+              [moved, moved_number],
+              [working_on, working_on_number ],
+              [untouched, untouched_number],
+          ],
+          type : 'donut',
+          onclick: function (d, i) { console.log("onclick", d, i); },
+          onmouseover: function (d, i) { console.log("onmouseover", d, i); },
+          onmouseout: function (d, i) { console.log("onmouseout", d, i); }
+        },
+        donut: {
+          title: "Migration Status"
+        },
+    color: {
+      pattern: ['#0000ff', '#00ff00', '#ff0000']
+    }
+      });
+
+      setTimeout(function () {
+        chart.load({
+          columns: [
+            [moved, moved_number],
+            [untouched, untouched_number],
+          ]
+        });
+      }, 1500);
+
+      setTimeout(function () {
+        chart.unload({
+          ids: 'data1'
+        });
+        chart.unload({
+          ids: 'data2'
+        });
+      }, 2500);
+});
+    </script>
+
+  </body>
+
+</html>

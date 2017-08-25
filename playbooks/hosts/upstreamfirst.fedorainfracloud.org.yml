@@ -71,3 +71,19 @@
 
   handlers:
   - include: "{{ handlers_path }}/restart_services.yml"
+
+- name: deploy ufmonitor
+  hosts: upstreamfirst.fedorainfracloud.org
+  user: root
+  gather_facts: True
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - "{{ vars_path }}/{{ ansible_distribution }}.yml"
+
+  roles:
+      - { role: ufmonitor, tags: ['ufmonitor'] }
+
+  handlers:
+  - include: "{{ handlers_path }}/restart_services.yml"
