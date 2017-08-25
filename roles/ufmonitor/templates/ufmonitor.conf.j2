@@ -1,0 +1,39 @@
+## Redirects http -> https
+<VirtualHost *:80>
+  RewriteEngine on
+  RewriteRule ^/\.well-known/(.*) /srv/web/acme-challenge/.well-known/$1 [L]
+  ServerName {{ external_hostname }}
+  Redirect permanent / https://{{ external_hostname }}/
+</VirtualHost>
+
+## End of redirects http -> https
+
+<VirtualHost *:443>
+  ServerName status.{{ external_hostname }}
+
+  Alias "/robots.txt" "/var/www/html/robots.txt"
+
+  ServerAdmin admin@fedoraproject.org
+
+  SSLEngine on
+  SSLProtocol {{ ssl_protocols }}
+  SSLCipherSuite {{ ssl_ciphers }}
+  # Use secure TLSv1.1 and TLSv1.2 ciphers
+  Header always add Strict-Transport-Security "max-age=15768000; includeSubDomains; preload"
+
+  SSLCertificateFile    /etc/letsencrypt/live/{{ external_hostname }}/cert.pem
+  SSLCertificateKeyFile /etc/letsencrypt/live/{{ external_hostname }}/privkey.pem
+  SSLCertificateChainFile /etc/letsencrypt/live/{{ external_hostname }}/fullchain.pem
+  SSLHonorCipherOrder On
+  SSLCipherSuite RC4-SHA:AES128-SHA:ALL:!ADH:!EXP:!LOW:!MD5:!SSLV2:!NULL
+  SSLProtocol ALL -SSLv2
+
+  DocumentRoot "{{ ufmonitor_home }}"
+
+  # proxy the docker containers running the actual api process
+  <Location /api/ >
+    ProxyPass http://127.0.0.1:8000/
+    ProxyPassReverse http://127.0.0.1:8000/
+  </Location>
+
+</VirtualHost>
