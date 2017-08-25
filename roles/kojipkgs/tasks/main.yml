@@ -6,8 +6,16 @@
 - name: install apache config files for local apache
   copy: src={{ item }} dest=/etc/httpd/conf.d/{{ item }} owner=root group=root mode=644
   with_items:
-  - kojipkgs.conf
   - infrastructure.conf
+  notify:
+  - reload httpd
+  tags:
+  - kojipkgs
+
+- name: install apache config templates for local apache
+  template: src={{ item }} dest=/etc/httpd/conf.d/{{ item }} owner=root group=root mode=644
+  with_items:
+  - kojipkgs.conf
   notify:
   - reload httpd
   tags:
