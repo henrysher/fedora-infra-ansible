@@ -11,6 +11,15 @@
   tags:
   - fedora-docs
   - fedora-docs/proxy
+  when: env == "production"
+
+- copy: >
+    src=cron-docs-rsync.stg dest=/etc/cron.d/docs-rsync
+    owner=root group=root mode=0644
+  tags:
+  - fedora-docs
+  - fedora-docs/proxy
+  when: env == "staging"
 
 - copy: >
     src={{item}} dest=/etc/httpd/conf.d/{{website}}/{{item}}
