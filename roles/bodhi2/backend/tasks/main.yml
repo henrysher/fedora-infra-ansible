@@ -180,34 +180,6 @@
   - bodhi
   - cron
 
-
-- name: stop the unused fedwatch
-  service: name=fedwatch enabled=no state=stopped
-  when: inventory_hostname.startswith('bodhi-backend01') and env == "production"
-  tags:
-  - bodhi
-  - fedwatch
-
-- name: Remove old unused fedwatch package.
-  package: pkg=fedwatch state=absent
-  tags:
-  - bodhi
-  - fedwatch
-
-- name: Remove old unused fedwatch files.
-  file: path={{item}} state=absent
-  with_items:
-  - /usr/lib/systemd/system/fedwatch.service.d/fedwatch.conf
-  - /usr/lib/systemd/system/fedwatch.service.d/
-  - /etc/fedwatch.conf
-  - /etc/fedwatch.d/
-  when: inventory_hostname.startswith('bodhi-backend01') and env == "production"
-  notify:
-  - reload systemd
-  tags:
-  - bodhi
-  - fedwatch
-
 - name: put the koji sync listener script in place
   copy:
       src: koji-sync-listener.py
