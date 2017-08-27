@@ -7,8 +7,11 @@ Author: Ralph Bean <rbean@redhat.com>
 """
 
 import json
+import logging.config
 import subprocess as sp
 import sys
+
+import fedmsg
 
 
 def handle(content):
@@ -32,16 +35,18 @@ def main(fullname, fields, content):
         print("Dropping %r.  Not scm request." % fullname)
         return False
     if 'close_status' not in fields:
-        print("Dropping %r.  Not closed." % fields)
+        print("Dropping %r %r.  Not closed." % (fullname, fields))
         return False
 
     handle(content)
 
 
 if __name__ == '__main__':
-    topic = sys.argv[-1]
-    if topic != 'io.pagure.prod.pagure.issue.edit':
-        # This message wasn't meant for me...
-        sys.exit(0)
-    fullname, fields, content = sys.argv[-4:-1]
-    main(fullname, fields, content)
+    config = fedmsg.config.load_config()
+    logging.config.dictConfig(config['logging'])
+    topic = 'io.pagure.prod.pagure.issue.edit'
+    for _, _, topic, msg in fedmsg.tail_messages(topic=topic):
+        fullname = msg['msg']['project']['fullname']
+        fields = msg['msg']['fields']
+        content = msg['msg']['issue']['content']
+        main(fullname, fields, content)

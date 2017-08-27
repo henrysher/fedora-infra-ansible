@@ -26,7 +26,6 @@
   - python-scandir
   - python2-productmd
   - compose-utils
-  - fedwatch
   tags:
   - packages
   - bodhi
@@ -171,8 +170,8 @@
 
 - name: sync packages from pagure-on-dist-git to koji (all branches)
   # XXX If you modify this taglist.  Please also modify the other copy in
-  # bodhi2/backend/files/koji-sync-fedwatch-glue.py
-  # This cronjob runs only once a day.  The fedwatch script runs reactively.
+  # bodhi2/backend/files/koji-sync-listener.py
+  # This cronjob runs only once a day.  The listener script runs reactively.
   cron: name="owner-sync" minute="15" hour="4" user="root"
       job="/usr/local/bin/lock-wrapper owner-sync '/usr/local/bin/owner-sync-pagure f28 f27 f26 f25 f28-container f27-container f26-container f25-container f28-docker f27-docker f26-docker f25-docker epel7 dist-6E-epel module-package-list'"
       cron_file=update-koji-owner
@@ -181,47 +180,63 @@
   - bodhi
   - cron
 
-- name: Make directory for fedwatch systemd config extension
-  file: path=/usr/lib/systemd/system/fedwatch.service.d/ state=directory
+
+- name: stop the unused fedwatch
+  service: name=fedwatch enabled=no state=stopped
   when: inventory_hostname.startswith('bodhi-backend01') and env == "production"
   tags:
   - bodhi
   - fedwatch
 
-- name: extend the fedwatch systemd configuration to restart on failure
-  copy: src=fedwatch.service dest=/usr/lib/systemd/system/fedwatch.service.d/fedwatch.conf
+- name: Removed old unused fedwatch package.
+  package: pkg={{ item }} state=absent
+  tags:
+  - bodhi
+  - fedwatch
+
+- name: Removed old unused fedwatch files.
+  file: path={{item}} state=absent
+  with_items:
+  - /usr/lib/systemd/system/fedwatch.service.d/fedwatch.conf
+  - /usr/lib/systemd/system/fedwatch.service.d/
+  - /etc/fedwatch.conf
+  - /etc/fedwatch.d/
   when: inventory_hostname.startswith('bodhi-backend01') and env == "production"
   notify:
   - reload systemd
-  - restart fedwatch
   tags:
   - bodhi
   - fedwatch
 
-- name: configure fedwatch to sync packages as soon as requests are process.
-  copy: src=fedwatch.conf dest=/etc/fedwatch.conf
-  when: inventory_hostname.startswith('bodhi-backend01') and env == "production"
-  notify: restart fedwatch
-  tags:
-  - bodhi
-  - fedwatch
-
-- name: put the fedwatch koji sync glue script in place
+- name: put the koji sync listener script in place
   copy:
-      src: koji-sync-fedwatch-glue.py
-      dest: /etc/fedwatch.d/koji-sync-fedwatch-glue.py
+      src: koji-sync-listener.py
+      dest: /usr/local/bin/koji-sync-listener.py
       mode: 0755
   when: inventory_hostname.startswith('bodhi-backend01') and env == "production"
   tags:
   - bodhi
-  - fedwatch
+  - koji-sync
 
-- name: start fedwatch
-  service: name=fedwatch enabled=yes state=started
+- name: put the koji sync listener systemd file in place.
+  copy:
+      src: koji-sync-listener.service
+      dest: /usr/lib/systemd/system/koji-sync-listener.service
+      mode: 0755
+  when: inventory_hostname.startswith('bodhi-backend01') and env == "production"
+  notify:
+  - reload systemd
+  - restart koji-sync-listener
+  tags:
+  - bodhi
+  - koji-sync
+
+- name: start the koji sync listener
+  service: name=koji-sync-listener enabled=yes state=started
   when: inventory_hostname.startswith('bodhi-backend01') and env == "production"
   tags:
   - bodhi
-  - fedwatch
+  - koji-sync
 
 #
 # cron job that syncs updates to master mirror
