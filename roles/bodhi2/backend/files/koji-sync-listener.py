@@ -27,7 +27,10 @@ def handle(content):
         '--verbose',
     ] + taglist.split()
     print("Running %r" % cmd)
-    sp.Popen(cmd)
+    proc = sp.Popen(cmd)
+    status = proc.wait()
+    if status:
+        raise RuntimeError("%r gave return code %r" % (cmd, status))
 
 
 def main(fullname, fields, content):
