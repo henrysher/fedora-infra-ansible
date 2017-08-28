@@ -47,6 +47,7 @@ def main(fullname, fields, content):
 if __name__ == '__main__':
     config = fedmsg.config.load_config()
     logging.config.dictConfig(config['logging'])
+    fedmsg.meta.make_processors(**config)
     topic = 'io.pagure.prod.pagure.issue.edit'
     for _, _, topic, msg in fedmsg.tail_messages(topic=topic):
         # Extract some useful information for debugging
