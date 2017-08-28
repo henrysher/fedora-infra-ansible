@@ -12,6 +12,7 @@ import subprocess as sp
 import sys
 
 import fedmsg
+import fedmsg.meta
 
 
 def handle(content):
