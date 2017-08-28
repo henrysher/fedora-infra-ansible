@@ -49,7 +49,22 @@ if __name__ == '__main__':
     logging.config.dictConfig(config['logging'])
     topic = 'io.pagure.prod.pagure.issue.edit'
     for _, _, topic, msg in fedmsg.tail_messages(topic=topic):
+        # Extract some useful information for debugging
+        title, subtitle, link, idx = [None] * 4
+        try:
+            title = fedmsg.meta.msg2title(msg, **config)
+            subtitle = fedmsg.meta.msg2subtitle(msg, **config)
+            link = fedmsg.meta.msg2link(msg, **config)
+            idx = msg.get('msg_id')
+        except Exception as e:
+            print("!! Failed to determine title, subtitle, link")
+        print("Inspecting {title}, {subtitle}, {link}, {idx}".format(
+            title=title, subtitle=subtitle, link=link, idx=idx))
+
+        # Extract values we need to actually process the message
         fullname = msg['msg']['project']['fullname']
         fields = msg['msg']['fields']
         content = msg['msg']['issue']['content']
+
+        # Do the work.
         main(fullname, fields, content)
