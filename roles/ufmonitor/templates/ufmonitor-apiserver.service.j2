@@ -8,7 +8,7 @@ TimeoutStartSec=0
 Type=oneshot
 RemainAfterExit=yes
 EnvironmentFile=-{{ ufmonitor_config_path }}
-ExecStart=/usr/bin/docker run --detach --log-driver none --name %n -p 8000:8000 --add-host=postgres:{{ public_ip }} {{ apiserver_container_image }}
+ExecStart=/usr/bin/docker run --detach --log-driver none --name %n -p 8000:8000 -e POSTGRES_DB_PASSWORD={{ ufmonitor_db_password }} --add-host=postgres:{{ public_ip }} {{ apiserver_container_image }}
 ExecStop=/usr/bin/docker rm --force %n
 TimeoutStopSec=180
 
