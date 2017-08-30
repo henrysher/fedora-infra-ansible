@@ -39,7 +39,7 @@ config = {
         },
     },
     {% if env == 'staging' %}
-    "plugins": ['pkgdb', 'copr'],
+    "plugins": ['pagure', 'copr'],
     {% else %}
     "plugins": ['pkgdb'],
     {% endif %}
@@ -56,6 +56,16 @@ config = {
                 },
             },
         },
+        "pagure": {
+            "users": {
+                "backend": "dogpile.cache.memcached",
+                "expiration_time": 300,
+                "arguments": {
+                    "url": "memcached01:11211",
+                    "distributed_lock": True,
+                },
+            },
+        },
     },
     "pkgdb": {
         {% if env == 'staging' %}
@@ -66,6 +76,9 @@ config = {
         "topic_re": r'\.prod\.pkgdb\.',
         {% endif %}
         "sync_tracked": False,
+    },
+    "pagure": {
+        "api_url": "https://src{{ env_prefix }}.fedoraproject.org/api/0",
     },
     "frontend": {
         "builds_per_page": 8,
