@@ -31,3 +31,16 @@
   tags:
   - fedora-docs
   - fedora-docs/proxy
+  when: env == "production"
+
+- copy: >
+    src={{item}}.stg dest=/etc/httpd/conf.d/{{website}}/{{item}}
+    owner=root group=root mode=0644
+  with_items:
+  - fedora-docs.conf
+  notify:
+  - reload proxyhttpd
+  tags:
+  - fedora-docs
+  - fedora-docs/proxy
+  when: env == "staging"
