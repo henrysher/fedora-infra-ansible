@@ -309,7 +309,9 @@ def set_koji_ownership(tag, packages, arches, verbose=False):
         try:
             session.krb_login(koji_options['principal'], koji_options['keytab'])
         except:
-            print('Unable to sync to "{0}" hub'.format(arch), file=sys.stderr)
+            import traceback
+            traceback.print_exc()
+            print('Failed to login to "{0}" hub'.format(arch), file=sys.stderr)
             continue
 
         kojitag = session.getTag(tag)
