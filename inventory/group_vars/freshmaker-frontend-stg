@@ -1,0 +1,45 @@
+---
+lvm_size: 20000
+mem_size: 2048
+num_cpus: 1
+
+# Set this to True for the F28 release and onwards.
+freezes: false
+
+# Definining these vars has a number of effects
+# 1) mod_wsgi is configured to use the vars for its own setup
+# 2) iptables opens enough ports for all threads for fedmsg
+# 3) roles/fedmsg/base/ declares enough fedmsg endpoints for all threads
+wsgi_fedmsg_service: freshmaker
+wsgi_procs: 2
+wsgi_threads: 2
+
+tcp_ports: [ 80 ]
+
+# Neeed for rsync from log01 for logs.
+custom_rules: [ '-A INPUT -p tcp -m tcp -s 10.5.126.13 --dport 873 -j ACCEPT', '-A INPUT -p tcp -m tcp -s 192.168.1.59 --dport 873 -j ACCEPT' ]
+
+fas_client_groups: sysadmin-noc,sysadmin-releng,sysadmin-mbs,sysadmin-veteran
+
+# These are consumed by a task in roles/fedmsg/base/main.yml
+fedmsg_certs:
+- service: freshmaker
+  owner: fedmsg
+  group: fedmsg
+  can_send: []
+
+# For the MOTD
+csi_security_category: Moderate
+csi_primary_contact: Factory 2 factory2-members@fedoraproject.org
+csi_purpose: Run the freshmaker frontend API.
+csi_relationship: |
+    The apache/mod_wsgi app is the only thing really running here
+
+    It should only be used to report status on what's happening with the
+    freshmaker backend.  The freshmaker frontend doesn't receive requests for
+    activity.
+
+    This host:
+    
+    - relies on db01 for its database of activity (what rebuilds are in
+      progress, and why?)

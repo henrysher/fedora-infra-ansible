@@ -1,0 +1,47 @@
+---
+lvm_size: 20000
+mem_size: 4096
+num_cpus: 2
+
+# Set this to True for the F28 release and onwards.
+freezes: false
+
+tcp_ports: [ 3000, 3001, 3002, 3003,
+             3004, 3005, 3006, 3007 ]
+
+# These people get told when something goes wrong.
+fedmsg_error_recipients:
+- ralph@fedoraproject.org
+- jkaluza@fedoraproject.org
+- cqi@fedoraproject.org
+- qwan@fedoraproject.org
+
+# Neeed for rsync from log01 for logs.
+custom_rules: [ '-A INPUT -p tcp -m tcp -s 10.5.126.13 --dport 873 -j ACCEPT', '-A INPUT -p tcp -m tcp -s 192.168.1.59 --dport 873 -j ACCEPT' ]
+
+fas_client_groups: sysadmin-noc,sysadmin-releng,sysadmin-mbs,sysadmin-veteran
+
+# These are consumed by a task in roles/fedmsg/base/main.yml
+fedmsg_certs:
+- service: freshmaker
+  owner: fedmsg
+  group: fedmsg
+  can_send: []
+
+# For the MOTD
+csi_security_category: High
+csi_primary_contact: Factory 2 factory2-members@fedoraproject.org
+csi_purpose: Run the on-demand-compose-service backend scheduler.
+csi_relationship: |
+    The freshmaker backend runs as a fedmsg-hub process here.
+    
+    It listens to events from fedmsg and requests rebuilds of compound
+    artifacts, mediated by some policy in the config.
+
+    This host:
+    
+    - relies on db01 for its database of activity (what has been rebuilt?)
+    - Will need access to commit to the modules namespace of dist-git.
+    - Will need token-based access to ODCS to request repos.
+    - Will need token-based access to MBS to request module builds.
+    - Will need a kerberos principle to request container builds from koji/osbs.
