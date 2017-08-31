@@ -1,0 +1,79 @@
+- include: "/srv/web/infra/ansible/playbooks/include/virt-create.yml myhosts=odcs:odcs-stg"
+
+- name: make the box be real
+  hosts: odcs:odcs-stg
+  user: root
+  gather_facts: True
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  pre_tasks:
+  - include: "{{ tasks_path }}/yumrepos.yml"
+
+  roles:
+  - base
+  - rkhunter
+  - nagios_client
+  - hosts
+  - fas_client
+  - rsyncd
+  - sudo
+  - collectd/base
+
+  tasks:
+  - include: "{{ tasks_path }}/2fa_client.yml"
+  - include: "{{ tasks_path }}/motd.yml"
+
+  handlers:
+  - include: "{{ handlers_path }}/restart_services.yml"
+
+- name: openvpn on the prod frontend nodes
+  hosts: odcs-frontend
+  user: root
+  gather_facts: True
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - "{{ vars_path }}/{{ ansible_distribution }}.yml"
+
+  roles:
+  - openvpn/client
+
+  handlers:
+  - include: "{{ handlers_path }}/restart_services.yml"
+
+- name: Set up apache on the frontend MBS API app
+  hosts: odcs-frontend:odcs-frontend-stg
+  user: root
+  gather_facts: True
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - "{{ vars_path }}/{{ ansible_distribution }}.yml"
+
+  roles:
+  - mod_wsgi
+
+  handlers:
+  - include: "{{ handlers_path }}/restart_services.yml"
+
+- name: set up fedmsg configuration and common odcs files
+  hosts: odcs:odcs-stg
+  user: root
+  gather_facts: True
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  roles:
+  - fedmsg/base
+
+  handlers:
+  - include: "{{ handlers_path }}/restart_services.yml"
