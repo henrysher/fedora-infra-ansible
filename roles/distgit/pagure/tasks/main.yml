@@ -113,6 +113,19 @@
   - web
   - pagure
 
+- name: create all the directories where we store the git repos
+  file: state=directory
+               path={{ item }}
+               owner=root group=packager mode=0775
+  with_items:
+  - /srv/git/repositories/
+  - /srv/git/repositories/forks
+  - /srv/git/repositories/requests
+  - /srv/git/remotes
+  tags:
+  - gitolite
+  - pagure
+
 - name: Install the apache configuration file
   template: src={{ item }} dest=/etc/httpd/conf.d/{{ item }}
             owner=root group=root mode=0644
