@@ -41,21 +41,9 @@ config = {
     {% if env == 'staging' %}
     "plugins": ['pagure', 'copr'],
     {% else %}
-    "plugins": ['pkgdb'],
+    "plugins": ['pagure'],
     {% endif %}
     "caching": {
-        "plugin": {
-            "pkgdb": {
-                "users": {
-                    "backend": "dogpile.cache.memcached",
-                    "expiration_time": 300,
-                    "arguments": {
-                        "url": "memcached01:11211",
-                        "distributed_lock": True,
-                    },
-                },
-            },
-        },
         "pagure": {
             "users": {
                 "backend": "dogpile.cache.memcached",
@@ -66,16 +54,6 @@ config = {
                 },
             },
         },
-    },
-    "pkgdb": {
-        {% if env == 'staging' %}
-        "pkgdb_url": 'https://admin.stg.fedoraproject.org/pkgdb/api',
-        "topic_re": r'\.stg\.pkgdb\.',
-        {% else %}
-        "pkgdb_url": 'https://admin.fedoraproject.org/pkgdb/api',
-        "topic_re": r'\.prod\.pkgdb\.',
-        {% endif %}
-        "sync_tracked": False,
     },
     "pagure": {
         "api_url": "https://src{{ env_prefix }}.fedoraproject.org/api/0",
