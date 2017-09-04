@@ -76,6 +76,13 @@
   tags:
     - armv7-kernel
 
+- name: make sure there is no old ssh host key for the host still around
+  local_action: known_hosts path={{item}} host={{ inventory_hostname }} state=absent
+  ignore_errors: True
+  with_items:
+  - /root/.ssh/known_hosts
+  when: inventory_hostname not in result.list_vms
+
 - name: (osbs-control01.stg) make sure there is no old ssh host key for the host still around
   known_hosts: path={{item}} host={{ inventory_hostname }} state=absent
   ignore_errors: True
@@ -102,6 +109,13 @@
   local_action: command ssh-keyscan -t rsa {{ inventory_hostname }}
   ignore_errors: True
   register: hostkey
+  when: inventory_hostname not in result.list_vms
+
+- name: add new ssh host key (until we can sign it)
+  local_action: known_hosts path={{item}} key="{{ hostkey.stdout }}" host={{ inventory_hostname }} state=present
+  ignore_errors: True
+  with_items:
+  - /root/.ssh/known_hosts
   when: inventory_hostname not in result.list_vms
 
 - name: (osbs-control01.stg) add new ssh host key
