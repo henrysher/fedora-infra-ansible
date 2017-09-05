@@ -86,10 +86,8 @@ class ProdConfiguration(BaseConfiguration):
 
     # These groups are allowed to submit builds.
     ALLOWED_GROUPS = [
-        'factory2',
-        'modularity-wg',
-        # Not allowed until FESCo approves us in the F27 timeframe.
-        #'packager',
+        # https://pagure.io/fesco/issue/1763
+        'packager',
     ]
 
     # These groups are allowed to cancel the builds of other users.
