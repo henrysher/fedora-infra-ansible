@@ -97,6 +97,15 @@
   notify:
   - restart fedmsg-hub
 
+# For now, we want ppc64 jobs generated on staging but not prod (as we
+# have ppc64 workers for stg but not prod). So we have a WANTED file
+# for staging.
+- name: Install ppc64-imbued WANTED file if this is staging
+  copy: src=images.json.ppc64 dest=/etc/fedora-openqa/images.json
+  when: (deployment_type is defined) and (deployment_type == 'stg')
+  notify:
+  - restart fedmsg-hub
+
 - name: openQA client config
   template: src=client.conf.j2 dest=/etc/openqa/client.conf owner=root group=fedmsg mode=0640
   tags:
