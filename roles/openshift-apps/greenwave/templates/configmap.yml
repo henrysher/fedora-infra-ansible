@@ -22,7 +22,17 @@ data:
 {% endif %}
   fedora.yaml: |-
     --- !Policy
-    id: "taskotron_release_critical_tasks"
+    id: "taskotron_release_critical_tasks_for_testing"
+    product_versions:
+      - fedora-27
+      - fedora-26
+      - fedora-25
+    decision_context: bodhi_update_push_testing
+    relevance_value: koji_build
+    rules:
+      - !PassingTestCaseRule {test_case_name: dist.rpmdeplint}
+    --- !Policy
+    id: "taskotron_release_critical_tasks_for_stable"
     product_versions:
       - fedora-27
       - fedora-26
@@ -30,9 +40,10 @@ data:
     decision_context: bodhi_update_push_stable
     relevance_value: koji_build
     rules:
-      - !PassingTestCaseRule {test_case_name: dist.abicheck}
       - !PassingTestCaseRule {test_case_name: dist.rpmdeplint}
       - !PassingTestCaseRule {test_case_name: dist.upgradepath}
+      # Needs a blacklist to pass...
+      #- !PassingTestCaseRule {test_case_name: dist.abicheck}
     --- !Policy
     # Fedora Atomic CI pipeline
     # http://fedoraproject.org/wiki/CI
