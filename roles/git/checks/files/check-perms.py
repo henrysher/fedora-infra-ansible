@@ -216,29 +216,34 @@ def set_post_receive_hook_version2(gitdir):
 def set_post_receive_hook_version3(gitdir, fix=False):
     """Configure a git repository to use the fedmsg+gnome-mail hooks."""
 
-    # Check that the destination is 'okay'
+    # Old folder where we used to place the hooks
     dest_prefix = os.path.join(gitdir, 'hooks', 'post-receive-chained.d')
 
-    if not os.path.exists(dest_prefix):
-        os.mkdir(dest_prefix)
+    # Remove the old hooks
+    hooks = [
+        os.path.join(dest_prefix, 'post-receive-email'),
+        os.path.join(dest_prefix, 'post-receive-fedmsg'),
+        os.path.join(dest_prefix, 'post-receive-alternativearch'),
+    ]
 
-    if not os.path.isdir(dest_prefix):
-        error('%s:  %s is not a directory.' % (gitdir, dest_prefix))
-        return False
+    for hook in hooks:
+        if os.path.exists(hook):
+            if not fix:
+                error('%s should be removed' % hook)
+            else:
+                os.unlink(hook)
+
+    if os.path.exists(dest_prefix):
+        if not fix:
+            error('%s should be removed' % dest_prefix)
+        else:
+            os.rmdir(dest_prefix)
 
     # Symlink mail notification and fedmsg scripts to post-receive hook
     scripts = {
-        '/usr/share/git-core/mail-hooks/gnome-post-receive-email':
-            os.path.join(dest_prefix, 'post-receive-email'),
-        '/usr/share/git-core/post-receive-fedmsg':
-            os.path.join(dest_prefix, 'post-receive-fedmsg'),
-        '/usr/share/git-core/post-receive-alternativearch':
-            os.path.join(dest_prefix, 'post-receive-alternativearch'),
-
         # This one kicks off all the others.
         '/usr/share/git-core/post-receive-chained':
             os.path.join(gitdir, 'hooks', 'post-receive'),
-
     }
 
     for script, hook in scripts.items():
@@ -250,19 +255,28 @@ def set_post_receive_hook_version3(gitdir, fix=False):
                 error('%s: Hook (%s) not installed.' % (gitdir, hook))
                 return False
 
-        if os.path.exists(hook):
+        if not os.path.islink(hook) \
+                or (os.path.islink(hook) and os.path.realpath(hook) != script):
+            if os.path.exists(hook) \
+                    or (os.path.islink(hook) and os.path.realpath(hook) != script):
+                try:
+                    if not fix:
+                        error('%s should be removed' % hook)
+                    else:
+                        os.remove(hook)
+                except Exception, e:
+                    errstr = hasattr(e, 'strerror') and e.strerror or e
+                    error('%s: Error removing %s: %s' % (gitdir, hook, errstr))
+                    return False
             try:
-                os.remove(hook)
+                if not fix:
+                    error('link from %s to %s should be created' % (script, hook))
+                else:
+                    os.symlink(script, hook)
             except Exception, e:
                 errstr = hasattr(e, 'strerror') and e.strerror or e
-                error('%s: Error removing %s: %s' % (gitdir, hook, errstr))
+                error('%s: Error creating %s symlink: %s' % (gitdir, hook, errstr))
                 return False
-        try:
-            os.symlink(script, hook)
-        except Exception, e:
-            errstr = hasattr(e, 'strerror') and e.strerror or e
-            error('%s: Error creating %s symlink: %s' % (gitdir, hook, errstr))
-            return False
 
     # We ran the gauntlet.
     return True
