@@ -5,14 +5,16 @@ openqa_tap: true
 host_group: openqa-tap-workers
 
 # firewall rules to allow openQA openvswitch guests to communicate
+# eth0 for x86_64 worker hosts, eth2 for ppc64 worker host
 custom_rules: [
     '-A FORWARD -i br0 -j ACCEPT',
     '-A FORWARD -m state -i eth0 -o br0 --state RELATED,ESTABLISHED -j ACCEPT',
+    '-A FORWARD -m state -i eth2 -o br0 --state RELATED,ESTABLISHED -j ACCEPT',
     '-A INPUT -i br0 -j ACCEPT'
 ]
 
 # we do stuff with ifcfg that base doesn't understand. terrible, terrible
 # stuff. seriously - it doesn't handle the openvswitch config well. so
-# let's tell it to just configure eth0 for us and leave everything else
-# alone.
-ansible_ifcfg_whitelist: ['eth0']
+# let's tell it to just configure eth0 (and eth2, for ppc64) for us and
+# leave everything else alone.
+ansible_ifcfg_whitelist: ['eth0', 'eth2']
