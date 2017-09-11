@@ -41,9 +41,20 @@
     state: present
   when: not devel
   with_items:
-    - "24"
     - "25"
     - "26"
+    - "27"
+
+- name: remove obsolete pull associates
+  cron:
+    name: "cron for pull associates for f{{ item }}"
+    user: faf
+    job: "faf pull-associates -o fedora --opsys-release {{ item }} >> /var/log/faf/pull-associates-f{{ item }}.log 2>&1"
+    special_time: monthly
+    state: absent
+  when: not devel
+  with_items:
+    - "24"
 
 - name: koops_to_xorg.py
   cron:
@@ -63,9 +74,20 @@
     state: present
   when: not devel
   with_items:
-    - "24"
     - "25"
     - "26"
+    - "27"
+
+- name: remove obsolete probable fixes
+  cron:
+    name: "cron for probable fixes for f{{ item }}"
+    user: faf
+    job: "faf mark-probably-fixed -o fedora --opsys-release {{ item }} >> /var/log/faf/mark-probably-fixed-f{{ item }}.log 2>&1"
+    special_time: daily
+    state: absent
+  when: not devel
+  with_items:
+    - "24"
 
 - name: update BZ bugs fedora
   cron:

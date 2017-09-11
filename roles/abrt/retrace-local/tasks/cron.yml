@@ -12,6 +12,18 @@
       - "{{ rs_internal_arch_list }}"
   when: not devel
 
+- name: Remove obsolete cron job for retrace-server
+  cron:
+    name: "rs reposync fedora {{ item[0] }} {{ item[1] }}"
+    user: retrace
+    job: "/usr/bin/retrace-server-reposync fedora {{ item[0] }} {{ item[1] }} >> /var/log/retrace-server/reposync_error.log 2>&1"
+    special_time: daily
+    state: absent
+  with_nested:
+      - "{{ rs_internal_fedora_vers_removed }}"
+      - "{{ rs_internal_arch_list }}"
+  when: not devel
+
 - name: Create cron job for retrace-server
   cron:
     name: "rs reposync centos 7 x86_64"
