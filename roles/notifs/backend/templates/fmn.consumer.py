@@ -130,9 +130,9 @@ config = {
 
 
     ## Backend stuff ##
-    {% if env == 'staging' -%}
+    {% if env == 'staging' %}
     "fmn.backends": ["email", "irc", "android"],
-    {% else -%}
+    {% else %}
     "fmn.backends": ["email", "irc"],  # android is disabled.
     {% endif %}
 
@@ -144,11 +144,11 @@ config = {
     "fmn.irc.network": "irc.freenode.net",
     "fmn.irc.nickname": ircnick,
     "fmn.irc.timeout": 120,
-    {% if env == 'staging' -%}
+    {% if env == 'staging' %}
     "fmn.irc.port": 6697,
     "fmn.irc.use_ssl": True,
     "fmn.irc.nickserv_pass":  "{{ fedora-notifstg-freenode-pass }}",
-    {% else -%}
+    {% else %}
     "fmn.irc.port": 6667,
     {% endif %}
 
