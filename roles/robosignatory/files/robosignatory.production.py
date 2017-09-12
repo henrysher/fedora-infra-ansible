@@ -195,6 +195,10 @@ config = {
             'directory': '/mnt/fedora_koji/koji/compose/atomic/rawhide/',
             'key': 'fedora-28'
         },
+        'fedora/rawhide/ppc64le/atomic-host': {
+            'directory': '/mnt/fedora_koji/koji/compose/atomic/rawhide/',
+            'key': 'fedora-28'
+        },
         'fedora/rawhide/aarch64/atomic-host': {
             'directory': '/mnt/fedora_koji/koji/compose/atomic/rawhide/',
             'key': 'fedora-28'
