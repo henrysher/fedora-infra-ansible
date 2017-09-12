@@ -143,8 +143,14 @@ config = {
     # IRC
     "fmn.irc.network": "irc.freenode.net",
     "fmn.irc.nickname": ircnick,
-    "fmn.irc.port": 6667,
     "fmn.irc.timeout": 120,
+    {% if env == 'staging' -%}
+    "fmn.irc.port": 6697,
+    "fmn.irc.use_ssl": True,
+    "fmn.irc.nickserv_pass":  "{{ fedora-notifstg-freenode-pass }}"
+    {% else -%}
+    "fmn.irc.port": 6667,
+    {% endif %}
 
     # Colors:
     "irc_color_lookup": {
