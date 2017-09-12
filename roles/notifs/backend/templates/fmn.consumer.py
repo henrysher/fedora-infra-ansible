@@ -147,7 +147,7 @@ config = {
     {% if env == 'staging' %}
     "fmn.irc.port": 6697,
     "fmn.irc.use_ssl": True,
-    "fmn.irc.nickserv_pass":  "{{ fedora-notifstg-freenode-pass }}",
+    "fmn.irc.nickserv_pass": "{{fedora_notifstg_freenode_pass}}",
     {% else %}
     "fmn.irc.port": 6667,
     {% endif %}
