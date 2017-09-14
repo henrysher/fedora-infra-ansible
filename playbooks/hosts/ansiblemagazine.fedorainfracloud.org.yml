@@ -1,0 +1,73 @@
+- name: check/create instance
+  hosts: magazine2.fedorainfracloud.org
+  gather_facts: False
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - /srv/private/ansible/vars.yml
+   - /srv/web/infra/ansible/vars/fedora-cloud.yml
+   - /srv/private/ansible/files/openstack/passwords.yml
+
+  tasks:
+  - include: "{{ tasks_path }}/persistent_cloud.yml"
+
+  handlers:
+  - include: "{{ handlers_path }}/restart_services.yml"
+
+- name: setup all the things
+  hosts: ansiblemagazine.fedorainfracloud.org
+  gather_facts: True
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - /srv/private/ansible/vars.yml
+   - /srv/private/ansible/files/openstack/passwords.yml
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  pre_tasks:
+  - include: "{{ tasks_path }}/cloud_setup_basic.yml"
+  - name: set hostname (required by some services, at least postfix need it)
+    hostname: name="{{inventory_hostname}}"
+
+  tasks:
+  - name: add packages
+    yum: state=present name={{ item }}
+    with_items:
+    - httpd
+    - php
+    - php-mysql
+    - mariadb-server
+    - mariadb
+    - mod_ssl
+    - php-mcrypt
+    - php-mbstring
+    - wget
+    - unzip
+    - postfix
+    - wordpress
+
+  - name: enable httpd service
+    service: name=httpd enabled=yes state=started
+
+  - name: configure postfix for ipv4 only
+    raw: postconf -e inet_protocols=ipv4
+
+  - name: enable local postfix service
+    service: name=postfix enabled=yes state=started
+
+  roles:
+  - basessh
+  - nagios_client
+  - mariadb_server
+
+  post_tasks:
+  - name: create databaseuser
+    mysql_user: name=magazine
+                host=localhost
+                state=present
+                password="{{ ansiblemagazine_db_password }}"
+                priv="ansiblemagazine.*:ALL"
+
+  - name: Wordpress cron
+    cron: name="Wordpress cron"
+          minute="*/10"
+          job="curl http://localhost:8008/wp-cron.php >/dev/null"
