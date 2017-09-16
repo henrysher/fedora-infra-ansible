@@ -33,6 +33,23 @@
   - packages
   when: "ansible_architecture is defined and ansible_architecture == 'x86_64'"
 
+- name: Install boot script (to set /dev/kvm perms and disable SMT) (ppc64 only)
+  copy: src=openqa-ppc64-prep.sh dest=/usr/local/sbin/openqa-ppc64-prep.sh owner=root group=root mode=0755
+  when: "ansible_architecture is defined and ansible_architecture == 'ppc64le'"
+
+- name: Install systemd service to run boot script (ppc64 only)
+  copy: src=openqa-ppc64-prep.service dest=/etc/systemd/system/openqa-ppc64-prep.service
+  when: "ansible_architecture is defined and ansible_architecture == 'ppc64le'"
+  register: prepservice
+
+- name: Do systemctl daemon-reload to register new service (ppc64 only)
+  command: "systemctl daemon-reload"
+  when: "prepservice is defined and prepservice|changed"
+
+- name: Enable systemd service to run boot script (ppc64 only)
+  service: name=openqa-ppc64-prep enabled=yes state=started
+  when: "ansible_architecture is defined and ansible_architecture == 'ppc64le'"
+
 - include: nfs-client.yml
   when: openqa_hostname is defined and openqa_hostname != "localhost"
 
