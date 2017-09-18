@@ -77,3 +77,42 @@
 
   handlers:
   - include: "{{ handlers_path }}/restart_services.yml"
+
+- name: Set up a gluster share on the backend for the frontend
+  hosts: odcs-backend:odcs-backend-stg
+  user: root
+  gather_facts: True
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - "{{ vars_path }}/{{ ansible_distribution }}.yml"
+  roles:
+  - role: gluster/server
+    name: gluster
+    username: "{{ odcs_gluster_username }}"
+    password: "{{ odcs_gluster_password }}"
+    owner: root
+    group: root
+    datadir: /srv/glusterfs/odcs-stg
+
+- name: Configure all odcs nodes to mount the gluster share.
+  hosts: odcs:odcs-stg
+  user: root
+  gather_facts: True
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - "{{ vars_path }}/{{ ansible_distribution }}.yml"
+
+  roles:
+  - role: gluster/client
+    name: gluster
+    servers:
+    - {{odcs_gluster_server}}
+    username: "{{ odcs_gluster_username }}"
+    password: "{{ odcs_gluster_password }}"
+    owner: root
+    group: root
+    mountdir: /srv/odcs
