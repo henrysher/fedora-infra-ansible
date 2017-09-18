@@ -14,9 +14,13 @@ FED_EXCLUDES=""
 
 DATE_EPEL='/root/last-epel-sync'
 DATE_FED='/root/last-fed-sync'
+DATE_ARCHIVE='/root/last-archive-sync'
+DATE_ALT='/root/last-alt-sync'
+DATE_SECOND='/root/last-second-sync'
 
-touch ${DATE_EPEL}
-touch ${DATE_FED}
+for i in ${DATE_EPEL} ${DATE_FED} ${DATE_ARCHIVE} ${DATE_ALT} ${DATE_SECOND}; do
+  touch ${i}
+done
 
 LAST_SYNC='/usr/local/bin/last-sync'
 
@@ -54,6 +58,9 @@ function sync_stuff() {
 
 sync_stuff ${DATE_EPEL} rsync_epel fedora-epel0 /srv/pub/epel/ "-e"
 sync_stuff ${DATE_FED} rsync_fedora fedora-enchilada0 /srv/pub/fedora/ "-f"
+sync_stuff ${DATE_ARCHIVE} rsync_archive fedora-archive0 /srv/pub/archive/ "-f"
+sync_stuff ${DATE_ALT} rsync_alt fedora-alt0 /srv/pub/alt/ "-f"
+sync_stuff ${DATE_SECOND} rsync_second fedora-secondary0 /srv/pub/fedora-secondary/ "-f"
 
 # Let MM know I'm all up to date
 #/usr/bin/report_mirror
