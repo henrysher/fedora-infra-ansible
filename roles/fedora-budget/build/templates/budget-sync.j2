@@ -1,0 +1,22 @@
+#!/bin/sh                                                                                  
+
+if [ ! -d /srv/web/budget.fedoraproject.org ]
+then
+	echo "/srv/web/budget.fedoraproject.org missing"
+	cd /srv/web
+{% if env == 'staging' %}
+	git clone -b stg https://pagure.io/fedora-budget-site.git budget.fedoraproject.org
+{% else %}
+	git clone https://pagure.io/fedora-budget-site.git budget.fedoraproject.org
+{% endif %}
+fi
+
+
+cd /srv/web/budget
+/usr/bin/git reset -q --hard
+{% if env == 'staging' %}
+/usr/bin/git checkout -q stg
+{% else %}
+/usr/bin/git checkout -q prod
+{% endif %}
+/usr/bin/git pull -q --ff-only

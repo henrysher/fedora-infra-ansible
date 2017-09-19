@@ -71,16 +71,3 @@ build fedoracommunity.org
 build fudcon.fedoraproject.org
 build start.fedoraproject.org
 build fedoraproject.org
-
-if [ ! -d  /srv/web/budget.fedoraproject.org/.git ]
-then
-    /usr/bin/git clone -q \
-        https://pagure.io/fedora-budget-site.git \
-        /srv/web/budget.fedoraproject.org
-fi
-
-cd /srv/web/budget.fedoraproject.org
-/usr/bin/git clean -q -fdx || exit 1
-/usr/bin/git reset -q --hard || exit 1
-/usr/bin/git checkout -q prod || exit 1
-/usr/bin/git pull -q --ff-only || exit 1
