@@ -1,0 +1,44 @@
+---
+- name: modify selinux so that httpd can serve data from NFS shares if needed
+  seboolean:
+    name: httpd_use_nfs
+    state: yes
+    persistent: yes
+  when: "'enabled' in ansible_selinux.status"
+  tags:
+  - odcs
+  - selinux
+
+- name: create ODCS_TARGET_DIR
+  file:
+    path: "{{ odcs_target_dir }}"
+    state: directory
+    owner: apache
+    group: apache
+    mode: 0775
+    recurse: yes
+
+- name: generate the ODCS Apache config
+  template:
+    src: etc/httpd/conf.d/odcs.conf.j2
+    dest: /etc/httpd/conf.d/odcs.conf
+    owner: apache
+    group: apache
+    mode: 0440
+  notify:
+  - reload apache
+  tags:
+  - odcs
+
+# This will initialize Alembic if the database is empty, and migrate to the
+# latest revision
+- name: migrate the database
+  command: "{{ item }}"
+  with_items:
+  - odcs-manager upgradedb
+  - odcs-manager db migrate
+  become: yes
+  become_user: odcs
+  when: odcs_migrate_db
+  tags:
+  - odcs

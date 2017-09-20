@@ -1,0 +1,77 @@
+---
+# install packages and generate shared configuration files
+- name: install the packages required for ODCS
+  yum:
+    name: "{{ item }}"
+    state: present
+  with_items:
+  - python-psycopg2
+  - python2-odcs-common
+  - odcs
+  tags:
+  - odcs
+
+- name: install the latest ODCS packagess
+  yum:
+    name: "{{ item }}"
+    state: latest
+  with_items:
+  - python2-odcs-common
+  - odcs
+  when: odcs_upgrade
+  tags:
+  - odcs
+
+# install required packages for frontend here, as we may
+# need to reload httpd in next task when host is frontend
+- name: install the packages required for ODCS frontend
+  yum:
+    name: "{{ item }}"
+    state: present
+  with_items:
+  - mod_auth_openidc
+  - mod_wsgi
+  when: inventory_hostname.startswith('odcs-frontend')
+  tags:
+  - odcs
+
+- name: install the packages required for ODCS backend
+  yum:
+    name: "{{ item }}"
+    state: present
+  with_items:
+  - koji
+  when: inventory_hostname.startswith('odcs-backend')
+  tags:
+  - odcs
+
+# this app config is shared by backend and frontend, but has different
+# owner groups on backend and frontend, and notify different handlers,
+# we can have vars set for frontend and backend seperately to do that,
+# but it looks a little weird to have such special vars in
+# inventory/group_vars/odcs-*, so just write 2 tasks to keep it simple.
+- name: generate the ODCS app config for frontend
+  template:
+    src: etc/odcs/config.py.j2
+    dest: /etc/odcs/config.py
+    owner: odcs
+    group: apache
+    mode: 0440
+  notify:
+  - restart apache
+  when: inventory_hostname.startswith('odcs-frontend')
+  tags:
+  - odcs
+
+- name: generate the ODCS app config for backend
+  template:
+    src: etc/odcs/config.py.j2
+    dest: /etc/odcs/config.py
+    owner: odcs
+    group: odcs
+    mode: 0440
+  notify:
+  - restart odcs-backend
+  when: inventory_hostname.startswith('odcs-backend')
+  tags:
+  - odcs

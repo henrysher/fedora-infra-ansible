@@ -46,38 +46,6 @@
   handlers:
   - include: "{{ handlers_path }}/restart_services.yml"
 
-- name: Set up apache on the frontend MBS API app
-  hosts: odcs-frontend:odcs-frontend-stg
-  user: root
-  gather_facts: True
-
-  vars_files:
-   - /srv/web/infra/ansible/vars/global.yml
-   - "/srv/private/ansible/vars.yml"
-   - "{{ vars_path }}/{{ ansible_distribution }}.yml"
-
-  roles:
-  - mod_wsgi
-
-  handlers:
-  - include: "{{ handlers_path }}/restart_services.yml"
-
-- name: set up fedmsg configuration and common odcs files
-  hosts: odcs:odcs-stg
-  user: root
-  gather_facts: True
-
-  vars_files:
-   - /srv/web/infra/ansible/vars/global.yml
-   - "/srv/private/ansible/vars.yml"
-   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
-
-  roles:
-  - fedmsg/base
-
-  handlers:
-  - include: "{{ handlers_path }}/restart_services.yml"
-
 - name: Set up a gluster share on the backend for the frontend
   hosts: odcs:odcs-stg
   user: root
@@ -122,3 +90,36 @@
     group: root
     mountdir: /srv/odcs
     when: env != 'staging'
+
+- name: Set up odcs frontend service
+  hosts: odcs-frontend:odcs-frontend-stg
+  user: root
+  gather_facts: True
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - "{{ vars_path }}/{{ ansible_distribution }}.yml"
+
+  roles:
+  - mod_wsgi
+  - odcs/frontend
+
+  handlers:
+  - include: "{{ handlers_path }}/restart_services.yml"
+
+- name: set up odcs backend service
+  hosts: odcs-backend:odcs-backend-stg
+  user: root
+  gather_facts: True
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  roles:
+  - odcs/backend
+
+  handlers:
+  - include: "{{ handlers_path }}/restart_services.yml"
