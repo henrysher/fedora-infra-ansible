@@ -16,6 +16,10 @@ wsgi_fedmsg_service: pagure
 wsgi_procs: 4
 wsgi_threads: 4
 
+# We have both celery (pagure_worker) and web thread wanting to send out fedmsg's.
+# To make things easy on the listening side (so avoid contention of binding ports), let's set the pkgs boxes to active fedmsg.
+fedmsg_active: True
+
 fas_client_groups: sysadmin-main,sysadmin-cvs,sysadmin-releng,sysadmin-noc,sysadmin-veteran
 fas_client_restricted_app: PAGURE_CONFIG=/etc/pagure/pagure_hook.cfg HOME=/srv/git /usr/share/gitolite3/gitolite-shell %(username)s
 fas_client_admin_app: PAGURE_CONFIG=/etc/pagure/pagure_hook.cfg HOME=/srv/git /usr/share/gitolite3/gitolite-shell -s %(username)s
