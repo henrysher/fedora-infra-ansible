@@ -91,6 +91,16 @@
     mountdir: /srv/odcs
     when: env != 'staging'
 
+- name: Clean all yum metadata
+  hosts: odcs-backend-stg:odcs-frontend-stg
+  user: root
+  gather_facts: True
+
+  tasks:
+  - name: clean all yum metadata
+    command: yum clean all
+    check_mode: no
+
 - name: Set up odcs frontend service
   hosts: odcs-frontend:odcs-frontend-stg
   user: root
@@ -108,7 +118,7 @@
   handlers:
   - include: "{{ handlers_path }}/restart_services.yml"
 
-- name: set up odcs backend service
+- name: Set up odcs backend service
   hosts: odcs-backend:odcs-backend-stg
   user: root
   gather_facts: True
