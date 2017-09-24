@@ -34,6 +34,7 @@
   when: inventory_hostname.startswith('odcs-frontend')
   tags:
   - odcs
+  - odcs/frontend
 
 - name: install the packages required for ODCS backend
   yum:
@@ -44,12 +45,15 @@
   when: inventory_hostname.startswith('odcs-backend')
   tags:
   - odcs
+  - odcs/backend
 
 # this app config is shared by backend and frontend, but has different
 # owner groups on backend and frontend, and notify different handlers,
 # we can have vars set for frontend and backend seperately to do that,
 # but it looks a little weird to have such special vars in
-# inventory/group_vars/odcs-*, so just write 2 tasks to keep it simple.
+# inventory/group_vars/odcs-*, also we don't want to repeat the same
+# required vars in frontend and backend, so just have 2 tasks in base
+# to keep it simple.
 - name: generate the ODCS app config for frontend
   template:
     src: etc/odcs/config.py.j2
@@ -62,6 +66,7 @@
   when: inventory_hostname.startswith('odcs-frontend')
   tags:
   - odcs
+  - odcs/frontend
 
 - name: generate the ODCS app config for backend
   template:
@@ -75,3 +80,4 @@
   when: inventory_hostname.startswith('odcs-backend')
   tags:
   - odcs
+  - odcs/backend
