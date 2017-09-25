@@ -1,6 +1,14 @@
 ---
-- name: Get nfs-utils
-  yum: pkg=nfs-utils state=present
+- name: install needed packages
+  yum: pkg={{ item }} state=present update_cache=yes
+  with_items:
+  - bzip2
+  - libsemanage-python 
+  - mod_ssl
+  - nfs-utils
+  - policycoreutils-python
+  tags:
+  - packages
 
 - name: Create /srv/pub directory
   file: path=/srv/pub state=directory
@@ -10,15 +18,6 @@
 
 - name: Create /mnt/koji/compose directory
   file: path=/mnt/koji/compose state=directory
-
-- name: Get libsemanage-python
-  yum: pkg=libsemanage-python state=present
-
-- name: Get policycoreutils-python
-  yum: pkg=policycoreutils-python state=present
-
-- name: Get mod_ssl
-  yum: pkg=mod_ssl state=present
 
 - name: Set httpd_use_nfs seboolean
   seboolean: name=httpd_use_nfs state=yes persistent=yes
