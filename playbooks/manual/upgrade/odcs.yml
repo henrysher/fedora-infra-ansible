@@ -1,0 +1,135 @@
+- name: push packages out to frontend
+  hosts: odcs-frontend:odcs-frontend-stg
+  user: root
+  vars_files: 
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+  vars:
+    testing: False
+    odcs_migrate_db: True
+  handlers:
+  - include: "{{ handlers_path }}/restart_services.yml"
+
+  tasks:
+  - name: clean all metadata {%if testing%}(with infrastructure-testing on){%endif%}
+    command: yum clean all {%if testing%} --enablerepo=infrastructure-testing {%endif%}
+    check_mode: no
+  - name: yum update odcs packages from main repo
+    yum: name={{item}} state=latest
+    when: not testing
+    with_items:
+    - module-build-service
+    - python-modulemd
+  - name: yum update odcs packages from testing repo
+    yum: name={{item}} state=latest enablerepo=infrastructure-testing
+    when: testing
+    with_items:
+    - module-build-service
+    - python-modulemd
+
+- name: push packages out to backend
+  hosts: odcs-backend:odcs-backend-stg
+  user: root
+  vars_files: 
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+  vars:
+    testing: False
+    odcs_migrate_db: True
+  handlers:
+  - include: "{{ handlers_path }}/restart_services.yml"
+
+  tasks:
+  - name: clean all metadata {%if testing%}(with infrastructure-testing on){%endif%}
+    command: yum clean all {%if testing%} --enablerepo=infrastructure-testing {%endif%}
+    check_mode: no
+  - name: yum update odcs packages from main repo
+    yum: name={{item}} state=latest
+    when: not testing
+    with_items:
+    - module-build-service
+    - python-modulemd
+  - name: yum update odcs packages from testing repo
+    yum: name={{item}} state=latest enablerepo=infrastructure-testing
+    when: testing
+    with_items:
+    - module-build-service
+    - python-modulemd
+
+- name: verify the frontend and stop it
+  hosts: odcs-frontend:odcs-frontend-stg
+  user: root
+  vars_files: 
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+  vars:
+    odcs_migrate_db: True
+  handlers:
+  - include: "{{ handlers_path }}/restart_services.yml"
+
+  pre_tasks:
+  - name: tell nagios to shush w.r.t. the frontend
+    nagios: action=downtime minutes=15 service=host host={{ inventory_hostname_short }}{{ env_suffix }}
+    delegate_to: noc01.phx2.fedoraproject.org
+    ignore_errors: true
+
+  roles:
+  - odcs/base
+  - odcs/frontend
+
+  post_tasks:
+  - service: name="httpd" state=stopped
+
+- name: verify the backend, stop it, and then upgrade the db
+  hosts: odcs-backend:odcs-backend-stg
+  user: root
+  vars_files: 
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+  vars:
+    odcs_migrate_db: True
+  handlers:
+  - include: "{{ handlers_path }}/restart_services.yml"
+
+  pre_tasks:
+  - name: tell nagios to shush w.r.t. the backend
+    nagios: action=downtime minutes=15 service=host host={{ inventory_hostname_short }}{{ env_suffix }}
+    delegate_to: noc01.phx2.fedoraproject.org
+    ignore_errors: true
+  - name: Stop the odcs backend
+    service: name="fedmsg-hub" state=stopped
+
+  roles:
+  - odcs/base
+  - odcs/backend
+
+  post_tasks:
+  - name: tell nagios to unshush w.r.t. the backend
+    nagios: action=unsilence service=host host={{ inventory_hostname_short }}{{ env_suffix }}
+    delegate_to: noc01.phx2.fedoraproject.org
+    ignore_errors: true
+
+- name: restart the frontend
+  hosts: odcs-frontend:odcs-frontend-stg
+  user: root
+  vars_files: 
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+  vars:
+    odcs_migrate_db: True
+  handlers:
+  - include: "{{ handlers_path }}/restart_services.yml"
+
+  tasks:
+  - service: name="httpd" state=started
+
+  post_tasks:
+  - name: tell nagios to unshush w.r.t. the frontend
+    nagios: action=unsilence service=host host={{ inventory_hostname_short }}{{ env_suffix }}
+    delegate_to: noc01.phx2.fedoraproject.org
+    ignore_errors: true
