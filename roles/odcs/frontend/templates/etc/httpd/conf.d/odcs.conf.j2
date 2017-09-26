@@ -36,8 +36,16 @@ OIDCOAuthIntrospectionEndpointParams token_type_hint=Bearer
             {{ 'Require ip ' ~ odcs_allowed_hosts|join(' ') }}
             {% endif %}
         </RequireAny>
-        {% endif %}
         Require all granted
+        {% else %}
+        AuthType openid-connect
+        <Limit GET HEAD OPTIONS>
+            Require all granted
+        </Limit>
+        <Limit POST PATCH PUT DELETE>
+            Require valid-user
+        </Limit>
+        {% endif %}
     </RequireAll>
 </Directory>
 
