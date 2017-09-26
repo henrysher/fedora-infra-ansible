@@ -12,13 +12,13 @@
 
   tasks:
   - name: clean all metadata {%if testing%}(with infrastructure-testing on){%endif%}
-    command: yum clean all {%if testing%} --enablerepo=infrastructure-testing {%endif%}
+    command: yum clean all {%if testing%} --enablerepo=infrastructure-tags-stg {%endif%}
     check_mode: no
   - name: yum update FMN packages from main repo
     yum: name="python-fmn" state=latest
     when: not testing
   - name: yum update FMN packages from testing repo
-    yum: pkg=python-fmn state=latest enablerepo=infrastructure-testing
+    yum: pkg=python-fmn state=latest enablerepo=infrastructure-tags-stg
     when: testing
   - name: yum update FMN packages from testing repo
     yum: pkg=python-fmn state=latest enablerepo=epel-testing
