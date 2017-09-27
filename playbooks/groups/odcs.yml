@@ -55,51 +55,59 @@
    - /srv/web/infra/ansible/vars/global.yml
    - "/srv/private/ansible/vars.yml"
    - "{{ vars_path }}/{{ ansible_distribution }}.yml"
-  roles:
-  - role: gluster/server
-    name: gluster
-    tags: gluster
-    username: "{{ odcs_gluster_username }}"
-    password: "{{ odcs_gluster_password }}"
-    owner: root
-    group: root
-    datadir: /srv/glusterfs/odcs-stg
-
-  - role: gluster/client
-    name: gluster
-    tags: gluster
-    servers:
-    - odcs-frontend01.stg.phx2.fedoraproject.org
-    - odcs-backend01.stg.phx2.fedoraproject.org
-    username: "{{ odcs_gluster_username }}"
-    password: "{{ odcs_gluster_password }}"
-    owner: root
-    group: root
-    mountdir: /srv/odcs
-    when: env == 'staging'
-
-  - role: gluster/client
-    name: gluster
-    tags: gluster
-    servers:
-    - odcs-frontend01.phx2.fedoraproject.org
-    - odcs-backend01.phx2.fedoraproject.org
-    username: "{{ odcs_gluster_username }}"
-    password: "{{ odcs_gluster_password }}"
-    owner: root
-    group: root
-    mountdir: /srv/odcs
-    when: env != 'staging'
-
-- name: Clean all yum metadata
-  hosts: odcs-backend-stg:odcs-frontend-stg
-  user: root
-  gather_facts: True
-
+  vars:
+      gluster_brick_dir: /srv/glusterfs/
+      gluster_mount_dir: /srv/odcs
+      gluster_brick_name: odcs
+      gluster_server_group: odcs-stg
   tasks:
-  - name: clean all yum metadata
-    command: yum clean all
-    check_mode: no
+    - name: install needed packages for server
+      package: name={{ item }} state=present
+      with_items:
+      - glusterfs-server
+      tags:
+      - packages
+
+    - name: start glusterd for the server
+      service: name=glusterd state=started
+
+    - name: Servers discover each other.
+      command: gluster peer probe  {{ item }}
+      with_items: '{{groups[gluster_server_group]}}'
+      run_once: true
+
+    - name: install needed packages for client
+      package: name={{ item }} state=present
+      with_items:
+      - glusterfs-fuse
+      tags:
+      - packages
+
+    - name: Ensure Gluster brick and mount directories exist.
+      file: "path={{ item }} state=directory mode=0775"
+      with_items:
+        - "{{ gluster_brick_dir }}"
+        - "{{ gluster_mount_dir }}"
+
+    - name: Configure Gluster volume.
+      gluster_volume:
+        state: present
+        name: "{{ gluster_brick_name }}"
+        brick: "{{ gluster_brick_dir }}"
+        replicas: 2
+        cluster: "{{ groups[gluster_server_group] | join(',') }}"
+        host: "{{ inventory_hostname }}"
+        force: yes
+      run_once: true
+      ignore_errors: true
+
+    - name: Ensure Gluster volume is mounted.
+      mount:
+        name: "{{ gluster_mount_dir }}"
+        src: "{{ inventory_hostname }}:/{{ gluster_brick_name }}"
+        fstype: glusterfs
+        opts: "defaults,_netdev"
+        state: mounted
 
 - name: Set up odcs frontend service
   hosts: odcs-frontend:odcs-frontend-stg
