@@ -6,14 +6,14 @@
   - basset
   - basset/frontend
 
-- name: restart httpd
-  service: name=httpd state=restarted
+- name: start httpd
+  service: name=httpd state=started
 
 - name: install basset config
   template: src=frontend.cfg.j2 dest=/etc/basset/frontend.cfg
             owner=basset-frontend group=basset-frontend mode=0600
   notify:
-  - restart httpd
+  - restart apache
   tags:
   - basset
   - basset/frontend
@@ -23,7 +23,7 @@
         owner=root group=root mode=0644
   when: env == "staging"
   notify:
-  - restart httpd
+  - restart apache
   tags:
   - basset
   - basset/frontend
@@ -33,7 +33,7 @@
         owner=root group=root mode=0644
   when: env != "staging"
   notify:
-  - restart httpd
+  - restart apache
   tags:
   - basset
   - basset/frontend
@@ -51,7 +51,7 @@
   copy: src=basset.conf dest=/etc/httpd/conf.d/basset.conf
         owner=root group=root mode=0644
   notify:
-  - restart httpd
+  - restart apache
   tags:
   - basset
   - basset/frontend
