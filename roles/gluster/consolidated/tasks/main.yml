@@ -1,0 +1,59 @@
+- name: install needed packages for server
+  package: name={{ item }} state=present
+  with_items:
+  - glusterfs-server
+  tags:
+  - packages
+
+- name: start glusterd for the server
+  service: name=glusterd state=started enabled=true
+
+- name: Servers discover each other.
+  command: gluster peer probe  {{ item }}
+  with_items: '{{groups[gluster_server_group]}}'
+  run_once: true
+
+- name: install needed packages for client
+  package: name={{ item }} state=present
+  with_items:
+  - glusterfs-fuse
+  - libselinux-python
+  tags:
+  - packages
+  - gluster
+
+- name: set sebooleans so httpd can talk to the gluster mount.
+  seboolean: name={{ item }}
+                    state=true
+                    persistent=true
+  with_items:
+  - nis_enabled
+  - httpd_use_fusefs
+  tags:
+  - gluster
+
+- name: Ensure Gluster brick and mount directories exist.
+  file: "path={{ item }} state=directory mode=0775"
+  with_items:
+    - "{{ gluster_brick_dir }}"
+    - "{{ gluster_mount_dir }}"
+
+- name: Configure Gluster volume.
+  gluster_volume:
+    state: present
+    name: "{{ gluster_brick_name }}"
+    brick: "{{ gluster_brick_dir }}"
+    replicas: 2
+    cluster: "{{ groups[gluster_server_group] | join(',') }}"
+    host: "{{ inventory_hostname }}"
+    force: yes
+  run_once: true
+  ignore_errors: true
+
+- name: Ensure Gluster volume is mounted.
+  mount:
+    name: "{{ gluster_mount_dir }}"
+    src: "{{ inventory_hostname }}:/{{ gluster_brick_name }}"
+    fstype: glusterfs
+    opts: "defaults,_netdev"
+    state: mounted
