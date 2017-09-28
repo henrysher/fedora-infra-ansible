@@ -80,8 +80,20 @@
       package: name={{ item }} state=present
       with_items:
       - glusterfs-fuse
+      - libselinux-python
       tags:
       - packages
+      - gluster
+
+    - name: set sebooleans so httpd can talk to the gluster mount.
+      seboolean: name={{ item }}
+                        state=true
+                        persistent=true
+      with_items:
+      - nis_enabled
+      - httpd_use_fusefs
+      tags:
+      - gluster
 
     - name: Ensure Gluster brick and mount directories exist.
       file: "path={{ item }} state=directory mode=0775"
