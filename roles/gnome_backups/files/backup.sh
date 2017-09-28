@@ -12,7 +12,6 @@ MACHINES='signal.gnome.org
           chooser.gnome.org
           git.gnome.org
           webapps.gnome.org
-          progress.gnome.org
           cloud.gnome.org
           bastion.gnome.org
           spinner.gnome.org
