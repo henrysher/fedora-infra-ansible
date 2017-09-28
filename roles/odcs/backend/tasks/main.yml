@@ -1,4 +1,20 @@
 ---
+- name: Install the httpd package, just to get the apache group on the system.
+  pkg:
+    name: httpd
+    state: present
+  tags:
+  - packages
+  - odcs
+  - odcs/backend
+- name: Make sure httpd isn't running.
+  service:
+    name: httpd
+    state: stopped
+    enabled: false
+  tags:
+  - odcs
+  - odcs/backend
 - name: generate the ODCS koji config
   template:
     src: etc/koji.conf.d/odcs.conf.j2
