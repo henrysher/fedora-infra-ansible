@@ -292,22 +292,27 @@ def get_pagure_project_branches(namespace, package=None, verbose=False):
 
 
 def set_koji_ownership(tag, packages, arches, verbose=False):
-    koji_options = get_options()
+    koji_login_options = get_options()
 
+    koji_options={
+        'krb_rdns': False,
+        # About ten minutes.  The default is 12 hours.
+        'timeout': 60 * 10,
+    }
     for arch in arches:
         if arch == 'primary':
             session = koji.ClientSession(
                 'https://koji{0}.fedoraproject.org/kojihub'.format(ENV_SUFFIX),
-                {'krb_rdns': False}
+                opts=koji_options,
             )
         else:
             session = koji.ClientSession(
                 'https://{0}.koji.fedoraproject.org/kojihub'.format(arch),
-                {'krb_rdns': False}
+                opts=koji_options,
             )
 
         try:
-            session.krb_login(koji_options['principal'], koji_options['keytab'])
+            session.krb_login(koji_login_options['principal'], koji_login_options['keytab'])
         except:
             import traceback
             traceback.print_exc()
