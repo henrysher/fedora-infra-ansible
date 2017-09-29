@@ -45,10 +45,9 @@ cd /srv/web/fedora-websites
 
 /usr/bin/git clean -q -fdx || exit 1
 /usr/bin/git reset -q --hard || exit 1
-/usr/bin/git checkout -q f26 || exit 1
-/usr/bin/git pull -q --ff-only || exit 1
+/usr/bin/git checkout -q master || exit 1
 
-build spins.fedoraproject.org
+/usr/bin/git pull -q --ff-only || exit 1
 build labs.fedoraproject.org
 build arm.fedoraproject.org
 build getfedora.org
@@ -62,10 +61,13 @@ popd > /dev/null
 /usr/bin/git clean -q -fdx || exit 1
 /usr/bin/git reset -q --hard || exit 1
 /usr/bin/git checkout -q master || exit 1
+
 /usr/bin/git pull -q --ff-only || exit 1
 
+build flocktofedora.org
+build spins.fedoraproject.org
 build boot.fedoraproject.org
 build fedoracommunity.org
 build fudcon.fedoraproject.org
 build start.fedoraproject.org
-build flocktofedora.org
+build fedoraproject.org
