@@ -245,6 +245,40 @@
   - pagure
   - bugzilla
 
+# Cron job to export extras information from the pagure DB
+- name: Install the apache configuration file for /extras
+  copy: src={{ item }} dest=/etc/httpd/conf.d/{{ item }}
+             owner=root group=root mode=0644
+  with_items:
+  - pagure_cron.conf
+  when: env == 'staging'
+  tags:
+  - files
+  - config
+  - pagure
+  notify:
+  - restart apache
+
+- name: create the /srv/cache/extras folder for the crons
+  file: state=directory
+               path=/srv/cache/extras
+               owner=apache group=apache mode=0775
+  when: env == 'staging'
+  tags:
+  - pagure
+
+- name: Configure cron job for a hourly pagure_poc
+  cron:
+    name: pagure-poc
+    user: root
+    minute: 0
+    job: /usr/libexec/pagure-dist-git/pagure_poc.py /srv/cache/extras
+    cron_file: pagure-poc
+    state: present
+  when: env == 'staging'
+  tags:
+  - pagure
+
 # Ensure all the services are up and running
 
 - name: Start and enable httpd, postfix, pagure_milter
