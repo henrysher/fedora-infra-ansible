@@ -274,6 +274,7 @@ LANGUAGES = (
     ('en', gettext('English')),
     ('ru', gettext('Russian')),
     ('zh-cn', gettext('Simplified Chinese')),
+    ('zh-tw', gettext('Traditional Chinese')),
     ('fr', gettext('French')),
     ('el', gettext('Greek')),
     ('id', gettext('Indonesian')),
