@@ -301,6 +301,7 @@ LANGUAGES = (
     ('ru', gettext('Russian')),
     ('id', gettext('Indonesian')),
     ('zh-cn', gettext('Simplified Chinese')),
+    ('zh-tw', gettext('Traditional Chinese')),
 )
 {% endif %}
 
