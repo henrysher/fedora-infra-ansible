@@ -49,6 +49,7 @@ cd /srv/web/fedora-websites
 
 /usr/bin/git pull -q --ff-only || exit 1
 build labs.fedoraproject.org
+build spins.fedoraproject.org
 build arm.fedoraproject.org
 build getfedora.org
 build alt.fedoraproject.org
@@ -65,7 +66,6 @@ popd > /dev/null
 /usr/bin/git pull -q --ff-only || exit 1
 
 build flocktofedora.org
-build spins.fedoraproject.org
 build boot.fedoraproject.org
 build fedoracommunity.org
 build fudcon.fedoraproject.org
