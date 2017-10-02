@@ -58,7 +58,12 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'kobo.django.menu.middleware.MenuMiddleware',
+    {% if env == 'staging' %}
+    # This thing is ridiculous.
+    #'pdc.apps.usage.middleware.UsageMiddleware',
+    {% else %}
     'pdc.apps.usage.middleware.UsageMiddleware',
+    {% endif %}
     'pdc.apps.changeset.middleware.ChangesetMiddleware',
 )
 
