@@ -24,6 +24,9 @@
   - apache
   - mod_wsgi
 
+  - { role: bodhi2/base, when: "inventory_hostname.startswith('bodhi0')" }
+  - { role: fedmsg/base,  when: "inventory_hostname.startswith('bodhi0')" }
+
   - role: keytab/service
     owner_user: bodhi
     owner_group: bodhi
@@ -36,9 +39,6 @@
     service: bodhi
     host: "bodhi.stg.fedoraproject.org"
     when: env == "staging"
-
-  - { role: bodhi2/base, when: "inventory_hostname.startswith('bodhi0')" }
-  - { role: fedmsg/base,  when: "inventory_hostname.startswith('bodhi0')" }
 
   tasks:
   - include: "{{ tasks_path }}/yumrepos.yml"
