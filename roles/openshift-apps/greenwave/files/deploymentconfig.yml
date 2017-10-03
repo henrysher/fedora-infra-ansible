@@ -44,12 +44,48 @@ spec:
       - name: config-volume
         configMap:
           name: greenwave-configmap
+# For fedmsg consumers
+apiVersion: v1
+kind: DeploymentConfig
+metadata:
+  name: greenwave-fedmsg-consumers
+  labels:
+    app: greenwave
+    service: fedmsg-consumers
+spec:
+  replicas: 1
+  selector:
+    service: fedmsg-consumers
+  template:
+    metadata:
+      labels:
+        app: greenwave
+        service: fedmsg-consumers
+    spec:
+      containers:
+      - name: fedmsg-consumers
+        image: 172.30.53.136:5000/greenwave/greenwave:latest
+        ports:
+        - containerPort: 8081
+        command: /usr/bin/fedmsg-hub
+        volumeMounts:
+        - name: fedmsg-config-volume
+          mountPath: /etc/fedmsg.d
+          readOnly: true
+        resources:
+          limits:
+            memory: 384Mi
+      volumes:
+      - name: fedmsg-config-volume
+        configMap:
+          name: greenwave-fedmsg-configmap
   triggers:
   - type: ImageChange
     imageChangeParams:
       automatic: true
       containerNames:
       - web
+      - fedmsg-consumers
       from:
         kind: ImageStreamTag
         name: greenwave:latest
