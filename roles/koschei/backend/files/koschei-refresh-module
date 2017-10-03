@@ -1,0 +1,31 @@
+#!/usr/libexec/koschei/koschei-admin
+# Refresh group based on module contents
+# Usage: koschei-refresh-module <group-name> <module-name> <module-stream>
+
+import re
+import sys
+import os
+from pdc_client import PDCClient
+from koschei import data, backend, plugin
+from koschei.config import load_config
+import koschei.models as m
+
+# Parse args
+group_namespace=None
+(_, group_name, module_name, module_stream) = sys.argv
+if '/' in group_name:
+    (group_namespace, group_name) = group_name.split('/')
+
+# Get latest module from PDC
+pdc_url = 'https://{0}/rest_api/v1/'.format(os.environ['PDC'])
+pdc = PDCClient(pdc_url, develop=True, ssl_verify=True)
+modules = pdc['unreleasedvariants'](variant_type='module', variant_name=module_name, variant_version=module_stream, active=True, page_size=-1)
+latest_module = sorted(modules, key=lambda mod: mod['variant_release'])[-1]
+group_content = [re.match(r'^(.+)-[^-]+-[^-]+\.src.rpm$', rpm).group(1) for rpm in latest_module['rpms'] if rpm.endswith('.src.rpm')]
+
+# Update contents of Koschei group
+load_config(['/usr/share/koschei/config.cfg', '/etc/koschei/config-backend.cfg'])
+session = backend.KoscheiBackendSession()
+group = session.db.query(m.PackageGroup).filter_by(name=group_name, namespace=group_namespace).one()
+data.set_group_content(session, group, group_content)
+session.db.commit()
