@@ -10,6 +10,10 @@ tcp_ports: [80, 443,
 
 custom_rules: [ '-A INPUT -p tcp -m tcp --dport 9418 -j ACCEPT']
 
+# We have both celery (pagure_worker) and web thread wanting to send out fedmsg's.
+# To make things easy on the listening side (so avoid contention of binding ports), let's set the pkgs boxes to active fedmsg.
+fedmsg_active: True
+
 # Definining these vars has a number of effects
 # 1) mod_wsgi is configured to use the vars for its own setup
 # 2) iptables opens enough ports for all threads for fedmsg
