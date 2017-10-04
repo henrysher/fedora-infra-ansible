@@ -36,17 +36,12 @@
 {% if env != 'staging' and datacenter == 'phx2' and inventory_hostname not in groups['staging-friendly'] %}
 #
 # In the phx2 datacenter, both production and staging hosts are in the same 
-# subnet/vlan. We want production hosts to reject connectons from staging group hosts
+# vlan, but different subnets. We want production hosts to reject connectons from staging group hosts
 # to prevent them from interfering with production. There are however a few hosts in 
 # production we have marked 'staging-friendly' that we do allow staging to talk to for 
 # mostly read-only data they need.
 #
-{% for host in groups['staging']|sort %}
-{% if 'eth0_ip' in hostvars[host] %}# {{ host }}
--A INPUT -s {{ hostvars[host]['eth0_ip'] }} -j REJECT --reject-with icmp-host-prohibited
-{% else %}# {{ host }} has no 'eth0_ip' listed
-{% endif %}
-{% endfor %}
+-A INPUT -s 10.5.128.0/24 -j REJECT --reject-with icmp-host-prohibited
 {% endif %}
 
 {% if ansible_domain == 'qa.fedoraproject.org' and inventory_hostname not in groups['qa-isolated'] %}
