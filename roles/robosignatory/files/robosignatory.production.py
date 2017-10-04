@@ -78,12 +78,6 @@ config = {
                     "key": "fedora-28",
                     "keyid": "9db62fb1"
                 },
-                {
-                    "from": "f27-pending",
-                    "to": "f27",
-                    "key": "fedora-27",
-                    "keyid": "f5282ee4"
-                },
 
                 # Gated bodhi updates
                 {
