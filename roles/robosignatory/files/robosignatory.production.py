@@ -38,6 +38,12 @@ config = {
             'module_keyid': 'a3cc4e62',
             'tags': [
                 # Temporary tags
+                {
+                    "from": "f28-llvm",
+                    "to": "f28-llvm",
+                    "key": "fedora-28",
+                    "keyid": "9db62fb1"
+                },
 
                 # Infra tags
                 {
