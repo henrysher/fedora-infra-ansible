@@ -181,6 +181,19 @@
   - bodhi
   - cron
 
+- name: Install weekly bodhi-dequeue-stable cron job that moves updates from batched to stable
+  cron:
+    name: "bodhi-dequeue-stable"
+    minute: "0"
+    hour: "3"
+    weekday: "2"
+    job: "/usr/bin/bodhi-dequeue-stable"
+    user: "apache"
+  when: inventory_hostname.startswith('bodhi-backend01')
+  tags:
+  - bodhi
+  - cron
+
 - name: put the koji sync listener script in place
   copy:
       src: koji-sync-listener.py
