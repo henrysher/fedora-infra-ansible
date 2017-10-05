@@ -7,7 +7,8 @@
   register: new_project
   failed_when: new_project.rc != 0 and ('already exists' not in new_project.stderr)
   changed_when: new_project.rc == 0
-  environment: "{{osbs_environment}}"
+  args:
+    environment: "{{osbs_environment}}"
   when: osbs_namespace_create
 
 - name: copy service accounts
@@ -22,7 +23,8 @@
     --filename={{ osbs_openshift_home }}/serviceaccount-{{ item.item }}.yml
   register: service_account_import
   failed_when: service_account_import.rc != 0 and ('already exists' not in service_account_import.stderr)
-  environment: "{{osbs_environment}}"
+  args:
+    environment: "{{osbs_environment}}"
   with_items: "{{ yaml_sa.results | default([]) }}"
   when: item.changed
 
@@ -49,7 +51,8 @@
     --namespace={{ osbs_namespace }}
     --force=true
     --filename={{ osbs_openshift_home }}/rolebinding-{{ item.item.name }}.yml
-  environment: "{{osbs_environment}}"
+  args:
+    environment: "{{osbs_environment}}"
   with_items: "{{ yaml_rolebindings.results }}"
   when: item.changed
 
@@ -66,7 +69,8 @@
     --namespace={{ osbs_namespace }}
     --force=true
     --filename={{ osbs_openshift_home }}/resourcequota.yml
-  environment: "{{osbs_environment}}"
+  args:
+    environment: "{{osbs_environment}}"
   when: osbs_master_max_pods is defined and osbs_master_max_pods >= 0 and yaml_resourcequotas.changed
   tags:
   - resourcequotas
@@ -77,7 +81,8 @@
     --namespace={{ osbs_namespace }}
     --ignore-not-found=true
     resourcequota concurrentbuilds
-  environment: "{{osbs_environment}}"
+  args:
+    environment: "{{osbs_environment}}"
   when: osbs_master_max_pods is not defined or osbs_master_max_pods < 0
   tags:
   - resourcequotas
@@ -97,7 +102,8 @@
     --namespace={{ osbs_namespace }}
     --force=true
     --filename={{ osbs_openshift_home }}/limitrange.yml
-  environment: "{{osbs_environment}}"
+  args:
+    environment: "{{osbs_environment}}"
   when: osbs_master_cpu_limitrange is defined and osbs_master_cpu_limitrange and yaml_limitrange.changed
   tags:
   - limitranges
@@ -108,7 +114,8 @@
     --namespace={{ osbs_namespace }}
     --ignore-not-found=true
     limitrange cpureq
-  environment: "{{osbs_environment}}"
+  args:
+    environment: "{{osbs_environment}}"
   when: osbs_master_cpu_limitrange is not defined or not osbs_master_cpu_limitrange
   tags:
   - limitranges
@@ -118,7 +125,6 @@
   template:
     src: role-osbs-custom-build.yml.j2
     dest: "{{ osbs_openshift_home }}/{{ inventory_hostname }}-{{ osbs_namespace }}-role-osbs-custom-build.yml"
-  environment: "{{ osbs_environment }}"
   register: yaml_role
   tags:
   - oc
@@ -129,7 +135,8 @@
     --namespace={{ osbs_namespace }}
     --force=true
     --filename={{ osbs_openshift_home }}/{{ inventory_hostname }}-{{ osbs_namespace }}-role-osbs-custom-build.yml
-  environment: "{{ osbs_environment }}"
+  args:
+    environment: "{{ osbs_environment }}"
   when: yaml_role.changed
   tags:
   - oc
