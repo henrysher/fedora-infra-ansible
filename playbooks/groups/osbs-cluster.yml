@@ -327,6 +327,12 @@
         creates: "/etc/origin/koji-builder-policy-added"
       when: env == "production"
       environment: "{{ osbs_environment }}"
+    - name: set custom build policy for builder service account in openshift for osbs
+      shell: "oadm policy add-role-to-user -n default osbs-custom-build system:serviceaccount:default:builder && touch /etc/origin/koji-custom-build-policy-added"
+      args:
+        creates: "/etc/origin/koji-builder-policy-added"
+      when: env == "production"
+      environment: "{{ osbs_environment }}"
 
 - name: Manage docker images and image stream
   hosts: osbs-masters[0]
