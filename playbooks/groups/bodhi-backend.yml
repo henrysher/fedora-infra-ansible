@@ -44,6 +44,12 @@
     nfs_src_dir: 'fedora_koji'
     when: env == 'staging'
 
+  - bodhi2/backend
+  - fedmsg/base
+  - role: collectd/fedmsg-service
+    process: fedmsg-hub
+    user: masher
+
   - role: keytab/service
     service: pkgdb
     owner_user: fedmsg
@@ -61,11 +67,6 @@
     host: "bodhi.stg.fedoraproject.org"
     when: env == "staging"
 
-  - bodhi2/backend
-  - fedmsg/base
-  - role: collectd/fedmsg-service
-    process: fedmsg-hub
-    user: masher
 
   tasks:
   - name: create secondary volume dir for stg bodhi
