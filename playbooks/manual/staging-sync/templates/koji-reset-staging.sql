@@ -162,7 +162,8 @@ insert into user_perms (user_id, perm_id, active, creator_id) values (
 {% for username, principal in [('releng', 'compose/koji.stg.fedoraproject.org'),
                                ('koschei', 'koschei/koschei-backend01.stg.phx2.fedoraproject.org'),
                                ('hotness', 'hotness/hotness01.stg.phx2.fedoraproject.org'),
-                               ('containerbuild', 'osbs/osbs.stg.fedoraproject.org')] %}
+                               ('containerbuild', 'osbs/osbs.stg.fedoraproject.org'),
+                               ('kojira', 'kojira/koji.stg.fedoraproject.org@STG.FEDORAPROJECT.ORG')] %}
 update users set krb_principal='{{principal}}@STG.FEDORAPROJECT.ORG' where username='{{username}}';
 {% endfor %}
 update users set krb_principal=replace(krb_principal, '@FEDORAPROJECT.ORG', '@STG.FEDORAPROJECT.ORG');
