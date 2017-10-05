@@ -24,6 +24,11 @@
     with_items: '{{ global_backup_targets }}'
     when: global_backup_targets is defined
 
+  - name: copy new database dumps into the backup server database dir
+    local_action: "shell rsync -a {{ inventory_hostname }}:{{ item }}/ /fedora_backups/databases/{{ inventory_hostname }}/"
+    with_items: '{{ db_backup_dir }}'
+    when: db_backup_dir is defined
+
   - name: run rdiff-backup hitting all the host targets
     local_action: "shell rdiff-backup --remote-schema 'ssh -p {{ ansible_port|default(22) }} -C %s rdiff-backup --server' --exclude='**git-seed*' --exclude='**git_seed' --exclude='**.snapshot' --create-full-path --print-statistics {{ inventory_hostname }}::{{ item }} /fedora_backups/{{ inventory_hostname }}/`basename {{ item }}` | mail -r sysadmin-backup-members@fedoraproject.org -s 'rdiff-backup: {{ inventory_hostname }}:{{ item }}' sysadmin-backup-members@fedoraproject.org"
     with_items: '{{ host_backup_targets }}'
