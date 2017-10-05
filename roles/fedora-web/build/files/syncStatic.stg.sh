@@ -45,7 +45,7 @@ cd /srv/web/fedora-websites
 
 /usr/bin/git clean -q -fdx || exit 1
 /usr/bin/git reset -q --hard || exit 1
-/usr/bin/git checkout -q f27-beta || exit 1
+/usr/bin/git checkout -q modular-server || exit 1
 
 /usr/bin/git pull -q --ff-only || exit 1
 build labs.fedoraproject.org
