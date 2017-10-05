@@ -1,0 +1,49 @@
+- include: "/srv/web/infra/ansible/playbooks/include/virt-create.yml myhosts=transitional-datanommer"
+
+- name: dole out the generic configuration
+  hosts: transitional-datanommer
+  user: root
+  gather_facts: True
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  roles:
+  - base
+  - rkhunter
+  - nagios_client
+  - hosts
+  - fas_client
+  - collectd/base
+  - fedmsg/base
+  - sudo
+
+  tasks:
+  - include: "{{ tasks_path }}/yumrepos.yml"
+  - include: "{{ tasks_path }}/2fa_client.yml"
+  - include: "{{ tasks_path }}/motd.yml"
+
+  handlers:
+  - include: "{{ handlers_path }}/restart_services.yml"
+
+- name: dole out the service-specific config
+  hosts: transitional-datanommer
+  user: root
+  gather_facts: True
+
+  roles:
+  - role: fedmsg/hub
+  - role: fedmsg/datanommer
+  - role: collectd/fedmsg-service
+    process: fedmsg-hub
+  - role: collectd/fedmsg-activation
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - "{{ vars_path }}/{{ ansible_distribution }}.yml"
+
+  handlers:
+  - include: "{{ handlers_path }}/restart_services.yml"
