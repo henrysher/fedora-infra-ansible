@@ -113,6 +113,27 @@
   tags:
   - limitranges
 
+# Setup custom build role
+- name: copy custom build role
+  template:
+    src: role-osbs-custom-build.yml.j2
+    dest: "{{ osbs_openshift_home }}/{{ inventory_hostname }}-{{ osbs_namespace }}-role-osbs-custom-build.yml"
+  environment: "{{ osbs_environment }}"
+  register: yaml_role
+  tags:
+  - oc
+
+- name: import custom build role
+  command: >
+    oc replace
+    --namespace={{ osbs_namespace }}
+    --force=true
+    --filename={{ osbs_openshift_home }}/{{ inventory_hostname }}-{{ osbs_namespace }}-role-osbs-custom-build.yml
+  environment: "{{ osbs_environment }}"
+  when: yaml_role.changed
+  tags:
+  - oc
+
 - include: yum_proxy.yml
   when: osbs_yum_proxy_image is defined
 

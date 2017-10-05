@@ -315,6 +315,13 @@
       when: env == "production"
     }
 
+  tasks:
+    - name: set custom build policy for koji builder in openshift for osbs
+    shell: "oadm policy add-role-to-user -n default osbs-custom-build {{ osbs_koji_prod_username }} && touch /etc/origin/koji-custom-build-policy-added"
+      args:
+        creates: "/etc/origin/koji-builder-policy-added"
+      when: env == "production"
+
 - name: Manage docker images and image stream
   hosts: osbs-masters[0]
   tags:
