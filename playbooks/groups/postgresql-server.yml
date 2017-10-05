@@ -16,6 +16,9 @@
    - "/srv/private/ansible/vars.yml"
    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
 
+  pre_tasks:
+  - include: "{{ tasks_path }}/yumrepos.yml"
+
   roles:
   - base
   - rkhunter
@@ -29,7 +32,6 @@
   - { role: openvpn/client, when: inventory_hostname == "db-fas01.phx2.fedoraproject.org" or inventory_hostname == "db01.phx2.fedoraproject.org" }
 
   tasks:
-  - include: "{{ tasks_path }}/yumrepos.yml"
   - include: "{{ tasks_path }}/2fa_client.yml"
   - include: "{{ tasks_path }}/motd.yml"
 
