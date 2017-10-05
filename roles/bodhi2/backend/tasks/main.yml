@@ -181,13 +181,21 @@
   - bodhi
   - cron
 
+- name: Ensure that /var/lib/bodhi exists
+  file:
+    path: /var/lib/bodhi
+    state: directory
+    mode: 0755
+    owner: apache
+    group: apache
+
 - name: Install weekly bodhi-dequeue-stable cron job that moves updates from batched to stable
   cron:
     name: "bodhi-dequeue-stable"
     minute: "0"
     hour: "3"
     weekday: "2"
-    job: "/usr/bin/bodhi-dequeue-stable && touch /var/run/bodhi-weekly-run"
+    job: "/usr/bin/bodhi-dequeue-stable && touch /var/lib/bodhi/dequeue-stable"
     user: "apache"
   when: inventory_hostname.startswith('bodhi-backend01')
   tags:
