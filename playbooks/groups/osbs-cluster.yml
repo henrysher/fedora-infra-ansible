@@ -293,6 +293,11 @@
     - "/srv/private/ansible/vars.yml"
     - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
 
+  vars:
+    osbs_kubeconfig_path: /etc/origin/master/admin.kubeconfig
+    osbs_environment:
+      KUBECONFIG: "{{ osbs_kubeconfig_path }}"
+
   roles:
     - {
       role: osbs-on-openshift,
@@ -321,6 +326,7 @@
       args:
         creates: "/etc/origin/koji-builder-policy-added"
       when: env == "production"
+      environment: "{{ osbs_environment }}"
 
 - name: Manage docker images and image stream
   hosts: osbs-masters[0]
