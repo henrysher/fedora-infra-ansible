@@ -137,8 +137,13 @@ class ProdConfiguration(BaseConfiguration):
     PDC_URL = 'https://pdc.stg.fedoraproject.org/rest_api/v1'
     SCMURLS = ['git://pkgs.stg.fedoraproject.org/modules/',
                'https://src.stg.fedoraproject.org/modules/']
-    # Blocked on https://pagure.io/releng/issue/6799
-    KOJI_ENABLE_CONTENT_GENERATOR = False
+
+    KOJI_ENABLE_CONTENT_GENERATOR = True
+
+    # See https://pagure.io/releng/issue/7012
+    BASE_MODULE_NAMES = set(['platform', 'bootstrap'])
+    KOJI_CG_BUILD_TAG_TEMPLATE = "{}-modular-updates-candidate"
+    KOJI_CG_DEFAULT_BUILD_TAG = "modular-updates-candidate"
 {% else %}
     KOJI_PROFILE = 'production'
     KOJI_ARCHES = ['aarch64', 'armv7hl', 'i686', 'ppc64', 'ppc64le', 'x86_64', 's390x']
@@ -150,6 +155,7 @@ class ProdConfiguration(BaseConfiguration):
     # Made possible by https://pagure.io/releng/issue/6799
     KOJI_ENABLE_CONTENT_GENERATOR = True
 {% endif %}
+
 
     # This is a whitelist of prefixes of koji tags we're allowed to manipulate
     KOJI_TAG_PREFIXES = [
