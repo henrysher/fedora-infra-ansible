@@ -31,6 +31,13 @@
   - packages
   - bodhi
 
+- name: install tag2distrepo on fedora bodhi backends
+  package: pkg=python2-tag2distrepo state=present
+  when: inventory_hostname.startswith('bodhi-backend02')
+  tags:
+  - packages
+  - bodhi
+
 - name: install python3-ccolutils on fedora bodhi backends
   package: pkg=python3-cccolutils state=present
   when: inventory_hostname.startswith('bodhi-backend01')
@@ -466,6 +473,15 @@
 - name: ensure fedmsg-hub is enabled and started on the backend
   service: name=fedmsg-hub enabled=yes state=started
   tags:
+  - bodhi
+
+- name: Put in tag2distrepo config
+  template: >
+    src=tag2distrepo.py.j2
+    dest=/etc/fedmsg.d/tag2distrepo.py
+  when: inventory_hostname.startswith('bodhi-backend02')
+  tags:
+  - config
   - bodhi
 
 #- name: have apache own /mnt/koji/mash/updates
