@@ -67,7 +67,7 @@
     # Note that "latest" here might as well be "present".  The package shouldn't
     # be present in the first place.  In any case, if it is erroneously present,
     # then we really do want the latest version.
-    yum: name=koji state=latest
+    yum: name=koji state=latest update_cache=yes
     when: db_upgrade_file is defined
   - name: Execute the db upgrade script
     shell: psql koji  < {{db_upgrade_file}}
@@ -86,7 +86,7 @@
    - "/srv/private/ansible/vars.yml"
    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
   tasks:
-  - yum: name=koji-hub state=latest
+  - yum: name=koji-hub state=latest update_cache=yes
   - name: restart httpd on the koji-hubs.
     service: name="httpd" state=started
   - name: unsilence nagios
@@ -102,6 +102,6 @@
    - "/srv/private/ansible/vars.yml"
    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
   tasks:
-  - yum: name=koji-builder state=latest
+  - yum: name=koji-builder state=latest update_cache=yes
   - name: restart all the builders.  so many.
     service: name="kojid" state=restarted
