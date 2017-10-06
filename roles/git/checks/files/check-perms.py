@@ -217,13 +217,18 @@ def set_post_receive_hook_version3(gitdir, fix=False):
     """Configure a git repository to use the fedmsg+gnome-mail hooks."""
 
     # Old folder where we used to place the hooks
-    dest_prefix = os.path.join(gitdir, 'hooks', 'post-receive-chained.d')
+    hook_dir = os.path.join(gitdir, 'hooks')
+    dest_prefix = os.path.join(hook_dir, 'post-receive-chained.d')
 
     # Remove the old hooks
     hooks = [
         os.path.join(dest_prefix, 'post-receive-email'),
         os.path.join(dest_prefix, 'post-receive-fedmsg'),
         os.path.join(dest_prefix, 'post-receive-alternativearch'),
+        # These two hooks are setup by pagure but are already part of the
+        # main post-receive hook
+        os.path.join(hook_dir, 'post-receive.default'),
+        os.path.join(hook_dir, 'post-receive.pagure'),
     ]
 
     for hook in hooks:
@@ -239,7 +244,7 @@ def set_post_receive_hook_version3(gitdir, fix=False):
         else:
             os.rmdir(dest_prefix)
 
-    # Symlink mail notification and fedmsg scripts to post-receive hook
+    # Symlink the post-receive-chained to post-receive hook
     scripts = {
         # This one kicks off all the others.
         '/usr/share/git-core/post-receive-chained':
