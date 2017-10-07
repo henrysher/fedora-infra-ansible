@@ -18,13 +18,13 @@ cd /srv/web/whatcanidoforfedora.org
 err=$(
     {
         ./build.sh &&\
-        rsync -qa --delete-after --delay-updates build/ "/srv/web/$site/"; \
+        rsync -qa --delete-after --delay-updates build/ "/srv/web/whatcanidoforfedora.org/"; \
     } 2>&1
 )
 
 rc=$?
 if [ $rc -ne 0 ]; then
-    echo "$site build failed"
+    echo "whatcanidoforfedora.org build failed"
     echo "===================================="
     echo "$err"
     echo
