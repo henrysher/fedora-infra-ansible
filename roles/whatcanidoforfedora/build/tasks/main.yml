@@ -1,0 +1,41 @@
+- name: Install needed packages
+  yum: pkg={{ item }} state=present
+  with_items:
+  - PyYAML
+  - git
+  - python-mako
+  tags:
+  - packages
+  - whatcanidoforfedora
+
+- name: Create directories
+  file: state=directory
+        path=/srv/web/{{item}}
+        owner=apache group=apache mode=0755
+        setype=httpd_sys_content_t seuser=system_u
+  with_items:
+  - whatcanidoforfedora.org
+  tags:
+  - whatcanidoforfedora
+
+- name: Copy syncStatic script
+  copy:
+      src: sync-wcidff.sh
+      dest: /usr/local/bin/sync-wcidff.sh
+      owner: root
+      group: root
+      mode: 0755
+  tags:
+  - whatcanidoforfedora
+  - cron
+
+- name: Install the syncStatic and syncTranslations cronjobs
+  copy:
+      src: sync-wcidff.cron
+      dest: /etc/cron.d/sync-wcidff.cron
+      owner: root
+      group: root
+      mode: 0644
+  tags:
+  - whatcanidoforfedora
+  - cron
