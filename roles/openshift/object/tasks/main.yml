@@ -21,6 +21,12 @@
 - name: Call `oc apply` on the copied file
   shell: oc -n {{app}} apply -f {{tmpfile.path}}
   run_once: true
+  when: global is not defined or not global
+
+- name: GLOBAL call `oc apply` on the copied file
+  shell: oc apply -f {{tmpfile.path}}
+  run_once: true
+  when: global is defined and global
 
 - name: Delete temporary file
   file: path={{tmpfile.path}} state=absent
