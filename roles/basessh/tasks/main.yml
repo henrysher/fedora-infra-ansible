@@ -183,6 +183,17 @@
   - sshd
   - base
 
+- name: Restart sshd in case we just signed a new certificate so it gets applied
+  service: name=sshd state=restarted
+  when: "certs_to_sign | length != 0"
+  tags:
+  - basessh
+  - sshd_cert
+  - sshd_config
+  - config
+  - sshd
+  - base
+
 - name: make sure there is no old ssh host key for the host still around
   local_action: known_hosts path={{item}} host={{ inventory_hostname }} state=absent
   ignore_errors: True
