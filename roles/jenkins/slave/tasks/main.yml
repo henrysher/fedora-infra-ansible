@@ -1,5 +1,5 @@
 - name: install common slave packages (dnf)
-  dnf: name={{ item }} state=installed
+  dnf: name={{ item }} state=present
   with_items: "{{ slave_packages_common }}"
   when: ansible_distribution_major_version|int > 21
   tags:
@@ -8,7 +8,7 @@
   - packages
 
 - name: install common slave packages (yum)
-  package: name={{ item }} state=installed
+  package: name={{ item }} state=present
   with_items: "{{ slave_packages_common }}"
   when: ansible_distribution_major_version|int < 22
   tags:
@@ -17,7 +17,7 @@
   - packages
 
 - name: install distro-specific slave packages (fedora, dnf)
-  dnf: name={{ item }} state=installed
+  dnf: name={{ item }} state=present
   with_items: "{{ slave_packages_fedora }}"
   when: ansible_distribution_major_version|int > 21
   tags:
@@ -26,7 +26,7 @@
   - packages
 
 - name: install distro-specific slave packages (centos, yum)
-  package: name={{ item }} state=installed
+  package: name={{ item }} state=present
   with_items: "{{ slave_packages_centos }}"
   when: ansible_distribution_major_version|int < 8
   tags:
@@ -35,7 +35,7 @@
   - packages
 
 - name: install el7 specific slave packages
-  package: name={{ item }} state=installed
+  package: name={{ item }} state=present
   with_items: "{{ el7_only }}"
   when: ansible_distribution_major_version|int == 7
   tags:
@@ -44,7 +44,7 @@
   - packages
 
 - name: install f25 specific slave packages
-  dnf: name={{ item }} state=installed
+  dnf: name={{ item }} state=present
   with_items: "{{ f25_only }}"
   when: ansible_distribution_major_version|int == 25
   tags:
@@ -53,7 +53,7 @@
   - packages
 
 - name: install f24 specific slave packages
-  dnf: name={{ item }} state=installed
+  dnf: name={{ item }} state=present
   with_items: "{{ f24_only }}"
   when: ansible_distribution_major_version|int == 24
   tags:
@@ -80,7 +80,7 @@
 # Haveged is not needed per se, but very useful for builds that require lots of entropy
 # Hello, Ipsilon
 - name: install haveged
-  dnf: name=haveged state=installed
+  dnf: name=haveged state=present
   when: is_fedora is defined and ansible_distribution_major_version|int > 21
   tags:
   - jenkins
