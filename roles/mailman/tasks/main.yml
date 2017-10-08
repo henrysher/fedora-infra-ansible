@@ -8,7 +8,7 @@
 # TODO: switch to the sefcontext module when we update Ansible to 2.2+
 #
 - name: install semanage
-  package: pkg=policycoreutils-python state=present
+  package: name=policycoreutils-python state=present
   tags:
   - mailman
   - selinux
@@ -94,7 +94,7 @@
   tags: mailman
 
 - name: install needed packages
-  package: pkg={{ item }} state=present
+  package: name={{ item }} state=present
   with_items:
   - python-psycopg2
   - python34-psycopg2
@@ -131,7 +131,7 @@
   tags: mailman
 
 - name: install the mailman3 fedmsg plugin rpm
-  package: pkg=mailman3-fedmsg-plugin
+  package: name=mailman3-fedmsg-plugin
   notify: restart mailman3
   when: ansible_distribution == 'RedHat'
   tags: mailman
@@ -145,7 +145,7 @@
 
 - name: install packages when not using source extracts
   when: ansible_hostname != "lists-dev.cloud.fedoraproject.org"
-  package: pkg={{ item }} state=present
+  package: name={{ item }} state=present
   with_items:
   - mailman3
   - mailman3-selinux
