@@ -1,6 +1,6 @@
 #!/bin/sh
 
-URL="https://admin.fedoraproject.org/pkgdb/api/collections/f*/?clt_status=Active"
+URL="https://pdc.fedoraproject.org/rest_api/v1/releases/?active=True&name=Fedora"
 CRAWLER="/usr/bin/mm2_crawler"
 LOGBASE="/var/log/mirrormanager/propagation"
 
@@ -17,7 +17,7 @@ if [ $? -ne 0 ]; then
 fi
 
 # check propagation for the active branches
-for version in `jq -r ".collections[$i].version" < ${ACTIVE}`; do
+for version in `jq -r ".results[$i].version" < ${ACTIVE} | grep -v Rawhide`; do
 	${CRAWLER} --propagation --proppath updates/${version}/x86_64/repodata --threads 50 2>&1 | grep SHA256 > ${LOGBASE}/f${version}_updates-propagation.log.$( date +%s )
 done
 

@@ -1,6 +1,6 @@
 #!/bin/sh
 
-URL="https://admin.fedoraproject.org/pkgdb/api/collections/f*/?clt_status=Active"
+URL="https://pdc.fedoraproject.org/rest_api/v1/releases/?active=True&name=Fedora"
 PROPAGATION="/usr/bin/mm2_propagation"
 SOURCE="mm-crawler01.phx2.fedoraproject.org::propagation"
 LOGBASE="/var/log/mirrormanager/propagation"
@@ -21,7 +21,7 @@ if [ $? -ne 0 ]; then
         exit 1
 fi
 
-for version in `jq -r ".collections[$i].version" < ${ACTIVE}`; do
+for version in `jq -r ".results[$i].version" < ${ACTIVE} | grep -v Rawhide`; do
         ${PROPAGATION} --outdir ${OUTPUT} --logfiles "${LOGBASE}/f${version}*" --prefix f${version}_updates
 done
 
