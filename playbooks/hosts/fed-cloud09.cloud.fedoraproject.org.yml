@@ -64,7 +64,7 @@
   - authorized_key: user=root key="{{ lookup('file', files + '/fedora-cloud/fed09-ssh-key.pub') }}"
 
   - name: install core pkgs
-    yum: state=present pkg={{ item }}
+    package: state=present pkg={{ item }}
     with_items:
     - libselinux-python
     - ntp
@@ -153,18 +153,18 @@
   # this two step can be done in one, but Ansible will then always show the action as changed
   #- name: make sure epel-release is installed
   #  get_url: url=http://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm dest=/root/
-  #- yum: state=present name=/root/epel-release-latest-7.noarch.rpm
+  #- package: state=present name=/root/epel-release-latest-7.noarch.rpm
 
   #- name: make sure latest openvswitch is installed
   #  get_url: url=http://people.redhat.com/~lkellogg/rpms/openvswitch-2.3.1-2.git20150113.el7.x86_64.rpm dest=/root/
-  #- yum: state=present name=/root/openvswitch-2.3.1-2.git20150113.el7.x86_64.rpm
+  #- package: state=present name=/root/openvswitch-2.3.1-2.git20150113.el7.x86_64.rpm
 
   #- name: make sure latest openstack-utils is installed
   #  get_url: url=https://repos.fedorapeople.org/repos/openstack/openstack-juno/epel-7/openstack-utils-2014.2-1.el7.centos.noarch.rpm dest=/root/
-  #- yum: state=present name=/root/openstack-utils-2014.2-1.el7.centos.noarch.rpm
+  #- package: state=present name=/root/openstack-utils-2014.2-1.el7.centos.noarch.rpm
 
   - name: install basic openstack packages
-    yum: state=present name={{ item }}
+    package: state=present name={{ item }}
     with_items:
     - openstack-utils
     - openstack-selinux
@@ -178,7 +178,7 @@
     - haproxy
 
   - name: install etckeeper
-    yum: state=present name=etckeeper
+    package: state=present name=etckeeper
   - name: init etckeeper
     shell: cd /etc && etckeeper init
 
@@ -208,7 +208,7 @@
 
   # http://docs.openstack.org/trunk/install-guide/install/yum/content/basics-database-controller.html
   - name: install mysql packages
-    yum: state=present pkg={{ item }}
+    package: state=present pkg={{ item }}
     with_items:
     - mariadb-galera-server
     - MySQL-python
@@ -250,7 +250,7 @@
       regexp="RABBITMQ_NODE_PORT"
       line="    'RABBITMQ_NODE_PORTTTTT'        => $port,"
       backup=yes
-  - yum: state=present pkg=mongodb-server
+  - package: state=present pkg=mongodb-server
   - ini_file: dest=/usr/lib/systemd/system/mongod.service section=Service option=PIDFile value=/var/run/mongodb/mongod.pid
   - lineinfile:
       dest=/usr/lib/python2.7/site-packages/packstack/puppet/templates/mongodb.pp
