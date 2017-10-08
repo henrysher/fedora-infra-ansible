@@ -6,7 +6,7 @@
 #
 
 - name: ensure packages required for semanage are installed (yum)
-  yum: name={{ item }} state=present
+  package: name={{ item }} state=present
   when: ansible_distribution_major_version|int < 22
   with_items:
   - policycoreutils-python
@@ -88,7 +88,7 @@
    - base
 
 - name: global default packages to install (yum)
-  yum: state=present name={{ item }}
+  package: state=present name={{ item }}
   with_items:
    - "{{ global_pkgs_inst }}"
   tags:
@@ -131,7 +131,7 @@
   - base
 
 - name: dist pkgs to remove (yum)
-  yum: state=absent name={{ item }}
+  package: state=absent name={{ item }}
   with_items:
    - "{{ base_pkgs_erase }}"
   tags:
@@ -140,7 +140,7 @@
   when: ansible_distribution_major_version|int < 22
 
 - name: dist pkgs to install (yum)
-  yum: state=present name={{ item }}
+  package: state=present name={{ item }}
   with_items:
    - "{{ base_pkgs_inst }}"
   tags:

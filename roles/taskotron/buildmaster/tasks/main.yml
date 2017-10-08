@@ -3,7 +3,7 @@
   service: name=httpd state=started
 
 - name: ensure packages required for buildmaster are installed (yum)
-  yum: name={{ item }} state=present enablerepo={{ extra_enablerepos }}
+  package: name={{ item }} state=present enablerepo={{ extra_enablerepos }}
   with_items:
     - buildbot
     - buildbot-master
@@ -23,7 +23,7 @@
   when: ansible_distribution_major_version|int > 21 and ansible_cmdline.ostree is not defined
 
 - name: ensure additional packages required for CI buildmaster are installed
-  yum: name={{ item }} state=present enablerepo={{ extra_enablerepos }}
+  package: name={{ item }} state=present enablerepo={{ extra_enablerepos }}
   when: ansible_distribution_major_version|int < 22 and (deployment_type == 'qa-prod' or deployment_type == 'qa-stg')
   with_items:
     - python-novaclient

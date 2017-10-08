@@ -29,7 +29,7 @@
 - name: copy RHOS repo file
   copy: src=rhos-5.repo dest=/etc/yum.repos.d/rhos-5.repo
         owner=root group=root mode=0644
-- yum: state=present pkg=openstack-nova-common
+- package: state=present pkg=openstack-nova-common
 - name: create logical volume for ephemeral storage
   lvol: vg=vg_guests lv=nova size=100%FREE shrink=no
 - filesystem: fstype=ext4 dev=/dev/mapper/vg_guests-nova
@@ -52,7 +52,7 @@
 
 # http://docs.openstack.org/icehouse/install-guide/install/yum/content/nova-compute.html
 - name: install the Compute packages necessary for the controller node.
-  yum: state=present pkg={{ item }}
+  package: state=present pkg={{ item }}
   with_items:
   - openstack-nova-compute
   - python-novaclient
@@ -163,7 +163,7 @@
 - sysctl: name=net.ipv4.conf.default.rp_filter value=0 state=present sysctl_set=yes reload=yes
 
 - name: install the Networking components
-  yum: state=present pkg={{ item }}
+  package: state=present pkg={{ item }}
   with_items:
   - openstack-neutron-ml2
   - openstack-neutron-openvswitch
