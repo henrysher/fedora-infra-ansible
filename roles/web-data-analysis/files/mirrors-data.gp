@@ -5,6 +5,7 @@ set timefmt "%Y-%m-%d"
 
 set datafile separator ","
 set term png size 1600,1200
+set key outside right top Right title 'Legend' box 3
 
 ##
 set output "/var/www/html/csv-reports/images/mirrors-all-points.png"
