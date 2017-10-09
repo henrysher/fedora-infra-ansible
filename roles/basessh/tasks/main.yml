@@ -163,6 +163,7 @@
   copy: src="{{pubkeydir}}/{{inventory_hostname}}{{item}}-cert.pub"
         dest="{{item}}-cert.pub"
   with_items: "{{certs_to_sign}}"
+  register: certcopy
   notify:
   - restart sshd
   tags:
@@ -185,7 +186,7 @@
 
 - name: Restart sshd in case we just signed a new certificate so it gets applied
   service: name=sshd state=restarted
-  when: "certs_to_sign != []"
+  when: certcopy.changed
   tags:
   - basessh
   - sshd_cert
