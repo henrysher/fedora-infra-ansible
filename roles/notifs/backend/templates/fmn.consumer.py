@@ -3,7 +3,7 @@ domain = "stg.fedoraproject.org"
 ircnick = "fedora-notifstg"
 {% else %}
 domain = "fedoraproject.org"
-ircnick = "fedora-notifs"
+ircnick = "fedora-notif"
 {% endif %}
 
 base = "https://apps.%s/notifications/" % domain
