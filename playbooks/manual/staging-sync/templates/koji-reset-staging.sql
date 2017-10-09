@@ -96,18 +96,6 @@ insert into host_channels (host_id, channel_id) values (
 {% endfor %}
 {% endfor %}
 
--- The arm builders  are armhfp and do not have createrepo ability
-{% for host in groups['buildarm-stg'] %}
-select now() as time, 'adding staging host {{ host }}' as msg;
-insert into users (name, usertype, krb_principal, status) values ('{{ host }}', 1, 'compile/{{ host }}@STG.FEDORAPROJECT.ORG', 0);
-insert into host (user_id, name, arches) values (
-    (select id from users where name='{{host}}'), '{{host}}', 'armhfp');
-{% for channel in [ 'default', 'appliance', 'vm', 'secure-boot', 'compose', 'eclipse', 'images', 'image'] %}
-insert into host_channels (host_id, channel_id) values (
-    (select id from host where name='{{host}}'), (select id from channels where name='{{channel}}'));
-{% endfor %}
-{% endfor %}
-
 -- The aarch64 builders are aarch64 and do not have createrepo 
 
 {% for host in groups['buildvm-aarch64-stg'] %}
