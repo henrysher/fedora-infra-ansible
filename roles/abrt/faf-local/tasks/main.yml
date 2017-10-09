@@ -61,9 +61,9 @@
     line: '    MORE_SATYR = "https://github.com/abrt/satyr/"'
   notify: restart httpd
 
-# the magic with ! is that it return exit code 1 if ERROR is present in output
+# the magic with ! is that it return exit code 1 if 'already defined' is not present in output
 - name: add repositories
-  command: ! faf repoadd "{{ item.name }}" yum "{{ item.url }}" | grep ERROR
+  shell: ! faf repoadd "{{ item.name }}" yum "{{ item.url }}" 2>&1 | grep 'already defined'
   become: yes
   become_user: faf
   ignore_errors: yes
@@ -72,7 +72,7 @@
   with_items: "{{ faf_repos }}"
 
 - name: repoassign repositories
-  command: ! faf repoassign "{{ item.name }}" "{{ item.opsys }}" "{{ item.arch }}" | grep ERROR
+  shell: ! faf repoassign "{{ item.name }}" "{{ item.opsys }}" "{{ item.arch }}" 2>&1 | grep 'already defined'
   become: yes
   become_user: faf
   ignore_errors: yes
