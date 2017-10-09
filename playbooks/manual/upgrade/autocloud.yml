@@ -61,10 +61,30 @@
     dnf: name="fedfind" state=latest enablerepo=infrastructure-tags-stg
     when: testing
 
+- name: update python2-fedfind
+  hosts: autocloud-backend:autocloud-backend-stg
+  user: root
+  vars_files: 
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+  vars:
+    testing: False
+  handlers:
+  - include: "{{ handlers_path }}/restart_services.yml"
+
+  tasks:
+  - name: dnf update fedfind packages from main repo
+    dnf: name="python2-fedfind" state=latest
+    when: not testing
+  - name: dnf update fedfind packages from testing repo
+    dnf: name="python2-fedfind" state=latest enablerepo=infrastructure-tags-stg
+    when: testing
+
 - name: verify the frontend and stop it
   hosts: autocloud-web:autocloud-web-stg
   user: root
-  vars_files: 
+  vars_files:
    - /srv/web/infra/ansible/vars/global.yml
    - "/srv/private/ansible/vars.yml"
    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
