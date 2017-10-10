@@ -1,5 +1,4 @@
-#!/usr/bin/python
-''' This script is for generating output for
+s script is for generating output for
 https://fedoraproject.org/wiki/Ambassadors/MembershipService/Verification.'''
 #
 # Copyright (C) 2010, Susmit Shannigrahi, Susmit AT fedoraproject DOT org
