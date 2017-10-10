@@ -1,94 +1,105 @@
 ---
-objects:
-- apiVersion: v1
-  kind: DeploymentConfig
-  metadata:
-    name: greenwave-web
-    labels:
-      app: greenwave
-      service: web
-  spec:
-    replicas: 2
-    selector:
-      app: greenwave
-      service: web
-    template:
-      metadata:
-        labels:
-          app: greenwave
-          service: web
-      spec:
-        containers:
-        - name: web
-          image: registry/greenwave:latest
-          ports:
-          - containerPort: 8080
-          volumeMounts:
-          - name: config-volume
-            mountPath: /etc/greenwave
-            readOnly: true
-          readinessProbe:
-            timeoutSeconds: 1
-            initialDelaySeconds: 5
-            httpGet:
-              path: /healthcheck
-              port: 8080
-          livenessProbe:
-            timeoutSeconds: 1
-            initialDelaySeconds: 30
-            httpGet:
-              path: /healthcheck
-              port: 8080
-          resources:
-            limits:
-              memory: 384Mi
-        volumes:
+apiVersion: v1
+kind: DeploymentConfig
+metadata:
+  name: greenwave-web
+  labels:
+    app: greenwave
+    service: web
+spec:
+  replicas: 2
+  selector:
+    app: greenwave
+    service: web
+  template:
+    metadata:
+      labels:
+        app: greenwave
+        service: web
+    spec:
+      containers:
+      - name: web
+        image: registry/greenwave:latest
+        ports:
+        - containerPort: 8080
+        volumeMounts:
         - name: config-volume
-          configMap:
-            name: greenwave-configmap
-# For fedmsg consumers
-- apiVersion: v1
-  kind: DeploymentConfig
-  metadata:
-    name: greenwave-fedmsg-consumers
-    labels:
-      app: greenwave
-      service: fedmsg-consumers
-  spec:
-    replicas: 1
-    selector:
-      service: fedmsg-consumers
-    template:
-      metadata:
-        labels:
-          app: greenwave
-          service: fedmsg-consumers
-      spec:
-        containers:
-        - name: fedmsg-consumers
-          image: registry/greenwave:latest
-          ports:
-          - containerPort: 8081
-          command: /usr/bin/fedmsg-hub
-          volumeMounts:
-          - name: fedmsg-config-volume
-            mountPath: /etc/fedmsg.d
-            readOnly: true
-          resources:
-            limits:
-              memory: 384Mi
-        volumes:
-        - name: fedmsg-config-volume
-          configMap:
-            name: greenwave-fedmsg-configmap
+          mountPath: /etc/greenwave
+          readOnly: true
+        readinessProbe:
+          timeoutSeconds: 1
+          initialDelaySeconds: 5
+          httpGet:
+            path: /healthcheck
+            port: 8080
+        livenessProbe:
+          timeoutSeconds: 1
+          initialDelaySeconds: 30
+          httpGet:
+            path: /healthcheck
+            port: 8080
+        resources:
+          limits:
+            memory: 384Mi
+      volumes:
+      - name: config-volume
+        configMap:
+          name: greenwave-configmap
   triggers:
   - type: ImageChange
     imageChangeParams:
       automatic: true
       containerNames:
       - web
+      from:
+        kind: ImageStreamTag
+        name: greenwave:latest
+  - type: ConfigChange
+---
+# For fedmsg consumers
+apiVersion: v1
+kind: DeploymentConfig
+metadata:
+  name: greenwave-fedmsg-consumers
+  labels:
+    app: greenwave
+    service: fedmsg-consumers
+spec:
+  replicas: 1
+  selector:
+    service: fedmsg-consumers
+  template:
+    metadata:
+      labels:
+        app: greenwave
+        service: fedmsg-consumers
+    spec:
+      containers:
+      - name: fedmsg-consumers
+        image: registry/greenwave:latest
+        ports:
+        - containerPort: 8081
+        command:
+        - '/usr/bin/fedmsg-hub'
+        volumeMounts:
+        - name: fedmsg-config-volume
+          mountPath: /etc/fedmsg.d
+          readOnly: true
+        resources:
+          limits:
+            memory: 384Mi
+      volumes:
+      - name: fedmsg-config-volume
+        configMap:
+          name: greenwave-fedmsg-configmap
+  triggers:
+  - type: ImageChange
+    imageChangeParams:
+      automatic: true
+      containerNames:
       - fedmsg-consumers
       from:
         kind: ImageStreamTag
         name: greenwave:latest
   - type: ConfigChange
+ 
