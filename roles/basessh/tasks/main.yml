@@ -10,20 +10,20 @@
   ignore_errors: True
   with_items:
   - /root/.ssh/known_hosts
-  when: birthday is true
+  when: birthday is defined
 
 - name: gather ssh host key from new instance
   local_action: command ssh-keyscan -t rsa {{ inventory_hostname }}
   ignore_errors: True
   register: hostkey
-  when: birthday is true
+  when: birthday is defined
 
 - name: add new ssh host key (until we can sign it)
   local_action: known_hosts path={{item}} key="{{ hostkey.stdout }}" host={{ inventory_hostname }} state=present
   ignore_errors: True
   with_items:
   - /root/.ssh/known_hosts
-  when: birthday is true
+  when: birthday is defined
 
 - name: check if sshd port is already known by selinux
   shell: semanage port -l | grep ssh
