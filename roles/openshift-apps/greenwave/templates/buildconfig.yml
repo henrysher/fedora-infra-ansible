@@ -13,7 +13,6 @@ spec:
           name="Greenwave" \
           vendor="Fedora Infrastructure" \
           license="MIT"
-      RUN dnf -y clean all
       RUN dnf -v -y install --setopt=tsflags=nodocs \
           python-gunicorn \
           python-requests \
@@ -22,6 +21,8 @@ spec:
           python2-flask
       RUN dnf -v -y install --setopt=tsflags=nodocs \
           https://kojipkgs.fedoraproject.org//packages/greenwave/0.3/1.fc26/noarch/greenwave-0.3-1.fc26.noarch.rpm
+      # create a symlink for configuring the fedmsg consumers.
+      RUN ln -sfn /etc/fedmsg-greenwave.d/greenwave.py /etc/fedmsg.d/greenwave.py
       EXPOSE 8080
       ENTRYPOINT gunicorn --bind 0.0.0.0:8080 --access-logfile=- greenwave.wsgi:app
   strategy:
