@@ -1,0 +1,13 @@
+#!/bin/python
+from datetime import datetime
+import sys
+
+if len(sys.argv) != 3:
+    raise Exception('Provide output file name and environment')
+if len(sys.argv[2]) != 6:
+    raise Exception('Environment name must be exactly 6 characters')
+
+with open(sys.argv[1], 'wb') as tkey:
+    tkey.write('%s%s' % (sys.argv[2], datetime.utcnow().strftime('%Y%m%d%H')))
+    with open('/dev/random', 'rb') as rand:
+        tkey.write(rand.read(32))
