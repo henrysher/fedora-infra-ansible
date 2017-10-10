@@ -31,47 +31,47 @@ import mwclient
 
 
 CONTINENT_MAP = {'AP': 'AS', 'EU': 'EU', 'AD': 'EU', 'AE': 'EU', 'AF': 'AS', \
- 'AG': 'SA', 'AI': 'SA', 'AL': 'EU', 'AM': 'AS', 'AN': 'SA', 'AO': 'AF', \
+ 'AG': 'SA', 'AI': 'SA', 'AL': 'EU', 'AM': 'AS', 'AN': 'SA', 'AO': 'EU', \
 'AQ': 'AN', 'AR': 'SA', 'AS': 'OC', 'AT': 'EU', 'AU': 'OC', 'AW': 'SA', \
 'AX': 'EU', 'AZ': 'AS', 'BA': 'EU', 'BB': 'SA', 'BD': 'AS', 'BE': 'EU', \
-'BF': 'AF', 'BG': 'EU', 'BH': 'AS', 'BI': 'AF', 'BJ': 'AF', 'BM': 'SA', \
-'BN': 'AS', 'BO': 'SA', 'BR': 'SA', 'BS': 'SA', 'BT': 'AS', 'BV': 'AF', \
-'BW': 'AF', 'BY': 'EU', 'BZ': 'SA', 'CA': 'NA', 'CC': 'AS', 'CD': 'AF', \
-'CF': 'AF', 'CG': 'AF', 'CH': 'EU', 'CI': 'AF', 'CK': 'OC', 'CL': 'SA', \
-'CM': 'AF', 'CN': 'AS', 'CO': 'SA', 'CR': 'SA', 'CU': 'SA', 'CV': 'AF', \
-'CX': 'AS', 'CY': 'AS', 'CZ': 'EU', 'DE': 'EU', 'DJ': 'AF', 'DK': 'EU', \
-'DM': 'SA', 'DO': 'SA', 'DZ': 'AF', 'EC': 'SA', 'EE': 'EU', 'EG': 'AF', \
-'EH': 'AF', 'ER': 'AF', 'ES': 'EU', 'ET': 'AF', 'FI': 'EU', 'FJ': 'OC', \
-'FK': 'SA', 'FM': 'OC', 'FO': 'EU', 'FR': 'EU', 'FX': 'EU', 'GA': 'AF', \
-'GB': 'EU', 'GD': 'SA', 'GE': 'AS', 'GF': 'SA', 'GG': 'EU', 'GH': 'AF', \
-'GI': 'EU', 'GL': 'SA', 'GM': 'AF', 'GN': 'AF', 'GP': 'SA', 'GQ': 'AF', \
-'GR': 'EU', 'GS': 'SA', 'GT': 'SA', 'GU': 'OC', 'GW': 'AF', 'GY': 'SA', \
-'HK': 'AS', 'HM': 'AF', 'HN': 'SA', 'HR': 'EU', 'HT': 'SA', 'HU': 'EU', \
+'BF': 'EU', 'BG': 'EU', 'BH': 'AS', 'BI': 'EU', 'BJ': 'EU', 'BM': 'SA', \
+'BN': 'AS', 'BO': 'SA', 'BR': 'SA', 'BS': 'SA', 'BT': 'AS', 'BV': 'EU', \
+'BW': 'EU', 'BY': 'EU', 'BZ': 'SA', 'CA': 'NA', 'CC': 'AS', 'CD': 'EU', \
+'CF': 'EU', 'CG': 'EU', 'CH': 'EU', 'CI': 'EU', 'CK': 'OC', 'CL': 'SA', \
+'CM': 'EU', 'CN': 'AS', 'CO': 'SA', 'CR': 'SA', 'CU': 'SA', 'CV': 'EU', \
+'CX': 'AS', 'CY': 'AS', 'CZ': 'EU', 'DE': 'EU', 'DJ': 'EU', 'DK': 'EU', \
+'DM': 'SA', 'DO': 'SA', 'DZ': 'EU', 'EC': 'SA', 'EE': 'EU', 'EG': 'EU', \
+'EH': 'EU', 'ER': 'EU', 'ES': 'EU', 'ET': 'EU', 'FI': 'EU', 'FJ': 'OC', \
+'FK': 'SA', 'FM': 'OC', 'FO': 'EU', 'FR': 'EU', 'FX': 'EU', 'GA': 'EU', \
+'GB': 'EU', 'GD': 'SA', 'GE': 'AS', 'GF': 'SA', 'GG': 'EU', 'GH': 'EU', \
+'GI': 'EU', 'GL': 'SA', 'GM': 'EU', 'GN': 'EU', 'GP': 'SA', 'GQ': 'EU', \
+'GR': 'EU', 'GS': 'SA', 'GT': 'SA', 'GU': 'OC', 'GW': 'EU', 'GY': 'SA', \
+'HK': 'AS', 'HM': 'EU', 'HN': 'SA', 'HR': 'EU', 'HT': 'SA', 'HU': 'EU', \
 'ID': 'AS', 'IE': 'EU', 'IL': 'EU', 'IM': 'EU', 'IN': 'AS', 'IO': 'AS', \
 'IQ': 'AS', 'IR': 'AS', 'IS': 'EU', 'IT': 'EU', 'JE': 'EU', 'JM': 'SA', \
-'JO': 'AS', 'JP': 'AS', 'KE': 'AF', 'KG': 'EU', 'KH': 'AS', 'KI': 'OC', \
-'KM': 'AF', 'KN': 'SA', 'KP': 'AS', 'KR': 'AS', 'KW': 'AS', 'KY': 'SA', \
+'JO': 'AS', 'JP': 'AS', 'KE': 'EU', 'KG': 'EU', 'KH': 'AS', 'KI': 'OC', \
+'KM': 'EU', 'KN': 'SA', 'KP': 'AS', 'KR': 'AS', 'KW': 'AS', 'KY': 'SA', \
 'KZ': 'AS', 'LA': 'AS', 'LB': 'EU', 'LC': 'SA', 'LI': 'EU', 'LK': 'AS', \
-'LR': 'AF', 'LS': 'AF', 'LT': 'EU', 'LU': 'EU', 'LV': 'EU', 'LY': 'AF', \
-'MA': 'AF', 'MC': 'EU', 'MD': 'EU', 'MG': 'AF', 'MH': 'OC', 'MK': 'EU', \
-'ML': 'AF', 'MM': 'AS', 'MN': 'AS', 'MO': 'AS', 'MP': 'OC', 'MQ': 'SA', \
-'MR': 'AF', 'MS': 'SA', 'MT': 'EU', 'MU': 'AF', 'MV': 'AS', 'MW': 'AF', \
-'MX': 'NA', 'MY': 'AS', 'MZ': 'AF', 'NA': 'AF', 'NC': 'OC', 'NE': 'AF', \
-'NF': 'OC', 'NG': 'AF', 'NI': 'SA', 'NL': 'EU', 'NO': 'EU', 'NP': 'AS', \
+'LR': 'EU', 'LS': 'EU', 'LT': 'EU', 'LU': 'EU', 'LV': 'EU', 'LY': 'EU', \
+'MA': 'EU', 'MC': 'EU', 'MD': 'EU', 'MG': 'EU', 'MH': 'OC', 'MK': 'EU', \
+'ML': 'EU', 'MM': 'AS', 'MN': 'AS', 'MO': 'AS', 'MP': 'OC', 'MQ': 'SA', \
+'MR': 'EU', 'MS': 'SA', 'MT': 'EU', 'MU': 'EU', 'MV': 'AS', 'MW': 'EU', \
+'MX': 'NA', 'MY': 'AS', 'MZ': 'EU', 'NA': 'EU', 'NC': 'OC', 'NE': 'EU', \
+'NF': 'OC', 'NG': 'EU', 'NI': 'SA', 'NL': 'EU', 'NO': 'EU', 'NP': 'AS', \
 'NR': 'OC', 'NU': 'OC', 'NZ': 'AS', 'OM': 'AS', 'PA': 'SA', 'PE': 'SA', \
 'PF': 'OC', 'PG': 'OC', 'PH': 'AS', 'PK': 'AS', 'PL': 'EU', 'PM': 'SA', \
 'PN': 'OC', 'PR': 'SA', 'PS': 'AS', 'PT': 'EU', 'PW': 'OC', 'PY': 'SA', \
-'QA': 'AS', 'RE': 'AF', 'RO': 'EU', 'RU': 'EU', 'RW': 'AF', 'SA': 'AS', \
-'SB': 'OC', 'SC': 'AF', 'SD': 'AF', 'SE': 'EU', 'SG': 'AS', 'SH': 'AF', \
-'SI': 'EU', 'SJ': 'EU', 'SK': 'EU', 'SL': 'AF', 'SM': 'EU', 'SN': 'AF', \
-'SO': 'AF', 'SR': 'SA', 'ST': 'AF', 'SV': 'SA', 'SY': 'AS', 'SZ': 'AF', \
-'TC': 'SA', 'TD': 'AF', 'TF': 'AF', 'TG': 'AF', 'TH': 'AS', 'TJ': 'AS', \
-'TK': 'OC', 'TM': 'AS', 'TN': 'AF', 'TO': 'OC', 'TP': 'AS', 'TR': 'EU', \
-'TT': 'SA', 'TV': 'OC', 'TW': 'AS', 'TZ': 'AF', 'UA': 'EU', 'UG': 'AF', \
+'QA': 'AS', 'RE': 'EU', 'RO': 'EU', 'RU': 'EU', 'RW': 'EU', 'SA': 'AS', \
+'SB': 'OC', 'SC': 'EU', 'SD': 'EU', 'SE': 'EU', 'SG': 'AS', 'SH': 'EU', \
+'SI': 'EU', 'SJ': 'EU', 'SK': 'EU', 'SL': 'EU', 'SM': 'EU', 'SN': 'EU', \
+'SO': 'EU', 'SR': 'SA', 'ST': 'EU', 'SV': 'SA', 'SY': 'AS', 'SZ': 'EU', \
+'TC': 'SA', 'TD': 'EU', 'TF': 'EU', 'TG': 'EU', 'TH': 'AS', 'TJ': 'AS', \
+'TK': 'OC', 'TM': 'AS', 'TN': 'EU', 'TO': 'OC', 'TP': 'AS', 'TR': 'EU', \
+'TT': 'SA', 'TV': 'OC', 'TW': 'AS', 'TZ': 'EU', 'UA': 'EU', 'UG': 'EU', \
 'UM': 'OC', 'US': 'NA', 'UY': 'SA', 'UZ': 'AS', 'VA': 'EU', 'VC': 'SA', \
 'VE': 'SA', 'VG': 'SA', 'VI': 'SA', 'VN': 'AS', 'VU': 'OC', 'WF': 'OC', \
-'WS': 'OC', 'YE': 'AS', 'YT': 'AF', 'YU': 'EU', 'ZA': 'AF', 'ZM': 'AF', \
-'ZR': 'AF', 'ZW': 'AF', 'RS': 'EU', 'ME': 'EU', 'AU': 'AS'}
+'WS': 'OC', 'YE': 'AS', 'YT': 'EU', 'YU': 'EU', 'ZA': 'EU', 'ZM': 'EU', \
+'ZR': 'EU', 'ZW': 'EU', 'RS': 'EU', 'ME': 'EU', 'AU': 'AS'}
 
 
 def calc_list():
@@ -85,10 +85,9 @@ def calc_list():
     final_output_list_eu = []
     final_output_list_na = []
     final_output_list_latam = []
-    final_output_list_africa = []
     final_output_list_unknown = []
     full_name = {'AS' : 'APAC', 'NA' : 'North America', \
-'SA' : 'LATAM', 'AF' : 'Africa', 'EU' : 'EMEA', 'Unknown' : 'Unknown'}
+'SA' : 'LATAM', 'EU' : 'EMEA', 'Unknown' : 'Unknown'}
 
 
     group_name = 'ambassadors'
@@ -218,14 +217,12 @@ continent_code]
             final_output_list_latam.append(item)
         elif continent_code == 'EU':
             final_output_list_eu.append(item)
-        elif continent_code == 'AF':
-            final_output_list_africa.append(item)
         elif continent_code == 'Unknown':
             final_output_list_unknown.append(item)
    # sort the list according to countries
     
     final_string = ''
-    for final_output_list in [final_output_list_as, final_output_list_africa, \
+    for final_output_list in [final_output_list_as, \
 final_output_list_na, final_output_list_latam, final_output_list_eu, \
 final_output_list_unknown]:
         country_list = []
