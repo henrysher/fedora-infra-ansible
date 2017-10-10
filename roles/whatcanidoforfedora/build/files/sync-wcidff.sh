@@ -1,14 +1,14 @@
 #!/bin/bash
 # Borrowed heavily from the syncStatic cronjob script.
 
-if [ ! -d  /srv/web/whatcanidoforfedora.org/.git ]
+if [ ! -d  /srv/web/asknot-ng/.git ]
 then
     /usr/bin/git clone -q \
         https://github.com/fedora-infra/asknot-ng.git \
-        /srv/web/whatcanidoforfedora.org
+        /srv/web/asknot-ng
 fi
 
-cd /srv/web/whatcanidoforfedora.org
+cd /srv/web/asknot-ng
 
 /usr/bin/git clean -q -fdx || exit 1
 /usr/bin/git reset -q --hard || exit 1
