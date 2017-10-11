@@ -1,0 +1,21 @@
+/var/log/lighttpd/access.log {
+    rotate 5
+    daily
+    missingok
+    notifempty
+    prerotate
+        copr_log_hitcounter.py /var/log/lighttpd/access.log &>/dev/null || :
+    endscript
+    postrotate
+        /usr/bin/killall -HUP lighttpd &>/dev/null || :
+    endscript
+}
+
+/var/log/lighttpd/error.log {
+    rotate 5
+    missingok
+    notifempty
+    postrotate
+        /usr/bin/killall -HUP lighttpd &>/dev/null || :
+    endscript
+}
