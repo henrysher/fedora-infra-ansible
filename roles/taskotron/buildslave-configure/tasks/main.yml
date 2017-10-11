@@ -103,7 +103,7 @@
   when: buildslave_public_sshkey_file is defined and deployment_type in ['dev', 'stg', 'prod']
 
 - name: ensure correct fcontext for buildslave dir
-  file: path={{ item.home }}/slave setype=var_lib_t
+  file: path={{ item.home }}/slave setype=var_lib_t owner={{ item.user }} group={{ slaves_group }} mode=0700 state=directory
   with_items:
     - '{{ slaves|default([dict(user="", home="", dir="")]) }}'
   when: deployment_type in ['dev']
