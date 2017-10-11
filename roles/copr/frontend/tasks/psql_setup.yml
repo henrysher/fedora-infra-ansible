@@ -54,3 +54,66 @@
   postgresql_user: db="coprdb" name="copr-fe" password="{{ copr_database_password }}" role_attr_flags=SUPERUSER,NOCREATEDB,NOCREATEROLE
   become: yes
   become_user: postgres
+
+- name: set shared_buffers for PostgreSQL
+  lineinfile:
+    path: /var/lib/pgsql/data/postgresql.conf
+    regexp: '^shared_buffers ='
+    line: 'shared_buffers = 1024MB'
+  notify: restart postgresql
+  tags:
+  - config
+
+- name: set effective_cache_size for PostgreSQL
+  lineinfile:
+    path: /var/lib/pgsql/data/postgresql.conf
+    regexp: '^effective_cache_size ='
+    line: 'effective_cache_size = 2048MB'
+  notify: restart postgresql
+  tags:
+  - config
+
+- name: set work_mem for PostgreSQL
+  lineinfile:
+    path: /var/lib/pgsql/data/postgresql.conf
+    regexp: '^work_mem ='
+    line: 'work_mem = 4MB'
+  notify: restart postgresql
+  tags:
+  - config
+
+- name: set maintenance_work_mem for PostgreSQL
+  lineinfile:
+    path: /var/lib/pgsql/data/postgresql.conf
+    regexp: '^maintenance_work_mem ='
+    line: 'maintenance_work_mem = 1GB'
+  notify: restart postgresql
+  tags:
+  - config
+
+- name: set checkpoint_segments for PostgreSQL
+  lineinfile:
+    path: /var/lib/pgsql/data/postgresql.conf
+    regexp: '^checkpoint_segments ='
+    line: 'checkpoint_segments = 32'
+  notify: restart postgresql
+  tags:
+  - config
+
+- name: set checkpoint_completion_target for PostgreSQL
+  lineinfile:
+    path: /var/lib/pgsql/data/postgresql.conf
+    regexp: '^checkpoint_completion_target ='
+    line: 'checkpoint_completion_target = 0.9'
+  notify: restart postgresql
+  tags:
+  - config
+
+- name: set log_min_duration_statement for PostgreSQL
+  lineinfile:
+    path: /var/lib/pgsql/data/postgresql.conf
+    regexp: '^log_min_duration_statement ='
+    line: 'log_min_duration_statement = 500'
+  notify: restart postgresql
+  tags:
+  - config
