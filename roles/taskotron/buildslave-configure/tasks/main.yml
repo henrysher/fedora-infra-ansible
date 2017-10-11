@@ -102,6 +102,12 @@
     - '{{ slaves|default([dict(user="", home="", dir="")]) }}'
   when: buildslave_public_sshkey_file is defined and deployment_type in ['dev', 'stg', 'prod']
 
+- name: ensure correct fcontext for buildslave dir
+  file: path={{ item.home }}/slave setype=var_lib_t
+  with_items:
+    - '{{ slaves|default([dict(user="", home="", dir="")]) }}'
+  when: deployment_type in ['dev']
+
 - name: generate buildslave service file
   template: src=buildslave@.service.j2 dest=/lib/systemd/system/buildslave@.service owner=root group=root mode=0644
   when: deployment_type in ['dev', 'stg', 'prod']
