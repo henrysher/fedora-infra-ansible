@@ -47,6 +47,24 @@
         state=link
     when: inventory_hostname == 'proxy01.phx2.fedoraproject.org'
 
+  - name: install special wcidff.conf with letsencrypt info
+    copy: src={{ files }}/httpd/wcidff.org.conf dest=/etc/httpd/conf.d/whatcanidoforfedora.org/wcidff.conf
+    when: inventory_hostname == 'proxy01.phx2.fedoraproject.org'
+
+  - name: setup link to letsencrypt certs on proxy01
+    file: >
+        path=/etc/pki/tls/certs/whatcanidoforfedora.intermediate.cert
+        src=/etc/letsencrypt/live/whatcanidoforfedora.org/fullchain.pem
+        state=link
+    when: inventory_hostname == 'proxy01.phx2.fedoraproject.org'
+
+  - name: setup link to letsencrypt certs on proxy01
+    file: >
+        path=/etc/pki/tls/certs/whatcanidoforfedora.org.cert
+        src=/etc/letsencrypt/live/whatcanidoforfedora.org/cert.pem
+        state=link
+    when: inventory_hostname == 'proxy01.phx2.fedoraproject.org'
+
   - include: "{{ tasks_path }}/yumrepos.yml"
   - include: "{{ tasks_path }}/2fa_client.yml"
   - include: "{{ tasks_path }}/motd.yml"
