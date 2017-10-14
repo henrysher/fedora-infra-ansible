@@ -430,3 +430,31 @@
   command: semodule -i /usr/local/share/selinux/cgi-nfs.pp
   when: nfs_selinux_module|changed
   tags: selinux
+
+- name: setup grokmirror for repos
+  package: name=python-grokmirror state=installed
+  tags:
+  - grokmirror
+  - pkgs
+
+- name: make dir for grokmirror manifest
+  file: /srv/git/grokmirror state=directory owner=root group=packager mode=2775
+  tags:
+  - grokmirror
+  - pkgs
+
+- name: set acls for grokmirror
+  acl:
+    path: /srv/git/grokmirror
+    etype: group
+    permissions: rwx
+    state: present
+  tags:
+  - grokmirror
+  - pkgs
+
+- name: run initial grokmirror run 
+  command: /usr/bin/grok-manifest -m /srv/git/grokmirror/manifest.js.gz -t /srv/git/repositories/ creates=/srv/git/grokmirror/manifest.js.gz
+  tags:
+  - grokmirror
+  - pkgs
