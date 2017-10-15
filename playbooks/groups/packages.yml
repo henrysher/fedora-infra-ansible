@@ -3,7 +3,7 @@
 # NOTE: make sure there is room/space for this server on the vmhost
 # NOTE: most of these vars_path come from group_vars/packages* or from hostvars
 
-- include: "/srv/web/infra/ansible/playbooks/include/virt-create.yml myhosts=packages:packages-stg"
+- include_playbook: "/srv/web/infra/ansible/playbooks/include/virt-create.yml myhosts=packages:packages-stg"
 
 - name: make the box be real
   hosts: packages:packages-stg
@@ -16,7 +16,7 @@
    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
 
   pre_tasks:
-  - include: "{{ tasks_path }}/yumrepos.yml"
+  - include_tasks: "{{ tasks_path }}/yumrepos.yml"
 
   roles:
   - base
@@ -32,11 +32,11 @@
   - mod_wsgi
 
   tasks:
-  - include: "{{ tasks_path }}/2fa_client.yml"
-  - include: "{{ tasks_path }}/motd.yml"
+  - include_tasks: "{{ tasks_path }}/2fa_client.yml"
+  - include_tasks: "{{ tasks_path }}/motd.yml"
 
   handlers:
-  - include: "{{ handlers_path }}/restart_services.yml"
+  - include_tasks: "{{ handlers_path }}/restart_services.yml"
 
 - name: set up gluster server on prod
   hosts: packages
@@ -58,7 +58,7 @@
     datadir: /srv/glusterfs/packages
 
   handlers:
-  - include: "{{ handlers_path }}/restart_services.yml"
+  - include_tasks: "{{ handlers_path }}/restart_services.yml"
 
 - name: set up gluster client on prod
   hosts: packages
@@ -84,7 +84,7 @@
     mountdir: /var/cache/fedoracommunity
 
   handlers:
-  - include: "{{ handlers_path }}/restart_services.yml"
+  - include_tasks: "{{ handlers_path }}/restart_services.yml"
 
 - name: dole out the new service specific config
   hosts: packages:packages-stg
@@ -103,4 +103,4 @@
     process: fedmsg-hub
 
   handlers:
-  - include: "{{ handlers_path }}/restart_services.yml"
+  - include_tasks: "{{ handlers_path }}/restart_services.yml"

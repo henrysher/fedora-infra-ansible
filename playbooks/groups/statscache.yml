@@ -3,7 +3,7 @@
 # NOTE: make sure there is room/space for this server on the vmhost
 # NOTE: most of these vars_path come from group_vars/notifs-web* or from hostvars
 
-- include: "/srv/web/infra/ansible/playbooks/include/virt-create.yml myhosts=statscache:statscache-stg"
+- include_playbook: "/srv/web/infra/ansible/playbooks/include/virt-create.yml myhosts=statscache:statscache-stg"
 
 - name: make the box be real
   hosts: statscache:statscache-stg
@@ -14,7 +14,7 @@
    - "/srv/private/ansible/vars.yml"
    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
   handlers:
-  - include: "{{ handlers_path }}/restart_services.yml"
+  - include_tasks: "{{ handlers_path }}/restart_services.yml"
 
   roles:
   - base
@@ -27,9 +27,9 @@
   - sudo
 
   tasks:
-  - include: "{{ tasks_path }}/yumrepos.yml"
-  - include: "{{ tasks_path }}/2fa_client.yml"
-  - include: "{{ tasks_path }}/motd.yml"
+  - include_tasks: "{{ tasks_path }}/yumrepos.yml"
+  - include_tasks: "{{ tasks_path }}/2fa_client.yml"
+  - include_tasks: "{{ tasks_path }}/motd.yml"
 
 - name: Stuff just for the web frontend
   hosts: statscache-web:statscache-web-stg
@@ -40,7 +40,7 @@
    - "/srv/private/ansible/vars.yml"
    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
   handlers:
-  - include: "{{ handlers_path }}/restart_services.yml"
+  - include_tasks: "{{ handlers_path }}/restart_services.yml"
 
   roles:
   - mod_wsgi
@@ -57,7 +57,7 @@
    - "/srv/private/ansible/vars.yml"
    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
   handlers:
-  - include: "{{ handlers_path }}/restart_services.yml"
+  - include_tasks: "{{ handlers_path }}/restart_services.yml"
 
   roles:
   - fedmsg/hub

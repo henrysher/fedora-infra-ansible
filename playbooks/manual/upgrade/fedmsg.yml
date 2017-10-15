@@ -33,7 +33,7 @@
     - python2-fedmsg-meta-fedora-infrastructure
     - python-moksha-hub
   handlers:
-  - include: "{{ handlers_path }}/restart_services.yml"
+  - include_tasks: "{{ handllers_path }}/restart_services.yml"
 
   tasks:
   - name: clean all metadata {%if testing%}(with infrastructure-testing on){%endif%}
@@ -49,7 +49,7 @@
     with_items: "{{packages}}"
 
 # Restart all the backend daemons
-- include: ../restart-fedmsg-services.yml
+- include_tasks: ../restart-fedmsg-services.yml
 
 # Also restart the frontend web services
 - name: bounce apache
@@ -60,7 +60,7 @@
    - "/srv/private/ansible/vars.yml"
    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
   handlers:
-  - include: "{{ handlers_path }}/restart_services.yml"
+  - include_tasks: "{{ handllers_path }}/restart_services.yml"
 
   tasks:
   - service: name="httpd" state=restarted

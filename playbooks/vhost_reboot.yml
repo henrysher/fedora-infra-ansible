@@ -34,7 +34,7 @@
     with_items: "{{ vmlist.list_vms }}"
 
 # Call out to another playbook.  Disable any proxies that may live here
-- include: update-proxy-dns.yml status=disable proxies=myvms_new:&proxies
+- include_playbook: update-proxy-dns.yml status=disable proxies=myvms_new:&proxies
   when: nodns is not defined or not "true" in nodns
 
 - name: halt instances
@@ -103,7 +103,7 @@
     when: nonagios is not defined or not nonagios
 
 # Call out to that dns playbook.  Put proxies back in now that they're back
-- include: update-proxy-dns.yml status=enable proxies=myvms_new:&proxies
+- include_playbook: update-proxy-dns.yml status=enable proxies=myvms_new:&proxies
   when: nodns is not defined or not nodns
 
 - name: Fix unbound if necessary
@@ -116,7 +116,7 @@
    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
 
   tasks:
-  - include: "{{ tasks_path }}/restart_unbound.yml"
+  - include_tasks: "{{ tasks_path }}/restart_unbound.yml"
 
 #  - name: get info on guests (postreboot)
 #    virt: command=info

@@ -1,4 +1,4 @@
-- include: "/srv/web/infra/ansible/playbooks/include/virt-create.yml myhosts=darkserver-backend:darkserver-backend-stg"
+- include_playbook: "/srv/web/infra/ansible/playbooks/include/virt-create.yml myhosts=darkserver-backend:darkserver-backend-stg"
 
 - name: make the box be real
   hosts: darkserver-backend:darkserver-backend-stg
@@ -31,12 +31,12 @@
   - role: apache
 
   tasks:
-  - include: "{{ tasks_path }}/yumrepos.yml"
-  - include: "{{ tasks_path }}/2fa_client.yml"
-  - include: "{{ tasks_path }}/motd.yml"
+  - include_tasks: "{{ tasks_path }}/yumrepos.yml"
+  - include_tasks: "{{ tasks_path }}/2fa_client.yml"
+  - include_tasks: "{{ tasks_path }}/motd.yml"
 
   handlers:
-  - include: "{{ handlers_path }}/restart_services.yml"
+  - include_tasks: "{{ handlers_path }}/restart_services.yml"
 
 - name: set up fedmsg basics
   hosts: darkserver-backend:darkserver-backend-stg
@@ -52,7 +52,7 @@
   - fedmsg/base
 
   handlers:
-  - include: "{{ handlers_path }}/restart_services.yml"
+  - include_tasks: "{{ handlers_path }}/restart_services.yml"
 
 - name: dole out the service-specific config
   hosts: darkserver-backend:darkserver-backend-stg
@@ -73,4 +73,4 @@
     process: fedmsg-hub
 
   handlers:
-  - include: "{{ handlers_path }}/restart_services.yml"
+  - include_tasks: "{{ handlers_path }}/restart_services.yml"

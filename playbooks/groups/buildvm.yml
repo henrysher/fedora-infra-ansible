@@ -3,7 +3,7 @@
 # NOTE: make sure there is room/space for this builder on the buildvmhost
 # NOTE: most of these vars_path come from group_vars/buildvm or from hostvars
 
-- include: "/srv/web/infra/ansible/playbooks/include/virt-create.yml myhosts=buildvm:buildvm-stg:buildvm-aarch64:buildvm-armv7:buildvm-ppc64:buildvm-ppc64le:buildppcle:buildppc:buildvm-s390:buildvm-ppc64-stg:buildvm-ppc64le-stg:buildvm-aarch64-stg:buildvm-armv7-stg"
+- include_playbook: "/srv/web/infra/ansible/playbooks/include/virt-create.yml myhosts=buildvm:buildvm-stg:buildvm-aarch64:buildvm-armv7:buildvm-ppc64:buildvm-ppc64le:buildppcle:buildppc:buildvm-s390:buildvm-ppc64-stg:buildvm-ppc64le-stg:buildvm-aarch64-stg:buildvm-armv7-stg"
 
 - name: make koji builder(s)
   hosts: buildvm:buildvm-stg:buildvm-aarch64:buildvm-armv7:buildvm-ppc64:buildvm-ppc64le:buildppcle:buildppc:buildvm-s390:buildvm-ppc64-stg:buildvm-ppc64le-stg:buildvm-aarch64-stg:buildvm-armv7-stg:buildvm-s390x
@@ -16,7 +16,7 @@
    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
 
   pre_tasks:
-  - include: "{{ tasks_path }}/yumrepos.yml"
+  - include_tasks: "{{ tasks_path }}/yumrepos.yml"
 
   roles:
   - base
@@ -42,16 +42,16 @@
     when: env == "staging"
 
   tasks:
-  - include: "{{ tasks_path }}/2fa_client.yml"
+  - include_tasks: "{{ tasks_path }}/2fa_client.yml"
     when: not inventory_hostname.startswith('bkernel')
-  - include: "{{ tasks_path }}/motd.yml"
+  - include_tasks: "{{ tasks_path }}/motd.yml"
     when: not inventory_hostname.startswith('bkernel')
 
   - name: make sure kojid is running
     service: name=kojid state=started enabled=yes
 
   handlers:
-  - include: "{{ handlers_path }}/restart_services.yml"
+  - include_tasks: "{{ handlers_path }}/restart_services.yml"
 
 - name: configure osbs on koji builders
   hosts: buildvm:buildvm-stg
@@ -66,8 +66,8 @@
    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
 
   pre_tasks:
-  - include: "{{ tasks_path }}/osbs_certs.yml"
-  - include: "{{ tasks_path }}/osbs_repos.yml"
+  - include_tasks: "{{ tasks_path }}/osbs_certs.yml"
+  - include_tasks: "{{ tasks_path }}/osbs_repos.yml"
 
   roles:
   - {
@@ -137,7 +137,7 @@
         }
     }
   handlers:
-  - include: "{{ handlers_path }}/restart_services.yml"
+  - include_tasks: "{{ handlers_path }}/restart_services.yml"
 
 
 - name: configure varnish cache on buildvm-s390x-07.s390.fedoraproject.org
@@ -156,7 +156,7 @@
   - varnish
 
   handlers:
-  - include: "{{ handlers_path }}/restart_services.yml"
+  - include_tasks: "{{ handlers_path }}/restart_services.yml"
 
 - name: configure sshfs on buildvm-s390x-01.s390.fedoraproject.org
   hosts: buildvm-s390x-01.s390.fedoraproject.org
@@ -194,7 +194,7 @@
     - sshfs
 
   handlers:
-  - include: "{{ handlers_path }}/restart_services.yml"
+  - include_tasks: "{{ handlers_path }}/restart_services.yml"
 
 - name: configure sshfs target on koji01
   hosts: koji01.phx2.fedoraproject.org
@@ -218,4 +218,4 @@
     - sshfs
 
   handlers:
-  - include: "{{ handlers_path }}/restart_services.yml"
+  - include_tasks: "{{ handlers_path }}/restart_services.yml"

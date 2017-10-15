@@ -1,6 +1,6 @@
 # create a new datagrepper server
 
-- include: "/srv/web/infra/ansible/playbooks/include/virt-create.yml myhosts=datagrepper:datagrepper-stg"
+- include_playbook: "/srv/web/infra/ansible/playbooks/include/virt-create.yml myhosts=datagrepper:datagrepper-stg"
 
 - name: make the box be real
   hosts: datagrepper:datagrepper-stg
@@ -27,12 +27,12 @@
   - mod_wsgi
 
   tasks:
-  - include: "{{ tasks_path }}/yumrepos.yml"
-  - include: "{{ tasks_path }}/2fa_client.yml"
-  - include: "{{ tasks_path }}/motd.yml"
+  - include_tasks: "{{ tasks_path }}/yumrepos.yml"
+  - include_tasks: "{{ tasks_path }}/2fa_client.yml"
+  - include_tasks: "{{ tasks_path }}/motd.yml"
 
   handlers:
-  - include: "{{ handlers_path }}/restart_services.yml"
+  - include_tasks: "{{ handlers_path }}/restart_services.yml"
 
 - name: dole out the service-specific config
   hosts: datagrepper:datagrepper-stg
@@ -52,7 +52,7 @@
     interval: 15
 
   handlers:
-  - include: "{{ handlers_path }}/restart_services.yml"
+  - include_tasks: "{{ handlers_path }}/restart_services.yml"
 
 # The gluster work here can be omitted for now.  It is used by a feature of
 # datagrepper that is partially in place, but not yet functional.
@@ -77,7 +77,7 @@
 #    datadir: /srv/glusterfs/datagrepper
 #
 #  handlers:
-#  - include: "{{ handlers_path }}/restart_services.yml"
+#  - include_tasks: "{{ handlers_path }}/restart_services.yml"
 #
 #- name: set up gluster client on prod
 #  hosts: datagrepper:datagrepper-stg
@@ -102,4 +102,4 @@
 #    mountdir: /var/cache/datagrepper
 #
 #  handlers:
-#  - include: "{{ handlers_path }}/restart_services.yml"
+#  - include_tasks: "{{ handlers_path }}/restart_services.yml"

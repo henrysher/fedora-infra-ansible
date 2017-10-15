@@ -6,7 +6,7 @@
     - "/srv/private/ansible/vars.yml"
     - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
   handlers:
-    - include: "{{ handlers_path }}/restart_services.yml"
+    - include_tasks: "{{ handllers_path }}/restart_services.yml"
   tasks:
     - name: clean all metadata {%if testing%}(with infrastructure-testing on){%endif%}
       command: yum clean all {%if testing%} --enablerepo=infrastructure-tags-stg {%endif%}
@@ -26,7 +26,7 @@
     - "/srv/private/ansible/vars.yml"
     - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
   handlers:
-    - include: "{{ handlers_path }}/restart_services.yml"
+    - include_tasks: "{{ handllers_path }}/restart_services.yml"
   pre_tasks:
     - name: tell nagios to shush w.r.t. the frontend
       nagios: action=downtime minutes=15 service=host host={{ inventory_hostname_short }}{{ env_suffix }}
@@ -50,7 +50,7 @@
     - "/srv/private/ansible/vars.yml"
     - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
   handlers:
-    - include: "{{ handlers_path }}/restart_services.yml"
+    - include_tasks: "{{ handllers_path }}/restart_services.yml"
   pre_tasks:
     - name: tell nagios to shush w.r.t. the backend
       nagios: action=downtime minutes=15 service=host host={{ inventory_hostname_short }}{{ env_suffix }}

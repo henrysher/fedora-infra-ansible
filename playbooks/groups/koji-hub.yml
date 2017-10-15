@@ -2,7 +2,7 @@
 # NOTE: should be used with --limit most of the time
 # NOTE: most of these vars_path come from group_vars/koji-hub or from hostvars
 
-- include: "/srv/web/infra/ansible/playbooks/include/virt-create.yml myhosts=koji-stg:koji"
+- include_playbook: "/srv/web/infra/ansible/playbooks/include/virt-create.yml myhosts=koji-stg:koji"
 
 # Once the instance exists, configure it.
 
@@ -17,8 +17,8 @@
    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
 
   pre_tasks:
-    - include: "{{ tasks_path }}/osbs_certs.yml"
-    - include: "{{ tasks_path }}/osbs_repos.yml"
+    - include_tasks: "{{ tasks_path }}/osbs_certs.yml"
+    - include_tasks: "{{ tasks_path }}/osbs_repos.yml"
 
   roles:
   - base
@@ -82,12 +82,12 @@
     file: src=/mnt/fedora_koji_prod/koji dest=/mnt/koji/vol/prod state=link
     tags: koji_hub
     when: env == 'staging'
-  - include: "{{ tasks_path }}/yumrepos.yml"
-  - include: "{{ tasks_path }}/2fa_client.yml"
-  - include: "{{ tasks_path }}/motd.yml"
+  - include_tasks: "{{ tasks_path }}/yumrepos.yml"
+  - include_tasks: "{{ tasks_path }}/2fa_client.yml"
+  - include_tasks: "{{ tasks_path }}/motd.yml"
 
   handlers:
-  - include: "{{ handlers_path }}/restart_services.yml"
+  - include_tasks: "{{ handlers_path }}/restart_services.yml"
 
 
 #- name: Start the kojid builder daemon, but only on staging.

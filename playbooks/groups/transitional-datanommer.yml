@@ -1,4 +1,4 @@
-- include: "/srv/web/infra/ansible/playbooks/include/virt-create.yml myhosts=transitional-datanommer"
+- include_playbook: "/srv/web/infra/ansible/playbooks/include/virt-create.yml myhosts=transitional-datanommer"
 
 - name: dole out the generic configuration
   hosts: transitional-datanommer
@@ -22,12 +22,12 @@
   - openvpn/client
 
   tasks:
-  - include: "{{ tasks_path }}/yumrepos.yml"
-  - include: "{{ tasks_path }}/2fa_client.yml"
-  - include: "{{ tasks_path }}/motd.yml"
+  - include_tasks: "{{ tasks_path }}/yumrepos.yml"
+  - include_tasks: "{{ tasks_path }}/2fa_client.yml"
+  - include_tasks: "{{ tasks_path }}/motd.yml"
 
   handlers:
-  - include: "{{ handlers_path }}/restart_services.yml"
+  - include_tasks: "{{ handlers_path }}/restart_services.yml"
 
 - name: dole out the service-specific config
   hosts: transitional-datanommer
@@ -47,4 +47,4 @@
    - "{{ vars_path }}/{{ ansible_distribution }}.yml"
 
   handlers:
-  - include: "{{ handlers_path }}/restart_services.yml"
+  - include_tasks: "{{ handlers_path }}/restart_services.yml"

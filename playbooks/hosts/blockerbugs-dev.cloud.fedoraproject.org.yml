@@ -8,11 +8,11 @@
    - "/srv/private/ansible/vars.yml"
 
   tasks:
-  - include: "{{ tasks_path }}/persistent_cloud.yml"
-  - include: "{{ tasks_path }}/growroot_cloud.yml"
+  - include_tasks: "{{ tasks_path }}/persistent_cloud.yml"
+  - include_tasks: "{{ tasks_path }}/growroot_cloud.yml"
 
   handlers:
-  - include: "{{ handlers_path }}/restart_services.yml"
+  - include_tasks: "{{ handlers_path }}/restart_services.yml"
 
 - name: provision instance
   hosts: blockerbugs-dev.cloud.fedoraproject.org
@@ -31,9 +31,9 @@
   - basessh
 
   tasks:
-  - include: "{{ tasks_path }}/cloud_setup_basic.yml"
+  - include_tasks: "{{ tasks_path }}/cloud_setup_basic.yml"
   - name: mount up blockerbugs-dev to /srv/persistent
     mount: name=/srv/persistent src='LABEL=blockerbugs-dev' fstype=ext4 state=mounted
 
   handlers:
-  - include: "{{ handlers_path }}/restart_services.yml"
+  - include_tasks: "{{ handlers_path }}/restart_services.yml"
