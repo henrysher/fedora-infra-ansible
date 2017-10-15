@@ -50,10 +50,10 @@
   service: name=openqa-ppc64-prep enabled=yes state=started
   when: "ansible_architecture is defined and ansible_architecture == 'ppc64le'"
 
-- include: nfs-client.yml
+- include_tasks: nfs-client.yml
   when: openqa_hostname is defined and openqa_hostname != "localhost"
 
-- include: tap-setup.yml
+- include_tasks: tap-setup.yml
   when: openqa_tap is defined and openqa_tap
 
 - name: openQA client config
@@ -66,7 +66,7 @@
   tags:
   - config
 
-- include: createhdds.yml
+- include_tasks: createhdds.yml
   when: "inventory_hostname in groups['openqa-hdds-workers']"
 
 - name: Enable and start worker services
