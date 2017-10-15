@@ -33,8 +33,7 @@ project_to_email = {}
 
 
 def get_pagure_projects():
-    pagure_projects_url = pagure_url +
-        '/api/0/projects?page=1&per_page=100&fork=false'
+    pagure_projects_url = pagure_url + '/api/0/projects?page=1&per_page=100&fork=false'
     session = retry_session()
     while pagure_projects_url:
         response = session.get(pagure_projects_url)
