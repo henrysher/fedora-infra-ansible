@@ -29,12 +29,14 @@
   - hotfix
   - hotness
 
-- name: copy database configuration
+- name: copy hotness fedmsg configuration
   template: >
     src={{ item }} dest=/etc/fedmsg.d/{{ item }}
     owner=fedmsg group=fedmsg mode=0600
   with_items:
   - hotness.py
+  handlers:
+  - import_tasks: "{{ handlers_path }}/restart_services.yml"
   notify:
   - restart fedmsg-hub
   tags:
