@@ -94,7 +94,7 @@ class CallbackModule(CallbackBase):
                         playbook=path,
                         userid=getlogin(),
                         extra_vars=play._variable_manager.extra_vars,
-                        inventory=play._variable_manager._inventory.src(),
+                        inventory=play._variable_manager._inventory._sources,
                         playbook_checksum=secure_hash(path),
                         check=self.play_context.check_mode,
                     ),

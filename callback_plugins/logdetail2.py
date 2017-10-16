@@ -247,7 +247,7 @@ class CallbackModule(CallbackBase):
                 pb_info['playbook'] = path
                 pb_info['userid'] = getlogin()
                 pb_info['extra_vars'] = play._variable_manager.extra_vars
-                pb_info['inventory'] = play._variable_manager._inventory.src()
+                pb_info['inventory'] = play._variable_manager._inventory._sources
                 pb_info['playbook_checksum'] = secure_hash(path)
                 pb_info['check'] = self.play_context.check_mode
                 pb_info['diff'] = self.play_context.diff
