@@ -72,6 +72,9 @@ config = {
     "fmn.autocreate": False,
     {% endif %}
 
+    # Ignore rubygems coprs
+    "ignored_copr_owners": ["@rubygems"],
+
     # Just drop these topics without considering any preferences.  They are noise that just clog us up.
     "fmn.junk_suffixes": [
         '.buildsys.package.list.change',
