@@ -5,15 +5,16 @@
 # list all hosts with their corresponding vars
 # Note that the script will attempt to "match" the supplied value of the var against the values if it the var is multivalued  
 
+from ansible import constants as C
 from ansible.parsing.dataloader import DataLoader
-from ansible.vars import VariableManager
-from ansible.inventory import Inventory
+from ansible.vars.manager import VariableManager
+from ansible.inventory.manager import InventoryManager
 import sys
 from optparse import OptionParser
 
 
 parser = OptionParser(version="1.0")
-parser.add_option('-i', dest='inventory', default=None,
+parser.add_option('-i', dest='inventory', default=C.DEFAULT_HOST_LIST,
                   help="Path to inventory file/dir")
 parser.add_option('-o', dest='variable', default=None,
                   help="variable name to check")
@@ -25,19 +26,10 @@ if ((opts.variable == None and opts.all_vars == None) or (opts.variable != None 
 	print "Usage: hosts_with_var_set -o varname[=value] | -a"
 	sys.exit(-1)
 
-variable_manager = VariableManager()
 loader = DataLoader()
-
-if opts.inventory:
-    inv = Inventory(loader=loader,variable_manager=variable_manager, host_list=opts.inventory)
-else:
-    inv = Inventory(loader=loader,variable_manager=variable_manager)
-
-variable_manager.set_inventory(inv)
-
-
+inv = InventoryManager(loader=loader, sources=opts.inventory)
+variable_manager = VariableManager(loader=loader, inventory=inv)
 matching=True
-
 
 if opts.variable != None:
    if opts.variable.find("=") == -1:
@@ -51,7 +43,7 @@ if opts.variable != None:
 var_set = []
 
 for host in sorted(inv.get_hosts()):
-    vars = variable_manager.get_vars(loader=loader, host=host)
+    vars = variable_manager.get_vars(host=host)
     if opts.variable == None:
 	 # remove expanded 'all' groups
   	 vars.pop('groups')
