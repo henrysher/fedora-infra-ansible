@@ -1,9 +1,9 @@
 ---
 - name: mount fs
-  include_tasks: "mount_fs.yml"
+  import_tasks: "mount_fs.yml"
 
 - name: setup networking
-  include_tasks: "network.yml"
+  import_tasks: "network.yml"
 
 # pre-create copr user and group with predefined uid and gid
 - group: name=copr gid=986
@@ -82,7 +82,7 @@
 
 - name: install certificates for production
   when: not devel
-  include_tasks: "install_certs.yml"
+  import_tasks: "install_certs.yml"
 
 - name: allow lighttpd set fds limit
   seboolean: name=httpd_setrlimit state=yes persistent=yes
@@ -167,7 +167,7 @@
 
 - name: install cert to access fed-cloud09
   # TODO: remove this when fed-cloud09 receives external cert
-  include_tasks: install_cloud_cert.yml
+  import_tasks: install_cloud_cert.yml
 
 - name: enable and run copr-backend services
   service: name="{{ item }}" enabled=yes state=started
@@ -184,8 +184,8 @@
   copy: src="logrotate/lighttpd" dest=/etc/logrotate.d/lighttpd owner=root group=root mode=644
 
 - name: setup monitoring
-  include_tasks: "monitoring.yml"
+  import_tasks: "monitoring.yml"
 
 - name: setup fedmsg for MBS
-  include_tasks: "fedmsg.yml"
+  import_tasks: "fedmsg.yml"
   when: env == "staging"

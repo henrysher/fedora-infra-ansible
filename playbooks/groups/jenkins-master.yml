@@ -9,7 +9,7 @@
    - /srv/private/ansible/files/openstack/passwords.yml
 
   tasks:
-  - include_tasks: "{{ tasks_path }}/persistent_cloud.yml"
+  - import_tasks: "{{ tasks_path }}/persistent_cloud.yml"
 
 - name: setup all the things
   hosts: jenkins-master
@@ -21,10 +21,10 @@
    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
 
   pre_tasks:
-  - include_tasks: "{{ tasks_path }}/cloud_setup_basic.yml"
+  - import_tasks: "{{ tasks_path }}/cloud_setup_basic.yml"
   - name: set hostname (required by some services, at least postfix need it)
     hostname: name="{{inventory_hostname}}"
-  - include_tasks: "{{ tasks_path }}/yumrepos.yml"
+  - import_tasks: "{{ tasks_path }}/yumrepos.yml"
 
 - name: provision instance
   hosts: jenkins-master
@@ -41,8 +41,8 @@
   - certbot
 
   tasks:
-  - include_tasks: "{{ tasks_path }}/yumrepos.yml"
-  - include_tasks: "{{ tasks_path }}/motd.yml"
+  - import_tasks: "{{ tasks_path }}/yumrepos.yml"
+  - import_tasks: "{{ tasks_path }}/motd.yml"
 
   handlers:
   - import_tasks: "{{ handlers_path }}/restart_services.yml"
