@@ -26,7 +26,9 @@
 
 import os
 import sys
-import ansible.inventory
+from ansible.parsing.dataloader import DataLoader
+from ansible.inventory.manager import InventoryManager
+from ansible import constants as C
 from optparse import OptionParser
 
 host_path = '/srv/web/infra/ansible/playbooks/hosts'
@@ -57,15 +59,12 @@ def main():
 
 
     parser = OptionParser(version = "1.0")
-    parser.add_option('-i', dest='inventory', default=None,
+    parser.add_option('-i', dest='inventory', default=C.DEFAULT_HOST_LIST,
          help="Path to inventory file/dir")
     opts,hosts = parser.parse_args(sys.argv[1:])
 
-    if opts.inventory:
-        inv = ansible.inventory.Inventory(host_list=opts.inventory)
-    else:
-        inv = ansible.inventory.Inventory()
-    
+    loader = DataLoader()
+    inv = InventoryManager(loader=loader, sources=opts.inventory) 
 
     for host in hosts:
         matched_host = None
@@ -75,7 +74,7 @@ def main():
                 break
             if host == os.path.basename(h_pb).replace(pb_extension, ''):
                 matched_host = h_pb
-        for group in inv.groups_for_host(host):
+        for group in inv.hosts[host].groups:
             if matched_group:
                 break
             for g_pb in group_playbooks:
