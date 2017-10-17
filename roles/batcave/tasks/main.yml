@@ -12,6 +12,15 @@
   - batcave
   - config
 
+# https://pagure.io/fedora-infrastructure/issue/6422
+- name: put openshift repo on batcave for the oc client tools
+  template: src="{{ files }}/openshift/openshift.repo" dest="/etc/yum.repos.d/openshift.repo"
+  tags:
+  - batcave
+  - config
+  - packages
+  - yumrepos
+
 - name: install packages needed
   package: name={{ item }} state=present
   with_items:
@@ -39,6 +48,8 @@
   - libvirt-client            # needed to allow migrations to be run from here.
   - ansible-lint              # needed to check ansible playbooks for issues.
   - mash                      # Needed for infra tags
+  # https://pagure.io/fedora-infrastructure/issue/6422
+  - atomic-openshift-clients  # For convenient client access to os.fp.o
   tags:
   - batcave
   - config
