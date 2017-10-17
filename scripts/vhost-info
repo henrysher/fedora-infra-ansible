@@ -8,8 +8,9 @@
 import sys
 from collections import namedtuple
 from ansible.parsing.dataloader import DataLoader
-from ansible.vars import VariableManager
-from ansible.inventory import Inventory
+from ansible.vars.manager import VariableManager
+from ansible.inventory.manager import InventoryManager
+from ansible import constants as C
 from ansible.playbook.play import Play
 from ansible.executor.task_queue_manager import TaskQueueManager
 from ansible.plugins.callback import CallbackBase
@@ -50,7 +51,7 @@ class OutputCallback(CallbackBase):
 
 parser = OptionParser(version = "1.0")
 parser.add_option('--host', default=[], action='append', help="hosts to act on, defaults to virtservers")
-parser.add_option('--hosts-from-file', default=None, dest="host_file", help="read list of hosts from this file")
+parser.add_option('--hosts-from-file', default=C.DEFAULT_HOST_LIST, dest="host_file", help="read list of hosts from this file")
 (opts, args) = parser.parse_args(sys.argv[1:])
 
 if not opts.host:
@@ -60,23 +61,15 @@ else:
 
 
 
-Options = namedtuple('Options', ['connection','module_path', 'forks', 'remote_user', 'private_key_file', 'ssh_common_args', 'ssh_extra_args', 'sftp_extra_args', 'scp_extra_args', 'become', 'become_method', 'become_user', 'verbosity', 'check', 'timeout'])
+Options = namedtuple('Options', ['connection','module_path', 'forks', 'remote_user', 'private_key_file', 'ssh_common_args', 'ssh_extra_args', 'sftp_extra_args', 'scp_extra_args', 'become', 'become_method', 'become_user', 'verbosity', 'check', 'timeout', 'diff'])
 
-# initialize needed objects
-variable_manager = VariableManager()
-loader = DataLoader()
-
-options = Options(connection='ssh', module_path=None, forks=25, remote_user=None, private_key_file=None, ssh_common_args=None, ssh_extra_args=None, sftp_extra_args=None, scp_extra_args=None, become=None, become_method=None, become_user=None, verbosity=None, check=False, timeout=10)
+options = Options(connection='ssh', module_path=None, forks=25, remote_user=None, private_key_file=None, ssh_common_args=None, ssh_extra_args=None, sftp_extra_args=None, scp_extra_args=None, become=None, become_method=None, become_user=None, verbosity=None, check=False, timeout=10, diff=False)
 
 
 # create inventory and pass to var manager
-if opts.host_file:
- inventory = Inventory(loader=loader, variable_manager=variable_manager, host_list=opts.host_file)
-else:
- inventory = Inventory(loader=loader, variable_manager=variable_manager)
- 
-variable_manager.set_inventory(inventory)
-
+loader = DataLoader()
+inv = InventoryManager(loader=loader, sources=opts.host_file)
+variable_manager = VariableManager(loader=loader, inventory=inv)
 
 # create play with tasks
 play_source =  dict(
@@ -87,12 +80,11 @@ play_source =  dict(
     )
 play = Play().load(play_source, variable_manager=variable_manager, loader=loader)
 
-
 cb=OutputCallback()
 tqm = None
 try:
     tqm = TaskQueueManager(
-              inventory=inventory,
+              inventory=inv,
               variable_manager=variable_manager,
               loader=loader,
               options=options,
@@ -103,9 +95,9 @@ try:
 finally:
     if tqm is not None:
         tqm.cleanup()
+
 for vhostname in sorted(cb.mem_per_host):
     freemem = cb.mem_per_host[vhostname] - cb.mem_used_in_vm[vhostname]
     freecpu = cb.cpu_per_host[vhostname] - cb.cpu_used_in_vm[vhostname]
     print '%s:\t%s/%s mem(unused/total)\t%s/%s cpus(unused/total)' % (
         vhostname, freemem, cb.mem_per_host[vhostname], freecpu, cb.cpu_per_host[vhostname])
-
