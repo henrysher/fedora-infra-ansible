@@ -8,10 +8,11 @@ config = dict(
 
             {% if env == 'staging' %}
             nickname='fedmsg-stg',
+            channel='fedora-fedmsg-stg',
             {% else %}
             nickname='fedmsg-bot',
-            {% endif %}
             channel='fedora-fedmsg',
+            {% endif %}
 
             filters=dict(
                 topic=[
