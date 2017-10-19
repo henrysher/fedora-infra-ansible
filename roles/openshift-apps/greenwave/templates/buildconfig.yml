@@ -27,6 +27,8 @@ spec:
       RUN mkdir -p /etc/pki/fedmsg/
       RUN ln -sf /etc/pki/fedmsg/key/fedmsg-greenwave.key /etc/pki/fedmsg/greenwave.key
       RUN ln -sf /etc/pki/fedmsg/crt/fedmsg-greenwave.crt /etc/pki/fedmsg/greenwave.crt
+      # Make sure fedmsg can write its CRL.
+      RUN chmod 777 /var/run/fedmsg/
       EXPOSE 8080
       ENTRYPOINT gunicorn --bind 0.0.0.0:8080 --access-logfile=- greenwave.wsgi:app
   strategy:
