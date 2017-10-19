@@ -26,12 +26,6 @@ spec:
         - name: config-volume
           mountPath: /etc/greenwave
           readOnly: true
-        - name: fedmsg-key-volume
-          mountPath: /etc/pki/fedmsg/key
-          readOnly: true
-        - name: fedmsg-crt-volume
-          mountPath: /etc/pki/fedmsg/crt
-          readOnly: true
         readinessProbe:
           timeoutSeconds: 1
           initialDelaySeconds: 5
@@ -51,13 +45,6 @@ spec:
       - name: config-volume
         configMap:
           name: greenwave-configmap
-      # This secret volume gets set up in the playbook
-      - name: fedmsg-key-volume
-        secret:
-          secretName: greenwave-fedmsg-key
-      - name: fedmsg-crt-volume
-        secret:
-          secretName: greenwave-fedmsg-crt
   triggers:
   - type: ImageChange
     imageChangeParams:
@@ -98,6 +85,12 @@ spec:
         - name: fedmsg-config-volume
           mountPath: /etc/fedmsg-greenwave.d
           readOnly: true
+        - name: fedmsg-key-volume
+          mountPath: /etc/pki/fedmsg/key
+          readOnly: true
+        - name: fedmsg-crt-volume
+          mountPath: /etc/pki/fedmsg/crt
+          readOnly: true
         resources:
           limits:
             memory: 384Mi
@@ -105,6 +98,13 @@ spec:
       - name: fedmsg-config-volume
         configMap:
           name: greenwave-fedmsg-configmap
+      # This secret volume gets set up in the playbook
+      - name: fedmsg-key-volume
+        secret:
+          secretName: greenwave-fedmsg-key
+      - name: fedmsg-crt-volume
+        secret:
+          secretName: greenwave-fedmsg-crt
   triggers:
   - type: ImageChange
     imageChangeParams:
