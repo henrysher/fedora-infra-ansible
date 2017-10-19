@@ -23,6 +23,9 @@ spec:
           https://kojipkgs.fedoraproject.org//packages/greenwave/0.3/2.fc26/noarch/greenwave-0.3-2.fc26.noarch.rpm
       # create a symlink for configuring the fedmsg consumers.
       RUN ln -sfn /etc/fedmsg-greenwave.d/greenwave.py /etc/fedmsg.d/greenwave.py
+      # And another two for putting the certs in place.
+      RUN ln -sfn /etc/pki/fedmsg/key/fedmsg-greenwave.key /etc/pki/fedmsg/greenwave.key
+      RUN ln -sfn /etc/pki/fedmsg/crt/fedmsg-greenwave.crt /etc/pki/fedmsg/greenwave.crt
       EXPOSE 8080
       ENTRYPOINT gunicorn --bind 0.0.0.0:8080 --access-logfile=- greenwave.wsgi:app
   strategy:
