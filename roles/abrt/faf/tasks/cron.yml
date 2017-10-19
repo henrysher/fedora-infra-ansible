@@ -9,13 +9,29 @@
     state: present
   become: yes
 
+- name: cron create-problems-speedup
+  cron:
+    name: "faf create-problems-speedup with type {{ item}}"
+    user: faf
+    job: "faf create-problems -p {{ item }} --speedup >> /var/log/faf/create-problems.log 2>&1"
+    minute: 30
+    hour: "2"
+    state: present
+  become: yes
+  with_items:
+    - "core"
+    - "kerneloops"
+    - "python"
+    - "ruby"
+
 - name: cron create-problems
   cron:
     name: "faf create-problems with type {{ item}}"
     user: faf
     job: "faf create-problems -p {{ item }} >> /var/log/faf/create-problems.log 2>&1"
+    day: "15"
     minute: 30
-    hour: "2"
+    hour: "14"
     state: present
   become: yes
   with_items:
