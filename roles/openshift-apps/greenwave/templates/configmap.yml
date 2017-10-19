@@ -230,8 +230,12 @@ data:
     config = dict(
       # XXX: change to dbm backend with persistent volume.
       greenwave_cache={'backend': 'dogpile.cache.memory'},
+      sign_messages=True,
+      active=True,
+
 {% if env == 'staging' %}
       environment='stg',
+      relay_inbound=["tcp://busgateway01.stg.phx2.fedoraproject.org:9941"],
       greenwave_api_url='https://greenwave-web-greenwave.app.os.stg.fedoraproject.org/api/v1.0',
       # STG greenwave should listen to the STG bus.
       endpoints=dict(
@@ -241,6 +245,7 @@ data:
       ),
 {% else %}
       environment='prod',
+      relay_inbound=["tcp://busgateway01.phx2.fedoraproject.org:9941"],
       greenwave_api_url='https://greenwave-web-greenwave.app.os.fedoraproject.org/api/v1.0'
 {% endif %}
     )
