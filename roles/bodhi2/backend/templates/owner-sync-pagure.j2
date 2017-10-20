@@ -401,9 +401,13 @@ if __name__ == '__main__':
         namespace = info['namespace']
         pkgs = []
         for pkg, branches in namespace_to_projects[namespace].items():
-            # The tag and branch names are the same for "old-style" branches
             if info['branch'] in branches or tag == ('f' + RAWHIDE):
+                # The tag and branch names are the same for "old-style" branches
                 pkgs.append(pkg)
+            elif namespace == 'modules':
+                # Add modules to f27-modular-updates even if their only branch is '2.4'
+                pkgs.append(pkg)
+
         # This is a special project, not in dist-git, but which needs to be in
         # the package list.
         if namespace == 'rpms':
