@@ -20,8 +20,14 @@ data:
     WAIVERDB_API_URL = 'https://waiverdb-web-waiverdb.app.os.fedoraproject.org/api/v1.0'
     CORS_URL = 'https://bodhi.fedoraproject.org'
 {% endif %}
-    # XXX: change to dbm backend with persistent volume.
-    CACHE = {'backend': 'dogpile.cache.memory'}
+    CACHE = {
+        'backend': 'dogpile.cache.memcached',
+        'expiration_time': 3600, # 3600 is 1 hour
+        'arguments': {
+            'url': 'greenwave-memcached:11211',
+            'distributed_lock': True
+        }
+    }
   fedora.yaml: |-
     --- !Policy
     id: "openqa_important_stuff_for_rawhide"
@@ -229,8 +235,6 @@ data:
   greenwave.py: |-
     import socket
     config = dict(
-      # XXX: change to dbm backend with persistent volume.
-      greenwave_cache={'backend': 'dogpile.cache.null'},
       sign_messages=True,
       active=True,
 
@@ -256,7 +260,14 @@ data:
               }
           },
       },
-
+      greenwave_cache={
+          'backend': 'dogpile.cache.memcached',
+          'expiration_time': 3600, # 3600 is 1 hour
+          'arguments': {
+              'url': 'greenwave-memcached:11211',
+              'distributed_lock': True
+          }
+      },
 {% if env == 'staging' %}
       environment='stg',
       relay_inbound=["tcp://busgateway01.stg.phx2.fedoraproject.org:9941"],

@@ -115,4 +115,32 @@ spec:
         kind: ImageStreamTag
         name: greenwave:latest
   - type: ConfigChange
- 
+---
+# For memcached
+apiVersion: v1
+kind: DeploymentConfig
+metadata:
+  name: greenwave-memcached
+  labels:
+    app: greenwave
+    service: greenwave-memcached
+spec:
+  replicas: 1
+  selector:
+    service: greenwave-memcached
+  template:
+    metadata:
+      labels:
+        app: greenwave
+        service: greenwave-memcached
+    spec:
+      containers:
+      - name: greenwave-memcached
+        image: registry.fedoraproject.org/memcached:26
+        ports:
+        - containerPort: 11211
+        resources:
+          limits:
+            memory: 384Mi
+  triggers:
+  - type: ConfigChange
