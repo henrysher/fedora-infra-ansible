@@ -500,7 +500,7 @@ config = dict(
                     '^((?!(mailman)).)*$',
                 ],
                 body=[
-                    "^((?!((u)?'namespace': (u)?'fossrit')).)*$",
+                    "^((?!(fossrit)).)*$",
                 ],
             ),
         ),
