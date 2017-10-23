@@ -99,6 +99,17 @@
   - bodhi
   - config
 
+- name: Put pungi configurations in place
+  copy: src="{{env}}-{{item}}" dest=/etc/bodhi/{{item}}
+  with_items:
+  - pungi.module.conf.j2
+  - pungi.rpm.conf.j2
+  - variants.module.xml.j2
+  - variants.rpm.xml.j2
+  tags:
+  - bodhi
+  - config
+
 - name: setup /etc/bodhi/mash.conf file...
   template: >
     src=mash.conf
@@ -109,6 +120,7 @@
   tags:
   - config
   - bodhi
+  when: env == "production"
 
 - name: install /etc/bodhi/*.mash files
   copy: >
@@ -130,6 +142,7 @@
   tags:
   - config
   - bodhi
+  when: env == "production"
 
 # tasks for setting up epelmasher
 
@@ -140,6 +153,7 @@
   tags:
   - packages
   - bodhi
+  when: env == "production"
 
 #
 # koji ssl cert for owner sync jobs below
