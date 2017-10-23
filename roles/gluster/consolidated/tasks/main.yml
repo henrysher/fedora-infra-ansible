@@ -2,11 +2,13 @@
   package: name={{ item }} state=present
   with_items:
   - glusterfs-server
+  when: inventory_hostname in groups[gluster_server_group]
   tags:
   - packages
 
 - name: start glusterd for the server
   service: name=glusterd state=started enabled=true
+  when: inventory_hostname in groups[gluster_server_group]
 
 - name: Servers discover each other.
   command: gluster peer probe  {{ item }}
@@ -32,11 +34,16 @@
   tags:
   - gluster
 
-- name: Ensure Gluster brick and mount directories exist.
-  file: "path={{ item }} state=directory mode=0775"
-  with_items:
-    - "{{ gluster_brick_dir }}"
-    - "{{ gluster_mount_dir }}"
+- name: Ensure Gluster brick directories exist.
+  file: "path={{ gluster_brick_dir }} state=directory mode=0775"
+  when: inventory_hostname in groups[gluster_server_group]
+  tags:
+  - gluster
+
+- name: Ensure Gluster mount directories exist.
+  file: "path={{ gluster_mount_dir }} state=directory mode=0775"
+  tags:
+  - gluster
 
 - name: Configure Gluster volume.
   gluster_volume:
@@ -47,6 +54,7 @@
     cluster: "{{ groups[gluster_server_group] | join(',') }}"
     host: "{{ inventory_hostname }}"
     force: yes
+  when: inventory_hostname in groups[gluster_server_group]
   run_once: true
   ignore_errors: true
 
