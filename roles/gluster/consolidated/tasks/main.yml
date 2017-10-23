@@ -2,14 +2,12 @@
   package: name={{ item }} state=present
   with_items:
   - glusterfs-server
-  when: inventory_hostname in groups[gluster_server_group]
   tags:
   - packages
   - gluster
 
 - name: start glusterd for the server
   service: name=glusterd state=started enabled=true
-  when: inventory_hostname in groups[gluster_server_group]
   tags:
   - gluster
 
@@ -17,7 +15,6 @@
   command: gluster peer probe  {{ item }}
   with_items: '{{groups[gluster_server_group]}}'
   run_once: true
-  when: inventory_hostname in groups[gluster_server_group]
   tags:
   - gluster
 
