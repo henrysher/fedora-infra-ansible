@@ -5,15 +5,20 @@
   when: inventory_hostname in groups[gluster_server_group]
   tags:
   - packages
+  - gluster
 
 - name: start glusterd for the server
   service: name=glusterd state=started enabled=true
   when: inventory_hostname in groups[gluster_server_group]
+  tags:
+  - gluster
 
 - name: Servers discover each other.
   command: gluster peer probe  {{ item }}
   with_items: '{{groups[gluster_server_group]}}'
   run_once: true
+  tags:
+  - gluster
 
 - name: install needed packages for client
   package: name={{ item }} state=present
@@ -57,6 +62,8 @@
   when: inventory_hostname in groups[gluster_server_group]
   run_once: true
   ignore_errors: true
+  tags:
+  - gluster
 
 - name: Ensure Gluster volume is mounted.
   mount:
@@ -65,3 +72,5 @@
     fstype: glusterfs
     opts: "defaults,_netdev"
     state: mounted
+  tags:
+  - gluster
