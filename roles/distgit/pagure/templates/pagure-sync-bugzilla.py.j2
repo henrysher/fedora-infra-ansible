@@ -280,9 +280,15 @@ class Bugzilla(object):
             base_url=FASURL,
             username=FASUSER,
             password=FASPASS)
-        self.userCache = self.fas.people_by_key(
-            key='username',
-            fields=['bugzilla_email'])
+
+        try:
+            self.userCache = self.fas.people_by_key(
+                key='username',
+                fields=['bugzilla_email'])
+        except fedora.client.ServerError:
+            # Sometimes, building the userCache up front fails with a timeout.
+            # It's ok, we build the cache as-needed later in the script.
+            self.userCache = {}
 
     def _get_bugzilla_email(self, username):
         '''Return the bugzilla email address for a user.
