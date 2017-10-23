@@ -2,8 +2,10 @@
 skip_phases= ["buildinstall"]
 release_name = '{{ id }}'
 release_short = '{{ id }}'
-release_version = '{{ release.version }}'
+release_version = '{{ release.version_int }}'
+release_type = 'updates'
 release_is_layered = False
+
 # GENERAL SETTINGS
 comps_file = {
     'scm': 'git',
@@ -14,37 +16,44 @@ comps_file = {
 }
 variants_file='variants-fedora.xml'
 sigkeys = [
-{% release.version == 25 %}
+{% release.version_int == 25 %}
 	'fdb19c98'
-{% elif release.version == 26 %}
+{% elif release.version_int == 26 %}
 	'64dab85d'
-{% elif release.version == 27 %}
+{% elif release.version_int == 27 %}
 	'f5282ee4'
-{% elif release.version == 6 %}
+{% elif release.version_int == 6 %}
 	'0608b895'
-{% elif release.version == 7 %}
+{% elif release.version_int == 7 %}
 	'352C64E5'
 {% endif %}
 ]
 hashed_directories = True
+
 # RUNROOT settings
 runroot = True
 #runroot_channel = 'fedora_compose'
 runroot_channel = 'compose'
 runroot_tag = '{{ release.dist_tag }}-build'
+
 # PKGSET
 pkgset_source = 'koji' # koji, repos
 pkgset_koji_tag = '{{ id }}'
 pkgset_koji_inherit = False
 filter_system_release_packages = False
+
 # GATHER
 gather_source = 'comps'
-gather_method = 'deps'
+gather_method = 'nodeps'
+gather_backend = 'dnf'
 check_deps = False
 greedy_method = 'build'
+repoclosure_backend = 'dnf'
+
 # CREATEREPO
 createrepo_c = True
 createrepo_checksum = 'sha256'
+
 # CHECKSUMS
 media_checksums = ['sha256']
 media_checksum_one_file = True
@@ -76,18 +85,6 @@ additional_packages = [
             '*',
         ],
     }),
-    ('^Server$', {
-        '*': [
-        ],
-    }),
-    ('^Workstation$', {
-        '*': [
-        ],
-    }),
-    ('^Cloud$', {
-        '*': [
-        ],
-    }),
 ]
 multilib = [
     ('^Everything$', {
@@ -95,25 +92,7 @@ multilib = [
          's390x': ['devel', 'runtime']
     })
 ]
-filter_packages = [
-    ('(Workstation|Server|Cloud)$', {
-        '*': [
-        '^kernel.*debug.*',
-        '^kernel-kdump.*',
-        '^kernel-tools.*',
-        '^syslog-ng.*',
-        '^astronomy-bookmarks',
-        '^generic.*',
-        '^GConf2-dbus.*',
-        '^bluez-gnome',
-        #Periods cause problems in paterns, so replace with *s
-        '^java-1.8.0-openjdk',
-        '^community-mysql.*',
-        '^jruby.*',
-        '^gimp-help-.*',
-        ]
-    }),
-]
+filter_packages = []
 # format: {arch|*: [packages]}
 multilib_blacklist = {
     '*': ['kernel*', 'kernel-PAE*', 'kernel*debug*',
@@ -134,38 +113,34 @@ multilib_whitelist = {
     ],
 }
 createiso_skip = [
-        ('^Workstation$', {
-            '*': True,
-            'src': True
-        }),
-        ('^Server$', {
-            'src': True
-        }),
-        ('^Cloud$', {
-            '*': True,
-            'src': True
-        }),
         ('^Everything$', {
             '*': True,
             'src': True
         }),
     ]
-# fomat: [(variant_uid_regex, {arch|*: [scm_dicts]})]
-#extra_files = [
-#    ('^(Server|Workstation|Cloud)$', {
-#        '*': [
-#            {
-#                'scm': 'rpm',
-#                'repo': 'fedora-release-%(variant_id_lower)s',
-#                'branch': None,
-#                'file': [
-#                    '/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-release',
-#                ],
-#                'target': '',
-#            },
-#        ],
-#    }),
-#]
+
+{% if release.collection_name == 'Fedora' %}
+ostree = [
+    ("^Atomic$", {
+        "x86_64": {
+            "version": "!OSTREE_VERSION_FROM_LABEL_DATE_TYPE_RESPIN",
+            "treefile": "fedora-atomic-host.json",
+            "config_url": "https://pagure.io/fedora-atomic.git",
+            "config_branch": "{{ release.version }}",
+            "repo": [
+                "Everything",
+                {% if request.name == 'testing' %}
+                    # In the case of testing, also inject the last stable updates
+                    "https://kojipkgs.fedoraproject.org/compose/updates/latest-Fedora-{{ release.version }}-updates/compose/Everything/x86_64/os/",
+                {% endif %}
+                "https://dl.fedoraproject.org/pub/fedora/linux/releases/{{ release.version_int }}/Everything/x86_64/os/"
+            ]
+            "ostree_repo": "/mnt/koji/compose/atomic/rawhide/",
+        }
+    }
+]
+{% endif %}
+
 translate_paths = [
    ('/mnt/koji/compose/', 'https://kojipkgs.fedoraproject.org/compose/'),
 ]
