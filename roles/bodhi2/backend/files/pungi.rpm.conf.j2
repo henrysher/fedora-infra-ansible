@@ -14,7 +14,7 @@ comps_file = {
     'file': 'comps-{{ release.branch }}.xml',
     'command': 'make',
 }
-variants_file='variants-fedora.xml'
+variants_file='variants.xml'
 sigkeys = [
 {% release.version_int == 25 %}
 	'fdb19c98'
@@ -32,7 +32,6 @@ hashed_directories = True
 
 # RUNROOT settings
 runroot = True
-#runroot_channel = 'fedora_compose'
 runroot_channel = 'compose'
 runroot_tag = '{{ release.dist_tag }}-build'
 
@@ -60,26 +59,8 @@ media_checksum_one_file = True
 media_checksum_base_filename = 'Fedora-%(variant)s-%(version)s-%(date)s.%(respin)s-%(arch)s'
 #jigdo
 create_jigdo = False
-#extra_packages = [
-#    '/mnt/packages/foo*',
-#]
-# fomat: [(variant_uid_regex, {arch|*: [packages]})]
+
 additional_packages = [
-    ('.*', {
-        '*': [
-            'kernel.*',
-            'dracut.*',
-            'autocorr-.*',
-            'eclipse-nls-.*',
-            'hunspell-.*',
-            'hyphen-.*',
-            'calligra-l10n-.*',
-            'kde-l10n-.*',
-            'libreoffice-langpack-.*',
-            'man-pages-.*',
-            'mythes-.*',
-        ],
-    }),
     ('^Everything$', {
         '*': [
             '*',
@@ -119,7 +100,7 @@ createiso_skip = [
         }),
     ]
 
-{% if release.collection_name == 'Fedora' %}
+{% if release.id_prefix == 'FEDORA' %}
 ostree = [
     ("^Atomic$", {
         "x86_64": {
