@@ -534,8 +534,11 @@ def _is_retired_in_pdc(product, project):
         raise RuntimeError("Could not find %r in PDC." % project)
     branches = pdc_rv.json()['results']
     if not branches:
-        print("No results for %r in PDC." % project, file=sys.stderr)
-        # Assume it's not retired if we can't find out for sure
+        if DRY_RUN:
+            print("No results for %s in PDC." % pdc_rv.request.url)
+        # Default to "not retired" if we have no explicit entry.  This is the
+        # case for an 'el6' branch of a package which has no el6 branch.  It
+        # isn't technically retired, because it never reall existed!
         return False
     return not branches[0]['active']
 
