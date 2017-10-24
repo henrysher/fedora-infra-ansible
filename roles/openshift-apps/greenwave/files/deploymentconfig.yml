@@ -82,6 +82,9 @@ spec:
         command:
         - '/usr/bin/fedmsg-hub'
         volumeMounts:
+        - name: config-volume
+          mountPath: /etc/greenwave
+          readOnly: true
         - name: fedmsg-config-volume
           mountPath: /etc/fedmsg-greenwave.d
           readOnly: true
@@ -95,10 +98,15 @@ spec:
           limits:
             memory: 384Mi
       volumes:
+      # Give the fedmsg-consumer container access to the general config
+      - name: config-volume
+        configMap:
+          name: greenwave-configmap
+      # But *also* access to the fedmsg-specific config
       - name: fedmsg-config-volume
         configMap:
           name: greenwave-fedmsg-configmap
-      # This secret volume gets set up in the playbook
+      # And... this secret volume gets set up in the playbook
       - name: fedmsg-key-volume
         secret:
           secretName: greenwave-fedmsg-key
