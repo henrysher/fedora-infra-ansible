@@ -113,25 +113,13 @@ releng_fedmsg_certname = shell-bodhi-backend03.phx2.fedoraproject.org
 # will act as a masher as well.
 #masher = None
 
-# Where to initially mash repositories
-#mash_dir = /var/cache/bodhi/mashing
-{% if ansible_hostname == 'bodhi-backend01' %}
-mash_dir = /mnt/koji/mash/updates
-{% else %}
-# mash_dir =
-{% endif %}
-
-# Where to symlink the latest repos by their tag name
-#mash_stage_dir = /var/cache/bodhi/mashed
-{% if ansible_hostname == 'bodhi-backend01' %}
-mash_stage_dir = /mnt/koji/mash/updates
-{% else %}
-# mash_stage_dir =
-{% endif %}
-
-mash_conf = /etc/bodhi/mash.conf
-
-createrepo_cache_dir = /var/cache/createrepo
+mash_dir = /mnt/koji/compose/updates/
+mash_stage_dir = /mnt/koji/compose/updates/
+pungi.basepath = /etc/bodhi
+pungi.conf.rpm = pungi.rpm.conf.j2
+pungi.conf.module = pungi.module.conf.j2
+pungi.labeltype = Update
+pungi.extracmdline = --notification-script=/usr/bin/pungi-fedmsg-notification
 
 ## Our periodic jobs
 #jobs = clean_repo nagmail fix_bug_titles cache_release_data approve_testing_updates
