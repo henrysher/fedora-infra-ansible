@@ -1,15 +1,20 @@
 # PRODUCT INFO
-release_name = '{{ release.id_prefix.title() }}'
-release_short = '{{ release.id_prefix.title() }}'
-release_version = '{{ release.version_int }}'
-release_type = 'updates{% if request.name == 'testing' %}-testing{% endif %}'
+release_name = '[[ release.id_prefix.title() ]]'
+release_short = '[[ release.id_prefix.title() ]]'
+release_version = '[[ release.version_int ]]'
+release_type = 'updates[% if request.name == 'testing' %]-testing[% endif %]'
 release_is_layered = False
 
 # GENERAL SETTINGS
 bootable = False
 
 variants_file='module-variants.xml'
-sigkeys = ['a3cc4e62', None]
+sigkeys = [
+	'a3cc4e62',
+{% if env == "staging" %}
+	None
+{% endif %}
+]
 
 hashed_directories = True
 
@@ -17,7 +22,7 @@ hashed_directories = True
 runroot = False
 
 # PDC settings
-pdc_url = 'https://pdc.stg.fedoraproject.org/rest_api/v1'
+pdc_url = 'https://pdc{{ env_suffix }}.fedoraproject.org/rest_api/v1'
 pdc_insecure = False
 pdc_develop = True
 
@@ -52,7 +57,7 @@ skip_phases= ["live_media", "ostree"]
 
 
 translate_paths = [
-   ('/mnt/koji/compose/', 'http://kojipkgs.stg.fedoraproject.org/compose/'),
+   ('/mnt/koji/compose/', 'http://kojipkgs{{ env_suffix }}.fedoraproject.org/compose/'),
 ]
 
 createiso_skip = [
