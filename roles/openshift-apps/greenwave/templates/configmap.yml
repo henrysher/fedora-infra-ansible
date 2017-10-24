@@ -26,12 +26,16 @@ data:
     CORS_URL = 'https://bodhi.fedoraproject.org'
 {% endif %}
     CACHE = {
+        {% if env == 'staging' %}
         'backend': 'dogpile.cache.memcached',
         'expiration_time': 3600, # 3600 is 1 hour
         'arguments': {
             'url': 'greenwave-memcached:11211',
             'distributed_lock': True
         }
+        {% else %}
+        'backend': 'dogpile.cache.null',
+        {% endif %}
     }
   fedora.yaml: |-
     --- !Policy
@@ -266,12 +270,16 @@ data:
           },
       },
       greenwave_cache={
+          {% if env == 'staging' %}
           'backend': 'dogpile.cache.memcached',
           'expiration_time': 3600, # 3600 is 1 hour
           'arguments': {
               'url': 'greenwave-memcached:11211',
               'distributed_lock': True
           }
+          {% else %}
+          'backend': 'dogpile.cache.null',
+          {% endif %}
       },
 {% if env == 'staging' %}
       environment='stg',
