@@ -98,13 +98,26 @@ spec:
       - name: fedmsg-config-volume
         configMap:
           name: greenwave-fedmsg-configmap
-      # This secret volume gets set up in the playbook
       - name: fedmsg-key-volume
         secret:
           secretName: greenwave-fedmsg-key
+          items:
+          - key: fedmsg-greenwave.key
+{% if env == 'staging' %}
+            path: {{private}}/files/fedmsg-certs/keys/greenwave-greenwave-web-greenwave.app.os.stg.fedoraproject.org.key
+{% else %}
+            path: {{private}}/files/fedmsg-certs/keys/greenwave-greenwave-web-greenwave.app.os.fedoraproject.org.key
+{% endif %}
       - name: fedmsg-crt-volume
         secret:
           secretName: greenwave-fedmsg-crt
+          items:
+          - key: fedmsg-greenwave.crt
+{% if env == 'staging' %}
+            path: {{private}}/files/fedmsg-certs/keys/greenwave-greenwave-web-greenwave.app.os.stg.fedoraproject.org.crt
+{% else %}
+            path: {{private}}/files/fedmsg-certs/keys/greenwave-greenwave-web-greenwave.app.os.fedoraproject.org.crt
+{% endif %}
   triggers:
   - type: ImageChange
     imageChangeParams:
