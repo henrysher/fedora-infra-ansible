@@ -136,7 +136,8 @@ class ProdConfiguration(BaseConfiguration):
     MESSAGING_TOPIC_PREFIX = ['org.fedoraproject.stg']
     PDC_URL = 'https://pdc.stg.fedoraproject.org/rest_api/v1'
     SCMURLS = ['git://pkgs.stg.fedoraproject.org/modules/',
-               'https://src.stg.fedoraproject.org/modules/']
+               'https://src.stg.fedoraproject.org/modules/',
+               'https://src.stg.fedoraproject.org/git/modules/']
 
 {% else %}
     KOJI_PROFILE = 'production'
@@ -145,7 +146,8 @@ class ProdConfiguration(BaseConfiguration):
     MESSAGING_TOPIC_PREFIX = ['org.fedoraproject.prod']
     PDC_URL = 'https://pdc.fedoraproject.org/rest_api/v1'
     SCMURLS = ['git://pkgs.fedoraproject.org/modules/',
-               'https://src.fedoraproject.org/modules/']
+               'https://src.fedoraproject.org/modules/',
+               'https://src.fedoraproject.org/git/modules/']
 {% endif %}
 
     # Made possible by https://pagure.io/releng/issue/6799
