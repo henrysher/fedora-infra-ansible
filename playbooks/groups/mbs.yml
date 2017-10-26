@@ -92,6 +92,18 @@
   roles:
   - mbs/frontend
 
+  post_tasks:
+  # Shouldn't be necessary after this change makes it out
+  # https://src.fedoraproject.org/rpms/module-build-service/c/d19515a7c053aa90cddccd5e10a5615b773a7bd2
+  - name: Make sure fedmsg-hub isn't running on the frontend.
+    service:
+      name: fedmsg-hub
+      state: stopped
+      enabled: false
+    tags:
+    - mbs
+    - mbs/frontend
+
   handlers:
   - import_tasks: "{{ handlers_path }}/restart_services.yml"
 
