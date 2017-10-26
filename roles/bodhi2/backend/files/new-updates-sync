@@ -1,0 +1,199 @@
+#!/bin/python2
+import copy
+import fedmsg
+import functools
+import logging
+import subprocess
+import os
+
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger('updates-sync')
+
+
+SOURCE = '/mnt/koji/compose/updates/'
+FEDORADEST = '/pub/fedora/linux/updates/'
+FEDORAALTDEST = '/pub/fedora-secondary/updates/'
+EPELDEST = '/pub/epel/'
+ATOMICSOURCE = '/mnt/koji/compose/updates/atomic/'
+ATOMICDEST = '/mnt/koji/atomic/'
+RELEASES = {'f27': {'topic': 'fedora',
+                    'version': '27',
+                    'repos': {'updates-testing': {
+                        'from': 'f27-updates-testing',
+                        'to': [{'arches': ['x86_64', 'armhfp', 'source'],
+                                'dest': os.path.join(FEDORADEST, 'testing', '27')},
+                               {'arches': ['aarch64', 'i386', 'ppc64', 'ppc64le', 's390x'],
+                                'dest': os.path.join(FEDORAALTDEST, 'testing', '27')}
+                              ]}}
+                   },
+            'f25': {'topic': 'fedora',
+                    'version': '25',
+                    'repos': {'updates': {
+                        'from': 'f25-updates',
+                        'to': [{'arches': ['x86_64', 'armhfp', 'i386', 'source'],
+                                'dest': os.path.join(FEDORADEST, '25')},
+                              ]},
+                              'updates-testing': {
+                        'from': 'f25-updates-testing',
+                        'to': [{'arches': ['x86_64', 'armhfp', 'i386', 'source'],
+                                'dest': os.path.join(FEDORADEST, 'testing', '25')},
+                              ]}}
+                   },
+            'f26': {'topic': 'fedora',
+                    'version': '26',
+                    'repos': {'updates': {
+                        'from': 'f26-updates',
+                        'to': [{'arches': ['x86_64', 'armhfp', 'source'],
+                                'dest': os.path.join(FEDORADEST, '26')},
+                               {'arches': ['aarch64', 'i386', 'ppc64', 'ppc64le'],
+                                'dest': os.path.join(FEDORAALTDEST, '26')}
+                              ]},
+                              'updates-testing': {
+                        'from': 'f26-updates-testing',
+                        'to': [{'arches': ['x86_64', 'armhfp', 'source'],
+                                'dest': os.path.join(FEDORADEST, 'testing', '26')},
+                               {'arches': ['aarch64', 'i386', 'ppc64', 'ppc64le'],
+                                'dest': os.path.join(FEDORAALTDEST, 'testing', '26')}
+                              ]}}
+                   },
+            'epel7': {'topic': 'epel',
+                      'version': '7',
+                      'repos': {'epel-testing': {
+                          'from': 'epel7-testing',
+                          'to': [{'arches': ['x86_64', 'aarch64', 'ppc64', 'ppc64le', 'source'],
+                                  'dest': os.path.join(EPELDEST, 'testing', '7')}
+                                ]},
+                                'epel': {
+                          'from': 'epel7',
+                          'to': [{'arches': ['x86_64', 'aarch64', 'ppc64', 'ppc64le', 'source'],
+                                  'dest': os.path.join(EPELDEST, '7')}
+                                ]}}
+                     },
+           }
+
+
+def run_command(cmd):
+    logger.info('Running %s', cmd)
+    return subprocess.check_output(cmd,
+                                   shell=False)
+
+
+def rsync(from_path, to_path, excludes=[], link_dest=None, delete=False):
+    cmd = ['rsync', '-rlptDvHh', '--stats', '--no-human-readable']
+    for excl in excludes:
+        cmd += ['--exclude', excl]
+    if link_dest:
+        cmd += ['--link-dest', link_dest]
+    if delete:
+        cmd += ['--delete', '--delete-delay']
+
+    cmd += [from_path, to_path]
+
+    stdout = run_command(cmd)
+
+    results = {'num_bytes': 0,
+               'num_deleted': 0}
+    for line in stdout.split('\n'):
+        if 'Literal data' in line:
+            results['num_bytes'] = int(line.split()[2])
+        elif 'deleting ' in line:
+            results['num_deleted'] += 1
+
+    return results
+
+
+def collect_stats(stats):
+    to_collect = ['num_bytes', 'num_deleted']
+    totals = {}
+    for stat in to_collect:
+        totals[stat] = functools.reduce(lambda x, y: x + y,
+                                        [r[stat] for r in stats])
+    return totals
+
+
+def sync_single_repo_arch(release, repo, arch, dest_path):
+    source_path = os.path.join(SOURCE,
+                               RELEASES[release]['repos'][repo]['from'],
+                               'compose', 'Everything', arch)
+
+    maindir = 'tree' if arch == 'source' else 'os'
+
+    results = []
+
+    results.append(rsync(os.path.join(source_path, maindir, 'Packages'),
+                         os.path.join(dest_path)))
+    if arch != 'source':
+        results.append(rsync(os.path.join(source_path, 'debug', 'tree', 'Packages'),
+                             os.path.join(dest_path, 'debug')))
+        results.append(rsync(os.path.join(source_path, 'debug', 'tree', 'repodata'),
+                             os.path.join(dest_path, 'debug', 'repodata'),
+                             delete=True))
+        results.append(rsync(os.path.join(source_path, 'debug', 'tree', 'Packages'),
+                             os.path.join(dest_path, 'debug'),
+                             delete=True))
+    results.append(rsync(os.path.join(source_path, maindir, 'repodata'),
+                         os.path.join(dest_path),
+                         delete=True))
+    results.append(rsync(os.path.join(source_path, maindir, 'Packages'),
+                         os.path.join(dest_path),
+                         delete=True))
+
+    return collect_stats(results)
+
+
+def sync_single_repo(release, repo):
+    results = []
+
+    for archdef in RELEASES[release]['repos'][repo]['to']:
+        for arch in archdef['arches']:
+            destarch = 'SRPMS' if arch == 'source' else arch
+            dest_path = os.path.join(archdef['dest'], destarch)
+            results.append(sync_single_repo_arch(release, repo, arch, dest_path))
+
+    stats = collect_stats(results)
+    fedmsg_msg = {'repo': repo,
+                  'rel': RELEASES[release]['version'],
+                  'bytes': str(stats['num_bytes']),
+                  'deleted': str(stats['num_deleted'])}
+
+    fedmsg.init(active=True, name='relay_inbound', cert_prefix='ftpsync')
+    fedmsg.publish(topic='updates.%s.sync' % RELEASES[release]['topic'],
+                   modname='bodhi',
+                   msg=fedmsg_msg)
+
+
+def determine_last_link(release, repo):
+    source_path = os.path.join(SOURCE,
+                               RELEASES[release]['repos'][repo]['from'])
+    target = os.readlink(source_path)
+    logger.info('Release %s, repo %s, target %s', release, repo, target)
+    RELEASES[release]['repos'][repo]['from'] = target
+    return target
+
+
+def sync_single_release(release):
+    for repo in RELEASES[release]['repos']:
+        target = determine_last_link(release, repo)
+        curstatefile = os.path.join(
+            RELEASES[release]['repos'][repo]['to'][0]['dest'], 'state')
+        curstate = None
+        if os.path.exists(curstatefile):
+            with open(curstatefile, 'r') as f:
+                curstate = f.read().split()[0]
+
+        if curstate and curstate == target:
+            logger.info('This repo has already been synced')
+        else:
+            sync_single_repo(release, repo)
+            with open(curstatefile, 'w') as f:
+                f.write(target)
+
+
+def main():
+    for release in RELEASES:
+        sync_single_release(release)
+
+
+if __name__ == '__main__':
+    main()
