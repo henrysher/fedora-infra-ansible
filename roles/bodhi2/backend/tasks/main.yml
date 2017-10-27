@@ -283,18 +283,8 @@
   - cron
 
 - name: Updates sync cron job.
-  cron: name="updates-sync" minute="15,45" user="ftpsync"
-        job="/usr/local/bin/lock-wrapper fedora-updates-push '/usr/local/bin/new-updates-sync f25 f26 f27 && /usr/local/bin/update-fullfiletimelist -l /pub/fedora-secondary/update-fullfiletimelist.lock -t /pub fedora fedora-secondary'"
-        cron_file=updates-sync
-  when: inventory_hostname.startswith('bodhi-backend01') and env == "production"
-  tags:
-  - config
-  - bodhi
-  - cron
-
-- name: epel Updates sync cron job.
-  cron: name="epel-updates-sync" minute="15,45" user="ftpsync"
-        job="/usr/local/bin/lock-wrapper fedora-epel-push '/usr/local/bin/new-updates-sync epel6 epel7 && /usr/local/bin/update-fullfiletimelist -l /tmp/update-fullfiletimelist-epel.lock -t /pub epel'"
+  cron: name="updates-sync" minute="*/5" user="ftpsync"
+        job="/usr/local/bin/lock-wrapper updates-push '/usr/local/bin/new-updates-sync'"
         cron_file=updates-sync
   when: inventory_hostname.startswith('bodhi-backend01') and env == "production"
   tags:
