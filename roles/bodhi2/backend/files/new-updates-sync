@@ -108,7 +108,10 @@ def run_command(cmd):
 
 
 def get_ostree_ref(repo, ref):
-    with open(os.path.join(repo, 'refs', 'heads', ref), 'w') as f:
+    reffile = os.path.join(repo, 'refs', 'heads', ref)
+    if not os.path.exists(reffile):
+        return '----'
+    with open(reffile, 'r') as f:
         return f.read().split()[0]
 
 
