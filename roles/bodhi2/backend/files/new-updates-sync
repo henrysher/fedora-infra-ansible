@@ -55,6 +55,8 @@ RELEASES = {'f27': {'topic': 'fedora',
                               ]},
                               'updates-testing': {
                         'from': 'f26-updates-testing',
+                        'ostree': {'ref': 'fedora/26/x86_64/testing/atomic-host',
+                                   'dest': os.path.join(ATOMICDEST, '26')},
                         'to': [{'arches': ['x86_64', 'armhfp', 'source'],
                                 'dest': os.path.join(FEDORADEST, 'testing', '26')},
                                {'arches': ['aarch64', 'i386', 'ppc64', 'ppc64le'],
@@ -99,7 +101,13 @@ FEDMSG_INITED = False
 def run_command(cmd):
     logger.info('Running %s', cmd)
     return subprocess.check_output(cmd,
+                                   stderr=subprocess.STDOUT,
                                    shell=False)
+
+
+def sync_ostree(dst, ref):
+    cmd = ['ostree', 'pull-local', '--verbose', '--repo', dst, ATOMICSOURCE, ref]
+    out = run_command(cmd)
 
 
 def update_fullfilelist(modules):
@@ -229,6 +237,10 @@ def sync_single_release(release):
             with open(curstatefile, 'w') as f:
                 f.write(target)
             needssync = True
+
+        if 'ostree' in RELEASES[release]['repos'][repo]:
+            ostree = RELEASES[release]['repos'][repo]['ostree']
+            sync_ostree(ostree['dest'], ostree['ref'])
 
     return needssync
 
