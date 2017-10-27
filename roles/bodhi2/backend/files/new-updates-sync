@@ -107,9 +107,22 @@ def run_command(cmd):
                                    shell=False)
 
 
+def get_ostree_ref(repo, ref):
+    with open(os.path.join(repo, 'refs', 'heads', ref), 'w') as f:
+        return f.read().split()[0]
+
+
 def sync_ostree(dst, ref):
+    pre_commit = get_ostree_ref(dst, ref)
+    logger.info('Previous commit: %s', pre_commit)
     cmd = ['ostree', 'pull-local', '--verbose', '--repo', dst, ATOMICSOURCE, ref]
     out = run_command(cmd)
+    logger.info('Ostree output: %s', out)
+    post_commit = get_ostree_ref(dst, ref)
+    logger.info('New commit: %s', post_commit)
+    if pre_commit != post_commit:
+        cmd = ['ostree', 'summary', '--verbose', '--repo', dst, '--update']
+        run_command(cmd)
 
 
 def update_fullfilelist(modules):
