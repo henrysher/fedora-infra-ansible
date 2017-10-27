@@ -5,6 +5,7 @@ import functools
 import logging
 import subprocess
 import os
+import sys
 
 
 logging.basicConfig(level=logging.INFO)
@@ -19,6 +20,7 @@ ATOMICSOURCE = '/mnt/koji/compose/updates/atomic/'
 ATOMICDEST = '/mnt/koji/atomic/'
 RELEASES = {'f27': {'topic': 'fedora',
                     'version': '27',
+                    'modules': ['fedora', 'fedora-secondary'],
                     'repos': {'updates-testing': {
                         'from': 'f27-updates-testing',
                         'to': [{'arches': ['x86_64', 'armhfp', 'source'],
@@ -29,6 +31,7 @@ RELEASES = {'f27': {'topic': 'fedora',
                    },
             'f25': {'topic': 'fedora',
                     'version': '25',
+                    'modules': ['fedora'],
                     'repos': {'updates': {
                         'from': 'f25-updates',
                         'to': [{'arches': ['x86_64', 'armhfp', 'i386', 'source'],
@@ -42,6 +45,7 @@ RELEASES = {'f27': {'topic': 'fedora',
                    },
             'f26': {'topic': 'fedora',
                     'version': '26',
+                    'modules': ['fedora', 'fedora-secondary'],
                     'repos': {'updates': {
                         'from': 'f26-updates',
                         'to': [{'arches': ['x86_64', 'armhfp', 'source'],
@@ -59,6 +63,7 @@ RELEASES = {'f27': {'topic': 'fedora',
                    },
             'epel7': {'topic': 'epel',
                       'version': '7',
+                      'modules': ['epel'],
                       'repos': {'epel-testing': {
                           'from': 'epel7-testing',
                           'to': [{'arches': ['x86_64', 'aarch64', 'ppc64', 'ppc64le', 'source'],
@@ -72,6 +77,7 @@ RELEASES = {'f27': {'topic': 'fedora',
                      },
             'epel6': {'topic': 'epel',
                       'version': '6',
+                      'modules': ['epel'],
                       'repos': {'epel': {
                           'from': 'dist-6E-epel',
                           'to': [{'arches': ['x86_64', 'ppc64', 'i386', 'source'],
@@ -87,10 +93,20 @@ RELEASES = {'f27': {'topic': 'fedora',
            }
 
 
+# Beneath this is code, no config needed here
+FEDMSG_INITED = False
+
 def run_command(cmd):
     logger.info('Running %s', cmd)
     return subprocess.check_output(cmd,
                                    shell=False)
+
+
+def update_fullfilelist(modules):
+    cmd = ['/usr/local/bin/update-fullfiletimelist', '-l',
+           '/tmp/update-fullfiletimelist.lock', '-t', '/pub']
+    cmd.extend(modules)
+    run_command(cmd)
 
 
 def rsync(from_path, to_path, excludes=[], link_dest=None, delete=False):
@@ -157,6 +173,8 @@ def sync_single_repo_arch(release, repo, arch, dest_path):
 
 
 def sync_single_repo(release, repo):
+    global FEDMSG_INITED
+
     results = []
 
     for archdef in RELEASES[release]['repos'][repo]['to']:
@@ -171,7 +189,10 @@ def sync_single_repo(release, repo):
                   'bytes': str(stats['num_bytes']),
                   'deleted': str(stats['num_deleted'])}
 
-    fedmsg.init(active=True, name='relay_inbound', cert_prefix='ftpsync')
+    if not FEDMSG_INITED:
+        fedmsg.init(active=True, name='relay_inbound', cert_prefix='ftpsync')
+        FEDMSG_INITED = True
+
     fedmsg.publish(topic='updates.%s.sync' % RELEASES[release]['topic'],
                    modname='bodhi',
                    msg=fedmsg_msg)
@@ -187,6 +208,8 @@ def determine_last_link(release, repo):
 
 
 def sync_single_release(release):
+    needssync = False
+
     for repo in RELEASES[release]['repos']:
         target = determine_last_link(release, repo)
         curstatefile = os.path.join(
@@ -202,11 +225,21 @@ def sync_single_release(release):
             sync_single_repo(release, repo)
             with open(curstatefile, 'w') as f:
                 f.write(target)
+            needssync = True
+
+    return needssync
 
 
 def main():
-    for release in RELEASES:
-        sync_single_release(release)
+    to_update = []
+
+    for release in sys.argv[1:] or RELEASES:
+        if sync_single_release(release):
+            to_update.extend(RELEASES[release]['modules'])
+
+    to_update = list(set(to_update))
+    logger.info('Modules to update: %s', to_update)
+    update_fullfilelist(to_update)
 
 
 if __name__ == '__main__':
