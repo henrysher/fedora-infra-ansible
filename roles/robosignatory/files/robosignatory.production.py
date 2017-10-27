@@ -147,24 +147,12 @@ config = {
     },
 
     'robosignatory.ostree_refs': {
-        'fedora-atomic/25/x86_64/updates/docker-host': {
-            'directory': '/mnt/fedora_koji/koji/mash/atomic/25/',
-            'key': 'fedora-25'
-        },
-        'fedora-atomic/25/x86_64/docker-host': {
-            'directory': '/mnt/fedora_koji/koji/mash/atomic/25/',
-            'key': 'fedora-25'
-        },
-        'fedora/25/x86_64/workstation': {
-            'directory': '/mnt/fedora_koji/koji/compose/ostree/25/',
-            'key': 'fedora-25'
-        },
         'fedora/26/x86_64/testing/atomic-host': {
-            'directory': '/mnt/fedora_koji/koji/mash/atomic/26/',
+            'directory': '/mnt/fedora_koji/koji/compose/updates/atomic/',
             'key': 'fedora-26'
         },
         'fedora/26/x86_64/updates/atomic-host': {
-            'directory': '/mnt/fedora_koji/koji/mash/atomic/26/',
+            'directory': '/mnt/fedora_koji/koji/compose/updates/atomic/',
             'key': 'fedora-26'
         },
         'fedora/26/x86_64/atomic-host': {
