@@ -116,14 +116,16 @@ def get_ostree_ref(repo, ref):
 
 
 def sync_ostree(dst, ref):
-    pre_commit = get_ostree_ref(dst, ref)
-    logger.info('Previous commit: %s', pre_commit)
-    cmd = ['ostree', 'pull-local', '--verbose', '--repo', dst, ATOMICSOURCE, ref]
-    out = run_command(cmd)
-    logger.info('Ostree output: %s', out)
-    post_commit = get_ostree_ref(dst, ref)
-    logger.info('New commit: %s', post_commit)
-    if pre_commit != post_commit:
+    src_commit = get_ostree_ref(ATOMICSOURCE, ref)
+    dst_commit = get_ostree_ref(dst, ref)
+    if src_commit == dst_commit:
+        logger.info('OSTree at %s, ref %s in sync', dst, ref)
+    else:
+        logger.info('Syncing OSTree to %s, ref %s: %s -> %s',
+                    dst, ref, src_commit, dst_commit)
+        cmd = ['ostree', 'pull-local', '--verbose', '--repo',
+               dst, ATOMICSOURCE, ref]
+        out = run_command(cmd)
         cmd = ['ostree', 'summary', '--verbose', '--repo', dst, '--update']
         run_command(cmd)
 
