@@ -136,11 +136,7 @@ config = {
 
 
     ## Backend stuff ##
-    {% if env == 'staging' %}
-    "fmn.backends": ["email", "irc", "android"],
-    {% else %}
     "fmn.backends": ["email", "irc"],  # android is disabled.
-    {% endif %}
 
     # Email
     "fmn.email.mailserver": "bastion01.phx2.fedoraproject.org:25",
