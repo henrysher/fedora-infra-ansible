@@ -8,6 +8,8 @@ ircnick = "fedora-notif"
 
 base = "https://apps.%s/notifications/" % domain
 
+{% if env != 'staging' %}
+
 from dogpile.core.readwrite_lock import ReadWriteMutex
 from dogpile.cache.backends.file import AbstractFileLock
 
@@ -35,6 +37,7 @@ class MutexLock(AbstractFileLock):
     @classmethod
     def __json__(cls):
         return repr(cls)
+{% endif %}
 
 
 config = {
