@@ -14,14 +14,12 @@
   - name: clean all metadata {%if testing%}(with infrastructure-testing on){%endif%}
     command: yum clean all {%if testing%} --enablerepo=infrastructure-tags-stg {%endif%}
     check_mode: no
+    when: env != "staging"
   - name: yum update FMN packages from main repo
     yum: name="python-fmn" state=latest
-    when: not testing
-  - name: yum update FMN packages from testing repo
-    yum: pkg=python-fmn state=latest enablerepo=infrastructure-tags-stg
-    when: testing
-  - name: yum update FMN packages from testing repo
-    yum: pkg=python-fmn state=latest enablerepo=epel-testing
+    when: env != "staging"
+  - name: Update FMN packages
+    package: name=python-fmn state=latest
     when: env == "staging"
 
 - name: verify the frontend and stop it
@@ -78,6 +76,10 @@
     - fmn-worker@3
     - fmn-worker@4
 
+  - name: Stop the celerybeat service
+    service: name=fmn-celerybeat state=stopped
+    when: env == "staging"
+
   - name: Upgrade the database
     command: /usr/bin/alembic -c /usr/share/fmn/alembic.ini upgrade head
     args:
@@ -91,6 +93,10 @@
     - fmn-worker@2
     - fmn-worker@3
     - fmn-worker@4
+
+  - name: Re-start the celerybeat service
+    service: name=fmn-celerybeat state=started
+    when: env == "staging"
 
   - name: And... start the backend again
     service: name="fedmsg-hub" state=started
