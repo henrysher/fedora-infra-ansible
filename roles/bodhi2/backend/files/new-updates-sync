@@ -173,6 +173,16 @@ def collect_stats(stats):
     return totals
 
 
+def to_human(num_bytes):
+    ranges = ['B', 'KB', 'MB', 'GB', 'TB']
+    cur_range = 0
+    while num_bytes >= 1024 and cur_range+1 <= len(ranges):
+        num_bytes = num_bytes / 1024
+        cur_range += 1
+    return '%s %s' % (num_bytes, ranges[cur_range])
+
+
+
 def sync_single_repo_arch(release, repo, arch, dest_path):
     source_path = os.path.join(SOURCE,
                                RELEASES[release]['repos'][repo]['from'],
@@ -217,7 +227,8 @@ def sync_single_repo(release, repo):
     stats = collect_stats(results)
     fedmsg_msg = {'repo': repo,
                   'release': RELEASES[release]['version'],
-                  'bytes': str(stats['num_bytes']),
+                  'bytes': to_human(stats['num_bytes']),
+                  'raw_bytes': str(stats['num_bytes']),
                   'deleted': str(stats['num_deleted'])}
 
     if not FEDMSG_INITED:
