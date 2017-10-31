@@ -182,6 +182,21 @@ config = {
     "fmn.support_email": "notifications@" + domain,
 
     # Generic stuff
+    {% if env == 'staging' %}
+    "logging": dict(
+        loggers=dict(
+            fmn={
+                "level": "INFO",
+                "propagate": False,
+                "handlers": ["console", "mailer"],
+            },
+        ),
+        root={
+            'level': 'INFO',
+             'handlers': ['console', 'mailer'],
+        },
+    ),
+    {% else %}
     "logging": dict(
         loggers=dict(
             fmn={
@@ -191,4 +206,5 @@ config = {
             },
         ),
     ),
+    {% endif %}
 }
