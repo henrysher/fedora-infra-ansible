@@ -20,9 +20,7 @@
 
 - when:
     message_type: KojiTagChanged
-{% if deployment_type in ['dev'] %}
     tag: {$regex: '/^f[0-9]{2}-updates(-testing)?-pending$$/'}
-{% endif %}
   do:
     - {tasks: [rpmdeplint]}
 
@@ -30,11 +28,7 @@
 {# stg bodhi doesn't have the info we need, stg koji doesn't have the builds from prod bodhi #}
 - when:
     message_type: KojiTagChanged
-{% if deployment_type in ['dev'] %}
     tag: {$regex: '/^f[0-9]{2}-updates-pending$$/'}
-{% else %}
-    tag: {$regex: '/.*(?<!testing-pending)$$/'}
-{% endif %}
   do:
     - {tasks: [upgradepath]}
 {% endif %}
