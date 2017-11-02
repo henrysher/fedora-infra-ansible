@@ -19,7 +19,7 @@ class ProdConfiguration(base.ProdConfiguration):
 
     # Use production instances of PDC and Koji
     KOJI_REPOSITORY_URL = 'https://kojipkgs.fedoraproject.org/repos'
-    PDC_URL = 'http://pdc.fedoraproject.org/rest_api/v1'
+    PDC_URL = 'https://pdc.fedoraproject.org/rest_api/v1'
 
     # When building from scmurl,
     # only such URLs that starts with some of these are allowed
