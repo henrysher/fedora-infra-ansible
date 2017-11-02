@@ -99,6 +99,7 @@ class ProdConfiguration(BaseConfiguration):
 {% if env == 'staging' %}
     SECRET_KEY = '{{ mbs_stg_secret_key }}'
     SQLALCHEMY_DATABASE_URI = 'postgresql://mbs:{{mbs_stg_db_password}}@db-mbs/mbs'
+    REBUILD_STRATEGY_ALLOW_OVERRIDE = True
 {% else %}
     SECRET_KEY = '{{ mbs_prod_secret_key }}'
     SQLALCHEMY_DATABASE_URI = 'postgresql://mbs:{{mbs_prod_db_password}}@db-mbs/mbs'
