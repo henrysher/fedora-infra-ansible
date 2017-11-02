@@ -8,5 +8,5 @@ repodata=`find /var/cache/koschei/repodata/ -path '*/primary-f*' -name repomd.xm
 repoid=`grep -o 'primary-[^/]*' <<< "$repodata"`
 group=$1
 shift
-dnf repoquery -q --available --repofrompath "$repoid,$repodata" --disablerepo \* --enablerepo "$repoid" --repoid "$repoid" --qf '%{sourcerpm}' "$@" | sed 's|-[^-]*-[^-]*$||' \
+dnf repoquery -q --available --repofrompath "$repoid,$repodata" --disablerepo \* --enablerepo "$repoid" --qf '%{sourcerpm}' "$@" | sed 's|-[^-]*-[^-]*$||' \
     | koschei-admin edit-group "$group" --content-from-file - --append
