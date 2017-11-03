@@ -29,7 +29,11 @@ Alias /kojifiles "/mnt/koji/"
 	 GssapiSSLonly Off
          GssapiLocalName On
 	 AuthName "GSSAPI Single Sign On Login"
-	 GssapiCredStore keytab:/etc/koji-hub/gssapi.keytab
+	 {% if fedmsg_koji_instance == "primary" %}
+		GssapiCredStore keytab:/etc/koji-hub/gssapi.keytab
+         {% else %}
+		GssapiCredStore keytab:/etc/krb5.HTTP_{{ fedmsg_koji_instance }}.koji.fedoraproject.org.keytab
+	 {% endif %}
 	 Require valid-user
 </Location>
 
