@@ -26,8 +26,17 @@ spec:
         - name: config-volume
           mountPath: /etc/waiverdb
           readOnly: true
+        - name: fedmsg-config-volume
+          mountPath: /etc/fedmsg.d
+          readOnly: true
         - name: secret-volume
           mountPath: /etc/secret
+          readOnly: true
+        - name: fedmsg-key-volume
+          mountPath: /etc/pki/fedmsg/key
+          readOnly: true
+        - name: fedmsg-crt-volume
+          mountPath: /etc/pki/fedmsg/crt
           readOnly: true
         env:
         - name: DATABASE_PASSWORD
@@ -59,9 +68,18 @@ spec:
       - name: config-volume
         configMap:
           name: waiverdb-configmap
+      - name: fedmsg-config-volume
+        configMap:
+          name: waiverdb-fedmsg-configmap
       - name: secret-volume
         secret:
           secretName: waiverdb-secret
+      - name: fedmsg-key-volume
+        secret:
+          secretName: waiverdb-fedmsg-key
+      - name: fedmsg-crt-volume
+        secret:
+          secretName: waiverdb-fedmsg-crt
   triggers:
   - type: ImageChange
     imageChangeParams:

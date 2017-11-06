@@ -16,7 +16,32 @@ data:
     OIDC_CLIENT_SECRETS = '/etc/secret/client_secrets.json'
     PORT = 8080
 {% if env == 'staging' %}
-    MESSAGE_BUS_PUBLISH = False
+    MESSAGE_BUS_PUBLISH = True
 {% else %}
     MESSAGE_BUS_PUBLISH = False
 {% endif %}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+    name: waiverdb-fedmsg-configmap
+data:
+  waiverdb.py: |-
+    import socket
+    config = dict(
+      sign_messages=True,
+      active=True,
+
+      cert_prefix="waiverdb",
+      certnames={
+          "waiverdb." + socket.gethostname(): "waiverdb",
+      },
+
+{% if env == 'staging' %}
+      environment='stg',
+      relay_inbound=["tcp://busgateway01.stg.phx2.fedoraproject.org:9941"],
+{% else %}
+      environment='prod',
+      relay_inbound=["tcp://busgateway01.phx2.fedoraproject.org:9941"],
+{% endif %}
+    )
