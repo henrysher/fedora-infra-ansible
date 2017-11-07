@@ -1,0 +1,30 @@
+apiVersion: v1
+kind: BuildConfig
+metadata:
+  name: "waiverdb-docker-build"
+  labels:
+    environment: "waiverdb"
+spec:
+  runPolicy: Serial
+  # This docker build exists only to layer some links ontop of the base waiverdb
+  # image from candidate-registry.fedoraproject.org
+  source:
+    dockerfile: |-
+      FROM waiverdb:latest
+      USER 0
+      RUN dnf -y install --setopt=tsflags=nodocs fedmsg && dnf -y clean all
+      # create a symlink for configuring fedmsg.
+      RUN ln -sfn /etc/fedmsg-waiverdb.d/waiverdb.py /etc/fedmsg.d/zz_waiverdb.py
+      # And another two for putting the certs in place.
+      RUN mkdir -p /etc/pki/fedmsg/
+      RUN ln -sf /etc/pki/fedmsg/key/fedmsg-waiverdb.key /etc/pki/fedmsg/waiverdb.key
+      RUN ln -sf /etc/pki/fedmsg/crt/fedmsg-waiverdb.crt /etc/pki/fedmsg/waiverdb.crt
+      # Make sure fedmsg can write its CRL.
+      RUN chmod 777 /var/run/fedmsg/
+      USER 1001
+  strategy:
+    type: Docker
+  output:
+    to:
+      kind: ImageStreamTag
+      name: waiverdb-deployment:latest
