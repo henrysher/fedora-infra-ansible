@@ -1,145 +1,34 @@
 ---
+# Define resources for this group of hosts here.
+lvm_size: 60000
+mem_size: 8192
+num_cpus: 2
 
-baseiptables: False
+tcp_ports: [ 80, 443, 8443]
 
 fas_client_groups: sysadmin-releng,fi-apprentice,sysadmin-noc,sysadmin-veteran
 sudoers: "{{ private }}/files/sudo/00releng-sudoers"
 
 docker_cert_dir: "/etc/docker/certs.d/candidate-registry.stg.fedoraproject.org"
-stable_registry: "registry.stg.fedoraproject.org"
-candidate_registry: "candidate-registry.stg.fedoraproject.org"
+source_registry: "registry.stg.fedoraproject.org"
+docker_registry: "candidate-registry.stg.fedoraproject.org"
 
 osbs_url: "osbs.stg.fedoraproject.org"
-osbsworker_x86_64_url: "osbsworker-x86-64.stg.fedoraproject.org"
+osbs_koji_username: "kojibuilder_stg"
 
 koji_url: "koji.stg.fedoraproject.org"
 
-osbs_builder_user: builder
-koji_builder_user: dockerbuilder
-
 osbs_client_conf_path: /etc/osbs.conf
 
-
-# openshift-ansible variables
-
-# Need to use this special branch on my fork for stage until these are merged
-# upstream and backported to the release-3.6 branch
-#
-#   https://github.com/openshift/openshift-ansible/pull/5101
-#   https://github.com/openshift/openshift-ansible/pull/5129
-oa_version: 3.6-add-dnf-support
-
-oa_ssh_user: root
-oa_install_examples: false
-oa_containerized_deploy: false
-oa_auth_profile: osbs
-oa_debug_level: 2
-oa_htpasswd_file: /etc/origin/htpasswd
-origin_release: v3.6.0
-
-osbs_koji_username: "kojibuilder_stg"
-
-openshift_home: /var/lib/origin
-generated_config_path: /tmp
-
-osbs_admin: true
-
-osbs_orchestrator_service_accounts:
-- worker
-- orchestrator
-- metrics
-
-os_cpu_limitrange: '200m'
-
-# FIXME
-
-osbs_orchestrator: false
-
-osbs_worker_namespace: "worker"
-osbs_orchestrator_namespace: "osbs"
-
-osbs_worker_service_accounts:
-- worker
-- orchestrator
-
-worker_clusters:
-  x86_64:
-  - name: osbsworker-x86-64
-    max_concurrent_builds: 12
-    openshift_url: "https://{{ osbsworker_x86_64_url }}"
-    verify_ssl: 'false'
-    artifacts_allowed_domains:
-    - "{{stable_registry}}"
-    - "{{candidate_registry}}"
-
-koji_hub: "https://{{koji_url}}/kojihub"
-koji_root: "https://{{koji_url}}/koji"
-
-osbs_pulp_registry_name: brew-prod
-
-osbs_registry_uri: "https://{{candidate_registry}}/v2"
-
-osbs_source_registry_uri: http://brew-pulp-docker01.web.prod.ext.phx2.redhat.com:8888
-
-koji_secret_name: kojisecret
-distribution_scope: public
-authoritative_registry: "{{ stable_registry }}"
-registry_api_versions:
-- v2
-registry_secret_name: v2-registry-dockercfg
-build_json_dir: /usr/share/osbs
-sources_command: fedpkg sources
-vendor: Fedora Project
-
-osbs_manage_firewalld: false
-
-kubeconfig_path: /etc/origin/master/admin.kubeconfig
-osbs_env:
-  HOME: "{{ lookup('env', 'HOME') }}"
-  KUBECONFIG: "{{ osbs_kubeconfig_path }}"
-
-osbs_orchestrator_readonly_users:
-- "system:serviceaccount:{{ osbs_orchestrator_namespace }}:metrics"
-osbs_orchestrator_readonly_groups:
-- "system:authenticated"
-osbs_orchestrator_readwrite_groups: []
-osbs_orchestrator_readwrite_users:
-- "{{ ansible_hostname }}"
-- "system:serviceaccount:{{ osbs_orchestrator_namespace }}:default"
-- "system:serviceaccount:{{ osbs_orchestrator_namespace }}:builder"
-
-osbs_worker_readonly_users:
-- "system:serviceaccount:{{ osbs_worker_namespace }}:metrics"
-osbs_worker_readonly_groups:
-- "system:authenticated"
-osbs_worker_readwrite_groups: []
-osbs_worker_readwrite_users:
-- "{{ ansible_hostname }}"
-- "system:serviceaccount:{{ osbs_worker_namespace }}:default"
-- "system:serviceaccount:{{ osbs_worker_namespace }}:builder"
-
-os_admin_users:
-- kevin
-- puiterwijk
-- maxamillion
-- dgilmore
-- kojibuilder_stg
-
-os_admin_groups: []
-osbs_nodes: "{{ groups['osbs-orchestrator-' + env + '-nodes'] }}"
-
-#nodeselectors
-osbs_orchestrator_default_nodeselector: "orchestrator=true"
-osbs_orchestrator_nodeselector_labels: "'orchestrator': 'true'"
-osbs_worker_default_nodeselector: "worker=true"
-osbs_worker_nodeselector_labels: "'worker': 'true'"
-
-# fedora container images required by buildroot
-fedora_required_images:
-  - "fedora:latest"
+baseiptables: False
 
 # docker images required by OpenShift Origin
 openshift_required_images:
   - "openshift/origin-pod"
 
+# fedora container images required by buildroot
+fedora_required_images:
+  - "fedora:latest"
+
 nm_controlled_resolv: True
+
