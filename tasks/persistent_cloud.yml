@@ -62,6 +62,19 @@
   pause: seconds=30
   when: host_is_up|failed
 
+- name: gather ssh host key from new instance
+  local_action: command ssh-keyscan -t rsa {{ inventory_hostname }}
+  ignore_errors: True
+  register: hostkey
+  when: host_is_up|failed
+
+- name: add new ssh host key (until we can sign it)
+  local_action: known_hosts path={{item}} key="{{ hostkey.stdout }}" host={{ inventory_hostname }} state=present
+  ignore_errors: True
+  with_items:
+  - /root/.ssh/known_hosts
+  when: host_is_up|failed
+
 #
 # Next we try and gather facts. If the host doesn't have python2 this will fail.
 #
