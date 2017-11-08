@@ -403,16 +403,21 @@
 
   tasks:
     - name: set custom build policy for koji builder in openshift for osbs
-      shell: "oc adm policy add-role-to-user -n default osbs-custom-build {{ osbs_koji_prod_username }} --role-namespace=default && touch /etc/origin/koji-custom-build-policy-added"
+      shell: "oc adm policy add-role-to-user -n default osbs-custom-build {{ osbs_koji_stg_username }} --role-namespace=default && touch /etc/origin/koji-custom-build-policy-added"
       args:
         creates: "/etc/origin/koji-builder-policy-added"
       when: env == "production"
       environment: "{{ osbs_environment }}"
-    - name: set custom build policy for builder service account in openshift for osbs
-      shell: "oc adm policy add-role-to-user -n default osbs-custom-build system:serviceaccount:default:builder --role-namespace=default && touch /etc/origin/koji-custom-build-policy-added"
+    - name: set custom build policy for koji builder in openshift for osbs
+      shell: "oc adm policy add-role-to-user -n default osbs-custom-build {{ osbs_koji_prod_username }} --role-namespace=default && touch /etc/origin/koji-custom-build-policy-added"
       args:
         creates: "/etc/origin/koji-builder-policy-added"
-      when: env == "production"
+      when: env == "staging"
+      environment: "{{ osbs_environment }}"
+    - name: set custom build policy for builder service account in openshift for osbs
+      shell: "oc adm policy add-role-to-user -n default osbs-custom-build system:serviceaccount:default:builder --role-namespace=default && touch /etc/origin/koji-builder-policy-added"
+      args:
+        creates: "/etc/origin/koji-builder-policy-added"
       environment: "{{ osbs_environment }}"
 
 - name: Manage docker images and image stream
