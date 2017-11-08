@@ -52,13 +52,13 @@ def main(resultsdb_url, frontend_url, timeparam):
     output += "From:         " + from_time + "\n"
     output += "To:           " + to_time + "\n\n"
     output += "Executed checks:\n----------------\n"
-    for check in together.keys():
+    for check in sorted(together.keys()):
         failed_count = failed_types.get(check, 0)
         failed_percent = int(round((failed_count * 100.0) / together[check]))
         output += "%s: %d (%d %% failed)\n" % (check, together[check], failed_percent)
     output += "\nTotal: %d executed, %d failed\n\n" % (passed + failed, failed)
     output += "Links to failed checks:\n-----------------------\n"
-    for failed_check in failed_types.keys():
+    for failed_check in sorted(failed_types.keys()):
         limit = min(failed_types[failed_check], 1000)
         url = urljoin(frontend_url, "results?outcome=%s&since=%s,%s&testcase_name=%s&limit=%d" %
                       (",".join(FAILISH), from_time, to_time, failed_check, limit))
