@@ -47,6 +47,7 @@ class ProdConfiguration(base.ProdConfiguration):
     # When MBS frontend runs on same machine as scheduler,
     # it is fine to set this to localhost
     SERVER_NAME = 'localhost'
+    ALLOW_CUSTOM_SCMURLS = True
 
 
 class DevConfiguration(base.DevConfiguration):
