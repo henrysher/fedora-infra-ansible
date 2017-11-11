@@ -175,12 +175,20 @@ config = {
             'directory': '/mnt/fedora_koji/koji/compose/updates/atomic/',
             'key': 'fedora-27'
         },
-        'fedora/27/x86_64/workstation': {
-            'directory': '/mnt/fedora_koji/koji/compose/ostree/27/',
-            'key': 'fedora-27'
-        },
         'fedora/27/x86_64/testing/atomic-host': {
             'directory': '/mnt/fedora_koji/koji/compose/updates/atomic/',
+            'key': 'fedora-27'
+        },
+        'fedora/27/ppc64le/testing/atomic-host': {
+            'directory': '/mnt/fedora_koji/koji/compose/updates/atomic/',
+            'key': 'fedora-27'
+        },
+        'fedora/27/aarch64/testing/atomic-host': {
+            'directory': '/mnt/fedora_koji/koji/compose/updates/atomic/',
+            'key': 'fedora-27'
+        },
+        'fedora/27/x86_64/workstation': {
+            'directory': '/mnt/fedora_koji/koji/compose/ostree/27/',
             'key': 'fedora-27'
         },
         'fedora/rawhide/x86_64/atomic-host': {
