@@ -107,9 +107,20 @@ createiso_skip = [
     ]
 
 [% if release.id_prefix == 'FEDORA' and release.version_int >= 26 %]
+[% if release.version_int >= 27 %]
+    [% set ostree_arches = ['x86_64', 'ppc64le', 'aarch64'] %]
+[% else %]
+    [% set ostree_arches = ['x86_64'] %]
+[% endif %]
 ostree = [
     ("^Everything$", {
-        "x86_64": {
+    [% for arch in ostree_arches %]
+        [% if arch == "x86_64" %]
+            [% set path = "fedora/linux" %]
+        [% else %]
+            [% set path = "fedora-secondary" %]
+        [% endif %]
+        "{{ arch }}": {
             [% if release.version_int >= 28 %]
                 "version": "!OSTREE_VERSION_FROM_LABEL_DATE_TYPE_RESPIN",
             [% endif %]
@@ -120,17 +131,18 @@ ostree = [
                 "Everything",
                 [% if request.name == 'testing' %]
                     # In the case of testing, also inject the last stable updates
-                    "https://kojipkgs{{ env_suffix }}.fedoraproject.org/pub/fedora/linux/updates/[[ release.version ]]/x86_64/"
+                    "https://kojipkgs{{ env_suffix }}.fedoraproject.org/pub/[[ path ]]/updates/[[ release.version ]]/[[ arch ]]/"
                 [% endif %]
                 [% if release.version_int == 27 %]
-                    "https://kojipkgs{{ env_suffix }}.fedoraproject.org/pub/fedora/linux/development/[[ release.version_int ]]/Everything/x86_64/os/"
+                    "https://kojipkgs{{ env_suffix }}.fedoraproject.org/pub/[[ path ]]/development/[[ release.version_int ]]/Everything/[[ arch ]]/os/"
                 [% else %]
-                    "https://kojipkgs{{ env_suffix }}.fedoraproject.org/pub/fedora/linux/releases/[[ release.version_int ]]/Everything/x86_64/os/"
+                    "https://kojipkgs{{ env_suffix }}.fedoraproject.org/pub/[[ path ]]/releases/[[ release.version_int ]]/Everything/[[ arch ]]/os/"
                 [% endif %]
             ]
             "ostree_repo": "/mnt/koji/compose/updates/atomic",
             "tag_ref": False
-        }
+        },
+    [% endfor %]
     })
 ]
 [% endif %]
