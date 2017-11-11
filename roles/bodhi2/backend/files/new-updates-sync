@@ -204,11 +204,13 @@ def sync_single_repo_arch(release, repo, arch, dest_path):
     maindir = 'tree' if arch == 'source' else 'os'
 
     results = []
+    do_drpms = os.path.exists(os.path.join(source_path, maindir, 'drpms'))
 
     results.append(rsync(os.path.join(source_path, maindir, 'Packages'),
                          os.path.join(dest_path)))
-    results.append(rsync(os.path.join(source_path, maindir, 'drpms'),
-                         os.path.join(dest_path)))
+    if do_rpms:
+        results.append(rsync(os.path.join(source_path, maindir, 'drpms'),
+                             os.path.join(dest_path)))
     if arch != 'source':
         results.append(rsync(os.path.join(source_path, 'debug', 'tree', 'Packages'),
                              os.path.join(dest_path, 'debug')))
@@ -224,9 +226,10 @@ def sync_single_repo_arch(release, repo, arch, dest_path):
     results.append(rsync(os.path.join(source_path, maindir, 'Packages'),
                          os.path.join(dest_path),
                          delete=True))
-    results.append(rsync(os.path.join(source_path, maindir, 'drpms'),
-                         os.path.join(dest_path)),
-                         delete=True)
+    if do_rpms:
+        results.append(rsync(os.path.join(source_path, maindir, 'drpms'),
+                             os.path.join(dest_path),
+                             delete=True))
 
     return collect_stats(results)
 
