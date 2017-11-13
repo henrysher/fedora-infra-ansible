@@ -49,6 +49,19 @@
   - ipsilon
   - ipsilon/oidc_scopes
 
+- name: Copy OpenID Connect scope registrations (STAGING)
+  copy: src=oidc_scopes/{{item}}.py
+        dest=/usr/lib/python2.7/site-packages/ipsilon/providers/openidc/plugins/{{item}}.py
+        owner=root group=root mode=0644
+  when: env == "staging"
+  with_items:
+  - wiki
+  notify:
+  - reload apache
+  tags:
+  - ipsilon
+  - ipsilon/oidc_scopes
+
 - name: Apply hotfix for taiga to get POST results
   copy: src=openid_server.py
         dest=/usr/lib/python2.7/site-packages/openid/server/server.py
