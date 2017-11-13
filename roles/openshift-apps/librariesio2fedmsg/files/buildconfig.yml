@@ -1,0 +1,62 @@
+apiVersion: v1
+items:
+- apiVersion: v1
+  kind: BuildConfig
+  metadata:
+    labels:
+      build: fedmsg-relay
+    name: fedmsg-relay-docker-build
+  spec:
+    runPolicy: Serial
+    source:
+      dockerfile: |-
+        FROM fedora:26
+        LABEL \
+            name="fedmsg-relay" \
+            vendor="Fedora Infrastructure" \
+            license="MIT"
+        RUN dnf -y --enablerepo updates-testing update && \
+            dnf -y --enablerepo updates-testing install --setopt=tsflags=nodocs python3-fedmsg && \
+            dnf clean all
+        RUN rm /etc/fedmsg.d/*.py
+        ENV USER=fedmsg-relay
+        EXPOSE 9940
+        EXPOSE 4001
+        ENTRYPOINT fedmsg-relay-3
+      type: Dockerfile
+    strategy:
+      type: Docker
+    output:
+      to:
+        kind: ImageStreamTag
+        name: fedmsg-relay:latest
+- apiVersion: v1
+  kind: BuildConfig
+  metadata:
+    labels:
+      build: sse2fedmsg
+    name: sse2fedmsg-docker-build
+  spec:
+    runPolicy: Serial
+    source:
+      dockerfile: |-
+        FROM fedora:26
+        LABEL \
+            name="sse2fedmsg" \
+            vendor="Fedora Infrastructure" \
+            license="MIT"
+        RUN dnf -y --enablerepo updates-testing update && \
+            dnf -y --enablerepo updates-testing install --setopt=tsflags=nodocs sse2fedmsg && \
+            dnf clean all
+        RUN rm /etc/fedmsg.d/*py
+        ENV USER=librariesio2fedmsg
+        ENTRYPOINT sse2fedmsg librariesio http://firehose.libraries.io/events
+      type: Dockerfile
+    strategy:
+      type: Docker
+    output:
+      to:
+        kind: ImageStreamTag
+        name: sse2fedmsg:latest
+kind: List
+metadata: {}

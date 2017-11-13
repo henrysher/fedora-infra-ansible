@@ -1,0 +1,91 @@
+apiVersion: v1
+items:
+- apiVersion: v1
+  kind: DeploymentConfig
+  metadata:
+    labels:
+      app: librariesio2fedmsg
+      service: fedmsg
+    name: librariesio2fedmsg
+  spec:
+    replicas: 1
+    selector:
+      deploymentconfig: librariesio2fedmsg
+    strategy:
+      activeDeadlineSeconds: 21600
+      recreateParams:
+        timeoutSeconds: 600
+      resources: {}
+      rollingParams:
+        intervalSeconds: 1
+        maxSurge: 25%
+        maxUnavailable: 25%
+        timeoutSeconds: 600
+        updatePeriodSeconds: 1
+      type: Rolling
+    template:
+      metadata:
+        creationTimestamp: null
+        labels:
+          app: librariesio2fedmsg
+          deploymentconfig: librariesio2fedmsg
+      spec:
+        containers:
+        - name: librariesio2fedmsg
+          image: librariesio2fedmsg/sse2fedmsg:latest
+          volumeMounts:
+          - mountPath: /etc/fedmsg.d/
+            name: fedmsg-confg
+            readOnly: true
+        - name: fedmsg-relay
+          image: librariesio2fedmsg/fedmsg-relay:latest
+          livenessProbe:
+            failureThreshold: 3
+            periodSeconds: 10
+            successThreshold: 1
+            tcpSocket:
+              port: 9940
+            timeoutSeconds: 3
+          ports:
+          - containerPort: 9940
+            protocol: TCP
+          - containerPort: 4001
+            protocol: TCP
+          readinessProbe:
+            failureThreshold: 3
+            initialDelaySeconds: 1
+            periodSeconds: 10
+            successThreshold: 1
+            tcpSocket:
+              port: 9940
+            timeoutSeconds: 5
+          resources: {}
+          volumeMounts:
+          - mountPath: /etc/fedmsg.d/
+            name: fedmsg-config
+        volumes:
+        - name: fedmsg-config-volume
+          configMap:
+            name: fedmsg-config
+    triggers:
+    - imageChangeParams:
+        automatic: true
+        containerNames:
+        - librariesio2fedmsg
+        from:
+          kind: ImageStreamTag
+          name: sse2fedmsg:latest
+          namespace: librariesio2fedmsg
+      type: ImageChange
+    - imageChangeParams:
+        automatic: true
+        containerNames:
+        - fedmsg-relay
+        from:
+          kind: ImageStreamTag
+          name: fedmsg-relay:latest
+          namespace: librariesio2fedmsg
+      type: ImageChange
+    - type: ConfigChange
+kind: List
+metadata: {}
