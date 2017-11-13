@@ -535,3 +535,45 @@ $wgStyleVersion = '273';
 
 # Fedora Badges Extension
 require_once( "$IP/extensions/FedoraBadges/FedoraBadges.php" );
+{% if env == "staging" %}
+
+fpwiki_stg_client_secret
+# OpenID Connect
+require_once('/usr/share/php/Fedora/Autoloader/autoload.php');
+\Fedora\Autoloader\Dependencies::required(array(
+        '/usr/share/php/jumbojett/OpenID-Connect-PHP/autoload.php',
+        '/usr/share/php/phpseclib/autoload.php'
+));
+
+$wgPluggableAuth_EnableAutoLogin = false;
+$wgPluggableAuth_EnableLocalLogin = false;
+$wgPluggableAuth_EnableLocalProperties = false;
+$wgPluggableAuth_Class = 'OpenIDConnect';
+
+$wgGroupPermissions['*']['createaccount'] = true;
+$wgGroupPermissions['*']['autocreateaccount'] = true;
+
+$wgOpenIDConnect_Config['https://id{{ env_suffix }}.fedoraproject.org/openidc/'] = [
+    'clientID' => 'fpwiki',
+    'clientsecret' => '{{ fpwiki_stg_client_secret }}',
+    'name' => "Fedora Authentication",
+    'scope' => [ 'openid', 'profile', 'email' ]
+];
+$wgOpenIDConnect_UseRealNameAsUserName = false;
+$wgOpenIDConnect_UseEmailNameAsUserName = false;
+$wgOpenIDConnect_MigrateUsersByUserName = false;
+$wgOpenIDConnect_MigrateUsersByEmail = false;
+$wgOpenIDConnect_ForceLogout = false;
+$wgOpenIDConnectAPI_Issuer = 'https://id{{ env_suffix }}.fedoraproject.org/openidc/';
+$wgOpenIDConnectAPI_TokenInfoURL = "https://id{{ env_suffix }}.fedoraproject.org/openidc/TokenInfo";
+$wgOpenIDConnectAPI_TokenScope = "fedoraproject.org/wiki/api";
+
+# Fixed for OIDC redirect url generation
+{% if env == "staging" %}
+$_SERVER['HTTP_HOST'] = 'stg.fedoraproject.org';
+{% else %}
+$_SERVER['HTTP_HOST'] = 'fedoraproject.org';
+{% endif %}
+$_SERVER['REQUEST_SCHEME'] = 'https';
+$_SERVER['SERVER_PORT'] = 443;
+{% endif %}
