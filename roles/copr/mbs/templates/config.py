@@ -21,12 +21,9 @@ class ProdConfiguration(base.ProdConfiguration):
     KOJI_REPOSITORY_URL = 'https://kojipkgs.fedoraproject.org/repos'
     PDC_URL = 'https://pdc.fedoraproject.org/rest_api/v1'
 
-    # When building from scmurl,
-    # only such URLs that starts with some of these are allowed
-    # Currently it is not possible to turn this feature off
-    # and allow everything, so let's allow at least something
-    SCMURLS = ["git://pkgs.stg.fedoraproject.org/modules/",
-               "git://pkgs.fedoraproject.org/modules/"]
+    # Do not restrict to only trusted repositories, allow everything
+    SCMURLS = []
+    ALLOW_CUSTOM_SCMURLS = True
 
 {% if env == 'staging' %}
     MESSAGING_TOPIC_PREFIX = ['org.fedoraproject.dev', 'org.fedoraproject.stg']
@@ -47,7 +44,6 @@ class ProdConfiguration(base.ProdConfiguration):
     # When MBS frontend runs on same machine as scheduler,
     # it is fine to set this to localhost
     SERVER_NAME = 'localhost'
-    ALLOW_CUSTOM_SCMURLS = True
 
 
 class DevConfiguration(base.DevConfiguration):
