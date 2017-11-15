@@ -33,7 +33,6 @@ def get_message_body(topic, *args, **kws):
     if topic == 'package.list.change':
         msg['tag'] = kws['tag']['name']
         msg['package'] = kws['package']['name']
-{% if env == 'staging' %}
         msg['action'] = kws['action']
         if 'owner' in kws:
             msg['owner'] = kojihub.get_user(kws['owner'])['name']
@@ -43,7 +42,6 @@ def get_message_body(topic, *args, **kws):
         msg['extra_arches'] = kws.get('extra_arches', None)
         msg['force'] = kws.get('force', None)
         msg['update'] = kws.get('update', None)
-{% endif %}
     elif topic == 'task.state.change':
         info = kws['info']
 
