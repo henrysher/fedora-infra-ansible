@@ -3,10 +3,11 @@
 # general information
 ############################################################
 
-deployment_type: prod
 external_hostname: taskotron.fedoraproject.org
-robots_path: /var/www/html
+deployment_type: prod
+
 tcp_ports: [ 80, 443, "{{ buildslave_port }}" ]
+robots_path: /var/www/html
 
 # this enables extra repos during dnf operations
 extra_enablerepos: ''
@@ -16,19 +17,19 @@ extra_enablerepos: ''
 ############################################################
 
 grokmirror_basedir: /var/lib/git/mirror
+grokmirror_user: grokmirror
 grokmirror_repos:
+  - { name: fedoraqa/abicheck, url: 'https://pagure.io/task-abicheck.git'}
+  - { name: fedoraqa/dockerautotest, url: 'https://pagure.io/taskotron/task-dockerautotest.git'}
+  - { name: fedoraqa/fedora-cloud-tests, url: 'https://pagure.io/taskotron/task-fedora-cloud-tests.git'}
+  - { name: fedoraqa/check_modulemd, url: 'https://github.com/fedora-modularity/check_modulemd'}
+  - { name: fedoraqa/modularity-testing-framework, url: 'https://pagure.io/taskotron/task-modularity-testing-framework.git'}
+  - { name: fedoraqa/python-versions, url: 'https://github.com/fedora-python/taskotron-python-versions'}
+  - { name: fedoraqa/rpmdeplint, url: 'https://pagure.io/taskotron/task-rpmdeplint.git'}
+  - { name: fedoraqa/rpmgrill, url: 'https://pagure.io/taskotron/task-rpmgrill.git'}
   - { name: fedoraqa/rpmlint, url: 'https://pagure.io/taskotron/task-rpmlint.git'}
   - { name: fedoraqa/upgradepath, url: 'https://pagure.io/taskotron/task-upgradepath.git'}
-  - { name: fedoraqa/dockerautotest, url: 'https://pagure.io/taskotron/task-dockerautotest.git'}
-  - { name: fedoraqa/abicheck, url: 'https://pagure.io/task-abicheck.git'}
-  - { name: fedoraqa/rpmgrill, url: 'https://pagure.io/taskotron/task-rpmgrill.git'}
-  - { name: fedoraqa/python-versions, url: 'https://github.com/fedora-python/taskotron-python-versions'}
-  - { name: fedoraqa/check_modulemd, url: 'https://github.com/fedora-modularity/check_modulemd'}
-  - { name: fedoraqa/rpmdeplint, url: 'https://pagure.io/taskotron/task-rpmdeplint.git'}
   - { name: fedoraqa/upstream-atomic, url: 'https://pagure.io/taskotron/task-upstream-atomic.git'}
-  - { name: fedoraqa/fedora-cloud-tests, url: 'https://pagure.io/taskotron/task-fedora-cloud-tests.git'}
-  - { name: fedoraqa/modularity-testing-framework, url: 'https://pagure.io/taskotron/task-modularity-testing-framework.git'}
-grokmirror_user: grokmirror
 grokmirror_default_branch: master
 
 
@@ -38,11 +39,15 @@ grokmirror_default_branch: master
 
 execdb_server: http://resultsdb01.qa.fedoraproject.org/execdb
 execdb_statuspush: http://resultsdb01.qa.fedoraproject.org/execdb/buildbottest
+
 resultsdb_external_url: https://taskotron.fedoraproject.org/resultsdb/
 resultsdb_fe_endpoint: resultsdb
 resultsdb_frontend_url: http://resultsdb01.qa.fedoraproject.org/resultsdb
 resultsdb_url: http://resultsdb01.qa.fedoraproject.org/resultsdb_api/api/v2.0
+
 taskotron_docs_url: https://qa.fedoraproject.org/docs/libtaskotron/latest/
+
+# make sure this doesn't have a trailing slash
 trigger_distgit_repo_url: git://pkgs02.phx2.fedoraproject.org
 trigger_abicheck_blacklist: [firefox,thunderbird,kernel,kdelibs,kdepim,qt,mariadb,java-1.8.0-openjdk,libreoffice]
 instances:
@@ -50,15 +55,16 @@ instances:
   - { name: "Staging", url: "https://taskotron.stg.fedoraproject.org"}
   - { name: "Development", url: "http://taskotron-dev.fedoraproject.org"}
 
+
 ############################################################
 # taskotron details
 ############################################################
 
-public_artifacts_dir: /srv/taskotron/artifacts
-cgit_root_title: "Taskotron Git Mirror"
+settings_dir: /etc/taskotron
 landingpage_title: "Production"
 landingpage_instance: "prod"
-settings_dir: /etc/taskotron
+public_artifacts_dir: /srv/taskotron/artifacts
+cgit_root_title: "Taskotron Git Mirror"
 
 ############################################################
 # buildbot details
@@ -71,9 +77,9 @@ buildmaster_db_password: "{{ prod_buildmaster_db_password }}"
 buildmaster_dir: /srv/buildmaster/master
 buildmaster_endpoint: taskmaster
 buildmaster_home: /srv/buildmaster
-buildmaster_user: buildmaster
 buildmaster_template: taskotron.master.cfg.j2
+buildmaster_user: buildmaster
 
-buildslave_ssh_pubkey: 'ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEA3Fhg7qUJ1+3N2YficTWQGEPm5JYmqDE7JbnpTTjQixd51r36YJ93sMQV63UOPkVaqPHkzIETUuvWLa/fnDhyYEnLT8mSgCqGViyd93MHYFD+nIzL1OIewKPiVbBdmlDOABD+ROSkC/wAfqJMgleqdDonWC8R0Qo+Y2r4sLMF7dxdPdRe3+WIcvC5YqDUZN/2gfsZ2tnAakZ1sGcX0yPvnpF9FmtRfkNp60OK7NXMLGV7Tayhkib05rGHl0q5dK4/vxKKk/aNgIK7gE3XFF7f+S2PDjvH3q/yby2Z3Wkp61JpVl+RTGz/XKpejUSDkJyQkbIC5+QQFeei58RLDJhzLQ== tflink@lockbox01.phx2.fedoraproject.org'
 buildslave_port: 9989
 buildslave_password: "{{ prod_buildslave_password }}"
+buildslave_ssh_pubkey: 'ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEA3Fhg7qUJ1+3N2YficTWQGEPm5JYmqDE7JbnpTTjQixd51r36YJ93sMQV63UOPkVaqPHkzIETUuvWLa/fnDhyYEnLT8mSgCqGViyd93MHYFD+nIzL1OIewKPiVbBdmlDOABD+ROSkC/wAfqJMgleqdDonWC8R0Qo+Y2r4sLMF7dxdPdRe3+WIcvC5YqDUZN/2gfsZ2tnAakZ1sGcX0yPvnpF9FmtRfkNp60OK7NXMLGV7Tayhkib05rGHl0q5dK4/vxKKk/aNgIK7gE3XFF7f+S2PDjvH3q/yby2Z3Wkp61JpVl+RTGz/XKpejUSDkJyQkbIC5+QQFeei58RLDJhzLQ== tflink@lockbox01.phx2.fedoraproject.org'
