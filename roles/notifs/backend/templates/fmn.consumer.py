@@ -8,37 +8,6 @@ ircnick = "fedora-notif"
 
 base = "https://apps.%s/notifications/" % domain
 
-{% if env != 'staging' %}
-
-from dogpile.core.readwrite_lock import ReadWriteMutex
-from dogpile.cache.backends.file import AbstractFileLock
-
-class MutexLock(AbstractFileLock):
-    """ Use an in-memory lock for our dogpile cache
-    in an attempt to reduce thread competition.
-    """
-    def __init__(self, filename):
-        self.mutex = ReadWriteMutex()
-
-    def acquire_read_lock(self, wait):
-        ret = self.mutex.acquire_read_lock(wait)
-        return wait or ret
-
-    def acquire_write_lock(self, wait):
-        ret = self.mutex.acquire_write_lock(wait)
-        return wait or ret
-
-    def release_read_lock(self):
-        return self.mutex.release_read_lock()
-
-    def release_write_lock(self):
-        return self.mutex.release_write_lock()
-
-    @classmethod
-    def __json__(cls):
-        return repr(cls)
-{% endif %}
-
 
 config = {
     {% if env == 'staging' %}
@@ -181,7 +150,6 @@ config = {
     "fmn.support_email": "notifications@" + domain,
 
     # Generic stuff
-    {% if env == 'staging' %}
     "logging": dict(
         loggers=dict(
             fmn={
@@ -195,15 +163,4 @@ config = {
              'handlers': ['console', 'mailer'],
         },
     ),
-    {% else %}
-    "logging": dict(
-        loggers=dict(
-            fmn={
-                "level": "DEBUG",
-                "propagate": False,
-                "handlers": ["console", "mailer"],
-            },
-        ),
-    ),
-    {% endif %}
 }
