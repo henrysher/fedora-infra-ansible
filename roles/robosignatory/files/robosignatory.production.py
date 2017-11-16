@@ -163,6 +163,14 @@ config = {
             'directory': '/mnt/fedora_koji/koji/compose/ostree/26/',
             'key': 'fedora-26'
         },
+        'fedora/27/x86_64/updates/workstation': {
+            'directory': '/mnt/fedora_koji/koji/compose/updates/atomic/',
+            'key': 'fedora-27'
+        },
+        'fedora/27/x86_64/testing/workstation': {
+            'directory': '/mnt/fedora_koji/koji/compose/updates/atomic/',
+            'key': 'fedora-27'
+        },
         'fedora/27/x86_64/updates/atomic-host': {
             'directory': '/mnt/fedora_koji/koji/compose/updates/atomic/',
             'key': 'fedora-27'
