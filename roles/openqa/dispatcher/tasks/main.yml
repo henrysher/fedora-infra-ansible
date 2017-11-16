@@ -133,8 +133,20 @@
   tags:
   - config
 
-- name: Write wikitcms token file
+- name: Create /root/.openidc (token file location for manual runs as root)
+  file: path=/root/.openidc state=directory owner=root group=root mode=0700
+
+- name: Create /usr/share/fedmsg/.openidc (token file location for fedmsg consumer runs)
+  file: path=/usr/share/fedmsg/.openidc state=directory owner=root group=fedmsg mode=0750
+
+- name: Write wikitcms token file for root
   copy: src={{ wikitcms_token }} dest=/root/.openidc/oidc_wikitcms.json owner=root group=root mode=0600
+  when: "wikitcms_token is defined"
+  tags:
+  - config
+
+- name: Write wikitcms token file for fedmsg
+  copy: src={{ wikitcms_token }} dest=/usr/share/fedmsg/.openidc/oidc_wikitcms.json owner=root group=fedmsg mode=0640
   when: "wikitcms_token is defined"
   tags:
   - config
