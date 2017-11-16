@@ -50,6 +50,12 @@
   tags:
   - config
 
+- name: Write wikitcms token file
+  copy: src={{ wikitcms_token }} dest=/root/.openidc/oidc_wikitcms.json owner=root group=root mode=0600
+  when: "wikitcms_token is defined"
+  tags:
+  - config
+
 - name: Check out relvalconsumer
   git:
     repo: https://pagure.io/fedora-qa/relvalconsumer.git
@@ -66,7 +72,7 @@
 
 - name: Enable fedmsg consumer
   template: src=relvalconsumer.py.j2 dest=/etc/fedmsg.d/relvalconsumer.py owner=root group=root mode=0644
-  when: "wikitcms_user is defined and wikitcms_password is defined"
+  when: "wikitcms_user is defined and (wikitcms_password is defined or wikitcms_token is defined)"
   notify:
   - restart fedmsg-hub
   tags:
