@@ -22,6 +22,25 @@
   notify: reload httpd
   tags: pdc
 
+- name: Create directory structure for exportbranches command
+  file: dest={{item.dest}} state={{item.state}} owner=apache group=apache
+  with_items:
+  - dest: /usr/lib/python2.7/site-packages/pdc/apps/componentbranch/management
+    state: directory
+  - dest: /usr/lib/python2.7/site-packages/pdc/apps/componentbranch/management/__init__.py
+    state: present
+  - dest: /usr/lib/python2.7/site-packages/pdc/apps/componentbranch/management/commands/
+    state: directory
+  - dest: /usr/lib/python2.7/site-packages/pdc/apps/componentbranch/management/commands/__init__.py
+    state: present
+  tags: pdc
+
+- name: Copy over the exportbranches command
+  file:
+    dest: /usr/lib/python2.7/site-packages/pdc/apps/componentbranch/management/commands/exportbranches.py
+    src: exportbranches.py
+  tags: pdc
+
 - name: Copy over httpd config
   template: src=pdc.conf dest=/etc/httpd/conf.d/pdc.conf
   notify: reload httpd
