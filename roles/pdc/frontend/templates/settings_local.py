@@ -103,10 +103,8 @@ REST_API_VERSION = 'v1'
 # https://github.com/product-definition-center/product-definition-center/issues/352
 USE_X_FORWARDED_HOST = True
 
-{% if env == 'staging' %}
 # https://pagure.io/fedora-infrastructure/issue/6122
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-{% endif %}
 
 BROWSABLE_DOCUMENT_MACROS = {
     # need to be rewrite with the real host name when deploy.
