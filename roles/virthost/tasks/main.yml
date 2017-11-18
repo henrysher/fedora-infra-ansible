@@ -28,12 +28,12 @@
   - rhel7-rhev-ppc64le
   when: ansible_distribution == 'RedHat' and ansible_distribution_major_version|int == 7 and ansible_architecture == 'ppc64le'
 
-- name: install RHEV/aarch64 for el7 repo file
-  copy: src=rhel7-rhev-aarch64.repo dest=/etc/yum.repos.d/rhel7-rhev-aarch64.repo
-  tags:
-  - repos
-  - rhel7-rhev-aarch64
-  when: ansible_distribution == 'RedHat' and ansible_distribution_major_version|int == 7 and ansible_architecture == 'aarch64'
+#- name: install RHEV/aarch64 for el7 repo file
+#  copy: src=rhel7-rhev-aarch64.repo dest=/etc/yum.repos.d/rhel7-rhev-aarch64.repo
+#  tags:
+#  - repos
+#  - rhel7-rhev-aarch64
+#  when: ansible_distribution == 'RedHat' and ansible_distribution_major_version|int == 7 and ansible_architecture == 'aarch64'
 
 - name: install libvirt packages on rhel7 virthosts
   package: name={{ item }} state=present
@@ -45,12 +45,17 @@
   - virt-install
   tags:
   - packages
-  when: ansible_distribution == 'RedHat' and ansible_distribution_major_version|int == 7
+  when: ansible_distribution == 'RedHat' and ansible_distribution_major_version|int == 7 and ansible_architecture != 'aarch64'
 
 - name: install AAVMF uEFI tianocore on aarch64 rhel7 virthosts
   package: name={{ item }} state=present
   with_items:
   - AAVMF
+  - qemu-kvm
+  - qemu-kvm-tools
+  - qemu-img
+  - libvirt
+  - virt-install
   tags:
   - packages
   when: ansible_distribution == 'RedHat' and ansible_distribution_major_version|int == 7 and ansible_architecture == 'aarch64'
