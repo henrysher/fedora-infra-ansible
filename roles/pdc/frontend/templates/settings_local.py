@@ -27,9 +27,7 @@ REST_FRAMEWORK = {
 
     'DEFAULT_FILTER_BACKENDS': (
         'rest_framework.filters.DjangoFilterBackend',
-    {% if env == 'staging' %}
         'pdc.apps.utils.utils.RelatedNestedOrderingFilter',
-    {% endif %}
     ),
 
     'DEFAULT_METADATA_CLASS': 'contrib.bulk_operations.metadata.BulkMetadata',
