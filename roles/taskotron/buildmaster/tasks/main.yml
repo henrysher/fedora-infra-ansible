@@ -45,9 +45,13 @@
   file: path="{{ buildmaster_home }}" state=directory owner=buildmaster group=buildmaster mode=0775
   when: deployment_type in ['dev', 'stg', 'prod']
 
-#- name: set the selinux fcontext type for the buildmaster_home to var_lib_t
-#  command: semanage fcontext -a -t var_lib_t "{{ buildmaster_home }}(/.*)?"
-#  when: deployment_type in ['dev', 'stg', 'prod', 'qa-stg']
+- name: set the selinux fcontext type for the buildmaster_home to var_lib_t
+  command: semanage fcontext -a -t var_lib_t "{{ buildmaster_home }}(/.*)?"
+  when: deployment_type in ['stg', 'prod', 'qa-stg']
+
+- name: ensure correct fcontext for buildmaster home (new)
+  file: path="{{ buildmaster_home }}(/. *)?" setype=var_lib_t owner=buildmaster group=buildmaster mode=0775 state=directory
+  when: deployment_type == 'dev'
 
 #- name: make sure the selinux fcontext is restored
 #  command: restorecon -R "{{ buildmaster_home }}"
