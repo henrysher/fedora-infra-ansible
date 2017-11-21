@@ -7,8 +7,8 @@ config = {
         # Kerberos configuration to authenticate with Koji. In development
         # environments, use `kinit <fas-name>@FEDORAPROJECT.ORG` to get a
         # Kerberos ticket and use the default settings below.
-        'krb_principal': 'simple-koji-ci/simple-koji-ci-dev.fedorainfracloud.org@FEDORAPROJECT.ORG',
-        'krb_keytab': 'krb5.simple-koji-ci_simple-koji-ci-dev.fedorainfracloud.org.keytab',
+        'krb_principal': 'simple-koji-ci/simple-koji-ci-dev.fedorainfracloud.org@STG.FEDORAPROJECT.ORG',
+        'krb_keytab': '/etc/krb5.simple-koji-ci_simple-koji-ci-dev.fedorainfracloud.org.keytab',
         'krb_ccache': None,
         'krb_proxyuser': None,
         'krb_sessionopts': {'timeout': 3600, 'krb_rdns': False},
