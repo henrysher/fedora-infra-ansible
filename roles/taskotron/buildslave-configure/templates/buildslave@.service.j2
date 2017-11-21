@@ -4,12 +4,13 @@ After=network.target
 
 [Service]
 Type=forking
-PIDFile=/home/%i/slave/twistd.pid
 {% if deployment_type in ['stg', 'prod'] %}
+PIDFile=/home/%i/slave/twistd.pid
 ExecStart=/bin/buildslave start /home/%i/slave/
 ExecStop=/bin/buildslave stop /home/%i/slave/
 {% endif %}
 {% if deployment_type in ['dev'] %}
+PIDFile=/srv/buildslaves/%i/slave/twistd.pid
 ExecStart=/bin/buildslave start /srv/buildslaves/%i/slave/
 ExecStop=/bin/buildslave stop /srv/buildslaves/%i/slave/
 {% endif %}
