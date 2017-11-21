@@ -40,7 +40,7 @@ config = {
     # that failed for any reason (e.g. read timeout, DNS error, etc)
     'simple-koji-ci.requests_retries': 3,
 
-    logging = {
+    "logging": {
         "loggers": {
             "simple_koji_ci": {
                 "level": "INFO",
