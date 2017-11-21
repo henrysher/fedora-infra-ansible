@@ -27,12 +27,17 @@
   with_items:
   - dest: /usr/lib/python2.7/site-packages/pdc/apps/componentbranch/management
     state: directory
-  - dest: /usr/lib/python2.7/site-packages/pdc/apps/componentbranch/management/__init__.py
-    state: touch
   - dest: /usr/lib/python2.7/site-packages/pdc/apps/componentbranch/management/commands/
     state: directory
+  tags:
+    - pdc
+    - cron
+
+- name: Create files for exportbranches command if they do not already exist
+  copy: dest={{item.dest}} owner=apache group=apache content='' force=no
+  with_items:
+  - dest: /usr/lib/python2.7/site-packages/pdc/apps/componentbranch/management/__init__.py
   - dest: /usr/lib/python2.7/site-packages/pdc/apps/componentbranch/management/commands/__init__.py
-    state: touch
   tags:
     - pdc
     - cron
