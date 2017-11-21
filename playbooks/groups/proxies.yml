@@ -12,6 +12,9 @@
    - "/srv/private/ansible/vars.yml"
    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
 
+  pre_tasks:
+  - import_tasks: "{{ tasks_path }}/yumrepos.yml"
+
   roles:
   - base
   - fas_client
@@ -47,7 +50,6 @@
         state=link
     when: inventory_hostname == 'proxy01.phx2.fedoraproject.org'
 
-  - import_tasks: "{{ tasks_path }}/yumrepos.yml"
   - import_tasks: "{{ tasks_path }}/2fa_client.yml"
   - import_tasks: "{{ tasks_path }}/motd.yml"
 
