@@ -67,3 +67,10 @@
   with_items: "{{ slaves }}"
   when: slaves is defined and deployment_type in ['dev', 'stg', 'prod', 'qa-prod', 'qa-stg']
 
+- name: disable ansible host key checking
+  lineinfile:
+    dest: /etc/ansible/ansible.cfg
+    regexp: '^#host_key_checking = False$'
+    line: 'host_key_checking = False'
+  when: deployment_type in ['dev']
+
