@@ -190,12 +190,8 @@ $wgProxyKey = "b957b9365f724d22f666998b751507c551c66484bf75b1cc33802a67e92b0827"
 
 ## Default skin: you can change the default skin. Use the internal symbolic
 ## names, ie 'standard', 'nostalgia', 'cologneblue', 'monobook':
-{% if env == "staging" %}
 wfLoadSkin( 'Fedora' );
 $wgDefaultSkin = 'Fedora';
-{% else %}
-$wgDefaultSkin = 'fedora';
-{% endif %}
 
 ## For attaching licensing metadata to pages, and displaying an
 ## appropriate copyright notice / icon. GNU Free Documentation
@@ -326,33 +322,6 @@ $wgNamespacesToBeSearchedDefault = array(
 require_once "$IP/extensions/ParserFunctions/ParserFunctions.php";
 require_once "$IP/extensions/Interwiki/Interwiki.php";
 require_once "$IP/extensions/Cite/Cite.php";
-{% if env != "staging" %}
-require_once "$IP/extensions/Auth_FAS.php";
-$wgAuth = new Auth_FAS();
-{% else %}
-#require_once "$IP/extensions/OpenID/OpenID.php";
-#$wgOpenIDLoginOnly = true;
-#$wgOpenIDMode = 'consumer';
-#$wgOpenIDTrustRoot = 'https://stg.fedoraproject.org/w/';
-#$wgOpenIDConsumerDenyByDefault = true;
-#$wgOpenIDServerForceAllowTrust = 'https://id.stg.fedoraproject.org/openid/';
-#$wgOpenIDConsumerAllow = array ("#^https://id.stg.fedoraproject.org/openid/$#", "#^http://([a-z0-9]+).id.stg.fedoraproject.org/$#");
-#$wgOpenIDProposeUsernameFromSREG = true;
-#$wgOpenIDAllowNewAccountname = false;
-#$wgOpenIDAllowExistingAccountSelection = false;
-#$wgOpenIDTrustEmailAddress = true;
-#$wgOpenIDAllowAutomaticUsername = true;
-#$wgOpenIDUseEmailAsNickname = true;
-#$wgOpenIDUseNicknameAsUsername = true;
-#// $wgOpenIDConsumerStorePath;
-#$wgOpenIDForcedProvider = 'fedora';
-#$wgOpenIDProviders = array(
-#        'fedora' => array(
-#                'large-provider' => false,
-#                'openid-url' => 'https://id.stg.fedoraproject.org/openid/'
-#        ),
-#);
-{% endif %}
 require_once "$IP/extensions/fedmsg-emit.php";
 require_once "$IP/extensions/HTTP302Found/HTTP302Found.php";
 {% if env != "staging" %}
@@ -535,7 +504,6 @@ $wgStyleVersion = '273';
 
 # Fedora Badges Extension
 require_once( "$IP/extensions/FedoraBadges/FedoraBadges.php" );
-{% if env == "staging" %}
 
 # OpenID Connect
 wfLoadExtension( 'PluggableAuth' );
@@ -578,4 +546,3 @@ $_SERVER['HTTP_HOST'] = 'fedoraproject.org';
 {% endif %}
 $_SERVER['REQUEST_SCHEME'] = 'https';
 $_SERVER['SERVER_PORT'] = 443;
-{% endif %}
