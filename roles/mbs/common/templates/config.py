@@ -138,6 +138,7 @@ class ProdConfiguration(BaseConfiguration):
     MESSAGING_TOPIC_PREFIX = ['org.fedoraproject.stg']
     PDC_URL = 'https://pdc.stg.fedoraproject.org/rest_api/v1'
     SCMURLS = ['git://pkgs.stg.fedoraproject.org/modules/',
+               'git+https://src.stg.fedoraproject.org/modules/',
                'https://src.stg.fedoraproject.org/modules/',
                'https://src.stg.fedoraproject.org/git/modules/']
 
@@ -148,6 +149,7 @@ class ProdConfiguration(BaseConfiguration):
     MESSAGING_TOPIC_PREFIX = ['org.fedoraproject.prod']
     PDC_URL = 'https://pdc.fedoraproject.org/rest_api/v1'
     SCMURLS = ['git://pkgs.fedoraproject.org/modules/',
+               'git+https://src.fedoraproject.org/modules/',
                'https://src.fedoraproject.org/modules/',
                'https://src.fedoraproject.org/git/modules/']
 {% endif %}
