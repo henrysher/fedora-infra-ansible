@@ -13,7 +13,11 @@ config = {
     "endpoints": {
         "fedora-infrastructure": [
             # Just listen to staging for now, not to production (spam!)
+{% if inventory_hostname.startswith('copr-fe.cloud') %}
 "tcp://hub.fedoraproject.org:9940"
+{% else %}
+#"tcp://stg.fedoraproject.org:9940"
+{% endif %}
         ],
     },
 
@@ -43,6 +47,10 @@ if 'MODULE_BUILD_SERVICE_DEVELOPER_ENV' in os.environ and \
     config['relay_inbound'] = ["tcp://fedmsg-relay:2003"]
 else:
     # These configuration values are reasonable for most other configurations.
+{% if inventory_hostname.startswith('copr-fe.cloud') %}
     config['endpoints']['relay_outbound'] = ["tcp://127.0.0.1:4001"]
     config['relay_inbound'] = ["tcp://127.0.0.1:2003"]
-
+{% else %}
+    config['endpoints']['relay_outbound'].append('tcp://172.25.32.175:4001')
+    config['relay_inbound'].append('tcp://172.25.32.175:2003')
+{% endif %}
