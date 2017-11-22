@@ -525,7 +525,11 @@ $wgGroupPermissions['*']['autocreateaccount'] = true;
 
 $wgOpenIDConnect_Config['https://id{{ env_suffix }}.fedoraproject.org/openidc/'] = [
     'clientID' => 'fpwiki',
+{% if env == "staging" %}
     'clientsecret' => '{{ fpwiki_stg_client_secret }}',
+{% else %}
+    'clientsecret' => '{{ fpwiki_prod_client_secret }}',
+{% endif %}
     'name' => "Fedora Authentication",
     'scope' => [ 'openid', 'profile', 'email' ]
 ];
