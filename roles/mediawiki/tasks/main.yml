@@ -41,16 +41,6 @@
   - packages
   - mediawiki
 
-- name: install needed packages (el7 only)
-  package: name={{ item }} state=present
-  with_items:
-  - "{{ wikiver }}-Cite"
-  - "{{ wikiver }}-intersection"
-  tags:
-  - packages
-  - mediawiki
-  when: env != 'staging'
-
 - name: install needed packages (fedora only)
   package: name={{ item }} state=present
   with_items:
@@ -61,16 +51,6 @@
   tags:
   - packages
   - mediawiki
-  when: env == 'staging'
-
-- name: adding FAS auth
-  #template: src=Auth_FAS_CLAPLUSONE.php.j2
-  template: src=Auth_FAS.php.j2
-            dest=/usr/share/{{ wikiver }}/extensions/Auth_FAS.php owner=root group=root mode=775
-  tags:
-  - config
-  - mediawiki
-  when: env != 'staging'
 
 - name: adding fedmsg emit
   copy: src=fedmsg-emit.php dest=/usr/share/{{ wikiver }}/extensions/fedmsg-emit.php owner=root group=root mode=775
@@ -88,7 +68,6 @@
   tags:
   - config
   - mediawiki
-  when: env != 'staging'
 
 - name: creating wiki dir
   file: path=/srv/web/{{wikiname}}-wiki owner=root group=root mode=755 state=directory
@@ -177,4 +156,3 @@
   file: dest=/srv/web/{{wikiname}}-wiki/vendor src=/usr/share/{{ wikiver }}/vendor state=link
   tags:
   - mediawiki
-  when: env == 'staging'
