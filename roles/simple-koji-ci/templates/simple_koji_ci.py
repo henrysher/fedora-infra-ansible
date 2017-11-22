@@ -2,8 +2,15 @@ config = {
     'simple-koji-ci.enabled': True,
 
     'simple-koji-ci.koji': {
+        {% if env == 'staging' %}
         'server': 'https://koji.stg.fedoraproject.org/kojihub',
         'weburl': 'https://koji.stg.fedoraproject.org/koji',
+        'git_url': 'https://src.stg.fedoraproject.org/rpms/{package}.git',
+        {% else %}
+        'server': 'https://koji.fedoraproject.org/kojihub',
+        'weburl': 'https://koji.fedoraproject.org/koji',
+        'git_url': 'https://src.fedoraproject.org/rpms/{package}.git',
+        {% endif %}
         # Kerberos configuration to authenticate with Koji. In development
         # environments, use `kinit <fas-name>@FEDORAPROJECT.ORG` to get a
         # Kerberos ticket and use the default settings below.
@@ -12,7 +19,6 @@ config = {
         'krb_ccache': None,
         'krb_proxyuser': None,
         'krb_sessionopts': {'timeout': 3600, 'krb_rdns': False},
-        'git_url': 'https://src.stg.fedoraproject.org/rpms/{package}.git',
         'opts': {'scratch': True},
         'priority': 30,
         'target_tag': 'rawhide',
@@ -27,8 +33,13 @@ config = {
         },
     },
 
+    {% if env == 'staging' %}
     "simple-koji-ci.pagure_url" : "https://src.stg.fedoraproject.org",
     "simple-koji-ci.pagure_token" : "{{ simple_koji_ci_pagure_token_stg }}",
+    {% else %}
+    "simple-koji-ci.pagure_url" : "https://src.fedoraproject.org",
+    "simple-koji-ci.pagure_token" : "{{ simple_koji_ci_pagure_token }}",
+    {% endif %}
 
     # The time in seconds the-new-hotness should wait for a socket to connect
     # before giving up.
