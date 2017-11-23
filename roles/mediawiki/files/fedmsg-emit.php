@@ -260,9 +260,9 @@ function upload_complete(&$image) {
     "major_mime" => $image->getLocalFile()->major_mime,   // e.g. audio
     "minor_mime" => $image->getLocalFile()->minor_mime,   // e.g. mp3
     "size" => $image->getLocalFile()->size,               //in bytes, e.g. 2412586
-    "user_id" => $image->getLocalFile()->user,            // int userId
-    "user_text" => $image->getLocalFile()->user_text,     // the username
-    "description" => $image->getLocalFile()->description,
+    "user_id" => $image->getLocalFile()->getUser('id'),            // int userId
+    "user_text" => $image->getLocalFile()->getUser('text'),     // the username
+    "description" => $image->getLocalFile()->getDescriptionText(),
     "url" => $image->getLocalFile()->url,                 // gives the relavive url for direct access of the uploaded media
   );
 
