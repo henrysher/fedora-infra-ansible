@@ -25,7 +25,10 @@
   - restart fedmsg-hub
 
 - name: generate trigger rules
-  template: src=trigger_rules.yml.j2 dest=/etc/taskotron/trigger_rules.yml owner=root group=root mode=0744
+  copy: src={{ item }} dest=/etc/taskotron/trigger_rules.yml owner=root group=root mode=0744
+  with_first_found:
+    - trigger_rules.yml.j2.{{ deployment_type }}
+    - trigger_rules.yml.j2
   notify:
   - restart fedmsg-hub
 
