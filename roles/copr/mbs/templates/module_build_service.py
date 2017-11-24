@@ -51,6 +51,6 @@ else:
     config['endpoints']['relay_outbound'] = ["tcp://127.0.0.1:4001"]
     config['relay_inbound'] = ["tcp://127.0.0.1:2003"]
 {% else %}
-    config['endpoints']['relay_outbound'].append('tcp://172.25.32.175:4001')
-    config['relay_inbound'].append('tcp://172.25.32.175:2003')
+    config['endpoints']['relay_outbound'] = ['tcp://172.25.32.175:4001']
+    config['relay_inbound'] = ['tcp://172.25.32.175:2003']
 {% endif %}
