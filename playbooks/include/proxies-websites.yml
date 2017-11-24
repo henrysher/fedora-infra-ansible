@@ -658,18 +658,30 @@
 
   - role: httpd/website
     name: id.fedoraproject.org
+    sslonly: true
+    cert_name: "{{wildcard_cert_name}}"
+    SSLCertificateChainFile: wildcard-2017.id.fedoraproject.org.intermediate.cert
+    tags:
+    - id.fedoraproject.org
+
+  - role: httpd/website
+    name: username.id.fedoraproject.org
     server_aliases:
     - "*.id.fedoraproject.org"
     # Must not be sslonly, because example.id.fedoraproject.org must be reachable
     # via plain http for openid identity support
     cert_name: wildcard-2017.id.fedoraproject.org
     SSLCertificateChainFile: wildcard-2017.id.fedoraproject.org.intermediate.cert
+    tags:
+    - id.fedoraproject.org
 
   - role: httpd/website
     name: id.stg.fedoraproject.org
     cert_name: "{{wildcard_cert_name}}"
     SSLCertificateChainFile: wildcard-2017.stg.fedoraproject.org.intermediate.cert
     sslonly: true
+    tags:
+    - id.fedoraproject.org
     when: env == "staging"
 
   - role: httpd/website
@@ -680,6 +692,8 @@
     # via plain http for openid identity support
     cert_name: "{{wildcard_cert_name}}"
     SSLCertificateChainFile: wildcard-2017.stg.fedoraproject.org.intermediate.cert
+    tags:
+    - id.fedoraproject.org
     when: env == "staging"
 
   - role: httpd/website
