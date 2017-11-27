@@ -39,6 +39,12 @@
   do:
     - {tasks: [modularity-testing-framework]}
 
+- when:
+    message_type: GitHubPullRequestOpened
+    repo_name: {$regex: '/^container-images\/.+/'}
+  do:
+    - {tasks: [mtf-containers]}
+
 {# disabled due to missing nested virt: https://pagure.io/taskotron/issue/239
 - when:
     message_type: AtomicCompose
@@ -49,14 +55,5 @@
     message_type: CloudCompose
   do:
     - {tasks: [fedora-cloud-tests]}
-#}
-
-{# disabled until pull_request type is supported in stable libtaskotron/trigger
- # and until mtf-containers bugs are resolved
-- when:
-    message_type: GitHubPullRequestOpened
-    repo_name: {$regex: '/^container-images\/.+/'}
-  do:
-    - {tasks: [mtf-containers]}
 #}
 
