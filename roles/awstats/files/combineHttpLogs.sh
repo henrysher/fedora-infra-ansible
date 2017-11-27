@@ -31,27 +31,41 @@ LOGDIR=/var/log/hosts
 NFSDIR=/mnt/fedora_stats/combined-http
 PROXYLOG=${LOGDIR}/proxy*/${YEAR}/${MONTH}/${DAY}/http/
 DL_LOG=${LOGDIR}/download*/${YEAR}/${MONTH}/${DAY}/http/
+PEOPLE=${LOGDIR}/people*/${YEAR}/${MONTH}/${DAY}/http/
 
 TARGET=${NFSDIR}/${YEAR}/${MONTH}/${DAY}
 
 LOGMERGE=/usr/share/awstats/tools/logresolvemerge.pl
 
-FILES=$( ls -1 ${PROXYLOG}/*access.log.xz | awk '{x=split($0,a,"/"); print a[x]}' | sort -u )
-
 mkdir -p ${TARGET}
+
+##
+## Merge the Proxies
+FILES=$( ls -1 ${PROXYLOG}/*access.log.xz | awk '{x=split($0,a,"/"); print a[x]}' | sort -u )
 
 for FILE in ${FILES}; do
     TEMP=$(echo ${FILE} | sed 's/\.xz$//')
     perl ${LOGMERGE} ${PROXYLOG}/${FILE} > ${TARGET}/${TEMP}
 done
 
+##
+## Merge the Downloads
 FILES=$( ls -1 ${DL_LOG}/dl*access.log.xz | awk '{x=split($0,a,"/"); print a[x]}' | sort -u )
-
-mkdir -p ${TARGET}
 
 for FILE in ${FILES}; do
     TEMP=$(echo ${FILE} | sed 's/\.xz$//')
     perl ${LOGMERGE} ${DL_LOG}/${FILE} > ${TARGET}/${TEMP}
+done
+
+##
+## Merge the People
+##
+## Merge the Downloads
+FILES=$( ls -1 ${PEOPLE}/fedora*access.log.xz | awk '{x=split($0,a,"/"); print a[x]}' | sort -u )
+
+for FILE in ${FILES}; do
+    TEMP=$(echo ${FILE} | sed 's/\.xz$//')
+    perl ${LOGMERGE} ${PEOPLE}/${FILE} > ${TARGET}/${TEMP}
 done
 
 # Now we link up the files into latest directory
