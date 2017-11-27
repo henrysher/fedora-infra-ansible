@@ -24,7 +24,7 @@ RELEASES = {'f27': {'topic': 'fedora',
                     'modules': ['fedora', 'fedora-secondary'],
                     'repos': {'updates': {
                         'from': 'f27-updates',
-                        'ostrees': [{'ref': 'fedora/27/x86_64/updates/atomic-host',
+                        'ostrees': [{'ref': 'fedora/27/%(arch)s/updates/atomic-host',
                                      'dest': os.path.join(ATOMICDEST, '27'),
                                      'arches': ['x86_64', 'ppc64', 'aarch64']}],
                         'to': [{'arches': ['x86_64', 'armhfp', 'source'],
@@ -304,7 +304,7 @@ def sync_single_release(release):
         for ostree in RELEASES[release]['repos'][repo].get('ostrees', []):
             pairs = []
             if 'arches' in ostree:
-                for arch in arches:
+                for arch in ostree['arches']:
                     dest = ostree['dest'] % {'arch': arch}
                     ref = ostree['ref'] % {'arch': arch}
                     pairs.append((dest, ref))
