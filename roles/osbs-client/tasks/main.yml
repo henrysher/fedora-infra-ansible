@@ -3,14 +3,20 @@
 
 - name: install osbs-client package
   action: "{{ ansible_pkg_mgr }} name=osbs-client state=present"
+  tags:
+  - osbs-client
 
 - name: apply osbs-client templated config
   template: src=osbs.conf.j2 dest={{ osbs_client_conf_path }} mode=0640
+  tags:
+  - osbs-client
 
 - name: Create custom OSBS input directory
   file:
     path: "/etc/osbs/input/"
     state: directory
+  tags:
+  - osbs-client
 
 # This overrides defaults which are set in
 # https://github.com/projectatomic/osbs-client/blob/master/inputs/prod_inner.json
@@ -19,6 +25,8 @@
     src: "osbs-site-customize.json"
     dest: "/etc/osbs/input/prod_customize.json"
     mode: 0400
+  tags:
+  - osbs-client
 
 - name: Symlink in OSBS input configs provided by package
   file:
@@ -28,4 +36,6 @@
   with_items:
     - "prod"
     - "prod_inner"
+  tags:
+  - osbs-client
 
