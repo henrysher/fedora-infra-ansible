@@ -89,5 +89,18 @@
       - python2-dockerfile-parse
     when: env == "staging" and ansible_architecture != "ppc64"
 
+  - name: set releng user keytab
+    copy:
+      src: "{{private}}/files/keytabs/{{env}}/releng"
+      dest: /etc/krb5.releng.keytab
+    when: env == "staging"
+
+  - name: copy releng ssh key for rebuild fedpkg/distgit pushes
+    copy:
+      src: "{{private}}/files/releng/sshkeys/container-rebuild-staging"
+      dest: /etc/pki/releng
+    when: env == "staging"
+
+
   handlers:
   - import_tasks: "{{ handlers_path }}/restart_services.yml"
