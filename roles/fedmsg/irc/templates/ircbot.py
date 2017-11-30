@@ -282,7 +282,7 @@ config = dict(
                 topic=[
                     '^((?!(pagure)).)*$',
                 ],
-                body=['^((?!\"ipsilon\").)*$'],
+                body=['^((?!ipsilonpagure).)*$'],
             ),
         ),
 
