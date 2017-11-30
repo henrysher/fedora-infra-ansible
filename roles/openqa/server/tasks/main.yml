@@ -33,6 +33,11 @@
 ##       int - the asset size limit to set in GB (upstream default is 100GB)
 ##             higher is recommended for normal Fedora testing, 300GB is good
 ##             FIXME: this only works for pgsql ATM
+# - openqa_assetsize_updates
+##       int - the asset size limit to set for update job groups in GB
+##             (upstream default is 100GB). Lower is recommended for normal
+##             Fedora testing, 50GB is good
+##             FIXME: this only works for pgsql ATM
 # - deployment_type
 ##      string - Fedora Infrastructure thing; for this role, decides
 ##               whether to enable some openQA plugins that should be
@@ -273,7 +278,16 @@
   delegate_to: "{{ openqa_dbhost }}"
   become_user: postgres
   become: true
-  command: "psql -d {{ openqa_dbname }} -c \"UPDATE job_groups SET size_limit_gb = {{ openqa_assetsize }} WHERE size_limit_gb != {{ openqa_assetsize }};\""
+  command: "psql -d {{ openqa_dbname }} -c \"UPDATE job_groups SET size_limit_gb = {{ openqa_assetsize }} WHERE NOT name LIKE '%Updates%' AND (size_limit_gb != {{ openqa_assetsize }} OR size_limit_gb IS NULL);\""
   when: "openqa_dbhost is defined and openqa_assetsize is defined"
   register: pgsqlsize
   changed_when: "pgsqlsize.stdout.find('UPDATE 0') == -1"
+
+- name: Set update job group asset size limit (if specified) (pgsql)
+  delegate_to: "{{ openqa_dbhost }}"
+  become_user: postgres
+  become: true
+  command: "psql -d {{ openqa_dbname }} -c \"UPDATE job_groups SET size_limit_gb = {{ openqa_assetsize_updates }} WHERE name LIKE '%Updates%' AND (size_limit_gb != {{ openqa_assetsize_updates }} OR size_limit_gb IS NULL);\""
+  when: "openqa_dbhost is defined and openqa_assetsize_updates is defined"
+  register: pgsqlupdatesize
+  changed_when: "pgsqlupdatesize.stdout.find('UPDATE 0') == -1"
