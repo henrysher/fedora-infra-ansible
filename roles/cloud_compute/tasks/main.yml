@@ -29,6 +29,13 @@
 - name: copy RHOS repo file
   copy: src=rhos-5.repo dest=/etc/yum.repos.d/rhos-5.repo
         owner=root group=root mode=0644
+- name: install RHEV/ppc64le for el7 repo file
+  copy: src=rhel7-rhev-ppc64le.repo dest=/etc/yum.repos.d/rhel7-rhev-ppc64le.repo
+  tags:
+  - repos
+  - rhel7-rhev-ppc64le
+  when: ansible_distribution == 'RedHat' and ansible_distribution_major_version|int == 7 and ansible_architecture == 'ppc64le'
+
 - package: state=present pkg=openstack-nova-common
 - name: create logical volume for ephemeral storage
   lvol: vg=vg_guests lv=nova size=100%FREE shrink=no
@@ -321,4 +328,3 @@
 #  service: name=neutron-openvswitch-agent state=restarted
 #- name: "restart openstack-nova-compute"
 #  service: name=openstack-nova-compute state=restarted
-
