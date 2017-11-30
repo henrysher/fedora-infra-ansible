@@ -280,9 +280,9 @@ config = dict(
             # If the word ipsilon appears in any message, forward it.
             filters=dict(
                 topic=[
-                    '^((?!(trac|pagure)).)*$',
+                    '^((?!(pagure)).)*$',
                 ],
-                body=['^((?!ipsilon).)*$'],
+                body=['^((?!\"ipsilon\").)*$'],
             ),
         ),
 
