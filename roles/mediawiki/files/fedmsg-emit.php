@@ -111,7 +111,7 @@ function initialize() {
 }
 
 # Register our hooks with mediawiki
-$wgHooks['ArticleSaveComplete'][] = 'article_save';
+$wgHooks['PageContentSaveComplete'][] = 'article_save';
 $wgHooks['UploadComplete'][] = 'upload_complete';
 
 # This is a reimplementation of the python code in fedmsg/crypto.py
@@ -205,7 +205,8 @@ function article_save(
   &$flags,
   $revision,
   &$status,
-  $baseRevId
+  $baseRevId,
+  $undidRevId
 ) {
 
   # If for some reason or another we can't create our socket, then bail.
