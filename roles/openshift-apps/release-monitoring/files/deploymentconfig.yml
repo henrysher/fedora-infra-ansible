@@ -1,0 +1,52 @@
+apiVersion: v1
+items:
+- apiVersion: v1
+  kind: DeploymentConfig
+  metadata:
+    labels:
+      app: release-monitoring
+      service: web
+    name: release-monitoring-web
+  spec:
+    replicas: 1
+    selector:
+      deploymentconfig: release-monitoring-web
+    strategy:
+      activeDeadlineSeconds: 21600
+      recreateParams:
+        timeoutSeconds: 600
+      resources: {}
+      rollingParams:
+        intervalSeconds: 1
+        maxSurge: 25%
+        maxUnavailable: 25%
+        timeoutSeconds: 600
+        updatePeriodSeconds: 1
+      type: Rolling
+    template:
+      metadata:
+        creationTimestamp: null
+        labels:
+          app: anitya
+          deploymentconfig: anitya
+      spec:
+        containers:
+        - name: anitya
+          image: release-monitoring/release-monitoring-web:latest
+          ports:
+          - containerPort: 8080
+            protocol: TCP
+          resources: {}
+    triggers:
+    - imageChangeParams:
+        automatic: true
+        containerNames:
+        - release-monitoring-web
+        from:
+          kind: ImageStreamTag
+          name: release-monitoring-web:latest
+          namespace: release-monitoring
+      type: ImageChange
+    - type: ConfigChange
+kind: List
+metadata: {}

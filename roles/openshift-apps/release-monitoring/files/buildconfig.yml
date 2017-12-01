@@ -1,0 +1,53 @@
+apiVersion: v1
+items:
+- apiVersion: v1
+  kind: BuildConfig
+  metadata:
+    labels:
+      build: release-monitoring-web-build
+    name: release-monitoring-web-build
+  spec:
+    runPolicy: Serial
+    source:
+      dockerfile: |-
+        FROM fedora:27
+        LABEL \
+          name="release-monitoring-web" \
+          vendor="Fedora Infrastructure" \
+          license="MIT"
+        RUN dnf update -y && \
+            dnf install -y \
+                git \
+                python3-blinker \
+                python3-dateutil \
+                python3-fedmsg \
+                python3-flask \
+                python3-flask-wtf \
+                python3-flask-login \
+                python3-flask-restful \
+                python3-flask-openid \
+                python3-gunicorn \
+                python3-openid \
+                python3-pip \
+                python3-psycopg2 \
+                python3-setuptools \
+                python3-straight-plugin \
+                python3-sqlalchemy \
+                python3-wtforms && \
+            dnf autoremove -y && \
+            dnf clean all -y
+        RUN pip-3 install social-auth-app-flask social-auth-app-flask-sqlalchemy
+        RUN pip-3 install git+https://github.com/release-monitoring/anitya.git
+        ENV USER=anitya
+        EXPOSE 8080
+        EXPOSE 9940
+        ENTRYPOINT gunicorn --bind 0.0.0.0:8080 --access-logfile=- anitya.wsgi:application
+      type: Dockerfile
+    strategy:
+      type: Docker
+    output:
+      to:
+        kind: ImageStreamTag
+        name: release-monitoring-web:latest
+kind: List
+metadata: {}
