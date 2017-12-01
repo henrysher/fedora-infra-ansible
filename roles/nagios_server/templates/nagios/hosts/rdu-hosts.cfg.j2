@@ -1,13 +1,12 @@
 {% for host in groups['all'] %}
-{% if hostvars[host].datacenter == 'rdu' %}
+{% if hostvars[host].datacenter == 'rdu' and hostvars[host].nagios_Check_Services['ping'] == true %}
 define host {
 {% if vars['nagios_location'] == 'internal' %}
    use                     defaulttemplate
 {% else %}
   use                          mincheck
 {% endif %}
-
-   host_name               {{ host }}
+  host_name               {{ host }}
 {% if hostvars[host].ansible_hostname is defined %}
    alias                   {{ hostvars[host].ansible_hostname }}
 {% else %}
@@ -24,5 +23,6 @@ define host {
    parents                 rdu-gw
 {% endif %}
 }
+
 {% endif %}
 {% endfor %}
