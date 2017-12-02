@@ -62,7 +62,7 @@
   - /srv/private/ansible/vars.yml
   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
   vars:
-    epel_repos:
+    fedora_repos:
     - epel
   pre_tasks:
   - name: schedule nagios downtime
@@ -71,17 +71,17 @@
     ignore_errors: true
     when: env != 'staging'
   tasks:
-  - name: clean yum metadata
-    command: yum {% for repo in epel_repos %}--enablerepo {{ repo }} {% endfor %} clean all
-  - name: create yum metadata cache
-    command: yum {% for repo in epel_repos %}--enablerepo {{ repo }} {% endfor %} makecache
+  - name: clean dnf metadata
+    command: dnf {% for repo in fedora_repos %}--enablerepo {{ repo }} {% endfor %} clean all
+  - name: create dnf metadata cache
+    command: dnf {% for repo in fedora_repos %}--enablerepo {{ repo }} {% endfor %} makecache
   - name: stop httpd
     service: name="httpd" state=stopped
   - name: upgrade koschei
-    yum:
+    dnf:
       name: "{{ item }}"
       state: latest
-      enablerepo: "{{ epel_repos | join(',') }}"
+      enablerepo: "{{ fedora_repos | join(',') }}"
     register: frontend_upgrade
     with_items:
     - koschei-frontend
