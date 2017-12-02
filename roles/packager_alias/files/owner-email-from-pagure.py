@@ -45,6 +45,7 @@ def get_pagure_projects():
 
 
 session = retry_session()
+group_data = {}
 for project in get_pagure_projects():
     users = set(project['access_users']['owner']) | \
             set(project['access_users']['admin']) | \
@@ -55,9 +56,13 @@ for project in get_pagure_projects():
             groups.add(group)
 
     for group in groups:
+        if group in group_data:
+            users = users | group_data[group]
+            continue
         group_members = session.get(
             pagure_group_url.format(group=group)).json()['members']
         users = users | set(group_members)
+        group_data[group] = set(group_members)
 
     project_alias = '{0}-owner'.format(project['name'])
     # If there is a namespace, prefix the email with it plus a dash
