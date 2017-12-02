@@ -1,0 +1,7 @@
+#!/bin/bash
+if [ "$#" -ne 2 ]; then
+    echo "Usage: refresh-group <group-name> <distgit-group-name>"
+    exit 1
+fi
+set -e
+curl -s "https://src.fedoraproject.org/api/0/group/${2}?projects=1" | jq -r '.projects[].name' | koschei-admin edit-group "${1}" --content-from-file - --append
