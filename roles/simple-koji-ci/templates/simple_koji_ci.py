@@ -6,16 +6,18 @@ config = {
         'server': 'https://koji.stg.fedoraproject.org/kojihub',
         'weburl': 'https://koji.stg.fedoraproject.org/koji',
         'git_url': 'https://src.stg.fedoraproject.org/rpms/{package}.git',
+        'krb_principal': 'simple-koji-ci/simple-koji-ci-dev.fedorainfracloud.org@STG.FEDORAPROJECT.ORG',
+        'krb_keytab': '/etc/krb5.simple-koji-ci_simple-koji-ci-dev.fedorainfracloud.org.keytab',
         {% else %}
         'server': 'https://koji.fedoraproject.org/kojihub',
         'weburl': 'https://koji.fedoraproject.org/koji',
         'git_url': 'https://src.fedoraproject.org/rpms/{package}.git',
+        'krb_principal': 'simple-koji-ci/simple-koji-ci-prod.fedorainfracloud.org@FEDORAPROJECT.ORG',
+        'krb_keytab': '/etc/krb5.simple-koji-ci_simple-koji-ci-prod.fedorainfracloud.org.keytab',
         {% endif %}
         # Kerberos configuration to authenticate with Koji. In development
         # environments, use `kinit <fas-name>@FEDORAPROJECT.ORG` to get a
         # Kerberos ticket and use the default settings below.
-        'krb_principal': 'simple-koji-ci/simple-koji-ci-dev.fedorainfracloud.org@STG.FEDORAPROJECT.ORG',
-        'krb_keytab': '/etc/krb5.simple-koji-ci_simple-koji-ci-dev.fedorainfracloud.org.keytab',
         'krb_ccache': None,
         'krb_proxyuser': None,
         'krb_sessionopts': {'timeout': 3600, 'krb_rdns': False},
