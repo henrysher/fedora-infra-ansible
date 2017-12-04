@@ -51,6 +51,20 @@
   - config
   - service
 
+- name: install systemd config files (environment)
+  template: >
+    src=systemd-environment.conf.j2
+    dest=/etc/systemd/system/{{ item }}.service.d/environment.conf
+  with_items: "{{ koschei_backend_services }}"
+  when: env == 'staging'
+  notify:
+  - reload systemd
+  - restart koschei backend services
+  tags:
+  - koschei
+  - config
+  - service
+
 - name: install config files
   template: >
     src="{{ item }}.j2"

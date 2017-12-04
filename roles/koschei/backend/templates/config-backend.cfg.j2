@@ -14,6 +14,9 @@ config = {
         "server": "https://{{ koschei_koji_hub }}/kojihub",
         "weburl": "https://{{ koschei_koji_web }}/koji",
         "topurl": "https://{{ koschei_kojipkgs }}",
+        {% if env == 'staging' %}
+        "login_method": "gssapi_login",
+        {% else %}
         "login_method": "krb_login",
         "login_args": {
             "keytab": "/etc/krb5.koschei_{{ inventory_hostname }}.keytab",
@@ -22,6 +25,7 @@ config = {
         "session_opts": {
             "krb_rdns": False,
         },
+        {% endif %}
         {% if env == 'staging' %}
         "max_builds": 16,
         "build_arches": ['x86_64'],
