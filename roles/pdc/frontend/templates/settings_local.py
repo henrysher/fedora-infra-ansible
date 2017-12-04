@@ -139,7 +139,8 @@ DIST_GIT_WEB_ROOT_URL = 'https://src.stg.fedoraproject.org/cgit/'
 {% else %}
 DIST_GIT_WEB_ROOT_URL = 'https://src.fedoraproject.org/cgit/'
 {% endif %}
-DIST_GIT_REPO_FORMAT = DIST_GIT_WEB_ROOT_URL + DIST_GIT_RPM_PATH + "%s"
+DIST_GIT_RPM_PATH = 'rpms/'
+DIST_GIT_REPO_FORMAT = DIST_GIT_WEB_ROOT_URL + DIST_GIT_RPM_PATH + "%s" + ".git"
 
 # Use this to deny people creating new "epel" or "fedora" branches after we
 # import the existing oldschool branches.
