@@ -41,7 +41,8 @@ items:
         ENV USER=anitya
         EXPOSE 8080
         EXPOSE 9940
-        ENTRYPOINT python3-gunicorn --bind 0.0.0.0:8080 --access-logfile=- anitya.wsgi:application
+        ENTRYPOINT python3 -c "from anitya.config import config; from anitya.lib import utilities; utilities.init('sqlite:////var/tmp/anitya-dev.sqlite', None, debug=True, create=True)" \
+            && python3-gunicorn --bind 0.0.0.0:8080 --access-logfile=- anitya.wsgi:application
       type: Dockerfile
     strategy:
       type: Docker
