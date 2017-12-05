@@ -1,0 +1,72 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: release-monitoring-configmap
+  labels:
+    app: release-monitoring
+data:
+  anitya.toml: |-
+    # This is a TOML-format file. For the spec, see https://github.com/toml-lang/toml#spec
+
+    # Secret key used to generate the CSRF token in the forms.
+{% if env == 'staging' %}
+    secret_key = 'changeme please'
+{% else %}
+    secret_key = '{{ anitya_secret_key }}'
+{% endif %}
+
+    # The lifetime of the session, in seconds.
+    permanent_session_lifetime = 3600
+
+{% if env == 'staging' %}
+    db_url = "sqlite:////var/tmp/anitya-dev.sqlite"
+{% else %}
+    db_url = "postgresql://{{ anitya_db_user }}:{{ anitya_db_pass }}@{{ anitya_db_host }}/{{ anitya_db_name }}"
+{% endif %}
+
+    # List of admins
+    anitya_web_admins = []
+
+    # The email to use in the 'From' header when sending emails.
+    admin_email = "admin@fedoraproject.org"
+
+    # The SMTP server to send mail through
+    smtp_server = "smtp.example.com"
+
+    # Whether or not to send emails to MAIL_ADMIN via SMTP_SERVER when HTTP 500
+    # errors occur.
+    email_errors = false
+
+    # List of users that are not allowed to sign in
+    blacklisted_users = []
+
+    # If `true`, Anitya creates new projects from libraries.io messages in addition
+    # to updating existing projects. This requires that the libraries.io fedmsg
+    # consumer is running; defaults to false.
+    create_librariesio_projects = false
+
+    # The logging configuration, in dictConfig format.
+    [anitya_log_config]
+        version = 1
+        disable_existing_loggers = false
+
+        [anitya_log_config.formatters]
+            [anitya_log_config.formatters.simple]
+                format = "[%(name)s %(levelname)s] %(message)s"
+
+        [anitya_log_config.handlers]
+            [anitya_log_config.handlers.console]
+                class = "logging.StreamHandler"
+                formatter = "simple"
+                stream = "ext://sys.stdout"
+
+        [anitya_log_config.loggers]
+            [anitya_log_config.loggers.anitya]
+                level = "INFO"
+                propagate = false
+                handlers = ["console"]
+
+        [anitya_log_config.root]
+            level = "ERROR"
+            handlers = ["console"]
