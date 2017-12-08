@@ -43,63 +43,11 @@
       owner=postgres group=postgres
   - command: unxz /var/tmp/bodhi2.dump.xz
              creates=/var/tmp/bodhi2.dump
-  - command: sed -i "s/CREATE DATABASE bodhi2.*/SET bdr.permit_ddl_locking = true;/" /var/tmp/bodhi2.dump
-  - command: sed -i "s/connect bodhi2/connect bodhi2\nSET bdr.permit_ddl_locking = true;/" /var/tmp/bodhi2.dump
-  - shell: >
-      psql -e --set ON_ERROR_STOP=on --set VERBOSITY verbose bodhi2 <<< "
-      BEGIN;
-      SET LOCAL bdr.permit_ddl_locking = on;
-      DELETE FROM alembic_version;
-      DROP TABLE IF EXISTS comments CASCADE;
-      DROP TABLE IF EXISTS groups CASCADE;
-      DROP TABLE IF EXISTS cves CASCADE;
-      DROP TABLE IF EXISTS packages CASCADE;
-      DROP TABLE IF EXISTS stacks CASCADE;
-      DROP TABLE IF EXISTS stack_user_table CASCADE;
-      DROP TABLE IF EXISTS update_cve_table CASCADE;
-      DROP TABLE IF EXISTS releases CASCADE;
-      DROP TABLE IF EXISTS comment_bug_assoc CASCADE;
-      DROP TABLE IF EXISTS comment_testcase_assoc CASCADE;
-      DROP TABLE IF EXISTS stack_group_table CASCADE;
-      DROP TABLE IF EXISTS testcases CASCADE;
-      DROP TABLE IF EXISTS buildroot_overrides CASCADE;
-      DROP TABLE IF EXISTS bug_cve_table CASCADE;
-      DROP TABLE IF EXISTS users CASCADE;
-      DROP TABLE IF EXISTS builds CASCADE;
-      DROP TABLE IF EXISTS updates CASCADE;
-      DROP TABLE IF EXISTS bugs CASCADE;
-      DROP TABLE IF EXISTS update_bug_table CASCADE;
-      DROP TABLE IF EXISTS user_group_table CASCADE;
-      DROP TABLE IF EXISTS user_package_table CASCADE;
-      DROP TYPE IF EXISTS ck_ci_status CASCADE;
-      DROP TYPE IF EXISTS ck_content_type CASCADE;
-      DROP TYPE IF EXISTS ck_release_state CASCADE;
-      DROP TYPE IF EXISTS ck_update_request CASCADE;
-      DROP TYPE IF EXISTS ck_update_severity CASCADE;
-      DROP TYPE IF EXISTS ck_update_status CASCADE;
-      DROP TYPE IF EXISTS ck_update_suggestion CASCADE;
-      DROP TYPE IF EXISTS ck_update_type CASCADE;
-      DROP TYPE IF EXISTS bug_cve_table CASCADE;
-      DROP TYPE IF EXISTS bugs CASCADE;
-      DROP TYPE IF EXISTS buildroot_overrides CASCADE;
-      COMMIT;
-      "
-    register: drop_script
+  - command: dropdb bodhi2
+  - command: createdb -O bodhi2 bodhi2
   - name: Import the prod db.
     shell: cat /var/tmp/bodhi2.dump | psql bodhi2
-    register: import_script
   - file: path=/var/tmp/bodhi2.dump state=absent
-
-- name: Debug the psql drop script
-  hosts: bodhi-backend01.stg.phx2.fedoraproject.org
-  user: root
-  tasks:
-  - copy:
-      content: "{{ hostvars['pgbdr01.stg.phx2.fedoraproject.org']['drop_script'].stdout }}\n{{ hostvars['pgbdr01.stg.phx2.fedoraproject.org']['drop_script'].stderr }}"
-      dest: /tmp/bodhi_drop.debug
-  - copy:
-      content: "{{ hostvars['pgbdr01.stg.phx2.fedoraproject.org']['import_script'].stdout }}\n{{ hostvars['pgbdr01.stg.phx2.fedoraproject.org']['import_script'].stderr }}"
-      dest: /tmp/bodhi_import.debug
 
 - name: bring staging services up (httpd)
   hosts: bodhi2-stg
