@@ -13,12 +13,12 @@ def nova_result_to_builder_ip(nova_result, network_name):
 
 def network_name_to_id(network_name, username, password, tenant_name, auth_url):
     nt = Client('2', username, password, tenant_name, auth_url)
-    return nt.neutron.find_network(network_name).id
+    return nt.networks.find(label=network_name).id
 
 
 def image_name_to_id(image_name, username, password, tenant_name, auth_url):
     nt = Client('2', username, password, tenant_name, auth_url)
-    return nt.glance.find_image(image_name).id
+    return nt.images.find(name=image_name).id
 
 
 def flavor_name_to_id(flavor_name, username, password, tenant_name, auth_url):
