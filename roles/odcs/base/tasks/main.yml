@@ -82,13 +82,9 @@
   - odcs
   - odcs/backend
 
-- name: generate the ODCS pungi config for backend
-  template:
-    src: etc/odcs/pungi.conf
-    dest: /etc/odcs/pungi.conf
-    owner: odcs
-    group: odcs
-    mode: 0440
+- name: copy the ODCS pungi config template to backend
+  copy: src="{{ roles_path }}/odcs/base/files/pungi.conf" dest=/etc/odcs/pungi.conf
+        owner=odcs group=odcs mode=0640
   notify:
   - restart odcs-backend
   when: inventory_hostname.startswith('odcs-backend')
