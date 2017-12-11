@@ -75,6 +75,9 @@ class ProdConfiguration(BaseConfiguration):
     KOJI_PROFILE = 'stg'
 
     PDC_URL = 'https://pdc.stg.fedoraproject.org/rest_api/v1'
+
+    KRB_PRINCIPAL = odcs/odcs.stg.fedoraproject.org@STG.FEDORAPROJECT.ORG
+
 {% else %}
     AUTH_OPENIDC_USERINFO_URI = 'https://id.fedoraproject.org/openidc/UserInfo'
     SECRET_KEY = "{{ odcs_prod_secret_key }}"
@@ -84,9 +87,14 @@ class ProdConfiguration(BaseConfiguration):
     KOJI_PROFILE = 'production'
 
     PDC_URL = 'https://pdc.fedoraproject.org/rest_api/v1'
+
+    KRB_PRINCIPAL = odcs/odcs.stg.fedoraproject.org@STG.FEDORAPROJECT.ORG
 {% endif %}
     PDC_INSECURE = {{ odcs_pdc_insecure }}
     PDC_DEVELOP = {{ odcs_pdc_develop }}
+
+    KRB_KEYTAB = /etc/krb5.odcs_odcs{{env_suffix}}.fedoraproject.org.keytab
+    KRB_CCACHE = None
 
     TARGET_DIR = "{{ odcs_target_dir }}"
     TARGET_DIR_URL = "{{ odcs_target_dir_url }}"
