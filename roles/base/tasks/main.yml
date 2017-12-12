@@ -334,6 +334,23 @@
   - config
   - rsyslog-audit
 
+# Custom selinux policy to allow unix_chkpwd to map PAM database
+- name: copy over our custom selinux module
+  copy: src=selinux/mapchkpwd.pp dest=/usr/local/share/mapchkpwd.pp
+  register: selinux_module
+  when: ansible_distribution_major_version|int >= 27
+  tags:
+  - config
+  - selinux
+
+- name: install our custom selinux module
+  command: semodule -i /usr/local/share/mapchkpwd.pp
+  when: selinux_module|changed
+  when: ansible_distribution_major_version|int >= 27
+  tags:
+  - selinux
+  - config
+
 - name: Setup postfix
   import_tasks: postfix.yml
 
