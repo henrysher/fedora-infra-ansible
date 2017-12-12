@@ -46,21 +46,3 @@
 
   - name: disable offloading
     command: ethtool -K eth0 tso off gro off gso off
-
-  # we need to upgrade x86_64 othwerwise we can have different version of multilib glibc
-  - name: install multilib deps for nosync.x86_64
-    package: state=latest pkg={{ item }}
-    when: prepare_base_image is defined
-    with_items:
-      - glibc
-      - nss-softokn-freebl
-  - name: install multilib deps for nosync.i686
-    package: state=latest pkg={{ item }}
-    when: prepare_base_image is defined
-    with_items:
-      - glibc.i686
-      - nss-softokn-freebl.i686
-  # DNF module will not resolve the deps, we must install deps manualy!
-  - name: install i686 version of nosync for multilib building
-    dnf: name=https://kojipkgs.fedoraproject.org/packages/nosync/1.0/6.fc26/i686/nosync-1.0-6.fc26.i686.rpm state=present
-    when: prepare_base_image is defined
