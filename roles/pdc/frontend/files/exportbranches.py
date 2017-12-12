@@ -18,7 +18,6 @@ class Command(BaseCommand):
         all_entries = ComponentBranch.objects.all()
         output = collections.defaultdict(lambda: collections.defaultdict(list))
         for entry in all_entries:
-            if not is_branch_active(entry):
-                continue
-            output[entry.type.name][entry.global_component.name].append(entry.name)
+            active = is_branch_active(entry)
+            output[entry.type.name][entry.global_component.name].append([entry.name, active])
         self.stdout.write(json.dumps(output))
