@@ -16,7 +16,6 @@
   package: name={{ item }} state=present
   with_items:
   - mock
-  - mash
   - fedmsg-hub
   - fedmsg-relay
   - python-mock
@@ -450,17 +449,6 @@
   - fedmsgmonitor
   - bodhi
 
-- name: install our atomic composer config
-  template: >
-    src=atomic-config.py.j2
-    dest=/usr/lib/python2.7/site-packages/fedmsg_atomic_composer/config.py
-    owner=apache
-    mode=0644
-  tags:
-  - config
-  - bodhi
-  - atomic
-
 - name: ensure apache is disabled on the backend
   service: name=httpd enabled=no state=stopped
   tags:
@@ -484,13 +472,3 @@
   tags:
   - config
   - bodhi
-
-#- name: have apache own /mnt/koji/mash/updates
-#  file: path=/mnt/koji/mash/updates state=directory recurse=yes owner=apache group=apache
-#  tags:
-#  - bodhi
-#
-#- name: have apache own /mnt/koji/mash/atomic
-#  file: path=/mnt/koji/mash/atomic state=directory recurse=yes owner=apache group=apache
-#  tags:
-#  - bodhi
