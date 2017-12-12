@@ -50,6 +50,14 @@
     - pdc
     - cron
 
+- name: cron to generate cache of active component branches for pagure-sync-bugzilla
+  cron: name="export-branches" minute="15" user="apache"
+      job="/usr/local/bin/lock-wrapper export-branches 'python /usr/lib/python2.7/site-packages/pdc/manage.py exportbranches > /var/www/html/extras/active_branches.json'"
+      cron_file=export-branches
+  tags:
+  - pdc
+  - cron
+
 - name: Copy over httpd config
   template: src=pdc.conf dest=/etc/httpd/conf.d/pdc.conf
   notify: reload httpd
