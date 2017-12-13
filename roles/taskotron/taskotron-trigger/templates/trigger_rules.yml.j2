@@ -21,15 +21,6 @@
   do:
     - {tasks: [rpmdeplint]}
 
-{% if deployment_type not in ['stg'] %}
-{# stg bodhi doesn't have the info we need, stg koji doesn't have the builds from prod bodhi #}
-- when:
-    message_type: KojiTagChanged
-    tag: {$regex: '/^f[0-9]{2}-updates-pending$$/'}
-  do:
-    - {tasks: [upgradepath]}
-{% endif %}
-
 - when: {message_type: DistGitCommit, namespace: modules}
   do:
     - {tasks: [check_modulemd]}
