@@ -17,6 +17,10 @@
 - name: set bigger timeout for dnf
   ini_file: dest=/etc/dnf/dnf.conf section=main option=timeout value=1000
 
+# hack for 2:mock-1.3.4-2 currently being the latest version in infra repos
+- name: ensure absent
+  dnf: state=absent pkg="mock-core-configs"
+
 - name: install pkgs
   dnf: state=present pkg={{ item }}
   with_items:
