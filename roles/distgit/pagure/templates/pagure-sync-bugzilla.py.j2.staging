@@ -452,6 +452,10 @@ def send_email(fromAddress, toAddress, subject, message, ccAddress=None):
 
     This will be replaced by sending messages to a log later.
     '''
+    {% if env == 'staging' %}
+    # Send no email in staging...
+    pass
+    {% else %}
     msg = Message()
     msg.add_header('To', ','.join(toAddress))
     msg.add_header('From', fromAddress)
@@ -463,6 +467,7 @@ def send_email(fromAddress, toAddress, subject, message, ccAddress=None):
     smtp = smtplib.SMTP('bastion')
     smtp.sendmail(fromAddress, toAddress, msg.as_string())
     smtp.quit()
+    {% endif %}
 
 
 def notify_users(errors):
