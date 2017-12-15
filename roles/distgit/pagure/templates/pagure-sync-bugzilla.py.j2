@@ -20,11 +20,12 @@
 #         Author(s): Mike Watters <valholla75@fedoraproject.org>
 #         Author(s): Pierre-Yves Chibon <pingou@pingoured.fr>
 #         Author(s): Matt Prahl <mprahl@redhat.com>
+#         Author(s): Ralph Bean <rbean@redhat.com
 #
 '''
 sync information from the Pagure into bugzilla
 
-This short script takes information about package onwership and imports it
+This ... script takes information about package onwership and imports it
 into bugzilla.
 '''
 from __future__ import print_function
@@ -41,13 +42,12 @@ import codecs
 import smtplib
 import traceback
 import multiprocessing.pool
-from math import ceil
 try:
     from email.Message import Message
 except ImportError:
     from email.message import EmailMessage as Message
 
-import bugzilla
+import bugzilla as bugzilla_lib
 import dogpile.cache
 import requests
 import yaml
@@ -60,8 +60,8 @@ from requests.packages.urllib3.util.retry import Retry
 
 
 cache = dogpile.cache.make_region().configure(
-	'dogpile.cache.memory',
-	expiration_time=3600,
+    'dogpile.cache.memory',
+    expiration_time=3600,
 )
 
 
@@ -79,7 +79,13 @@ def retry_session():
     session.mount('https://', adapter)
     return session
 
+
+{% if env == 'staging' %}
 BZSERVER = 'https://bugzilla.redhat.com'
+{% else %}
+BZSERVER = 'https://partner-bugzilla.redhat.com'
+{% endif %}
+
 BZUSER = '{{ bugzilla_user }}'
 BZPASS = '{{ bugzilla_password }}'
 BZCOMPAPI = 'component.get'
@@ -92,7 +98,7 @@ NOTIFYEMAIL = [
     'ralph@fedoraproject.org',
     'mprahl@fedoraproject.org',
 ]
-DRY_RUN = False
+DEBUG = False
 
 {% if env == 'staging' %}
 FASURL = 'https://admin.stg.fedoraproject.org/accounts'
@@ -117,7 +123,14 @@ DATA_CACHE = '/var/tmp/pagure_sync_bz.json'
 PRODUCTS = {
     'Fedora': 'Fedora',
     'Fedora Container': 'Fedora Container Images',
+    'Fedora Modules': 'Fedora Modules',
     'Fedora EPEL': 'Fedora EPEL',
+}
+
+NAMESPACE_TO_PRODUCT = {
+    'rpms': 'Fedora',  # except EPEL...
+    'container': 'Fedora Container',
+    'modules': 'Fedora Modules',
 }
 
 # This maps bugzilla products to "lead" branches in PDC.  If the lead branch is
@@ -128,6 +141,8 @@ PRODUCTS_TO_LEAD_BRANCH = {
     'Fedora': 'master',
     # Same for containers.
     'Fedora Container': 'master',
+    # Same for modules.
+    'Fedora Modules': 'master',
     # If epel7 is retired, then all new epel bugs go to orphan.
     'Fedora EPEL': 'epel7',
 }
@@ -136,6 +151,7 @@ PDC_TYPES = {
     'modules': 'module',
     'container': 'container',
 }
+INVERSE_PDC_TYPES = dict([(v, k) for k, v in PDC_TYPES.items()])
 
 
 # When querying for current info, take segments of 1000 packages a time
@@ -199,7 +215,7 @@ def resilient_partial(fn, *initial, **kwargs):
         try:
             full = initial + additional
             return fn(*full, **kwargs)
-        except Exception as e:
+        except Exception:
             traceback.print_exc()
             return None
     wrapper.__name__ = fn.__name__
@@ -243,8 +259,8 @@ class ProductCache(dict):
             pkglist = projects_dict[key].keys()
             products = {}
             for pkg_segment in segment(pkglist, BZ_PKG_SEGMENT):
-                # Format that bugzilla will understand.  Strip None's that segment() pads
-                # out the final data segment() with
+                # Format that bugzilla will understand.  Strip None's that
+                # segment() pads out the final data segment() with
                 query = [
                     dict(product=PRODUCTS[key], component=p)
                     for p in pkg_segment if p is not None
@@ -253,24 +269,25 @@ class ProductCache(dict):
                 for package in raw_data['components']:
                     # Reformat data to be the same as what's returned from
                     # getcomponentsdetails
-                    product = dict(initialowner=package['default_assignee'],
-                                   description=package['description'],
-                                   initialqacontact=package['default_qa_contact'],
-                                   initialcclist=package['default_cc'])
+                    product = dict(
+                        initialowner=package['default_assignee'],
+                        description=package['description'],
+                        initialqacontact=package['default_qa_contact'],
+                        initialcclist=package['default_cc'])
                     products[package['name'].lower()] = product
         self[key] = products
 
         return super(ProductCache, self).__getitem__(key)
 
 
-class Bugzilla(object):
+class BugzillaProxy(object):
 
     def __init__(self, bzServer, username, password, acls):
         self.bzXmlRpcServer = bzServer
         self.username = username
         self.password = password
 
-        self.server = bugzilla.Bugzilla(
+        self.server = bugzilla_lib.Bugzilla(
             url=self.bzXmlRpcServer,
             user=self.username,
             password=self.password)
@@ -315,7 +332,7 @@ class Bugzilla(object):
         return self.userCache[username]['bugzilla_email'].lower()
 
     def add_edit_component(self, package, collection, owner, description=None,
-            qacontact=None, cclist=None):
+                           qacontact=None, cclist=None):
         '''Add or update a component to have the values specified.
         '''
         # Turn the cclist into something usable by bugzilla
@@ -376,14 +393,14 @@ class Bugzilla(object):
                         break
 
             if data:
-                ### FIXME: initialowner has been made mandatory for some
+                # FIXME: initialowner has been made mandatory for some
                 # reason.  Asking dkl why.
                 data['initialowner'] = owner
 
                 # Changes occurred.  Submit a request to change via xmlrpc
                 data['product'] = PRODUCTS[collection]
                 data['component'] = package
-                if DRY_RUN:
+                if DEBUG:
                     print('[EDITCOMP] Changing via editComponent('
                           '%s, %s, "xxxxx")' % (data, self.username))
                     print('[EDITCOMP] Former values: %s|%s|%s|%s' % (
@@ -418,7 +435,7 @@ class Bugzilla(object):
             if initialCCList:
                 data['initialcclist'] = initialCCList
 
-            if DRY_RUN:
+            if DEBUG:
                 print('[ADDCOMP] Adding new component AddComponent:('
                       '%s, %s, "xxxxx")' % (data, self.username))
             else:
@@ -435,6 +452,10 @@ def send_email(fromAddress, toAddress, subject, message, ccAddress=None):
 
     This will be replaced by sending messages to a log later.
     '''
+    {% if env == 'staging' %}
+    # Send no email in staging...
+    pass
+    {% else %}
     msg = Message()
     msg.add_header('To', ','.join(toAddress))
     msg.add_header('From', fromAddress)
@@ -446,6 +467,7 @@ def send_email(fromAddress, toAddress, subject, message, ccAddress=None):
     smtp = smtplib.SMTP('bastion')
     smtp.sendmail(fromAddress, toAddress, msg.as_string())
     smtp.quit()
+    {% endif %}
 
 
 def notify_users(errors):
@@ -507,56 +529,12 @@ def notify_users(errors):
 
 
 @cache.cache_on_arguments()
-def _get_watchers_rv_json(pagure_project):
-    watchers_api_url = '{0}/api/0/{1}/{2}/watchers'.format(
-        PAGURE_DIST_GIT_URL.rstrip('/'), pagure_project['namespace'],
-        pagure_project['name'])
-    if DRY_RUN:
-        print('Querying {0}'.format(watchers_api_url))
-    watchers_rv = session.get(watchers_api_url, timeout=60)
-    if not watchers_rv.ok:
-        error_msg = ('The connection to "{0}" failed with the status code {1} '
-                     'and output "{2}"'.format(
-                         watchers_api_url, watchers_rv.status_code,
-                         watchers_rv.text))
-        raise RuntimeError(error_msg)
-    return watchers_rv.json()
-
-
-@cache.cache_on_arguments()
-def _is_retired_in_pdc(product, project):
-    lead = PRODUCTS_TO_LEAD_BRANCH[product]
-    type = PDC_TYPES[project['namespace']]
-    name = project['name']
-    pdc_url = '{0}/component-branches/'.format(PDCURL.rstrip('/'))
-    params = dict(
-        global_component=name,
-        type=type,
-        name=lead,
-    )
-    if DRY_RUN:
-        print('Querying {0} {1}'.format(pdc_url, params))
-    pdc_rv = session.get(pdc_url, params=params, timeout=30)
-    if not pdc_rv.ok:
-        raise RuntimeError("Could not find %r in PDC." % project)
-    branches = pdc_rv.json()['results']
-    if not branches:
-        if DRY_RUN:
-            print("No results for %s in PDC." % pdc_rv.request.url)
-        # Default to "not retired" if we have no explicit entry.  This is the
-        # case for an 'el6' branch of a package which has no el6 branch.  It
-        # isn't technically retired, because it never reall existed!
-        return False
-    return not branches[0]['active']
-
-
-@cache.cache_on_arguments()
 def _get_override_yaml(project):
     pagure_override_url = '{0}/{1}/raw/master/f/{2}/{3}'.format(
         PAGUREURL.rstrip('/'), BUGZILLA_OVERRIDE_REPO, project['namespace'],
         project['name'])
 
-    if DRY_RUN:
+    if DEBUG:
         print('Querying {0}'.format(pagure_override_url))
     override_rv = session.get(pagure_override_url, timeout=30)
     if override_rv.status_code == 200:
@@ -575,7 +553,7 @@ def _get_package_summary_from_mdapi(namespace, repo, session=None):
         session = retry_session()
 
     url = '{0}/rawhide/srcpkg/{1}'.format(MDAPIURL.rstrip('/'), repo)
-    if DRY_RUN:
+    if DEBUG:
         print('Querying {0}'.format(url))
 
     rv = session.get(url, timeout=60)
@@ -590,19 +568,18 @@ def _get_package_summary_from_mdapi(namespace, repo, session=None):
     return summary
 
 
-def _get_pdc_project_name_and_branches(session, namespace, repo):
+def _get_pdc_branches(session, repo):
     """
     Gets the branches on a project. This function is used for mapping.
-    :param namespace: string of the namespace the project is in
-    :param repo: string of the project
-    :return: a tuple with the repo name and a list of the repo's branches
+    :param repo: the project dict
+    :return: a list of the repo's branches
     """
     branches_url = '{0}component-branches/'.format(PDCURL)
     params = dict(
-        global_component=repo,
-        type=PDC_TYPES[namespace]
+        global_component=repo['name'],
+        type=PDC_TYPES[repo['namespace']]
     )
-    if DRY_RUN:
+    if DEBUG:
         print('Querying {0} {1}'.format(branches_url, params))
     rv = session.get(branches_url, params=params, timeout=60)
 
@@ -611,39 +588,29 @@ def _get_pdc_project_name_and_branches(session, namespace, repo):
     if not rv.ok:
         print(('The connection to "{0}" failed with the status code {1} and '
                'output "{2}"'.format(branches_url, rv.status_code, rv.text)),
-              file = sys.stderr)
-        return repo, []
+              file=sys.stderr)
+        return []
 
     data = rv.json()
-    return repo, [branch['name'] for branch in data['results']]
+    return [branch['name'] for branch in data['results']]
+
+def _is_retired(product, project):
+    branches = project['branches']
+    if product == 'Fedora EPEL':
+        for branch, active in branches:
+            if re.match(r'^epel\d+$', branch):
+                if active:
+                    return False
+        # No active branches means it is retired.
+        return True
+    else:
+        for branch, active in branches:
+            if active:
+                return False
+        return True
 
 
-def _get_pagure_projects_from_page(session, namespace, page):
-    """
-    Gets the names of all the Pagure projects on a page. This function is to be
-    used for mapping.
-    :param namespace: string of the namespace to query for projects
-    :param page: int of the page to query at
-    :return: list of projects on the page
-    """
-    url = ('{0}/api/0/projects?namespace={1}&page={2}&per_page=100&'
-           'fork=false'.format(
-               PAGURE_DIST_GIT_URL.rstrip('/'), namespace, page))
-
-    if DRY_RUN:
-        print('- Querying {0}'.format(url))
-
-    response = session.get(url, timeout=120)
-    if not bool(response):
-        print("Failed to talk to %r %r." % (
-            response.request.url, response), file=sys.stderr)
-        raise RuntimeError('Failed to talk to {0} {1}.'.format(
-            response.request.url, response))
-
-    return response.json()['projects']
-
-
-def _pagure_project_to_acl_schema(project_and_product, session=None):
+def _to_legacy_schema(product_and_project, session=None):
     """
     This function translates the JSON of a Pagure project to what PkgDB used to
     output in the Bugzilla API. This function is used for mapping.
@@ -654,26 +621,19 @@ def _pagure_project_to_acl_schema(project_and_product, session=None):
     :return: a dictionary of the content that the PkgDB Bugzilla API would
     return
     """
-    project, product = project_and_product
+    product, project = product_and_project
+
     if session is None:
         session = retry_session()
 
-    watchers_rv_json = _get_watchers_rv_json(project)
-
-    user_cc_list = []
-    for user, watch_levels in watchers_rv_json['watchers'].items():
-        if user == 'releng':
-            continue
-        # Only people watching issues should be CC'd
-        if 'issues' in watch_levels:
-            user_cc_list.append(user)
+    owner = project['poc']
+    watchers = project['watchers']
 
     summary = _get_package_summary_from_mdapi(
         project['namespace'], project['name'], session)
 
     # Check if the project is retired in PDC, and if so set assignee to orphan.
-    owner = project['access_users']['owner'][0]
-    if _is_retired_in_pdc(product, project):
+    if _is_retired(product, project):
         owner = 'orphan'
 
     # Check if the Bugzilla ticket assignee has been manually overridden
@@ -687,7 +647,7 @@ def _pagure_project_to_acl_schema(project_and_product, session=None):
             # Groups is empty because you can't have groups watch projects.
             # This is done only at the user level.
             'groups': [],
-            'people': user_cc_list
+            'people': watchers,
         },
         'owner': owner,
         # No package has this set in PkgDB's API, so it can be safely turned
@@ -714,7 +674,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     if args.debug:
-        DRY_RUN = True
+        DEBUG = True
 
     # Non-fatal errors to alert people about
     errors = []
@@ -722,120 +682,81 @@ if __name__ == '__main__':
     projects_dict = {
         'Fedora': {},
         'Fedora Container': {},
+        'Fedora Modules': {},
         'Fedora EPEL': {},
     }
 
     session = retry_session()
-    pagure_namespace_to_project_lists = {}
     pool = multiprocessing.pool.ThreadPool(8)
 
-    # Query for all the rpm and container projects and store them in
-    # pagure_namespace_to_projects
-    for namespace in ['rpms', 'container']:
-        first_page_url = ('{0}/api/0/projects?namespace={1}&fork=false&page=1'
-                         '&per_page=1'.format(PAGURE_DIST_GIT_URL, namespace))
-        if DRY_RUN:
-            print('- Querying {0}'.format(first_page_url))
-        first_page_rv = session.get(first_page_url, timeout=120)
+    # Get the initial ownership and CC data from pagure
+    # This part is easy.
+    poc_url = PAGURE_DIST_GIT_URL + '/extras/pagure_poc.json'
+    if DEBUG:
+        print("Querying %r for points of contact." % poc_url)
+    pagure_namespace_to_poc = session.get(poc_url, timeout=120).json()
+    cc_url = PAGURE_DIST_GIT_URL + '/extras/pagure_bz.json'
+    if DEBUG:
+        print("Querying %r for initial cc list." % cc_url)
+    pagure_namespace_to_cc = session.get(cc_url, timeout=120).json()
 
-        if not bool(first_page_rv):
-            raise RuntimeError('Failed to talk to {0} {1}.'.format(
-                first_page_rv.request.url, first_page_rv))
+    # Combine and collapse those two into a single list:
+    pagure_projects = []
+    for namespace, entries in pagure_namespace_to_poc.items():
+        for name, poc in entries.items():
+            pagure_projects.append(dict(
+                namespace=namespace,
+                name=name,
+                poc=poc,
+                watchers=pagure_namespace_to_cc[namespace][name],
+            ))
 
-        total_projects = first_page_rv.json()['total_projects']
-        num_pages = int(ceil(total_projects / 100.0))
-
-        # Since we are going to multi-thread, we need to make a partial
-        # function call so that all the function needs is an iterable to run
-        p_get_pagure_projects_from_page = resilient_partial(
-            _get_pagure_projects_from_page, session, namespace)
-        pagure_namespace_to_project_lists[namespace] = pool.map(
-            p_get_pagure_projects_from_page, range(1, num_pages + 1))
-        # Filter out failures.
-        pagure_namespace_to_project_lists[namespace] = [
-            i for i in pagure_namespace_to_project_lists[namespace] if i]
-
-    # Flatten the list of lists (each page is a list of a projects)
-    pagure_namespace_to_projects = {}
-    for namespace in ['rpms', 'container']:
-        pagure_namespace_to_projects[namespace] = []
-        for project_list in pagure_namespace_to_project_lists[namespace]:
-            pagure_namespace_to_projects[namespace] += project_list
-    # This is no longer needed, so we can save some RAM
-    del pagure_namespace_to_project_lists
-
-    # Now, we must get all the branches for the RPM projects we just queried.
-    # This will be stored in pagure_rpm_project_branches as a dictionary of
-    # {'python-requests': 'master', 'f27', 'f26'}
-    pagure_rpm_project_names = [project['name'] for project in
-                                pagure_namespace_to_projects['rpms']]
-    p_get_pdc_project_name_and_branches = resilient_partial(
-        _get_pdc_project_name_and_branches, session, 'rpms')
-    pagure_rpm_project_branches = pool.map(
-        p_get_pdc_project_name_and_branches, pagure_rpm_project_names)
-    # Filter out failures.
-    pagure_rpm_project_branches = [i for i in pagure_rpm_project_branches if i]
-    # Transform
-    pagure_rpm_project_branches = dict(pagure_rpm_project_branches)
-    # This is no longer needed, so we can save some RAM
-    del pagure_rpm_project_names
+    branches_url = PDCURL.split('rest_api')[0] + 'extras/active_branches.json'
+    if DEBUG:
+        print("Querying %r for EOL information." % branches_url)
+    pdc_branches = session.get(branches_url, timeout=120).json()
+    for proj in pagure_projects:
+        pdc_type = PDC_TYPES[proj['namespace']]
+        proj['branches'] = pdc_branches.get(pdc_type, {}).get(proj['name'], [])
+        if not proj['branches'] and DEBUG:
+            print("! No PDC branch found for {namespace}/{name}".format(**proj))
 
     # Determine what products each project maps to based on its branches.
     # pagure_rpms_project_products will be in the format of
     # [('python-requests': 'Fedora')...] which will be used my a mapping
     # function below
-    pagure_rpms_project_products = []
-    for project in pagure_namespace_to_projects['rpms']:
-        name = project['name']
-        products = []
-        branches = pagure_rpm_project_branches[name]
-        for branch in branches:
+    for project in pagure_projects:
+        products = set()
+        for branch, active in project['branches']:
             if re.match(r'^epel\d+$', branch):
-                epel = True
-                products.append('Fedora EPEL')
+                products.add('Fedora EPEL')
             else:
-                fedora = True
-                products.append('Fedora')
+                products.add(NAMESPACE_TO_PRODUCT[project['namespace']])
+        project['products'] = list(products)
 
-            if 'Fedora' in products and 'Fedora EPEL' in products:
-                break
-
-        for product in products:
-            pagure_rpms_project_products.append((project, product))
-
-    for project in pagure_namespace_to_projects['container']:
-        pagure_rpms_project_products.append((project, 'Fedora Container'))
-
-    # Save some RAM since this large dict is no longer needed
-    del pagure_namespace_to_projects
-
-    # Now, we must transform the data we collected into something that PkgDB
-    # would have returned
-    p_pagure_project_to_acl_schema = resilient_partial(
-        _pagure_project_to_acl_schema, session=session)
-    project_to_acl_schemas = pool.map(
-        p_pagure_project_to_acl_schema, pagure_rpms_project_products)
-    pool.close()
-    # Filter out failures.
-    project_to_acl_schemas = [i for i in project_to_acl_schemas if i]
-
-    # Transform the data returned in project_to_acl_schemas to be an orderly
-    # dictionary for ease of use later on.
-    for rv in project_to_acl_schemas:
-        projects_dict[rv['product']][rv['project']] = rv
-
-    # This is no longer needed, so we can save some RAM
-    del project_to_acl_schemas
+    ## Now, we must transform the data we collected into something that PkgDB
+    ## would have returned
+    p_to_legacy_schema = resilient_partial(_to_legacy_schema, session=session)
+    items = [
+        (product, project)
+        for project in pagure_projects
+        for product in project['products']
+    ]
+    legacy_responses = pool.map(p_to_legacy_schema, items)
+    for response in legacy_responses:
+        if not response:
+            continue
+        projects_dict[response['product']][response['project']] = response
 
     # Initialize the connection to bugzilla
-    bugzilla = Bugzilla(BZSERVER, BZUSER, BZPASS, projects_dict)
+    bugzilla = BugzillaProxy(BZSERVER, BZUSER, BZPASS, projects_dict)
 
     for product in projects_dict.keys():
         if product not in PRODUCTS:
             continue
         for pkg in sorted(projects_dict[product]):
-            if DRY_RUN:
-                print(pkg)
+            if DEBUG:
+                print("Assesssing bugzilla status for %r" % pkg)
             pkgInfo = projects_dict[product][pkg]
             try:
                 bugzilla.add_edit_component(
@@ -865,7 +786,7 @@ if __name__ == '__main__':
 
     # Send notification of errors
     if errors:
-        if DRY_RUN:
+        if DEBUG:
             print('[DEBUG]', '\n'.join(errors))
         else:
             notify_users(errors)
