@@ -50,6 +50,12 @@
     - pdc
     - cron
 
+- name: create directory for the active_branches cache
+  file: path=/var/www/html/extras/ state=directory owner=apache group=apache
+  tags:
+  - pdc
+  - cron
+
 - name: cron to generate cache of active component branches for pagure-sync-bugzilla
   cron: name="export-branches" minute="15" user="apache"
       job="/usr/local/bin/lock-wrapper export-branches 'python /usr/lib/python2.7/site-packages/pdc/manage.py exportbranches > /var/www/html/extras/active_branches.json.tmp; mv /var/www/html/extras/active_branches.json.tmp /var/www/html/extras/active_branches.json'"
