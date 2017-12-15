@@ -10,7 +10,7 @@ items:
     runPolicy: Serial
     source:
       dockerfile: |-
-        FROM fedora:26
+        FROM fedora:27
         LABEL \
             name="fedmsg-relay" \
             vendor="Fedora Infrastructure" \
@@ -40,14 +40,18 @@ items:
     runPolicy: Serial
     source:
       dockerfile: |-
-        FROM fedora:26
+        FROM fedora:27
         LABEL \
             name="sse2fedmsg" \
             vendor="Fedora Infrastructure" \
             license="MIT"
         RUN dnf -y --enablerepo updates-testing update && \
-            dnf -y --enablerepo updates-testing install --setopt=tsflags=nodocs sse2fedmsg && \
+            dnf -y --enablerepo updates-testing install --setopt=tsflags=nodocs \
+            git \
+            python3-pip \
+            python3-sseclient && \
             dnf clean all
+        RUN pip-3 install git+https://github.com/fedora-infra/sse2fedmsg.git
         RUN rm /etc/fedmsg.d/*py
         ENV USER=librariesio2fedmsg
         ENTRYPOINT sse2fedmsg librariesio http://firehose.libraries.io/events
