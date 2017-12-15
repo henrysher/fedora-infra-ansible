@@ -3,7 +3,7 @@
 
 - name: put infra stg repos into yum.repos.d if staging
   copy: src=files/dnf/infra-tags-stg.repo dest=/etc/yum.repos.d
-  when: ansible_hostname == "copr-be-dev"
+  when: network_name == "coprdev-net"
 
 - name: disable updates-testing
   file:
@@ -43,6 +43,10 @@
 
 - name: disable @copr/copr explicitly
   shell: dnf copr -y disable @copr/copr
+
+- name: enable @copr/copr-dev in staging
+  copy: dnf copr -y enable @copr/copr-dev
+  when: network_name == "coprdev-net"
 
 - name: make sure newest rpm
   dnf: state=latest pkg={{ item }}
