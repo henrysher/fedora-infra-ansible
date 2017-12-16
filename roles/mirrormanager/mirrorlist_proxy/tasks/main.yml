@@ -123,3 +123,10 @@
   tags:
   - selinux
   - mirrorlist_proxy
+
+- name: Deploy mirrorlist data files (if this is a initial install)
+  shell: "rsync -az --delete-delay --delay-updates --delete /var/lib/mirrormanager/{*pkl,*txt} {{ inventory_hostname }}:/srv/mirrorlist/data/mirrorlist1/" creates=/srv/mirrorlist/data/mirrorlist1/mirrorlist_cache.pkl
+  become: mirrormanager
+  delegate_to: "mm_backend01{{env_suffix}}.phx2.fedoraproject.org"
+  tags:
+  - mirrorlist_proxy
