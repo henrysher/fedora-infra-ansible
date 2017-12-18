@@ -105,6 +105,9 @@
 - name: install custom lighttpd template for directory listings
   template: src="lighttpd/dir-generator.php.j2" dest="/var/lib/copr/public_html/dir-generator.php" owner=copr group=copr mode=0755
 
+- name: install custom logrotate config for lighttpd
+  template: src="logrotate/lighttpd.j2" dest=/etc/logrotate.d/lighttpd owner=root group=root mode=644
+
 - name: start webserver
   service: state=started enabled=yes name=lighttpd
 
@@ -185,9 +188,6 @@
 
 - copy: src="cleanup_vms.sh" dest=/etc/cron.hourly/copr_cleanup_vms.sh mode=755
   when: not devel
-
-- name: install lighttpd logrotate config
-  copy: src="logrotate/lighttpd" dest=/etc/logrotate.d/lighttpd owner=root group=root mode=644
 
 - name: setup monitoring
   import_tasks: "monitoring.yml"

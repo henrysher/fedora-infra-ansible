@@ -4,7 +4,11 @@
     missingok
     notifempty
     prerotate
-        /usr/bin/copr_log_hitcounter.py /var/log/lighttpd/access.log &>/var/log/copr-backend/hitcounter-logrotate.log
+{% if devel %}
+        /usr/bin/copr_log_hitcounter.py /var/log/lighttpd/access.log --ignore-subnet 172.25.144.0/20 &>/var/log/copr-backend/hitcounter-logrotate.log
+{% else %}
+        /usr/bin/copr_log_hitcounter.py /var/log/lighttpd/access.log --ignore-subnet 172.25.80.0/20 &>/var/log/copr-backend/hitcounter-logrotate.log
+{% endif %}
     endscript
     postrotate
         /usr/bin/killall -HUP lighttpd &>/dev/null || :
