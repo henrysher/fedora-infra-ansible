@@ -49,3 +49,13 @@
 
   - name: disable offloading
     command: ethtool -K eth0 tso off gro off gso off
+
+    # ensure glibc and glibc.i686 are of the the latest version here
+  - name: make sure latest nosync and nosync.i686 and glibc
+    dnf: state=latest pkg={{ item }}
+    with_items:
+      - glibc
+      - glibc.i686
+      - nosync
+      - nosync.i686
+    when: prepare_base_image is defined
