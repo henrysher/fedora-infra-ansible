@@ -16,17 +16,34 @@
         Require all granted
     </Directory>
 
+{% if env == 'staging' %}
+    OIDCRedirectURI "{{ koschei_topurl }}/login/redirect_uri"
+    OIDCProviderMetadataURL "https://{{ koschei_openid_provider }}/openidc/wellknown_openid_configuration"
+    OIDCClientID "koschei"
+    {% if env == 'staging' %}
+    OIDCClientSecret "{{ koschei_oidc_client_secret_stg }}"
+    OIDCCryptoPassphrase "{{ koschei_oidc_crypto_secret_stg }}"
+    {% else %}
+    OIDCClientSecret "{{ koschei_oidc_client_secret }}"
+    OIDCCryptoPassphrase "{{ koschei_oidc_crypto_secret }}"
+    {% endif %}
+    OIDCSSLValidateServer On
+    OIDCResponseType "code"
+
+    OIDCScope "openid profile"
+
+    <Location /koschei/login>
+        AuthType openid-connect
+        Require valid-user
+    </Location>
+{% else %}
     <Location /koschei/login>
         Require valid-user
         AuthType OpenID
         AuthOpenIDSingleIdP https://{{ koschei_openid_provider }}/
-{% if env == 'staging' %}
-        AuthOpenIDServerName https://apps.stg.fedoraproject.org
-        AuthOpenIDTrustRoot https://apps.stg.fedoraproject.org/koschei/
-{% else %}
         AuthOpenIDServerName https://apps.fedoraproject.org
         AuthOpenIDTrustRoot https://apps.fedoraproject.org/koschei/
-{% endif %}
         AuthOpenIDUseCookie off
     </Location>
+{% endif %}
 </VirtualHost>
