@@ -722,6 +722,12 @@ if __name__ == '__main__':
         print("Querying %r for EOL information." % branches_url)
     pdc_branches = session.get(branches_url, timeout=120).json()
     for proj in pagure_projects:
+        if proj['namespace'] not in PDC_TYPES:
+            proj['branches'] = []
+            if DEBUG:
+                print('! Namespace {namespace} unknown to PDC, project '
+                      '{namespace}/{name} ignored'.format(**proj))
+            continue
         pdc_type = PDC_TYPES[proj['namespace']]
         proj['branches'] = pdc_branches.get(pdc_type, {}).get(proj['name'], [])
         if not proj['branches'] and DEBUG:
