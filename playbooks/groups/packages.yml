@@ -38,54 +38,6 @@
   handlers:
   - import_tasks: "{{ handlers_path }}/restart_services.yml"
 
-- name: set up gluster server on prod
-  hosts: packages
-  user: root
-  gather_facts: True
-
-  vars_files:
-   - /srv/web/infra/ansible/vars/global.yml
-   - "/srv/private/ansible/vars.yml"
-   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
-
-  roles:
-  - role: gluster/server
-    name: gluster
-    username: "{{ packagesglusterusername }}"
-    password: "{{ packagesglusterpassword }}"
-    owner: root
-    group: root
-    datadir: /srv/glusterfs/packages
-
-  handlers:
-  - import_tasks: "{{ handlers_path }}/restart_services.yml"
-
-- name: set up gluster client on prod
-  hosts: packages
-  user: root
-  gather_facts: True
-
-  vars_files:
-   - /srv/web/infra/ansible/vars/global.yml
-   - "/srv/private/ansible/vars.yml"
-   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
-
-  roles:
-  - fedmsg/base
-  - role: gluster/client
-    name: gluster
-    servers:
-    - packages03.phx2.fedoraproject.org
-    - packages04.phx2.fedoraproject.org
-    username: "{{ packagesglusterusername }}"
-    password: "{{ packagesglusterpassword }}"
-    owner: apache
-    group: fedmsg
-    mountdir: /var/cache/fedoracommunity
-
-  handlers:
-  - import_tasks: "{{ handlers_path }}/restart_services.yml"
-
 - name: dole out the new service specific config
   hosts: packages:packages-stg
   user: root
@@ -97,6 +49,10 @@
    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
 
   roles:
+  - role: nfs/client
+    mnt_dir: /var/cache/fedoracommunity
+    nfs_src_dir: fedora_app_packages
+    when: env == "production"
   - fedmsg/hub
   - packages3/web
   - role: collectd/fedmsg-service
