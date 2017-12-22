@@ -1,6 +1,16 @@
 ---
 # Configuration for the fedora-packages webapp
 
+- name: Set require selinux booleans
+  seboolean: name={{item}} persistent=yes state=yes
+  with_items:
+  - httpd_use_nfs
+  - httpd_execmem
+  tags:
+  - packages
+  - packages/web
+  - selinux
+
 - name: install needed packages
   package: name={{ item }} state=present
   with_items:
