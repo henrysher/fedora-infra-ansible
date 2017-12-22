@@ -13,8 +13,12 @@ DNS1="{{ dns1 }}"
 DNS2="{{ dns2 }}"
 {% endif %}
 HWADDR="{{ hostvars[inventory_hostname]['ansible_' + item]['macaddress']|upper }}"
+{% if item in ansible_ifcfg_disabled %}
+ONBOOT="no"
+{% else %}
 IPADDR="{{ hostvars[inventory_hostname][item + '_ip'] }}"
 NETMASK="{{ hostvars[inventory_hostname][item + '_nm'] }}"
+{% endif %}
 ONBOOT="yes"
 TYPE="Ethernet"
 DEVICE="{{item}}"
