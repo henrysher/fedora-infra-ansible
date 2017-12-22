@@ -8,7 +8,7 @@
 
 - name: route config for netapp network
   copy: src=route-eth1.{{ datacenter }} dest=/etc/sysconfig/network-scripts/route-eth1
-  when: datacenter == 'phx2' or datacenter == 'staging'
+  when: (datacenter == 'phx2' or datacenter == 'staging') and 'koji' in mnt_dir
   tags:
   - nfs/client
 
@@ -22,7 +22,7 @@
 
 - name: run netapp route if needed in phx2
   command: /etc/sysconfig/network-scripts/ifup-routes eth1
-  when: netapproute.stdout.find("10.5.88.0") == -1 and datacenter == 'phx2' and not inventory_hostname.startswith('buildvm-armv7')
+  when: netapproute.stdout.find("10.5.88.0") == -1 and datacenter == 'phx2' and not inventory_hostname.startswith('buildvm-armv7') and 'koji' in mnt_dir
   tags:
   - nfs/client
 
@@ -108,7 +108,7 @@
         passno=0
         dump=0
         state=mounted
-  when: datacenter == 'staging'
+  when: datacenter == 'staging' and 'koji' in mnt_dir
   tags:
   - nfs/client
 
@@ -121,6 +121,6 @@
         passno=0
         dump=0
         state=mounted
-  when: datacenter == 'staging'
+  when: datacenter == 'staging' and 'koji' in mnt_dir
   tags:
   - nfs/client
