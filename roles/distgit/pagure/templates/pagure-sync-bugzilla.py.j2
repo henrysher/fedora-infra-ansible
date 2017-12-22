@@ -21,6 +21,7 @@
 #         Author(s): Pierre-Yves Chibon <pingou@pingoured.fr>
 #         Author(s): Matt Prahl <mprahl@redhat.com>
 #         Author(s): Ralph Bean <rbean@redhat.com
+#         Author(s): Patrick Uiterwijk <puiterwijk@redhat.com>
 #
 '''
 sync information from the Pagure into bugzilla
@@ -98,7 +99,8 @@ NOTIFYEMAIL = [
     'ralph@fedoraproject.org',
     'mprahl@fedoraproject.org',
 ]
-DEBUG = False
+VERBOSE = False
+DRYRUN = False
 
 {% if env == 'staging' %}
 FASURL = 'https://admin.stg.fedoraproject.org/accounts'
@@ -400,7 +402,7 @@ class BugzillaProxy(object):
                 # Changes occurred.  Submit a request to change via xmlrpc
                 data['product'] = PRODUCTS[collection]
                 data['component'] = package
-                if DEBUG:
+                if VERBOSE:
                     print('[EDITCOMP] Changing via editComponent('
                           '%s, %s, "xxxxx")' % (data, self.username))
                     print('[EDITCOMP] Former values: %s|%s|%s|%s' % (
@@ -408,7 +410,7 @@ class BugzillaProxy(object):
                           product[pkgKey]['description'],
                           product[pkgKey]['initialqacontact'],
                           product[pkgKey]['initialcclist']))
-                else:
+                if not DRYRUN:
                     try:
                         self.server.editcomponent(data)
                     except xmlrpclib.Fault as e:
@@ -435,10 +437,10 @@ class BugzillaProxy(object):
             if initialCCList:
                 data['initialcclist'] = initialCCList
 
-            if DEBUG:
+            if VERBOSE:
                 print('[ADDCOMP] Adding new component AddComponent:('
                       '%s, %s, "xxxxx")' % (data, self.username))
-            else:
+            if not DRYRUN:
                 try:
                     self.server.addcomponent(data)
                 except xmlrpclib.Fault as e:
@@ -534,7 +536,7 @@ def _get_override_yaml(project):
         PAGUREURL.rstrip('/'), BUGZILLA_OVERRIDE_REPO, project['namespace'],
         project['name'])
 
-    if DEBUG:
+    if VERBOSE:
         print('Querying {0}'.format(pagure_override_url))
     override_rv = session.get(pagure_override_url, timeout=30)
     if override_rv.status_code == 200:
@@ -553,7 +555,7 @@ def _get_package_summary_from_mdapi(namespace, repo, session=None):
         session = retry_session()
 
     url = '{0}/rawhide/srcpkg/{1}'.format(MDAPIURL.rstrip('/'), repo)
-    if DEBUG:
+    if VERBOSE:
         print('Querying {0}'.format(url))
 
     rv = session.get(url, timeout=60)
@@ -579,7 +581,7 @@ def _get_pdc_branches(session, repo):
         global_component=repo['name'],
         type=PDC_TYPES[repo['namespace']]
     )
-    if DEBUG:
+    if VERBOSE:
         print('Querying {0} {1}'.format(branches_url, params))
     rv = session.get(branches_url, params=params, timeout=60)
 
@@ -668,13 +670,26 @@ if __name__ == '__main__':
         description='Script syncing information between Pagure and bugzilla'
     )
     parser.add_argument(
+        '--dry-run', dest='dryrun', action='store_true', default=False,
+        help='Do not actually make the changes')
+    parser.add_Argument(
+        '--verbose', dest='verbose', action='store_true', default=False,
+        help='Print actions verbosely')
+    parser.add_argument(
         '--debug', dest='debug', action='store_true', default=False,
-        help='Print the changes instead of making them in bugzilla')
+        help='Combination of --verbose and --dry-run')
 
     args = parser.parse_args()
 
     if args.debug:
-        DEBUG = True
+        VERBOSE = True
+        DRYRUN = True
+
+    if args.verbose:
+        VERBOSE = True
+
+    if args.dryrun:
+        DRYRUN = True
 
     # Non-fatal errors to alert people about
     errors = []
@@ -692,11 +707,11 @@ if __name__ == '__main__':
     # Get the initial ownership and CC data from pagure
     # This part is easy.
     poc_url = PAGURE_DIST_GIT_URL + '/extras/pagure_poc.json'
-    if DEBUG:
+    if VERBOSE:
         print("Querying %r for points of contact." % poc_url)
     pagure_namespace_to_poc = session.get(poc_url, timeout=120).json()
     cc_url = PAGURE_DIST_GIT_URL + '/extras/pagure_bz.json'
-    if DEBUG:
+    if VERBOSE:
         print("Querying %r for initial cc list." % cc_url)
     pagure_namespace_to_cc = session.get(cc_url, timeout=120).json()
 
@@ -718,19 +733,19 @@ if __name__ == '__main__':
     ]
 
     branches_url = PDCURL.split('rest_api')[0] + 'extras/active_branches.json'
-    if DEBUG:
+    if VERBOSE:
         print("Querying %r for EOL information." % branches_url)
     pdc_branches = session.get(branches_url, timeout=120).json()
     for proj in pagure_projects:
         if proj['namespace'] not in PDC_TYPES:
             proj['branches'] = []
-            if DEBUG:
+            if VERBOSE:
                 print('! Namespace {namespace} unknown to PDC, project '
                       '{namespace}/{name} ignored'.format(**proj))
             continue
         pdc_type = PDC_TYPES[proj['namespace']]
         proj['branches'] = pdc_branches.get(pdc_type, {}).get(proj['name'], [])
-        if not proj['branches'] and DEBUG:
+        if not proj['branches'] and VERBOSE:
             print("! No PDC branch found for {namespace}/{name}".format(**proj))
 
     # Determine what products each project maps to based on its branches.
@@ -767,7 +782,7 @@ if __name__ == '__main__':
         if product not in PRODUCTS:
             continue
         for pkg in sorted(projects_dict[product]):
-            if DEBUG:
+            if VERBOSE:
                 print("Assesssing bugzilla status for %r" % pkg)
             pkgInfo = projects_dict[product][pkg]
             try:
@@ -798,7 +813,7 @@ if __name__ == '__main__':
 
     # Send notification of errors
     if errors:
-        if DEBUG:
+        if VERBOSE:
             print('[DEBUG]', '\n'.join(errors))
         else:
             notify_users(errors)
