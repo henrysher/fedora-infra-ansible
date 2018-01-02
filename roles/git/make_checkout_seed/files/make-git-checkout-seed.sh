@@ -49,7 +49,7 @@ for repo in $ORIGIN_DIR/*.git ; do
     elif [ -e $working_tree/$bname.spec ]; then
       cp -p $working_tree/$bname.spec $SPEC_DIR/
     fi
-  lse
+  else
     pushd $SEED_DIR &>/dev/null
     git clone $repo &> /dev/null
     popd &>/dev/null
