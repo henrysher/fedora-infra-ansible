@@ -5,7 +5,7 @@
 # Need to setup OUTPUT_DIR to be served by apache
 
 # Where the git repos live.  These are bare repos
-ORIGIN_DIR=/srv/git/repositories
+ORIGIN_DIR=/srv/git/repositories/rpms
 
 # Where we'll create the repos to tar up
 WORK_DIR=/srv/git_seed
@@ -41,7 +41,7 @@ for repo in $ORIGIN_DIR/*.git ; do
     pushd $working_tree &> /dev/null
     sed -i "s@url = .*@url = $repo@" $working_tree/.git/config
     git pull --all &> /dev/null
-    sed -i "s@url = .*@url = git://pkgs.fedoraproject.org/$bname@" $working_tree/.git/config
+    sed -i "s@url = .*@url = https://src.fedoraproject.org/rpms/$bname@" $working_tree/.git/config
     popd &>/dev/null
     if [ -e $working_tree/dead.package ]; then
       rm -f $working_tree/$bname.spec
@@ -49,11 +49,11 @@ for repo in $ORIGIN_DIR/*.git ; do
     elif [ -e $working_tree/$bname.spec ]; then
       cp -p $working_tree/$bname.spec $SPEC_DIR/
     fi
-  else
+  lse
     pushd $SEED_DIR &>/dev/null
     git clone $repo &> /dev/null
     popd &>/dev/null
-    sed -i "s@url = .*@url = git://pkgs.fedoraproject.org/$bname@" $working_tree/.git/config
+    sed -i "s@url = .*@url = https://src.fedoraproject.org/rpms/$bname@" $working_tree/.git/config
     if [ -e $working_tree/dead.package ]; then
       rm -f $working_tree/$bname.spec
       rm -f $SPEC_DIR/$bname.spec
