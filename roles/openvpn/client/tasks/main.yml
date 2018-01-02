@@ -102,7 +102,7 @@
 
 - name: Create directories for post-vpn service configs
   file: path="/etc/systemd/system/{{item}}.service.d" state=directory
-  with_items: postvpnservices
+  with_items: "{{postvpnservices}}"
   when: is_fedora is defined or ansible_distribution_major_version|int == 7
   tags:
   - service
@@ -110,7 +110,7 @@
 
 - name: Deploy postvpn.conf for post-vpn services
   copy: src=postvpn.conf dest="/etc/systemd/system/{{item}}.service.d/postvpn.conf"
-  with_items: postvpnservices
+  with_items: "{{postvpnservices}}"
   when: is_fedora is defined or ansible_distribution_major_version|int == 7
   tags:
   - service
