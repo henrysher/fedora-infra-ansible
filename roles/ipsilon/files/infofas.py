@@ -43,7 +43,8 @@ aws_groups = {
     'aws-iam': 'arn:aws:iam::125523088429:role/aws-iam',
     'aws-billing': 'arn:aws:iam::125523088429:role/aws-billing',
     'aws-atomic': 'arn:aws:iam::125523088429:role/aws-atomic',
-    'aws-s3-readonly': 'arn:aws:iam::125523088429:role/aws-s3-readonly'
+    'aws-s3-readonly': 'arn:aws:iam::125523088429:role/aws-s3-readonly',
+    'aws-fedoramirror': 'arn:aws:iam::125523088429:role/aws-fedoramirror',
 }
 
 
