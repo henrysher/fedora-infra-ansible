@@ -95,5 +95,17 @@
   - "dist-git.socket"
   - "copr-dist-git"
 
+- name: copy over our custom selinux policy for cgit
+  copy: src=git_script_t.pp dest=/usr/local/share/selinux/git_script_t.pp
+  register: cgit_selinux_module
+  tags:
+  - selinux
+
+- name: install our custom selinux policy for cgit
+  command: semodule -i /usr/local/share/selinux/git_script_t.pp
+  when: cgit_selinux_module|changed
+  tags:
+  - selinux
+
 - name: Create /var/cache/cgit/repo-list.rc if does not exists (it last 30 minutes to generate)
   command: /etc/cron.hourly/copr-dist-git creates=/var/cache/cgit/repo-list.rc
