@@ -79,6 +79,8 @@
       name: skopeo
       state: latest
     when: ansible_architecture != "ppc64"
+    tags:
+    - containerrebuild
 
   - name: install ansible for container automated rebuilds
     package:
@@ -87,7 +89,9 @@
     with_items:
       - ansible
       - python2-dockerfile-parse
-    when: env == "staging" and ansible_architecture != "ppc64"
+    when: ansible_architecture != "ppc64"
+    tags:
+    - containerrebuild
 
   - name: set releng user keytab
     copy:
@@ -96,6 +100,8 @@
       owner: root
       group: "releng-team"
       mode: 0640
+    tags:
+    - containerrebuild
 
   - name: copy releng ssh key for rebuild fedpkg/distgit pushes
     copy:
@@ -104,6 +110,8 @@
       owner: root
       group: "releng-team"
       mode: 0600
+    tags:
+    - containerrebuild
 
   - name: place relengpush script for automatic rebuilds
     copy:
@@ -112,6 +120,8 @@
       owner: root
       group: "releng-team"
       mode: 0750
+    tags:
+    - containerrebuild
 
   - name: place relengpush int script for automatic rebuilds
     copy:
@@ -120,6 +130,8 @@
       owner: root
       group: "releng-team"
       mode: 0750
+    tags:
+    - containerrebuild
 
 
   handlers:
