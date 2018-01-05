@@ -44,7 +44,7 @@
 
 - name: reload systemd
   command: systemctl daemon-reload
-  when: deployment_type in ['local', 'qa-stg'] and buildmaster_service.changed
+  when: deployment_type in ['local', 'qa-stg'] and buildslave_service.changed
 
 - name: start and enable buildslave service
   service: name=buildslave enabled=yes state={{ (buildslave_service.changed) | ternary('restarted','started') }}
@@ -119,7 +119,7 @@
 
 - name: reload systemd
   command: systemctl daemon-reload
-  when: deployment_type in ['dev', 'stg', 'prod'] and buildmaster_service.changed
+  when: deployment_type in ['dev', 'stg', 'prod'] and buildslave_service.changed
 
 - name: start and enable buildslave services
   service: name=buildslave@{{ item.user }} enabled=yes state={{ (buildslave_service.changed) | ternary('restarted','started') }}
