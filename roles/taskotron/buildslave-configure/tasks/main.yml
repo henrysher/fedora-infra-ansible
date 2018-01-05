@@ -40,6 +40,8 @@
 - name: generate buildslave service file
   template: src=buildslave.service.j2 dest=/lib/systemd/system/buildslave.service owner=root group=root mode=0744
   when: deployment_type in ['local', 'qa-stg']
+  notify:
+  - reload systemd
 
 - name: start and enable buildslave service
   service: name=buildslave enabled=yes state=started
