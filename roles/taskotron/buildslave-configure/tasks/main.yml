@@ -42,6 +42,7 @@
   when: deployment_type in ['local', 'qa-stg']
   notify:
   - reload systemd
+  - meta: flush_handlers
 
 - name: start and enable buildslave service
   service: name=buildslave enabled=yes state=started
@@ -113,6 +114,9 @@
 - name: generate buildslave service file
   template: src=buildslave@.service.j2 dest=/lib/systemd/system/buildslave@.service owner=root group=root mode=0644
   when: deployment_type in ['dev', 'stg', 'prod']
+  notify:
+  - reload systemd
+  - meta: flush_handlers
 
 - name: start and enable buildslave services
   service: name=buildslave@{{ item.user }} enabled=yes state=started
