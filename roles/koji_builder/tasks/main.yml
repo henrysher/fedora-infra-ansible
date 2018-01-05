@@ -276,3 +276,25 @@
   tags:
   - koji_builder
   - selinux
+
+- name: Create directory for shared secrets
+  file:
+    path: /etc/kojid/secrets
+    state: directory
+    owner: root
+    group: root
+    mode: 0660
+  tags:
+  - koji_builder
+  when: env == "staging"
+
+- name: Deploy the keytab
+  include_role:
+    name: keytab/service
+  vars:
+    kt_location: /etc/kojid/secrets/compose.keytab
+    host: koji.fedoraproject.org
+    service: innercompose
+  tags:
+  - koji_builder
+  when: env == "staging"
