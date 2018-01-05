@@ -40,14 +40,14 @@
 - name: generate buildslave service file
   template: src=buildslave.service.j2 dest=/lib/systemd/system/buildslave.service owner=root group=root mode=0744
   when: deployment_type in ['local', 'qa-stg']
+  register: buildslave-service
   notify:
   - reload systemd
   - meta: flush_handlers
 
 - name: start and enable buildslave service
-  service: name=buildslave enabled=yes state=started
+  service: name=buildslave enabled=yes state={{ (buildslave-service.changed) | ternary('restarted','started') }}
   when: deployment_type in ['local', 'qa-stg']
-
 
 - name: create slave
   become: true
@@ -119,7 +119,7 @@
   - meta: flush_handlers
 
 - name: start and enable buildslave services
-  service: name=buildslave@{{ item.user }} enabled=yes state=started
+  service: name=buildslave@{{ item.user }} enabled=yes state={{ (buildslave-service.changed) | ternary('restarted','started') }}
   with_items:
     - '{{ slaves|default([dict(user="", home="", dir="")]) }}'
   when: deployment_type in ['dev', 'stg', 'prod']
