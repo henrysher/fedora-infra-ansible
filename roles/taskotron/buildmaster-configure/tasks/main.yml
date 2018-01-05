@@ -18,14 +18,14 @@
 
 - name: generate buildmaster service file
   template: src=buildmaster.service.j2 dest=/lib/systemd/system/buildmaster.service owner=root group=root mode=0744
-  register: buildmaster-service
+  register: buildmaster_service
 
 - name: reload systemd
   command: systemctl daemon-reload
-  when: buildmaster-service.changed
+  when: buildmaster_service.changed
 
 - name: start and enable buildmaster service
-  service: name=buildmaster enabled=yes state={{ (buildmaster-service.changed) | ternary('restarted','started') }}
+  service: name=buildmaster enabled=yes state={{ (buildmaster_service.changed) | ternary('restarted','started') }}
 
 - name: reconfig master
   become: true

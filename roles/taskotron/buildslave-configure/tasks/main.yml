@@ -40,13 +40,14 @@
 - name: generate buildslave service file
   template: src=buildslave.service.j2 dest=/lib/systemd/system/buildslave.service owner=root group=root mode=0744
   when: deployment_type in ['local', 'qa-stg']
-  register: buildslave-service
-  notify:
-  - reload systemd
-  - meta: flush_handlers
+  register: buildslave_service
+
+- name: reload systemd
+  command: systemctl daemon-reload
+  when: deployment_type in ['local', 'qa-stg'] and buildmaster_service.changed
 
 - name: start and enable buildslave service
-  service: name=buildslave enabled=yes state={{ (buildslave-service.changed) | ternary('restarted','started') }}
+  service: name=buildslave enabled=yes state={{ (buildslave_service.changed) | ternary('restarted','started') }}
   when: deployment_type in ['local', 'qa-stg']
 
 - name: create slave
@@ -114,12 +115,14 @@
 - name: generate buildslave service file
   template: src=buildslave@.service.j2 dest=/lib/systemd/system/buildslave@.service owner=root group=root mode=0644
   when: deployment_type in ['dev', 'stg', 'prod']
-  notify:
-  - reload systemd
-  - meta: flush_handlers
+  register: buildslave_service
+
+- name: reload systemd
+  command: systemctl daemon-reload
+  when: deployment_type in ['dev', 'stg', 'prod'] and buildmaster_service.changed
 
 - name: start and enable buildslave services
-  service: name=buildslave@{{ item.user }} enabled=yes state={{ (buildslave-service.changed) | ternary('restarted','started') }}
+  service: name=buildslave@{{ item.user }} enabled=yes state={{ (buildslave_service.changed) | ternary('restarted','started') }}
   with_items:
     - '{{ slaves|default([dict(user="", home="", dir="")]) }}'
   when: deployment_type in ['dev', 'stg', 'prod']
