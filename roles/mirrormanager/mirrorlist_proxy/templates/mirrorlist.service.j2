@@ -8,7 +8,9 @@ TimeoutStartSec=0
 Type=oneshot
 RemainAfterExit=yes
 ExecStart=/usr/bin/docker run --rm --detach --log-driver none --name %n -v /srv/mirrorlist/data/mirrorlist{{ item }}:/var/lib/mirrormanager:z -v /var/log/mirrormanager:/var/log/mirrormanager:z -p 1808{{ item }}:80 {{ mirrorlist_container_image }} -l /var/log/mirrormanager/%n.log
-ExecStop=/usr/bin/docker stop --time=180 %n
+ExecStop=/usr/bin/docker stop --time=1 %n
+# Mirrorlist can't take a signal... but docker stop returns before it actually killed everything.
+ExecStop=/usr/bin/sleep 10
 TimeoutStopSec=180
 
 [Install]
