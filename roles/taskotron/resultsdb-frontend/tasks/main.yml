@@ -16,6 +16,9 @@
     - mod_wsgi
   when: ansible_distribution_major_version|int > 21 and ansible_cmdline.ostree is not defined
 
+- name: ensure selinux lets httpd talk to the network
+  seboolean: name=httpd_can_network_connect persistent=yes state=yes
+
 - name: generate resultsdb_frontend config
   template: src=settings.py.j2 dest=/etc/resultsdb_frontend/settings.py owner=root group=root mode=0644
   notify:
