@@ -11,7 +11,7 @@
     keypair: buildsys
     max_spawn_time: 600
     spawning_vm_user: "fedora"
-    image_name: "copr-builder-x86_64-f27-new-kernel"
+    image_name: "copr-builder-x86_64-f27"
 
   tasks:
     - name: generate builder name
@@ -47,13 +47,11 @@
   tasks:
   - include: "provision_builder_tasks.yml"
 
-  - name: create mock default.cfg
-    command: ln -f -s /etc/mock/fedora-27-x86_64.cfg /etc/mock/default.cfg
-
   - name: disable offloading
     command: ethtool -K eth0 tso off gro off gso off
 
     # ensure glibc and glibc.i686 are of the the latest version here
+    # we need glibc.i686 and nosync.i686 so that nosync works for i386 and i586 builds
   - name: make sure latest nosync and nosync.i686 and glibc
     dnf: state=latest pkg={{ item }}
     with_items:
