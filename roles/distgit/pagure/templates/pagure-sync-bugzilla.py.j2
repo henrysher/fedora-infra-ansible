@@ -725,12 +725,13 @@ if __name__ == '__main__':
                 poc=poc,
                 watchers=pagure_namespace_to_cc[namespace][name],
             ))
-
+{% if env == 'staging' %}
     # Filter out any modules, since we don't have rights to create new
     # components in the "Fedora Modules" project yet
     pagure_projects = [
         p for p in pagure_projects if p['namespace'] != 'modules'
     ]
+{% endif %}
 
     branches_url = PDCURL.split('rest_api')[0] + 'extras/active_branches.json'
     if VERBOSE:
