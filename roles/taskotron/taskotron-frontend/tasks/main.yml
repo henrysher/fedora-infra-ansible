@@ -11,6 +11,9 @@
     - httpd
   when: ansible_distribution_major_version|int > 21 and ansible_cmdline.ostree is not defined
 
+- name: ensure selinux lets httpd talk to the network
+  seboolean: name=httpd_can_network_connect persistent=yes state=yes
+
 - name: create dirs for static files
   file: path=/var/www/html/{{ item }} state=directory owner=apache group=apache mode=1755
   with_items:
@@ -27,4 +30,3 @@
 
 - name: generate landing page
   template: src=landingpage.html.j2 dest=/var/www/html/index.html owner=apache group=apache mode=0644
-
