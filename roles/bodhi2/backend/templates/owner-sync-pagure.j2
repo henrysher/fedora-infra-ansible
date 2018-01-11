@@ -304,6 +304,11 @@ def set_koji_ownership(tag, packages, arches, verbose=False):
         'timeout': 60 * 10,
     }
     for arch in arches:
+
+        # Something weird here.  Where do 'arm' and 'ppc' come from?
+        if arch in ['arm', 'ppc']:
+            arch = 'primary'
+
         if arch == 'primary':
             session = koji.ClientSession(
                 'https://koji{0}.fedoraproject.org/kojihub'.format(ENV_SUFFIX),
