@@ -1,11 +1,15 @@
-module fi-nrpe 1.0;
+module fi-nrpe 1.1;
 
 require {
     type nagios_system_plugin_t;
+    type nagios_admin_plugin_t;
     type nrpe_exec_t;
-    class file getattr;
+    type bin_t;
+    class file { getattr map execute };
 }
 
 #============= nagios_system_plugin_t ==============
 allow nagios_system_plugin_t nrpe_exec_t:file getattr;
 
+# This is needed for e.g. check_file_age, which is a perl script
+allow nagios_admin_plugin_t bin_t:file { map execute };
