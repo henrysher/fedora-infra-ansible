@@ -71,6 +71,8 @@ loader = DataLoader()
 inv = InventoryManager(loader=loader, sources=opts.host_file)
 variable_manager = VariableManager(loader=loader, inventory=inv)
 
+unpatched_spectre = loader.load_from_file('/srv/private/ansible/vars.yml')['non_spectre_patched']
+
 # create play with tasks
 play_source =  dict(
         name = "vhost-info",
@@ -99,5 +101,8 @@ finally:
 for vhostname in sorted(cb.mem_per_host):
     freemem = cb.mem_per_host[vhostname] - cb.mem_used_in_vm[vhostname]
     freecpu = cb.cpu_per_host[vhostname] - cb.cpu_used_in_vm[vhostname]
-    print '%s:\t%s/%s mem(unused/total)\t%s/%s cpus(unused/total)' % (
-        vhostname, freemem, cb.mem_per_host[vhostname], freecpu, cb.cpu_per_host[vhostname])
+    insecure = ''
+    if vhostname in unpatched_spectre:
+        insecure = ' (NOT PATCHED FOR SPECTRE)'
+    print '%s:\t%s/%s mem(unused/total)\t%s/%s cpus(unused/total) %s' % (
+        vhostname, freemem, cb.mem_per_host[vhostname], freecpu, cb.cpu_per_host[vhostname], insecure)

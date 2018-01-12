@@ -1,0 +1,55 @@
+# {{ ansible_managed }}
+*filter
+:INPUT ACCEPT [0:0]
+:FORWARD ACCEPT [0:0]
+:OUTPUT ACCEPT [0:0]
+
+# allow ping and traceroute
+-A INPUT -p icmp -j ACCEPT
+
+# localhost is fine
+-A INPUT -i lo -j ACCEPT
+
+# Established connections allowed
+-A INPUT -m state --state RELATED,ESTABLISHED -j ACCEPT
+-A OUTPUT -m state --state RELATED,ESTABLISHED -j ACCEPT
+
+# allow ssh - always
+-A INPUT -m conntrack --ctstate NEW --src 10.5.126.23 -m tcp -p tcp --dport 22 -j ACCEPT
+
+# for nrpe - allow it from nocs
+-A INPUT -p tcp -m tcp --dport 5666 -s 192.168.1.10 -j ACCEPT
+-A INPUT -p tcp -m tcp --dport 5666 -s 192.168.1.166 -j ACCEPT
+-A INPUT -p tcp -m tcp --dport 5666 -s 10.5.126.41 -j ACCEPT
+-A INPUT -p tcp -m tcp --dport 5666 -s 10.5.126.241 -j ACCEPT
+
+{% for port in tcp_ports %}
+-A INPUT -p tcp -m tcp --dport {{ port }} -j ACCEPT
+{% endfor %}
+
+# Allow connection to the database
+-A OUTPUT --dst 10.5.126.71 -p tcp -m tcp --dport 5432 -j ACCEPT
+
+# Allow DNS
+-A OUTPUT --dst 10.5.126.21 -p udp -m udp --dport 53 -j ACCEPT
+-A OUTPUT --dst 10.5.126.21 -p tcp -m tcp --dport 53 -j ACCEPT
+-A OUTPUT --dst 10.5.126.22 -p udp -m udp --dport 53 -j ACCEPT
+-A OUTPUT --dst 10.5.126.22 -p tcp -m tcp --dport 53 -j ACCEPT
+
+# Allow infrastructure.fp.o http and https
+-A OUTPUT --dst 10.5.126.23 -p tcp -m tcp --dport 80 -j ACCEPT
+-A OUTPUT --dst 10.5.126.23 -p tcp -m tcp --dport 443 -j ACCEPT
+
+# Allow https to proxies
+-A OUTPUT --dst 10.5.126.8 -p tcp -m tcp --dport 443 -j ACCEPT
+-A OUTPUT --dst 10.5.126.9 -p tcp -m tcp --dport 443 -j ACCEPT
+-A OUTPUT --dst 10.5.126.51 -p tcp -m tcp --dport 443 -j ACCEPT
+-A OUTPUT --dst 10.5.126.52 -p tcp -m tcp --dport 443 -j ACCEPT
+
+# otherwise kick everything out
+-A INPUT -j REJECT --reject-with icmp-host-prohibited
+-A FORWARD -j REJECT --reject-with icmp-host-prohibited
+
+# This box is special in that it also has OUTPUT filtered
+-A OUTPUT -j REJECT --reject-with icmp-host-prohibited
+COMMIT

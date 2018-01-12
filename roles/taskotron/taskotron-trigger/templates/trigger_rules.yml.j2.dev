@@ -2,3 +2,10 @@
 - when: {message_type: KojiBuildPackageCompleted}
   do:
     - {tasks: [rpmlint, rpmgrill]}
+
+- when:
+    message_type: KojiBuildPackageCompleted
+    name:
+      $nin: [{{ trigger_abicheck_blacklist | join(',') }}]
+  do:
+    - {tasks: [abicheck]}
