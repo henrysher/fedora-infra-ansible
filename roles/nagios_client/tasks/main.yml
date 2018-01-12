@@ -99,6 +99,15 @@
   command: semodule -i /usr/share/nrpe/fi-nrpe.pp
   when: ansible_distribution_major_version|int == 7 and selinux_module|changed
 
+- name: copy over our custom selinux module for mirrorlist
+  copy: src=selinux/fi-nrpe.pp dest=/usr/share/nrpe/mirrormanager_container.pp
+  register: selinux_module_mirrorlist
+  when: 'proxy' in inventory_hostname
+
+- name: install our custom selinux module for mirrorlist
+  command: semodule -i /usr/share/nrpe/mirrormanager_container.pp
+  when: 'proxy' in inventory_hostname and selinux_module|changed
+
 
 # Set up our base config.
 - name: /etc/nagios/nrpe.cfg
