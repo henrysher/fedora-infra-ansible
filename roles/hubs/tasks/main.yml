@@ -164,6 +164,20 @@
     creates: "{{ hubs_code_dir }}/hubs/static/js/build/common.js"
 
 
+- name: Fix permissions if necessary
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ main_user }}"
+    group: "{{ main_user }}"
+    recurse: yes
+    #setype: httpd_sys_content_rw_t
+  with_items:
+    - "{{ hubs_base_dir }}"
+    - "{{ hubs_conf_dir }}"
+    - "{{ hubs_var_dir }}"
+
+
 # Services
 - name: Disable the system-wide fedmsg-hub
   service: name=fedmsg-hub state=stopped enabled=no
