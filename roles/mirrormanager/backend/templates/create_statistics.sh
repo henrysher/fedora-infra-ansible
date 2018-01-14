@@ -1,6 +1,5 @@
 #!/bin/sh
 
-MIRRORLIST_SERVERS="{% for host in groups['mirrorlist2'] %} {{ host }} {% endfor %}"
 MIRRORLIST_PROXIES="{% for host in groups['mirrorlist-proxies'] %} {{ host }} {% endfor %}"
 FRONTENDS="{% for host in groups['mm-frontend'] %} {{ host }} {% endfor %}"
 
@@ -24,10 +23,6 @@ OUTPUT=`mktemp -d`
 
 trap "rm -f ${OUTPUT}/*; rmdir ${OUTPUT}" QUIT TERM INT HUP EXIT
 
-# Fetch compressed log files
-for s in ${MIRRORLIST_SERVERS}; do
-	ssh $s "( xzcat $INFILE | gzip -4 )" >> ${OUTPUT}/mirrorlist.log.gz
-done
 for s in ${MIRRORLIST_PROXIES}; do
 	ssh $s "( cat $CONTAINER1 | gzip -4 )" >> ${OUTPUT}/mirrorlist.log.gz
 	ssh $s "( cat $CONTAINER2 | gzip -4 )" >> ${OUTPUT}/mirrorlist.log.gz
