@@ -548,6 +548,20 @@
         src: "{{files}}/osbs/cleanup-old-osbs-builds"
         dest: "/etc/cron.d/cleanup-old-osbs-builds"
 
+- name: post-install osbs control tasks
+  hosts: osbs-control
+  tags: osbs-post-install
+  vars_files:
+    - /srv/web/infra/ansible/vars/global.yml
+    - /srv/private/ansible/vars.yml
+    - /srv/private/ansible/files/openstack/passwords.yml
+    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+  tasks:
+    - name: enable nrpe for monitoring (noc01)
+      iptables: action=insert chain=INPUT destination_port=5666 protocol=tcp source=10.5.126.41 state=present jump=ACCEPT
+      tags:
+      - iptables
+
 
 - name: post-install osbs tasks
   hosts: osbs-masters-stg:osbs-nodes-stg:osbs-masters:osbs-nodes
