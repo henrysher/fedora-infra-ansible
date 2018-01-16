@@ -9,3 +9,52 @@ virt_install_command: "{{ virt_install_command_two_nic }}"
 eth0_ip: 10.5.128.79
 eth1_ip: 10.5.127.65
 vmhost: virthost12.phx2.fedoraproject.org
+
+# These are consumed by a task in roles/fedmsg/base/main.yml
+fedmsg_certs:
+# This first cert is used by the push-tool.   releng members run it and it fires
+# off a simple fedmsg message that the masher (running as fedmsg-hub) is
+# listening for.  It then does all the worker.
+- service: shell
+  owner: root
+  group: masher
+  can_send:
+  - bodhi.masher.start
+# These are certs for pungi
+- service: releng
+  owner: apache
+  group: sysadmin-releng
+  can_send:
+  # new school pungi-koji stuff (ask dgilmore)
+  - pungi.compose.phase.start
+  - pungi.compose.phase.stop
+  - pungi.compose.status.change
+  - pungi.compose.createiso.targets
+  - releng.atomic.twoweek.begin
+  - releng.atomic.twoweek.complete
+# These are certs for the masher to publish its own messages as it progresses.
+- service: bodhi
+  owner: root
+  group: masher
+  can_send:
+  - bodhi.mashtask.complete
+  - bodhi.mashtask.mashing
+  - bodhi.mashtask.start
+  - bodhi.mashtask.sync.done
+  - bodhi.mashtask.sync.wait
+  - bodhi.ostree.compose.start
+  - bodhi.ostree.compose.fail
+  - bodhi.ostree.compose.finish
+  - bodhi.errata.publish
+  - bodhi.update.eject
+  - bodhi.update.complete.testing
+  - bodhi.update.complete.stable
+  - bodhi.update.request.stable
+  - bodhi.update.karma.threshold.reach
+  - bodhi.buildroot_override.untag
+- service: ftpsync
+  owner: root
+  group: ftpsync
+  can_send:
+  - bodhi.updates.epel.sync
+  - bodhi.updates.fedora.sync
