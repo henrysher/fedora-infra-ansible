@@ -9,7 +9,7 @@ set term png size 1600,1200
 ##
 set output "/var/www/html/csv-reports/images/getfedora-allpoints.png"
 set title "Daily Editions Total Unique IPs"
-plot ["2014-12-01":"2017-12-31"] \
+plot ["2014-12-01":"2018-12-31"] \
      '/var/www/html/csv-reports/getfedora/getfedoradata-all.csv' using 1:2 title 'Total downloads' with lines lw 4,\
      '/var/www/html/csv-reports/getfedora/getfedoradata-all.csv' using 1:3 title 'Editions' with lines lw 4,\
      '/var/www/html/csv-reports/getfedora/getfedoradata-all.csv' using 1:4 title 'Atomic' with lines lw 4,\
@@ -41,7 +41,7 @@ unset output
 ##
 set output "/var/www/html/csv-reports/images/getfedora-editions.png"
 set title "Daily Editions Total Unique IPs"
-plot ["2014-12-01":"2017-12-31"] \
+plot ["2014-12-01":"2018-12-31"] \
      '/var/www/html/csv-reports/getfedora/getfedoradata-all.csv' using 1:2 title 'Total downloads' with lines lw 4,\
      '/var/www/html/csv-reports/getfedora/getfedoradata-all.csv' using 1:3 title 'Editions' with lines lw 4,\
      '/var/www/html/csv-reports/getfedora/getfedoradata-all.csv' using 1:4 title 'Atomic' with lines lw 4,\
@@ -54,7 +54,7 @@ unset output
 ##
 set output "/var/www/html/csv-reports/images/getfedora-editions-filled.png"
 set title "Daily Editions Total Unique IPs"
-plot ["2014-12-01":"2017-12-31"] \
+plot ["2014-12-01":"2018-12-31"] \
      '/var/www/html/csv-reports/getfedora/getfedoradata-all.csv' using 1:2 title 'Total downloads' with lines lw 4,\
      '/var/www/html/csv-reports/getfedora/getfedoradata-all.csv' using 1:3 title 'Editions' with lines lw 4,\
      '/var/www/html/csv-reports/getfedora/getfedoradata-all.csv' using 1:($4+$5+$6+$7+$8) title 'Atomic' with filledcurves x1,\
@@ -67,7 +67,7 @@ unset output
 ##
 set output "/var/www/html/csv-reports/images/getfedora-versions-filled.png"
 set title "Daily Version Totals"
-plot ["2014-12-01":"2017-12-31"] \
+plot ["2014-12-01":"2018-12-31"] \
      '/var/www/html/csv-reports/getfedora/getfedoradata-all.csv' using 1:2 title 'Total number' with lines lw 4,\
      '/var/www/html/csv-reports/getfedora/getfedoradata-all.csv' using 1:($9+$10+$11+$12+$13+$14+$15+$16+$17+$18+$19) title 'Fedora-20' with  filledcurves x1,\
      '/var/www/html/csv-reports/getfedora/getfedoradata-all.csv' using 1:(   $10+$11+$12+$13+$14+$15+$16+$17+$18+$19) title 'Fedora-21' with  filledcurves x1,\
@@ -85,7 +85,7 @@ unset output
 ##
 set output "/var/www/html/csv-reports/images/getfedora-arch.png"
 set title "Daily x86 Architectures Filled Totals"
-plot ["2014-12-01":"2017-12-31"] \
+plot ["2014-12-01":"2018-12-31"] \
      '/var/www/html/csv-reports/getfedora/getfedoradata-all.csv' using 1:2 title 'Total number' with lines lw 4,\
      '/var/www/html/csv-reports/getfedora/getfedoradata-all.csv' using 1:($25+$26) title 'x86_32' with  filledcurves x1,\
      '/var/www/html/csv-reports/getfedora/getfedoradata-all.csv' using 1:($26) title 'x86_64' with  filledcurves x1
@@ -94,7 +94,7 @@ unset output
 ##
 set output "/var/www/html/csv-reports/images/getfedora-netinstalls.png"
 set title "Daily Netinstalls Total"
-plot ["2014-01-01":"2017-12-31"] \
+plot ["2014-01-01":"2018-12-31"] \
      '/var/www/html/csv-reports/getfedora/getfedoradata-all.csv' using 1:28 title 'Total Netinstalls' with lines lw 4,\
      '/var/www/html/csv-reports/getfedora/getfedoradata-all.csv' using 1:29 title 'Server' with lines lw 4,\
      '/var/www/html/csv-reports/getfedora/getfedoradata-all.csv' using 1:30 title 'Workstation' with lines lw 4,\
@@ -104,7 +104,7 @@ unset output
 ##
 set output "/var/www/html/csv-reports/images/getfedora-netinstalls-filled.png"
 set title "Daily Netinstalls Total"
-plot ["2014-01-01":"2017-12-31"] \
+plot ["2014-01-01":"2018-12-31"] \
      '/var/www/html/csv-reports/getfedora/getfedoradata-all.csv' using 1:28 title 'Total Netinstalls' with lines lw 4,\
      '/var/www/html/csv-reports/getfedora/getfedoradata-all.csv' using 1:($29+$30+$31) title 'Server' with  filledcurves x1,\
      '/var/www/html/csv-reports/getfedora/getfedoradata-all.csv' using 1:($30+$31) title 'Workstation' with filledcurves x1,\
