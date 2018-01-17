@@ -54,7 +54,11 @@ items:
             dnf clean all
         RUN pip-3 install git+https://github.com/fedora-infra/sse2fedmsg.git
         RUN rm /etc/fedmsg.d/*py
+        RUN mkdir -p /etc/pki/fedmsg/
+        RUN ln -sf /etc/pki/fedmsg/key/fedmsg-librariesio2fedmsg.key /etc/pki/fedmsg/librariesio2fedmsg.key
+        RUN ln -sf /etc/pki/fedmsg/crt/fedmsg-librariesio2fedmsg.crt /etc/pki/fedmsg/librariesio2fedmsg.crt
         ENV USER=librariesio2fedmsg
+        RUN chmod 777 /var/run/fedmsg/
         ENTRYPOINT sse2fedmsg librariesio http://firehose.libraries.io/events
       type: Dockerfile
     strategy:

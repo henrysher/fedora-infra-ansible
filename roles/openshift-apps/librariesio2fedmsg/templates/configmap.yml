@@ -9,30 +9,17 @@ items:
           # know our hostname.
           active=True,
           {% if env == 'staging' %}
-          environment="stg",
+          environment='stg',
+          relay_inbound=["tcp://busgateway01.stg.phx2.fedoraproject.org:9941"],
           {% else %}
-          environment="prod",
+          environment='prod',
+          relay_inbound=["tcp://busgateway01.phx2.fedoraproject.org:9941"],
           {% endif %}
-          high_water_mark=0,
-          io_threads=1,
-          post_init_sleep=0.5,
-          zmq_linger=1000,
-          zmq_tcp_keepalive=1,
-          zmq_tcp_keepalive_cnt=3,
-          zmq_tcp_keepalive_idle=60,
-          zmq_tcp_keepalive_intvl=5,
-          zmq_reconnect_ivl=100,
-          zmq_reconnect_ivl_max=1000,
-          endpoints={
-              "relay_outbound": [
-                  "tcp://*:9940",
-              ],
+          sign_messages=True,
+          cert_prefix="librariesio2fedmsg",
+          certnames={
+              "librariesio2fedmsg." + socket.gethostname(): "librariesio2fedmsg",
           },
-          relay_inbound=[
-              "tcp://127.0.0.1:4001",
-          ],
-          sign_messages=False,
-          validate_signatures=False,
       )
   kind: ConfigMap
   metadata:

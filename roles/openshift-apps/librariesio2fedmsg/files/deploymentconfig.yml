@@ -37,6 +37,12 @@ items:
           - name: fedmsg-config-volume
             mountPath: /etc/fedmsg.d/
             readOnly: true
+          - name: fedmsg-key-volume
+            mountPath: /etc/pki/fedmsg/key
+            readOnly: true
+          - name: fedmsg-crt-volume
+            mountPath: /etc/pki/fedmsg/crt
+            readOnly: true
         - name: fedmsg-relay
           image: librariesio2fedmsg/fedmsg-relay:latest
           livenessProbe:
@@ -68,6 +74,12 @@ items:
         - name: fedmsg-config-volume
           configMap:
             name: fedmsg-config
+        - name: fedmsg-key-volume
+          secret:
+            secretName: librariesio2fedmsg-fedmsg-key
+        - name: fedmsg-crt-volume
+          secret:
+            secretName: librariesio2fedmsg-fedmsg-crt
     triggers:
     - imageChangeParams:
         automatic: true
