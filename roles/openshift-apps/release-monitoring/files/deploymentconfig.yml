@@ -67,5 +67,58 @@ items:
           namespace: release-monitoring
       type: ImageChange
     - type: ConfigChange
+- apiVersion: v1
+  kind: DeploymentConfig
+  metadata:
+    labels:
+      app: fedmsg-hub
+      service: fedmsg
+    name: fedmsg-hub
+  spec:
+    replicas: 1
+    selector:
+      deploymentconfig: fedmsg-hub
+    strategy:
+      activeDeadlineSeconds: 21600
+      recreateParams:
+        timeoutSeconds: 600
+      resources: {}
+      rollingParams:
+        intervalSeconds: 1
+        maxSurge: 25%
+        maxUnavailable: 25%
+        timeoutSeconds: 600
+        updatePeriodSeconds: 1
+      type: Rolling
+    template:
+      metadata:
+        creationTimestamp: null
+        labels:
+          app: fedmsg-hub
+          deploymentconfig: fedmsg-hub
+      spec:
+        containers:
+        - name: fedmsg-hub
+          image: release-monitoring/fedmsg-hub:latest
+          resources: {}
+          volumeMounts:
+          - name: config-volume
+            mountPath: /etc/anitya
+            readOnly: true
+        volumes:
+        - name: config-volume
+          configMap:
+            name: release-monitoring-configmap
+    triggers:
+    - imageChangeParams:
+        automatic: true
+        containerNames:
+        - fedmsg-hub
+        from:
+          kind: ImageStreamTag
+          name: fedmsg-hub:latest
+          namespace: release-monitoring
+      type: ImageChange
+    - type: ConfigChange
 kind: List
 metadata: {}

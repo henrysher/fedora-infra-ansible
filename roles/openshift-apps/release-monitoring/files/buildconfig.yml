@@ -49,5 +49,50 @@ items:
       to:
         kind: ImageStreamTag
         name: release-monitoring-web:latest
+- apiVersion: v1
+  kind: BuildConfig
+  metadata:
+    labels:
+      build: fedmsg-hub-build
+    name: fedmsg-hub-build
+  spec:
+    runPolicy: Serial
+    source:
+      dockerfile: |-
+        FROM fedora:27
+        LABEL \
+          name="fedmsg-hub" \
+          vendor="Fedora Infrastructure" \
+          license="MIT"
+        RUN dnf install -y \
+                git \
+                python3-blinker \
+                python3-dateutil \
+                python3-fedmsg \
+                python3-flask \
+                python3-flask-wtf \
+                python3-flask-login \
+                python3-flask-restful \
+                python3-flask-openid \
+                python3-gunicorn \
+                python3-openid \
+                python3-pip \
+                python3-psycopg2 \
+                python3-setuptools \
+                python3-straight-plugin \
+                python3-sqlalchemy \
+                python3-wtforms && \
+            dnf autoremove -y && \
+            dnf clean all -y
+        RUN pip-3 install git+https://github.com/release-monitoring/anitya.git@master
+        ENV USER=fedmsg
+        ENTRYPOINT fedmsg-hub
+      type: Dockerfile
+    strategy:
+      type: Docker
+    output:
+      to:
+        kind: ImageStreamTag
+        name: fedmsg-hub:latest
 kind: List
 metadata: {}
