@@ -19,3 +19,9 @@
 - when: {message_type: DistGitCommit, namespace: modules}
   do:
     - {tasks: [check_modulemd]}
+
+- when:
+    message_type: GitHubPullRequestOpened
+    repo_name: {$regex: '/^container-images\/.+/'}
+  do:
+    - {tasks: [mtf-containers]}
