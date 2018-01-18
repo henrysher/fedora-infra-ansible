@@ -240,7 +240,7 @@ factory.addStep(DirectoryUpload(slavesrc=Interpolate('/var/lib/taskotron/artifac
                                 masterdest=Interpolate('{{ public_artifacts_dir }}/%(prop:uuid)s/task_output')))
 
 # gzip artifacts
-factory.addStep(MasterShellCommand(command=Interpolate('gzip -r {{ public_artifacts_dir }}/%(prop:uuid)s/task_output/*'),
+factory.addStep(MasterShellCommand(command=Interpolate('find {{ public_artifacts_dir }}/%(prop:uuid)s/task_output/ -type f -exec gzip {} \;'),
                                    descriptionDone=['gzip artifacs dir content']))
 
 {% if deployment_type in ['local'] %}
@@ -317,7 +317,7 @@ distgit_factory.addStep(DirectoryUpload(slavesrc=Interpolate('/var/lib/taskotron
                                 masterdest=Interpolate('{{ public_artifacts_dir }}/%(prop:uuid)s/task_output')))
 
 # gzip artifacts
-distgit_factory.addStep(MasterShellCommand(command=Interpolate('gzip -r {{ public_artifacts_dir }}/%(prop:uuid)s/task_output/*'),
+distgit_factory.addStep(MasterShellCommand(command=Interpolate('find {{ public_artifacts_dir }}/%(prop:uuid)s/task_output/ -type f -exec gzip {} \;'),
                                    descriptionDone=['gzip artifacs dir content']))
 
 {% endif %}
