@@ -37,37 +37,22 @@ items:
           - name: fedmsg-config-volume
             mountPath: /etc/fedmsg.d/
             readOnly: true
-        - name: fedmsg-relay
-          image: librariesio2fedmsg/fedmsg-relay:latest
-          livenessProbe:
-            failureThreshold: 3
-            periodSeconds: 10
-            successThreshold: 1
-            tcpSocket:
-              port: 9940
-            timeoutSeconds: 3
-          ports:
-          - containerPort: 9940
-            protocol: TCP
-          - containerPort: 4001
-            protocol: TCP
-          readinessProbe:
-            failureThreshold: 3
-            initialDelaySeconds: 1
-            periodSeconds: 10
-            successThreshold: 1
-            tcpSocket:
-              port: 9940
-            timeoutSeconds: 5
-          resources: {}
-          volumeMounts:
-          - name: fedmsg-config-volume
-            mountPath: /etc/fedmsg.d/
+          - name: fedmsg-key-volume
+            mountPath: /etc/pki/fedmsg/key
+            readOnly: true
+          - name: fedmsg-crt-volume
+            mountPath: /etc/pki/fedmsg/crt
             readOnly: true
         volumes:
         - name: fedmsg-config-volume
           configMap:
             name: fedmsg-config
+        - name: fedmsg-key-volume
+          secret:
+            secretName: librariesio2fedmsg-fedmsg-key
+        - name: fedmsg-crt-volume
+          secret:
+            secretName: librariesio2fedmsg-fedmsg-crt
     triggers:
     - imageChangeParams:
         automatic: true

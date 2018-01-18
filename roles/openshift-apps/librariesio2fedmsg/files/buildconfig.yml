@@ -4,36 +4,6 @@ items:
   kind: BuildConfig
   metadata:
     labels:
-      build: fedmsg-relay
-    name: fedmsg-relay-docker-build
-  spec:
-    runPolicy: Serial
-    source:
-      dockerfile: |-
-        FROM fedora:27
-        LABEL \
-            name="fedmsg-relay" \
-            vendor="Fedora Infrastructure" \
-            license="MIT"
-        RUN dnf -y --enablerepo updates-testing update && \
-            dnf -y --enablerepo updates-testing install --setopt=tsflags=nodocs python3-fedmsg && \
-            dnf clean all
-        RUN rm /etc/fedmsg.d/*.py
-        ENV USER=fedmsg-relay
-        EXPOSE 9940
-        EXPOSE 4001
-        ENTRYPOINT fedmsg-relay-3
-      type: Dockerfile
-    strategy:
-      type: Docker
-    output:
-      to:
-        kind: ImageStreamTag
-        name: fedmsg-relay:latest
-- apiVersion: v1
-  kind: BuildConfig
-  metadata:
-    labels:
       build: sse2fedmsg
     name: sse2fedmsg-docker-build
   spec:
@@ -46,7 +16,7 @@ items:
             vendor="Fedora Infrastructure" \
             license="MIT"
         RUN dnf -y --enablerepo updates-testing update && \
-            dnf -y --enablerepo updates-testing install --setopt=tsflags=nodocs \
+            dnf -y --enablerepo updates-testing install \
             git \
             python3-pip \
             python3-fedmsg \
@@ -54,7 +24,11 @@ items:
             dnf clean all
         RUN pip-3 install git+https://github.com/fedora-infra/sse2fedmsg.git
         RUN rm /etc/fedmsg.d/*py
+        RUN mkdir -p /etc/pki/fedmsg/
+        RUN ln -sf /etc/pki/fedmsg/key/fedmsg-librariesio2fedmsg.key /etc/pki/fedmsg/librariesio2fedmsg.key
+        RUN ln -sf /etc/pki/fedmsg/crt/fedmsg-librariesio2fedmsg.crt /etc/pki/fedmsg/librariesio2fedmsg.crt
         ENV USER=librariesio2fedmsg
+        RUN chmod 777 /var/run/fedmsg/
         ENTRYPOINT sse2fedmsg librariesio http://firehose.libraries.io/events
       type: Dockerfile
     strategy:

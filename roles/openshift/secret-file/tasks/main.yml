@@ -21,6 +21,8 @@
 - name: Call `oc secrets new` on the copied file
   shell: oc -n {{app}} secrets new {{secret_name}} {{key}}={{tmpfile.path}}
   run_once: true
+  register: create_out
+  failed_when: "create_out.rc != 0 and 'AlreadyExists' not in create_out.stderr"
 
 - name: Delete temporary file
   file: path={{tmpfile.path}} state=absent
