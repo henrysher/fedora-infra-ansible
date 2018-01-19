@@ -3,10 +3,6 @@
   do:
     - {tasks: [rpmlint, rpmgrill, python-versions]}
 
-- when: {message_type: KojiBuildPackageCompleted, name: docker}
-  do:
-    - {tasks: [dockerautotest]}
-
 - when:
     message_type: KojiBuildPackageCompleted
     name:
@@ -25,15 +21,22 @@
     - {tasks: [check_modulemd]}
 
 - when:
-    message_type: ModuleBuildComplete
-  do:
-    - {tasks: [modularity-testing-framework]}
-
-- when:
     message_type: GitHubPullRequestOpened
     repo_name: {$regex: '/^container-images\/.+/'}
   do:
     - {tasks: [mtf-containers]}
+
+{% if deployment_type in ['stg', 'prod'] %}
+{# these tasks are not ansiblized yet #}
+- when:
+    message_type: ModuleBuildComplete
+  do:
+    - {tasks: [modularity-testing-framework]}
+
+- when: {message_type: KojiBuildPackageCompleted, name: docker}
+  do:
+    - {tasks: [dockerautotest]}
+{% endif %}
 
 {# disabled due to missing nested virt: https://pagure.io/taskotron/issue/239
 - when:
@@ -46,4 +49,3 @@
   do:
     - {tasks: [fedora-cloud-tests]}
 #}
-
