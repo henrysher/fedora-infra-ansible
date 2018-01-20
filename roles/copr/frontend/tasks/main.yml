@@ -21,6 +21,7 @@
   tags:
   - packages
 
+  # we install python-alembic because https://bugzilla.redhat.com/show_bug.cgi?id=1536058
 - name: install additional pkgs for copr-frontend
   dnf: state=present pkg={{ item }}
   with_items:
@@ -28,6 +29,7 @@
   - "mod_ssl"
   - redis
   - pxz
+  - python-alembic
   tags:
   - packages
 
@@ -60,12 +62,12 @@
 
 - import_tasks: "psql_setup.yml"
 
-#- name: upgrade db to head
-#  command: alembic upgrade head
-#  become: yes
-#  become_user: copr-fe
-#  args:
-#    chdir: /usr/share/copr/coprs_frontend/
+- name: upgrade db to head
+  command: alembic upgrade head
+  become: yes
+  become_user: copr-fe
+  args:
+    chdir: /usr/share/copr/coprs_frontend/
 
 - name: set up admins
   command: ./manage.py alter_user --admin {{ item }}
