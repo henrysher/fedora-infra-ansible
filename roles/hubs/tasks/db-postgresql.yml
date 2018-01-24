@@ -28,6 +28,7 @@
       name: hubs
       password: "{{ hubs_db_password }}"
       role_attr_flags: NOSUPERUSER,NOCREATEROLE,NOCREATEDB
+  become: true
   become_user: postgres
 
 - name: Create the database
@@ -35,6 +36,7 @@
       name: hubs
       owner: hubs
   register: db_creation
+  become: true
   become_user: postgres
 
 - name: Ease local access to the database
@@ -51,6 +53,7 @@
     chdir: "{{ hubs_code_dir }}"
   environment:
     HUBS_CONFIG: "{{ hubs_conf_dir }}/hubs_config.py"
+  become: true
   become_user: "{{ main_user }}"
   when: db_creation|succeeded and db_creation|changed
 

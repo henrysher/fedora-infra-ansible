@@ -58,6 +58,7 @@
 
 # Set up the Python development environment
 - name: Install Fedora Hubs requirements.txt into hubs virtualenv
+  become: true
   become_user: "{{ main_user }}"
   pip:
     requirements: "{{ hubs_code_dir }}/requirements.txt"
@@ -66,6 +67,7 @@
     virtualenv_command: virtualenv-3
 
 - name: Install Fedora Hubs test-requirements.txt into hubs virtualenv
+  become: true
   become_user: "{{ main_user }}"
   pip:
     requirements: "{{ hubs_code_dir }}/test-requirements.txt"
@@ -74,6 +76,7 @@
     virtualenv_command: virtualenv-3
 
 - name: Install other packages into hubs virtualenv
+  become: true
   become_user: "{{ main_user }}"
   pip:
     name: "{{ item }}"
@@ -84,12 +87,14 @@
     - bleach
 
 - name: Install Fedora Hubs into the virtualenv
+  become: true
   become_user: "{{ main_user }}"
   command: "{{ hubs_venv_dir }}/bin/pip install -e {{ hubs_code_dir }}"
   args:
     creates: "{{ hubs_venv_dir }}/lib/python3.6/site-packages/fedora-hubs.egg-link"
 
 - name: Set bin file context in the virtualenv
+  become: true
   become_user: "{{ main_user }}"
   file:
     path: "{{ hubs_venv_dir }}/bin"
@@ -104,6 +109,7 @@
   with_first_found:
     - hubs_config.{{ ansible_hostname }}
     - hubs_config
+  become: true
   become_user: "{{ main_user }}"
   notify: "hubs configuration change"
 
@@ -121,6 +127,7 @@
     oidc-register
     --output-file {{ hubs_conf_dir }}/client_secrets.json
     https://iddev.fedorainfracloud.org/ {{ hubs_url }}
+  become: true
   become_user: "{{ main_user }}"
   args:
     creates: "{{ hubs_conf_dir }}/client_secrets.json"
@@ -139,6 +146,7 @@
 # Set up JavaScript requirements
 - name: Install npm packages
   command: npm install
+  become: true
   become_user: "{{ main_user }}"
   args:
     creates: node_modules
@@ -146,6 +154,7 @@
 
 - name: Build JavaScript assets
   command: npm run build
+  become: true
   become_user: "{{ main_user }}"
   args:
     chdir: "{{ hubs_code_dir }}/hubs/static/client"
