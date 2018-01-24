@@ -12,7 +12,7 @@
   dnf: name=python3-certbot-nginx state=present
 
 - name: get the letencrypt cert
-  command: certbot certonly -n --nginx -d {{ ansible_fqdn }} --agree-tos --email admin@fedoraproject.org
+  command: certbot certonly -n --standalone --pre-hook "systemctl stop nginx" --post-hook "systemctl start nginx" -d {{ ansible_fqdn }} --agree-tos --email admin@fedoraproject.org
   args:
     creates: /etc/letsencrypt/live/{{ ansible_fqdn }}/privkey.pem
   notify:
