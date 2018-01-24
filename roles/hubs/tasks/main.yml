@@ -11,54 +11,33 @@
     - npm
     - redis
     - fedmsg-hub
-    - python-virtualenv
+    - fedmsg-relay
+    - python3-virtualenv
     - python3-flask-oidc
-
-- name: Install Fedora Hubs development packages
-  dnf: name={{ item }} state=present
-  with_items:
-    - gcc
-    - gcc-c++
-    - libffi-devel
-    - openssl-devel
-    - python-sphinx
-    - python2-devel
-    - python3-devel
-    - redhat-rpm-config
-    - sqlite-devel
-  when: hubs_dev_mode
+    - postfix
 
 - name: Install the distribution versions of requirements.txt
   dnf: name={{ item }} state=present
   with_items:
-    - python-alembic
-    - python-arrow
-    - python-bleach
-    - python-decorator
-    - python-dogpile-cache
-    - python-fedmsg-core
-    - python-fedmsg-meta-fedora-infrastructure
-    - python-flask
-    - python-flask-oidc
-    - python-fmn-lib
-    - python-fmn-rules
-    - python-futures
-    - python-html5lib
-    - python-munch
-    - pytz
-    - python-sqlalchemy
-    - python-markdown
-    - python2-pkgwat-api
-    - python-six
-    - python-pygments
-    - python-pygments-markdown-lexer
-    - python-retask
-
-
-# Add various helpful configuration files
-- name: Install a custom bashrc
-  template: src=bashrc dest=/home/{{ main_user }}/.bashrc
-  when: hubs_dev_mode
+    - python3-alembic
+    - python3-arrow
+    - python3-bleach
+    - python3-decorator
+    - python3-dogpile-cache
+    - python3-fedmsg-core
+    - python3-fedmsg-meta-fedora-infrastructure
+    - python3-flask
+    - python3-flask-oidc
+    - python3-html5lib
+    - python3-munch
+    - python3-pytz
+    - python3-sqlalchemy
+    - python3-markdown
+    - python3-pkgwat-api
+    - python3-six
+    - python3-pygments
+    - python3-pygments-markdown-lexer
+    - python3-retask
 
 
 # Create directory structure
@@ -84,6 +63,7 @@
     requirements: "{{ hubs_code_dir }}/requirements.txt"
     virtualenv: "{{ hubs_venv_dir}}"
     virtualenv_site_packages: yes
+    virtualenv_command: virtualenv-3
 
 - name: Install Fedora Hubs test-requirements.txt into hubs virtualenv
   become_user: "{{ main_user }}"
@@ -91,6 +71,7 @@
     requirements: "{{ hubs_code_dir }}/test-requirements.txt"
     virtualenv: "{{ hubs_venv_dir}}"
     virtualenv_site_packages: yes
+    virtualenv_command: virtualenv-3
 
 - name: Install other packages into hubs virtualenv
   become_user: "{{ main_user }}"
@@ -98,6 +79,7 @@
     name: "{{ item }}"
     virtualenv: "{{ hubs_venv_dir }}"
     virtualenv_site_packages: yes
+    virtualenv_command: virtualenv-3
   with_items:
     - bleach
 
@@ -105,7 +87,7 @@
   become_user: "{{ main_user }}"
   command: "{{ hubs_venv_dir }}/bin/pip install -e {{ hubs_code_dir }}"
   args:
-    creates: "{{ hubs_venv_dir }}/lib/python2.7/site-packages/fedora-hubs.egg-link"
+    creates: "{{ hubs_venv_dir }}/lib/python3.6/site-packages/fedora-hubs.egg-link"
 
 - name: Set bin file context in the virtualenv
   become_user: "{{ main_user }}"
@@ -144,8 +126,14 @@
     creates: "{{ hubs_conf_dir }}/client_secrets.json"
 
 
+- name: Start and enable the common services
+  service: name={{ item }} state=started enabled=yes
+  with_items:
+    - redis
+    - postfix
+
 # Set up, create, and populate the database.
-- import_tasks: db-{{ hubs_db_type }}.yml
+- include_tasks: db-{{ hubs_db_type }}.yml
 
 
 # Set up JavaScript requirements
@@ -156,7 +144,7 @@
     creates: node_modules
     chdir: "{{ hubs_code_dir }}/hubs/static/client"
 
-- name: Build JavaScript assests
+- name: Build JavaScript assets
   command: npm run build
   become_user: "{{ main_user }}"
   args:
@@ -164,51 +152,18 @@
     creates: "{{ hubs_code_dir }}/hubs/static/js/build/common.js"
 
 
-- name: Fix permissions if necessary
-  file:
-    path: "{{ item }}"
-    state: directory
-    owner: "{{ main_user }}"
-    group: "{{ main_user }}"
-    recurse: yes
-    #setype: httpd_sys_content_rw_t
-  with_items:
-    - "{{ hubs_base_dir }}"
-    - "{{ hubs_conf_dir }}"
-    - "{{ hubs_var_dir }}"
-
-
 # Services
-- name: Disable the system-wide fedmsg-hub
-  service: name=fedmsg-hub state=stopped enabled=no
-
-- name: Install the service files
-  template:
-    src: "{{ item }}.service"
-    dest: /etc/systemd/system/{{ item }}.service
+- name: Disable the system-wide fedmsg daemons
+  service: name={{ item }} state=stopped enabled=no
   with_items:
-    - hubs-triage@
-    - hubs-worker@
-    - hubs-sse
-    - hubs-fedmsg-hub
-  register: service_installed
-
-- name: reload systemd
-  command: systemctl daemon-reload
-  when: service_installed|changed
-
-- name: Start and enable the services
-  service: name={{ item }} state=started enabled=yes
-  with_items:
-    - redis
-    - hubs-triage@1
-    - hubs-triage@2
-    - hubs-worker@1
-    - hubs-worker@2
-    - hubs-sse
-    - hubs-fedmsg-hub
+    - fedmsg-hub
+    - fedmsg-relay
 
 
-# Webserver
-- import_tasks: webserver.yml
+# Include mode-specific tasks
+
+- include_tasks: dev.yml
+  when: hubs_dev_mode
+
+- include_tasks: prod.yml
   when: not hubs_dev_mode

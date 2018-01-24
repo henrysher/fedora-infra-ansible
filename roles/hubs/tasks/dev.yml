@@ -1,0 +1,30 @@
+- name: Install Fedora Hubs development packages
+  dnf: name={{ item }} state=present
+  with_items:
+    - gcc
+    - gcc-c++
+    - libffi-devel
+    - openssl-devel
+    - python-sphinx
+    - python2-devel
+    - python3-devel
+    - python3-honcho
+    - python3-tox
+    - redhat-rpm-config
+    - sqlite-devel
+
+- name: Install a custom bashrc
+  template: src=bashrc dest=/home/{{ main_user }}/.bashrc
+
+- name: Install Honcho's env file
+  template: src=honcho-env dest={{ hubs_base_dir }}/.env
+
+- name: Install Honcho's procfile
+  template: src=honcho-procfile dest={{ hubs_base_dir }}/Procfile
+
+- name: Link to the FAS credentials file if any
+  file:
+    state: link
+    path: "/etc/fedmsg.d/fas_credentials.py"
+    src: "{{ hubs_code_dir }}/fedmsg.d/fas_credentials.py"
+  notify: "hubs configuration change"

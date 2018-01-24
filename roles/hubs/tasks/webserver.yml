@@ -8,6 +8,17 @@
     - libsemanage-python
 
 
+- name: install python2-certbot-nginx
+  dnf: name=python2-certbot-nginx state=present
+
+- name: get the letencrypt cert
+  command: certbot certonly -n --nginx -d {{ ansible_fqdn }} --agree-tos --email admin@fedoraproject.org
+  args:
+    creates: /etc/letsencrypt/live/{{ ansible_fqdn }}/privkey.pem
+  notify:
+    - restart nginx
+
+
 - name: Gunicorn logging configuration
   copy:
     src: logging.ini
@@ -33,17 +44,6 @@
   with_first_found:
     - nginx_ssl_params.{{ ansible_hostname }}
     - nginx_ssl_params
-  notify:
-    - restart nginx
-
-
-- name: install python2-certbot-nginx
-  dnf: name=python2-certbot-nginx state=present
-
-- name: get the letencrypt cert
-  command: certbot certonly -n --nginx -d {{ ansible_fqdn }} --agree-tos --email admin@fedoraproject.org
-  args:
-    creates: /etc/letsencrypt/live/{{ ansible_fqdn }}/privkey.pem
   notify:
     - restart nginx
 
