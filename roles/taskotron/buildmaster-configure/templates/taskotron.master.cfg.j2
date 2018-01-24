@@ -214,18 +214,24 @@ factory.addStep(ShellCommand(command=["runtask",
 {% endif %}
                              descriptionDone=[Interpolate('%(prop:taskname)s on %(prop:item)s')],
                              name='runtask',
-                             timeout=2400,
-{% if deployment_type in ['dev', 'stg', 'prod'] %}
+                             timeout=20*60,
+{% if deployment_type in ['dev'] %}
+                             sigtermTime=5*60,
+                             logfiles={
+                                 'heartbeat.log': {'filename': Interpolate('/var/lib/taskotron/artifacts/%(prop:uuid)s/tests.yml/taskotron/heartbeat.log')}  # FIXME: tests.yml hardcoded
+                             }
+{% endif %}
+{% if deployment_type in ['stg', 'prod'] %}
                              logfiles={
                                  'taskotron-overlord.log': {'filename': Interpolate('/var/lib/taskotron/artifacts/%(prop:uuid)s/taskotron-overlord.log')},
                                  'taskotron-stdio.log': {'filename': Interpolate('/var/lib/taskotron/artifacts/%(prop:uuid)s/taskotron-stdio.log')},
                                  'taskotron.log': {'filename': Interpolate('/var/lib/taskotron/artifacts/%(prop:uuid)s/taskotron.log')}
                              }
-))
 {% endif %}
 {% if deployment_type in ['local'] %}
-                             logfiles={'taskotron.log': {'filename': '/var/log/taskotron/taskotron.log', }}))
+                             logfiles={'taskotron.log': {'filename': '/var/log/taskotron/taskotron.log', }}
 {% endif %}
+))
 
 
 factory.addStep(ShellCommand(command=Interpolate('testcloud instance remove --force taskotron-%(prop:uuid)s; true'),
