@@ -142,8 +142,13 @@
   - /var/lib/openqa/share/factory/repo
   - /var/lib/openqa/share/factory/other
 
-- name: Set up createhdds cron job
-  copy: src=createhdds dest=/etc/cron.daily/createhdds owner=root group=root mode=0755
+#- name: Set up createhdds cron job
+#  copy: src=createhdds dest=/etc/cron.daily/createhdds owner=root group=root mode=0755
+
+# While #1539330 is a thing, we probably don't want the servers
+# crashing every day...
+- name: Remove createhdds cron job (#1539330)
+  file: path=/etc/cron.daily/createhdds state=absent
 
 - name: Check if any hard disk images need (re)building
   command: "/root/createhdds/createhdds.py check"
