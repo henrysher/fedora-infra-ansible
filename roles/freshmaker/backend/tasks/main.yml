@@ -1,0 +1,47 @@
+---
+- name: install the latest Freshmaker package
+  yum:
+    name: freshmaker
+    state: latest
+    update_cache: yes
+  with_items:
+  - freshmaker
+  - python2-odcs-client
+  when: freshmaker_upgrade
+  notify:
+  - restart fedmsg-hub
+  tags:
+  - freshmaker
+  - freshmaker/backend
+
+- name: generate the Freshmaker koji config
+  template:
+    src: etc/koji.conf.d/freshmaker.conf.j2
+    dest: /etc/koji.conf.d/freshmaker.conf
+    owner: fedmsg
+    group: fedmsg
+    mode: 0440
+  notify:
+  - restart fedmsg-hub
+  tags:
+  - freshmaker
+  - freshmaker/backend
+
+- name: ensure fedmsg-hub starts on boot
+  service:
+    name: "fedmsg-hub"
+    enabled: yes
+
+# This will initialize Alembic if the database is empty, and migrate to the
+# latest revision
+- name: migrate the database
+  command: "{{ item }}"
+  with_items:
+  - freshmaker-manager upgradedb
+  - freshmaker-manager db migrate
+  become: yes
+  become_user: fedmsg
+  when: freshmaker_migrate_db
+  tags:
+  - freshmaker
+  - freshmaker/backend

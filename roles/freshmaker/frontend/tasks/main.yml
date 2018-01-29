@@ -1,0 +1,47 @@
+---
+- name: install the latest Freshmaker package
+  yum:
+    name: freshmaker
+    state: latest
+    update_cache: yes
+  with_items:
+  - freshmaker
+  when: freshmaker_upgrade
+  notify:
+  - restart apache
+  tags:
+  - freshmaker
+  - freshmaker/frontend
+
+- name: ensure selinux lets httpd talk to postgres
+  seboolean: name={{item}} state=yes persistent=yes
+  with_items:
+  - httpd_can_network_connect_db
+  - httpd_can_network_connect
+  when: "'enabled' in ansible_selinux.status"
+  tags:
+  - freshmaker
+  - freshmaker/frontend
+  - selinux
+
+- name: make httpd logs world readable
+  file:
+    name: /var/log/httpd
+    state: directory
+    mode: 0755
+  tags:
+  - freshmaker
+  - freshmaker/frontend
+
+- name: generate the Freshmaker httpd config
+  template:
+    src: etc/httpd/conf.d/freshmaker.conf.j2
+    dest: /etc/httpd/conf.d/freshmaker.conf
+    owner: apache
+    group: apache
+    mode: 0440
+  notify:
+  - restart apache
+  tags:
+  - freshmaker
+  - freshmaker/frontend

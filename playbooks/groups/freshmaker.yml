@@ -46,7 +46,7 @@
   handlers:
   - import_tasks: "{{ handlers_path }}/restart_services.yml"
 
-- name: Set up apache on the frontend MBS API app
+- name: set up Freshmaker frontend
   hosts: freshmaker-frontend:freshmaker-frontend-stg
   user: root
   gather_facts: True
@@ -58,12 +58,13 @@
 
   roles:
   - mod_wsgi
+  - freshmaker/frontend
 
   handlers:
   - import_tasks: "{{ handlers_path }}/restart_services.yml"
 
-- name: set up fedmsg configuration and common freshmaker files
-  hosts: freshmaker:freshmaker-stg
+- name: set up Freshmaker backend
+  hosts: freshmaker-backend:freshmaker-backend-stg
   user: root
   gather_facts: True
 
@@ -74,6 +75,7 @@
 
   roles:
   - fedmsg/base
+  - freshmaker/backend
 
   handlers:
   - import_tasks: "{{ handlers_path }}/restart_services.yml"

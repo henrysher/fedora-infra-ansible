@@ -1,0 +1,255 @@
+# -*- coding: utf-8 -*-
+
+from os import path, environ
+
+confdir = path.abspath(path.dirname(__file__))
+# use parent dir as dbdir else fallback to current dir
+dbdir = path.abspath(path.join(confdir, '..')) if confdir.endswith('conf') \
+    else confdir
+
+
+class BaseConfiguration(object):
+    # Make this random (used to generate session keys)
+    SECRET_KEY = '74d9e9f9cd40e66fc6c4c2e9987dce48df3ce98542529fd0'
+    SQLALCHEMY_DATABASE_URI = 'sqlite:///{0}'.format(path.join(
+        dbdir, 'freshmaker.db'))
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
+
+    HOST = '0.0.0.0'
+    PORT = 5001
+
+    DEBUG = False
+    # Global network-related values, in seconds
+    NET_TIMEOUT = 120
+    NET_RETRY_INTERVAL = 30
+
+    SYSTEM = 'koji'
+    MESSAGING = 'fedmsg'  # or amq
+
+    # Available backends are: console, file, journal.
+    LOG_BACKEND = 'journal'
+
+    # Path to log file when LOG_BACKEND is set to "file".
+    LOG_FILE = 'freshmaker.log'
+
+    # Available log levels are: debug, info, warn, error.
+    LOG_LEVEL = 'info'
+
+    MESSAGING_TOPIC_PREFIX = ['org.fedoraproject.prod']
+
+    # Parsers defined for parse specific messages
+    PARSERS = [
+        'freshmaker.parsers.bodhi:BodhiUpdateCompleteStableParser',
+        'freshmaker.parsers.git:GitReceiveParser',
+        'freshmaker.parsers.koji:KojiTaskStateChangeParser',
+        'freshmaker.parsers.mbs:MBSModuleStateChangeParser',
+    ]
+
+    # List of enabled composing handlers.
+    HANDLERS = [
+        "freshmaker.handlers.bodhi:BodhiUpdateCompleteStableHandler",
+        "freshmaker.handlers.git:GitDockerfileChangeHandler",
+        "freshmaker.handlers.git:GitModuleMetadataChangeHandler",
+        "freshmaker.handlers.git:GitRPMSpecChangeHandler",
+        "freshmaker.handlers.koji:KojiTaskStateChangeHandler",
+        "freshmaker.handlers.mbs:MBSModuleStateChangeHandler",
+    ]
+
+    # Base URL of git repository with source artifacts.
+    GIT_BASE_URL = "git://pkgs.fedoraproject.org"
+
+    # SSH base URL of git repository
+    GIT_SSH_BASE_URL = "ssh://%s@pkgs.fedoraproject.org/"
+
+    # GIT user for cloning and pushing repo
+    GIT_USER = ""
+
+    # PDC API URL
+    PDC_URL = 'http://pdc.fedoraproject.org/rest_api/v1'
+
+    # Read Koji configuration from profile instead of reading them from
+    # configuration file directly. For staging Koji, it is stg.
+    KOJI_PROFILE = 'koji'
+    KOJI_PROXYUSER = False
+    KOJI_BUILD_OWNER = 'freshmaker'
+
+    # Settings for docker image rebuild handler
+    KOJI_CONTAINER_SCRATCH_BUILD = False
+
+    SSL_ENABLED = False
+
+    # whitelist and blacklist for handlers to decide whether an artifact
+    # can be built.
+    #
+    # In format of:
+    #
+    # { <handler_name> :
+    #     { <artifact_type>: <list_of_name_branch_dict> }
+    # }
+    #
+    # Here is an example of allowing MBSModuleStateChangeHandler to build
+    # any module that module name matches 'base-.*' but not:
+    #   1. module name matches 'base-test-module'
+    # or:
+    #   2. module from branch 'rawhide'
+    #
+    # HANDLER_BUILD_WHITELIST = {
+    #     "MBSModuleStateChangeHandler": {
+    #         "module": [
+    #             {
+    #                 'name': 'base-.*',
+    #             },
+    #         ],
+    #     },
+    # }
+    # HANDLER_BUILD_BLACKLIST = {
+    #     "MBSModuleStateChangeHandler": {
+    #         "module": [
+    #             {
+    #                 'name': 'base-test-module',
+    #             },
+    #             {
+    #                 'branch': 'rawhide',
+    #             },
+    #         ],
+    #     },
+    # }
+
+
+class DevConfiguration(BaseConfiguration):
+    DEBUG = True
+    LOG_BACKEND = 'console'
+    LOG_LEVEL = 'debug'
+
+    MESSAGING_TOPIC_PREFIX = ['org.fedoraproject.dev', 'org.fedoraproject.stg']
+
+    # Global network-related values, in seconds
+    NET_TIMEOUT = 5
+    NET_RETRY_INTERVAL = 1
+
+    KOJI_CONTAINER_SCRATCH_BUILD = True
+
+    LIGHTBLUE_VERIFY_SSL = False
+
+
+class TestConfiguration(BaseConfiguration):
+    LOG_BACKEND = 'console'
+    LOG_LEVEL = 'debug'
+    DEBUG = True
+
+    SQLALCHEMY_DATABASE_URI = 'sqlite:///{0}'.format(
+        path.join(dbdir, 'tests', 'test_freshmaker.db'))
+
+    MESSAGING = 'in_memory'
+    PDC_URL = 'http://pdc.fedoraproject.org/rest_api/v1'
+
+    # Global network-related values, in seconds
+    NET_TIMEOUT = 3
+    NET_RETRY_INTERVAL = 1
+    MBS_AUTH_TOKEN = "testingtoken"
+
+    KOJI_CONTAINER_SCRATCH_BUILD = True
+
+    LIGHTBLUE_SERVER_URL = ''  # replace with real dev server url
+    LIGHTBLUE_VERIFY_SSL = False
+
+
+class ProdConfiguration(BaseConfiguration):
+    AUTH_BACKEND = 'openidc'
+    # use kerberos for talking to koji
+    KRB_AUTH_USE_KEYTAB = True
+
+    PDC_INSECURE = {{ freshmaker_pdc_insecure }}
+    # No auth is required by Freshmaker, read-only PDC accesss is enough.
+    PDC_DEVELOP = True
+
+{% if env == 'staging' %}
+    SECRET_KEY = "{{ freshmaker_stg_secret_key }}"
+
+    AUTH_OPENIDC_USERINFO_URI = 'https://id.stg.fedoraproject.org/openidc/UserInfo'
+
+    SQLALCHEMY_DATABASE_URI = 'postgresql+psycopg2://freshmaker:{{freshmaker_stg_db_password}}@db-freshmaker/freshmaker{{ '?sslmode=require' if freshmaker_force_postgres_ssl else '' }}'
+
+    KOJI_PROFILE = 'freshmaker_stg'
+
+    PDC_URL = 'https://pdc.stg.fedoraproject.org/rest_api/v1'
+
+    GIT_BASE_URL = "{{ freshmaker_stg_git_base_url }}"
+    GIT_SSH_BASE_URL = "{{ freshmaker_stg_git_ssh_base_url }}"
+    GIT_USER = "{{ freshmaker_stg_git_user }}"
+
+    ODCS_SERVER_URL = "{{ freshmaker_prod_odcs_server_url }}"
+    ODCS_SIGKEYS = {{ freshmaker_prod_odcs_sigkeys }}
+
+    KRB_AUTH_CLIENT_KEYTAB = "{{ freshmaker_stg_krb_auth_client_keytab }}"
+    KRB_AUTH_PRINCIPAL = "{{ freshmaker_stg_krb_auth_principal }}"
+{% else %}
+    SECRET_KEY = "{{ freshmaker_prod_secret_key }}"
+
+    AUTH_OPENIDC_USERINFO_URI = "{{ freshmaker_prod_auth_openidc_userinfo_uri }}"
+
+    SQLALCHEMY_DATABASE_URI = 'postgresql+psycopg2://freshmaker:{{freshmaker_prod_db_password}}@db-freshmaker/freshmaker{{ '?sslmode=require' if freshmaker_force_postgres_ssl else '' }}'
+
+    KOJI_PROFILE = "freshmaker_production"
+
+    PDC_URL = 'https://pdc.fedoraproject.org/rest_api/v1'
+
+    GIT_BASE_URL = "{{ freshmaker_prod_git_base_url }}"
+    GIT_SSH_BASE_URL = "{{ freshmaker_prod_git_ssh_base_url }}"
+    GIT_USER = "{{ freshmaker_prod_git_user }}"
+
+    ODCS_SERVER_URL = "{{ freshmaker_prod_odcs_server_url }}"
+    ODCS_SIGKEYS = {{ freshmaker_prod_odcs_sigkeys }}
+
+    KRB_AUTH_CLIENT_KEYTAB = "{{ freshmaker_prod_krb_auth_client_keytab }}"
+    KRB_AUTH_PRINCIPAL = "{{ freshmaker_prod_krb_auth_principal }}"
+{% endif %}
+
+    # requests_kerberos module does not support setting keytab, but the krb5
+    # library checks the KRB5_CLIENT_KTNAME environment variable to set the
+    # path to keytab.
+    environ["KRB5_CLIENT_KTNAME"] = KRB_AUTH_CLIENT_KEYTAB
+
+    MESSAGING = 'fedmsg'
+    MESSAGING_SENDER = 'fedmsg'
+    MESSAGING_BACKENDS = {
+        'fedmsg': {
+            'SERVICE': 'freshmaker',
+        },
+        'in_memory': {
+            'SERVICE': 'freshmaker',
+        }
+    }
+
+    MESSAGING_TOPIC_PREFIX = [
+    {% for prefix in freshmaker_messaging_topic_prefix %}
+        '{{ prefix }}',
+    {% endfor %}
+    ]
+
+    PARSERS = [
+    {% for parser in freshmaker_parsers %}
+        '{{ parser }}',
+    {% endfor %}
+    ]
+
+    HANDLERS = [
+    {% for handler in freshmaker_handlers %}
+        '{{ handler }}',
+    {% endfor %}
+    ]
+
+{% if freshmaker_handler_build_whitelist %}
+    HANDLER_BUILD_WHITELIST = {{ freshmaker_handler_build_whitelist }}
+{% endif %}
+
+{% if freshmaker_handler_build_blacklist %}
+    HANDLER_BUILD_BLACKLIST = {{ freshmaker_handler_build_blacklist }}
+{% endif %}
+
+    DRY_RUN = {{ freshmaker_dry_run }}
+
+    ADMINS = {{ freshmaker_admins }}
+
+    LOG_LEVEL = "{{ freshmaker_log_level }}"
+    SERVER_NAME = "{{ freshmaker_servername }}"

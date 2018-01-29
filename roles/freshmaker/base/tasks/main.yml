@@ -1,0 +1,52 @@
+---
+- name: install the packages required for Freshmaker frontend
+  yum:
+    name: "{{ item }}"
+    state: present
+  with_items:
+  - httpd
+  - mod_wsgi
+  - mod_auth_openidc
+  - libsemanage-python
+  - python-psycopg2
+  - freshmaker
+  when: inventory_hostname.startswith('freshmaker-frontend')
+  tags:
+  - freshmaker
+
+- name: install the packages required for Freshmaker backend
+  yum:
+    name: "{{ item }}"
+    state: present
+  with_items:
+  - python-psycopg2
+  - freshmaker
+  when: inventory_hostname.startswith('freshmaker-backend')
+  tags:
+  - freshmaker
+
+- name: generate Freshmaker app config for frontend
+  template:
+    src: etc/freshmaker/config.py.j2
+    dest: /etc/freshmaker/config.py
+    owner: apache
+    group: apache
+    mode: 0440
+  notify:
+  - restart apache
+  when: inventory_hostname.startswith('freshmaker-frontend')
+  tags:
+  - freshmaker
+
+- name: generate Freshmaker app config for backend
+  template:
+    src: etc/freshmaker/config.py.j2
+    dest: /etc/freshmaker/config.py
+    owner: fedmsg
+    group: fedmsg
+    mode: 0440
+  notify:
+  - restart fedmsg-hub
+  when: inventory_hostname.startswith('freshmaker-backend')
+  tags:
+  - freshmaker
