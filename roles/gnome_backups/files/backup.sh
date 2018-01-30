@@ -9,14 +9,13 @@ MACHINES='signal.gnome.org
           webapps2.gnome.org
           clutter.gnome.org
           blogs.gnome.org
-          chooser.gnome.org
+          palette.gnome.org 
           git.gnome.org
           webapps.gnome.org
           cloud.gnome.org
           bastion.gnome.org
           spinner.gnome.org
           master.gnome.org
-          combobox.gnome.org
           restaurant.gnome.org
           expander.gnome.org
           live.gnome.org
