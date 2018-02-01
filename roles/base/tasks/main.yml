@@ -108,12 +108,16 @@
 - name: make sure hostname is set right on rhel7 hosts
   hostname: name="{{inventory_hostname}}"
 
+#
+# We set builders root password in the koji_builder role, so do not set those here
+#
+
 - name: set root passwd
   user: name=root password={{ rootpw }} state=present
   tags:
   - rootpw
   - base
-  when: not (inventory_hostname.startswith('rawhide') or inventory_hostname.startswith('branched') or inventory_hostname.startswith('compose') or inventory_hostname.startswith('build') or inventory_hostname.startswith('arm') or inventory_hostname.startswith('bkernel') or inventory_hostname.startswith('koji01.stg') or inventory_hostname.startswith('aarch64') or inventory_hostname.startswith('s390') or inventory_hostname.startswith('fed-cloud09') or inventory_hostname.startswith('ppc8-04'))
+  when: not inventory_hostname.startswith(('build','bkernel','koji01.stg','s390',fed-cloud09'))
 
 - name: add ansible root key
   authorized_key: user=root key="{{ item }}"
