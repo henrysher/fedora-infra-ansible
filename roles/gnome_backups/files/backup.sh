@@ -19,7 +19,6 @@ MACHINES='signal.gnome.org
           restaurant.gnome.org
           expander.gnome.org
           live.gnome.org
-          extensions.gnome.org
           view.gnome.org
           puppet.gnome.org
           accelerator.gnome.org
@@ -29,7 +28,7 @@ MACHINES='signal.gnome.org
           bugzilla-new.gnome.org
           socket.gnome.org
           odrs.gnome.org
-          ghispano.gnome.org
+          gnome-hispano.gnome.org
           scale.gnome.org
           sdkbuilder.gnome.org
           webapps3.gnome.org
