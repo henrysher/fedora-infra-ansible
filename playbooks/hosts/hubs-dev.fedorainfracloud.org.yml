@@ -33,33 +33,18 @@
 
   - import_tasks: "{{ tasks_path }}/yumrepos.yml"
 
-  - dnf: name={{item}} state=present
-    with_items:
-    - git
-    # for certbot
-    - httpd
-
-  - name: create the code directory
-    file: dest=/srv/hubs state=directory owner=fedora group=fedora
-
-  - name: git clone the code
-    git: repo=https://pagure.io/fedora-hubs.git
-         dest=/srv/hubs/fedora-hubs
-         version=develop
-    become: true
-    become_user: fedora
-    #ignore_errors: true
-
 
   roles:
   - basessh
 
   - role: hubs
-    main_user: fedora
+    main_user: hubs
     hubs_url_hostname: "{{ ansible_fqdn }}"
     hubs_secret_key: demotestinghubsmachine
     hubs_db_type: postgresql
     hubs_dev_mode: false
+    hubs_conf_dir: /etc/fedora-hubs
+    hubs_var_dir: /var/lib/fedora-hubs
     hubs_ssl_cert: /etc/letsencrypt/live/{{ ansible_fqdn }}/fullchain.pem
     hubs_ssl_key: /etc/letsencrypt/live/{{ ansible_fqdn }}/privkey.pem
     hubs_fas_username: "{{ fedoraDummyUser }}"

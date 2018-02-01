@@ -11,7 +11,7 @@
 - name: install python3-certbot-nginx
   dnf: name=python3-certbot-nginx state=present
 
-- name: get the letencrypt cert
+- name: get the letsencrypt cert
   command: certbot certonly -n --standalone --pre-hook "systemctl stop nginx" --post-hook "systemctl start nginx" -d {{ ansible_fqdn }} --agree-tos --email admin@fedoraproject.org
   args:
     creates: /etc/letsencrypt/live/{{ ansible_fqdn }}/privkey.pem
@@ -19,20 +19,10 @@
     - restart nginx
 
 
-- name: Gunicorn logging configuration
-  copy:
-    src: logging.ini
-    dest: "{{ hubs_conf_dir }}/logging.ini"
-    owner: "{{ main_user }}"
-    group: "{{ main_user }}"
-  notify:
-    - restart hubs webapp
-
-
 - name: Nginx configuration for hubs
   template:
     src: nginx.conf
-    dest: /etc/nginx/conf.d/hubs.conf
+    dest: /etc/nginx/conf.d/fedora-hubs.conf
   notify:
     - restart nginx
 
@@ -66,22 +56,8 @@
     persistent: yes
 
 
-- name: Install the service files
-  template:
-    src: "{{ item }}.service"
-    dest: /etc/systemd/system/{{ item }}.service
-  with_items:
-    - hubs-webapp
-  register: service_installed
-
-
-- name: reload systemd
-  command: systemctl daemon-reload
-  when: service_installed|changed
-
-
 - name: Start and enable the services
   service: name={{ item }} state=started enabled=yes
   with_items:
-    - hubs-webapp
+    - fedora-hubs-webapp
     - nginx

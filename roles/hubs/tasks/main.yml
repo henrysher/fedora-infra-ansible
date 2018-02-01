@@ -1,138 +1,56 @@
 ---
-- name: Install helpful development packages
-  dnf: name={{ item }} state=present
-  with_items:
-    - git
-    - vim-enhanced
-
 - name: Install external dependencies
   dnf: name={{ item }} state=present
   with_items:
-    - npm
     - redis
-    - fedmsg-hub
-    - fedmsg-relay
-    - python3-virtualenv
-    - python3-flask-oidc
-    - python3-moksha-common
+    - python3-fedmsg
     - postfix
 
-- name: Install the distribution versions of requirements.txt
-  dnf: name={{ item }} state=present
-  with_items:
-    - python3-alembic
-    - python3-arrow
-    - python3-bleach
-    - python3-decorator
-    - python3-dogpile-cache
-    - python3-fedmsg-core
-    - python3-fedmsg-meta-fedora-infrastructure
-    - python3-flask
-    - python3-flask-oidc
-    - python3-html5lib
-    - python3-munch
-    - python3-pytz
-    - python3-sqlalchemy
-    - python3-markdown
-    - python3-pkgwat-api
-    - python3-six
-    - python3-pygments
-    - python3-pygments-markdown-lexer
-    - python3-retask
-    - python3-twisted
 
+- include_tasks: dev_deps.yml
+  when: hubs_dev_mode
 
-# Create directory structure
+- include_tasks: prod_deps.yml
+  when: not hubs_dev_mode
 
-- name: Create the directory structure
-  file:
-    path: "{{ item.path }}"
-    state: directory
-    owner: "{{ main_user }}"
-    group: "{{ main_user }}"
-    mode: "{{ item.mode }}"
-    #setype: httpd_sys_content_rw_t
-  with_items:
-    - {path: "{{ hubs_base_dir }}", mode: 755}
-    - {path: "{{ hubs_conf_dir }}", mode: 750}
-    - {path: "{{ hubs_var_dir }}", mode: 750}
-
-
-# Set up the Python development environment
-- name: Install Fedora Hubs requirements.txt into hubs virtualenv
-  become: true
-  become_user: "{{ main_user }}"
-  pip:
-    requirements: "{{ hubs_code_dir }}/requirements.txt"
-    virtualenv: "{{ hubs_venv_dir}}"
-    virtualenv_site_packages: yes
-    virtualenv_command: virtualenv-3
-
-- name: Install Fedora Hubs test-requirements.txt into hubs virtualenv
-  become: true
-  become_user: "{{ main_user }}"
-  pip:
-    requirements: "{{ hubs_code_dir }}/test-requirements.txt"
-    virtualenv: "{{ hubs_venv_dir}}"
-    virtualenv_site_packages: yes
-    virtualenv_command: virtualenv-3
-
-- name: Install other packages into hubs virtualenv
-  become: true
-  become_user: "{{ main_user }}"
-  pip:
-    name: "{{ item }}"
-    virtualenv: "{{ hubs_venv_dir }}"
-    virtualenv_site_packages: yes
-    virtualenv_command: virtualenv-3
-  with_items:
-    - bleach
-
-- name: Install Fedora Hubs into the virtualenv
-  become: true
-  become_user: "{{ main_user }}"
-  command: "{{ hubs_venv_dir }}/bin/pip install -e {{ hubs_code_dir }}"
-  args:
-    creates: "{{ hubs_venv_dir }}/lib/python3.6/site-packages/fedora-hubs.egg-link"
-
-- name: Set bin file context in the virtualenv
-  become: true
-  become_user: "{{ main_user }}"
-  file:
-    path: "{{ hubs_venv_dir }}/bin"
-    state: directory
-    recurse: true
-    setype: bin_t
 
 - name: Add a basic Hubs configuration file
   template:
     src: "{{ item }}"
-    dest: "{{ hubs_conf_dir }}/hubs_config.py"
+    dest: "{{ hubs_conf_dir }}/hubs.py"
+    owner: root
+    group: "{{ main_user }}"
+    mode: 0640
   with_first_found:
     - hubs_config.{{ ansible_hostname }}
     - hubs_config
-  become: true
-  become_user: "{{ main_user }}"
   notify: "hubs configuration change"
+
 
 - name: Add a basic fedmsg configuration file
   template:
     src: "{{ item }}"
-    dest: "/etc/fedmsg.d/hubs_config.py"
+    dest: "/etc/fedmsg.d/fedora-hubs.py"
   with_first_found:
     - fedmsg_config.{{ ansible_hostname }}
     - fedmsg_config
   notify: "hubs configuration change"
 
+
 - name: Configure application to authenticate with iddev.fedorainfracloud.org
   command:
     oidc-register
     --output-file {{ hubs_conf_dir }}/client_secrets.json
-    https://iddev.fedorainfracloud.org/ {{ hubs_url }}
-  become: true
-  become_user: "{{ main_user }}"
+    https://{{ hubs_oidc_url }}/ {{ hubs_url }}
   args:
     creates: "{{ hubs_conf_dir }}/client_secrets.json"
+
+- name: Set permissions on the oidc credentials file
+  file:
+    path: "{{ hubs_conf_dir }}/client_secrets.json"
+    owner: root
+    group: "{{ main_user }}"
+    mode: 0640
 
 
 - name: Start and enable the common services
@@ -145,29 +63,14 @@
 - include_tasks: db-{{ hubs_db_type }}.yml
 
 
-# Set up JavaScript requirements
-- name: Install npm packages
-  command: npm install
-  become: true
-  become_user: "{{ main_user }}"
-  args:
-    creates: node_modules
-    chdir: "{{ hubs_code_dir }}/hubs/static/client"
-
-- name: Build JavaScript assets
-  command: npm run build
-  become: true
-  become_user: "{{ main_user }}"
-  args:
-    chdir: "{{ hubs_code_dir }}/hubs/static/client"
-    creates: "{{ hubs_code_dir }}/hubs/static/js/build/common.js"
-
-
 # Services
 - name: Disable the system-wide fedmsg daemons
   service: name={{ item }} state=stopped enabled=no
   with_items:
+    # We use honcho in dev mode and fedmsg-hub-3 in prod mode
     - fedmsg-hub
+    # We use honcho in dev mode and fedmsg-relay-3 in prod mode
+    - fedmsg-relay
 
 
 # Include mode-specific tasks

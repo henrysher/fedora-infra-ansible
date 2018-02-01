@@ -1,17 +1,69 @@
-- name: Install Fedora Hubs development packages
+# Set up the Python development environment
+
+- name: Install Fedora Hubs requirements.txt into hubs virtualenv
+  pip:
+    requirements: "{{ hubs_code_dir }}/requirements.txt"
+    executable: pip3
+
+- name: Install Fedora Hubs test-requirements.txt into hubs virtualenv
+  pip:
+    requirements: "{{ hubs_code_dir }}/test-requirements.txt"
+    executable: pip3
+
+- name: Install other packages into hubs virtualenv
+  pip:
+    name: "{{ item }}"
+    executable: pip3
+  with_items:
+    - bleach
+
+- name: Install Fedora Hubs into the virtualenv
+  command: "pip3 install -e {{ hubs_code_dir }}"
+  args:
+    creates: "/usr/lib/python3.6/site-packages/fedora-hubs.egg-link"
+
+
+# Set up JavaScript requirements
+
+- name: Install npm packages
+  command: npm install
+  become: true
+  become_user: "{{ main_user }}"
+  args:
+    creates: node_modules
+    chdir: "{{ hubs_code_dir }}/hubs/static/client"
+
+- name: Build JavaScript assets
+  command: npm run build
+  become: true
+  become_user: "{{ main_user }}"
+  args:
+    chdir: "{{ hubs_code_dir }}/hubs/static/client"
+    creates: "{{ hubs_code_dir }}/hubs/static/js/build/common.js"
+
+
+# Development tools
+
+- name: Install helpful development packages
   dnf: name={{ item }} state=present
   with_items:
-    - gcc
-    - gcc-c++
-    - libffi-devel
-    - openssl-devel
-    - python-sphinx
-    - python2-devel
-    - python3-devel
+    - git
+    - vim-enhanced
+
+- name: Install Fedora Hubs development tools
+  dnf: name={{ item }} state=present
+  with_items:
     - python3-honcho
     - python3-tox
-    - redhat-rpm-config
-    - sqlite-devel
+
+- name: Ease local access to the database
+  copy:
+    content: "*:*:hubs:hubs:{{ hubs_db_password }}"
+    dest: /home/{{ main_user }}/.pgpass
+    mode: 600
+    owner: "{{ main_user }}"
+    group: "{{ main_user }}"
+  when: hubs_db_type == "postgresql"
 
 - name: Install a custom bashrc
   template: src=bashrc dest=/home/{{ main_user }}/.bashrc
