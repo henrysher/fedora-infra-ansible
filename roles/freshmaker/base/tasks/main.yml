@@ -25,20 +25,7 @@
   tags:
   - freshmaker
 
-- name: generate Freshmaker app config for frontend
-  template:
-    src: etc/freshmaker/config.py.j2
-    dest: /etc/freshmaker/config.py
-    owner: apache
-    group: apache
-    mode: 0440
-  notify:
-  - restart apache
-  when: inventory_hostname.startswith('freshmaker-frontend')
-  tags:
-  - freshmaker
-
-- name: generate Freshmaker app config for backend
+- name: generate Freshmaker app config
   template:
     src: etc/freshmaker/config.py.j2
     dest: /etc/freshmaker/config.py
@@ -46,7 +33,7 @@
     group: fedmsg
     mode: 0440
   notify:
+  - restart apache
   - restart fedmsg-hub
-  when: inventory_hostname.startswith('freshmaker-backend')
   tags:
   - freshmaker
