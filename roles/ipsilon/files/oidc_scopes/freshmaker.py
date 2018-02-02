@@ -7,7 +7,7 @@ class OpenidCExtension(OpenidCExtensionBase):
     name = 'freshmaker'
     display_name = 'Freshmaker Rebuilds'
     scopes = {
-        'https://pagure.io/freshmaker/manual-trigger': {
+        'https://pagure.io/freshmaker/submit-build': {
             'display_name': 'Permission to submit manual triggers of rebuilds',
             'claims': [],
         },
