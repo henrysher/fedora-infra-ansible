@@ -8,13 +8,13 @@ RewriteRule (.*) https://%{HTTP_HOST}%{REQUEST_URI}
 WSGIDaemonProcess freshmaker user=fedmsg group=fedmsg threads=5 home=/usr/share/freshmaker
 WSGIScriptAlias /{{ freshmaker_endpoint }} /usr/share/freshmaker/freshmaker.wsgi
 
-{% if freshmaker_servername != inventory_hostname %}
-# Redirect from the hostname of this machine to user-visible hostname.
-RewriteEngine On
-<If "%{HTTP_HOST} == '{{ inventory_hostname }}'">
-RewriteRule (.*) "%{REQUEST_SCHEME}://{{ freshmaker_servername }}%{REQUEST_URI}" [R,L]
-</If>
-{% endif %}
+##{% if freshmaker_servername != inventory_hostname %}
+### Redirect from the hostname of this machine to user-visible hostname.
+##RewriteEngine On
+##<If "%{HTTP_HOST} == '{{ inventory_hostname }}'">
+##RewriteRule (.*) "%{REQUEST_SCHEME}://{{ freshmaker_servername }}%{REQUEST_URI}" [R,L]
+##</If>
+##{% endif %}
 
 {% if env == 'staging' %}
 OIDCOAuthClientID {{ freshmaker_stg_oidc_client_id }}
