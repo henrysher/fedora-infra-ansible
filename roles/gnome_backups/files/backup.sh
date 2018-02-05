@@ -25,7 +25,7 @@ MACHINES='signal.gnome.org
           range.gnome.org
           pentagon.gimp.org
           account.gnome.org
-          bugzilla-new.gnome.org
+          bugzilla.gnome.org
           socket.gnome.org
           odrs.gnome.org
           gnome-hispano.gnome.org
