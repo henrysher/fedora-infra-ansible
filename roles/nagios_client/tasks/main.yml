@@ -17,39 +17,13 @@
   tags:
   - packages
   - nagios_client
-  when: ansible_distribution_major_version|int < 22
-
-# install pkgs:
-- name: install nagios client pkgs
-  dnf: name={{ item }} state=present
-  with_items:
-  - nrpe
-  - nagios-plugins
-  - nagios-plugins-disk
-  - nagios-plugins-file_age
-  - nagios-plugins-users
-  - nagios-plugins-procs
-  - nagios-plugins-swap
-  - nagios-plugins-load
-  - nagios-plugins-ping
-  tags:
-  - packages
-  - nagios_client
-  when: ansible_distribution_major_version|int > 21
 
 - name: install nagios tcp check for mirrorlist proxies
   package: name=nagios-plugins-tcp state=present
   tags:
   - packages
   - nagios_client
-  when: ansible_distribution_major_version|int < 22 and 'mirrorlist-proxies' in group_names
-
-- name: install nagios tcp check for mirrorlist proxies
-  dnf: name=nagios-plugins-tcp state=present
-  tags:
-  - packages
-  - nagios_client
-  when: ansible_distribution_major_version|int > 21 and 'mirrorlist-proxies' in group_names
+  when: 'mailman' in group_names or 'mirrorlist-proxies' in group_names
 
 - name: install local nrpe check scripts that are not packaged
   copy: src="scripts/{{ item }}" dest="{{ libdir }}/nagios/plugins/{{ item }}" mode=0755 owner=nagios group=nagios
