@@ -33,6 +33,7 @@ DAY=$(/bin/date -d "-${NUMDAYS} days" +%d)
 
 LOGDIR=/mnt/fedora_stats/combined-http/
 CONFDIR=/mnt/fedora_stats/awstats/conf
+STORDIR=/mnt/fedora_stats/awstats/storage
 OUTDIR=/var/www/html/awstats-reports
 
 TREEDIR=${LOGDIR}/${YEAR}/${MONTH}/${DAY}
@@ -43,11 +44,21 @@ HTMLDOC=/usr/bin/htmldoc
 
 #SITES="apps.fedoraproject.org codecs.fedoraproject.org communityblog.fedoraproject.org docs.fedoraproject.org download.fedoraproject.org fedoramagazine.org fedoraproject.org geoip.fedoraproject.org get.fedoraproject.org getfedora.org labs.fedoraproject.org mirrors.fedoraproject.org spins.fedoraproject.org start.fedoraproject.org"
 
-SITES="admin.fedoraproject.org apps.fedoraproject.org arm.fedoraproject.org ask.fedoraproject.org badges.fedoraproject.org bodhi.fedoraproject.org boot.fedoraproject.org budget.fedoraproject.org bugz.fedoraproject.org cloud.fedoraproject.org codecs.fedoraproject.org communityblog.fedoraproject.org copr.fedoraproject.org darkserver.fedoraproject.org developer.fedoraproject.org developers.fedoraproject.org dl.fedoraproject.org docs.fedoraproject.org download.fedoraproject.org fas.fedoraproject.org fedora.my fedoracommunity.org fedoramagazine.org fedoraproject.com fedoraproject.org flocktofedora.net flocktofedora.org fonts.fedoraproject.org fpaste.org fudcon.fedoraproject.org geoip.fedoraproject.org get.fedoraproject.org getfedora.org help.fedoraproject.org id.fedoraproject.org it.fedoracommunity.org join.fedoraproject.org k12linux.org kde.fedoraproject.org l10n.fedoraproject.org labs.fedoraproject.org lists.fedorahosted.org lists.fedoraproject.org meetbot-raw.fedoraproject.org meetbot.fedoraproject.org mirrors.fedoraproject.org nightly.fedoraproject.org osbs.fedoraproject.org paste.fedoraproject.org pdc.fedoraproject.org people.fedoraproject.org port389.org qa.fedoraproject.org redirect.fedoraproject.org registry.fedoraproject.org smolts.org spins.fedoraproject.org src.fedoraproject.org start.fedoraproject.org store.fedoraproject.org taskotron.fedoraproject.org translate.fedoraproject.org uk.fedoracommunity.org "
+SITES="admin.fedoraproject.org apps.fedoraproject.org arm.fedoraproject.org ask.fedoraproject.org badges.fedoraproject.org bodhi.fedoraproject.org boot.fedoraproject.org budget.fedoraproject.org bugz.fedoraproject.org cloud.fedoraproject.org codecs.fedoraproject.org communityblog.fedoraproject.org copr.fedoraproject.org darkserver.fedoraproject.org developer.fedoraproject.org developers.fedoraproject.org dl.fedoraproject.org docs.fedoraproject.org docs-old.fedoraproject.org download.fedoraproject.org fas.fedoraproject.org fedora.my fedoracommunity.org fedoramagazine.org fedoraproject.com fedoraproject.org flocktofedora.net flocktofedora.org fonts.fedoraproject.org fpaste.org fudcon.fedoraproject.org geoip.fedoraproject.org get.fedoraproject.org getfedora.org help.fedoraproject.org id.fedoraproject.org it.fedoracommunity.org join.fedoraproject.org k12linux.org kde.fedoraproject.org l10n.fedoraproject.org labs.fedoraproject.org lists.fedorahosted.org lists.fedoraproject.org meetbot-raw.fedoraproject.org meetbot.fedoraproject.org mirrors.fedoraproject.org nightly.fedoraproject.org osbs.fedoraproject.org paste.fedoraproject.org pdc.fedoraproject.org people.fedoraproject.org port389.org qa.fedoraproject.org redirect.fedoraproject.org registry.fedoraproject.org smolts.org spins.fedoraproject.org src.fedoraproject.org start.fedoraproject.org store.fedoraproject.org taskotron.fedoraproject.org translate.fedoraproject.org uk.fedoracommunity.org "
 
 pushd ${CONFDIR}
 for SITE in ${SITES}; do
-    perl /usr/share/awstats/wwwroot/cgi-bin/awstats.pl -config=${CONFDIR}/${SITE} -update -Logfile=${TREEDIR}/${SITE}-access.log
-    perl /mnt/fedora_stats/awstats/conf/awstats_buildstaticpages.pl -awstatsprog=${AWSTATS} -config=${SITE} -month=all -year=${YEAR} -dir=${OUTDIR}/${YEAR} ;
+    if [[ -f ${CONFDIR/${SITE} ]]; then 
+	if [[ -d ${STORDIR}/${SITE} ]]; then
+	    mkdir -p ${STORDIR}/${SITE}
+	fi
+	if [[ -d ${OUTDIR}/${YEAR} ]]; then
+	    mkdir -p ${OUTDIR}/${YEAR}
+	fi
+	perl /usr/share/awstats/wwwroot/cgi-bin/awstats.pl -config=${CONFDIR}/${SITE} -update -Logfile=${TREEDIR}/${SITE}-access.log
+	perl /mnt/fedora_stats/awstats/conf/awstats_buildstaticpages.pl -awstatsprog=${AWSTATS} -config=${SITE} -month=all -year=${YEAR} -dir=${OUTDIR}/${YEAR} ;
+    else
+	echo "Site ${SITE} does not have config file"
+    fi
 done
 popd
