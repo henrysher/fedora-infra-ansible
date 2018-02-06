@@ -20,7 +20,7 @@ MACHINES='signal.gnome.org
           expander.gnome.org
           live.gnome.org
           view.gnome.org
-          puppet.gnome.org
+          puppetmaster01.gnome.org
           accelerator.gnome.org
           range.gnome.org
           pentagon.gimp.org
