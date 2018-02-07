@@ -18,7 +18,7 @@ MACHINES='signal.gnome.org
           master.gnome.org
           restaurant.gnome.org
           expander.gnome.org
-          live.gnome.org
+          wiki.gnome.org 
           view.gnome.org
           puppetmaster01.gnome.org
           accelerator.gnome.org
