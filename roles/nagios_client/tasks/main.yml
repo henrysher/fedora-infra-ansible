@@ -211,6 +211,16 @@
   tags:
   - nagios_client
 
+- name: install nrpe checks for mailman01
+  template: src={{ item }}.j2 dest=/etc/nrpe.d/{{ item }}
+  with_items:
+  - check_mailman_api.cfg
+  when: inventory_hostname.startswith('mailman01')
+  notify:
+  - restart nrpe
+  tags:
+  - nagios_client
+
 - name: install nrpe checks for proxies
   template: src={{ item }}.j2 dest=/etc/nrpe.d/{{ item }}
   with_items:
