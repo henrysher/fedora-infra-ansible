@@ -123,7 +123,12 @@ releng_fedmsg_certname = shell-bodhi-backend01{{env_suffix}}.phx2.fedoraproject.
 
 # Where to initially mash repositories. You can use %(here)s to reference the location of this file.
 # mash_dir =
+{% if env == 'production' %}
 mash_dir = /mnt/koji/compose/updates/
+{% else %}
+# do not use on frontends as bodhi will check the mount and refuse to run without it.
+#mash_dir = /mnt/koji/compose/updates/
+{% endif %}
 
 # The max number of mash threads running at the same time
 # max_concurrent_mashes = 2
@@ -132,7 +137,12 @@ max_concurrent_mashes = 4
 # Where to symlink the latest repos by their tag name. You can use %(here)s to reference the
 # location of this file.
 # mash_stage_dir =
+{% if env == 'production' %}
 mash_stage_dir = /mnt/koji/compose/updates/
+{% else %}
+# do not use on frontends as bodhi will check the mount and refuse to run without it.
+#mash_stage_dir = /mnt/koji/compose/updates/
+{% endif %}
 
 # The following jinja2 template variables are available for use to customize the Pungi configs and
 # variants files to the Release and Updates:
@@ -293,6 +303,7 @@ top_testers_timeframe = 900
 # dogpile.cache.backend = dogpile.cache.dbm
 # dogpile.cache.expiration_time = 100
 # dogpile.cache.arguments.filename = /var/cache/bodhi-dogpile-cache.dbm
+dogpile.cache.arguments.filename = /var/cache/bodhi/dogpile-cache.dbm
 
 # Exclude sending emails to these users
 # exclude_mail = autoqa taskotron
