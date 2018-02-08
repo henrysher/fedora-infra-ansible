@@ -1,3 +1,4 @@
+# The commented values in this config file represent the defaults.
 [filter:proxy-prefix]
 use = egg:PasteDeploy#prefix
 prefix = /
@@ -7,138 +8,176 @@ scheme = https
 use = egg:bodhi-server
 filter-with = proxy-prefix
 
-# Release status
-# pre-beta enforces the 'Pre Beta' policy defined here:
-# https://fedoraproject.org/wiki/Updates_Policy
-f27.status = post_beta
-
-f27.post_beta.mandatory_days_in_testing = 7
-f27.post_beta.critpath.num_admin_approvals = 0
-f27.post_beta.critpath.min_karma = 2
-f27.post_beta.critpath.stable_after_days_without_negative_karma = 14
-
-f27.pre_beta.mandatory_days_in_testing = 3
-f27.pre_beta.critpath.num_admin_approvals = 0
-f27.pre_beta.critpath.min_karma = 1
-
-##
-## Atomic OSTree support
-## This will compose Atomic OSTrees during the push process using the fedmsg-atomic-composer
-## https://github.com/fedora-infra/fedmsg-atomic-composer
-##
-compose_atomic_trees = true
-
 ##
 ## Messages
 ##
 
-# A notice to flash on the front page
-frontpage_notice =
+# The bodhi-approve-testing cron job will post this message as a comment from the bodhi user on
+# updates that reach the required time in testing if they are not stable yet. Positional
+# substitution is used, and the %d will be replaced with the time in testing required for the
+# update.
+# testing_approval_msg = This update has reached %d days in testing and can be pushed to stable now if the maintainer wishes
 
-# A notice to flash on the New Update page
-newupdate_notice =
+# not_yet_tested_msg = This update has not yet met the minimum testing requirements defined in the <a href="https://fedoraproject.org/wiki/Package_update_acceptance_criteria">Package Update Acceptance Criteria</a>
 
-testing_approval_msg = This update has reached %d days in testing and can be pushed to stable now if the maintainer wishes
-not_yet_tested_msg = This update has not yet met the minimum testing requirements defined in the <a href="https://fedoraproject.org/wiki/Package_update_acceptance_criteria">Package Update Acceptance Criteria</a>
-not_yet_tested_epel_msg = This update has not yet met the minimum testing requirements defined in the <a href="https://fedoraproject.org/wiki/EPEL_Updates_Policy">EPEL Updates Policy</a>
-stablekarma_comment = This update has reached the stable karma threshold and will be pushed to the stable updates repository
+# not_yet_tested_epel_msg = This update has not yet met the minimum testing requirements defined in the <a href="https://fedoraproject.org/wiki/EPEL_Updates_Policy">EPEL Update Policy</a>
 
-testing_approval_msg_based_on_karma = This update has reached the stable karma threshold and can be pushed to stable now if the maintainer wishes.
-not_yet_tested_msg_based_on_karma = This update has not reached the stable karma threshold.
+# Bodhi will post this comment on Updates that don't use autokarma when they reach the stable
+# threshold.
+# testing_approval_msg_based_on_karma = This update has reached the stable karma threshold and can be pushed to stable now if the maintainer wishes.
+
+# The comment that Bodhi will post on updates when a user posts negative karma.
+# disable_automatic_push_to_stable = Bodhi is disabling automatic push to stable due to negative karma. The maintainer may push manually if they determine that the issue is not severe.
 
 # Libravatar - If this is true libravatar will work as normal. Otherwise, all
 # libravatar links will be replaced with the string "libravatar.org" so that
 # the tests can still pass.
-libravatar_enabled = True
+# libravatar_enabled = True
+
 # Set this to true if you want to do federated dns libravatar lookup
-libravatar_dns = False
+# libravatar_dns = False
+
+# If libravatar_dns is True, prefer_ssl will define what gets handed to
+# libravatar.libravatar_url()'s https setting. It may be set to True or False, but defaults to None,
+# which is effectively False.
+# prefer_ssl =
 
 # Set this to True in order to send fedmsg messages.
+# fedmsg_enabled = False
 fedmsg_enabled = True
 
-
-# Captcha - if 'captcha.secret' is not None, then it will be used for comments
-# captcha.secret must be 32 url-safe base64-encoded bytes
-# you can generate afresh with >>> cryptography.fernet.Fernet.generate_key()
+# Captcha - if 'captcha.secret' is set, then it will be used for comments. Comment it to turn it
+# off. captcha.secret must be 32 url-safe base64-encoded bytes.
+# You can generate one with >>> cryptography.fernet.Fernet.generate_key()
+# captcha.secret = CHANGEME
 captcha.secret = {{ bodhi2CaptchaSecret }}
-# Dimensions
-captcha.image_width = 300
-captcha.image_height = 80
-# Any truetype font will do.
-captcha.font_path = /usr/share/fonts/liberation/LiberationMono-Regular.ttf
-captcha.font_size = 36
-# Colors
-captcha.font_color = #000000
-captcha.background_color = #ffffff
-# In pixels
-captcha.padding = 5
-# If a captcha sits around for this many seconds, it will stop working.
-captcha.ttl = 300
 
-#datagrepper_url = http://localhost:5000
-datagrepper_url = https://apps.fedoraproject.org/datagrepper
-badge_ids = binary-star|both-bull-and-self-transcended-tester-viii|catching-the-bull-tester-iv|corporate-drone|corporate-overlord|corporate-shill|discovery-of-the-footprints-tester-ii|in-search-of-the-bull-tester-i|is-this-thing-on-updates-testing-i|is-this-thing-on-updates-testing-ii|is-this-thing-on-updates-testing-iii|is-this-thing-on-updates-testing-iv|it-still-works!|like-a-rock-updates-stable-i|like-a-rock-updates-stable-ii|like-a-rock-updates-stable-iii|like-a-rock-updates-stable-iv|mic-check!-updates-testing-v|missed-the-train|override,-you-say|perceiving-the-bull-tester-iii|reaching-the-source-tester-ix|return-to-society-tester-x|riding-the-bull-home-tester-vi|stop-that-update!|take-this-and-call-me-in-the-morning|taming-the-bull-tester-v|tectonic!-updates-stable-v|the-bull-transcended-tester-vii|what-goes-around-comes-around-karma-i|what-goes-around-comes-around-karma-ii|what-goes-around-comes-around-karma-iii|what-goes-around-comes-around-karma-iv|white-hat|you-can-pry-it-from-my-cold,-dead-hands
+# Dimensions
+# captcha.image_width = 300
+# captcha.image_height = 80
+
+# Any truetype font will do.
+# /usr/share/fonts/liberation/LiberationMono-Regular.ttf lives in liberation-mono-fonts.
+# /usr/share/fonts/pcaro-hermit/Hermit-medium.otf lives in pcaro-hermit-fonts package.
+# captcha.font_path = /usr/share/fonts/liberation/LiberationMono-Regular.ttf
+# captcha.font_size = 36
+
+# Colors
+# captcha.font_color = #000000
+# captcha.background_color = #ffffff
+
+# In pixels
+# captcha.padding = 5
+
+# If a captcha sits around for this many seconds, it will stop working.
+# captcha.ttl = 300
+
+
+# The URL for a datagrepper to use in various templates.
+# datagrepper_url = https://apps.fedoraproject.org/datagrepper
+datagrepper_url = https://apps{{env_suffix}}.fedoraproject.org/datagrepper
+# badge_ids = binary-star|both-bull-and-self-transcended-tester-viii|catching-the-bull-tester-iv|corporate-drone|corporate-overlord|corporate-shill|discovery-of-the-footprints-tester-ii|in-search-of-the-bull-tester-i|is-this-thing-on-updates-testing-i|is-this-thing-on-updates-testing-ii|is-this-thing-on-updates-testing-iii|is-this-thing-on-updates-testing-iv|it-still-works!|like-a-rock-updates-stable-i|like-a-rock-updates-stable-ii|like-a-rock-updates-stable-iii|like-a-rock-updates-stable-iv|mic-check!-updates-testing-v|missed-the-train|override,-you-say|perceiving-the-bull-tester-iii|reaching-the-source-tester-ix|return-to-society-tester-x|riding-the-bull-home-tester-vi|stop-that-update!|take-this-and-call-me-in-the-morning|taming-the-bull-tester-v|tectonic!-updates-stable-v|the-bull-transcended-tester-vii|what-goes-around-comes-around-karma-i|what-goes-around-comes-around-karma-ii|what-goes-around-comes-around-karma-iii|what-goes-around-comes-around-karma-iv|white-hat|you-can-pry-it-from-my-cold,-dead-hands
 
 
 ##
-## Wiki Test Cases
+## Testing
 ##
 
 ## Query the wiki for test cases
+# query_wiki_test_cases = False
 query_wiki_test_cases = True
-wiki_url = https://fedoraproject.org/w/api.php
-test_case_base_url = https://fedoraproject.org/wiki/
+# wiki_url = https://fedoraproject.org/w/api.php
+# test_case_base_url = https://fedoraproject.org/wiki/
+wiki_url = https://{{env_suffix}}fedoraproject.org/w/api.php
+test_case_base_url = https://{{env_suffix}}fedoraproject.org/wiki/
+
+# URL of the resultsdb for integrating checks and stuff
+# resultsdb_api_url = https://taskotron.fedoraproject.org/resultsdb_api/
+resultsdb_url = https://taskotron{{env_suffix}}.fedoraproject.org/resultsdb/
+
+# Set this to True to enable gating based on policies enforced by Greenwave. If you set this to
+# True, be sure to add a cron job to run the bodhi-check-policies CLI periodically.
+# test_gating.required = False
+test_gating.required = True
+
+# If this is set to a URL, a "More information about test gating" link will appear on update pages for users
+# to click and learn more.
+# test_gating.url =
+
+# The API url of Greenwave.
+# greenwave_api_url = https://greenwave.fedoraproject.org/api/v1.0
+greenwave_api_url = https://greenwave-web-greenwave.app.os{{env_suffix}}.fedoraproject.org/api/v1.0
 
 # Email domain to prepend usernames to
-default_email_domain = fedoraproject.org
+# default_email_domain = fedoraproject.org
+default_email_domain = {{env_suffix}}fedoraproject.org
 
 # domain for generated message IDs
-message_id_email_domain = admin.fedoraproject.org
+# message_id_email_domain = admin.fedoraproject.org
+message_id_email_domain = admin{{env_suffix}}.fedoraproject.org
 
 ##
-## Mash settings
+## Masher settings
 ##
+releng_fedmsg_certname = shell-bodhi-backend01{{env_suffix}}.phx2.fedoraproject.org
 
-# If defined, the bodhi masher will ensure that messages are signed with the given cert
-{% if ansible_hostname == 'bodhi-backend01' %}
-releng_fedmsg_certname = shell-bodhi-backend01.phx2.fedoraproject.org
-{% else %}
-releng_fedmsg_certname = shell-bodhi-backend03.phx2.fedoraproject.org
-{% endif %}
-
-# The masher is a bodhi instance that is responsible for composing the update
-# repositories, regenerating metrics, sending update notices, closing bugs,
-# and other costly operations.  To set an external masher, set the masher to
-# the baseurl of the bodhi instance.  If set to None, this bodhi instance
-# will act as a masher as well.
-#masher = None
-
-{% if 'backend' in inventory_hostname %}
+# Where to initially mash repositories. You can use %(here)s to reference the location of this file.
+# mash_dir =
 mash_dir = /mnt/koji/compose/updates/
-mash_stage_dir = /mnt/koji/compose/updates/
-{% endif %}
-pungi.basepath = /etc/bodhi
-pungi.conf.rpm = pungi.rpm.conf.j2
-pungi.conf.module = pungi.module.conf.j2
-pungi.labeltype = Update
-pungi.extracmdline = --notification-script=/usr/bin/pungi-fedmsg-notification --notification-script=pungi-wait-for-signed-ostree-handler
+
+# The max number of mash threads running at the same time
+# max_concurrent_mashes = 2
 max_concurrent_mashes = 4
 
-## Our periodic jobs
-#jobs = clean_repo nagmail fix_bug_titles cache_release_data approve_testing_updates
-jobs = cache_release_data refresh_metrics approve_testing_updates
+# Where to symlink the latest repos by their tag name. You can use %(here)s to reference the
+# location of this file.
+# mash_stage_dir =
+mash_stage_dir = /mnt/koji/compose/updates/
 
-## Comps configuration
-comps_dir = /var/cache/bodhi/comps
-comps_url = https://pagure.io/fedora-comps.git
+# The following jinja2 template variables are available for use to customize the Pungi configs and
+# variants files to the Release and Updates:
+#
+#  * 'id': The id of the Release being mashed.
+#  * 'release': The Release being mashed.
+#  * 'request': The request being mashed.
+#  * 'updates': The Updates being mashed.
+#
+# NOTE: The jinja2 configuration for these templates replaces the {'s and }'s with ['s and ]'.
+# e.g.: a block becomes [% if <something %], and a variable is [[ varname ]].
+
+# The base path where pungi configs will be stored. You will need to put variants.xml templates
+# inside pungi.basepath as well. These templates will have access to the same template variables
+# described above, and should be named variants.rpm.xml.j2 and variants.module.xml.j2, for RPM
+# composes and module composes, respectively.
+# pungi.basepath = /etc/bodhi
+
+# The Pungi executable to use when mashing.
+# pungi.cmd = /usr/bin/pungi-koji
+
+# The following settings reference filenames of jinja2 templates found in pungi.basepath to be used
+# as Pungi configs for mashing modules or RPMs (The RPM config includes dnf, yum, and atomic repos).
+# pungi.conf.module = pungi.module.conf
+# pungi.conf.rpm = pungi.rpm.conf
+pungi.conf.rpm = pungi.rpm.conf.j2
+pungi.conf.module = pungi.module.conf.j2
+
+# A space separated list of extra arguments to be passed on to Pungi during mashing.
+# pungi.extracmdline =
+pungi.extracmdline = --notification-script=/usr/bin/pungi-fedmsg-notification --notification-script=pungi-wait-for-signed-ostree-handler
+
+# What to pass to Pungi's --label flag, which is metadata included in its composeinfo.json.
+# pungi.labeltype = Update
 
 ##
 ## Mirror settings
 ##
-file_url = https://download.fedoraproject.org/pub/fedora/linux/updates
+# file_url: Used in the repo metadata to set RPM URLs.
+# file_url = https://download.fedoraproject.org/pub/fedora/linux/updates
+{% if env == 'production' %}
 master_repomd = http://download01.phx2.fedoraproject.org/pub/fedora/linux/updates/%s/%s/repodata/repomd.xml
 fedora_master_repomd = http://download01.phx2.fedoraproject.org/pub/fedora/linux/updates/%s/%s/repodata/repomd.xml
 fedora_epel_master_repomd = http://download01.phx2.fedoraproject.org/pub/epel/%s/%s/repodata/repomd.xml
+{% endif %}
 
 # {release}_{request}_master_repomd: This is used by the masher to determine when a
 #     primary architecture push has been synchronized to the master mirror for a given release and
@@ -148,27 +187,38 @@ fedora_epel_master_repomd = http://download01.phx2.fedoraproject.org/pub/epel/%s
 #     arches listed in {release}_{version}_primary_arches when it is defined, else used for all
 #     arches. You must put two %s's in this setting - the first will be replaced with the release
 #     version and the second will be replaced with the architecture.
-fedora_stable_master_repomd = http://download01.phx2.fedoraproject.org/pub/fedora/linux/updates/%s/%s/repodata/repomd.xml
-fedora_testing_master_repomd = http://download01.phx2.fedoraproject.org/pub/fedora/linux/updates/testing/%s/%s/repodata/repomd.xml
+# fedora_stable_master_repomd = http://download01.phx2.fedoraproject.org/pub/fedora/linux/updates/%s/%s/repodata/repomd.xml
+# fedora_testing_master_repomd = http://download01.phx2.fedoraproject.org/pub/fedora/linux/updates/testing/%s/%s/repodata/repomd.xml
+# fedora_epel_stable_master_repomd = http://download01.phx2.fedoraproject.org/pub/epel/%s/%s/repodata/repomd.xml
+# fedora_epel_testing_master_repomd = http://download01.phx2.fedoraproject.org/pub/epel/testing/%s/%s/repodata/repomd.xml
+{% if env == 'staging' %}
+fedora_stable_master_repomd = https://kojipkgs.stg.fedoraproject.org/compose/updates/f%s-updates/compose/Everything/%s/os/repodata/repomd.xml
+fedora_testing_master_repomd = https://kojipkgs.stg.fedoraproject.org/compose/updates/f%s-updates-testing/compose/Everything/%s/os/repodata/repomd.xml
 fedora_epel_stable_master_repomd = http://download01.phx2.fedoraproject.org/pub/epel/%s/%s/repodata/repomd.xml
 fedora_epel_testing_master_repomd = http://download01.phx2.fedoraproject.org/pub/epel/testing/%s/%s/repodata/repomd.xml
-fedora_modular_stable_master_repomd = http://download01.phx2.fedoraproject.org/pub/fedora/linux/modular/updates/%s/Server/%s/repodata/repomd.xml
-fedora_modular_testing_master_repomd = http://download01.phx2.fedoraproject.org/pub/fedora/linux/modular/updates/testing/%s/Server/%s/repodata/repomd.xml
+{% endif %}
 
 # {release}_{request}_alt_master_repomd: This is used by the masher to determine when a
 #     secondary architecture push has been synchronized to the master mirror for a given release and
 #     request. The masher will verify that the checksum of repomd.xml at the master URL matches the
 #     expected value, and will poll the URL until this test passes. Substitute release and request
 #     for each release id (replacing -'s with _'s) and request (stable, testing). Used for the
-#     arches not listed in {release}_{version}_primary_arches if it is defined. You must put two %s's
-#     in this setting - the first will be replaced with the release version and the second will be
-#     replaced with the architecture.
-fedora_stable_alt_master_repomd = http://download01.phx2.fedoraproject.org/pub/fedora-secondary/updates/%s/%s/repodata/repomd.xml
-fedora_testing_alt_master_repomd = http://download01.phx2.fedoraproject.org/pub/fedora-secondary/updates/testing/%s/%s/repodata/repomd.xml
-
+#     arches not listed in {release}_{version}_primary_arches if it is defined. You must put two
+#     %s's in this setting - the first will be replaced with the release version and the second will
+#     be replaced with the architecture.
+# fedora_stable_alt_master_repomd = http://download01.phx2.fedoraproject.org/pub/fedora-secondary/updates/%s/%s/repodata/repomd.xml
+# fedora_testing_alt_master_repomd = http://download01.phx2.fedoraproject.org/pub/fedora-secondary/updates/testing/%s/%s/repodata/repomd.xml
+{% if env == 'production' %}
+fedora_modular_stable_master_repomd = http://download01.phx2.fedoraproject.org/pub/fedora/linux/modular/updates/%s/Server/%s/repodata/repomd.xml
+fedora_modular_testing_master_repomd = http://download01.phx2.fedoraproject.org/pub/fedora/linux/modular/updates/testing/%s/Server/%s/repodata/repomd.xml
+{% elif env == 'staging' %}
+fedora_modular_stable_master_repomd = https://kojipkgs.stg.fedoraproject.org/compose/updates/f%s-modular-updates/compose/Everything/%s/os/repodata/repomd.xml
+fedora_modular_testing_master_repomd = https://kojipkgs.stg.fedoraproject.org/compose/updates/f%s-modular-updates-testing/compose/Everything/%s/os/repodata/repomd.xml
+{% endif %}
 
 ## The base url of this application
-base_address = https://bodhi.fedoraproject.org/
+# base_address = https://admin.fedoraproject.org/updates/
+base_address = https://bodhi{{env_suffix}}.fedoraproject.org/
 
 
 ## Primary architechures by release
@@ -180,91 +230,72 @@ base_address = https://bodhi.fedoraproject.org/
 ##      Bodhi looks for primary arches with the {release}_{request}_master_repomd setting above, and
 ##      for alternative arches at the {release}_{request}_alt_master_repomd setting above. If this
 ##      is not set, Bodhi will assume the release only has primary arches.
+# fedora_26_primary_arches = armhfp x86_64
 fedora_26_primary_arches = armhfp x86_64
 fedora_27_primary_arches = armhfp x86_64
-
-
-## Supported update types
-update_types = bugfix enhancement security newpackage
-
-## Supported architechures
-##
-## To handle arch name changes between releases, you
-## can also configure bodhi to support one arch *or*
-## another. For example, EPEL5 mashes produce 'ppc'
-## repos, where EPEL6 produces 'ppc64'. To handle this
-## scenario, you can specify something like:
-##
-##   arches = ppc/ppc64
-##
-arches = x86_64 armhfp i386
 
 ##
 ## Email setting
 ##
 
+# The hostname of an SMTP server Bodhi can use to deliver e-mail.
+# smtp_server =
 smtp_server = bastion
 
 # The updates system itself.  This email address is used in fetching Bugzilla
 # information, as well as email notifications
-bodhi_email = updates@fedoraproject.org
+# bodhi_email = updates@fedoraproject.org
+# This is the password used to access Bodhi's bugzilla account.
+# bodhi_password =
+bodhi_email = updates@{{env_suffix}}fedoraproject.org
 bodhi_password = {{ bodhiBugzillaPassword }}
 
 # The address that gets the requests
-release_team_address = bodhiadmin-members@fedoraproject.org
+# release_team_address = bodhiadmin-members@fedoraproject.org
 
-# The address to notify when security updates are initially added to bodhi
-security_team = security_respons-members@fedoraproject.org
-
-# Public announcement lists
-fedora_announce_list = package-announce@lists.fedoraproject.org
-fedora_test_announce_list = test@lists.fedoraproject.org
-fedora_epel_announce_list = epel-package-announce@lists.fedoraproject.org
-fedora_epel_test_announce_list = epel-devel@lists.fedoraproject.org
+# Public lists where we send update announcements.
+# These variables should be named per: Release.prefix_id.lower()_announce_list
+# fedora_announce_list = package-announce@lists.fedoraproject.org
+# fedora_test_announce_list = test@lists.fedoraproject.org
+# fedora_epel_announce_list = epel-package-announce@lists.fedoraproject.org
+# fedora_epel_test_announce_list = epel-devel@lists.fedoraproject.org
 
 # Superuser groups
-admin_groups = proventesters security_respons bodhiadmin sysadmin-main
+# admin_groups = proventesters security_respons bodhiadmin sysadmin-main
 
 # Users that we don't want to show up in the "leaderboard(s)"
-stats_blacklist = bodhi anonymous autoqa taskotron
+# stats_blacklist = bodhi anonymous autoqa taskotron
 
 # A list of non-person users
-system_users = bodhi autoqa taskotron
+# system_users = bodhi autoqa taskotron
 
 # The max length for an update title before we truncate it in the web ui
+# max_update_length_for_ui = 30
 max_update_length_for_ui = 70
 
 # The number of days used for calculating the 'top testers' metric
+# top_testers_timeframe = 7
 top_testers_timeframe = 900
 
-# The email address of the proventesters
-proventesters_email = proventesters-members@fedoraproject.org
-
-# Disabled for the initial release.
-stacks_enabled = False
+# This defaults to False.  We're disabling stacks for the initial release
+# because, while you can create stacks, you can't automatically create updates
+# *from* a stack (which was the whole point).  We'll work on that for a later
+# release.
+# stacks_enabled = False
 
 # These are the default requirements that we apply to stacks, packages, and
 # updates.  Users have free-reign to override them for each kind of entity.  At
 # the end of the day, we only consider the requirements defined by single
 # updates themselves when gating in the backend masher process.
-site_requirements = dist.rpmdeplint dist.upgradepath
-## Some day we'll have rpmgrill, and that will be cool.  Ask tflink.
-#site_requirements = depcheck upgradepath rpmgrill
-
-# Where do we send update announcements to ?
-# These variables should be named per: Release.prefix_id.lower()_announce_list
-#fedora_announce_list =
-#fedora_test_announce_list =
-#fedora_epel_announce_list =
-#fedora_epel_test_announce_list =
+# site_requirements = dist.rpmdeplint dist.upgradepath
 
 # Cache settings
-dogpile.cache.backend = dogpile.cache.dbm
-dogpile.cache.expiration_time = 100
-dogpile.cache.arguments.filename = /var/cache/bodhi/dogpile-cache.dbm
+# dogpile.cache.backend = dogpile.cache.dbm
+# dogpile.cache.expiration_time = 100
+# dogpile.cache.arguments.filename = /var/cache/bodhi-dogpile-cache.dbm
 
 # Exclude sending emails to these users
-exclude_mail = autoqa taskotron
+# exclude_mail = autoqa taskotron
 
 ##
 ## Buildsystem settings
@@ -273,39 +304,35 @@ exclude_mail = autoqa taskotron
 # What buildsystem do we want to use?  For development, we'll use a fake
 # buildsystem that always does what we tell it to do.  For production, we'll
 # want to use 'koji'.
+# buildsystem = dev
 buildsystem = koji
 
 # Koji's XML-RPC hub
-koji_hub = https://koji.fedoraproject.org/kojihub
+# koji_hub = https://koji.stg.fedoraproject.org/kojihub
+koji_hub = https://koji{{env_suffix}}.fedoraproject.org/kojihub
 
 # Root url of the Koji instance to point to. No trailing slash
-koji_url = https://koji.fedoraproject.org
+koji_url = https://koji{{env_suffix}}.fedoraproject.org
 
 # URL of where users should go to set up their notifications
-fmn_url = https://apps.fedoraproject.org/notifications/
+# fmn_url = https://apps.fedoraproject.org/notifications/
+fmn_url = https://apps{{env_suffix}}.fedoraproject.org/notifications/
 
-# URL of the resultsdb for integrating checks and stuff
-resultsdb_url = https://taskotron.fedoraproject.org/resultsdb/
-resultsdb_api_url = https://taskotron.fedoraproject.org/resultsdb_api/
+# If this is defined, fedmenu's JS will be injected into the master template. Fedora's fedmenu URL
+# is https://apps.fedoraproject.org/fedmenu and its data_url is
+# https://apps.fedoraproject.org/js/data.js
+# fedmenu.url =
+# fedmenu.data_url =
+fedmenu.url = https://apps{{env_suffix}}.fedoraproject.org/fedmenu
+fedmenu.data_url = https://apps{{env_suffix}}.fedoraproject.org/js/data.js
 
-fedmenu.url = https://apps.fedoraproject.org/fedmenu
-fedmenu.data_url = https://apps.fedoraproject.org/js/data.js
-
-# Koji Krb stuff
+# Koji krb5
+# krb_principal =
+# krb_keytab =
+# krb_ccache=
 krb_ccache = /tmp/krb5cc_%{uid}
 krb_principal = bodhi/bodhi{{ env_suffix }}.fedoraproject.org@{{ ipa_realm }}
 krb_keytab = /etc/krb5.bodhi_bodhi{{ env_suffix }}.fedoraproject.org.keytab
-
-# Set this to True to enable gating based on policies enforced by Greenwave. If you set this to True,
-# be sure to add a cron job to run the bodhi-check-policies CLI periodically.
-test_gating.required = True
-
-# If this is set to a URL, a "More information about test gating" link will appear on update pages for users
-# to click and learn more.
-# test_gating.url =
-
-# The API url of Greenwave.
-greenwave_api_url = https://greenwave-web-greenwave.app.os.fedoraproject.org/api/v1.0
 
 ##
 ## ACL system
@@ -313,44 +340,57 @@ greenwave_api_url = https://greenwave-web-greenwave.app.os.fedoraproject.org/api
 ## 'pagure', which will query the pagure_url below, or 'dummy', which will
 ## always return guest credentials (used for local development).
 ##
+# acl_system = dummy
 acl_system = pagure
 
 ##
 ## Package DB
 ##
-pkgdb_url = https://admin.fedoraproject.org/pkgdb
+# pkgdb_url = https://admin.fedoraproject.org/pkgdb
 
 ##
 ## Pagure
 ##
-pagure_url = https://src.fedoraproject.org/
+# pagure_url = https://src.fedoraproject.org/pagure/
+pagure_url = https://src{{env_suffix}}.fedoraproject.org/
 
 ##
 ## Product Definition Center (PDC)
 ##
 # pdc_url = https://pdc.fedoraproject.org/
+pdc_url = https://pdc{{env_suffix}}.fedoraproject.org/
 
-
-# We used to get our package tags from pkgdb, but they come from tagger now.
-# https://github.com/fedora-infra/fedora-tagger/pull/74
-#pkgtags_url = https://apps.fedoraproject.org/tagger/api/v1/tag/sqlitebuildtags/
 
 ##
 ## Bug tracker settings
 ##
+# Set this to bugzilla to turn on Bugzilla integration.
+# bugtracker =
 bugtracker = bugzilla
 
-initial_bug_msg = %s has been submitted as an update to %s. %s
-stable_bug_msg = %s has been pushed to the %s repository. If problems still persist, please make note of it in this bug report.
-testing_bug_msg =
-    See https://fedoraproject.org/wiki/QA:Updates_Testing for
-    instructions on how to install test updates. 
-    You can provide feedback for this update here: %s
+# A template that Bodhi will use when commenting on Bugzilla tickets when Updates that reference
+# them are created. Positional substitution is used, and the three %s's will be filled in with the
+# update title, the release's long name, and the URL to the update, respectively.
+# initial_bug_msg = %s has been submitted as an update to %s. %s
 
-testing_bug_epel_msg =
-    See https://fedoraproject.org/wiki/QA:Updates_Testing for
-    instructions on how to install test updates. 
-    You can provide feedback for this update here: %s
+# A template that Bodhi will use when commenting on Bugzilla tickets when Updates that reference
+# them are marked stable. Positional substitution is used, and the first %s will be filled in with
+# the update title and the second will be filled in with the release's long name and the update
+# status.
+# stable_bug_msg = %s has been pushed to the %s repository. If problems still persist, please make note of it in this bug report.
+
+# The following two templates are used to comment on Bugzilla tickets. %s will be substituted with
+# the update's URL. The first is used for all updates, unless the epel setting in defined, which
+# will be used for all Updates on Releases that have an id_prefix of FEDORA-EPEL.
+# testing_bug_msg =
+#     See https://fedoraproject.org/wiki/QA:Updates_Testing for
+#     instructions on how to install test updates.
+#     You can provide feedback for this update here: %s
+# testing_bug_epel_msg =
+#     See https://fedoraproject.org/wiki/QA:Updates_Testing for
+#     instructions on how to install test updates.
+#     You can provide feedback for this update here: %s
+
 
 ##
 ## Bugzilla settings.
@@ -359,18 +399,32 @@ testing_bug_epel_msg =
 # The username/password for our bugzilla account comes
 # from the bodhi_{email,password} fields.
 
+# A URL to a Bugzilla instance's xmlrpc.cgi script for Bodhi to use.
+# bz_server = https://bugzilla.redhat.com/xmlrpc.cgi
+{% if env == 'production' %}
 bz_server = https://bugzilla.redhat.com/xmlrpc.cgi
-#bz_cookie =
+{% if env == 'staging' %}
+bz_server = https://partner-bugzilla.redhat.com/xmlrpc.cgi
+{% endif %}
 
-# Bodhi will avoid touching bugs that are not against the following products
+# Bodhi will avoid touching bugs that are not against the following comma-separated products.
+# Fedora's production Bodhi instance sets this to Fedora,Fedora EPEL
+# bz_products =
 bz_products = Fedora,Fedora EPEL
 
+# A template to use for links to Bugzilla tickets. %s will be filled in with the bug number.
+# buglink = https://bugzilla.redhat.com/show_bug.cgi?id=%s
+{% if env == 'production' %}
 buglink = https://bugzilla.redhat.com/show_bug.cgi?id=%s
+{% if env == 'staging' %}
+buglink = https://partner-bugzilla.redhat.com/show_bug.cgi?id=%s
+{% endif %}
 
 ##
 ## Packages that should suggest a reboot
 ##
-reboot_pkgs = kernel kernel-smp kernel-xen-hypervisor kernel-PAE kernel-xen0 kernel-xenU kernel-xen kernel-xen-guest glibc hal dbus
+reboot_pkgs = kernel kernel-smp kernel-PAE glibc hal dbus
+
 
 ##
 ## Critical Path Packages
@@ -381,20 +435,23 @@ reboot_pkgs = kernel kernel-smp kernel-xen-hypervisor kernel-PAE kernel-xen0 ker
 # Database by setting this value to `pkgdb` or the Product Definition
 # Center by setting this value to `pdc`. If it isn't set, it'll just use the
 # hardcoded list below.
+# critpath.type =
 critpath.type = pdc
 
-# You can hardcode a list of critical path packages instead of using the PackageDB
-#critpath_pkgs = kernel
+# You can hardcode a list of critical path packages instead of using the PkgDB
+# or PDC. This is used if critpath.type is not defined.
+# critpath_pkgs =
 
 # The number of admin approvals it takes to be able to push a critical path
 # update to stable for a pending release.
+# critpath.num_admin_approvals = 2
 critpath.num_admin_approvals = 0
 
-# The net karma required to submit a critial path update to a pending release)
-critpath.min_karma = 2
+# The net karma required to submit a critial path update to a pending release.
+# critpath.min_karma = 2
 
 # Allow critpath to submit for stable after 2 weeks with no negative karma
-critpath.stable_after_days_without_negative_karma = 14
+# critpath.stable_after_days_without_negative_karma = 14
 
 # The minimum amount of time an update must spend in testing before
 # it can reach the stable repository
@@ -406,28 +463,34 @@ fedora_modular.mandatory_days_in_testing = 7
 ## Release status
 ##
 
-# Pre-beta enforces the Pre Beta policy defined here:
-# https://fedoraproject.org/wiki/Updates_Policy
-#f15.status = 'pre_beta'
-#f15.pre_beta.mandatory_days_in_testing = 3
-#f15.pre_beta.critpath.num_admin_approvals = 0
-#f15.pre_beta.critpath.min_karma = 1
-
-# For test cases.
-f7.status = post_beta
-f7.post_beta.mandatory_days_in_testing = 7
-f7.post_beta.critpath.num_admin_approvals = 0
-f7.post_beta.critpath.min_karma = 2
-
-# The number of days worth of updates/comments to display
-feeds.num_days_to_show = 7
-feeds.max_entries = 20
+# You can define alternative policies than the defaults for specific Releases by defining a setting
+# of the form Release.name.status (with -'s removed from the name). You can set the status to any
+# string you like, and then for each status, you can override the mandatory days in testing, the
+# critpath number of admin approvals, and the critpath minimum karma. For example, if we want to set
+# Fedora 28 as a pre-beta, and we want it to have different rules in pre-beta and post-beta, we
+# could do something like this:
+#f28.status = pre_beta
+#f28.pre_beta.mandatory_days_in_testing = 3
+#f28.pre_beta.critpath.num_admin_approvals = 0
+#f28.pre_beta.critpath.min_karma = 1
+#f28.post_beta.mandatory_days_in_testing = 7
+#f28.post_beta.critpath.num_admin_approvals = 0
+#f28.post_beta.critpath.min_karma = 2
+f27.status = post_beta
+f27.post_beta.mandatory_days_in_testing = 7
+f27.post_beta.critpath.num_admin_approvals = 0
+f27.post_beta.critpath.min_karma = 2
+f27.post_beta.critpath.stable_after_days_without_negative_karma = 14
+f27.pre_beta.mandatory_days_in_testing = 3
+f27.pre_beta.critpath.num_admin_approvals = 0
+f27.pre_beta.critpath.min_karma = 1
 
 ##
 ## Buildroot Override
 ##
 
-# Number of days before expiring overrides
+# Maximum number of days a buildroot override may expire in, from creation time.
+# buildroot_limit = 31
 buildroot_overrides.expire_after = 1
 
 ##
@@ -438,36 +501,50 @@ buildroot_overrides.expire_after = 1
 # When a user logs in, bodhi will look for any of these groups and associate #
 # them with the user. They will then appear as the users effective principals in
 # the format "group:groupname" and can be used in Pyramid ACE's.
+# important_groups = proventesters provenpackager releng security_respons packager bodhiadmin
 important_groups = proventesters provenpackager releng-team security_respons packager bodhiadmin virtmaint-sig kde-sig eclipse-sig infra-sig gnome-sig python-sig robotics-sig qa-tools-sig nodejs-sig lxqt-sig astro-sig
 
 # Groups that can push updates for any package
+# admin_packager_groups = provenpackager releng security_respons
 admin_packager_groups = provenpackager releng-team security_respons
 
 # User must be a member of this group to submit updates
-mandatory_packager_groups = packager
+# mandatory_packager_groups = packager
+
 
 ##
 ## updateinfo.xml configuraiton
 ##
-updateinfo_rights = Copyright (C) 2015 Red Hat, Inc. and others.
+# updateinfo_rights = Copyright (C) {CURRENT_YEAR} Red Hat, Inc. and others.
 
 ##
 ## Authentication & Authorization
 ##
 
-# pyramid.openid
-openid.success_callback = bodhi.server.security:remember_me
-openid.provider = https://id.fedoraproject.org/openid/
-openid.url = https://id.fedoraproject.org/
-openid_template = {username}.id.fedoraproject.org
+# pyramid.openid settings.
+# openid.success_callback = bodhi.server.security:remember_me
+# openid.provider = https://id.fedoraproject.org/openid/
+# openid.url = https://id.fedoraproject.org/
+# openid_template = {username}.id.fedoraproject.org
+# openid.sreg_required = email
+# If this is undefined, Bodhi will concatenate the groups listed in the following other settings
+# from this file: important_groups, admin_packager_groups, mandatory_packager_groups, and
+# admin_groups. You likely want this default, but can override it here if you know what you are
+# doing. You can also override it here if you do not know what you are doing, but that would be
+# unadvisable.
+# openid.groups = DEFAULT_DOCUMENTED_ABOVE
+openid.provider = https://id{{env_suffix}}.fedoraproject.org/openid/
+openid.url = https://id{{env_suffix}}.fedoraproject.org/
+openid_template = {username}.id{{env_suffix}}.fedoraproject.org
 openid.sreg_required = email
 
 # CORS allowed origins for cornice services
 # This can be wide-open.  read-only, we don't care as much about.
 cors_origins_ro = *
 # This should be more locked down to avoid cross-site request forgery.
-cors_origins_rw = https://bodhi.fedoraproject.org
-cors_connect_src = https://*.fedoraproject.org/ wss://hub.fedoraproject.org:9939/
+cors_origins_rw = https://bodhi{{env_suffix}}.fedoraproject.org
+
+cors_connect_src = https://*.{{env_suffix}}fedoraproject.org/ wss://hub.{{env_suffix}}fedoraproject.org:9939/
 
 
 ##
@@ -487,28 +564,51 @@ debugtoolbar.hosts = 127.0.0.1 ::1
 ##
 ## Database
 ##
+# This must be a PostgreSQL database. It is weirdly defaulted to sqlite, but that would not be
+# suitable for a production environment. You can encode a username and password in the URL. For
+# example, postgresql://username:password@hostname/database_name
+# sqlalchemy.url = sqlite:////var/cache/bodhi.db
+{% if env == 'production' %}
 sqlalchemy.url = postgresql://bodhi2:{{ bodhi2Password }}@db-bodhi/bodhi2
+{% if env == 'staging' %}
+sqlalchemy.url = postgresql://bodhi2:{{ bodhi2PasswordSTG }}@pgbdr.stg.phx2.fedoraproject.org/bodhi2
+{% endif %}
 
 ##
 ## Templates
 ##
-mako.directories = bodhi:server/templates
+# Where Bodhi's templates are stored. You likely don't want or need to adjust this setting.
+# mako.directories = bodhi:server/templates
 
 ##
 ## Authentication & Sessions
 ##
 
+# CHANGE THESE IN PRODUCTION!
+# authtkt.secret = CHANGEME
+# session.secret = CHANGEME
+# authtkt.secure = True
+# How long should an authorization ticket be valid for, in seconds? Defaults to one day.
+# authtkt.timeout = 86400
+{% if env == 'production' %}
 authtkt.secret = {{ bodhi2AuthTkt }}
 session.secret = {{ bodhi2SessionSecret }}
+{% if env == 'staging' %}
+authtkt.secret = {{ bodhi2AuthTktSTG }}
+session.secret = {{ bodhi2SessionSecretSTG }}
+{% endif %}
 authtkt.secure = true
-# How long should an authorization ticket be valid for, in seconds? Defaults to one day.
 authtkt.timeout = 1209600
 
 # pyramid_beaker
 session.type = file
-session.data_dir = /var/cache/bodhi/sessions/data
-session.lock_dir = /var/cache/bodhi/sessions/lock
+session.data_dir = %(here)s/data/sessions/data
+session.lock_dir = %(here)s/data/sessions/lock
+{% if env == 'production' %}
 session.key = {{ bodhi2SessionKey }}
+{% if env == 'staging' %}
+session.key = {{ bodhi2SessionKeySTG }}
+{% endif %}
 session.cookie_on_exception = true
 # Tell the browser to only send the cookie over TLS
 session.secure = true
@@ -528,7 +628,7 @@ port = 6543
 
 [pshell]
 m = bodhi.server.models
-#db = bodhi.server.models.DBSession
+#db = bodhi.server.util.pshell_db
 t = transaction
 
 # Begin logging configuration

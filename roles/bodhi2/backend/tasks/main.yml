@@ -338,28 +338,14 @@
   - bodhi
   - cron
 
-- name: setup basic /etc/bodhi/ contents (staging)
-  template: >
-    src="{{  roles_path  }}/bodhi2/base/templates/staging.ini.j2"
-    dest="/etc/bodhi/production.ini"
-    owner=apache
-    group=apache
-    mode=0600
-  when: inventory_hostname.startswith('bodhi-backend') and env == 'staging'
-  notify:
-  - reload bodhi httpd
-  tags:
-  - config
-  - bodhi
-
-- name: setup basic /etc/bodhi/ contents (production)
+- name: setup basic /etc/bodhi/ contents
   template: >
     src="{{  roles_path  }}/bodhi2/base/templates/production.ini.j2"
     dest="/etc/bodhi/production.ini"
     owner=apache
     group=apache
     mode=0600
-  when: inventory_hostname.startswith('bodhi-backend') and env == 'production'
+  when: inventory_hostname.startswith('bodhi-backend')
   notify:
   - reload bodhi httpd
   tags:

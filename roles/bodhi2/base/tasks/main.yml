@@ -19,14 +19,14 @@
   - config
   - bodhi
 
-- name: setup basic /etc/bodhi/ contents (staging)
+- name: setup basic /etc/bodhi/ contents
   template: >
-    src="staging.ini.j2"
+    src="production.ini.j2"
     dest="/etc/bodhi/production.ini"
     owner=bodhi
     group=bodhi
     mode=0600
-  when: inventory_hostname.startswith('bodhi0') and env == 'staging'
+  when: inventory_hostname.startswith('bodhi0')
   notify:
   - reload bodhi httpd
   tags:
@@ -39,20 +39,6 @@
     dest: /etc/bodhi/alembic.ini
     owner: bodhi
     group: root
-  tags:
-  - config
-  - bodhi
-
-- name: setup basic /etc/bodhi/ contents (production)
-  template: >
-    src="production.ini.j2"
-    dest="/etc/bodhi/production.ini"
-    owner=bodhi
-    group=bodhi
-    mode=0600
-  when: inventory_hostname.startswith('bodhi0') and env == 'production'
-  notify:
-  - reload bodhi httpd
   tags:
   - config
   - bodhi
