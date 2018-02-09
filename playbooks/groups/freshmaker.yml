@@ -61,7 +61,7 @@
   - role: freshmaker/frontend
     # TLS is terminated for us at the proxy layer (like for every other app).
     freshmaker_force_ssl: False
-    freshmaker_servername: {{inventory_hostname}}
+    freshmaker_servername: null
 
   handlers:
   - import_tasks: "{{ handlers_path }}/restart_services.yml"
@@ -78,7 +78,8 @@
 
   roles:
   - fedmsg/base
-  - freshmaker/backend
+  - role: freshmaker/backend
+    freshmaker_servername: freshmaker{{env_suffix}}.fedoraproject.org
 
   - role: keytab/service
     service: freshmaker
