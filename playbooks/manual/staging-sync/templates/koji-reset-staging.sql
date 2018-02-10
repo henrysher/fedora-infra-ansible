@@ -57,7 +57,7 @@ delete from rpminfo where build_id in (select id from build where state<>1);
 
 -- expire any active buildroots
 select now() as time, 'expiring active buildroots' as msg;
-update buildroot set state=3, retire_event=get_event() where state=0;
+update standard_buildroot set state=3, retire_event=get_event() where state=0;
 
 -- enable/disable hosts
 update host set enabled=False;
@@ -152,7 +152,7 @@ insert into user_perms (user_id, perm_id, active, creator_id) values (
                                ('hotness', 'hotness/hotness01.stg.phx2.fedoraproject.org'),
                                ('containerbuild', 'osbs/osbs.stg.fedoraproject.org'),
                                ('kojira', 'kojira/koji.stg.fedoraproject.org@STG.FEDORAPROJECT.ORG')] %}
-update users set krb_principal='{{principal}}@STG.FEDORAPROJECT.ORG' where username='{{username}}';
+update users set krb_principal='{{principal}}@STG.FEDORAPROJECT.ORG' where name='{{username}}';
 {% endfor %}
 update users set krb_principal=replace(krb_principal, '@FEDORAPROJECT.ORG', '@STG.FEDORAPROJECT.ORG');
 
