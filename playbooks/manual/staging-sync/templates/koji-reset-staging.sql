@@ -24,6 +24,11 @@
 -- [unset kojihub ServerOffline setting]
 
 
+-- wipe obsolete table that only causes problems with the sync, could
+-- even be dropped entirely (together with imageinfo table).
+select now() as time, 'wiping imageinfo listings' as msg;
+delete from imageinfo_listing;
+
 -- bump sequences (not strictly needed anymore)
 select now() as time, 'bumping sequences' as msg;
 alter sequence task_id_seq restart      with 90000000;
