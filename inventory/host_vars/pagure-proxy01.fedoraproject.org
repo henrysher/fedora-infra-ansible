@@ -4,9 +4,35 @@ gw: 152.19.134.129
 dns: 8.8.8.8
 
 nat_rules: [
+	# SSH
 	'-A PREROUTING --dst 152.19.134.147 -p tcp --dport 22 -j DNAT --to-destination 140.211.169.204:22',
 	'-A POSTROUTING -p tcp --dst 140.211.169.204 --dport 22 -j SNAT --to-source 152.19.134.147',
-	'-A OUTPUT --dst 152.19.134.147 -p tcp --dport 22 -j DNAT --to-destination 140.211.169.204:22']
+	'-A OUTPUT --dst 152.19.134.147 -p tcp --dport 22 -j DNAT --to-destination 140.211.169.204:22',
+	# SMTP
+	'-A PREROUTING --dst 152.19.134.147 -p tcp --dport 25 -j DNAT --to-destination 140.211.169.204:25',
+	'-A POSTROUTING -p tcp --dst 140.211.169.204 --dport 25 -j SNAT --to-source 152.19.134.147',
+	'-A OUTPUT --dst 152.19.134.147 -p tcp --dport 25 -j DNAT --to-destination 140.211.169.204:25',
+	# web-80
+	'-A PREROUTING --dst 152.19.134.147 -p tcp --dport 80 -j DNAT --to-destination 140.211.169.204:80',
+	'-A POSTROUTING -p tcp --dst 140.211.169.204 --dport 80 -j SNAT --to-source 152.19.134.147',
+	'-A OUTPUT --dst 152.19.134.147 -p tcp --dport 80 -j DNAT --to-destination 140.211.169.204:80',
+	# web-443
+	'-A PREROUTING --dst 152.19.134.147 -p tcp --dport 443 -j DNAT --to-destination 140.211.169.204:443',
+	'-A POSTROUTING -p tcp --dst 140.211.169.204 --dport 443 -j SNAT --to-source 152.19.134.147',
+	'-A OUTPUT --dst 152.19.134.147 -p tcp --dport 443 -j DNAT --to-destination 140.211.169.204:443',
+	# 9418
+	'-A PREROUTING --dst 152.19.134.147 -p tcp --dport 9418 -j DNAT --to-destination 140.211.169.204:9418',
+	'-A POSTROUTING -p tcp --dst 140.211.169.204 --dport 9418 -j SNAT --to-source 152.19.134.147',
+	'-A OUTPUT --dst 152.19.134.147 -p tcp --dport 9418 -j DNAT --to-destination 140.211.169.204:9418',
+	# Eventsource
+	'-A PREROUTING --dst 152.19.134.147 -p tcp --dport 8088 -j DNAT --to-destination 140.211.169.204:8088',
+	'-A POSTROUTING -p tcp --dst 140.211.169.204 --dport 8088 -j SNAT --to-source 152.19.134.147',
+	'-A OUTPUT --dst 152.19.134.147 -p tcp --dport 8088 -j DNAT --to-destination 140.211.169.204:8088',
+	# Fedmsg
+	'-A PREROUTING --dst 152.19.134.147 -p tcp --dport 9940 -j DNAT --to-destination 140.211.169.204:9940',
+	'-A POSTROUTING -p tcp --dst 140.211.169.204 --dport 9940 -j SNAT --to-source 152.19.134.147',
+	'-A OUTPUT --dst 152.19.134.147 -p tcp --dport 9940 -j DNAT --to-destination 140.211.169.204:9940',
+]
 
 
 ks_url: http://infrastructure.fedoraproject.org/repo/rhel/ks/kvm-rhel-7-ext
