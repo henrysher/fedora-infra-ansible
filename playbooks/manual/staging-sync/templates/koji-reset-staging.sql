@@ -147,7 +147,7 @@ insert into host_channels (host_id, channel_id) values (
 
 -- Add some people to be admins, only in staging.  Feel free to grow this list..
 
-{% for username in ['modularity', 'mizdebsk', 'ralph', 'psabata', 'puiterwijk', 'jkaluza', 'fivaldi', 'mprahl'] %}
+{% for username in ['modularity', 'mizdebsk', 'psabata', 'jkaluza', 'fivaldi', 'mprahl'] %}
 select now() as time, 'adding staging admin {{username}}' as msg;
 insert into user_perms (user_id, perm_id, active, creator_id) values (
     (select id from users where name='{{username}}'),
