@@ -179,6 +179,12 @@
   - packages/web
   - selinux
 
+- name: /var/cache/fedoracommunity/git.fedoraproject.org file contexts
+  sefcontext:
+    target: '/var/cache/fedoracommunity/git.fedoraproject.org(/.*)?'
+    setype: httpd_sys_rw_content_t
+    state: present
+
 - name: Build the database the first time. This takes a while
   command: /usr/bin/fcomm-index-packages --index-db-dest=/var/cache/fedoracommunity/packages/xapian --icons-dest /var/cache/fedoracommunity/packages/icons --mdapi-url=https://apps{{env_suffix}}.fedoraproject.org/mdapi --icons-url=https://dl.fedoraproject.org/pub/alt/screenshots --tagger-url=https://apps{{env_suffix}}.fedoraproject.org/tagger creates=/var/cache/fedoracommunity/packages/xapian/search/termlist.glass
   tags:
