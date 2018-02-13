@@ -1,0 +1,43 @@
+#!/bin/bash
+# Kill all imagefactory build processes which took longer than specified
+# (3 hours by default)
+
+DEFAULT_TIMEOUT=180
+
+# print usage
+if [ "$1" = '--help' ] || [ "$1" = '-h' ]; then
+    echo "Usage: $0 [TIMEOUT]"
+    echo -n 'Kill all imagefactory build processes which took longer than '
+    echo    "TIMEOUT (in minutes, $DEFAULT_TIMEOUT by default)."
+    exit 1
+fi
+
+PROCESS_ID='/usr/bin/qemu-system-x86_64 -machine accel=kvm -name guest=factory-build'
+
+TIMEOUT=${1:-$DEFAULT_TIMEOUT}
+# convert to seconds
+TIMEOUT=$(( $TIMEOUT * 60 ))
+
+while pgrep -f "$PROCESS_ID"; do
+    # get PID of the oldest (pgrep -o) running matched process
+    PID=$(pgrep -o -f "$PROCESS_ID")
+    if [ -z "$PID" ]; then
+        echo 'No (more) processes match, exiting'
+        exit
+    fi
+    AGE=$(ps -o etimes= -p "$PID")
+    if (( $AGE >= $TIMEOUT )); then
+        echo "Process matched, killing: $(ps -p $PID --no-headers -o pid,args)"
+        kill -s TERM "$PID"
+        # wait a while and see if the process is really terminated, otherwise
+        # force kill it
+        sleep 3
+        if [ "$PID" = "$(pgrep -o -f "$PROCESS_ID")" ]; then
+            echo "Process $PID wasn't terminated, force killing it"
+            kill -s KILL "$PID"
+        fi
+    else
+        echo 'Some processes match, but they are not old enough, exiting'
+        exit
+    fi
+done

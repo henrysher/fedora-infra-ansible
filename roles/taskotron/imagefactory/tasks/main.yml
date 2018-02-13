@@ -13,6 +13,26 @@
 - name: copy oz.cfg config file
   copy: src=oz.cfg dest=/etc/oz/oz.cfg owner=root group=root mode=0644
 
+- name: copy imagefactory-kill-zombie script
+  copy:
+    src: imagefactory-kill-zombie
+    dest: /usr/local/bin
+    owner: root
+    group: root
+    mode: '0744'
+
+- name: copy imagefactory-kill-zombie service
+  copy:
+    src: imagefactory-kill-zombie.service
+    dest: /etc/systemd/system
+  register: imagefactory-kill-zombie_service
+
+- name: copy imagefactory-kill-zombie timer
+  copy:
+    src: imagefactory-kill-zombie.timer
+    dest: /etc/systemd/system
+  register: imagefactory-kill-zombie_timer
+
 - name: hotfix imagefactory's REST api to allow file download
   copy: src=hotfix_imgfac_RESTv2.py dest=/usr/lib/python2.7/site-packages/imgfac/rest/RESTv2.py owner=root group=root mode=0644
 
@@ -25,10 +45,16 @@
 
 - name: reload systemd
   command: systemctl daemon-reload
-  when: imagefactory_service.changed
+  when: imagefactory_service.changed or imagefactory-kill-zombie_service.changed or imagefactory-kill-zombie_timer.changed
 
 - name: enable imagefactory
   service: name=imagefactoryd state=started enabled=yes
+
+- name: enable imagefactory-kill-zombie.timer
+  service:
+    name: imagefactory-kill-zombie.timer
+    state: started
+    enabled: yes
 
 - name: create directory for git clone
   file: path=/var/lib/fedoraqa state=directory owner=root group=root mode=1755
