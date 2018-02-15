@@ -1,12 +1,10 @@
 - name: push packages out
   hosts: fedimg:fedimg-stg
   user: root
-  vars_files: 
+  vars_files:
    - /srv/web/infra/ansible/vars/global.yml
    - "/srv/private/ansible/vars.yml"
    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
-  vars:
-    testing: False
   handlers:
   - import_tasks: "{{ handlers_path }}/restart_services.yml"
 
@@ -15,53 +13,17 @@
     command: yum clean all {%if testing%} --enablerepo=infrastructure-tags-stg {%endif%}
     check_mode: no
   - name: yum update fedimg packages from main repo
-    yum: name="python-fedimg" state=latest
-    when: not testing
+    yum: name"{{ item }}" state=latest
+    with_items:
+     - python-fedimg
+     - python2-libcloud
+     - python2-fedfind
   - name: yum update fedimg packages from testing repo
-    yum: name="python-fedimg" state=latest enablerepo=infrastructure-tags-stg
-    when: testing
-  - name: yum update libcloud from testing repo
-    yum: name="python2-libcloud" state=latest enablerepo=epel-testing
-    when: not testing
-
-- name: update fedfind
-  hosts: fedimg:fedimg-stg
-  user: root
-  vars_files:
-   - /srv/web/infra/ansible/vars/global.yml
-   - "/srv/private/ansible/vars.yml"
-   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
-  vars:
-    testing: False
-  handlers:
-  - import_tasks: "{{ handlers_path }}/restart_services.yml"
-
-  tasks:
-  - name: yum update fedfind packages from main repo
-    yum: name="fedfind" state=latest
-    when: not testing
-  - name: yum update fedfind packages from testing repo
-    yum: name="fedfind" state=latest enablerepo=infrastructure-tags-stg
-    when: testing
-
-- name: update python2-fedfind
-  hosts: fedimg:fedimg-stg
-  user: root
-  vars_files:
-   - /srv/web/infra/ansible/vars/global.yml
-   - "/srv/private/ansible/vars.yml"
-   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
-  vars:
-    testing: False
-  handlers:
-  - import_tasks: "{{ handlers_path }}/restart_services.yml"
-
-  tasks:
-  - name: yum update fedfind packages from main repo
-    yum: name="python2-fedfind" state=latest
-    when: not testing
-  - name: yum update fedfind packages from testing repo
-    yum: name="python2-fedfind" state=latest enablerepo=infrastructure-tags-stg
+    yum: name="{{ item }}" state=latest enablerepo=infrastructure-tags-stg
+    with_items:
+     - python-fedimg
+     - python2-libcloud
+     - python2-fedfind
     when: testing
 
 - name: verify the backend and restart it
