@@ -2,7 +2,7 @@
 ## The file is in YAML syntax, read more about it at:
 ## http://en.wikipedia.org/wiki/Yaml
 ## libtaskotron docs live at:
-## https://docs.qadevel.cloud.fedoraproject.org/libtaskotron/latest/
+## https://docs.qa.fedoraproject.org/libtaskotron/latest/
 
 
 ## ==== GENERAL section ====
@@ -38,6 +38,12 @@ runtask_mode: libvirt
 runtask_mode: local
 {% endif %}
 
+## Supported machine architectures. This is mostly used by generic,
+## arch-independent tasks to determine which arches to test and report against.
+## You can still run an arch-specific task on any other arch using the command
+## line.
+#supported_arches: ['x86_64', 'armhfp']
+
 
 ## ==== SCHEDULING section ====
 ## This section holds options related to the scheduling and execution system,
@@ -51,8 +57,8 @@ buildbot_task_step: 'runtask'
 ## This section controls which result reports you want to send after the test
 ## execution is complete.
 
-## Whether to send test results to the configured ResultsDB server. See also
-## 'reporting_enabled' option.
+## Whether to send test results to the configured ResultsDB server.
+## [default: True for production, False for development]
 report_to_resultsdb: True
 
 
@@ -101,16 +107,6 @@ artifacts_baseurl: {{ artifacts_base_url }}
 #download_cache_enabled: False
 
 
-## ==== BODHI EMAIL section ====
-## These configuration options affect how Taskotron decideds to send emails
-## through Bodhi in specific situations.
-
-## How long (in minutes) should we wait before allowing consequent test to
-## re-post a 'FAILED' comment into Bodhi once again.
-## By default 3 days (3*24*60 = 4320).
-#bodhi_posting_comments_span: 4320
-
-
 ## ==== PATHS section ====
 ## Location of various pieces of the project.
 
@@ -133,7 +129,7 @@ artifacts_baseurl: {{ artifacts_base_url }}
 ## File names need to adhere to the naming standard of:
 ##   YYMMDD_HHMM-fedora-RELEASE-FLAVOR-ARCH.(qcow2|raw|img)
 ## For example:
-##   160301_1030-fedora-23-taskotron_cloud-x86_64.img
+##   160301_1030-fedora-25-taskotron_cloud-x86_64.img
 ## Variables disposable_(release|flavor|arch) set in this config file
 ## define what kind of image is looked for.
 ## The newest (by YYMMDD_HHMM) image of the respective R-F-A is used.
@@ -148,10 +144,9 @@ force_imageurl: False
 
 ## Default  distro/release/flavor/arch for the disposable images discovery
 #default_disposable_distro: fedora
-default_disposable_release: "26"
+default_disposable_release: '26'
 #default_disposable_flavor: taskotron_cloud
 #default_disposable_arch: x86_64
-
 
 ## Additional repos for minion to install packages from
 minion_repos:

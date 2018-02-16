@@ -12,9 +12,12 @@ createrepo_deltas = False
 # In runroot, we cannot use guestmount, but have to use mount -o loop.
 buildinstall_use_guestmount=False
 
+{% if env == 'staging' %}
 # We cannot use hardlinks on stg, because it uses different volume and copy
 # just takes lot of storage.
-{% if env == 'staging' %}
 link_type = 'symlink'
+
+# Staging is used only for testing, so allow only x86_64 composes
+tree_arches = ['x86_64']
 {% endif %}
 

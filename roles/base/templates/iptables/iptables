@@ -110,3 +110,16 @@
 -A INPUT -j REJECT --reject-with icmp-host-prohibited
 -A FORWARD -j REJECT --reject-with icmp-host-prohibited
 COMMIT
+
+{% if nat_rules %}
+*nat
+:PREROUTING ACCEPT [0:]
+:INPUT ACCEPT [0:]
+:OUTPUT ACCEPT [0:0]
+:POSTROUTING ACCEPT [0:0]
+
+{% for rule in nat_rules %}
+{{ rule }}
+{% endfor %}
+COMMIT
+{% endif %}

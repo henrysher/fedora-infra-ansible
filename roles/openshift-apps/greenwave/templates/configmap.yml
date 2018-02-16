@@ -111,22 +111,23 @@ data:
     rules:
       - !PassingTestCaseRule {test_case_name: dist.rpmdeplint}
     --- !Policy
-    id: "taskotron_release_critical_tasks_for_stable_with_blacklist"
+    id: "no_requirements_for_epel_testing"
     product_versions:
-      - fedora-27
-      - fedora-26
-      - fedora-25
-    decision_context: bodhi_update_push_stable
+      - fedora-epel-7
+      - fedora-epel-6
+    decision_context: bodhi_update_push_testing
+    blacklist: []
     relevance_value: koji_build
-    # abicheck only runs on a subset of all packages.  We borrow the list from
-    # taskotron's ansible vars.  See discussion in https://pagure.io/greenwave/issue/68
-{% if env == 'staging' %}
-    blacklist: [{{ hostvars[groups['taskotron-stg'][0]]['trigger_abicheck_blacklist'] | join (',') }}]
-{% else %}
-    blacklist: [{{ hostvars[groups['taskotron-prod'][0]]['trigger_abicheck_blacklist'] | join (',') }}]
-{% endif %}
-    rules:
-      - !PassingTestCaseRule {test_case_name: dist.abicheck}
+    rules: []
+    --- !Policy
+    id: "no_requirements_for_epel_stable"
+    product_versions:
+      - fedora-epel-7
+      - fedora-epel-6
+    decision_context: bodhi_update_push_stable
+    blacklist: []
+    relevance_value: koji_build
+    rules: []
     --- !Policy
     # Fedora Atomic CI pipeline
     # http://fedoraproject.org/wiki/CI

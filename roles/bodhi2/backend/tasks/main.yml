@@ -320,9 +320,9 @@
 
 - name: bodhi-check-policies cron job.
   cron: name="bodhi-check-policies" hour="*/6" minute=0 user="apache"
-        job="/usr/bin/bodhi-check-policies > /dev/null"
+        job="/usr/bin/bodhi-check-policies >& /dev/null"
         cron_file=bodhi-check-policies-job
-  when: inventory_hostname.startswith('bodhi-backend01') and env == "staging"
+  when: (inventory_hostname.startswith('bodhi-backend01') and env == "staging") or (inventory_hostname.startswith('bodhi-backend02') and env == "production")
   tags:
   - config
   - bodhi
@@ -330,7 +330,7 @@
 
 - name: bodhi-expire-overrides cron job.
   cron: name="bodhi-expire-overrides" hour="*" minute=0 user="apache"
-        job="/usr/bin/bodhi-expire-overrides /etc/bodhi/production.ini 2> /dev/null"
+        job="/usr/bin/bodhi-expire-overrides /etc/bodhi/production.ini 2>&1 | logger -t bodhi-expire-overrides"
         cron_file=bodhi-expire-overrides-job
   when: inventory_hostname.startswith('bodhi-backend02') and env == "production"
   tags:
@@ -338,28 +338,14 @@
   - bodhi
   - cron
 
-- name: setup basic /etc/bodhi/ contents (staging)
-  template: >
-    src="{{  roles_path  }}/bodhi2/base/templates/staging.ini.j2"
-    dest="/etc/bodhi/production.ini"
-    owner=apache
-    group=apache
-    mode=0600
-  when: inventory_hostname.startswith('bodhi-backend') and env == 'staging'
-  notify:
-  - reload bodhi httpd
-  tags:
-  - config
-  - bodhi
-
-- name: setup basic /etc/bodhi/ contents (production)
+- name: setup basic /etc/bodhi/ contents
   template: >
     src="{{  roles_path  }}/bodhi2/base/templates/production.ini.j2"
     dest="/etc/bodhi/production.ini"
     owner=apache
     group=apache
     mode=0600
-  when: inventory_hostname.startswith('bodhi-backend') and env == 'production'
+  when: inventory_hostname.startswith('bodhi-backend')
   notify:
   - reload bodhi httpd
   tags:

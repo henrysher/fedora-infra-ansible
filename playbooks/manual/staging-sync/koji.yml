@@ -46,15 +46,14 @@
       dest=/var/tmp/koji.dump.xz
       owner=postgres
       group=postgres
-  - command: unxz /var/tmp/koji.dump.xz
-             creates=/var/tmp/koji.dump
 
 # TODO -- stop replication and wipe db's
 
   - command: dropdb koji
   - command: createdb -O koji koji
+# buildroot_listing is excluded from the sync to save some time
   - name: Import the prod db.  This will take quite a while.  Go get a snack!
-    shell: cat /var/tmp/koji.dump | psql koji
+    shell: xzcat /var/tmp/koji.dump.xz | sed '/COPY buildroot_listing /,/\./d' | psql koji
   - name: repoint all the prod rpm entries at the secondary volume (and other stuff)
     shell: psql koji < /var/lib/pgsql/koji-reset-staging.sql
 

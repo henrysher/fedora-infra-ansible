@@ -1,14 +1,4 @@
 ---
-# FIXME workaround for https://bugzilla.redhat.com/show_bug.cgi?id=1513704
-# See also: https://pagure.io/fedora-infrastructure/issue/6540
-- name: Put SELinux in permissive mode
-  selinux: state=permissive policy=targeted
-  when: ansible_distribution_major_version|int > 26
-  tags:
-  - koschei
-  - config
-  - selinux
-
 - name: Add koschei copr dev repo on stg
   when: env == "staging"
   template: src=copr.repo.j2 dest=/etc/yum.repos.d/copr.repo
@@ -18,20 +8,10 @@
   - packages
   - yumrepos
 
-- name: Install common packages (Fedora >= 27)
+- name: Install common packages
   package: name={{ item }} state=present
   with_items:
   - python3-memcached
-  when: ansible_distribution_major_version|int > 26
-  tags:
-  - koschei
-  - packages
-
-- name: Install common packages (not Fedora or Fedora <= 26)
-  package: name={{ item }} state=present
-  with_items:
-  - python-memcached
-  when: ansible_distribution_major_version|int < 27
   tags:
   - koschei
   - packages

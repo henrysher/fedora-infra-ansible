@@ -1,0 +1,24 @@
+- name: make the app be real
+  hosts: os-masters-stg
+  user: root
+  gather_facts: True
+
+  vars_files:
+    - /srv/web/infra/ansible/vars/global.yml
+    - "/srv/private/ansible/vars.yml"
+    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  roles:
+  - role: openshift/project
+    app: transtats
+    description: transtats
+    appowners:
+    - suanand
+  - { role: openshift/object, app: transtats, template: secret.yml }
+  - { role: openshift/object, app: transtats, file: imagestream.yml }
+  - { role: openshift/object, app: transtats, file: buildconfig.yml }
+  - { role: openshift/start-build, app: transtats, name: transtats-build }
+  - { role: openshift/object, app: transtats, file: service.yml }
+  - { role: openshift/object, app: transtats, file: route.yml }
+  - { role: openshift/object, app: transtats, file: deploymentconfig.yml }
+  - { role: openshift/rollout, app: transtats, name: transtats-web }

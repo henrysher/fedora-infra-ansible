@@ -27,12 +27,13 @@ def parse_args():
     parser.add_argument('--description', default=None, help='Description..')
     parser.add_argument('--criteria', default=None, help='Criteria link')
     parser.add_argument('--image', default=None, help='Image link')
+    parser.add_argument('--tags', default=None, help='Badge Tags')
     args = parser.parse_args()
     if not args.badge:
         print "You must specify a badge id."
         sys.exit(1)
-    if not args.name and not args.description and not args.criteria and not args.image:
-        print "You must specify either name, description or criteria or image to edit."
+    if not args.name and not args.description and not args.criteria and not args.image and not args.tags:
+        print "You must specify either name, description or criteria, tags or image to edit."
         sys.exit(1)
     return args
 
@@ -51,7 +52,7 @@ def initialize():
     return tahrir
 
 
-def main(tahrir, badge_id, name, description, criteria, image):
+def main(tahrir, badge_id, name, description, criteria, image, tags):
     badge = tahrir.get_badge(badge_id)
 
     if not badge:
@@ -75,6 +76,11 @@ def main(tahrir, badge_id, name, description, criteria, image):
     if image:
         badge.image = image
         print "Setting image on %r to %r" % (badge_id, image)
+
+    if tags:
+        badge.tags = tags
+        print "Setting tags on %r to %r" % (badge_id, tags)
+
     tahrir.session.commit()
     transaction.commit()
 
@@ -82,4 +88,5 @@ def main(tahrir, badge_id, name, description, criteria, image):
 if __name__ == '__main__':
     args = parse_args()
     tahrir = initialize()
-    main(tahrir, args.badge, args.name, args.description, args.criteria, args.image)
+    main(tahrir, args.badge, args.name, args.description, args.criteria,
+         args.image, args.tags)

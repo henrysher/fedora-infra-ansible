@@ -545,10 +545,21 @@
 
   - role: httpd/reverseproxy
     website: registry.fedoraproject.org
-    destname: registry
+    destname: registry-fedora
     # proxyurl in this one is totally ignored, because Docker.
     # (turns out it uses PATCH requests that Varnish cannot deal with)
     proxyurl: "{{ varnish_url }}"
+    tags:
+    - registry
+
+  - role: httpd/reverseproxy
+    website: registry.centos.org
+    destname: registry-centos
+    # proxyurl in this one is totally ignored, because Docker.
+    # (turns out it uses PATCH requests that Varnish cannot deal with)
+    proxyurl: "{{ varnish_url }}"
+    tags:
+    - registry
 
   - role: httpd/reverseproxy
     website: candidate-registry.fedoraproject.org
@@ -628,6 +639,13 @@
     proxyurl: http://localhost:10066
     tags:
     - odcs
+
+  - role: httpd/reverseproxy
+    website: freshmaker.fedoraproject.org
+    destname: freshmaker
+    proxyurl: http://localhost:10067
+    tags:
+    - freshmaker
 
   - role: httpd/reverseproxy
     website: data-analysis.fedoraproject.org

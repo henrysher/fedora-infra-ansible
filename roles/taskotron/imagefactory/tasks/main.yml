@@ -16,6 +16,17 @@
 - name: hotfix imagefactory's REST api to allow file download
   copy: src=hotfix_imgfac_RESTv2.py dest=/usr/lib/python2.7/site-packages/imgfac/rest/RESTv2.py owner=root group=root mode=0644
 
+# Workaround for https://github.com/redhat-imaging/imagefactory/issues/417
+- name: fix issues in imagefactoryd.service
+  copy:
+    src: imagefactoryd.service
+    dest: /etc/systemd/system/imagefactoryd.service
+  register: imagefactory_service
+
+- name: reload systemd
+  command: systemctl daemon-reload
+  when: imagefactory_service.changed
+
 - name: enable imagefactory
   service: name=imagefactoryd state=started enabled=yes
 

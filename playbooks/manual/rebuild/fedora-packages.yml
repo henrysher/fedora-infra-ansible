@@ -39,9 +39,7 @@
 
   tasks:
   - name: Pull in the list of packages from pkgdb.  Go get a snack. (2 hours)
-    command: /usr/bin/fcomm-index-packages --index-db-dest /var/cache/fedoracommunity/packages/xapian --icons-dest /var/cache/fedoracommunity/packages/icons --tagger-url https://apps.stg.fedoraproject.org/tagger --pkgdb-url https://admin.stg.fedoraproject.org/pkgdb --mdapi-url https://apps.stg.fedoraproject.org/mdapi --icons-url http://download01.phx2.fedoraproject.org/pub/alt/screenshots/
-    async: 12000
-    poll: 60
+    command: /usr/bin/fcomm-index-packages --index-db-dest=/var/cache/fedoracommunity/packages/xapian --icons-dest /var/cache/fedoracommunity/packages/icons --mdapi-url=https://apps.stg.fedoraproject.org/mdapi --icons-url=https://dl.fedoraproject.org/pub/alt/screenshots --tagger-url=https://apps.stg.fedoraproject.org/tagger
     when: install_packages_indexer
 
 - name: Rebuild that search index on the side and install it. (just prod)
@@ -58,9 +56,7 @@
 
   tasks:
   - name: Pull in the list of packages from pkgdb.  Go get a snack. (2 hours)
-    command: /usr/bin/fcomm-index-packages --index-db-dest /var/cache/fedoracommunity/packages/xapian --icons-dest /var/cache/fedoracommunity/packages/icons --tagger-url https://apps.fedoraproject.org/tagger --pkgdb-url https://admin.fedoraproject.org/pkgdb --mdapi-url https://apps.fedoraproject.org/mdapi --icons-url http://download01.phx2.fedoraproject.org/pub/alt/screenshots/
-    async: 12000
-    poll: 60
+    command: /usr/bin/fcomm-index-packages --index-db-dest=/var/cache/fedoracommunity/packages/xapian --icons-dest /var/cache/fedoracommunity/packages/icons --mdapi-url=https://apps.fedoraproject.org/mdapi --icons-url=https://dl.fedoraproject.org/pub/alt/screenshots --tagger-url=https://apps.fedoraproject.org/tagger
     when: install_packages_indexer
 
 - name: leave maintenance mode
@@ -74,8 +70,8 @@
    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
 
   tasks:
-  - name: Make sure the perms are straight 
-    file: path=/var/cache/fedoracommunity/packages/ state=directory owner=apache group=fedmsg mode="g+rw" recursive=yes
+  - name: Make sure the perms are straight
+    file: path=/var/cache/fedoracommunity/packages/ state=directory owner=apache group=fedmsg mode="g+rw" recurse=yes
 
   - name: Restart the cache worker
     service: name={{item}} state=started

@@ -1,9 +1,9 @@
-# These servers run piwik
-
-- import_playbook: "/srv/web/infra/ansible/playbooks/include/virt-create.yml myhosts=piwik-stg"
+# create the hubs server
+# NOTE: should be used with --limit most of the time
+- import_playbook: "/srv/web/infra/ansible/playbooks/include/virt-create.yml myhosts=hubs-stg"
 
 - name: make the box be real
-  hosts: piwik-stg
+  hosts: hubs-stg
   user: root
   gather_facts: True
 
@@ -19,10 +19,10 @@
   - hosts
   - fas_client
   - collectd/base
-  - apache
-  - fedmsg/base
-  - piwik
   - sudo
+  - { role: openvpn/client,
+      when: env != "staging" }
+  - mod_wsgi
 
   tasks:
   - import_tasks: "{{ tasks_path }}/yumrepos.yml"

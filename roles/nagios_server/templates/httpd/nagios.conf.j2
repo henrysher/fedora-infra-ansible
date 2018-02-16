@@ -2,6 +2,8 @@
 ScriptAlias /nagios/cgi-bin/ /usr/lib64/nagios/cgi-bin/
 ScriptAlias /tac.cgi         /usr/lib64/nagios/cgi-bin/tac.cgi
 
+Alias /robots.txt /var/www/robots.txt
+
 # Set up the authorization
 
 <Location /nagios>
@@ -16,11 +18,23 @@ ScriptAlias /tac.cgi         /usr/lib64/nagios/cgi-bin/tac.cgi
 {% endif %}
   GssapiLocalName on
   AuthType GSSAPI
-  Require valid-user
+  <Limit GET HEAD>
+    Require all granted
+  </Limit>
+  <LimitExcept GET HEAD>
+    Require valid-user
+  </LimitExcept>
 </Location>
 
 <Location ~ "/nagios/cgi-bin/">
   Options ExecCGI
+</Location>
+
+<Location /nagios/cgi-bin/cmd.cgi>
+  Require valid-user
+</Location>
+<Location /nagios/cgi-bin/config.cgi>
+  Require valid-user
 </Location>
 
 <Location /apache-status>

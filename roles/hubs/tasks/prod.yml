@@ -1,0 +1,19 @@
+- name: Install the service environment file
+  template:
+    src: env
+    dest: /etc/sysconfig/fedora-hubs
+
+- name: Start and enable the services in prod mode
+  service: name={{ item }} state=started enabled=yes
+  with_items:
+    - fedmsg-relay-3
+    - fedmsg-hub-3
+    - fedora-hubs-triage@1
+    - fedora-hubs-triage@2
+    - fedora-hubs-worker@1
+    - fedora-hubs-worker@2
+    - fedora-hubs-worker@3
+    - fedora-hubs-worker@4
+    - fedora-hubs-sse
+
+- include_tasks: webserver.yml

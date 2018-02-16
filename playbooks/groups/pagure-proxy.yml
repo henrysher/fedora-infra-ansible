@@ -1,0 +1,31 @@
+- import_playbook: "/srv/web/infra/ansible/playbooks/include/virt-create.yml myhosts=pagure-proxy"
+
+- name: make the boxen be real for real
+  hosts: pagure-proxy
+  user: root
+  gather_facts: True
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  roles:
+  - base
+  - rkhunter
+  - nagios_client
+  - hosts
+  - fas_client
+  - sudo
+  - collectd/base
+
+  tasks:
+  - import_tasks: "{{ tasks_path }}/yumrepos.yml"
+  - import_tasks: "{{ tasks_path }}/2fa_client.yml"
+  - import_tasks: "{{ tasks_path }}/motd.yml"
+
+  - name: Enable ipv4_forward in sysctl
+    sysctl: name=net.ipv4.ip_forward value=1 state=present sysctl_set=yes reload=yes
+
+  handlers:
+  - import_tasks: "{{ handlers_path }}/restart_services.yml"

@@ -96,6 +96,7 @@ class ProdConfiguration(BaseConfiguration):
         'releng',
     ]
 
+    REBUILD_STRATEGY = 'only-changed'
     REBUILD_STRATEGY_ALLOW_OVERRIDE = True
 
 {% if env == 'staging' %}

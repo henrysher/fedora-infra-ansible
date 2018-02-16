@@ -1,32 +1,13 @@
 ---
 # Configuration for the fedora-packages webapp
-
-- name: Set require selinux booleans
-  seboolean: name={{item}} persistent=yes state=yes
-  with_items:
-  - httpd_use_nfs
-  - httpd_execmem
-  tags:
-  - packages
-  - packages/web
-  - selinux
-
 - name: install needed packages
   package: name={{ item }} state=present
   with_items:
   - fedora-packages
-  - python-psycopg2
   - python-memcached
   tags:
   - packages
   - packages/web
-
-- name: install python-sqlalchemy0.8 only on rhel6
-  package: name=python-sqlalchemy0.8 state=present
-  tags:
-  - packages
-  - packages/web
-  when: ansible_distribution_major_version|int < 7
 
 - name: Create some directories
   file:
@@ -39,7 +20,6 @@
   - /etc/fedoracommunity
   - /var/cache/fedoracommunity  # the gluster role usually creates this one
   - /var/tmp/fedoracommunity
-  - /var/log/fedoracommunity
   tags:
   - packages
   - packages/web
@@ -156,16 +136,6 @@
   - hotfix
   when: ansible_distribution_major_version|int < 7
 
-# Our fedmsg updater should handle everything, no more need for cron.
-#- name: Copy the indexer cronjobs
-#  copy: src="{{item}}" dest="/etc/cron.d/{{item}}"
-#  with_items:
-#  - cron-sync-package-index
-#  when: install_packages_indexer
-#  tags:
-#  - packages
-#  - packages/web
-
 # Lastly, here's some selinux stuff.
 - name: set some selinux booleans
   seboolean: name={{item}} persistent=yes state=yes
@@ -174,10 +144,18 @@
   - httpd_can_network_memcache
   - httpd_can_network_connect
   - httpd_use_fusefs
+  - httpd_use_nfs
+  - httpd_execmem
   tags:
   - packages
   - packages/web
   - selinux
+
+- name: /var/cache/fedoracommunity/git.fedoraproject.org file contexts
+  sefcontext:
+    target: '/var/cache/fedoracommunity/git.fedoraproject.org(/.*)?'
+    setype: httpd_sys_rw_content_t
+    state: present
 
 - name: Build the database the first time. This takes a while
   command: /usr/bin/fcomm-index-packages --index-db-dest=/var/cache/fedoracommunity/packages/xapian --icons-dest /var/cache/fedoracommunity/packages/icons --mdapi-url=https://apps{{env_suffix}}.fedoraproject.org/mdapi --icons-url=https://dl.fedoraproject.org/pub/alt/screenshots --tagger-url=https://apps{{env_suffix}}.fedoraproject.org/tagger creates=/var/cache/fedoracommunity/packages/xapian/search/termlist.glass

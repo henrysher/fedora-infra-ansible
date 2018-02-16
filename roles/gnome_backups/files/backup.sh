@@ -9,28 +9,26 @@ MACHINES='signal.gnome.org
           webapps2.gnome.org
           clutter.gnome.org
           blogs.gnome.org
-          chooser.gnome.org
+          palette.gnome.org 
           git.gnome.org
           webapps.gnome.org
           cloud.gnome.org
           bastion.gnome.org
           spinner.gnome.org
           master.gnome.org
-          combobox.gnome.org
           restaurant.gnome.org
           expander.gnome.org
-          live.gnome.org
-          extensions.gnome.org
+          wiki.gnome.org 
           view.gnome.org
-          puppet.gnome.org
+          puppetmaster01.gnome.org
           accelerator.gnome.org
           range.gnome.org
           pentagon.gimp.org
           account.gnome.org
-          bugzilla-new.gnome.org
+          bugzilla.gnome.org
           socket.gnome.org
           odrs.gnome.org
-          ghispano.gnome.org
+          gnome-hispano.gnome.org
           scale.gnome.org
           sdkbuilder.gnome.org
           webapps3.gnome.org

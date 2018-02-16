@@ -5,6 +5,9 @@ if [ -f /etc/bashrc ]; then
     . /etc/bashrc
 fi
 
+alias vi=vim
+
+
 # Uncomment the following line if you don't like systemctl's auto-paging feature:
 # export SYSTEMD_PAGER=
 
@@ -13,24 +16,22 @@ fi
 # by defining a variable with name _<function>_help containing the help text
 
 
-export HUBS_CONFIG={{ hubs_conf_dir }}/hubs_config.py
+# Honcho has issues outputing UTF-8 in Vagrant SSH
+# https://github.com/nickstenning/honcho/issues/51
+export PYTHONIOENCODING=utf-8
+
+export HUBS_CONFIG={{ hubs_conf_dir }}/hubs.py
 export FLASK_APP={{ hubs_code_dir }}/hubs/app.py
 
 
 workon() {
     [ "$1" == "hubs" ] || ( echo "No such virtualenv."; exit 1 )
-    source {{ hubs_venv_dir }}/bin/activate
     cd {{ hubs_code_dir }}
 }
 
-hup() {
-    source {{ hubs_venv_dir }}/bin/activate
-    pushd {{ hubs_code_dir }}
-    FLASK_DEBUG=1 flask run --host 0.0.0.0 --port 5000
-}
+alias hup="pushd ~ ; honcho start ; popd"
 
 hreset() {
-    source {{ hubs_venv_dir }}/bin/activate
     {% if hubs_db_type == "postgresql" %}
     sudo -u postgres dropdb hubs
     sudo -u postgres createdb -O hubs hubs
@@ -39,7 +40,6 @@ hreset() {
     {% endif %}
     rm {{ hubs_var_dir }}/cache.db
     pushd {{ hubs_code_dir }}
-    python populate.py
+    python3 populate.py
     popd
-    deactivate
 }

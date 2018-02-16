@@ -1,21 +1,26 @@
 - name: restart postgresql
   service: name=postgresql state=restarted
 
-- name: restart the hubs-specific fedmsg-hub
-  service: name=hubs-fedmsg-hub state=restarted
-  listen: "hubs configuration change"
-
 - name: restart hubs triage
-  service: name=hubs-triage@* state=restarted
+  service: name=fedora-hubs-triage@* state=restarted
   listen: "hubs configuration change"
+  when: not hubs_dev_mode
 
 - name: restart hubs workers
-  service: name=hubs-worker@* state=restarted
+  service: name=fedora-hubs-worker@* state=restarted
   listen: "hubs configuration change"
+  when: not hubs_dev_mode
 
 - name: restart hubs SSE server
-  service: name=hubs-sse state=restarted
+  service: name=fedora-hubs-sse state=restarted
   listen: "hubs configuration change"
+  when: not hubs_dev_mode
 
 # Webserver
-- import_tasks: webserver.yml
+- name: restart hubs webapp
+  service: name=fedora-hubs-webapp state=restarted
+  listen: "hubs configuration change"
+  when: not hubs_dev_mode
+
+- name: restart nginx
+  service: name=nginx state=restarted

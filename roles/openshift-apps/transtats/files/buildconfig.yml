@@ -1,0 +1,36 @@
+apiVersion: v1
+kind: BuildConfig
+metadata:
+  name: "transtats-build"
+  labels:
+    environment: "transtats"
+spec:
+  runPolicy: Serial
+  source:
+    git:
+      ref: master
+      uri: https://github.com/transtats/transtats.git
+    secrets: null
+    type: Git
+  strategy:
+    sourceStrategy:
+      from:
+        kind: ImageStreamTag
+        name: python:3.5
+        namespace: openshift
+      env:
+      - name: UPGRADE_PIP_TO_LATEST
+        value: "true"
+      - name: PIP_INDEX_URL
+      - name: TS_AUTH_SYSTEM
+        value: fedora
+      - name: OIDC_RP_CLIENT_SECRET
+        valueFrom:
+          secretKeyRef:
+            name: transtats-secret
+            key: oidc-client-secret
+    type: Source
+  output:
+    to:
+      kind: ImageStreamTag
+      name: transtats:latest

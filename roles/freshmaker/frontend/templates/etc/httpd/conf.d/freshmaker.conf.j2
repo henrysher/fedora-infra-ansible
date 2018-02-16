@@ -1,0 +1,49 @@
+{% if freshmaker_force_ssl %}
+# Force SSL
+RewriteEngine On
+RewriteCond %{HTTPS} off
+RewriteRule (.*) https://%{HTTP_HOST}%{REQUEST_URI}
+{% endif %}
+
+WSGIDaemonProcess freshmaker user=fedmsg group=fedmsg processes={{wsgi_procs}} threads={{wsgi_threads}} home=/usr/share/freshmaker
+WSGIScriptAlias /{{ freshmaker_endpoint }} /usr/share/freshmaker/freshmaker.wsgi
+
+{% if freshmaker_servername != inventory_hostname and freshmaker_servername != None %}
+# Redirect from the hostname of this machine to user-visible hostname.
+RewriteEngine On
+<If "%{HTTP_HOST} == '{{ inventory_hostname }}'">
+RewriteRule (.*) "%{REQUEST_SCHEME}://{{ freshmaker_servername }}%{REQUEST_URI}" [R,L]
+</If>
+{% endif %}
+
+{% if env == 'staging' %}
+OIDCOAuthClientID {{ freshmaker_stg_oidc_client_id }}
+OIDCOAuthClientSecret {{ freshmaker_stg_oidc_client_secret }}
+OIDCOAuthIntrospectionEndpoint https://id.stg.fedoraproject.org/openidc/TokenInfo
+{% else %}
+OIDCOAuthClientID {{ freshmaker_prod_oidc_client_id }}
+OIDCOAuthClientSecret {{ freshmaker_prod_oidc_client_secret }}
+OIDCOAuthIntrospectionEndpoint https://id.fedoraproject.org/openidc/TokenInfo
+{% endif %}
+
+OIDCOAuthIntrospectionEndpointAuth client_secret_post
+OIDCOAuthIntrospectionEndpointParams token_type_hint=Bearer
+
+<Directory /usr/share/freshmaker>
+    WSGIProcessGroup freshmaker
+    WSGIApplicationGroup %{GLOBAL}
+
+    {% if freshmaker_allowed_named_hosts or freshmaker_allowed_hosts %}
+    # Only requests from following hosts/ips are allowed.
+    <RequireAny>
+        {{ 'Require host ' ~ freshmaker_allowed_named_hosts|join(' ') if freshmaker_allowed_named_hosts else '' }}
+        {{ 'Require ip ' ~ freshmaker_allowed_hosts|join(' ') if freshmaker_allowed_hosts else '' }}
+    </RequireAny>
+    {% endif %}
+
+    {% if not freshmaker_allowed_named_hosts and not freshmaker_allowed_hosts %}
+    # No auth mechanism configured, so everyone is allowed to access Freshmaker.
+    Require all granted
+    {% endif %}
+
+</Directory>

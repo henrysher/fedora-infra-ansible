@@ -56,7 +56,6 @@
     src=systemd-environment.conf.j2
     dest=/etc/systemd/system/{{ item }}.service.d/environment.conf
   with_items: "{{ koschei_backend_services }}"
-  when: env == 'staging'
   notify:
   - reload systemd
   - restart koschei backend services
@@ -75,6 +74,7 @@
   with_items:
   - config-admin.cfg
   - config-backend.cfg
+  - copr-config
   notify:
   - restart koschei backend services
   tags:
@@ -89,8 +89,6 @@
   - koschei
   - config
   - fedmsgdconfig
-
-# TODO install copr config, /etc/koschei/copr-config
 
 - name: install koji client config file
   template: >
@@ -122,6 +120,7 @@
   - koschei-refresh-group
   - koschei-refresh-distgit-group
   - koschei-refresh-module
+  - koschei-track-group
   tags:
   - koschei
   - config

@@ -24,6 +24,11 @@
 -- [unset kojihub ServerOffline setting]
 
 
+-- wipe obsolete table that only causes problems with the sync, could
+-- even be dropped entirely (together with imageinfo table).
+select now() as time, 'wiping imageinfo listings' as msg;
+delete from imageinfo_listing;
+
 -- bump sequences (not strictly needed anymore)
 select now() as time, 'bumping sequences' as msg;
 alter sequence task_id_seq restart      with 90000000;
@@ -57,7 +62,7 @@ delete from rpminfo where build_id in (select id from build where state<>1);
 
 -- expire any active buildroots
 select now() as time, 'expiring active buildroots' as msg;
-update buildroot set state=3, retire_event=get_event() where state=0;
+update standard_buildroot set state=3, retire_event=get_event() where state=0;
 
 -- enable/disable hosts
 update host set enabled=False;
@@ -75,6 +80,8 @@ update repo set state = 3 where state in (0, 1, 2);
 -- The koji hub is x86_64 and i386 and has createrepo ability
 {% for host in groups['koji-stg'] %}
 select now() as time, 'adding staging host {{ host }}' as msg;
+delete from host where name='{{ host }}';
+delete from users where name='{{ host }}';
 insert into users (name, usertype, krb_principal, status) values ('{{ host }}', 1, 'compile/{{ host }}@STG.FEDORAPROJECT.ORG', 0);
 insert into host (user_id, name, arches) values (
     (select id from users where name='{{host}}'), '{{host}}', 'i386 x86_64');
@@ -87,6 +94,8 @@ insert into host_channels (host_id, channel_id) values (
 -- The buildvms are x86_64 and i386 and also have createrepo ability
 {% for host in groups['buildvm-stg'] %}
 select now() as time, 'adding staging host {{ host }}' as msg;
+delete from host where name='{{ host }}';
+delete from users where name='{{ host }}';
 insert into users (name, usertype, krb_principal, status) values ('{{ host }}', 1, 'compile/{{ host }}@STG.FEDORAPROJECT.ORG', 0);
 insert into host (user_id, name, arches) values (
     (select id from users where name='{{host}}'), '{{host}}', 'i386 x86_64');
@@ -100,6 +109,8 @@ insert into host_channels (host_id, channel_id) values (
 
 {% for host in groups['buildvm-aarch64-stg'] %}
 select now() as time, 'adding staging host {{ host }}' as msg;
+delete from host where name='{{ host }}';
+delete from users where name='{{ host }}';
 insert into users (name, usertype, krb_principal, status) values ('{{ host }}', 1, 'compile/{{ host }}@STG.FEDORAPROJECT.ORG', 0);
 insert into host (user_id, name, arches) values (
     (select id from users where name='{{host}}'), '{{host}}', 'aarch64');
@@ -113,6 +124,8 @@ insert into host_channels (host_id, channel_id) values (
 
 {% for host in groups['buildvm-ppc64-stg'] %}
 select now() as time, 'adding staging host {{ host }}' as msg;
+delete from host where name='{{ host }}';
+delete from users where name='{{ host }}';
 insert into users (name, usertype, krb_principal, status) values ('{{ host }}', 1, 'compile/{{ host }}@STG.FEDORAPROJECT.ORG', 0);
 insert into host (user_id, name, arches) values (
     (select id from users where name='{{host}}'), '{{host}}', 'ppc64');
@@ -126,6 +139,8 @@ insert into host_channels (host_id, channel_id) values (
 
 {% for host in groups['buildvm-ppc64le-stg'] %}
 select now() as time, 'adding staging host {{ host }}' as msg;
+delete from host where name='{{ host }}';
+delete from users where name='{{ host }}';
 insert into users (name, usertype, krb_principal, status) values ('{{ host }}', 1, 'compile/{{ host }}@STG.FEDORAPROJECT.ORG', 0);
 insert into host (user_id, name, arches) values (
     (select id from users where name='{{host}}'), '{{host}}', 'ppc64le');
@@ -137,7 +152,7 @@ insert into host_channels (host_id, channel_id) values (
 
 -- Add some people to be admins, only in staging.  Feel free to grow this list..
 
-{% for username in ['modularity', 'mizdebsk', 'ralph', 'psabata', 'puiterwijk', 'jkaluza', 'fivaldi', 'mprahl'] %}
+{% for username in ['modularity', 'mizdebsk', 'psabata', 'jkaluza', 'fivaldi', 'mprahl'] %}
 select now() as time, 'adding staging admin {{username}}' as msg;
 insert into user_perms (user_id, perm_id, active, creator_id) values (
     (select id from users where name='{{username}}'),
@@ -152,7 +167,7 @@ insert into user_perms (user_id, perm_id, active, creator_id) values (
                                ('hotness', 'hotness/hotness01.stg.phx2.fedoraproject.org'),
                                ('containerbuild', 'osbs/osbs.stg.fedoraproject.org'),
                                ('kojira', 'kojira/koji.stg.fedoraproject.org@STG.FEDORAPROJECT.ORG')] %}
-update users set krb_principal='{{principal}}@STG.FEDORAPROJECT.ORG' where username='{{username}}';
+update users set krb_principal='{{principal}}@STG.FEDORAPROJECT.ORG' where name='{{username}}';
 {% endfor %}
 update users set krb_principal=replace(krb_principal, '@FEDORAPROJECT.ORG', '@STG.FEDORAPROJECT.ORG');
 
