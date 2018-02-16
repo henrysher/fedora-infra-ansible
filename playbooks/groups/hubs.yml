@@ -1,0 +1,33 @@
+# create the hubs server
+# NOTE: should be used with --limit most of the time
+- import_playbook: "/srv/web/infra/ansible/playbooks/include/virt-create.yml myhosts=hubs-stg"
+
+- name: make the box be real
+  hosts: hubs-stg
+  user: root
+  gather_facts: True
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  roles:
+  - base
+  - rkhunter
+  - nagios_client
+  - hosts
+  - fas_client
+  - collectd/base
+  - sudo
+  - { role: openvpn/client,
+      when: env != "staging" }
+  - mod_wsgi
+
+  tasks:
+  - import_tasks: "{{ tasks_path }}/yumrepos.yml"
+  - import_tasks: "{{ tasks_path }}/2fa_client.yml"
+  - import_tasks: "{{ tasks_path }}/motd.yml"
+
+  handlers:
+  - import_tasks: "{{ handlers_path }}/restart_services.yml"
