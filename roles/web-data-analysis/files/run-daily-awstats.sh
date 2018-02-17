@@ -48,7 +48,7 @@ SITES="admin.fedoraproject.org apps.fedoraproject.org arm.fedoraproject.org ask.
 
 pushd ${CONFDIR}
 for SITE in ${SITES}; do
-    if [[ -f ${CONFDIR/${SITE} ]]; then 
+    if [[ -f ${CONFDIR}/${SITE} ]]; then 
 	if [[ -d ${STORDIR}/${SITE} ]]; then
 	    mkdir -p ${STORDIR}/${SITE}
 	fi
