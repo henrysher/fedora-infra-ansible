@@ -11,6 +11,19 @@ spec:
   selector:
     app: waiverdb
     service: web
+{% if env == 'staging' %}
+  strategy:
+    type: Rolling
+    rollingParams:
+      pre:
+        failurePolicy: Abort
+        execNewPod:
+          containerName: web
+          command: [ /bin/sh, -i, -c, "waiverdb wait-for-db && waiverdb db upgrade" ]
+          volumes:
+          - config-volume
+          - secret-volume
+{% endif %}
   template:
     metadata:
       labels:
