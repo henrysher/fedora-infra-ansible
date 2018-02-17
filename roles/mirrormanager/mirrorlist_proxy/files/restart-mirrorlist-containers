@@ -38,6 +38,8 @@ if [ $? != 0 ]; then
 fi
 
 # Drain mirrorlist1. This is safe since we assured that local2 is serving
+echo "set server mirror-lists-backend/mirrorlist-local1 state drain" | nc -U /var/run/haproxy-admin >& /dev/null
+sleep 5
 echo "disable server mirror-lists-backend/mirrorlist-local1" | nc -U /var/run/haproxy-admin >& /dev/null
 sleep 1
 
@@ -57,6 +59,8 @@ fi
 cp -a /srv/mirrorlist/data/mirrorlist1/* /srv/mirrorlist/data/mirrorlist2/
 
 # Drain mirrorlist2
+echo "set server mirror-lists-backend/mirrorlist-local2 state drain" | nc -U /var/run/haproxy-admin >& /dev/null
+sleep 5
 echo "disable server mirror-lists-backend/mirrorlist-local2" | nc -U /var/run/haproxy-admin >& /dev/null
 sleep 1
 
