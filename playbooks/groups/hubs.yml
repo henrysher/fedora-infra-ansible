@@ -9,7 +9,7 @@
 
   vars_files:
    - /srv/web/infra/ansible/vars/global.yml
-   - "/srv/private/ansible/vars.yml"
+   - /srv/private/ansible/vars.yml
    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
 
   pre_tasks:
@@ -25,11 +25,93 @@
   - sudo
   - { role: openvpn/client,
       when: env != "staging" }
-  - mod_wsgi
 
   tasks:
   - import_tasks: "{{ tasks_path }}/2fa_client.yml"
   - import_tasks: "{{ tasks_path }}/motd.yml"
+
+  handlers:
+  - import_tasks: "{{ handlers_path }}/restart_services.yml"
+
+
+#
+# Database setup
+#
+
+- name: prepare setting up the database
+  hosts: db01.stg.phx2.fedoraproject.org
+  gather_facts: no
+  user: root
+
+  tasks:
+  - name: install psycopg2 for the postgresql ansible modules
+    package: name=python-psycopg2 state=present
+    tags:
+    - packages
+
+- name: setup the database
+  hosts: db01.stg.phx2.fedoraproject.org
+  gather_facts: no
+  become: yes
+  become_user: postgres
+  vars_files:
+  - /srv/web/infra/ansible/vars/global.yml
+  - /srv/private/ansible/vars.yml
+  - "/srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml"
+
+  tasks:
+  #- name: hubs DB admin user
+  #  postgresql_user: name=hubsadmin password={{ hubs_admin_db_pass }}
+  #- name: databases creation
+  #  postgresql_db: name=hubs owner=hubsadmin encoding=UTF-8
+  - name: hubs DB user
+    postgresql_user: name=hubsapp password={{ hubs_db_pass }}
+  - name: databases creation
+    postgresql_db: name=hubs owner=hubsapp encoding=UTF-8
+
+
+
+#
+# Real Hubs-specific work
+#
+
+- name: setup Hubs
+  hosts: hubs-stg
+  user: root
+  gather_facts: True
+
+  vars_files:
+  - /srv/web/infra/ansible/vars/global.yml
+  - /srv/private/ansible/vars.yml
+  - "/srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml"
+
+  roles:
+  - fedmsg/base
+  - role: hubs
+    main_user: hubs
+    hubs_url_hostname: hubs.stg.fedoraproject.org
+    hubs_secret_key: "{{ hubs_session_secret }}"
+    hubs_db_type: postgresql
+    hubs_db_host: db01.stg.fedoraproject.org
+    hubs_db_user: hubsapp
+    hubs_db_password: "{{ hubs_db_pass }}"
+    hubs_dev_mode: false
+    hubs_conf_dir: /etc/fedora-hubs
+    hubs_var_dir: /var/lib/fedora-hubs
+    hubs_ssl_cert: /etc/letsencrypt/live/hubs.stg.fedoraproject.org/fullchain.pem
+    hubs_ssl_key: /etc/letsencrypt/live/hubs.stg.fedoraproject.org/privkey.pem
+    hubs_fas_username: "{{ fedoraDummyUser }}"
+    hubs_fas_password: "{{ fedoraDummyUserPassword }}"
+    hubs_oidc_url: id.stg.fedoraproject.org
+
+  tasks:
+  - name: add more hubs workers
+    service: name={{item}} enabled=yes state=started
+    with_items:
+    - fedora-hubs-triage@3
+    - fedora-hubs-triage@4
+    - fedora-hubs-worker@3
+    - fedora-hubs-worker@4
 
   handlers:
   - import_tasks: "{{ handlers_path }}/restart_services.yml"
