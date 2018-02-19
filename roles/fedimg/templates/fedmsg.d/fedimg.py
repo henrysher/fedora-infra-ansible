@@ -18,8 +18,19 @@
 #
 # Authors:  David Gay <dgay@redhat.com>
 #           Ralph Bean <rbean@redhat.com>
+#           Sayan Chowdhury <sayan@redhat.com>
 #
 
-config = dict(
-    fedimgconsumer=True,
-)
+{% if env == 'staging' %}
+config = {
+    'fedimgconsumer.dev.enabled': False,
+    'fedimgconsumer.prod.enabled': False,
+    'fedimgconsumer.stg.enabled': True,
+}
+{% else %}
+config = {
+    'fedimgconsumer.dev.enabled': False,
+    'fedimgconsumer.prod.enabled': True,
+    'fedimgconsumer.stg.enabled': False,
+}
+{% endif %}
