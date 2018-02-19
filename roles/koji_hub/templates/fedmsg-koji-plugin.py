@@ -77,6 +77,7 @@ def get_message_body(topic, *args, **kws):
         msg['name'] = info['name']
         msg['version'] = info['version']
         msg['release'] = info['release']
+        msg['epoch'] = info.get('epoch')
         msg['attribute'] = kws['attribute']
         msg['old'] = kws['old']
         msg['new'] = kws['new']
