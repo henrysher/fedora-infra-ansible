@@ -1,0 +1,23 @@
+---
+# delete all predefined node selector labels which are not needed anymore
+- name: Remove managed node labels
+  command: >
+    oc label node {{ inventory_hostname }} {{ item | regex_replace('=.+') }}-
+  with_items: "{{ osbs_managed_node_labels | difference(osbs_node_labels) }}"
+  register: delete_label
+  changed_when: ('not found' not in delete_label.stderr)
+  environment: "{{ osbs_environment }}"
+  tags:
+  - oc
+
+# set specified node selector labels
+- name: Apply node labels
+  command: >
+    oc label node {{ inventory_hostname }} {{ item }}
+  with_items: "{{ osbs_node_labels | intersect(osbs_managed_node_labels) }}"
+  register: add_label
+  changed_when: ('labeled' in add_label.stdout)
+  failed_when: (('labeled' not in add_label.stdout) and ('already has a value' not in add_label.stderr))
+  environment: "{{ osbs_environment }}"
+  tags:
+  - oc

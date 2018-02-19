@@ -1,0 +1,15 @@
+---
+- name: Mark node as schedulable
+  command: >
+    oadm manage-node {{ inventory_hostname }} --schedulable=true
+
+- name: Wait for node to be Ready
+  register: node_status
+  shell: >
+    oc get node {{ inventory_hostname }} --no-headers=true |
+    awk '{print $2}'
+  until: "'Ready' in node_status.stdout_lines"
+  changed_when: false # read-only command
+  environment: "{{ osbs_environment }}"
+  retries: "{{ osbs_wait_node_ready_retries }}"
+  delay: "{{ osbs_wait_node_ready_delay }}"

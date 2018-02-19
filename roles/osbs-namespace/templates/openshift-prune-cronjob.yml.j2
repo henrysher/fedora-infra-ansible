@@ -1,0 +1,18 @@
+apiVersion: batch/v2alpha1
+kind: CronJob
+metadata:
+  name: build-pruner
+spec:
+  schedule: "{{ osbs_prune_schedule }}"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          serviceAccountName: "{{ osbs_prune_serviceaccount }}"
+          containers:
+          - name: build-pruner
+            image: "{{ osbs_prune_image }}"
+
+            {% if osbs_prune_commands %}command: {{ osbs_prune_commands | to_yaml }}{% endif %}
+
+          restartPolicy: Never

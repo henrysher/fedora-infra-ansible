@@ -1,0 +1,9 @@
+---
+# Tag the desired build image with the post build tag (“staged” for stage, “released” for prod)
+- name: tag buildroot imagestream
+  command: >
+    oc tag {{ osbs_buildroot_imagestream }}:{{ osbs_buildroot_imagestream_live_tag }} {{ osbs_buildroot_imagestream }}:{{ osbs_buildroot_imagestream_post_build_tag }}
+  environment: "{{ osbs_environment }}"
+  when: osbs_buildroot_imagestream != '' and osbs_buildroot_imagestream_live_tag != '' and osbs_buildroot_imagestream_post_build_tag != ''
+  tags:
+  - oc

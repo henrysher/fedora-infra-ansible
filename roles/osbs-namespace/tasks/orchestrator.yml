@@ -16,3 +16,38 @@
   register: yaml_client_config_secret
   tags:
   - oc
+
+# Setup imagestream
+- name: copy imagestream
+  template:
+    src: osbs-buildroot-imagestream.yml.j2
+    dest: "{{ osbs_openshift_home }}/{{ inventory_hostname }}-{{ osbs_namespace }}-osbs-buildroot-imagestream.yml"
+  environment: "{{ osbs_environment }}"
+  when: osbs_buildroot_repository != '' and osbs_buildroot_imagestream != ''
+  register: yaml_imagestream
+  tags:
+  - oc
+
+- name: create imagestream
+  command: >
+    oc replace
+    --namespace={{ osbs_namespace }}
+    --force=true
+    --filename={{ osbs_openshift_home }}/{{ inventory_hostname }}-{{ osbs_namespace }}-osbs-buildroot-imagestream.yml
+  environment: "{{ osbs_environment }}"
+  when: yaml_imagestream.changed
+  tags:
+  - oc
+
+- name: update imagestream tag
+  command: >
+    oc import-image {{ osbs_buildroot_imagestream }}:{{ osbs_buildroot_imagestream_live_tag }}
+    --from {{ osbs_buildroot_repository }}:{{ osbs_buildroot_imagestream_live_tag }}
+    {{ " --insecure" if osbs_insecure_repository else ''}}
+  environment: "{{ osbs_environment }}"
+  when: osbs_buildroot_repository != '' and osbs_buildroot_imagestream != '' and osbs_buildroot_imagestream_live_tag != ''
+  register: imagestream_tag_updated
+  changed_when: ('The import completed successfully.' in imagestream_tag_updated.stdout)
+  failed_when: ('The import completed successfully.' not in imagestream_tag_updated.stdout)
+  tags:
+  - oc

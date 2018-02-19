@@ -1,0 +1,25 @@
+---
+- name: Mark node as unschedulable
+  command: >
+    oadm manage-node {{ inventory_hostname }} --schedulable=false
+
+- name: Evacuate infra pods
+  command: >
+    oadm manage-node {{ inventory_hostname }} --evacuate
+    --pod-selector={{ item }}
+  with_items:
+  - "deploymentconfig=router"
+  - "deploymentconfig=registry-console"
+  - "deploymentconfig=docker-registry"
+
+- name: Wait until no more pods are running in node
+  register: active_pods_result
+  shell: >
+    oadm manage-node {{ inventory_hostname }} --list-pods |
+    grep -v 'READY' | awk '{print $2}' | grep -v '0/'
+  until: active_pods_result.rc == 1
+  failed_when: active_pods_result.rc > 1
+  changed_when: false # read-only command
+  environment: "{{ osbs_environment }}"
+  retries: "{{ osbs_wait_active_pods_retries }}"
+  delay: "{{ osbs_wait_active_pods_delay }}"

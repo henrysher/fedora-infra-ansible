@@ -35,12 +35,12 @@ Role Variables
     # in orchestrator workspace
     osbs_worker_clusters:
       x86_64:
-        - name: prod-x86_64-on-prem
+        - name: prod-first-x86_64
           max_concurrent_builds: 6
-          openshift_url: https://my-x86_64-on-premise-cluster.redhat.com:8443
-        - name: prod-x86_64-osd
+          openshift_url: https://my-first-x86_64-cluster.fedoraproject.org:8443
+        - name: prod-second-x86_64
           max_concurrent_builds: 16
-          openshift_url: https://my-x86_64-osd-cluster.redhat.com:8443
+          openshift_url: https://my-second-x86_64-cluster.fedoraproject.org
           # optional params, and their defaults:
           enabled: true # yaml boolean
           namespace: worker
@@ -48,9 +48,9 @@ Role Variables
           verify_ssl: 'true' # yaml string
 
       ppc64le:
-        - name: prod-ppc64le-on-prem
+        - name: prod-ppc64le
           max_concurrent_builds: 6
-          openshift_url: https://my-ppc64le-on-premise-cluster.redhat.com:8443
+          openshift_url: https://my-ppc64le-cluster.fedoraproject.org:8443
 
     # Service accounts to be created - these accounts will also be bound to
     # edit clusterrole and osbs-custom-build role in specified namespace
@@ -86,8 +86,8 @@ Role Variables
 
     # Koji integration
     osbs_koji_secret_name: kojisecret
-    osbs_koji_hub: https://koji-hub.redhat.com  # Empty default value
-    osbs_koji_root: https://koji-root.redhat.com  # Empty default value
+    osbs_koji_hub: https://koji.fedoraproject.org  # Empty default value
+    osbs_koji_root: https://koji.fedoraproject.org/kojihub  # Empty default value
 
     # Pulp integration
     osbs_pulp_secret_name: pulpsecret
@@ -98,11 +98,18 @@ Role Variables
     osbs_registry_api_version:
     - v1
     - v2
-    osbs_registry_uri: https://distribution-registry.redhat.com/v2  # Empty default value
+    osbs_registry_uri: https://distribution.registry.fedoraproject.org/v2  # Empty default value
 
     # Dist-git integration
-    osbs_sources_command: rhpkg sources
-    osbs_source_registry_uri: https://source-registry.redhat.com  # Empty default value
+    osbs_sources_command: fedpkg sources
+    osbs_source_registry_uri: https://source.registry.fedoraproject.org  # Empty default value
+
+    # Pruning
+    osbs_prune: false
+    osbs_prune_schedule: '0 0 */8 * *'
+    osbs_prune_secret: ''
+    osbs_prune_image: ''
+    osbs_prune_commands: ["/prune.sh"]
 
 For a full list, see defaults/main.yml
 

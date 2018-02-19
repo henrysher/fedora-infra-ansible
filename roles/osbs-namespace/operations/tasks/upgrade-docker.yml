@@ -1,0 +1,15 @@
+---
+- include: disable-node.yml
+
+- name: Update docker package
+  yum:
+    name: "{{ osbs_docker_version }}"
+    update_cache: true
+    state: present
+
+- name: Restart docker service
+  systemd:
+    state: restarted
+    name: docker
+
+- include: enable-node.yml

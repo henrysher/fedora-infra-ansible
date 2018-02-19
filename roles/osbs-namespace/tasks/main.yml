@@ -1,4 +1,13 @@
 ---
+# Query namespace
+- name: query osbs namespace
+  command: oc get project {{ osbs_namespace }}
+  register: namespace_result
+  failed_when: namespace_result.rc != 0 and ('not found' not in namespace_result.stderr)
+  changed_when: false
+  tags:
+  - oc
+
 # Create namespace
 - name: create osbs namespace
   command: oc new-project {{ osbs_namespace }}
@@ -6,6 +15,7 @@
   failed_when: new_project.rc != 0 and ('already exists' not in new_project.stderr)
   changed_when: new_project.rc == 0
   environment: "{{ osbs_environment }}"
+  when: "'not found' in namespace_result.stderr"
   tags:
   - oc
 
@@ -29,46 +39,6 @@
   environment: "{{ osbs_environment }}"
   with_items: "{{ yaml_sa.results | default([]) }}"
   when: item.changed
-  tags:
-  - oc
-
-# Setup policy binding
-- name: query policybinding
-  command: oc get policybinding {{ osbs_namespace }}:default --namespace {{ osbs_namespace }}
-  environment: "{{ osbs_environment }}"
-  register: policybinding_query
-  failed_when: policybinding_query.rc != 0 and ('not found' not in policybinding_query.stderr)
-  changed_when: false
-  when: osbs_is_admin
-  tags:
-  - oc
-
-- name: create a policybinding
-  command: oc create policybinding {{ osbs_namespace }} --namespace {{ osbs_namespace }}
-  environment: "{{ osbs_environment }}"
-  when: "osbs_is_admin and 'not found' in policybinding_query.stderr"
-  tags:
-  - oc
-
-# Setup role
-- name: copy role
-  template:
-    src: role-osbs-custom-build.yml.j2
-    dest: "{{ osbs_openshift_home }}/{{ inventory_hostname }}-{{ osbs_namespace }}-role-osbs-custom-build.yml"
-  environment: "{{ osbs_environment }}"
-  register: yaml_role
-  when: osbs_is_admin
-  tags:
-  - oc
-
-- name: import role
-  command: >
-    oc replace
-    --namespace={{ osbs_namespace }}
-    --force=true
-    --filename={{ osbs_openshift_home }}/{{ inventory_hostname }}-{{ osbs_namespace }}-role-osbs-custom-build.yml
-  environment: "{{ osbs_environment }}"
-  when: yaml_role.changed
   tags:
   - oc
 
@@ -98,16 +68,12 @@
     groups: "{{ osbs_admin_groups }}"
 
   - name: osbs-custom-build-readwrite
-    role: osbs-custom-build
-    yaml_version: v1
-    role_namespace: "{{ osbs_namespace }}"
+    role: system:build-strategy-custom
     users: "{{ osbs_readwrite_users }}"
     groups: "{{ osbs_readwrite_groups }}"
 
   - name: osbs-custom-build-admin
-    role: osbs-custom-build
-    yaml_version: v1
-    role_namespace: "{{ osbs_namespace }}"
+    role: system:build-strategy-custom
     users: "{{ osbs_admin_users }}"
     groups: "{{ osbs_admin_groups }}"
 
@@ -116,8 +82,7 @@
     serviceaccounts: "{{ osbs_service_accounts }}"
 
   - name: osbs-custom-build-serviceaccounts
-    role: osbs-custom-build
-    role_namespace: "{{ osbs_namespace }}"
+    role: system:build-strategy-custom
     serviceaccounts: "{{ osbs_service_accounts }}"
 
   register: yaml_rolebindings
@@ -133,7 +98,35 @@
     --filename={{ osbs_openshift_home }}/{{ inventory_hostname }}-{{ osbs_namespace }}-rolebinding-{{ item.item.name }}.yml
   environment: "{{ osbs_environment }}"
   with_items: "{{ yaml_rolebindings.results }}"
-  when: item.changed
+  when: yaml_rolebindings.changed and item.changed
+  tags:
+  - oc
+
+- name: copy pruner role binding
+  template:
+    src: "openshift-rolebinding.{{ item.yaml_version | default('v2') }}.yml.j2"
+    dest: "{{ osbs_openshift_home }}/{{ inventory_hostname }}-{{ osbs_namespace }}-rolebinding-{{ item.name }}.yml"
+  with_items:
+
+  - name: osbs-pruner-serviceaccounts
+    role: system:image-pruner
+    type: ClusterRoleBinding
+    serviceaccounts: ["{{ osbs_serviceaccount_pruner }}"]
+
+  register: yaml_rolebindings_pruner
+  when: osbs_is_admin and osbs_serviceaccount_pruner
+  tags:
+  - oc
+
+- name: import pruner role bindings
+  command: >
+    oc replace
+    --namespace={{ osbs_namespace }}
+    --force=true
+    --filename={{ osbs_openshift_home }}/{{ inventory_hostname }}-{{ osbs_namespace }}-rolebinding-{{ item.item.name }}.yml
+  environment: "{{ osbs_environment }}"
+  with_items: "{{ yaml_rolebindings_pruner.results }}"
+  when: yaml_rolebindings_pruner.changed and item.changed
   tags:
   - oc
 
@@ -188,5 +181,25 @@
   tags:
   - oc
 
-- import_tasks: orchestrator.yml
+- name: copy prune cronjob yaml
+  template:
+    src: openshift-prune-cronjob.yml.j2
+    dest: "{{ osbs_openshift_home }}/{{ inventory_hostname }}-{{ osbs_namespace }}-prune-cronjob.yml"
+  register: yaml_cronjob
+  when: osbs_prune
+  tags:
+  - oc
+
+- name: import prune cronjob yaml
+  command: >
+    oc replace
+    --namespace={{ osbs_namespace }}
+    --force=true
+    --filename={{ osbs_openshift_home }}/{{ inventory_hostname }}-{{ osbs_namespace }}-prune-cronjob.yml
+  environment: "{{ osbs_environment }}"
+  when: osbs_prune and yaml_cronjob.changed
+  tags:
+  - oc
+
+- include: orchestrator.yml
   when: osbs_orchestrator
