@@ -38,19 +38,6 @@ config = {
             'module_keyid': 'a3cc4e62',
             'tags': [
                 # Temporary tags
-                {
-                    "from": "f28-llvm",
-                    "to": "f28-llvm",
-                    "key": "fedora-28",
-                    "keyid": "9db62fb1"
-                },
-                {
-                    "from": "f28-ruby",
-                    "to": "f28-ruby",
-                    "key": "fedora-28",
-                    "keyid": "9db62fb1"
-                },
-
                 # Infra tags
                 {
                     "from": "epel6-infra-candidate",
@@ -89,6 +76,12 @@ config = {
                     "to": "f28",
                     "key": "fedora-28",
                     "keyid": "9db62fb1"
+                },
+                {
+                    "from": "f28",
+                    "to": "f28",
+                    "key": "fedora-29",
+                    "keyid": "429476b4"
                 },
 
                 # Gated bodhi updates
