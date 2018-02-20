@@ -10,11 +10,13 @@
 
 - name: install python3-certbot-nginx
   dnf: name=python3-certbot-nginx state=present
+  when: hubs_ssl_cert != None
 
 - name: get the letsencrypt cert
-  command: certbot certonly -n --standalone --pre-hook "systemctl stop nginx" --post-hook "systemctl start nginx" -d {{ ansible_fqdn }} --agree-tos --email admin@fedoraproject.org
+  command: certbot certonly -n --standalone --pre-hook "systemctl stop nginx" --post-hook "systemctl start nginx" -d {{ hubs_url_hostname }} --agree-tos --email admin@fedoraproject.org
   args:
-    creates: /etc/letsencrypt/live/{{ ansible_fqdn }}/privkey.pem
+    creates: "{{ hubs_ssl_key }}"
+  when: hubs_ssl_cert != None
   notify:
     - restart nginx
 
@@ -34,6 +36,7 @@
   with_first_found:
     - nginx_ssl_params.{{ ansible_hostname }}
     - nginx_ssl_params
+  when: hubs_ssl_cert != None
   notify:
     - restart nginx
 
