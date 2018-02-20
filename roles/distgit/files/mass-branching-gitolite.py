@@ -84,10 +84,10 @@ def main():
         if row.strip().startswith('repo '):
             name = row.strip().split()[-1]
 
-            if name.startswith('rpm/'):
-                name = 'rpms/%s' % name[4:]
-            elif name.startswith('module/'):
-                name = 'modules/%s' % name[7:]
+            if name.startswith('rpms/'):
+                name = 'rpm/%s' % name[5:]
+            elif name.startswith('modules/'):
+                name = 'module/%s' % name[8:]
 
             if name in repos:
                 process = True
