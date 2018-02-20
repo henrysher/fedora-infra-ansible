@@ -30,7 +30,7 @@ def _get_arguments():
         'inputfile',
         help='The input file listing the repositories to update')
     parser.add_argument(
-        '--output',
+        'output',
         help='File where to write the new config (It may be a good idea to '
             'not over-write the current configuration file so you can diff '
             'the current with the new one')
@@ -74,7 +74,7 @@ def main():
     with open(config_file) as stream:
         config = [row.rstrip() for row in stream]
 
-    if not data:
+    if not config:
         print('%s appears to be empty' % config_file)
         return 1
 
@@ -95,7 +95,7 @@ def main():
                 process = False
         if process and row.strip().startswith('RWC   master ='):
             new_row = row
-            new_row = new_row.replace(' master =', ' {} ='.format(args.branch), 1)
+            new_row = new_row.replace(' master =', ' {} ='.format(args.gitbranch), 1)
             output.append(new_row)
         output.append(row)
 
@@ -108,8 +108,8 @@ def main():
 
     print(
         'Now put the new configuration file in place (if it needs to be) '
-        'then run `` sudo -u pagure HOME=/srv/git gitolite compile `` '
-        'followed by `` sudo -u pagure HOME=/srv/git gitolite compile `` '
+        'then run `` sudo -u pagure HOME=/srv/git gitolite compile `` \n'
+        'followed by `` sudo -u pagure HOME=/srv/git gitolite compile `` \n'
         'and finally, restart the `pagure_gitolite_worker` service.')
 
     return 0
