@@ -36,6 +36,10 @@ def _get_arguments():
 
 def create_git_branch(path, gitbranch):
     """ Create the specified git branch in the specified git repository. """
+    if not os.path.isdir(path):
+        print('   ERROR: %s does not appear to be a directory' % path)
+        return
+
     cmd = ['git', 'branch', gitbranch, _branch_from]
     return subprocess.check_output(
         cmd, stderr=subprocess.STDOUT, shell=False, cwd=path)
@@ -70,7 +74,7 @@ def main():
         except subprocess.CalledProcessError as err:
             print(
                 '  ERROR: %s failed to branch, return code: %s\n      %s' % (
-                    err.returncode, err.output))
+                    entry, err.returncode, err.output))
 
     return 0
 
