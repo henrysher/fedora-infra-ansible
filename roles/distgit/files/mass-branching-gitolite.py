@@ -109,7 +109,6 @@ def main():
     print(
         'Now put the new configuration file in place (if it needs to be) '
         'then run `` sudo -u pagure HOME=/srv/git gitolite compile `` \n'
-        'followed by `` sudo -u pagure HOME=/srv/git gitolite compile `` \n'
         'and finally, restart the `pagure_gitolite_worker` service.')
 
     return 0
