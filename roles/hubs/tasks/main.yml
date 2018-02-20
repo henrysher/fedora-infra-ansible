@@ -47,7 +47,7 @@
     args:
       creates: "{{ hubs_conf_dir }}/client_secrets.json"
     notify: "hubs configuration change"
-  when: inventory_hostname == 'hubs-dev.fedorainfracloud.org'
+  when: hubs_oidc_url == "iddev.fedorainfracloud.org"
 
 
 - name: Configure application to authenticate with the OIDC provider
@@ -58,7 +58,7 @@
     group: "{{ main_user }}"
     mode: 0640
   notify: "hubs configuration change"
-  when: inventory_hostname != 'hubs-dev.fedorainfracloud.org'
+  when: hubs_oidc_url != "iddev.fedorainfracloud.org"
 
 
 - name: Fix the permissions on the OIDC secrets file
