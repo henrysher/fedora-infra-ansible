@@ -7,7 +7,6 @@ export PATH=$PATH:/bin:/usr/bin:/usr/local/bin
 
 MACHINES='signal.gnome.org
           webapps2.gnome.org
-          clutter.gnome.org
           blogs.gnome.org
           palette.gnome.org 
           git.gnome.org
