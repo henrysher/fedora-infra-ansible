@@ -37,15 +37,31 @@
   notify: "hubs configuration change"
 
 
-- name: Configure application to authenticate with iddev.fedorainfracloud.org
-  command:
-    oidc-register
-    --output-file {{ hubs_conf_dir }}/client_secrets.json
-    https://{{ hubs_oidc_url }}/ {{ hubs_url }}
-  args:
-    creates: "{{ hubs_conf_dir }}/client_secrets.json"
+- name: Configure application to authenticate with the OIDC provider (dev)
+  block:
+  - dnf: name=python3-flask-oidc state=present
+  - command:
+      oidc-register
+      --output-file {{ hubs_conf_dir }}/client_secrets.json
+      https://{{ hubs_oidc_url }}/ {{ hubs_url }}
+    args:
+      creates: "{{ hubs_conf_dir }}/client_secrets.json"
+  notify: "hubs configuration change"
+  when: inventory_hostname == 'hubs-dev.fedorainfracloud.org'
 
-- name: Set permissions on the oidc credentials file
+
+- name: Configure application to authenticate with the OIDC provider
+  template:
+    src: oidc_client_secrets.json
+    dest: "{{ hubs_conf_dir }}/client_secrets.json"
+    owner: root
+    group: "{{ main_user }}"
+    mode: 0640
+  notify: "hubs configuration change"
+  when: inventory_hostname != 'hubs-dev.fedorainfracloud.org'
+
+
+- name: Fix the permissions on the OIDC secrets file
   file:
     path: "{{ hubs_conf_dir }}/client_secrets.json"
     owner: root
