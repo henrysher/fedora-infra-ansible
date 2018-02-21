@@ -9,6 +9,11 @@ OIDC_ID_TOKEN_COOKIE_SECURE = False
 
 OIDC_CLIENT_SECRETS = "{{ hubs_conf_dir }}/client_secrets.json"
 OIDC_OPENID_REALM = "{{ hubs_url }}/oidc_callback"
+{% if hubs_ssl_cert == None %}
+# There's an SSL proxy, flask_oidc will generate a redirect_uri without https
+# if we don't overwrite it here.
+OVERWRITE_REDIRECT_URI = "{{ hubs_url }}/oidc_callback"
+{% endif %}
 
 SSE_URL = {
     # "host": "sse.example.com",
