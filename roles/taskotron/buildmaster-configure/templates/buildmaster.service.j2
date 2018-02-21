@@ -1,6 +1,10 @@
 [Unit]
 Description=Buildmaster for taskbot
 After=network.target
+# Workaround for builmaster not starting on system reboot
+# https://pagure.io/taskotron/issue/139
+StartLimitIntervalSec=30m
+StartLimitBurst=5
 
 [Service]
 Type=forking
@@ -11,6 +15,10 @@ ExecStop=/bin/buildbot stop {{ buildmaster_dir }}
 ExecReload=/bin/buildbot reconfig {{ buildmaster_dir }}
 User={{ buildmaster_user }}
 Group={{ buildmaster_user }}
+# Workaround for builmaster not starting on system reboot
+# https://pagure.io/taskotron/issue/139
+Restart=on-failure
+RestartSec=60
 
 [Install]
 WantedBy=multi-user.target
