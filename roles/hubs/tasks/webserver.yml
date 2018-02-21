@@ -59,6 +59,20 @@
     persistent: yes
 
 
+- name: Create the log directory
+  file:
+    path: "{{ hubs_log_dir }}"
+    owner: "{{ main_user }}"
+    state: directory
+
+
+- name: Install the Gunicorn config file
+  template:
+    src: gunicorn.py
+    dest: "{{ hubs_conf_dir }}/gunicorn.py"
+  notify: "hubs configuration change"
+
+
 - name: Start and enable the services
   service: name={{ item }} state=started enabled=yes
   with_items:
