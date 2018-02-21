@@ -202,7 +202,8 @@ def get_project_description():
     description = os.path.join(git_dir, 'description')
     if os.path.exists(description):
         try:
-            projectdesc = open(description).read().strip()
+            with open(description, 'r') as f:
+                projectdesc = f.readline().strip()
         except:
             pass
     if projectdesc.startswith('Unnamed repository;'):
