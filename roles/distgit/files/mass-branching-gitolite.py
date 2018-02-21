@@ -93,7 +93,7 @@ def main():
                 process = True
             else:
                 process = False
-        if process and row.strip().startswith('RWC   master ='):
+        if process and " ".join(row.strip().split()).startswith('RWC master ='):
             new_row = row
             new_row = new_row.replace(' master =', ' {} ='.format(args.gitbranch), 1)
             output.append(new_row)
