@@ -126,3 +126,9 @@
 
 - name: install cron for deleting old archives
   cron: name="rotate_faf_archives" special_time="daily" job="find '/srv/faf/reports/archive/' -type f -name '*.tar.xz' -mtime '{{archive_age}}' -delete" user="faf"
+
+- name: install faf cron for deleting old invalid reports
+  cron: name="delete-old-invalid-reports" special_time="daily" job="find '/srv/faf/reports/deferred/' -type -f -mtime '{{ deferred_age }}' -delete" user="faf"
+
+- name: install faf cron for deleting saved reports
+  cron: name="delete-old-invalid-reports" special_time="daily" job="find '/srv/faf/reports/saved/' -type -f -mtime '{{ deferred_age }}' -delete" user="faf"
