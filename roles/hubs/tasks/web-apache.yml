@@ -1,0 +1,35 @@
+# Webserver config
+
+- name: Install the webserver packages
+  dnf: name={{ item }} state=present
+  with_items:
+    - python3-mod_wsgi
+    - libselinux-python
+    - policycoreutils-python
+
+
+- name: Apache configuration for hubs
+  template:
+    src: apache.conf
+    dest: /etc/httpd/conf.d/fedora-hubs.conf
+  notify:
+    - restart apache
+
+
+- name: Allow network connection for Apache
+  seboolean:
+    name: httpd_can_network_connect
+    state: yes
+    persistent: yes
+
+
+- name: Allow Apache to write to the cache files
+  sefcontext:
+    setype: httpd_sys_rw_content_t   
+    target: "/var/lib/fedora-hubs(/.*)?"
+
+
+- name: Start and enable the services
+  service: name={{ item }} state=started enabled=yes
+  with_items:
+    - httpd
