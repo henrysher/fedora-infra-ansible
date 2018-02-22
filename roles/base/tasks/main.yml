@@ -451,3 +451,9 @@
 
 - name: Setup host keytab
   import_tasks: keytab.yml
+
+# SSSD-KCM has been showing way too many bugs with it saying "I have a ticket" while the ticket
+# is actually expired, and kinit's still not refreshing them and such alike.
+# Let's just nuke it for now.
+- name: We do NOT use sssd-kcm
+  file: path=/etc/krb5.conf.d/kcm_default_ccache state=absent
