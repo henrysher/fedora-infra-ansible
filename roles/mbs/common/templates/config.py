@@ -134,7 +134,7 @@ class ProdConfiguration(BaseConfiguration):
     KOJI_CONFIG = path.join(confdir, 'koji.conf')
 {% if env == 'staging' %}
     KOJI_PROFILE = 'staging'
-    KOJI_ARCHES = ['x86_64']
+    KOJI_ARCHES = ['x86_64', 'i686']
     KOJI_REPOSITORY_URL = 'http://kojipkgs.stg.fedoraproject.org/repos'
     MESSAGING_TOPIC_PREFIX = ['org.fedoraproject.stg']
     PDC_URL = 'https://pdc.stg.fedoraproject.org/rest_api/v1'
