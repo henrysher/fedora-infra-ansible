@@ -271,6 +271,8 @@ class AccountSystem(BaseClient):
             189661: 'lef@fedoraproject.org',
             # Mike Ruckman: roshi@mykolab.com
             172063: 'roshi@fedoraproject.org',
+            # Dusty Mabe: dusty@dustymabe.com
+            170115: 'dustymabe@redhat.com',
         }
         # A few people have an email account that is used in owners.list but
         # have setup a bugzilla account for their primary account system email
