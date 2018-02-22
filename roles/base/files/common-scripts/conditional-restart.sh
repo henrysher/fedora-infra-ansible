@@ -6,4 +6,5 @@
 #
 
 SERVICE=$1
-/usr/bin/systemctl try-restart $1
+# Check if service unit is present before trying to restart it
+/usr/bin/systemctl cat $1.service &>/dev/null && /usr/bin/systemctl try-restart $1
