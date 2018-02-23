@@ -1,3 +1,5 @@
+# flake8:noqa
+
 bind = "127.0.0.1:8000"
 threads = 12
 logconfig = "{{ hubs_conf_dir }}/logging.ini"
