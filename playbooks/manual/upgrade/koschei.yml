@@ -1,133 +1,88 @@
-- name: verify koschei frontend
-  hosts: "{{ koschei_web_hosts |  default('koschei-web:koschei-web-stg') }}"
+- name: apply koschei/frontend role
+  hosts: "{{ koschei_web_hosts | default('koschei-web:koschei-web-stg') }}"
   vars_files:
   - /srv/web/infra/ansible/vars/global.yml
   - /srv/private/ansible/vars.yml
   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
-  handlers:
-  - import_tasks: "{{ handlers_path }}/restart_services.yml"
   roles:
   - koschei/frontend
 
-- name: verify koschei backend
-  hosts: "{{ koschei_backend_hosts |  default('koschei-backend:koschei-backend-stg') }}"
+- name: apply koschei/backend role
+  hosts: "{{ koschei_backend_hosts | default('koschei-backend:koschei-backend-stg') }}"
   vars_files:
   - /srv/web/infra/ansible/vars/global.yml
   - /srv/private/ansible/vars.yml
   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
-  handlers:
-  - import_tasks: "{{ handlers_path }}/restart_services.yml"
   roles:
   - koschei/backend
 
-- name: upgrade koschei backend
-  hosts: "{{ koschei_backend_hosts |  default('koschei-backend:koschei-backend-stg') }}"
-  vars_files:
-  - /srv/web/infra/ansible/vars/global.yml
-  - /srv/private/ansible/vars.yml
-  - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+- name: upgrade packages
+  hosts: "{{ koschei_web_hosts | default('koschei-web:koschei-web-stg') }}:{{ koschei_backend_hosts | default('koschei-backend:koschei-backend-stg') }}"
   vars:
     fedora_repos:
     - updates
-  pre_tasks:
-  - name: schedule nagios downtime
-    nagios: action=downtime minutes=20 service=host host={{ inventory_hostname_short }}{{ env_suffix }}
-    delegate_to: noc01.phx2.fedoraproject.org
-    ignore_errors: true
-    when: env != 'staging'
   tasks:
   - name: clean dnf metadata
     command: dnf {% for repo in fedora_repos %}--enablerepo {{ repo }} {% endfor %} clean all
   - name: create dnf metadata cache
     command: dnf {% for repo in fedora_repos %}--enablerepo {{ repo }} {% endfor %} makecache
+  - name: lits installed koschei packages
+    dnf:
+      list: "koschei*"
+      disablerepo: "*"
+    register: koschei_packages
+  - name: update koschei packages
+    dnf:
+      name: "{{ item.name }}"
+      state: present
+      enablerepo: "{{ fedora_repos | join(',') }}"
+    register: koschei_upgrade
+    with_items: "{{ koschei_packages.results }}"
+
+- name: stop backend services
+  hosts: "{{ koschei_backend_hosts | default('koschei-backend:koschei-backend-stg') }}"
+  tasks:
   - name: stop services
     service: name="{{ item }}" state=stopped
     with_items: "{{ koschei_backend_services }}"
-  - name: upgrade koschei
-    dnf:
-      name: "{{ item }}"
-      state: latest
-      enablerepo: "{{ fedora_repos | join(',') }}"
-    register: backend_upgrade
-    with_items:
-    - koschei-admin
-    - koschei-backend
-    - koschei-backend-fedora
 
-- name: upgrade koschei frontend
-  hosts: "{{ koschei_web_hosts |  default('koschei-web:koschei-web-stg') }}"
-  vars_files:
-  - /srv/web/infra/ansible/vars/global.yml
-  - /srv/private/ansible/vars.yml
-  - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
-  vars:
-    fedora_repos:
-    - updates
-  pre_tasks:
-  - name: schedule nagios downtime
-    nagios: action=downtime minutes=20 service=host host={{ inventory_hostname_short }}{{ env_suffix }}
-    delegate_to: noc01.phx2.fedoraproject.org
-    ignore_errors: true
-    when: env != 'staging'
+- name: stop httpd
+  hosts: "{{ koschei_web_hosts | default('koschei-web:koschei-web-stg') }}"
   tasks:
-  - name: clean dnf metadata
-    command: dnf {% for repo in fedora_repos %}--enablerepo {{ repo }} {% endfor %} clean all
-  - name: create dnf metadata cache
-    command: dnf {% for repo in fedora_repos %}--enablerepo {{ repo }} {% endfor %} makecache
   - name: stop httpd
     service: name="httpd" state=stopped
-  - name: upgrade koschei
-    dnf:
-      name: "{{ item }}"
-      state: latest
-      enablerepo: "{{ fedora_repos | join(',') }}"
-    register: frontend_upgrade
-    with_items:
-    - koschei-frontend
-    - koschei-frontend-fedora
 
 - name: run DB migration
-  hosts: "{{ koschei_backend_hosts |  default('koschei-backend:koschei-backend-stg') }}"
-  vars_files:
-  - /srv/web/infra/ansible/vars/global.yml
-  - /srv/private/ansible/vars.yml
-  - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+  hosts: "{{ koschei_backend_hosts | default('koschei-backend:koschei-backend-stg') }}"
   tasks:
   - name: run db migration
     become: yes
     become_user: koschei
     command: koschei-admin alembic upgrade head
 
-- name: restart koschei frontend
-  hosts: "{{ koschei_web_hosts |  default('koschei-web:koschei-web-stg') }}"
+- name: restart httpd
+  hosts: "{{ koschei_web_hosts | default('koschei-web:koschei-web-stg') }}"
   vars_files:
   - /srv/web/infra/ansible/vars/global.yml
   - /srv/private/ansible/vars.yml
   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
-  handlers:
-  - import_tasks: "{{ handlers_path }}/restart_services.yml"
-  roles:
-  - koschei/frontend
+  tasks:
+  - name: start httpd
+    service: name="httpd" state=running
 
-- name: restart koschei backend
-  hosts: "{{ koschei_backend_hosts |  default('koschei-backend:koschei-backend-stg') }}"
+- name: restart backend services
+  hosts: "{{ koschei_backend_hosts | default('koschei-backend:koschei-backend-stg') }}"
   vars_files:
   - /srv/web/infra/ansible/vars/global.yml
   - /srv/private/ansible/vars.yml
   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
-  handlers:
-  - import_tasks: "{{ handlers_path }}/restart_services.yml"
-  roles:
-  - koschei/backend
+  tasks:
+  - name: start services
+    service: name="{{ item }}" state=stopped
+    with_items: "{{ koschei_backend_services }}"
 
-- name: Check whether backend update happened
-  hosts: "{{ koschei_backend_hosts |  default('koschei-backend:koschei-backend-stg') }}"
+- name: Check whether backend update
+  hosts: "{{ koschei_web_hosts | default('koschei-web:koschei-web-stg') }}:{{ koschei_backend_hosts | default('koschei-backend:koschei-backend-stg') }}"
   tasks:
   - assert:
-      that: backend_upgrade.changed
-
-- name: Check whether frontend update happened
-  hosts: "{{ koschei_web_hosts |  default('koschei-web:koschei-web-stg') }}"
-  tasks:
-  - assert:
-      that: frontend_upgrade.changed
+      that: koschei_upgrade.changed
