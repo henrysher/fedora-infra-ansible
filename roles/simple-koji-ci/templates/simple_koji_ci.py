@@ -64,7 +64,7 @@ config = {
     "logging": {
         "loggers": {
             "simple_koji_ci": {
-                "level": "INFO",
+                "level": "DEBUG",
                 "propagate": True,
                 "handlers": ["console"],
             },
