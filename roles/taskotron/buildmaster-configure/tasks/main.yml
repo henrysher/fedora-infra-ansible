@@ -26,6 +26,12 @@
 
 - name: start and enable buildmaster service
   service: name=buildmaster enabled=yes state={{ (buildmaster_service.changed) | ternary('restarted','started') }}
+  # Workaround for https://pagure.io/taskotron/issue/139
+  # Otherwise, Ansible playbook will fail if it has to wait for another buildmaster.service start try
+  register: result
+  until: result|succeeded
+  delay: 70
+  retries: 3
 
 - name: reconfig master
   become: true
