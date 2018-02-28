@@ -66,9 +66,16 @@
   - postgresql_db: name=koji state=absent
   - postgresql_db: name=koji owner=koji
 # buildroot_listing is excluded from the sync to save some time
-# TODO: add pipe buffering
+# TODO: install mbuffer on db-koji.stg
   - name: Import the prod db.  This will take quite a while.  Go get a snack!
-    shell: curl https://infrastructure.fedoraproject.org/infra/db-dumps/koji.dump.xz | xzcat | sed '/COPY buildroot_listing /,/\./d' | psql koji
+    shell: >
+      curl -s -S https://infrastructure.fedoraproject.org/infra/db-dumps/koji.dump.xz |
+      mbuffer -q -m 10M -l /tmp/mbuffer-curl-to-xz.log |
+      xzcat |
+      mbuffer -q -m 100M -l /tmp/mbuffer-xz-to-sed.log |
+      sed '/COPY buildroot_listing /,/\./d' |
+      mbuffer -q -m 1G -l /tmp/mbuffer-sed-to-psql.log |
+      psql koji
   - name: repoint all the prod rpm entries at the secondary volume (and other stuff)
     shell: psql -1 koji </var/lib/pgsql/koji-reset-staging.sql
   - name: vacuum database
