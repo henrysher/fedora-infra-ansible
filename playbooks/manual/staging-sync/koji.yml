@@ -44,8 +44,8 @@
   tasks:
   - template: src=templates/koji-reset-staging.sql dest=/var/lib/pgsql/koji-reset-staging.sql
 
-  - command: dropdb koji
-  - command: createdb -O koji koji
+  - postgresql_db: name=koji state=absent
+  - postgresql_db: name=koji owner=koji
 # buildroot_listing is excluded from the sync to save some time
   - name: Import the prod db.  This will take quite a while.  Go get a snack!
     shell: curl https://infrastructure.fedoraproject.org/infra/db-dumps/koji.dump.xz | xzcat | sed '/COPY buildroot_listing /,/\./d' | psql koji
