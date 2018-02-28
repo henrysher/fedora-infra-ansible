@@ -112,5 +112,3 @@ insert into user_perms (user_id, perm_id, active, creator_id) values (
 update users set krb_principal='{{principal}}@STG.FEDORAPROJECT.ORG' where name='{{username}}';
 {% endfor %}
 update users set krb_principal=replace(krb_principal, '@FEDORAPROJECT.ORG', '@STG.FEDORAPROJECT.ORG');
-
-VACUUM ANALYZE;
