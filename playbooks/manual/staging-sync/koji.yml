@@ -33,6 +33,24 @@
   become_method: sudo
   tags:
   - db-sync
+  vars:
+  - builder_groups:
+    - name: buildvm-stg
+      arches: i386 x86_64
+      extra_channels:
+      - createrepo
+      - livemedia
+    - name: buildvm-aarch64-stg
+      arches: aarch64
+    - name: buildvm-armv7-stg
+      arches: armhfp
+    - name: buildvm-ppc64-stg
+      arches: ppc64
+    - name: buildvm-ppc64le-stg
+      arches: ppc64le
+# TODO
+#    - name: buildvm-s390x-stg
+#      arches: s390x
 
   vars_files:
    - /srv/web/infra/ansible/vars/global.yml
@@ -43,6 +61,8 @@
 
   tasks:
   - template: src=templates/koji-reset-staging.sql dest=/var/lib/pgsql/koji-reset-staging.sql
+    tags:
+    - db-sync-script
 
   - postgresql_user: name=koji password={{ kojiPassword }}
   - postgresql_db: name=koji state=absent
