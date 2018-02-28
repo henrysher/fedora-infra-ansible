@@ -48,12 +48,21 @@
   - postgresql_db: name=koji state=absent
   - postgresql_db: name=koji owner=koji
 # buildroot_listing is excluded from the sync to save some time
+# TODO: add pipe buffering
   - name: Import the prod db.  This will take quite a while.  Go get a snack!
     shell: curl https://infrastructure.fedoraproject.org/infra/db-dumps/koji.dump.xz | xzcat | sed '/COPY buildroot_listing /,/\./d' | psql koji
+# TODO: move vacuum to a separate task
+# TODO: whap sql script in a transaction
   - name: repoint all the prod rpm entries at the secondary volume (and other stuff)
     shell: psql koji < /var/lib/pgsql/koji-reset-staging.sql
 
 # TODO -- nuke old staging content in /mnt/fedora_koji/koji/
+# TODO recreate directories under /mnt/fedora_koji/koji/
+#     cd /mnt/fedora_koji/koji
+#     mkdir compose packages repos repos-dist scratch vol work
+#     chown apache:apache *
+#     chcon unconfined_u:object_r:httpd_sys_rw_content_t:s0 *
+#     ln -s /mnt/fedora_koji_prod/koji vol/prod
 
 - name: bring staging services up
   hosts: koji-stg
@@ -69,3 +78,11 @@
   - service: name=httpd state=started
   - service: name=kojid state=started
   - service: name=kojira state=started
+
+# TODO remount NFS on builders
+#     ansible -i /srv/web/infra/ansible/inventory/builders builders-stg -m shell -a "umount /mnt/fedora_koji && mount /mnt/fedora_koji"
+# TODO resart kojid
+#     ansible -i /srv/web/infra/ansible/inventory/builders builders-stg -m service -a "name=kojid state=restarted"
+# TODO run createrepo for selected tags
+#     stgkoji regen-repo --nowait f29-build
+# TODO include playbooks to sync apps that use koji (koschei/bodhi/mbs/...)
