@@ -41,19 +41,12 @@
 
   tasks:
   - template: src=templates/koji-reset-staging.sql dest=/var/lib/pgsql/koji-reset-staging.sql
-  - copy:
-      src=/srv/web/infra/db-dumps/koji.dump.xz
-      dest=/var/tmp/koji.dump.xz
-      owner=postgres
-      group=postgres
-
-# TODO -- stop replication and wipe db's
 
   - command: dropdb koji
   - command: createdb -O koji koji
 # buildroot_listing is excluded from the sync to save some time
   - name: Import the prod db.  This will take quite a while.  Go get a snack!
-    shell: xzcat /var/tmp/koji.dump.xz | sed '/COPY buildroot_listing /,/\./d' | psql koji
+    shell: curl https://infrastructure.fedoraproject.org/infra/db-dumps/koji.dump.xz | xzcat | sed '/COPY buildroot_listing /,/\./d' | psql koji
   - name: repoint all the prod rpm entries at the secondary volume (and other stuff)
     shell: psql koji < /var/lib/pgsql/koji-reset-staging.sql
 
@@ -73,15 +66,3 @@
   - service: name=httpd state=started
   - service: name=kojid state=started
   - service: name=kojira state=started
-
-- name: Nuke the prod db dump that we cached on db-koji01.stg
-  hosts: db-koji01.stg.phx2.fedoraproject.org
-  user: root
-  vars_files:
-   - /srv/web/infra/ansible/vars/global.yml
-   - "/srv/private/ansible/vars.yml"
-   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
-
-  tasks:
-  - name: Nuke the prod db dump that we cached on lockbox
-    file: path=/var/tmp/koji.dump state=absent
