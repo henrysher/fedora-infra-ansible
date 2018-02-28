@@ -77,20 +77,6 @@ update repo set state = 3 where state in (0, 1, 2);
 
 -- add our staging builders, dynamically pulled from ansible inventory
 
--- The koji hub is x86_64 and i386 and has createrepo ability
-{% for host in groups['koji-stg'] %}
-select now() as time, 'adding staging host {{ host }}' as msg;
-delete from host where name='{{ host }}';
-delete from users where name='{{ host }}';
-insert into users (name, usertype, krb_principal, status) values ('{{ host }}', 1, 'compile/{{ host }}@STG.FEDORAPROJECT.ORG', 0);
-insert into host (user_id, name, arches) values (
-    (select id from users where name='{{host}}'), '{{host}}', 'i386 x86_64');
-{% for channel in [ 'default', 'createrepo', 'maven', 'appliance', 'livemedia', 'vm', 'secure-boot', 'compose', 'eclipse', 'images', 'image'] %}
-insert into host_channels (host_id, channel_id) values (
-    (select id from host where name='{{host}}'), (select id from channels where name='{{channel}}'));
-{% endfor %}
-{% endfor %}
-
 -- The buildvms are x86_64 and i386 and also have createrepo ability
 {% for host in groups['buildvm-stg'] %}
 select now() as time, 'adding staging host {{ host }}' as msg;
