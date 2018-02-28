@@ -71,9 +71,8 @@
 # TODO: add pipe buffering
   - name: Import the prod db.  This will take quite a while.  Go get a snack!
     shell: curl https://infrastructure.fedoraproject.org/infra/db-dumps/koji.dump.xz | xzcat | sed '/COPY buildroot_listing /,/\./d' | psql koji
-# TODO: whap sql script in a transaction
   - name: repoint all the prod rpm entries at the secondary volume (and other stuff)
-    shell: psql koji < /var/lib/pgsql/koji-reset-staging.sql
+    shell: psql -1 koji </var/lib/pgsql/koji-reset-staging.sql
   - name: vacuum database
     shell: psql koji <<<"VACUUM ANALYZE"
 
