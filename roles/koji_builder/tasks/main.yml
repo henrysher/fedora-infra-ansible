@@ -268,3 +268,12 @@
   tags:
   - koji_builder
   when: ansible_architecture == 'armv7l'
+
+# set highmem_is_dirtyable in compose armv7 machines.
+# see: https://bugzilla.redhat.com/show_bug.cgi?id=1504264
+#
+- name: set highmem_is_dirtyable on armv7 builders that are in the compose channel.
+  sysctl: name=vm.highmem_is_dirtyable value=1 state=present sysctl_set=yes reload=yes
+  tags:
+  - koji_builder
+  when: inventory_hostname.startswith(('buildvm-armv7-01.arm', 'buildvm-armv7-02', 'buildvm-armv7-03'))
