@@ -200,27 +200,3 @@
 
   handlers:
   - import_tasks: "{{ handlers_path }}/restart_services.yml"
-
-- name: configure sshfs target on koji01
-  hosts: koji01.phx2.fedoraproject.org:koji01.stg.phx2.fedoraproject.org
-  tags:
-    - sshfs
-  user: root
-  gather_facts: True
-
-  vars_files:
-   - /srv/web/infra/ansible/vars/global.yml
-   - "/srv/private/ansible/vars.yml"
-   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
-
-  tasks:
-  - name: Put public sshfs key in place
-    authorized_key: user="root"
-                    key="{{ lookup('file', '{{ private }}/files/releng/sshkeys/primary-s390x-sshfs' + '-staging.pub' if env == 'staging' else '.pub') }}"
-                    state=present
-                    key_options='command="internal-sftp",from="{{ '10.16.0.25' if env == 'staging' else '10.16.0.11' }}",restrict'
-    tags:
-    - sshfs
-
-  handlers:
-  - import_tasks: "{{ handlers_path }}/restart_services.yml"
