@@ -15,7 +15,10 @@
   - /srv/taskotron/artifacts
 
 - name: copy artifacts httpd config
-  template: src=artifacts.conf.j2 dest=/etc/httpd/conf.d/artifacts.conf owner=root group=root
+  template: src={{ item }} dest=/etc/httpd/conf.d/artifacts.conf owner=root group=root
+  with_first_found:
+    - artifacts.conf.j2.{{ deployment_type }}
+    - artifacts.conf.j2
   notify:
     - reload httpd
 

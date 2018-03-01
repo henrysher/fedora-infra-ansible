@@ -1,0 +1,62 @@
+Alias /artifacts {{ public_artifacts_dir }}
+
+
+<Directory "{{ public_artifacts_dir }}">
+    Options +Indexes
+    IndexOptions +NameWidth=*
+    IndexOptions FancyIndexing
+    IndexOrderDefault Ascending Name
+    AllowOverride None
+    Require all granted
+</Directory>
+
+
+<Directory "{{ public_artifacts_dir }}/all">
+    Options -Indexes
+</Directory>
+
+
+<DirectoryMatch "^{{ public_artifacts_dir }}/all/(.+)/">
+    Options +Indexes
+    IndexOptions +NameWidth=*
+    AllowOverride None
+    Require all granted
+</DirectoryMatch>
+
+
+ExtFilterDefine gz-to-plain mode=output \
+intype=application/x-gzip outtype=text/plain \
+cmd="/bin/gunzip -c -"
+
+ExtFilterDefine gz-to-html mode=output \
+intype=application/x-gzip outtype=text/html \
+cmd="/bin/gunzip -c -"
+
+ExtFilterDefine gz-to-css mode=output \
+intype=application/x-gzip outtype=text/css \
+cmd="/bin/gunzip -c -"
+
+<DirectoryMatch "^{{ public_artifacts_dir }}/all/(.+)/">
+    RewriteEngine on
+
+    RewriteCond   "{{ public_artifacts_dir }}/all/$1/$2.gz"  -f
+    RewriteCond   "{{ public_artifacts_dir }}/all/$1/$2"     !-f
+    RewriteRule   "^{{ public_artifacts_dir }}/all/(.+)/(.*)$"  "{{ public_artifacts_dir }}/all/$1/$2.gz"
+
+    # mod_deflate doesnt work as expected for some reason
+    # use custom filter instead
+    <FilesMatch "(?!html)">
+        SetOutputFilter gz-to-plain
+    </FilesMatch>
+    <FilesMatch "(?!css)">
+        SetOutputFilter gz-to-css
+    </FilesMatch>
+    <FilesMatch "(\.html\.gz|\.html)$">
+        SetOutputFilter gz-to-html
+    </FilesMatch>
+
+    # keep the mod_deflate for reference though
+    #AddEncoding x-gzip .gz
+    #SetOutputFilter INFLATE
+    #ForceType text/plain
+</DirectoryMatch>
