@@ -207,7 +207,7 @@ factory.addStep(ShellCommand(command=["runtask",
                                         '-a', Interpolate('%(prop:arch)s'),
                                         '-j', Interpolate('%(prop:buildername)s/%(prop:buildnumber)s'),
                                         '--uuid', Interpolate('%(prop:uuid)s'),
-{% if deployment_type in ['dev'] %}
+{% if deployment_type in ['dev', 'stg'] %}
                                         '.'],
 {% else %}
                                         'runtask.yml'],
@@ -215,7 +215,7 @@ factory.addStep(ShellCommand(command=["runtask",
                              descriptionDone=[Interpolate('%(prop:taskname)s on %(prop:item)s')],
                              name='runtask',
                              timeout=20*60,
-{% if deployment_type in ['dev'] %}
+{% if deployment_type in ['dev', 'stg'] %}
                              sigtermTime=5*60,
                              lazylogfiles=True,
                              logfiles={
@@ -223,7 +223,7 @@ factory.addStep(ShellCommand(command=["runtask",
                                  'heartbeat.log': {'filename': Interpolate('/var/lib/taskotron/artifacts/%(prop:uuid)s/taskotron/heartbeat.log')},
                              }
 {% endif %}
-{% if deployment_type in ['stg', 'prod'] %}
+{% if deployment_type in ['prod'] %}
                              logfiles={
                                  'taskotron-overlord.log': {'filename': Interpolate('/var/lib/taskotron/artifacts/%(prop:uuid)s/taskotron-overlord.log')},
                                  'taskotron-stdio.log': {'filename': Interpolate('/var/lib/taskotron/artifacts/%(prop:uuid)s/taskotron-stdio.log')},
@@ -244,7 +244,7 @@ factory.addStep(MasterShellCommand(command=["mkdir", '-m', '0755', Interpolate('
                                    descriptionDone=['Create artifacs dir']))
 
 # copy artifacts to master
-{% if deployment_type in ['dev'] %}
+{% if deployment_type in ['dev', 'stg'] %}
 factory.addStep(DirectoryUpload(slavesrc=Interpolate('/var/lib/taskotron/artifacts/%(prop:uuid)s/'),
                                 masterdest=Interpolate('{{ public_artifacts_dir }}/%(prop:uuid)s/')))
 {% else %}
@@ -253,7 +253,7 @@ factory.addStep(DirectoryUpload(slavesrc=Interpolate('/var/lib/taskotron/artifac
 {% endif %}
 
 # gzip artifacts
-{% if deployment_type in ['dev'] %}
+{% if deployment_type in ['dev', 'stg'] %}
 factory.addStep(MasterShellCommand(command=Interpolate('find {{ public_artifacts_dir }}/%(prop:uuid)s/ -type f -exec gzip {} \;'),
                                    descriptionDone=['gzip artifacs dir content']))
 {% else %}

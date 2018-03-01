@@ -43,19 +43,19 @@
 
 - name: ensure needed groups exist
   group: name={{ item }}
-  when: deployment_type == 'stg' or deployment_type in ['dev', 'prod']
+  when: deployment_type in ['dev', 'stg', 'prod']
   with_items:
     - testcloud
     - taskotron
 
 - name: ensure needed groups exist
   group: name={{ slaves_group }}
-  when: slaves_group is defined and (deployment_type == 'stg' or deployment_type in ['dev', 'prod'])
+  when: slaves_group is defined and (deployment_type in ['dev', 'stg', 'prod'])
 
 - name: add buildslave users
   user: name={{ item.user }} group={{ slaves_group }} groups=testcloud,taskotron home={{ item.home }}
   with_items: "{{ slaves }}"
-  when: slaves is defined and (deployment_type == 'stg' or deployment_type in ['dev', 'prod'])
+  when: slaves is defined and (deployment_type in ['dev', 'stg', 'prod'])
 
 - name: set the selinux fcontext type for the buildslave dir to var_lib_t
   command: semanage fcontext -a -t var_lib_t "{{ item.dir }}"
@@ -73,4 +73,3 @@
     regexp: '^#host_key_checking = False$'
     line: 'host_key_checking = False'
   when: deployment_type in ['dev']
-

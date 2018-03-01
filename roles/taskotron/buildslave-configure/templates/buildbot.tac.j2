@@ -7,7 +7,7 @@ from buildslave.bot import BuildSlave
 {% if deployment_type in ['local', 'qa-stg'] %}
 basedir = r'/home/buildslave/slave'
 {% endif %}
-{% if deployment_type in ['prod', 'stg', 'dev'] %}
+{% if deployment_type in ['dev', 'stg', 'prod'] %}
 basedir = r'{{ item.dir }}'
 {% endif %}
 rotateLength = 10000000
@@ -38,7 +38,7 @@ port = 9989
 slavename = '{{ buildslave_name }}'
 passwd = '{{ buildslave_password }}'
 {% endif %}
-{% if deployment_type == 'stg' or deployment_type in ['dev', 'prod'] %}
+{% if deployment_type in ['dev', 'stg', 'prod'] %}
 slavename = '{{ item.user }}'
 passwd = '{{ buildslave_password }}'
 {% endif %}
@@ -51,4 +51,3 @@ maxdelay = 300
 s = BuildSlave(buildmaster_host, port, slavename, passwd, basedir,
                keepalive, usepty, umask=umask, maxdelay=maxdelay)
 s.setServiceParent(application)
-
