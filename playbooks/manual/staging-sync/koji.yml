@@ -25,7 +25,7 @@
 
 
 - name: drop and re-create the staging db entirely
-  hosts: db-koji02.stg.phx2.fedoraproject.org
+  hosts: db-koji01.stg.phx2.fedoraproject.org
   user: root
   become: yes
   become_user: postgres
@@ -88,6 +88,7 @@
 #     chown apache:apache *
 #     chcon unconfined_u:object_r:httpd_sys_rw_content_t:s0 *
 #     ln -s /mnt/fedora_koji_prod/koji vol/prod
+# TODO recreate directories under /mnt/koji/compose that composer expects to exist
 
 - name: bring staging services up
   hosts: koji-stg
@@ -103,8 +104,8 @@
   - service: name=httpd state=started
   - service: name=kojira state=started
 
-# TODO remount NFS on builders
-#     ansible -i /srv/web/infra/ansible/inventory/builders builders-stg:releng-stg -m shell -a "umount /mnt/fedora_koji && mount /mnt/fedora_koji"
+# TODO remount NFS on builders, composers, bodhi and odcs
+#     ansible -i /srv/web/infra/ansible/inventory/builders builders-stg:releng-stg:bodhi-backend-stg:odcs-backend-stg -m shell -a "umount /mnt/fedora_koji && mount /mnt/fedora_koji"
 # TODO resart kojid
 #     ansible -i /srv/web/infra/ansible/inventory/builders builders-stg -m service -a "name=kojid state=restarted"
 # TODO run createrepo for selected tags
