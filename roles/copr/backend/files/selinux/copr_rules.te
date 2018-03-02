@@ -1,0 +1,27 @@
+
+module copr_rules 1.0;
+
+require {
+	type redis_port_t;
+	type nrpe_t;
+	type httpd_t;
+	type copr_data_t;
+	type logrotate_t;
+	class tcp_socket name_connect;
+    class file ioctl;
+    class lnk_file read;
+    class process execmem;
+}
+
+#============= nrpe_t ==============
+# nagios
+allow nrpe_t redis_port_t:tcp_socket name_connect;
+
+#============= httpd_t ==============
+# custom lighttpd dir script template
+allow httpd_t copr_data_t:file ioctl;
+allow httpd_t copr_data_t:lnk_file read;
+
+#============= logrotate_t ==============
+# https://bugzilla.redhat.com/show_bug.cgi?id=1535689
+allow logrotate_t self:process execmem;

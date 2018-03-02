@@ -1,4 +1,4 @@
 #!/bin/sh
 
-checkmodule -M -m -o nrpe_copr.mod nrpe_copr.te
-semodule_package -o nrpe_copr.pp -m nrpe_copr.mod
+checkmodule -M -m -o copr_rules.mod copr_rules.te
+semodule_package -o copr_rules.pp -m copr_rules.mod

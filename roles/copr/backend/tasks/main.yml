@@ -193,3 +193,15 @@
 
 - name: setup monitoring
   import_tasks: "monitoring.yml"
+
+# Three tasks for handling our custom selinux module
+- name: ensure a directory exists for our custom selinux module
+  file: dest=/usr/local/share/copr state=directory
+
+- name: copy over our custom selinux module
+  copy: src=selinux/copr_rules.pp dest=/usr/local/share/copr/copr_rules.pp
+  register: selinux_module
+
+- name: install our custom selinux module
+  command: semodule -i /usr/local/share/copr/copr_rules.pp
+  when: selinux_module|changed
