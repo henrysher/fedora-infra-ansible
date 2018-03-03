@@ -413,12 +413,14 @@ class Session(object):
             else:
                 raise koji.AuthError('%s is not authorized to login other users' % client_dn)
 
-        user_id = self.getUserId(username)
+        user_id = self.getUserIdFromKerberos(username)
         if not user_id:
-            if context.opts.get('LoginCreatesUser'):
-                user_id = self.createUser(username)
-            else:
-                raise koji.AuthError('Unknown user: %s' % username)
+            user_id = self.getUserId(username)
+            if not user_id:
+                if context.opts.get('LoginCreatesUser'):
+                    user_id = self.createUser(username)
+                else:
+                    raise koji.AuthError('Unknown user: %s' % username)
 
         self.checkLoginAllowed(user_id)
 
