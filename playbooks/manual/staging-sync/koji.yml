@@ -119,10 +119,41 @@
   - name: restart kojira
     service: name=kojira state=started
 
-# TODO remount NFS on builders, composers, bodhi and odcs
-#     ansible -i /srv/web/infra/ansible/inventory/builders builders-stg:releng-stg:bodhi-backend-stg:odcs-backend-stg -m shell -a "umount /mnt/fedora_koji && mount /mnt/fedora_koji"
-# TODO resart kojid
-#     ansible -i /srv/web/infra/ansible/inventory/builders builders-stg -m service -a "name=kojid state=restarted"
+- name: remount NFS on builders, composers, bodhi and odcs
+  hosts: builders-stg:releng-stg:bodhi-backend-stg:odcs-backend-stg
+  user: root
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+  handlers:
+  - import_tasks: "{{ handlers_path }}/restart_services.yml"
+  tags:
+  - remount-nfs
+
+  tasks:
+  - name: remount koji nfs
+    shell: umount /mnt/fedora_koji && mount /mnt/fedora_koji
+    args:
+      warn: false
+    when: '.s390.' not in inventory_hostname
+
+- name: remount NFS on builders, composers, bodhi and odcs
+  hosts: builders-stg
+  user: root
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+  handlers:
+  - import_tasks: "{{ handlers_path }}/restart_services.yml"
+  tags:
+  - restart-kojid
+
+  tasks:
+  - name: restart kojid
+    service: name=kojid state=restarted
+
 # TODO run createrepo for selected tags
 #     stgkoji regen-repo --nowait f29-build
 # TODO include playbooks to sync apps that use koji (koschei/bodhi/mbs/...)
