@@ -81,15 +81,6 @@
   - name: vacuum database
     shell: psql koji <<<"VACUUM ANALYZE"
 
-# TODO -- nuke old staging content in /mnt/fedora_koji/koji/
-# TODO recreate directories under /mnt/fedora_koji/koji/
-#     cd /mnt/fedora_koji/koji
-#     mkdir compose packages repos repos-dist scratch vol work
-#     chown apache:apache *
-#     chcon unconfined_u:object_r:httpd_sys_rw_content_t:s0 *
-#     ln -s /mnt/fedora_koji_prod/koji vol/prod
-# TODO recreate directories under /mnt/koji/compose that composer expects to exist
-
 - name: bring staging services up
   hosts: koji-stg
   user: root
@@ -99,10 +90,33 @@
    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
   handlers:
   - import_tasks: "{{ handlers_path }}/restart_services.yml"
+  tags:
+  - wipe-fs
 
   tasks:
-  - service: name=httpd state=started
-  - service: name=kojira state=started
+  - name: unmount koji filesystem
+    mount: name=/mnt/fedora_koji state=unmounted
+  - name: wipe fedora_koji volume
+    filesystem: dev=/dev/GuestVolGroup00/fedora_koji fstype=xfs force=yes
+  - name: mount newly-created empty koji filesystem
+    mount: name=/mnt/fedora_koji src=/dev/GuestVolGroup00/fedora_koji fstype=xfs state=mounted
+  - name: recreate koji directory structure
+    file: name={{item}} state=directory owner=apache group=apache setype=httpd_sys_rw_content_t
+    with_items:
+    - /mnt/koji/compose
+    - /mnt/koji/packages
+    - /mnt/koji/repos
+    - /mnt/koji/repos-dist
+    - /mnt/koji/scratch
+    - /mnt/koji/vol
+    - /mnt/koji/work
+# TODO recreate directories under /mnt/koji/compose (which ones?) that composer expects to exist
+  - name: symlink production volume
+    file: src=/mnt/fedora_koji_prod/koji dest=/mnt/koji/vol/prod state=link
+  - name: restart httpd
+    service: name=httpd state=started
+  - name: restart kojira
+    service: name=kojira state=started
 
 # TODO remount NFS on builders, composers, bodhi and odcs
 #     ansible -i /srv/web/infra/ansible/inventory/builders builders-stg:releng-stg:bodhi-backend-stg:odcs-backend-stg -m shell -a "umount /mnt/fedora_koji && mount /mnt/fedora_koji"
