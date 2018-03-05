@@ -74,13 +74,11 @@
   when: collectd_apache
 
 - name: /etc/collectd/graphite.conf
-  template: src=graphite.conf dest=/etc/collectd.d/graphite.conf
+  file: state=absent dest=/etc/collectd.d/graphite.conf
   tags:
   - collectd
   - graphite
   - graphite-collectd
-  notify:
-  - restart collectd
   when: collectd_graphite is defined and ansible_distribution_major_version != '6'
 
 - name: Install libsemanage-python so we can set an sebool below
@@ -96,7 +94,7 @@
   ignore_errors: True
   notify:
   - restart collectd
-  when: ( collectd_apache is defined or collectd_graphite is defined ) and ansible_selinux.status != "disabled"
+  when: ( collectd_apache is defined ) and ansible_selinux.status != "disabled"
 
 - name: enable collectd nfs module
   copy: src=nfs.conf dest=/etc/collectd.d/nfs.conf
