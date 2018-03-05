@@ -1,0 +1,79 @@
+- name: Add java-deptools copr repo
+  copy: src=copr-repo.repo dest=/etc/yum.repos.d/java-deptools-copr.repo
+  tags:
+  - repos
+
+- name: Install packages
+  package: name={{ item }} state=present
+  with_items:
+  - httpd
+  - postgresql-server
+  - postgresql
+  - java-deptools
+  - python2-psycopg2  # for ansible
+  - libsemanage-python  # for ansible
+  tags:
+  - packages
+
+- name: Initialize postgres if necessary
+  command: postgresql-setup --initdb
+  args:
+    creates: /var/lib/pgsql/data/base
+  environment:
+    PGSETUP_INITDB_OPTIONS: --locale C
+  tags:
+  - postgresql
+
+- name: Install pg_hba
+  copy: src=pg_hba.conf dest=/var/lib/pgsql/data/pg_hba.conf
+  tags:
+  - postgres
+  - configuration
+
+- name: Enable and start postgres
+  service: name=postgresql state=started enabled=yes
+  tags:
+  - service
+  - postgresql
+
+- name: Create postgres java-deptools role
+  postgresql_user: name=java-deptools db=postgres login_user=root role_attr_flags=SUPERUSER,LOGIN
+  tags:
+  - postgres
+
+- name: Create database
+  postgresql_db: name=java-deptools owner=java-deptools db=postgres login_user=root
+  tags:
+  - postgres
+
+- name: Create schema
+  shell: >
+    psql java-deptools java-deptools < /usr/share/java-deptools/schema.sql
+    && touch /var/lib/pgsql/data/schema.done
+  args:
+    creates: /var/lib/pgsql/data/schema.done
+  tags:
+  - postgres
+
+- name: Install repo-regen cronjob
+  copy: src=cron dest=/etc/cron.daily/java-deptools mode=0755
+  tags:
+  - config
+
+- name: Enable and start frontend
+  service: name=java-deptools-frontend state=started enabled=true
+  tags:
+  - service
+
+- name: Install proxy config
+  copy: src=proxy.conf dest=/etc/httpd/conf.d/java-deptools-proxy.conf
+
+- name: Set httpd sebools
+  seboolean: name={{ item }} state=yes persistent=yes
+  with_items:
+  - httpd_can_network_relay
+
+- name: Enable and start httpd
+  service: name=httpd state=started enabled=true
+  tags:
+  - service
