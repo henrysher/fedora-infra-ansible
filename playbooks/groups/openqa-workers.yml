@@ -1,5 +1,5 @@
 - name: configure openQA workers
-  hosts: openqa-workers:openqa-stg-workers
+  hosts: openqa-workers:openqa-hdds-workers:openqa-stg-workers
   user: root
   gather_facts: True
 
@@ -7,6 +7,9 @@
    - /srv/web/infra/ansible/vars/global.yml
    - "/srv/private/ansible/vars.yml"
    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  pre_tasks:
+  - import_tasks: "{{ tasks_path }}/yumrepos.yml"
 
   roles:
    - { role: base, tags: ['base'] }
@@ -20,7 +23,6 @@
    - apache
 
   tasks:
-  - import_tasks: "{{ tasks_path }}/yumrepos.yml"
   - import_tasks: "{{ tasks_path }}/2fa_client.yml"
   - import_tasks: "{{ tasks_path }}/motd.yml"
 
