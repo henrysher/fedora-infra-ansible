@@ -7,6 +7,7 @@
   package: name={{ item }} state=present
   with_items:
   - httpd
+  - mod_ssl
   - postgresql-server
   - postgresql
   - java-deptools
@@ -64,6 +65,13 @@
   service: name=java-deptools-frontend state=started enabled=true
   tags:
   - service
+
+- name: Obtain letsencrypt certificate
+  shell: certbot certonly -n --standalone --agree-tos -m sysadmin-koschei-members@fedoraproject.org -d {{ inventory_hostname }}
+  args:
+    creates: /etc/letsencrypt/live/{{ inventory_hostname }}/fullchain.pem
+  tags:
+  - config
 
 - name: Install proxy config
   copy: src=proxy.conf dest=/etc/httpd/conf.d/java-deptools-proxy.conf
