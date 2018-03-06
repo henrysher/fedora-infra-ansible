@@ -24,6 +24,10 @@ spec:
           bind-utils
       RUN dnf -v -y install --setopt=tsflags=nodocs \
           https://kojipkgs.fedoraproject.org//packages/greenwave/0.6.1/1.fc26/noarch/greenwave-0.6.1-1.fc26.noarch.rpm
+
+      # https://pagure.io/greenwave/pull-request/136
+      RUN cd /usr/lib/python2.7/site-packages/ && curl https://pagure.io/greenwave/pull-request/136.patch | patch -p1
+
       # create a symlink for configuring the fedmsg consumers.
       RUN ln -sfn /etc/fedmsg-greenwave.d/greenwave.py /etc/fedmsg.d/zz_greenwave.py
       # And another two for putting the certs in place.
