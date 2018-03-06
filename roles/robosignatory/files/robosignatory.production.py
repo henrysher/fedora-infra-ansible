@@ -34,8 +34,7 @@ config = {
                 'keytab': '/etc/krb5.autosign_autosign01.phx2.fedoraproject.org.keytab',
                 'krb_rdns': False
             },
-            'module_key': 'fedora-modularity',
-            'module_keyid': 'a3cc4e62',
+            'mbs_user': 'mbs/mbs.fedoraproject.org',
             'tags': [
                 # Temporary tags
                 # Infra tags
@@ -52,12 +51,6 @@ config = {
                     "keyid": "47dd8ef9"
                 },
                 {
-                    "from": "f25-infra-candidate",
-                    "to": "f25-infra-stg",
-                    "key": "fedora-infra",
-                    "keyid": "47dd8ef9"
-                },
-                {
                     "from": "f26-infra-candidate",
                     "to": "f26-infra-stg",
                     "key": "fedora-infra",
@@ -69,22 +62,35 @@ config = {
                     "key": "fedora-infra",
                     "keyid": "47dd8ef9"
                 },
+                {
+                    "from": "f28-infra-candidate",
+                    "to": "f28-infra-stg",
+                    "key": "fedora-infra",
+                    "keyid": "47dd8ef9"
+                },
 
                 # Gated rawhide and branched
                 {
-                    "from": "f28-pending",
-                    "to": "f28",
-                    "key": "fedora-28",
-                    "keyid": "9db62fb1"
-                },
-                {
-                    "from": "f28",
-                    "to": "f28",
+                    "from": "f29-pending",
+                    "to": "f29",
                     "key": "fedora-29",
                     "keyid": "429476b4"
                 },
 
                 # Gated bodhi updates
+                {
+                    "from": "f28-modular-signing-pending",
+                    "to": "f28-modular-updates-testing-pending",
+                    "key": "fedora-28",
+                    "keyid": "9db62fb1",
+                    "type": "modular"
+                },
+                {
+                    "from": "f28-signing-pending",
+                    "to": "f28-updates-testing-pending",
+                    "key": "fedora-28",
+                    "keyid": "9db62fb1"
+                },
                 {
                     "from": "f27-signing-pending",
                     "to": "f27-updates-testing-pending",
@@ -192,21 +198,37 @@ config = {
             'directory': '/mnt/fedora_koji/koji/compose/ostree/27/',
             'key': 'fedora-27'
         },
+        'fedora/28/x86_64/atomic-host': {
+            'directory': '/mnt/fedora_koji/koji/compose/atomic/28/',
+            'key': 'fedora-28'
+        },
+        'fedora/28/ppc64le/atomic-host': {
+            'directory': '/mnt/fedora_koji/koji/compose/atomic/28/',
+            'key': 'fedora-28'
+        },
+        'fedora/28/aarch64/atomic-host': {
+            'directory': '/mnt/fedora_koji/koji/compose/atomic/28/',
+            'key': 'fedora-28'
+        },
+        'fedora/28/x86_64/workstation': {
+            'directory': '/mnt/fedora_koji/koji/compose/ostree/28/',
+            'key': 'fedora-28'
+        },
         'fedora/rawhide/x86_64/atomic-host': {
             'directory': '/mnt/fedora_koji/koji/compose/atomic/rawhide/',
-            'key': 'fedora-28'
+            'key': 'fedora-29'
         },
         'fedora/rawhide/ppc64le/atomic-host': {
             'directory': '/mnt/fedora_koji/koji/compose/atomic/rawhide/',
-            'key': 'fedora-28'
+            'key': 'fedora-29'
         },
         'fedora/rawhide/aarch64/atomic-host': {
             'directory': '/mnt/fedora_koji/koji/compose/atomic/rawhide/',
-            'key': 'fedora-28'
+            'key': 'fedora-29'
         },
         'fedora/rawhide/x86_64/workstation': {
             'directory': '/mnt/fedora_koji/koji/compose/ostree/rawhide/',
-            'key': 'fedora-28'
+            'key': 'fedora-29'
         },
     }
 }
