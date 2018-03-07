@@ -142,6 +142,7 @@ class ProdConfiguration(BaseConfiguration):
                'git+https://src.stg.fedoraproject.org/modules/',
                'https://src.stg.fedoraproject.org/modules/',
                'https://src.stg.fedoraproject.org/git/modules/']
+    RESOLVER = "db"
 
 {% else %}
     KOJI_PROFILE = 'production'
