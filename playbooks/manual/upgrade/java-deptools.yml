@@ -1,0 +1,25 @@
+---
+- name: apply java-deptools role
+  hosts: java-deptools.fedorainfracloud.org
+  roles:
+  - java-deptools
+
+- name: upgrade java-deptools
+  hosts: java-deptools.fedorainfracloud.org
+  tasks:
+  - name: clean dnf metadata
+    command: dnf clean all
+  - name: create dnf metadata cache
+    command: dnf makecache
+  - name: upgrade the package
+    package:
+      name: java-deptools
+      state: latest
+    register: upgrade
+  - name: check whether upgrade happened
+    assert:
+      that: upgrade.changed
+  - name: restart frontend service
+    service:
+      name: java-deptools-frontend
+      state: restarted
