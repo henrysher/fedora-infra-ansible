@@ -104,6 +104,14 @@ insert into user_perms (user_id, perm_id, active, creator_id) values (
     (select id from users where name='{{username}}'));
 {% endfor %}
 
+-- Allow some users to use content generators, only in staging.
+{% for cg_user in cg_users %}
+insert into cg_users (cg_id, user_id, creator_id) values (
+    (select id from content_generator where name='{{ gc_user.gc_name }}'),
+    (select id from users where name='{{ gc_user.user_name }}'),
+    (select id from users where name='{{ gc_user.user_name }}'));
+{% endfor %}
+
 -- Fix krb principals for some users
 {% for username, principal in [('releng', 'compose/koji.stg.fedoraproject.org'),
                                ('koschei', 'koschei/koschei-backend01.stg.phx2.fedoraproject.org'),
