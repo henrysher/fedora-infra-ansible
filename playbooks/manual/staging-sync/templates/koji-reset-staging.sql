@@ -107,7 +107,7 @@ insert into user_perms (user_id, perm_id, active, creator_id) values (
 -- Allow some users to use content generators, only in staging.
 {% for cg_user in cg_users %}
 insert into cg_users (cg_id, user_id, creator_id) values (
-    (select id from content_generator where name='{{ cg_user.gc_name }}'),
+    (select id from content_generator where name='{{ cg_user.cg_name }}'),
     (select id from users where name='{{ cg_user.user_name }}'),
     (select id from users where name='{{ cg_user.user_name }}'));
 {% endfor %}
