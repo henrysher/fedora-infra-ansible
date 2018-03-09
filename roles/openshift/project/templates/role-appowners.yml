@@ -1,11 +1,16 @@
 apiVersion: v1
+{% if env == "staging" %}
+kind: Role
+{% else %}
 # Namespace-local roles did not work until openshift 3.6
 # https://github.com/openshift/origin/issues/14078
 kind: ClusterRole
+{% endif %}
 metadata:
   annotations:
     openshift.io/description: An application owner. Can view everything but ConfigMaps.
   name: appowner
+  namespace: "{{ app }}"
 rules:
 - apiGroups:
   - ""
