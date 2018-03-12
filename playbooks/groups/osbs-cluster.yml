@@ -441,33 +441,28 @@
   tags:
     - osbs-worker-namespace
   roles:
-  - {
-    role: osbs-secret,
-      osbs_namespace: "{{ osbs_worker_namespace }}",
-      osbs_secret_name: kojisecret,
+  - role: osbs-secret,
+      osbs_namespace: "{{ osbs_worker_namespace }}"
+      osbs_secret_name: "kojisecret"
       osbs_secret_files:
-        - { source: "/etc/pki/koji/fedora-builder.pem",
-            dest: cert
-          },
+        - source: "/etc/pki/koji/fedora-builder.pem"
+          dest: cert
     when: env == "staging"
-    }
 
 - name: setup dist registry secret in worker namespace
   hosts: osbs-masters-stg[0]
   tags:
     - osbs-worker-namespace
   roles:
-  - {
-    role: osbs-secret,
-      osbs_namespace: "{{ osbs_worker_namespace }}",
-      osbs_secret_name: registry-secret,
+  - role: osbs-secret,
+      osbs_namespace: "{{ osbs_worker_namespace }}"
+      osbs_secret_name: "registry-secret"
       osbs_secret_files:
-        - { source: "{{private}}/files/koji/{{docker_cert_name}}.cert.pem",
-            dest: registry.crt },
-        - { source: "{{private}}/files/koji/{{docker_cert_name}}.key.pem",
-            dest: registry.key },
+        - source: "{{private}}/files/koji/{{docker_cert_name}}.cert.pem"
+          dest: registry.crt
+        - source: "{{private}}/files/koji/{{docker_cert_name}}.key.pem"
+          dest: registry.key
     when: env == "staging"
-    }
 
 
 - name: Manage docker images and image stream
