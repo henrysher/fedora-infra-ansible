@@ -69,6 +69,12 @@ import os.path
 
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 
+{% if env == 'staging' %}
+SECRET_KEY = '{{ pdc_secret_key_stg }}'
+{% else %}
+SECRET_KEY = '{{ pdc_secret_key_prod }}'
+{% endif %}
+
 DEBUG = False
 
 # NOTE: this is needed when DEGUB is False.
