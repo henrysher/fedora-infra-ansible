@@ -11,9 +11,12 @@ nrpe_procs_crit: 300
 
 sudoers: "{{ private }}/files/sudo/qavirt-sudoers"
 
-# Given that the only interface here is eth2, we can't really make ansible do its magic
-ansible_ifcfg_whitelist:
-- nonexistent
+# openQA tap worker hosts (like this one) do stuff with ifcfg that base
+# doesn't understand. terrible, terrible stuff. seriously - it doesn't
+# handle the openvswitch config well. so let's tell it to just configure
+# the actual connected interface (which on this system is eth2) for us
+# and leave everything else alone.
+ansible_ifcfg_whitelist: ['eth2']
 
 # this is a powerful machine, can handle more openQA workers
 openqa_workers: 8
