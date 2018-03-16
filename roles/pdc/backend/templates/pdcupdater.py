@@ -42,6 +42,13 @@ config = {
     'pdcupdater.pkgdb_url': 'https://admin.fedoraproject.org/pkgdb',
     {% endif %}
 
+    # dead.package details
+    {% if env == 'staging' %}
+    'pdcupdater.file_check_url': 'https://src.stg.fedoraproject.org/%(namespace)s/%(repo)s/blob/%(branch)s/f/%(file)s',
+    {% else %}
+    'pdcupdater.file_check_url': 'https://src.fedoraproject.org/%(namespace)s/%(repo)s/blob/%(branch)s/f/%(file)s',
+    {% endif %}
+
     # Koji details
     {% if env == 'staging' %}
     'pdcupdater.koji_url': 'https://koji.stg.fedoraproject.org/kojihub',
