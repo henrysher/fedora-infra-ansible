@@ -13,6 +13,14 @@
   tags:
   - fedimg
 
+- name: install extra packages in staging
+  package: name={{ item }} state=present
+  with_items:
+  - euca2ools
+  when: env == "staging"
+  tags:
+  - fedimg
+
 - name: copy manual trigger script
   copy: >
     src=trigger_upload.py
@@ -27,6 +35,16 @@
     owner=fedmsg group=fedmsg mode=0700
   notify:
   - restart fedmsg-hub
+  tags:
+  - fedimg
+
+- name: copy the euca2ools configuration file
+  template: >
+      src=fedimg-euca-conf.ini dest=/etc/euca2ools/conf.d/fedimg-euca-conf.ini
+      owner=fedmsg group=fedmsg mode=0700
+  notify:
+  - restart fedmsg-hub
+  when: env == "staging"
   tags:
   - fedimg
 
