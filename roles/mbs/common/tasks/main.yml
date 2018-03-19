@@ -90,12 +90,12 @@
     mode: 0775
 
 - name: copy default modules to /etc/module-build-service/default-modules
-  copy: src={{ item.src }}.{{ env }} dest={{ item.dest }}/{{ item.src }}
-  with_items:
-    - { src: 'platform-f28.yaml', dest: '/etc/module-build-service/default-modules' }
+  copy: src={{ item }} dest=/etc/module-build-service/default-modules
+  with_fileglob:
+  - default-modules.{{ env }}/*.yaml
 
 - name: import default-modules
-  command: /usr/bin/mbs-manager import_module {{ item }}
+  command: /usr/bin/mbs-manager import_module /etc/module-build-service/default-modules/{{ item | filename }}
   with_fileglob:
-  - /etc/module-build-service/default-modules/*.yaml
+  - default-modules.{{ env }}/*.yaml
 
