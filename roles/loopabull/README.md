@@ -21,7 +21,7 @@ Including an example of how to use your role (for instance, with variables passe
                 routing_keys: [
                     "org.fedoraproject.prod.buildsys.build.state.change"
                 ],
-                playbooks_dir: /usr/local/loopabull-playbooks/,
+                playbooks_dir: /usr/local/loopabull-playbooks/ansible/,
                 ansible_cfg_path: /etc/ansible/ansible.cfg,
                 playbook_cmd: /usr/bin/ansible-playbook
 
