@@ -81,21 +81,8 @@
   - mbs
   - mbs/common
 
-- name: create /etc/module-build-service/default-modules directory
-  file:
-    path: /etc/module-build-service/default-modules
-    state: directory
-    owner: root
-    group: root
-    mode: 0775
-
-- name: copy default modules to /etc/module-build-service/default-modules
-  copy: src={{ item.src }}.{{ env }} dest={{ item.dest }}/{{ item.src }}
-  with_items:
-    - { src: 'platform-f28.yaml', dest: '/etc/module-build-service/default-modules' }
-
 - name: import default-modules
   command: /usr/bin/mbs-manager import_module {{ item }}
   with_fileglob:
-  - /etc/module-build-service/default-modules/*.yaml
+  - default-modules.{{ env }}/*.yaml
 
