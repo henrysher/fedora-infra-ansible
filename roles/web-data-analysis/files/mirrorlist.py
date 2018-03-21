@@ -444,6 +444,7 @@ def figureoutarch(asked_arch):
         'pentium4' : 'i386',
         'pentium5' : 'i386',
         'ia32' : 'i386',
+        'x86' : 'i386',
         'x86_32' : 'i386',
         'x86_64' : 'x86_64',
         'amd64' : 'x86_64',
