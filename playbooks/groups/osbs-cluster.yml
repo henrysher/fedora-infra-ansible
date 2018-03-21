@@ -447,7 +447,7 @@
     osbs_namespace: "{{ osbs_worker_namespace }}"
     osbs_secret_name: kojisecret
     osbs_secret_files:
-    - source: "{{private}}/files/koji/containerbuild.pem"
+    - source: "{{ private }}/files/koji/containerbuild.pem"
       dest: cert
     when: env == "staging"
 
@@ -464,9 +464,9 @@
     osbs_namespace: "{{ osbs_worker_namespace }}"
     osbs_secret_name: registry-secret
     osbs_secret_files:
-    - source: "{{private}}/files/koji/containerbuild.cert.pem"
+    - source: "{{ private }}/files/koji/containerbuild.cert.pem"
       dest: registry.crt
-    - source: "{{private}}/files/koji/containerbuild.key.pem"
+    - source: "{{ private }}/files/koji/containerbuild.key.pem"
       dest: registry.key
     when: env == "staging"
 
@@ -512,7 +512,7 @@
   - role: osbs-secret
     osbs_secret_name: kojisecret
     osbs_secret_files:
-    - source: "{{private}}/files/koji/containerbuild.pem"
+    - source: "{{ private }}/files/koji/containerbuild.pem"
       dest: cert
     when: env == "staging"
 
@@ -533,6 +533,15 @@
       dest: registry.key
     when: env == "staging"
 
+- name: setup orchestrator token for x86_64-osbs
+  hosts: osbs-orchestrator-prod-masters[0]
+  roles:
+  - role: osbs-secret
+    osbs_secret_name: x86-64-osbs
+    osbs_secret_files:
+    - source: "{{ private }}/files/osbs/x86-64-osbs-stg-orchestrator"
+      dest: token
+  when: env == "staging"
 
 - name: Manage docker images and image stream
   hosts: osbs-masters-stg[0]:osbs-masters[0]
