@@ -527,14 +527,18 @@
     osbs_namespace: "{{ osbs_worker_namespace }}"
     osbs_secret_name: registry-secret
     osbs_secret_files:
-    - source: "{{private}}/files/koji/containerbuild.cert.pem"
+    - source: "{{ private }}/files/koji/containerbuild.cert.pem"
       dest: registry.crt
-    - source: "{{private}}/files/koji/containerbuild.key.pem"
+    - source: "{{ private }}/files/koji/containerbuild.key.pem"
       dest: registry.key
     when: env == "staging"
 
 - name: setup orchestrator token for x86_64-osbs
   hosts: osbs-masters-stg[0]
+  vars_files:
+    - /srv/web/infra/ansible/vars/global.yml
+    - "/srv/private/ansible/vars.yml"
+    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
   roles:
   - role: osbs-secret
     osbs_secret_name: x86-64-osbs
