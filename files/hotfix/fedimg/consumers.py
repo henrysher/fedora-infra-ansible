@@ -70,8 +70,19 @@ class FedimgConsumer(fedmsg.consumers.FedmsgConsumer):
         compose_id = msg_info['compose_id']
         cmetadata = fedfind.release.get_release_cid(compose_id).metadata
 
-        images_meta = safeget(cmetadata, 'images', 'payload', 'images',
-                              'CloudImages', 'x86_64')
+        # Till F27, both cloud-base and atomic images were available
+        # under variant CloudImages. With F28 and onward releases,
+        # cloud-base image compose moved to cloud variant and atomic images
+        # moved under atomic variant.
+        prev_rel = ['26', '27']
+        if msg_info['release_version'] in prev_rel:
+            images_meta = safeget(cmetadata, 'images', 'payload', 'images',
+                                  'CloudImages', 'x86_64')
+        else:
+            images_meta = safeget(cmetadata, 'images', 'payload', 'images',
+                                  'Cloud', 'x86_64')
+            images_meta.extend(safeget(cmetadata, 'images', 'payload',
+                                       'images', 'AtomicHost', 'x86_64'))
 
         if images_meta is None:
             return
