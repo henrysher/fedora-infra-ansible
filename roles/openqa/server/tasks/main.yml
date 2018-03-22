@@ -250,7 +250,7 @@
   - config
 
 - name: Create admin user
-  command: "/var/lib/openqa/script/create_admin --email {{ openqa_email }} --nickname {{ openqa_nickname }} --fullname '{{ openqa_fullname }}' --key {{ openqa_key }} --secret {{ openqa_secret }} {{ openqa_userid }}"
+  command: "/var/lib/openqa/script/create_admin --emailz {{ openqa_email }} --nickname {{ openqa_nickname }} --fullname '{{ openqa_fullname }}' --key {{ openqa_key }} --secret {{ openqa_secret }} {{ openqa_userid }}"
   register: admin
   changed_when: "admin.rc == 0"
   failed_when: "(admin.rc > 0) and (admin.stderr is not defined or admin.stderr.find('already exists') == -1)"
@@ -295,7 +295,7 @@
   become_user: postgres
   become: true
   command: "psql -d {{ openqa_dbname }} -c \"UPDATE job_groups SET size_limit_gb = {{ openqa_assetsize_ppc }} WHERE name = 'Fedora PowerPC' AND (size_limit_gb != {{ openqa_assetsize_ppc }} OR size_limit_gb IS NULL);\""
-  when: "openqa_dbhost is defined and openqa_assetsize is defined"
+  when: "openqa_dbhost is defined and openqa_assetsize_ppc is defined"
   register: pgsqlsize
   changed_when: "pgsqlsize.stdout.find('UPDATE 0') == -1"
 
@@ -304,7 +304,7 @@
   become_user: postgres
   become: true
   command: "psql -d {{ openqa_dbname }} -c \"UPDATE job_groups SET size_limit_gb = {{ openqa_assetsize_aarch64 }} WHERE name = 'Fedora AArch64' AND (size_limit_gb != {{ openqa_assetsize_aarch64 }} OR size_limit_gb IS NULL);\""
-  when: "openqa_dbhost is defined and openqa_assetsize is defined"
+  when: "openqa_dbhost is defined and openqa_assetsize_aarch64 is defined"
   register: pgsqlsize
   changed_when: "pgsqlsize.stdout.find('UPDATE 0') == -1"
 
