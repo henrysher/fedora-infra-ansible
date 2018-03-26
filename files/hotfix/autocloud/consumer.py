@@ -48,13 +48,22 @@ class AutoCloudConsumer(fedmsg.consumers.FedmsgConsumer):
         log.info('Received %r %r' % (msg['topic'], msg['body']['msg_id']))
 
         STATUS_F = ('FINISHED_INCOMPLETE', 'FINISHED',)
-        VARIANTS_F = ('CloudImages',)
 
         images = []
         compose_db_update = False
         msg_body = msg['body']
         status = msg_body['msg']['status']
         compose_images_json = None
+
+        # Till F27, both cloud-base and atomic images were available
+        # under variant CloudImages. With F28 and onward releases,
+        # cloud-base image compose moved to cloud variant and atomic images
+        # moved under atomic variant.
+        prev_rel = ['26', '27']
+        if msg_body['msg']['release_version'] in prev_rel:
+            VARIANTS_F = ('CloudImages',)
+        else:
+            VARIANTS_F = ('AtomicHost', 'Cloud')
 
         if status in STATUS_F:
             location = msg_body['msg']['location']
@@ -133,4 +142,3 @@ class AutoCloudConsumer(fedmsg.consumers.FedmsgConsumer):
                 image.update({'pos': (pos+1, num_images)})
 
             produce_jobs(images)
-
