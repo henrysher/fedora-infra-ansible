@@ -274,7 +274,7 @@ class AccountSystem(BaseClient):
             # Dusty Mabe: dusty@dustymabe.com
             170115: 'dustymabe@redhat.com',
             # Ben Williams: vaioof@gmail.com
-            100572: 'jbwillia@math.vt.edu ',
+            100572: 'jbwillia@math.vt.edu',
         }
         # A few people have an email account that is used in owners.list but
         # have setup a bugzilla account for their primary account system email
