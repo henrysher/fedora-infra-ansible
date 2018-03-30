@@ -14,27 +14,29 @@
 ##              EVER BE TRUE ON ONE SYSTEM IN THE WORLD**
 ##       default - False
 
-# note: we need updates-testing until fedfind 3.8.0 / wikitcms 2.2.0
-# goes stable
-- name: Install required packages (testing)
-  dnf: name={{ item }} state=present enablerepo="updates-testing"
-  with_items:
-  - python2-fedfind
-  - python2-wikitcms
-  tags:
-  - packages
+# note: kept around for when we need packages from u-t
+#- name: Install required packages (testing)
+#  dnf: name={{ item }} state=present enablerepo="updates-testing"
+#  with_items:
+#  - python2-fedfind
+#  - python2-wikitcms
+#  tags:
+#  - packages
 
 - name: Install required packages
   dnf: name={{ item }} state=present
   with_items:
+  - python2-fedfind
+  - python2-wikitcms
   - python2-fedmsg-consumers
   - python2-mwclient
   - python-setuptools
+  - relval
   tags:
   - packages
 
 - name: Install required packages (wiki oidc auth)
-  dnf: name={{ item }} state=present enablerepo="updates-testing"
+  dnf: name={{ item }} state=present enablerepo="updates"
   with_items:
   - python2-openidc-client
   when: "wikitcms_token is defined"
