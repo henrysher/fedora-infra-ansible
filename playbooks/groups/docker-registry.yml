@@ -44,24 +44,12 @@
    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
 
   roles:
-  - role: gluster/server
-    name: gluster
-    username: "{{ registry_gluster_username_stg }}"
-    password: "{{ registry_gluster_password_stg }}"
-    owner: root
-    group: root
-    datadir: /srv/glusterfs/registry-stg
-
-  - role: gluster/client
-    name: gluster
-    servers:
-    - docker-registry01.stg.phx2.fedoraproject.org
-    - docker-registry02.stg.phx2.fedoraproject.org
-    username: "{{ registry_gluster_username_stg }}"
-    password: "{{ registry_gluster_password_stg }}"
-    owner: root
-    group: root
-    mountdir: "/srv/docker"
+  - role: gluster/consolidated
+    gluster_brick_dir: /srv/glusterfs/
+    gluster_mount_dir: /srv/docker/
+    gluster_brick_name: registry
+    gluster_server_group: registry-stg
+    tags: gluster
 
 - name: set up gluster on prod
   hosts:
@@ -106,7 +94,7 @@
 
   # NOTE: tls is disabled for docker-distribution because we are listening only
   #       on localhost and all external connections will be through httpd which
-  #       will be SSL enalbed.
+  #       will be SSL enabled.
   roles:
     - {
       role: docker-distribution,
