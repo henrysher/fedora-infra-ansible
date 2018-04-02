@@ -27,9 +27,17 @@ config = {
     {% endif %}
 
     {% if env == 'staging' %}
-    "fmn.topics": [b'org.fedoraproject.*', b'org.centos.*'],
+    "fmn.topics": [
+        b'org.fedoraproject.',
+        b'org.centos.',
+        b'org.release-monitoring.',
+    ],
     {% else %}
-    "fmn.topics": [b'org.fedoraproject.prod.*', b'org.centos.prod.*'],
+    "fmn.topics": [
+        b'org.fedoraproject.prod.',
+        b'org.centos.prod.',
+        b'org.release-monitoring.prod.',
+    ],
     {% endif %}
 
     # Consumer stuff
