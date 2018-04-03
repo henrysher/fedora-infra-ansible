@@ -20,17 +20,33 @@ ddns-update-style none;
 #subnet 172.16.9.0 netmask 255.255.255.0 {
 #}
 
-# ARM MGMT VLAN
+# Internal cloud VLAN
 shared-network cloud {
     option domain-name "cloud.fedoraproject.org";
     option domain-name-servers 66.35.62.163, 152.19.134.150;
 
-    subnet 172.23.0.0 netmask 255.255.255.0 {
+    subnet 172.23.0.0 netmask 255.255.254.0 {
     	   allow booting;
     	   allow bootp;
 
-    	   option routers 172.23.0.2;
-    	   option log-servers 172.23.0.2;
+    	   option routers 172.23.0.254;
+
+           host control01 {
+               hardware ethernet 40:5C:FD:A5:7F:C1;
+               fixed-address 172.23.0.5;
+               option host-name "control01.cloud.fedoraproject.org";
+               next-server 172.23.0.1;
+           }
+
+           host control02 {
+               hardware ethernet aa:aa:aa:aa:aa:aa;
+               fixed-address 172.23.0.6;
+               option host-name "control02.cloud.fedoraproject.org";
+               next-server 172.23.0.1;
+           }
+
+
+           # Transitional
     	   host arm03-packager00-mgmt {
                 hardware ethernet fc:2f:40:1b:64:4e;
          	fixed-address 172.23.0.70;
@@ -287,7 +303,7 @@ shared-network cloud {
     }
 }
 
-# ARM VLAN
+# Public VLAN
 subnet 209.132.184.0 netmask 255.255.255.0 {
     allow booting;
     allow bootp;
