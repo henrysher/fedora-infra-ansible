@@ -22,19 +22,32 @@ osbs_client_conf_path: /etc/osbs.conf
 
 osbs_namespace: "osbs-fedora"
 osbs_worker_namespace: worker
+
 osbs_worker_service_accounts:
   - orchestrator
   - builder
-osbs_worker_default_nodeselector: "worker=true"
+
+
 osbs_conf_sources_command: fedpkg sources
 osbs_conf_vendor: Fedora Project
 
 osbs_orchestrator_cpu_limitrange: "95m"
+
+osbs_worker_default_nodeselector: "worker=true"
 osbs_orchestrator_default_nodeselector: "orchestrator=true"
 
 osbs_conf_readwrite_users:
   - system:serviceaccount:{{ osbs_namespace }}:default
   - system:serviceaccount:{{ osbs_namespace }}:builder
+
+
+osbs_worker_clusters:
+  x86_64:
+  - name: x86_64-stg
+    max_concurrent_builds: 2
+    openshift_url: https://osbs.fedoraproject.org/
+    verify_ssl: 'false'
+
 
 nagios_Check_Services:
   nrpe: true
