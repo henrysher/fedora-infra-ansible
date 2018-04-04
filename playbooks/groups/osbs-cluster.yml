@@ -382,12 +382,6 @@
 
   tasks:
     - name: set custom build policy for koji builder in openshift for osbs
-      shell: "oc adm policy add-role-to-user -n default osbs-custom-build {{ osbs_koji_stg_username }} --role-namespace=default && touch /etc/origin/koji-custom-build-policy-added"
-      args:
-        creates: "/etc/origin/koji-builder-policy-added"
-      when: env == "staging"
-      environment: "{{ osbs_environment }}"
-    - name: set custom build policy for koji builder in openshift for osbs
       shell: "oc adm policy add-role-to-user -n default osbs-custom-build {{ osbs_koji_prod_username }} --role-namespace=default && touch /etc/origin/koji-custom-build-policy-added"
       args:
         creates: "/etc/origin/koji-builder-policy-added"
@@ -397,6 +391,7 @@
       shell: "oc adm policy add-role-to-user -n default osbs-custom-build system:serviceaccount:default:builder --role-namespace=default && touch /etc/origin/koji-builder-policy-added"
       args:
         creates: "/etc/origin/koji-builder-policy-added"
+      when: env == "production"
       environment: "{{ osbs_environment }}"
 
 - name: Create worker namespace
@@ -456,12 +451,14 @@
   roles:
   - role: osbs-namespace
     osbs_orchestrator: true
+    osbs_worker_clusters: "{{ osbs_conf_worker_clusters }}"
     osbs_cpu_limitrange: "{{ osbs_orchestrator_cpu_limitrange }}"
     osbs_nodeselector: "{{ osbs_orchestrator_default_nodeselector|default('') }}"
     osbs_authoritative_registry: "{{ source_registry }}"
     osbs_sources_command: "{{ osbs_conf_sources_command }}"
     osbs_vendor: "{{ osbs_conf_vendor }}"
     osbs_readwrite_users: "{{ osbs_conf_readwrite_users }}"
+    osbs_service_accounts: "{{ osbs_conf_service_accounts }}"
     when: env == "staging"
 
 - name: setup reactor config secret in orchestrator namespace
