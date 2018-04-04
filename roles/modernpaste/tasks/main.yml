@@ -33,6 +33,14 @@
   - modernpaste
   notify: reload httpd
 
+- name: modernpaste oidc secrets
+  template: src=client_secrets.json dest=/etc/modern-paste/client_secrets.json owner=apache group=apache mode=600
+  when: env == 'staging'
+  tags:
+  - config
+  - modernpaste
+  notify: reload httpd
+
 - name: modernpaste apache config
   copy: src=modern-paste.conf dest=/etc/httpd/conf.d/modern-paste.conf owner=root group=root mode=644
   tags:

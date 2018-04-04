@@ -50,6 +50,16 @@ ENABLE_USER_REGISTRATION = False
 # This is useful for private or internal installations that aren't intended for public use.
 REQUIRE_LOGIN_TO_PASTE = False
 
+# Authentication method
+# This selects between either local users or oidc (OpenID Connect)
+AUTH_METHOD = 'oidc'
+
+# OpenID Connect client secrets file
+AUTH_OIDC_CLIENT_SECRETS = '/etc/modern-paste/client_secrets.json'
+
+# Required scope for OAuth2 API calls
+AUTH_OIDC_SCOPE = 'modernpaste'
+
 # AES key for generating encrypted IDs
 # This is only relevant if USE_ENCRYPTED_IDS above is True. If not, this config parameter can be ignored.
 # It is recommended, but not strictly required, for you to replace the string below with the output of os.urandom(32),
