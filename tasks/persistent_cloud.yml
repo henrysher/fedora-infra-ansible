@@ -26,7 +26,7 @@
       floating_ips:
         - "{{public_ip}}"
   register: nova_result
-  when: host_is_up|failed
+  when: host_is_up is failed
 
 # instance can be both id and name, volume must be id
 # volume must be id
@@ -53,27 +53,27 @@
 
 - name: wait for he host to be hot
   local_action: wait_for host={{ public_ip }} port=22 delay=1 timeout=600
-  when: host_is_up|failed
+  when: host_is_up is failed
 
 # SSH is up and running, however cloud-init still did not deployed ssh keypair
 # we have to wait some time. 10 sec is usually enough, but not always.
 
 - name: waiting for cloud-init
   pause: seconds=30
-  when: host_is_up|failed
+  when: host_is_up is failed
 
 - name: gather ssh host key from new instance
   local_action: command ssh-keyscan -t rsa {{ inventory_hostname }}
   ignore_errors: True
   register: hostkey
-  when: host_is_up|failed
+  when: host_is_up is failed
 
 - name: add new ssh host key (until we can sign it)
   local_action: known_hosts path={{item}} key="{{ hostkey.stdout }}" host={{ inventory_hostname }} state=present
   ignore_errors: True
   with_items:
   - /root/.ssh/known_hosts
-  when: host_is_up|failed
+  when: host_is_up is failed
 
 #
 # Next we try and gather facts. If the host doesn't have python2 this will fail.
