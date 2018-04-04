@@ -54,7 +54,7 @@
   ini_file: dest=/etc/NetworkManager/NetworkManager.conf section=main option=dns value=none
   notify:
   - restart NetworkManager
-  when: ansible_distribution_major_version|int >=7 and nmclitest|success and ( not ansible_ifcfg_blacklist) and not nm_controlled_resolv
+  when: ansible_distribution_major_version|int >=7 and nmclitest is success and ( not ansible_ifcfg_blacklist) and not nm_controlled_resolv
   tags:
    - config
    - resolvconf
@@ -67,7 +67,7 @@
   changed_when: false
   failed_when: 'if_uuid.stdout == ""'
   check_mode: no
-  when: ansible_distribution_major_version|int >=7 and nmclitest|success and ( not ansible_ifcfg_blacklist )
+  when: ansible_distribution_major_version|int >=7 and nmclitest is success and ( not ansible_ifcfg_blacklist )
   tags:
    - config
    - ifcfg
@@ -81,7 +81,7 @@
 #  - restart NetworkManager
   - reload NetworkManager-connections
   - apply interface-changes
-  when: (virthost is not defined) and (item.startswith(('eth','br','enc'))) and (hostvars[inventory_hostname]['ansible_' + item.replace('-','_')]['type'] == 'ether') and (ansible_distribution_major_version|int >=7) and hostvars[inventory_hostname]['ansible_' + item.replace('-','_')]['active'] and nmclitest|success and ( not ansible_ifcfg_blacklist ) and ( ansible_ifcfg_whitelist is not defined or item in ansible_ifcfg_whitelist )
+  when: (virthost is not defined) and (item.startswith(('eth','br','enc'))) and (hostvars[inventory_hostname]['ansible_' + item.replace('-','_')]['type'] == 'ether') and (ansible_distribution_major_version|int >=7) and hostvars[inventory_hostname]['ansible_' + item.replace('-','_')]['active'] and nmclitest is success and ( not ansible_ifcfg_blacklist ) and ( ansible_ifcfg_whitelist is not defined or item in ansible_ifcfg_whitelist )
   tags:
    - config
    - ifcfg
