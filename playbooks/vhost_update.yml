@@ -21,12 +21,14 @@
 # Call out to another playbook.  Disable any proxies that may live here
 #- include_playbook: update-proxy-dns.yml status=disable proxies=myvms_new:&proxies
 
-- name: update the system
+- name: set downtime
   hosts: "{{ target }}:myvms_new"
-  gather_facts: True
+  gather_facts: False
   user: root
+  serial: 1
 
   tasks:
+
   - name: schedule regular host downtime
     nagios: action=downtime minutes=30 service=host host={{ inventory_hostname_short }}{{ env_suffix }}
     delegate_to: noc01.phx2.fedoraproject.org
@@ -34,6 +36,12 @@
     failed_when: no
     when: nonagios is not defined or not "true" in nonagios
 
+- name: update the system
+  hosts: "{{ target }}:myvms_new"
+  gather_facts: True
+  user: root
+
+  tasks:
   - name: expire-caches
     command: yum clean expire-cache
     when: ansible_distribution_major_version|int < 22
