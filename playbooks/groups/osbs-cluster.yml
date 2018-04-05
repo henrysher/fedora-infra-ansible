@@ -23,9 +23,9 @@
     - nagios_client
     - hosts
     - fas_client
+    - sudo
     - collectd/base
     - rsyncd
-    - sudo
 
   tasks:
     - import_tasks: "{{ tasks_path }}/2fa_client.yml"
@@ -550,20 +550,20 @@
     - name: pull fedora required docker images
       shell: "docker pull {{item}}"
       with_items: "{{fedora_required_images}}"
-      delegate_to: compose-x86-01.phx2.fedoraproject.org
+      delegate_to: "{{ composer }}"
       register: docker_pull_fedora_delegated
       changed_when: "'Downloaded newer image' in docker_pull_fedora_delegated.stdout"
 
     - name: tag fedora required docker images for our registry
       shell: "docker tag {{item}} {{docker_registry}}/{{item}}"
       with_items: "{{fedora_required_images}}"
-      delegate_to: compose-x86-01.phx2.fedoraproject.org
+      delegate_to: "{{ composer }}"
       when: docker_pull_fedora_delegated|changed
 
     - name: push fedora required docker images to our registry
       shell: "docker push {{docker_registry}}/{{item}}"
       with_items: "{{fedora_required_images}}"
-      delegate_to: compose-x86-01.phx2.fedoraproject.org
+      delegate_to: "{{ composer }}"
       when: docker_pull_fedora_delegated|changed
 
     - name: register origin_version_out rpm query
@@ -578,20 +578,20 @@
     - name: pull openshift required docker images
       shell: "docker pull {{item}}:v{{origin_version}}"
       with_items: "{{openshift_required_images}}"
-      delegate_to: compose-x86-01.phx2.fedoraproject.org
+      delegate_to: "{{ composer }}"
       register: docker_pull_openshift_delegated
       changed_when: "'Downloaded newer image' in docker_pull_openshift_delegated.stdout"
 
     - name: tag openshift required docker images for our registry
       shell: "docker tag {{item}}:v{{origin_version}} {{docker_registry}}/{{item}}:v{{origin_version}}"
       with_items: "{{openshift_required_images}}"
-      delegate_to: compose-x86-01.phx2.fedoraproject.org
+      delegate_to: "{{ composer }}"
       when: docker_pull_openshift_delegated|changed
 
     - name: push openshift required docker images to our registry
       shell: "docker push {{docker_registry}}/{{item}}:v{{origin_version}}"
       with_items: "{{openshift_required_images}}"
-      delegate_to: compose-x86-01.phx2.fedoraproject.org
+      delegate_to: "{{ composer }}"
       when: docker_pull_openshift_delegated|changed
 
     - name: create fedora image stream for OpenShift

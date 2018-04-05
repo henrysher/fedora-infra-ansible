@@ -142,7 +142,6 @@ class ProdConfiguration(BaseConfiguration):
                'git+https://src.stg.fedoraproject.org/modules/',
                'https://src.stg.fedoraproject.org/modules/',
                'https://src.stg.fedoraproject.org/git/modules/']
-    RESOLVER = "db"
 
 {% else %}
     KOJI_PROFILE = 'production'
@@ -155,6 +154,8 @@ class ProdConfiguration(BaseConfiguration):
                'https://src.fedoraproject.org/modules/',
                'https://src.fedoraproject.org/git/modules/']
 {% endif %}
+
+    RESOLVER = "db"
 
     # Made possible by https://pagure.io/releng/issue/6799
     KOJI_ENABLE_CONTENT_GENERATOR = True
