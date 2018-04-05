@@ -27,12 +27,20 @@
   - config
   - datagrepper
 
-- name: remove bum default config files
+- name: remove bum compiled default config file
   file: dest="/etc/fedmsg.d/{{item}}" state=absent
   with_items:
-  - datanommer.py
   - datanommer.pyc
   - datanommer.pyo
+  tags:
+  - config
+  - datagrepper
+
+# This file is in the package, empty, and we need to make sure we don't get that one.
+- name: empty out default config file
+  copy:
+    path=/etc/fedmsg.d/datanommer.py
+    content="config={}"
   tags:
   - config
   - datagrepper
