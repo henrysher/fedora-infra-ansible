@@ -29,6 +29,8 @@ config = {
 }
 {% else %}
 config = {
-    'fedimgconsumer': True,
+    'fedimgconsumer.dev.enabled': False,
+    'fedimgconsumer.prod.enabled': True,
+    'fedimgconsumer.stg.enabled': False,
 }
 {% endif %}
