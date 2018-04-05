@@ -15,7 +15,7 @@ items:
           name="release-monitoring-web" \
           vendor="Fedora Infrastructure" \
           license="MIT"
-        RUN dnf install -y \
+        RUN dnf install -y --enable-repo=updates-testing \
                 git \
                 python3-blinker \
                 python3-dateutil \
@@ -30,18 +30,17 @@ items:
                 python3-pip \
                 python3-psycopg2 \
                 python3-setuptools \
+                python3-social-auth-app-flask-sqlalchemy \
                 python3-straight-plugin \
                 python3-sqlalchemy \
                 python3-wtforms && \
             dnf autoremove -y && \
             dnf clean all -y
-        RUN pip-3 install social-auth-app-flask social-auth-app-flask-sqlalchemy
         RUN pip-3 install git+https://github.com/release-monitoring/anitya.git
         ENV USER=anitya
         EXPOSE 8080
         EXPOSE 9940
-        ENTRYPOINT python3 -c "from anitya.config import config; from anitya.lib import utilities; utilities.init('sqlite:////var/tmp/anitya-dev.sqlite', None, debug=True, create=True)" \
-            && python3-gunicorn --bind 0.0.0.0:8080 --access-logfile=- anitya.wsgi:application
+        ENTRYPOINT python3-gunicorn --bind 0.0.0.0:8080 --access-logfile=- anitya.wsgi:application
       type: Dockerfile
     strategy:
       type: Docker
