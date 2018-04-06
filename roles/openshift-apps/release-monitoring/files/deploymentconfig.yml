@@ -22,6 +22,13 @@ items:
         maxUnavailable: 25%
         timeoutSeconds: 600
         updatePeriodSeconds: 1
+        pre:
+          failurePolicy: Abort
+          execNewPod:
+            containerName: release-monitoring-web
+            command: [ /bin/sh, -i, -c, "alembic -c /etc/anitya/alembic.ini upgrade head" ]
+            volumes:
+            - config-volume
       type: Rolling
     template:
       metadata:

@@ -70,3 +70,38 @@ data:
         [anitya_log_config.root]
             level = "ERROR"
             handlers = ["console"]
+  alembic.ini: |-
+    [alembic]
+    script_location = anitya:db/migrations
+    sourceless = false
+{% if env == 'staging' %}
+    sqlalchemy.url = "postgresql://{{ anitya_stg_db_user }}:{{ anitya_stg_db_pass }}@{{ anitya_stg_db_host }}/{{ anitya_stg_db_name }}"
+{% else %}
+    sqlalchemy.url = "postgresql://{{ anitya_db_user }}:{{ anitya_db_pass }}@{{ anitya_db_host }}/{{ anitya_db_name }}"
+{% endif %}
+    [loggers]
+    keys = root,sqlalchemy,alembic
+    [handlers]
+    keys = console
+    [formatters]
+    keys = generic
+    [logger_root]
+    level = WARN
+    handlers = console
+    qualname =
+    [logger_sqlalchemy]
+    level = WARN
+    handlers =
+    qualname = sqlalchemy.engine
+    [logger_alembic]
+    level = INFO
+    handlers =
+    qualname = alembic
+    [handler_console]
+    class = StreamHandler
+    args = (sys.stderr,)
+    level = NOTSET
+    formatter = generic
+    [formatter_generic]
+    format = %(levelname)-5.5s [%(name)s] %(message)s
+    datefmt = %H:%M:%S
