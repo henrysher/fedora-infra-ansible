@@ -80,15 +80,24 @@ class FedimgConsumer(fedmsg.consumers.FedmsgConsumer):
 
         location = msg_info['location']
         compose_id = msg_info['compose_id']
-        compose_metadata = fedfind.release.get_release_cid(compose_id).metadata
-        images_meta = get_value_from_dict(
-            compose_metadata,
-            'images',
-            'payload',
-            'images',
-            'CloudImages',
-            'x86_64'
-        )
+        compose_metadata = fedfind.release.get_release(cid=compose_id).metadata
+
+        # Till F27, both cloud-base and atomic images were available
+        # under variant CloudImages. With F28 and onward releases,
+        # cloud-base image compose moved to cloud variant and atomic images
+        # moved under atomic variant.
+        prev_rel = ['26', '27']
+        if msg_info['release_version'] in prev_rel:
+            images_meta = get_value_from_dict(
+                compose_metadata, 'images', 'payload', 'images', 'CloudImages',
+                'x86_64')
+        else:
+            images_meta = get_value_from_dict(
+                compose_metadata, 'images', 'payload', 'images',
+                'Cloud', 'x86_64')
+            images_meta.extend(get_value_from_dict(
+                compose_metadata, 'images', 'payload',
+                'images', 'AtomicHost', 'x86_64'))
 
         if images_meta is None:
             LOG.debug('No compatible image found to process')
