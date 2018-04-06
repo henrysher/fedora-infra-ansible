@@ -395,6 +395,16 @@
   tags:
     - osbs-worker-namespace
   user: root
+  vars_files:
+    - /srv/web/infra/ansible/vars/global.yml
+    - "/srv/private/ansible/vars.yml"
+    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  vars:
+    osbs_kubeconfig_path: /etc/origin/master/admin.kubeconfig
+    osbs_environment:
+      KUBECONFIG: "{{ osbs_kubeconfig_path }}"
+
   roles:
     - role: osbs-namespace
       osbs_namespace: "{{ osbs_worker_namespace }}"
