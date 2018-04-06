@@ -326,12 +326,6 @@
 
   tasks:
     - name: set policy for koji builder in openshift for osbs
-      shell: "oadm policy add-role-to-user -n default edit htpasswd_provider: {{ osbs_koji_stg_username }} && touch /etc/origin/koji-builder-policy-added"
-      args:
-        creates: "/etc/origin/koji-builder-policy-added"
-      when: env == "staging"
-
-    - name: set policy for koji builder in openshift for osbs
       shell: "oadm policy add-role-to-user -n default edit htpasswd_provider: {{ osbs_koji_prod_username }} && touch /etc/origin/koji-builder-policy-added"
       args:
         creates: "/etc/origin/koji-builder-policy-added"
@@ -341,6 +335,7 @@
       shell: "oadm policy add-role-to-user -n default edit system:serviceaccount:default:builder && touch /etc/origin/atomic-reactor-policy-added"
       args:
         creates: "/etc/origin/atomic-reactor-policy-added"
+      when: env == "production"
 
 - name: Deploy OSBS on top of OpenShift
   hosts: osbs-masters-stg[0]:osbs-masters[0]
