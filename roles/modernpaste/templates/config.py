@@ -52,7 +52,11 @@ REQUIRE_LOGIN_TO_PASTE = False
 
 # Authentication method
 # This selects between either local users or oidc (OpenID Connect)
+{% if env == 'staging' %}
 AUTH_METHOD = 'oidc'
+{% else %}
+AUTH_METHOD = 'local'
+{% endif %}
 
 # OpenID Connect client secrets file
 AUTH_OIDC_CLIENT_SECRETS = '/etc/modern-paste/client_secrets.json'

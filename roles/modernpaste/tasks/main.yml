@@ -80,8 +80,11 @@
   tags:
   - modernpaste
 
-- name: set sebooleans so paste can talk to the db
-  seboolean: name=httpd_can_network_connect_db state=true persistent=true
+- name: set sebooleans so paste can talk to the db and sn2mp can talk to paste
+  seboolean: name={{item}} state=true persistent=true
+  with_items:
+  - httpd_can_network_connect_db
+  - httpd_can_network_connect
   tags:
   - config
   - selinux

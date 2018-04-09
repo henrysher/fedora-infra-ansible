@@ -18,7 +18,7 @@
   - httpd
   - httpd/certificate
 
-- name: Copy {{name}}.cert
+- name: Copy {{certname}}.cert
   copy: >
     src={{item}}
     dest=/etc/pki/tls/certs/{{item | basename}}
@@ -27,14 +27,14 @@
     mode=0644
   with_first_found:
   - "{{private}}/files/httpd/{{cert}}.cert"
-  - "{{private}}/files/httpd/{{name}}.cert"
+  - "{{private}}/files/httpd/{{certname}}.cert"
   notify:
   - reload proxyhttpd
   tags:
   - httpd
   - httpd/certificate
 
-- name: Copy {{name}}.key
+- name: Copy {{certname}}.key
   copy: >
     src={{item}}
     dest=/etc/pki/tls/private/{{item | basename}}
@@ -43,7 +43,7 @@
     mode=0600
   with_first_found:
   - "{{private}}/files/httpd/{{key}}.key"
-  - "{{private}}/files/httpd/{{name}}.key"
+  - "{{private}}/files/httpd/{{certname}}.key"
   notify:
   - reload proxyhttpd
   tags:
