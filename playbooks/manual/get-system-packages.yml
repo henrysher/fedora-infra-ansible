@@ -7,6 +7,12 @@
   gather_facts: false
   user: root
 
+  vars_files:
+  - /srv/web/infra/ansible/vars/global.yml
+  - "/srv/private/ansible/vars.yml"
+  - "/srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml"
+
+
   tasks:
 
   - name: yum_command 
@@ -19,21 +25,27 @@
     register: dnf_packages
     when: ansible_distribution_major_version|int > 21
 
-  - debug: 
-    var: yum_packages
-      var=item
-      with_items: "{{yum_packages|json_query(jsonquery)}}"
-    vars:
-      jsonquery: "results[?name=='tar']"
-    when: yumoutput is defined and yumoutput.results|length > 0
+  - debug: msg="{{ inventory_hostname}} {{ yum_packages.results }}"
+    when: yum_packages is defined and yum_packages.results|length > 0
 
-  - debug:
-    var: dnf_packages
-      var=item
-      with_items: "{{dnf_packages|json_query(jsonquery)}}"
-    vars:
-      jsonquery: "results[?name=='tar']"
-    when: dnfoutput is defined and dnfoutput.results|length > 0
+  - debug: msg="{{ inventory_hostname}} {{ dnf_packages.results }}"
+    when: yum_packages is defined and yum_packages.results|length > 0
+
+  # - debug: 
+  #   var: yum_packages
+  #     var=item
+  #     with_items: "{{yum_packages|json_query(jsonquery)}}"
+  #   vars:
+  #     jsonquery: "results[?name=='tar']"
+  #   when: yum_packages is defined and yum_packages.results|length > 0
+
+  # - debug:
+  #   var: dnf_packages
+  #     var=item
+  #     with_items: "{{dnf_packages|json_query(jsonquery)}}"
+  #   vars:
+  #     jsonquery: "results[?name=='tar']"
+  #   when: yum_packages is defined and yum_packages.results|length > 0
 
 #
 #
