@@ -76,6 +76,13 @@ config = {
                     "key": "fedora-29",
                     "keyid": "429476b4"
                 },
+                {
+                    "from": "f29-modular-signing-pending",
+                    "to": "f29-modular-updates-testing-pending",
+                    "key": "fedora-29",
+                    "keyid": "429476b4",
+                    "type": "modular"
+                },
 
                 # Gated bodhi updates
                 {
