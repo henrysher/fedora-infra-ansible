@@ -12,34 +12,28 @@
   - name: yum_command 
     yum: list=installed
     register: yum_packages
-    when: ansible_distribution_major_version|int < 22
+    when: ansible_distribution == "RedHat" and ansible_distribution_major_version|int <= 7
 
   - name: dnf_command
     dnf: list=installed
     register: dnf_packages
-    when: ansible_distribution_major_version|int > 21
+    when: ansible_distribution == "Fedora" and ansible_distribution_major_version|int > 21
 
-  - debug: msg="{{ inventory_hostname}} {{ yum_packages.results }}"
+  - name: dnf_command
+    dnf: list=installed
+    register: dnf_packages
+    when: ansible_distribution == "RedHat" and ansible_distribution_major_version|int > 8
+
+#  - debug: msg="{{ inventory_hostname}} {{ yum_packages.results }}"
+#    when: yum_packages is defined and yum_packages.results|length > 0
+
+  - debug: msg="{{ item.envra }}"
+    with_items: "{{ yum_packages.results }}"
     when: yum_packages is defined and yum_packages.results|length > 0
 
-  - debug: msg="{{ inventory_hostname}} {{ dnf_packages.results }}"
-    when: yum_packages is defined and yum_packages.results|length > 0
-
-  # - debug: 
-  #   var: yum_packages
-  #     var=item
-  #     with_items: "{{yum_packages|json_query(jsonquery)}}"
-  #   vars:
-  #     jsonquery: "results[?name=='tar']"
-  #   when: yum_packages is defined and yum_packages.results|length > 0
-
-  # - debug:
-  #   var: dnf_packages
-  #     var=item
-  #     with_items: "{{dnf_packages|json_query(jsonquery)}}"
-  #   vars:
-  #     jsonquery: "results[?name=='tar']"
-  #   when: yum_packages is defined and yum_packages.results|length > 0
+  - debug: msg="{{ item }}"
+    with_items: "{{ dnf_packages.results }}"
+    when: dnf_packages is defined and dnf_packages.results|length > 0
 
 #
 #
