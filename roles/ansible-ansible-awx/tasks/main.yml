@@ -1,0 +1,39 @@
+---
+
+- name: Install required packages
+  package: name="{{ item }}" state=present
+  with_items:
+    - ansible
+    - git
+    - pyOpenSSL
+
+- name: git clone the awx repo
+  git:
+    repo: https://github.com/ansible/awx.git
+    dest: /srv/awx
+    version: 1.0.5
+
+- name: git clone the awx-logos repo
+  git:
+    repo: https://github.com/ansible/awx-logos.git
+    dest: /srv/awx-logos
+    version: master
+
+- name: Copy inventory file over
+  template: src=inventory dest=/srv/aws/installer/inventory
+
+- name: run ansible
+  shell: "ansible-playbook install.yml -i inventory"
+  args:
+    chdir: "/srv/aws/installer"
+  register: run_ansible_out
+
+- name: display run ansible stdout_lines
+  debug:
+    var: run_ansible_out.stdout_lines
+
+- name: display run ansible stderr
+  debug:
+    var: run_ansible_out.stderr
+
+
