@@ -6,34 +6,46 @@
     - ansible
     - git
     - pyOpenSSL
+  tags:
+    - awxinstall
 
 - name: git clone the awx repo
   git:
     repo: https://github.com/ansible/awx.git
     dest: /srv/awx
     version: 1.0.5
+  tags:
+    - awxinstall
 
 - name: git clone the awx-logos repo
   git:
     repo: https://github.com/ansible/awx-logos.git
     dest: /srv/awx-logos
     version: master
+  tags:
+    - awxinstall
 
 - name: Copy inventory file over
   template: src=inventory dest=/srv/awx/installer/inventory
+  tags:
+    - awxinstall
 
 - name: run ansible
   shell: "ansible-playbook install.yml -i inventory"
   args:
     chdir: "/srv/awx/installer"
   register: run_ansible_out
+  tags:
+    - awxinstall
 
 - name: display run ansible stdout_lines
   debug:
     var: run_ansible_out.stdout_lines
+  tags:
+    - awxinstall
 
 - name: display run ansible stderr
   debug:
     var: run_ansible_out.stderr
-
-
+  tags:
+    - awxinstall
