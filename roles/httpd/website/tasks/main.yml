@@ -1,5 +1,5 @@
 # Expected vars
-# - name...
+# - site_name...
 # - cert_name...
 # - server_aliases: []
 # - server_admin: webmaster@fedoraproject.org
@@ -8,9 +8,9 @@
 # - SSLCertificateChainFile: ""
 # - gzip: false
 
-- name: Create site directory in httpd/conf.d/{{name}}
+- name: Create site directory in httpd/conf.d/{{site_name}}
   file: >
-    dest=/etc/httpd/conf.d/{{name}}
+    dest=/etc/httpd/conf.d/{{site_name}}
     state=directory
     owner=root
     group=root
@@ -23,10 +23,10 @@
 
 # TODO - copy in Httpd::Certificate
 
-- name: Copy over primary template for {{name}}
+- name: Copy over primary template for {{site_name}}
   template: >
     src=website.conf
-    dest=/etc/httpd/conf.d/{{name}}.conf
+    dest=/etc/httpd/conf.d/{{site_name}}.conf
     owner=root
     group=root
     mode=0644
@@ -36,10 +36,10 @@
   - httpd
   - httpd/website
 
-- name: Copy over some subordinate templates for {{name}}
+- name: Copy over some subordinate templates for {{site_name}}
   template: >
     src={{item}}.conf
-    dest=/etc/httpd/conf.d/{{name}}/{{item}}.conf
+    dest=/etc/httpd/conf.d/{{site_name}}/{{item}}.conf
     owner=root
     group=root
     mode=0644
@@ -56,13 +56,13 @@
 - name: And lastly, the robots.txt file
   copy: >
     src={{item}}
-    dest=/srv/web/robots.txt.{{name}}
+    dest=/srv/web/robots.txt.{{site_name}}
     mode=0644
     owner=root
     group=root
     setype=httpd_sys_content_t
   with_first_found:
-  - robots/robots.txt.{{name}}
+  - robots/robots.txt.{{site_name}}
   - robots/robots.txt
   notify:
   - reload proxyhttpd
