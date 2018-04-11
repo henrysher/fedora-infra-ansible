@@ -1,0 +1,39 @@
+#
+# A playbook to get all the rpms installed on a set of systems. 
+# 
+
+- name: Get installed packages
+  hosts: builders:releng-compose
+  gather_facts: false
+  user: root
+
+  tasks:
+
+  - name: yum_command 
+    yum: list=installed
+    register: yum_packages
+    when: ansible_distribution_major_version|int < 22
+
+  - name: dnf_command
+    dnf: list=installed
+    register: dnf_packages
+    when: ansible_distribution_major_version|int > 21
+
+  - debug: 
+    var: yum_packages
+      var=item
+      with_items: "{{yum_packages|json_query(jsonquery)}}"
+    vars:
+      jsonquery: "results[?name=='tar']"
+    when: yumoutput is defined and yumoutput.results|length > 0
+
+  - debug:
+    var: dnf_packages
+      var=item
+      with_items: "{{dnf_packages|json_query(jsonquery)}}"
+    vars:
+      jsonquery: "results[?name=='tar']"
+    when: dnfoutput is defined and dnfoutput.results|length > 0
+
+#
+#
