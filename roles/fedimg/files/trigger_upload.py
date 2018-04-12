@@ -17,7 +17,8 @@ log = logging.getLogger('fedmsg')
 def trigger_upload(url, compose_id, push_notifications):
     upload_pool = multiprocessing.pool.ThreadPool(processes=4)
     compose_meta = {'compose_id': compose_id}
-    fedimg.uploader.upload(upload_pool, [url], compose_meta=compose_meta)
+    fedimg.uploader.upload(upload_pool, [url], compose_meta=compose_meta,
+                           push_notifications=push_notifications)
 
 
 def get_args():
