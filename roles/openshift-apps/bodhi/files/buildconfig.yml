@@ -1,0 +1,30 @@
+apiVersion: v1
+items:
+- apiVersion: v1
+  kind: BuildConfig
+  metadata:
+    labels:
+      build: bodhi-web
+    name: bodhi-web
+  spec:
+    runPolicy: Serial
+    source:
+      dockerfile: |-
+        FROM fedora:latest
+        LABEL \
+          name="bodhi-web" \
+          vendor="Fedora Infrastructure" \
+          license="MIT"
+        RUN curl -o /etc/yum.repos.d/infra-tags.repo https://infrastructure.fedoraproject.org/cgit/ansible.git/plain/files/common/fedora-infra-tags.repo
+        RUN dnf install -y bodhi-server python2-gunicorn
+        EXPOSE 8080
+        ENTRYPOINT python-gunicorn --bind 0.0.0.0:8080 --access-logfile=- /usr/share/bodhi/bodhi.wsgi
+      type: Dockerfile
+    strategy:
+      type: Docker
+    output:
+      to:
+        kind: ImageStreamTag
+        name: bodhi-web:latest
+kind: List
+metadata: {}

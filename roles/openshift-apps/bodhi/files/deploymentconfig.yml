@@ -1,0 +1,71 @@
+apiVersion: v1
+items:
+- apiVersion: v1
+  kind: DeploymentConfig
+  metadata:
+    labels:
+      app: bodhi
+      service: web
+    name: bodhi-web
+  spec:
+    replicas: 2
+    selector:
+      deploymentconfig: bodhi-web
+    strategy:
+      activeDeadlineSeconds: 21600
+      recreateParams:
+        timeoutSeconds: 600
+      resources: {}
+      rollingParams:
+        intervalSeconds: 1
+        maxSurge: 25%
+        maxUnavailable: 25%
+        timeoutSeconds: 600
+        updatePeriodSeconds: 1
+      type: Rolling
+    template:
+      metadata:
+        creationTimestamp: null
+        labels:
+          app: bodhi-web
+          deploymentconfig: bodhi-web
+      spec:
+        containers:
+        - name: bodhi-web
+          image: bodhi-web:latest
+          ports:
+          - containerPort: 8080
+          resources: {}
+          volumeMounts:
+          - name: config-volume
+            mountPath: /etc/bodhi
+            readOnly: true
+          readinessProbe:
+            timeoutSeconds: 1
+            initialDelaySeconds: 5
+            httpGet:
+              path: /
+              port: 8080
+          livenessProbe:
+            timeoutSeconds: 1
+            initialDelaySeconds: 30
+            httpGet:
+              path: /
+              port: 8080
+        volumes:
+        - name: config-volume
+          configMap:
+            name: bodhi-configmap
+    triggers:
+    - imageChangeParams:
+        automatic: true
+        containerNames:
+        - bodhi-web
+        from:
+          kind: ImageStreamTag
+          name: bodhi-web:latest
+          namespace: bodhi
+      type: ImageChange
+    - type: ConfigChange
+kind: List
+metadata: {}
