@@ -185,8 +185,16 @@ ostree = {
 [% endif %]
 
 [% if release.id_prefix == 'FEDORA' and release.version_int >= 28 %]
-global_ksurl = 'git+https://pagure.io/fedora-kickstarts.git?#origin/f27'
+global_ksurl = 'git+https://pagure.io/fedora-kickstarts.git?#origin/f[[ release.version_int ]]'
 global_release = '!RELEASE_FROM_LABEL_DATE_TYPE_RESPIN'
+image_name_format = '%(release_short)s-%(variant)s-%(disc_type)s-%(arch)s-%(version)s-%(date)s%(type_suffix)s.%(respin)s.iso'
+image_volid_formats = [
+    '%(release_short)s-%(variant)s-%(disc_type)s-%(arch)s-%(version)s'
+    ]
+volume_id_substitutions = {
+    'AtomicHost': 'AH',
+    'Everything': 'E',
+}
 
 # Other ostree artifacts
 image_build = {
@@ -195,12 +203,13 @@ image_build = {
             'image-build': {
                 'format': [('qcow2', 'qcow2'), ('raw-xz', 'raw.xz')],
                 'name': 'Fedora-Atomic',
-                'kickstart': 'fedora-kickstart.ks',
+                'kickstart': 'fedora-atomic.ks',
                 'distro': 'Fedora-22',
                 'disk_size': 6,
                 'arches': ['x86_64', 'aarch64', 'ppc64le'],
                 'install_tree_from': "https://kojipkgs{{ env_suffix }}.fedoraproject.org/compose/branched/latest-Fedora-[[ release.version_int ]]/compose/Everything/$basearch/os/"
                 'subvariant': 'AtomicHost',
+                'failable': ['*'],
             }
         }
     ]
@@ -236,6 +245,7 @@ ostree_installer = {
             ],
             'template_repo': 'https://pagure.io/fedora-lorax-templates.git',
             'template_branch': 'f[[ release.version_int ]]'
+            'failable': ['*'],
         },
         [% endfor %]
     })
