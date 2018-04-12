@@ -14,7 +14,7 @@ logging.config.dictConfig(fedmsg.config.load_config()['logging'])
 log = logging.getLogger('fedmsg')
 
 
-def trigger_upload(compose_id, url, push_notifications):
+def trigger_upload(url, compose_id, push_notifications):
     upload_pool = multiprocessing.pool.ThreadPool(processes=4)
     compose_meta = {'compose_id': compose_id}
     fedimg.uploader.upload(upload_pool, [url], compose_meta=compose_meta)
