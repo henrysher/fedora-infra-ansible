@@ -9,31 +9,11 @@
 
   tasks:
 
-  - name: yum_command 
-    yum: list=installed
-    register: yum_packages
-    when: ansible_distribution == "RedHat" and ansible_distribution_major_version|int <= 7
+  - name: RPM_output
+    shell: '/usr/bin/rpm -qa'
+    changed_when: False
+    register: rpmoutput
 
-  - name: dnf_command
-    dnf: list=installed
-    register: dnf_packages
-    when: ansible_distribution == "Fedora" and ansible_distribution_major_version|int > 21
+  - debug: msg="{{ inventory_hostname}} {{ rpmoutput.results }}"
+    when: rpmoutput is defined and rpmoutput.results|length > 0
 
-  - name: dnf_command
-    dnf: list=installed
-    register: dnf_packages
-    when: ansible_distribution == "RedHat" and ansible_distribution_major_version|int > 8
-
-#  - debug: msg="{{ inventory_hostname}} {{ yum_packages.results }}"
-#    when: yum_packages is defined and yum_packages.results|length > 0
-
-  - debug: msg="{{ item.envra }}"
-    with_items: "{{ yum_packages.results }}"
-    when: yum_packages is defined and yum_packages.results|length > 0
-
-  - debug: msg="{{ item }}"
-    with_items: "{{ dnf_packages.results }}"
-    when: dnf_packages is defined and dnf_packages.results|length > 0
-
-#
-#
