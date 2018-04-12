@@ -10,10 +10,12 @@
   tasks:
 
   - name: RPM_output
-    shell: '/usr/bin/rpm -qa'
-    changed_when: False
-    register: rpmoutput
+    shell: "/usr/bin/rpm -qa"
+    register: rpm_output
+    args:
+      warn: false # set warn=false to prevent warning
 
-  - debug: msg="{{ inventory_hostname}} {{ rpmoutput.results }}"
-    when: rpmoutput is defined and rpmoutput.results|length > 0
+
+  - debug: var=rpm_output.stdout_lines
+#    when: rpm_output is defined and rpm_output.results|length > 0
 
