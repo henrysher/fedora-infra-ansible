@@ -857,11 +857,14 @@
       with_items: "{{openshift_required_images}}"
       register: docker_pull_openshift
       changed_when: "'Downloaded newer image' in docker_pull_openshift.stdout"
+      when: env == "production"
 
     - name: tag openshift required docker images locally
       shell: "docker tag {{docker_registry}}/{{item}}:v{{origin_version}} {{item}}:v{{origin_version}}"
       with_items: "{{openshift_required_images}}"
-      when: docker_pull_openshift|changed
+      when:
+        - docker_pull_openshift|changed
+        - env == "production"
 
     - set_fact:
         docker_pull_openshift: "{{ docker_pull_openshift }}"
