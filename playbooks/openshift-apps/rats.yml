@@ -1,0 +1,20 @@
+- name: make the app be real
+  hosts: os-masters-stg
+  user: root
+  gather_facts: True
+
+  vars_files:
+    - /srv/web/infra/ansible/vars/global.yml
+    - "/srv/private/ansible/vars.yml"
+    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  roles:
+  - role: openshift/project
+    app: rats
+    description: rats
+    appowners:
+    - pingou
+  - { role: openshift/object, vars: {app: rats, file: rabbitmq/imagestream.yml }}
+  - { role: openshift/object, vars: {app: rats, file: rabbitmq/deploymentconfig.yml }}
+  - { role: openshift/object, vars: {app: rats, file: rabbitmq/service.yml }}
+  - { role: openshift/rollout, vars: {app: rats, name: rats-rabbitmq }}

@@ -1,0 +1,44 @@
+apiVersion: v1
+kind: DeploymentConfig
+metadata:
+  name: rats-queue
+  labels:
+    app: rats
+    service: 
+spec:
+  replicas: 2
+  selector:
+    app: rats
+    service: rabbitmq
+  template:
+    metadata:
+      labels:
+        app: rats
+        service: rabbitmq
+    spec:
+      containers:
+      - name: rabbitmq
+        image: rabbitmq
+        ports:
+        - containerPort: 4369
+          protocol: TCP
+        - containerPort: 5671
+          protocol: TCP
+        - containerPort: 5672
+          protocol: TCP
+        volumeMounts:
+        - mountPath: /var/lib/rabbitmq
+          name: rabbitmq-1
+      volumes:
+      - emptyDir: {}
+        name: rabbitmq-1
+  triggers:
+  - type: ImageChange
+    imageChangeParams:
+      automatic: true
+      containerNames:
+      - rabbitmq
+      from:
+        kind: ImageStreamTag
+        name: rabbitmq:latest
+  - type: ConfigChange
