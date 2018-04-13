@@ -9,7 +9,7 @@
     # _OS_AUTH_OPTS: "--os-auth-url {{OS_AUTH_URL}} --os-username {{OS_USERNAME}} --os-password {{OS_PASSWORD}} --os-tenant-name {{OS_TENANT_NAME}} --os-tenant-id {{OS_TENANT_ID}} "
 
     keypair: buildsys
-    max_spawn_time: 600
+    max_spawn_time: 1100
     spawning_vm_user: "fedora"
     image_name: "copr-builder-ppc64le-f27"
 
@@ -23,7 +23,7 @@
     - debug: msg="VM_IP={{ builder_ip }}"
 
     - name: wait for he host to be hot
-      local_action: wait_for host={{ builder_ip }} port=22 delay=1 timeout=600
+      local_action: wait_for host={{ builder_ip }} port=22 delay=1 timeout=1100
 
     - name: wait until ssh is available
       local_action:  shell false; until [ "$?" -eq "0" ]; do sleep 2; ssh -o PasswordAuthentication=no {{ spawning_vm_user|default('fedora') }}@{{ builder_ip }} 'echo foobar' 2>/dev/null; done
