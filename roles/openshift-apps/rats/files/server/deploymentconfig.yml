@@ -1,0 +1,53 @@
+apiVersion: v1
+kind: DeploymentConfig
+metadata:
+  name: rats-server
+  labels:
+    app: rats
+    service: server
+spec:
+  replicas: 2
+  selector:
+    app: rats
+    service: server
+  template:
+    metadata:
+      labels:
+        app: rats
+        service: server
+    spec:
+      containers:
+      - name: server
+        image: rats-server
+        ports:
+        - containerPort: 8080
+        volumeMounts:
+        - name: config-volume
+          mountPath: /etc/rats
+          readOnly: true
+        - name: secret-volume
+          mountPath: /etc/secret
+          readOnly: true
+        env:
+        - name: SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: rats-secret
+              key: flask-secret-key
+      volumes:
+      - name: config-volume
+        configMap:
+          name: rats-server-configmap
+      - name: secret-volume
+        secret:
+          secretName: rats-secret
+  triggers:
+  - type: ImageChange
+    imageChangeParams:
+      automatic: true
+      containerNames:
+      - server
+      from:
+        kind: ImageStreamTag
+        name: rats-server:latest
+  - type: ConfigChange

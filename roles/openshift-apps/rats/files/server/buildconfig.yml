@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: BuildConfig
+metadata:
+  name: "rats-server-build"
+  labels:
+    environment: "rats"
+spec:
+  runPolicy: Serial
+  source:
+    type: "git"
+    git:
+      uri: "https://pagure.io/rats.git"
+      ref: "docker"
+  strategy:
+    type: Docker
+    dockerStrategy:
+      # Unclear if caching needs to be regularly turned off here...
+      #noCache: true
+      forcePull: true
+      from:
+        kind: DockerImage
+        name: fedora:latest
+      dockerfilePath: "docker/server/Dockerfile"
+  output:
+    to:
+      kind: ImageStreamTag
+      name: rats-server:latest

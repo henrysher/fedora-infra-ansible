@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: rats-server-configmap
+  labels:
+    app: rats
+data:
+  rats.cfg: |-
+    import os
+    # url to the database server:
+    DB_URL = os.environ.get('DB_URL', 'sqlite:////var/tmp/rats_dev.sqlite')
+    # flask-oidc secret file
+    OIDC_CLIENT_SECRETS = '/etc/secret/client_secrets.json'
+    # secret key used to generate unique csrf token
+    SECRET_KEY = os.environ.get('SECRET_KEY')
+    # The minimal time between allowing to re-submit a same re-run (in seconds)
+    GRACE_PERIOD = 60 * 5
+    TEST_SYSTEMS = ["Taskotron", "AtomicCI", "simple-koji-ci"]
+    OVERWRITE_REDIRECT_URI = 'https://rats.fedoraproject.org/process'
