@@ -17,8 +17,9 @@ items:
           license="MIT"
         RUN curl -o /etc/yum.repos.d/infra-tags.repo https://infrastructure.fedoraproject.org/cgit/ansible.git/plain/files/common/fedora-infra-tags.repo
         RUN dnf install -y bodhi-server python2-gunicorn
+        RUN mv /usr/share/bodhi/bodhi.wsgi /usr/lib/python2.7/site-packages/bodhiwsgi.py
         EXPOSE 8080
-        ENTRYPOINT gunicorn --bind 0.0.0.0:8080 --access-logfile=- /usr/share/bodhi/bodhi.wsgi
+        ENTRYPOINT gunicorn --bind 0.0.0.0:8080 --access-logfile=- bodhiwsgi
       type: Dockerfile
     strategy:
       type: Docker
