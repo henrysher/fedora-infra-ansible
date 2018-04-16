@@ -18,4 +18,20 @@ metadata:
     app: bodhi
 data:
   bodhi.py: |-
-    config = {'active': True}
+    import socket
+    config = {
+        'sign_messages': True,
+        'active': True,
+        'cert_prefix': 'bodhi',
+        'certnames': {'bodhi.{}'.format(socket.gethostname()): 'bodhi'},
+        'relay_inbound': ['tcp://busgateway01{{ env_suffix }}.phx2.fedoraproject.org:9941'],
+{% if env == 'staging' %}
+        'environment': 'stg',
+        # stg should listen to the stg bus
+        'endpoints': {
+            'staging_gateway': ['tcp://stg.fedoraproject.org:9940']
+        }
+{% else %}
+        'environment': 'prod',
+{% endif %}
+    }
