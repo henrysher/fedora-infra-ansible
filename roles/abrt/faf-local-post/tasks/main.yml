@@ -1,0 +1,21 @@
+---
+# the magic with ! is that it return exit code 1 if 'already defined' is not present in output
+- name: add repositories
+  shell: ! faf repoadd --nogpgcheck "{{ item.name }}" yum "{{ item.url }}" 2>&1 | grep 'already defined'
+  become: yes
+  become_user: faf
+  ignore_errors: yes
+  when: not devel
+  tags: add_repo
+  with_items: "{{ faf_repos }}"
+
+- name: repoassign repositories
+  command: faf repoassign "{{ item.name }}" "{{ item.opsys }}" "{{ item.arch }}"
+  become: yes
+  become_user: faf
+  when: not devel
+  tags: add_repo
+  with_items: "{{ faf_repos }}"
+
+- import_tasks: cron.yml
+  tags: cron
