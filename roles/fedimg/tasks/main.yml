@@ -46,10 +46,16 @@
   tags:
   - fedimg
 
-- name: copy koji fedmsg consumer
+- name: copy fedimg fedmsg consumer
   template: >
-    src=fedmsg.d/fedimg.py dest=/etc/fedmsg.d/fedimg.py
-    owner=fedmsg group=fedmsg mode=0600
+    src=fedmsg.d/{{item}}
+    dest=/etc/fedmsg.d/{{item}}
+    owner=fedmsg
+    group=fedmsg
+    mode=0600
+  with_items:
+  - fedimg.py
+  - logging.py
   notify:
   - restart fedmsg-hub
   tags:
