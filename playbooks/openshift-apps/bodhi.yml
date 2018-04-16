@@ -14,6 +14,30 @@
     description: bodhi
     appowners:
     - bowlofeggs
+  - role: openshift/secret-file
+    app: bodhi
+    secret_name: bodhi-fedmsg-key
+    key: fedmsg-bodhi.key
+    privatefile: fedmsg-certs/keys/bodhi-bodhi01.stg.fedoraproject.org.key
+    when: env == "staging"
+  - role: openshift/secret-file
+    app: bodhi
+    secret_name: bodhi-fedmsg-key
+    key: fedmsg-bodhi.key
+    privatefile: fedmsg-certs/keys/bodhi-bodhi03.fedoraproject.org.key
+    when: env != "staging"
+  - role: openshift/secret-file
+    app: bodhi
+    secret_name: bodhi-fedmsg-crt
+    key: fedmsg-bodhi.crt
+    privatefile: fedmsg-certs/keys/bodhi-bodhi01.stg.fedoraproject.org.crt
+    when: env == "staging"
+  - role: openshift/secret-file
+    app: bodhi
+    secret_name: bodhi-fedmsg-crt
+    key: fedmsg-bodhi.crt
+    privatefile: fedmsg-certs/keys/bodhi-bodhi03.fedoraproject.org.crt
+    when: env != "staging"
   - { role: openshift/object, vars: {app: bodhi, file: imagestream.yml }}
   - { role: openshift/object, vars: {app: bodhi, template: buildconfig.yml }}
   - { role: openshift/start-build, vars: {app: bodhi, name: bodhi-web }}
