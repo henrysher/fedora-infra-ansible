@@ -21,6 +21,12 @@ items:
 {% endif %}
         RUN dnf install -y bodhi-server python2-gunicorn
         RUN mv /usr/share/bodhi/bodhi.wsgi /usr/lib/python2.7/site-packages/bodhiwsgi.py
+        # Put the fedmsg config in place
+        RUN ln -sf /etc/bodhi/fedmsg.d/bodhi-openshift-web.py /etc/fedmsg.d/bodhi-openshift-web.py
+        # Put the fedmsg cert and key in place
+        RUN mkdir -p /etc/pki/fedmsg/
+        RUN ln -sf /etc/pki/fedmsg/key/fedmsg-bodhi.key /etc/pki/fedmsg/bodhi.key
+        RUN ln -sf /etc/pki/fedmsg/crt/fedmsg-bodhi.crt /etc/pki/fedmsg/bodhi.crt
         EXPOSE 8080
         ENV USER=openshift
         ENTRYPOINT gunicorn --bind 0.0.0.0:8080 --access-logfile=- bodhiwsgi
