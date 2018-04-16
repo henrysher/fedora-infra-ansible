@@ -38,11 +38,27 @@
     key: fedmsg-bodhi.crt
     privatefile: fedmsg-certs/keys/bodhi-bodhi03.fedoraproject.org.crt
     when: env != "staging"
-  - { role: openshift/object, vars: {app: bodhi, file: imagestream.yml }}
-  - { role: openshift/object, vars: {app: bodhi, template: buildconfig.yml }}
-  - { role: openshift/start-build, vars: {app: bodhi, name: bodhi-web }}
-  - { role: openshift/object, vars: {app: bodhi, template_fullpath: "{{roles_path}}/bodhi2/base/templates/configmap.yml" }}
-  - { role: openshift/object, vars: {app: bodhi, file: service.yml }}
-  - { role: openshift/object, vars: {app: bodhi, template: route.yml }}
-  - { role: openshift/object, vars: {app: bodhi, file: deploymentconfig.yml }}
-  - { role: openshift/rollout, vars: {app: bodhi, name: bodhi-web }}
+  - role: openshift/object
+    app: bodhi
+    file: imagestream.yml
+  - role: openshift/object
+    app: bodhi
+    template: buildconfig.yml
+  - role: openshift/start-build
+    app: bodhi
+    name: bodhi-web
+  - role: openshift/object
+    app: bodhi
+    template_fullpath: "{{roles_path}}/bodhi2/base/templates/configmap.yml"
+  - role: openshift/object
+    app: bodhi
+    file: service.yml
+  - role: openshift/object
+    app: bodhi
+    template: route.yml
+  - role: openshift/object
+    app: bodhi
+    file: deploymentconfig.yml
+  - role: openshift/rollout
+    app: bodhi
+    name: bodhi-web
