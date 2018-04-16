@@ -3,8 +3,10 @@
   register: tmpfile
   run_once: true
 
-- include_role: keytab/service
-  kt_location: "{{ tmpfile.path }}"
+- name: Acquire a keytab
+  include_role: keytab/service
+  vars:
+    kt_location: "{{ tmpfile.path }}"
 
 - name: Call `oc secrets new` on the copied file
   shell: oc -n {{app}} secrets new {{secret_name}} {{key}}={{tmpfile.path}}
