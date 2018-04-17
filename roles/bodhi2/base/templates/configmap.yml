@@ -6,6 +6,35 @@ metadata:
   labels:
     app: bodhi
 data:
+  krb5.conf: |-
+    [logging]
+     default = FILE:/var/log/krb5libs.log
+     kdc = FILE:/var/log/krb5kdc.log
+     admin_server = FILE:/var/log/kadmind.log
+    
+    [libdefaults]
+     default_realm = {{ ipa_realm }}
+     rdns = false
+     dns_canonicalize_hostname = false
+     dns_lookup_realm = false
+     dns_lookup_kdc = false
+     ticket_lifetime = 24h
+     renew_lifetime = 7d
+     forwardable = true
+    
+    [realms]
+     {{ ipa_realm }} = {
+      kdc = ipa01{{ env_suffix }}.phx2.fedoraproject.org
+     }
+    
+    [domain_realm]
+     .fedoraproject.org = FEDORAPROJECT.ORG
+     fedoraproject.org = FEDORAPROJECT.ORG
+    {% if env == "staging" %}
+     .stg.phx2.fedoraproject.org = STG.FEDORAPROJECT.ORG
+    {% endif %}
+     .stg.fedoraproject.org = STG.FEDORAPROJECT.ORG
+     stg.fedoraproject.org = STG.FEDORAPROJECT.ORG
   production.ini: |-
     {%- macro production_ini() %}    {% include "production.ini.j2" %}{%- endmacro -%}
     {{ production_ini() | indent() }}
