@@ -1,29 +1,23 @@
 - name: Create temporary file
   tempfile: state=file
   register: tmpfile
-  run_once: true
 
 - name: Copy template {{template}} to temporary file ({{tmpfile.path}})
   template: src={{roles_path}}/openshift-apps/{{app}}/templates/{{template}} dest={{tmpfile.path}}
   when: template is defined
-  run_once: true
 
 - name: Copy file {{file}} to temporary file ({{tmpfile.path}})
   copy: src={{roles_path}}/openshift-apps/{{app}}/files/{{file}} dest={{tmpfile.path}}
   when: file is defined
-  run_once: true
 
 - name: Copy private file {{privatefile}} to temporary file ({{tmpfile.path}})
   copy: src={{private}}/files/{{privatefile}} dest={{tmpfile.path}}
   when: privatefile is defined
-  run_once: true
 
 - name: Call `oc secrets new` on the copied file
   shell: oc -n {{app}} secrets new {{secret_name}} {{key}}={{tmpfile.path}}
-  run_once: true
   register: create_out
   failed_when: "create_out.rc != 0 and 'AlreadyExists' not in create_out.stderr"
 
 - name: Delete temporary file
   file: path={{tmpfile.path}} state=absent
-  run_once: true
