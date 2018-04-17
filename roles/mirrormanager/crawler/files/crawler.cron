@@ -1,4 +1,4 @@
-# run the crawler twice a day
+# run the crawler for each MirrorManager category
 # logs sent to /var/log/mirrormanager/crawler.log and crawl/* by default
 #
 # [ "`hostname -s`" == "mm-crawler02" ] && sleep 6h is used to start the crawl
@@ -10,5 +10,26 @@
 # gracefully shutdown if it gets the signal SIGALRM(14).  After the signal we
 # wait for 5 minutes to give the crawler a chance to shutdown. After that the
 # crawler is killed.  To make sure we only end the cron started crawler we look
-# for the following process "/usr/bin/python /usr/bin/mm2_crawler --threads 25".
-0 */12 * * * mirrormanager [ "`hostname -s`" == "mm-crawler02" ] && sleep 6h; pkill -14 -f "^/usr/bin/python2 -s /usr/bin/mm2_crawler --threads 20"; sleep 5m; pkill -9 -f "^/usr/bin/python2 -s /usr/bin/mm2_crawler --threads 20"; /usr/bin/mm2_crawler --threads 20 --timeout-minutes 240 `/usr/local/bin/run_crawler.sh 2` > /dev/null 2>&1
+# for the following process "/usr/bin/python /usr/bin/mm2_crawler --category=25".
+
+# The number of threads is based on the possible number of existing mirrors. More
+# threads for categories with more mirrors.
+
+# The goal is to distribute the crawling of all categories over the whole day.
+
+# The timeout is 4 hours, but for each category.
+
+# Category: 'Fedora Linux'; twice a day, 20 threads
+0 */12 * * * mirrormanager [ "`hostname -s`" == "mm-crawler02" ] && sleep 6h; pkill -14 -f "^/usr/bin/python2 -s /usr/bin/mm2_crawler --category=Fedora Linux"; sleep 5m; pkill -9 -f "^/usr/bin/python2 -s /usr/bin/mm2_crawler --category=Fedora Linux"; /usr/bin/mm2_crawler --category="Fedora Linux" --threads 20 --timeout-minutes 240 `/usr/local/bin/run_crawler.sh 2` > /dev/null 2>&1
+
+# Category: 'Fedora Secondary Arches'; twice a day, 10 threads
+0 3,9 * * * mirrormanager [ "`hostname -s`" == "mm-crawler02" ] && sleep 1h; pkill -14 -f "^/usr/bin/python2 -s /usr/bin/mm2_crawler --category=Fedora Secondary Arches"; sleep 5m; pkill -9 -f "^/usr/bin/python2 -s /usr/bin/mm2_crawler --category=Fedora Secondary Arches"; /usr/bin/mm2_crawler --category="Fedora Secondary Arches" --threads 10 --timeout-minutes 240 `/usr/local/bin/run_crawler.sh 2` > /dev/null 2>&1
+
+# Category: 'Fedora EPEL'; four times a day, 20 threads
+45 */6 * * * mirrormanager [ "`hostname -s`" == "mm-crawler02" ] && sleep 1h; pkill -14 -f "^/usr/bin/python2 -s /usr/bin/mm2_crawler --category=Fedora EPEL"; sleep 5m; pkill -9 -f "^/usr/bin/python2 -s /usr/bin/mm2_crawler --category=Fedora EPEL"; /usr/bin/mm2_crawler --category="Fedora EPEL" --threads 20 --timeout-minutes 240 `/usr/local/bin/run_crawler.sh 2` > /dev/null 2>&1
+
+# Category: 'Fedora Archive'; once a day, 10 threads
+0 2 * * * mirrormanager [ "`hostname -s`" == "mm-crawler02" ] && sleep 6h; pkill -14 -f "^/usr/bin/python2 -s /usr/bin/mm2_crawler --category=Fedora Archive"; sleep 5m; pkill -9 -f "^/usr/bin/python2 -s /usr/bin/mm2_crawler --category=Fedora Archive"; /usr/bin/mm2_crawler --category="Fedora Archive" --threads 10 --timeout-minutes 240 `/usr/local/bin/run_crawler.sh 2` > /dev/null 2>&1
+
+# Category: 'Fedora Other'; once a day, 10 threads
+0 14 * * * mirrormanager [ "`hostname -s`" == "mm-crawler02" ] && sleep 6h; pkill -14 -f "^/usr/bin/python2 -s /usr/bin/mm2_crawler --category=Fedora Other"; sleep 5m; pkill -9 -f "^/usr/bin/python2 -s /usr/bin/mm2_crawler --category=Fedora Other"; /usr/bin/mm2_crawler --category="Fedora Other" --threads 10 --timeout-minutes 240 `/usr/local/bin/run_crawler.sh 2` > /dev/null 2>&1
