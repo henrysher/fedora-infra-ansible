@@ -70,7 +70,7 @@ def process_namespace(namespace):
 
     for dirpath, dirnames, filenames in os.walk(path):
         # Don't go down the .git repos
-        if dirpath.endswith('.git'):
+        if '.git' in dirpath:
             continue
 
         for repo in dirnames:
