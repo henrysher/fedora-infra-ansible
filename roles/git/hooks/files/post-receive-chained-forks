@@ -1,0 +1,34 @@
+#!/bin/bash
+# Redirect stdin to each of the post-receive hooks in place.
+
+# You need to explicitly add your hook to the following list
+# for it to be invoked.
+pee \
+    /usr/lib/python2.7/site-packages/pagure/hooks/files/default_hook.py \
+    /usr/lib/python2.7/site-packages/pagure/hooks/files/pagure_hook.py \
+    "/usr/bin/grok-manifest -m /srv/git/grokmirror/manifest.js.gz -t /srv/git/repositories/ -n `pwd`"
+
+# We used to send emails directly from the git hook here, but now we send to
+# fedmsg which routes to FMN which routes to packagers and the mailing list.
+#$GIT_DIR/hooks/post-receive-chained.d/post-receive-email \
+
+# Mechanism to support pagure's hook as well
+hookname=`basename $0`
+
+
+FILE=`mktemp`
+trap 'rm -f $FILE' EXIT
+cat - > $FILE
+
+for hook in $GIT_DIR/hooks/$hookname.*
+do
+    if test -x "$hook"; then
+        cat $FILE | $hook "$@"
+        status=$?
+
+        if test $status -ne 0; then
+            echo Hook $hook failed with error code $status
+            exit $status
+        fi
+    fi
+done
