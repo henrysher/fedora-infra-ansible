@@ -57,7 +57,7 @@ def is_valid_hook(hook, target_link):
     return output
 
 
-def process_namespace(namespace):
+def process_namespace(namespace, check):
     """ Process all the git repo in a specified namespace. """
     target_link = _target_link
     if namespace == 'forks':
@@ -66,7 +66,7 @@ def process_namespace(namespace):
     print('Processing: %s' % namespace)
     path = os.path.join(_base_path, namespace)
     if not os.path.isdir(path):
-        continue
+        return
 
     for dirpath, dirnames, filenames in os.walk(path):
         # Don't go down the .git repos
@@ -79,7 +79,7 @@ def process_namespace(namespace):
                 continue
 
             hook = os.path.join(repo_path, 'hooks', 'post-receive')
-            if not is_valid_hook(hook, target_link) and not args.check:
+            if not is_valid_hook(hook, target_link) and not check:
                 fix_link(hook, target_link)
 
 
@@ -111,13 +111,12 @@ def main():
             fix_link(hook, target_link)
 
     elif args.namespace:
-        process_namespace(args.namespace)
+        process_namespace(args.namespace, args.check)
     else:
         # Check all repos
         for namespace in namespaces:
-            process_namespace(namespace)
+            process_namespace(namespace, args.check)
 
 
 if __name__ == '__main__':
     sys.exit(main())
-
