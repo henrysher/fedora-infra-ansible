@@ -106,7 +106,6 @@ def main():
                     repo_path = os.path.join(dirpath, repo)
                     if not repo_path.endswith('.git'):
                         continue
-                    print('Checking %s' % repo_path)
 
                     hook = os.path.join(repo_path, 'hooks', 'post-receive')
                     if not is_valid_hook(hook, target_link) and not args.check:
