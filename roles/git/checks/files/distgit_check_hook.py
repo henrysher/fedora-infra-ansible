@@ -2,10 +2,9 @@
 
 """
 This script goes through all the git repos in dist-git and adjust their
-git post-receive hook so they are always as desired.
+git hook so they are always as expected.
 
 """
-
 import argparse
 import os
 import sys
@@ -58,6 +57,32 @@ def is_valid_hook(hook, target_link):
     return output
 
 
+def process_namespace(namespace):
+    """ Process all the git repo in a specified namespace. """
+    target_link = _target_link
+    if namespace == 'forks':
+        target_link = _target_link_forks
+
+    print('Processing: %s' % namespace)
+    path = os.path.join(_base_path, namespace)
+    if not os.path.isdir(path):
+        continue
+
+    for dirpath, dirnames, filenames in os.walk(path):
+        # Don't go down the .git repos
+        if dirpath.endswith('.git'):
+            continue
+
+        for repo in dirnames:
+            repo_path = os.path.join(dirpath, repo)
+            if not repo_path.endswith('.git'):
+                continue
+
+            hook = os.path.join(repo_path, 'hooks', 'post-receive')
+            if not is_valid_hook(hook, target_link) and not args.check:
+                fix_link(hook, target_link)
+
+
 def main():
     """ This is the main method of the program.
     It parses the command line arguments. If a specific repo was specified
@@ -85,32 +110,14 @@ def main():
         if not is_valid_hook(hook, target_link) and not args.check:
             fix_link(hook, target_link)
 
+    elif args.namespace:
+        process_namespace(args.namespace)
     else:
         # Check all repos
         for namespace in namespaces:
-            target_link = _target_link
-            if namespace == 'forks':
-                target_link = _target_link_forks
-
-            print('Processing: %s' % namespace)
-            path = os.path.join(_base_path, namespace)
-            if not os.path.isdir(path):
-                continue
-
-            for dirpath, dirnames, filenames in os.walk(path):
-                # Don't go down the .git repos
-                if dirpath.endswith('.git'):
-                    continue
-
-                for repo in dirnames:
-                    repo_path = os.path.join(dirpath, repo)
-                    if not repo_path.endswith('.git'):
-                        continue
-
-                    hook = os.path.join(repo_path, 'hooks', 'post-receive')
-                    if not is_valid_hook(hook, target_link) and not args.check:
-                        fix_link(hook, target_link)
+            process_namespace(namespace)
 
 
 if __name__ == '__main__':
     sys.exit(main())
+
