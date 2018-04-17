@@ -1,4 +1,13 @@
 ---
+- name: Create project directory
+  file:
+    path: /etc/openshift_apps/{{app}}
+    state: directory
+    owner: root
+    group: root
+    mode: 0750
+    recurse: yes
+
 - name: Determine if project already exists
   command: oc get project {{app}}
   register: project_exists
@@ -10,34 +19,40 @@
   include_role:
     name: openshift/object
   vars:
+    objectname: project.yml
     template_fullpath: "{{roles_path}}/openshift/project/templates/project.yml"
 
 - name: deployer.yml
   include_role:
     name: openshift/object
   vars:
+    objectname: deployer.yml
     template_fullpath: "{{roles_path}}/openshift/project/templates/deployer.yml"
 
 - name: imagebuilder.yml
   include_role:
     name: openshift/object
   vars:
+    objectname: imagebuilder.yml
     template_fullpath: "{{roles_path}}/openshift/project/templates/imagebuilder.yml"
 
 - name: imagepuller.yml
   include_role:
     name: openshift/object
   vars:
+    objectname: imagepuller.yml
     template_fullpath: "{{roles_path}}/openshift/project/templates/imagepuller.yml"
 
 - name: role-appowners.yml
   include_role:
     name: openshift/object
   vars:
+    objectname: role-appowners.yml
     template_fullpath: "{{roles_path}}/openshift/project/templates/role-appowners.yml"
 
 - name: appowners.yml
   include_role:
     name: openshift/object
   vars:
+    objectname: appowners.yml
     template_fullpath: "{{roles_path}}/openshift/project/templates/appowners.yml"

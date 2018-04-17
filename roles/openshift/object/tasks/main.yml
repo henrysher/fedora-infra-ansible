@@ -1,21 +1,14 @@
-- name: Create temporary file
-  tempfile: state=file suffix=.yml
-  register: tmpfile
-
 - name: Copy template {{template}} to temporary file ({{tmpfile.path}})
-  template: src={{roles_path}}/openshift-apps/{{app}}/templates/{{template}} dest={{tmpfile.path}}
+  template: src={{roles_path}}/openshift-apps/{{app}}/templates/{{template}} dest=/etc/openshift_apps/{{app}}/{{objectname}}
   when: template is defined
 
 - name: Copy template {{template_fullpath}} to temporary file ({{tmpfile.path}})
-  template: src={{template_fullpath}} dest={{tmpfile.path}}
+  template: src={{template_fullpath}} dest=/etc/openshift_apps/{{app}}/{{objectname}}
   when: template_fullpath is defined and template is not defined
 
 - name: Copy file {{file}} to temporary file ({{tmpfile.path}})
-  copy: src={{roles_path}}/openshift-apps/{{app}}/files/{{file}} dest={{tmpfile.path}}
+  copy: src={{roles_path}}/openshift-apps/{{app}}/files/{{file}} dest=/etc/openshift_apps/{{app}}/{{objectname}}
   when: file is defined and template is not defined and template_fullpath is not defined
 
 - name: Call `oc apply` on the copied file
-  shell: oc -n {{app}} apply -f {{tmpfile.path}}
-
-- name: Delete temporary file
-  file: path={{tmpfile.path}} state=absent
+  shell: oc -n {{app}} apply -f /etc/openshift_apps/{{app}}/{{objectname}}
