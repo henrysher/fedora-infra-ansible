@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Route
+metadata:
+  name: {{ routename }}
+  labels:
+    app: {{ app }}
+spec:
+  {% if host is defined %}
+  host: {{ host }}
+  {% endif %}
+  port:
+    targetPort: {{ serviceport }}
+  to:
+    kind: Service
+    name: {{ servicename }}
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect
