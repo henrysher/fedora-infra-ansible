@@ -137,7 +137,17 @@ def get_source_from_image(image_url):
     if retcode != 0:
         return ''
 
-    return file_path
+    output, error, retcode = external_run_command([
+        'xzcat',
+        file_path,
+        '>',
+        file_path.rstrip('.xz')
+    ])
+
+    if retcode != 0:
+        return ''
+
+    return file_path.rstrip('.xz')
 
 
 def get_volume_type_from_image(image, region):
