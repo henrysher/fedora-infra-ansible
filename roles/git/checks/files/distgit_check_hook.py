@@ -84,7 +84,7 @@ def process_namespace(namespace, check, walk=False):
                     fix_link(hook, target_link)
     else:
         for repo in os.listdir(path):
-            repo_path = os.path.join(dirpath, repo)
+            repo_path = os.path.join(path, repo)
             if not repo_path.endswith('.git'):
                 continue
 
@@ -122,15 +122,15 @@ def main():
 
     elif args.namespace:
         walk = False
-            if namespace == 'forks':
-                walk = true
+        if args.namespace == 'forks':
+            walk = True
         process_namespace(args.namespace, args.check, walk=walk)
     else:
         # Check all repos
         for namespace in namespaces:
             walk = False
             if namespace == 'forks':
-                walk = true
+                walk = True
             process_namespace(namespace, args.check, walk=walk)
 
 
