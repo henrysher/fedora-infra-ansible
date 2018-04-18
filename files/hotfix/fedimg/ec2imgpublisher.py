@@ -90,6 +90,22 @@ class EC2ImagePublisher(EC2Base):
 
         return is_snapshot_public
 
+    def _retry_till_image_is_available(self, image_id):
+        driver = self._connect()
+
+        while True:
+            try:
+                image = driver.get_image(image_id)
+                image_name = image.name
+                if image_name is None:
+                    continue
+                return image
+            except Exception as e:
+                if 'InvalidAMIID.Unavailable' in str(e):
+                    # The copy isn't completed yet, so wait for 20 seconds
+                    # more.
+                    sleep(20)
+                    continue
 
     def _retry_till_snapshot_is_available(self, image):
 
@@ -254,6 +270,8 @@ class EC2ImagePublisher(EC2Base):
                         image=image,
                         name=self.image_name,
                         description=self.image_description)
+
+                    copied_image = self._retry_till_image_is_available(copied_image.id)
 
                     virt_type = image.extra['virtualization_type']
                     volume_type = image.extra['block_device_mapping'][0]['ebs']['volume_type']
