@@ -196,6 +196,7 @@ volume_id_substitutions = {
 image_build = {
     '^Everything$': [
         {
+        [% for arch in ['x86_64', 'aarch64', 'ppc64le'] %]
             'image-build': {
                 'format': [('qcow2', 'qcow2'), ('raw-xz', 'raw.xz')],
                 'name': 'Fedora-Atomic',
@@ -203,11 +204,12 @@ image_build = {
                 'distro': 'Fedora-22',
                 'disk_size': 6,
                 'target': 'f[[ release.version_int ]]',
-                'arches': ['x86_64', 'aarch64', 'ppc64le'],
-                'install_tree_from': "https://kojipkgs{{ env_suffix }}.fedoraproject.org/compose/branched/latest-Fedora-[[ release.version_int ]]/compose/Everything/$basearch/os/"
+                'arches': ['[[arch]]'],
+                'install_tree_from': "https://kojipkgs{{ env_suffix }}.fedoraproject.org/compose/branched/latest-Fedora-[[ release.version_int ]]/compose/Everything/[[arch]]/os/"
                 'subvariant': 'AtomicHost',
                 'failable': ['*'],
-            }
+            },
+        [% endfor %]
         }
     ]
 }
