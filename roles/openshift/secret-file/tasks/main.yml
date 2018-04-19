@@ -1,16 +1,20 @@
 - name: Copy template {{template}}
   template: src={{roles_path}}/openshift-apps/{{app}}/templates/{{template}} /etc/openshift_apps/{{app}}/{{key}}
   when: template is defined
+  register: secret_template
 
 - name: Copy file {{file}}
   copy: src={{roles_path}}/openshift-apps/{{app}}/files/{{file}} dest=/etc/openshift_apps/{{app}}/{{key}}
   when: file is defined
+  register: secret_file
 
 - name: Copy private file {{privatefile}}
   copy: src={{private}}/files/{{privatefile}} dest=/etc/openshift_apps/{{app}}/{{key}}
   when: privatefile is defined
+  register: secret_privatefile
 
 - name: Call `oc secrets new` on the copied file
   shell: oc -n {{app}} secrets new {{secret_name}} {{key}}=/etc/openshift_apps/{{app}}/{{key}}
   register: create_out
   failed_when: "create_out.rc != 0 and 'AlreadyExists' not in create_out.stderr"
+  when: secret_template.changed or secret_file.changed or secret_privatefile.changed
