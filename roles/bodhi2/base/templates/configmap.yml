@@ -36,7 +36,8 @@ data:
     mkdir /httpdir/run
     ln -s /etc/httpd/modules /httpdir/modules
     truncate --size=0 /httpdir/accesslog /httpdir/errorlog
-    httpd -f /etc/bodhi/httpd.conf -DFOREGROUND -DNO_DETACH
+    tail -f /httpdir/accesslog /httpdir/errorlog &
+    exec httpd -f /etc/bodhi/httpd.conf -DFOREGROUND -DNO_DETACH
   httpd.conf: |-
     Listen 0.0.0.0:8080
     ServerRoot "/httpdir"
