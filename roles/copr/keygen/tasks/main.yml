@@ -23,13 +23,6 @@
 - name: change owner of data to copr-signer
   file: path=/var/lib/copr-keygen owner=copr-signer group=copr-signer recurse=yes
 
-- selinux: policy=targeted state=permissive
-
-#- name: install keygen specific packages
-#  dnf: name="{{ item }}" state=present
-#  with_items:
-#  - gnupg2
-
 - name: put keygen vhost for httpd
   copy: src="httpd/copr-keygen.conf" dest="/etc/httpd/conf.d/copr-keygen.conf"
   notify:
@@ -57,3 +50,17 @@
 - name: setup backup
   when: not devel
   import_tasks: "setup_backup.yml"
+
+# Three tasks for handling our custom selinux module
+- name: ensure a directory exists for our custom selinux module
+  file: dest=/usr/local/share/copr state=directory
+
+- name: copy over our custom selinux module
+  copy: src=selinux/copr_rules.pp dest=/usr/local/share/copr/copr_rules.pp
+  register: selinux_module
+
+- name: install our custom selinux module
+  command: semodule -i /usr/local/share/copr/copr_rules.pp
+  when: selinux_module|changed
+
+- selinux: policy=targeted state=enforcing
