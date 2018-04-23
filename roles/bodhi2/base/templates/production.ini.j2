@@ -341,7 +341,13 @@ top_testers_timeframe = 900
 # dogpile.cache.backend = dogpile.cache.dbm
 # dogpile.cache.expiration_time = 100
 # dogpile.cache.arguments.filename = /var/cache/bodhi-dogpile-cache.dbm
+{% if env == "staging" %}
+dogpile.cache.backend = dogpile.cache.memory_pickle
+# Cache expires every 6 hours.
+dogpile.cache.expiration_time = 21600
+{% else %}
 dogpile.cache.arguments.filename = /var/cache/bodhi/dogpile-cache.dbm
+{% endif %}
 
 # Exclude sending emails to these users
 # exclude_mail = autoqa taskotron
