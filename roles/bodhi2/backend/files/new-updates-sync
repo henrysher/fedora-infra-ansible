@@ -22,7 +22,18 @@ ATOMICDEST = '/mnt/koji/atomic/repo/'
 RELEASES = {'f28': {'topic': 'fedora',
                     'version': '28',
                     'modules': ['fedora', 'fedora-secondary'],
-                    'repos': {'updates-testing': {
+                    'repos': {'updates': {
+                        'from': 'f28-updates',
+                        'ostrees': [{'ref': 'fedora/28/%(arch)s/updates/atomic-host',
+                                     'dest': ATOMICDEST,
+                                     'arches': ['x86_64', 'ppc64le', 'aarch64']},
+                                    {'ref': 'fedora/28/x86_64/updates/workstation',
+                                     'dest': ATOMICDEST}],
+                                    # Hack around for the fact that ostree on f25 doesn't know links
+                                    {'ref': 'fedora/28/x86_64/workstation',
+                                     'dest': ATOMICDEST}],
+                        'to': []}},
+                              'updates-testing': {
                         'from': 'f28-updates-testing',
                         'ostrees': [{'ref': 'fedora/28/%(arch)s/testing/atomic-host',
                                      'dest': ATOMICDEST,
