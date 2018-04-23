@@ -190,6 +190,20 @@
   - stunnel
   - config
 
+- name: Add the different service files for the different workers
+  copy: src={{ item }}.service
+        dest=/etc/systemd/system/{{ item }}.service
+        owner=root group=root mode=0755
+  when: env == 'pagure-staging'
+  with_items:
+  - pagure_fast_worker
+  - pagure_medium_worker
+  - pagure_slow_worker
+  notify:
+  - reload systemd
+  tags:
+  - pagure
+
 
 # Set-up Pagure
 
@@ -379,3 +393,16 @@
   - pagure
   - service
   - postfix
+
+- name: Start and enable the worker services
+  service: name={{ item }} enabled=yes state=started
+  with_items:
+  - pagure_fast_worker
+  - pagure_medium_worker
+  - pagure_slow_worker
+  when: env == 'pagure-staging'
+  ignore_errors: true
+  tags:
+   - pagure
+   - service
+   - postfix
