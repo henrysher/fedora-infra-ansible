@@ -311,20 +311,23 @@ def sync_single_release(release):
 
     for repo in RELEASES[release]['repos']:
         target = determine_last_link(release, repo)
-        curstatefile = os.path.join(
-            RELEASES[release]['repos'][repo]['to'][0]['dest'], 'state')
-        curstate = None
-        if os.path.exists(curstatefile):
-            with open(curstatefile, 'r') as f:
-                curstate = f.read().split()[0]
 
-        if curstate and curstate == target:
-            logger.info('This repo has already been synced')
-        else:
-            sync_single_repo(release, repo)
-            with open(curstatefile, 'w') as f:
-                f.write(target)
-            needssync = True
+        # if "to" is not empty then sync repo
+        if RELEASES[release]['repos'][repo]['to']:
+            curstatefile = os.path.join(
+                RELEASES[release]['repos'][repo]['to'][0]['dest'], 'state')
+            curstate = None
+            if os.path.exists(curstatefile):
+                with open(curstatefile, 'r') as f:
+                    curstate = f.read().split()[0]
+
+            if curstate and curstate == target:
+                logger.info('This repo has already been synced')
+            else:
+                sync_single_repo(release, repo)
+                with open(curstatefile, 'w') as f:
+                    f.write(target)
+                needssync = True
 
         for ostree in RELEASES[release]['repos'][repo].get('ostrees', []):
             pairs = []
