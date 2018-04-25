@@ -268,10 +268,8 @@
   - bodhi
   - cron
 
-- name: Updates sync cron job.
-  cron: name="updates-sync" minute="*/5" user="ftpsync"
-        job="/usr/local/bin/lock-wrapper updates-push '/usr/local/bin/new-updates-sync'"
-        cron_file=updates-sync
+- name: Set the updates sync cron job
+  copy: src=new-updates-sync.cron dest=/etc/cron.d/updates-sync
   when: inventory_hostname.startswith('bodhi-backend01') and env == "production"
   tags:
   - config

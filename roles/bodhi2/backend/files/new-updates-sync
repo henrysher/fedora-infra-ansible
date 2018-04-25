@@ -170,6 +170,7 @@ def sync_ostree(dst, ref):
     if src_commit == dst_commit:
         logger.info('OSTree at %s, ref %s in sync', dst, ref)
     else:
+        print('Syncing ostree ref %s -> %s' % (ref, src_commit, dst_commit))
         logger.info('Syncing OSTree to %s, ref %s: %s -> %s',
                     dst, ref, src_commit, dst_commit)
         cmd = ['ostree', 'pull-local', '--verbose', '--repo',
@@ -177,6 +178,7 @@ def sync_ostree(dst, ref):
         out = run_command(cmd)
         cmd = ['ostree', 'summary', '--verbose', '--repo', dst, '--update']
         run_command(cmd)
+        print('Ostree ref %s now at %s' % (ref, dst_commit))
 
 
 def update_fullfilelist(modules):
@@ -324,10 +326,15 @@ def sync_single_release(release):
             if curstate and curstate == target:
                 logger.info('This repo has already been synced')
             else:
+                print('Syncing %s %s from %s -> %s' % (release,
+                                                       repo,
+                                                       curstate,
+                                                       target))
                 sync_single_repo(release, repo)
                 with open(curstatefile, 'w') as f:
                     f.write(target)
                 needssync = True
+                print('Synced %s %s to %s' % (release, repo, target))
 
         for ostree in RELEASES[release]['repos'][repo].get('ostrees', []):
             pairs = []
