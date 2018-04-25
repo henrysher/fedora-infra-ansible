@@ -4,6 +4,7 @@
 - name: put infra stg repos into yum.repos.d if staging
   copy: src=files/dnf/infra-tags-stg.repo dest=/etc/yum.repos.d
   when: network_name == "coprdev-net"
+  when: not prepare_base_image
 
 - name: disable updates-testing
   file:
@@ -11,7 +12,7 @@
     state: absent
 
 - shell: dnf -y upgrade
-  when: prepare_base_image is defined
+  when: prepare_base_image
 
 - name: set bigger timeout for yum
   ini_file: dest=/etc/yum.conf section=main option=timeout value=1000
