@@ -40,7 +40,9 @@
 
 - name: enable @copr/copr-dev in staging
   command: dnf copr -y enable @copr/copr-dev
-  when: network_name == "coprdev-net"
+  when:
+    - network_name == "coprdev-net"
+    - not prepare_base_image
 
 - name: make sure newest rpm
   dnf: state=latest pkg={{ item }}
