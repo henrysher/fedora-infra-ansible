@@ -482,6 +482,8 @@
     - source: "/tmp/{{ osbs_namespace }}-reactor-config-secret.yml"
       dest: config.yaml
     when: env == "staging"
+  tags:
+    - osbs-orchestrator-namespace
 
 - name: setup client config secret in orchestrator namespace
   hosts: osbs-masters-stg[0]
@@ -492,6 +494,8 @@
     - source: "/tmp/{{ osbs_namespace }}-client-config-secret.conf"
       dest: osbs.conf
     when: env == "staging"
+  tags:
+    - osbs-orchestrator-namespace
 
 - name: setup koji secret in orchestrator namespace
   hosts: osbs-masters-stg[0]
@@ -506,6 +510,8 @@
     - source: "{{ private }}/files/koji/containerbuild.pem"
       dest: cert
     when: env == "staging"
+  tags:
+    - osbs-orchestrator-namespace
 
 - name: setup dist registry secret in orchestrator namespace
   hosts: osbs-masters-stg[0]
@@ -522,6 +528,8 @@
     - source: "{{private}}/files/docker-registry/{{env}}/docker-registry-internal.key"
       dest: registry.key
     when: env == "staging"
+  tags:
+    - osbs-orchestrator-namespace
 
 - name: setup orchestrator token for x86_64-osbs
   hosts: osbs-masters-stg[0]
@@ -536,6 +544,8 @@
     - source: "{{ private }}/files/osbs/staging/x86-64-osbs-stg-orchestrator"
       dest: token
     when: env == "staging"
+  tags:
+    - osbs-orchestrator-namespace
 
 - name: Manage docker images and image stream
   hosts: osbs-masters-stg[0]:osbs-masters[0]
