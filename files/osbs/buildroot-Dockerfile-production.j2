@@ -2,7 +2,8 @@ FROM registry.fedoraproject.org/fedora
 ADD ./infra-tags.repo /etc/yum.repos.d/infra-tags.repo
 RUN dnf -y install --refresh dnf-plugins-core && dnf -y install docker git python-setuptools e2fsprogs koji python-backports-lzma osbs-client python-osbs-client gssproxy fedpkg python-docker-squash atomic-reactor python-atomic-reactor* go-md2man
 RUN dnf -y install --refresh python2-productmd python3-productmd libmodulemd python2-gobject python3-gobject python2-modulemd python3-modulemd python2-pdc-client python3-pdc-client
-RUN sed -i 's|.*default_ccache_name.*| default_ccache_name = DIR:/tmp/ccache_%{uid}|g' /etc/krb5.conf
+ADD ./krb5.conf /etc
+RUN printf '[libdefaults]\n default_ccache_name = DIR:/tmp/ccache_%{uid}' >/etc/krb5.conf.d/ccache.conf
 ADD ./krb5.osbs_{{osbs_url}}.keytab /etc/
 ADD ./ca.crt /etc/pki/ca-trust/source/anchors/osbs.ca.crt
 RUN update-ca-trust
