@@ -328,6 +328,28 @@ def sync_single_release(release):
                 with open(curstatefile, 'r') as f:
                     curstate = f.read().split()[0]
 
+            # Resync if Bodhi failed out during the sync waiting, which leads
+            # to changed repomd.xml without an updated repo.
+            # (updateinfo is inserted again)
+            # Fix: https://github.com/fedora-infra/bodhi/pull/1986
+            if curstate and curstate == target:
+                curstatestat = os.stat(curstatefile)
+                repostat = os.stat(os.path.join(
+                    target, 'compose', 'Everything',
+                    RELEASES[release]['repos'][repo]['to'][0]['arches'][0],
+                    'os', 'repodata', 'repomd.xml'))
+                if curstatestat[stat.ST_MTIME] < repostat[stat.ST_MTIME]:
+                    # If the curstate file has an earlier mtime than the repomd
+                    # of the first architecture, this repo was re-generated
+                    # after the first time it got staged. Resync.
+                    logger.error(
+                        'Re-stage detected of %s %s. '
+                        'State mtime: %s, repo mtime: %s',
+                        release, repo,
+                        curstatestat[stat.ST_MTIME],
+                        repostat[stat.ST_MTIME])
+                    curstate = None
+
             if curstate and curstate == target:
                 logger.info('This repo has already been synced')
             else:
