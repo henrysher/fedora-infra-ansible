@@ -811,7 +811,11 @@ openshift_node_env_vars={"ENABLE_HTTP2": "true"}
 
 [nodes]
 {% for host in groups[openshift_cluster_masters_group] %}
-{{ host }} {% if env == 'production' %}openshift_schedulable=False {% endif %}
+{% if env == 'production' %}
+{{ host }} openshift_schedulable=False
+{% else %}
+{{ host }}
+{% endif %}
 {% endfor %}
 {% for host in groups[openshift_cluster_nodes_group] %}
 {{ host }} openshift_node_labels="{'region': 'infra', 'zone': 'default', 'node-role.kubernetes.io/compute': 'true'}"
@@ -824,8 +828,11 @@ openshift_node_env_vars={"ENABLE_HTTP2": "true"}
 {{ host }} openshift_node_labels="{'region':'infra'}"
 {% endfor %}
 {% for host in groups[openshift_cluster_masters_group] %}
-{{ host }} {% if env == 'production' %}openshift_schedulable=False {% endif %}
-{% endfor %}
+{% if env == 'production' %}
+{{ host }} openshift_schedulable=False
+{% else %}
+{{ host }}
+{% endif %}
 {% for host in groups[openshift_cluster_nodes_group] %}
 {{ host }} openshift_node_labels="{'region': 'primary', 'zone': 'default', 'node-role.kubernetes.io/compute': 'true'}"
 {% endfor %}
@@ -840,7 +847,11 @@ openshift_node_env_vars={"ENABLE_HTTP2": "true"}
 {% endfor %}
 
 {% for host in groups[openshift_cluster_masters_group] %}
-{{ host }} {% if env == 'production' %}openshift_schedulable=False {% endif %}
+{% if env == 'production' %}
+{{ host }} openshift_schedulable=False
+{% else %}
+{{ host }}
+{% endif %}
 {% endfor %}
 
 {% for host in groups[openshift_cluster_nodes_group] %}
