@@ -811,10 +811,10 @@ openshift_node_env_vars={"ENABLE_HTTP2": "true"}
 
 [nodes]
 {% for host in groups[openshift_cluster_masters_group] %}
-{{ host }} openshift_schedulable=False
+{{ host }} {% if env == 'production' %}openshift_schedulable=False %{ endif %}
 {% endfor %}
 {% for host in groups[openshift_cluster_nodes_group] %}
-{{ host }} openshift_node_labels="{'region': 'infra', 'zone': 'default'}"
+{{ host }} openshift_node_labels="{'region': 'infra', 'zone': 'default', 'node-role.kubernetes.io/compute': 'true'}"
 {% endfor %}
 
 {% else %}
@@ -824,10 +824,10 @@ openshift_node_env_vars={"ENABLE_HTTP2": "true"}
 {{ host }} openshift_node_labels="{'region':'infra'}"
 {% endfor %}
 {% for host in groups[openshift_cluster_masters_group] %}
-{{ host }} openshift_schedulable=False
+{{ host }} {% if env == 'production' %}openshift_schedulable=False %{ endif %}
 {% endfor %}
 {% for host in groups[openshift_cluster_nodes_group] %}
-{{ host }} openshift_node_labels="{'region': 'primary', 'zone': 'default'}"
+{{ host }} openshift_node_labels="{'region': 'primary', 'zone': 'default', node-role.kubernetes.io/compute': 'true'}"
 {% endfor %}
 
 {% endif %}
@@ -840,16 +840,16 @@ openshift_node_env_vars={"ENABLE_HTTP2": "true"}
 {% endfor %}
 
 {% for host in groups[openshift_cluster_masters_group] %}
-{{ host }} openshift_schedulable=False
+{{ host }} {% if env == 'production' %}openshift_schedulable=False %{ endif %}
 {% endfor %}
 
 {% for host in groups[openshift_cluster_nodes_group] %}
 
 {% if openshift_nodeselectors is defined %}
 {% if openshift_nodeselectors %}
-{{ host }} openshift_node_labels="{'region': 'primary', 'zone': 'default', {{openshift_nodeselectors}}}"
+{{ host }} openshift_node_labels="{'region': 'primary', 'zone': 'default', {{openshift_nodeselectors}}, node-role.kubernetes.io/compute': 'true'}"
 {% else %}
-{{ host }} openshift_node_labels="{'region': 'primary', 'zone': 'default'}"
+{{ host }} openshift_node_labels="{'region': 'primary', 'zone': 'default', node-role.kubernetes.io/compute': 'true'}"
 {% endif %}
 {% endif %}
 
