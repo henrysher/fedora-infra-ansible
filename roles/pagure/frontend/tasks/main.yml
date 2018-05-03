@@ -194,7 +194,6 @@
   copy: src={{ item }}.service
         dest=/etc/systemd/system/{{ item }}.service
         owner=root group=root mode=0755
-  when: env == 'pagure-staging'
   with_items:
   - pagure_fast_worker
   - pagure_medium_worker
@@ -386,6 +385,9 @@
   - pagure_webhook
   - pagure_worker
   - pagure_gitolite_worker
+  - pagure_fast_worker
+  - pagure_medium_worker
+  - pagure_slow_worker
   - fedmsg-relay
   - haveged
   ignore_errors: true
@@ -393,16 +395,3 @@
   - pagure
   - service
   - postfix
-
-- name: Start and enable the worker services
-  service: name={{ item }} enabled=yes state=started
-  with_items:
-  - pagure_fast_worker
-  - pagure_medium_worker
-  - pagure_slow_worker
-  when: env == 'pagure-staging'
-  ignore_errors: true
-  tags:
-   - pagure
-   - service
-   - postfix
