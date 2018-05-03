@@ -4,7 +4,8 @@ After=redis.target
 Documentation=https://pagure.io/pagure
 
 [Service]
-ExecStart=/usr/libexec/pagure-webhook/pagure-webhook-server.py
+ExecStart=/usr/bin/celery worker -A pagure.lib.tasks_services --loglevel=info -Q pagure_webhook
+Environment="PAGURE_CONFIG=/etc/pagure/pagure.cfg"
 Type=simple
 User=pagure
 Restart=on-failure
