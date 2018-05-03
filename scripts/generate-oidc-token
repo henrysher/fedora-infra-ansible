@@ -20,6 +20,7 @@ database, and a token you can give to an application to authenticate against a s
 import base64
 import json
 import os
+import time
 import uuid
 
 import click
@@ -28,23 +29,43 @@ import click
 secret = base64.urlsafe_b64encode(os.urandom(64))[:64]
 
 
-template = """BEGIN;
+template = """
+Run this SQL against Ipsilon's database:
+
+BEGIN;
 insert into token values ('{uuid}','username','{service_name}@service');
 insert into token values ('{uuid}','security_check','{secret}');
 insert into token values ('{uuid}','client_id','{service_name}');
-insert into token values ('{uuid}','expires_at','time.time()+{expiration}');
+insert into token values ('{uuid}','expires_at','{expiration}');
 insert into token values ('{uuid}','type','Bearer');
-insert into token values ('{uuid}','issued_at','time.time()');
+insert into token values ('{uuid}','issued_at','{now}');
 insert into token values ('{uuid}','scope','{scope}');
 COMMIT;
 """
+
+
+def validate_scopes(ctx, param, scopes):
+    """
+    Ensure that the user provided at least one scope.
+
+    Args:
+        ctx(click.core.Context): Unused.
+        param (click.core.Option): Unused.
+        scopes (tuple): The scopes provided by the user that we are validating.
+    Raises:
+        click.BadParameter: If the length of the scopes tuple is less than 1.
+    """
+    if len(scopes) < 1:
+        raise click.BadParameter('At least one scope must be provided.')
+
+    return scopes
 
 
 @click.command()
 @click.argument('service_name')
 @click.option('--expiration', '-e', prompt='Number of days until expiration', type=int,
               help='The number of days from now until this token expires.')
-@click.option('--scope', '-s', multiple=True,
+@click.option('--scope', '-s', multiple=True, callback=validate_scopes,
               help='A scope to include for this token. May be supplied multiple times.')
 @click.option('--no-openid', is_flag=True, help='Do not use "openid" as the first item in scope.')
 def generate_token(service_name, expiration, scope, no_openid):
@@ -55,7 +76,8 @@ def generate_token(service_name, expiration, scope, no_openid):
     """
     identifier = uuid.uuid4()
 
-    expiration = expiration * 24 * 3600
+    now = int(time.time())
+    expiration = now + (expiration * 24 * 3600)
 
     scope = list(scope)
     if not no_openid:
@@ -63,9 +85,9 @@ def generate_token(service_name, expiration, scope, no_openid):
     scope = json.dumps(scope)
 
     print template.format(uuid=identifier, service_name=service_name, secret=secret,
-                          expiration=expiration, scope=scope)
+                          expiration=expiration, scope=scope, now=now)
 
-    print "Token: {}_{}".format(identifier, secret)
+    print "Token: {}_{}\n".format(identifier, secret)
 
 
 if __name__ == '__main__':
