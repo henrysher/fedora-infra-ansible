@@ -14,13 +14,14 @@
   failed_when: false
   changed_when: "'not found' in project_exists.stderr"
 
-- name: project.yml
-  when: "'not found' in project_exists.stderr"
-  include_role:
-    name: openshift/object
-  vars:
-    objectname: project.yml
-    template_fullpath: "{{roles_path}}/openshift/project/templates/project.yml"
+- name: Copy project template
+  template:
+    src="{{roles_path}}/openshift/project/templates/project.yml"
+    dest=/etc/openshift_apps/{{app}}/project.yml
+
+- name: Create project
+  shell: oc apply -f /etc/openshift_apps/{{app}}/project.yml
+  when: project_exists.changed
 
 - name: deployer.yml
   include_role:
