@@ -71,6 +71,14 @@ from_addr = Koji Build System <buildsys@fedoraproject.org>
 
 [prune]
 policy =
+    # At this moment, all of modularity is off limits to GC
+    # Modularity with koji-gc is not working correctly.
+    # The specific problem: if you build pkga stream 1, 2 and 3, it will see
+    # the stream 2 and 3 as later order builds for pkga, and then it assumes
+    # it can clean up pkga stream 1
+    tag *-modular-* :: keep
+    tag module-* :: keep
+
     #stuff to protect
     #note that tags with master lock engaged are already protected
     tag *-updates :: keep
