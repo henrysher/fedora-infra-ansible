@@ -24,5 +24,8 @@ os.environ['TEMP'] = '/srv/tmp/'
 
 
 ## The most import line to make the wsgi working
-from pagure import APP as application
-#application.debug = True
+from pagure.flask_app import create_app
+
+application = create_app()
+application.debug = True
+
