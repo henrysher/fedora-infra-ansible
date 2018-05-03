@@ -1,0 +1,72 @@
+#!/usr/bin/python2
+# Copyright (c) 2018 Red Hat, Inc.
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# version 2 as published by the Free Software Foundation.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+"""
+This script will accept some parameters and will print out some SQL you can run against the Ipsilon
+database, and a token you can give to an application to authenticate against a service.
+"""
+import base64
+import json
+import os
+import uuid
+
+import click
+
+
+secret = base64.urlsafe_b64encode(os.urandom(64))[:64]
+
+
+template = """BEGIN;
+insert into token values ('{uuid}','username','{service_name}@service');
+insert into token values ('{uuid}','security_check','{secret}');
+insert into token values ('{uuid}','client_id','{service_name}');
+insert into token values ('{uuid}','expires_at','time.time()+{expiration}');
+insert into token values ('{uuid}','type','Bearer');
+insert into token values ('{uuid}','issued_at','time.time()');
+insert into token values ('{uuid}','scope','{scope}');
+COMMIT;
+"""
+
+
+@click.command()
+@click.argument('service_name')
+@click.option('--expiration', '-e', prompt='Number of days until expiration', type=int,
+              help='The number of days from now until this token expires.')
+@click.option('--scope', '-s', multiple=True,
+              help='A scope to include for this token. May be supplied multiple times.')
+@click.option('--no-openid', is_flag=True, help='Do not use "openid" as the first item in scope.')
+def generate_token(service_name, expiration, scope, no_openid):
+    """
+    Print out SQL to insert a token in the Ipsilon database, and the token itself.
+
+    SERVICE_NAME is the name of the service that the token will be used by, (e.g., bodhi).
+    """
+    identifier = uuid.uuid4()
+
+    expiration = expiration * 24 * 3600
+
+    scope = list(scope)
+    if not no_openid:
+        scope.insert(0, 'openid')
+    scope = json.dumps(scope)
+
+    print template.format(uuid=identifier, service_name=service_name, secret=secret,
+                          expiration=expiration, scope=scope)
+
+    print "Token: {}_{}".format(identifier, secret)
+
+
+if __name__ == '__main__':
+    generate_token()
