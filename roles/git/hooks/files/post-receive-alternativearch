@@ -100,6 +100,15 @@ def get_revs_between(oldrev, newrev, abspath, refname):
     return read_git_lines(cmd, abspath)
 
 
+def get_default_branch(abspath):
+    """ Return the default branch of a repo. """
+    cmd = ['rev-parse', '--abbrev-ref', 'HEAD']
+    out = read_git_lines(cmd, abspath)
+    if out:
+        return out[0]
+    else:
+        return 'master'
+
 
 def send_email(text, subject, to_mail):  # pragma: no cover
     ''' Send an email with the specified information.
