@@ -92,6 +92,8 @@
    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
   handlers:
   - import_tasks: "{{ handlers_path }}/restart_services.yml"
+  vars:
+    mbs_import_default_modules: False
 
   pre_tasks:
   - name: tell nagios to shush w.r.t. the backend
@@ -113,6 +115,11 @@
 
   - name: And... start the backend again
     service: name="fedmsg-hub" state=started
+
+  - name: Import the default-modules
+    command: /usr/bin/mbs-manager import_module /etc/module-build-service/default-modules/{{ item | basename }}
+    with_fileglob:
+    - default-modules.{{ env }}/*.yaml
 
   post_tasks:
   - name: tell nagios to unshush w.r.t. the backend
