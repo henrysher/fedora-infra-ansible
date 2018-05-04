@@ -9,3 +9,41 @@ eth0_ip: 10.5.126.115
 vmhost: virthost01.phx2.fedoraproject.org
 datacenter: phx2
 max_mem_size: 16384
+
+fedmsg_certs:
+- service: shell
+  owner: root
+  group: sysadmin
+  can_send:
+  - logger.log
+- service: bodhi
+  owner: root
+  group: bodhi
+  can_send:
+  - bodhi.buildroot_override.tag
+  - bodhi.buildroot_override.untag
+  - bodhi.stack.delete
+  - bodhi.stack.save
+  - bodhi.update.comment
+  - bodhi.update.complete.testing
+  - bodhi.update.edit
+  - bodhi.update.karma.threshold.reach
+  - bodhi.update.request.obsolete
+  - bodhi.update.request.revoke
+  - bodhi.update.request.stable
+  - bodhi.update.request.testing
+  - bodhi.update.request.batched
+  - bodhi.update.request.unpush
+
+  # Things that only the mash does - not the web UI
+  #- bodhi.mashtask.complete
+  #- bodhi.mashtask.mashing
+  #- bodhi.mashtask.start
+  #- bodhi.mashtask.sync.done
+  #- bodhi.mashtask.sync.wait
+  #- bodhi.errata.publish
+  #- bodhi.update.eject
+
+  # Rsync messages that get run from somewhere else entirely.
+  #- bodhi.updates.epel.sync
+  #- bodhi.updates.fedora.sync
