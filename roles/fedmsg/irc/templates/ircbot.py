@@ -25,6 +25,8 @@ config = dict(
                     # And some of the FAF/ABRT spamminess
                     'faf.report.threshold1',
                     'faf.problem.threshold1',
+                    # And some resultsdb spam
+                    'resultsdb.result.new',
                 ],
                 body=[],
             ),
