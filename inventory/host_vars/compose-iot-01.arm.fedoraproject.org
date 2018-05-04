@@ -19,3 +19,17 @@ sudoers: "{{ private }}/files/sudo/sysadmin-secondary-sudoers"
 
 # This VM is the compose host for IoT spin which isn't blocking, so it doesn't freeze
 freezes: false
+
+fedmsg_certs:
+- service: releng
+  owner: root
+  group: sysadmin-releng
+  can_send:
+  # new school pungi-koji stuff (ask dgilmore)
+  - pungi.compose.phase.start
+  - pungi.compose.phase.stop
+  - pungi.compose.status.change
+  - pungi.compose.createiso.targets
+  - pungi.compose.createiso.imagefail
+  - pungi.compose.createiso.imagedone
+  - pungi.compose.ostree
