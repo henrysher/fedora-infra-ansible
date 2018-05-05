@@ -11,16 +11,22 @@ spec:
   source:
     dockerfile: |-
       FROM candidate-registry.fedoraproject.org/f26/waiverdb:latest
+
       USER 0
+
       RUN dnf -y install --setopt=tsflags=nodocs fedmsg && dnf -y clean all
+
       # create a symlink for configuring fedmsg.
       RUN ln -sfn /etc/fedmsg-waiverdb.d/waiverdb.py /etc/fedmsg.d/zz_waiverdb.py
+
       # And another two for putting the certs in place.
       RUN mkdir -p /etc/pki/fedmsg/
       RUN ln -sf /etc/pki/fedmsg/key/fedmsg-waiverdb.key /etc/pki/fedmsg/waiverdb.key
       RUN ln -sf /etc/pki/fedmsg/crt/fedmsg-waiverdb.crt /etc/pki/fedmsg/waiverdb.crt
+
       # Make sure fedmsg can write its CRL.
       RUN chmod 777 /var/run/fedmsg/
+
       USER 1001
   strategy:
     type: Docker
