@@ -2,7 +2,11 @@ apiVersion: v1
 kind: ImageStream
 metadata:
   name: "greenwave"
-{% if env == 'staging' %}
+---
+apiVersion: v1
+kind: ImageStream
+metadata:
+   name: "greenwave-upstream"
 spec:
   tags:
   - name: latest
@@ -10,5 +14,8 @@ spec:
       scheduled: true
     from:
       kind: DockerImage
+{% if env == 'staging' %}
       name: quay.io/factory2/greenwave:latest
+{% else %}
+      name: quay.io/factory2/greenwave:prod
 {% endif %}
