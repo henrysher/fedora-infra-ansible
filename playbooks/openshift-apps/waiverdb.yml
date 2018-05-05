@@ -19,7 +19,10 @@
     - mjia
     - dcallagh
     - gnaponie
-  - { role: openshift/object, app: waiverdb, template: secret.yml, objectname: secret.yml }
+  - role: openshift/object
+    app: waiverdb
+    template: secret.yml
+    objectname: secret.yml
   - role: openshift/secret-file
     app: waiverdb
     secret_name: waiverdb-stg-secret
@@ -49,11 +52,34 @@
     key: fedmsg-waiverdb.crt
     privatefile: fedmsg-certs/keys/waiverdb-waiverdb-web-waiverdb.app.os.fedoraproject.org.crt
     when: env != "staging"
-  - { role: openshift/object, vars: {app: waiverdb, file: imagestream.yml, objectname: imagestream.yml }}
-  - { role: openshift/object, vars: {app: waiverdb, file: buildconfig.yml, objectname: buildconfig.yml }}
-  - { role: openshift/start-build, vars: {app: waiverdb, name: waiverdb-docker-build }}
-  - { role: openshift/object, vars: {app: waiverdb, template: configmap.yml, objectname: configmap.yml }}
-  - { role: openshift/object, vars: {app: waiverdb, file: service.yml, objectname: service.yml }}
-  - { role: openshift/object, vars: {app: waiverdb, file: route.yml, objectname: route.yml }}
-  - { role: openshift/object, vars: {app: waiverdb, template: deploymentconfig.yml, objectname: deploymentconfig.yml }}
-  - { role: openshift/rollout, vars: {app: waiverdb, name: waiverdb-web }}
+  - role: openshift/object
+    app: waiverdb
+    file: imagestream.yml
+    objectname: imagestream.yml
+  - role: openshift/object
+    app: waiverdb
+    file: buildconfig.yml
+    objectname: buildconfig.yml
+  - role: openshift/start-build
+    app: waiverdb
+    buildname: waiverdb-docker-build
+    objectname: waiverdb-docker-build
+  - role: openshift/object
+    app: waiverdb
+    template: configmap.yml
+    objectname: configmap.yml
+  - role: openshift/object
+    app: waiverdb
+    file: service.yml
+    objectname: service.yml
+  - role: openshift/object
+    app: waiverdb
+    file: route.yml
+    objectname: route.yml
+  - role: openshift/object
+    app: waiverdb
+    template: deploymentconfig.yml
+    objectname: deploymentconfig.yml
+  - role: openshift/rollout
+    app: waiverdb
+    dcname: waiverdb-web
