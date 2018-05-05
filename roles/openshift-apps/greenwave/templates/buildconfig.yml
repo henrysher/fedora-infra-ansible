@@ -10,7 +10,7 @@ spec:
   source:
     dockerfile: |-
       # See imagestream.yml for the definition
-      FROM greenwave-upstream
+      FROM greenwave-upstream:latest
 
       # Become root during build to chmod
       USER 0
@@ -30,6 +30,12 @@ spec:
       USER 1001
   strategy:
     type: Docker
+    sourceStrategy:
+      from:
+        kind: "ImageStreamTag"
+        name: "greenwave-upstream:latest"
+  triggers:
+      - type: ImageChange
   output:
     to:
       kind: ImageStreamTag
