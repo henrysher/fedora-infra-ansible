@@ -153,16 +153,16 @@ config = {
     },
 
     'robosignatory.ostree_refs': {
-        'fedora/28/x8_64/iot': {
-            'directory': '/mnt/fedora_koji/koji/compose/iot/',
+        'fedora/28/x86_64/iot': {
+            'directory': '/mnt/fedora_koji/koji/compose/iot/repo/',
             'key': 'fedora-28'
         },
         'fedora/28/aarch64/iot': {
-            'directory': '/mnt/fedora_koji/koji/compose/iot/',
+            'directory': '/mnt/fedora_koji/koji/compose/iot/repo/',
             'key': 'fedora-28'
         },
         'fedora/28/armhfp/iot': {
-            'directory': '/mnt/fedora_koji/koji/compose/iot/',
+            'directory': '/mnt/fedora_koji/koji/compose/iot/repo/',
             'key': 'fedora-28'
         },
         'fedora/26/x86_64/testing/atomic-host': {
