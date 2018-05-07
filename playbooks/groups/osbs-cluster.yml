@@ -579,13 +579,13 @@
       shell: "docker tag {{item}} {{docker_registry}}/{{item}}"
       with_items: "{{fedora_required_images}}"
       delegate_to: "{{ composer }}"
-      when: docker_pull_fedora_delegated|changed
+      when: docker_pull_fedora_delegated is changed
 
     - name: push fedora required docker images to our registry
       shell: "docker push {{docker_registry}}/{{item}}"
       with_items: "{{fedora_required_images}}"
       delegate_to: "{{ composer }}"
-      when: docker_pull_fedora_delegated|changed
+      when: docker_pull_fedora_delegated is changed
 
     - name: register origin_version_out rpm query
       shell: "rpm -q origin --qf '%{Version}'"
@@ -607,13 +607,13 @@
       shell: "docker tag {{item}}:v{{origin_version}} {{docker_registry}}/{{item}}:v{{origin_version}}"
       with_items: "{{openshift_required_images}}"
       delegate_to: "{{ composer }}"
-      when: docker_pull_openshift_delegated|changed
+      when: docker_pull_openshift_delegated is changed
 
     - name: push openshift required docker images to our registry
       shell: "docker push {{docker_registry}}/{{item}}:v{{origin_version}}"
       with_items: "{{openshift_required_images}}"
       delegate_to: "{{ composer }}"
-      when: docker_pull_openshift_delegated|changed
+      when: docker_pull_openshift_delegated is changed
 
     - name: create fedora image stream for OpenShift
       shell: "echo '{ \"apiVersion\": \"v1\", \"kind\": \"ImageStream\", \"metadata\": { \"name\": \"fedora\" }, \"spec\": { \"dockerImageRepository\": \"{{docker_registry}}/fedora\" } }' | oc create -f - && touch /etc/origin/fedoraimagestreamcreated"
@@ -887,7 +887,7 @@
       shell: "docker tag {{docker_registry}}/{{item}}:v{{origin_version}} {{item}}:v{{origin_version}}"
       with_items: "{{openshift_required_images}}"
       when:
-        - docker_pull_openshift|changed
+        - docker_pull_openshift is changed
         - env == "production"
 
     - set_fact:
@@ -907,11 +907,11 @@
   tasks:
     - name: refresh fedora image streams
       shell: "oc import-image fedora --all"
-      when: env == "staging" and hostvars[groups["osbs-masters-stg"][0]]["docker_pull_fedora"]|changed
+      when: env == "staging" and hostvars[groups["osbs-masters-stg"][0]]["docker_pull_fedora"] is changed
 
     - name: refresh fedora image streams
       shell: "oc import-image fedora --all"
-      when: env == "production" and hostvars[groups["osbs-masters"][0]]["docker_pull_fedora"]|changed
+      when: env == "production" and hostvars[groups["osbs-masters"][0]]["docker_pull_fedora"] is changed
 
     - name: enable nrpe for monitoring (noc01)
       iptables: action=insert chain=INPUT destination_port=5666 protocol=tcp source=10.5.126.41 state=present jump=ACCEPT

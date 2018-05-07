@@ -239,7 +239,7 @@
 # services is undefined in check mode
 - name: Wait for openQA to be fully started
   pause: seconds=5
-  when: "services is defined and services|changed"
+  when: "services is defined and services is changed"
 
 # the 'dispatcher' role requires this to be root.fedmsg 0640. so we
 # don't enforce ownership here and set mode to 0640 so we don't wind
@@ -257,7 +257,7 @@
 
 - name: Dump existing config for checking changes
   shell: "/usr/share/openqa/script/dump_templates --json > /tmp/tmpl-old.json"
-  when: "(gittests is defined) and (gittests|changed)"
+  when: "(gittests is defined) and (gittests is changed)"
   changed_when: "1 != 1"
 
 # Because of the boring details of how template loading works, getting
@@ -266,17 +266,17 @@
 # the *following* step will register as changed.
 - name: Load main tests
   command: "/var/lib/openqa/share/tests/fedora/templates --clean"
-  when: "(gittests is defined) and (gittests|changed)"
+  when: "(gittests is defined) and (gittests is changed)"
   changed_when: "1 != 1"
 
 - name: Load update tests
   command: "/var/lib/openqa/share/tests/fedora/templates-updates --update"
-  when: "(gittests is defined) and (gittests|changed)"
+  when: "(gittests is defined) and (gittests is changed)"
   changed_when: "1 != 1"
 
 - name: Check if the tests changed in previous step
   shell: "/usr/share/openqa/script/dump_templates --json > /tmp/tmpl-new.json && json_diff /tmp/tmpl-old.json /tmp/tmpl-new.json"
-  when: "(gittests is defined) and (gittests|changed)"
+  when: "(gittests is defined) and (gittests is changed)"
   register: testsdiff
   changed_when: "testsdiff.rc > 0"
   failed_when: "1 != 1"
