@@ -31,25 +31,13 @@
   - packages
   - yumrepos
 
-- name: put fedora repos on primary architecture systems ( 27 and older)
-  copy: src="{{ files }}/common/{{ item }}" dest="/etc/yum.repos.d/{{ item }}"
+- name: put fedora repos on primary architecture systems
+  template: src="{{ files }}/common/{{ item }}" dest="/etc/yum.repos.d/{{ item }}"
   with_items:
   - fedora.repo
   - fedora-updates.repo
   - fedora-updates-testing.repo
-  when: ansible_distribution == 'Fedora' and (ansible_architecture == 'aarch64' or ansible_architecture == 'x86_64' or ansible_architecture == 'i386' or ansible_architecture == 'armv7l') and not inventory_hostname.startswith('arm03') and not inventory_hostname.startswith('wiki01.stg') and ansible_distribution_major_version|int < 28
-  tags:
-  - config
-  - packages
-  - yumrepos
-
-- name: put fedora repos on primary architecture systems ( 28 and newer)
-  copy: src="{{ files }}/common/{{ item }}" dest="/etc/yum.repos.d/{{ item }}"
-  with_items:
-  - fedora.repo
-  - fedora-updates.repo-28
-  - fedora-updates-testing.repo-28
-  when: ansible_distribution == 'Fedora' and (ansible_architecture == 'aarch64' or ansible_architecture == 'x86_64' or ansible_architecture == 'i386' or ansible_architecture == 'armv7l') and not inventory_hostname.startswith('arm03') and ansible_distribution_major_version|int >= 28
+  when: ansible_distribution == 'Fedora' and (ansible_architecture == 'aarch64' or ansible_architecture == 'x86_64' or ansible_architecture == 'i386' or ansible_architecture == 'armv7l') and not inventory_hostname.startswith('arm03') and not inventory_hostname.startswith('wiki01.stg')
   tags:
   - config
   - packages
