@@ -11,6 +11,9 @@
 # - openqa_tap
 ##      bool - whether this is the tap-enabled host or not
 ##             each deployment should have *one* tap-capable worker host
+# - openqa_rngd
+##      string - if set to any value, rng-tools package will be
+##               installed and rngd.service enabled/started
 
 - name: Install required packages (testing)
   dnf: name={{ item }} state=present enablerepo="updates-testing"
@@ -39,6 +42,12 @@
   - packages
   when: "ansible_architecture is defined and ansible_architecture == 'aarch64'"
 
+- name: Install rng-tools (if specified by openqa_rngd var)
+  dnf: name=rng-tools state=present
+  tags:
+  - packages
+  when: "openqa_rngd is defined and openqa_rngd"
+
 - name: Install script to set /dev/kvm perms and disable SMT (ppc64 only)
   copy: src=openqa-ppc64-prep.sh dest=/etc/cron.hourly/openqa-ppc64-prep owner=root group=root mode=0755
   when: "ansible_architecture is defined and ansible_architecture == 'ppc64le'"
@@ -55,6 +64,11 @@
 - name: Enable systemd service to run boot script (ppc64 only)
   service: name=openqa-ppc64-prep enabled=yes state=started
   when: "ansible_architecture is defined and ansible_architecture == 'ppc64le'"
+
+- name: Enable rngd.service (if specified by openqa_rngd var)
+  service: name=rngd enabled=yes state=started
+  tags:
+  when: "openqa_rngd is defined and openqa_rngd"
 
 - import_tasks: nfs-client.yml
   when: openqa_hostname is defined and openqa_hostname != "localhost"
