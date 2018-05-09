@@ -55,9 +55,6 @@ syncHttpLogs datagrepper02.phx2.fedoraproject.org
 syncHttpLogs datagrepper01.stg.phx2.fedoraproject.org
 syncHttpLogs ipsilon01.phx2.fedoraproject.org
 syncHttpLogs ipsilon02.phx2.fedoraproject.org
-syncHttpLogs ask01.phx2.fedoraproject.org
-syncHttpLogs ask02.phx2.fedoraproject.org
-syncHttpLogs ask01.stg.phx2.fedoraproject.org
 syncHttpLogs badges-web01.phx2.fedoraproject.org
 syncHttpLogs badges-web02.phx2.fedoraproject.org
 syncHttpLogs badges-web01.stg.phx2.fedoraproject.org
