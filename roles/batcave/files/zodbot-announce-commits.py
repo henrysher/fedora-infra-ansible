@@ -6,6 +6,7 @@
 # update hook for FI repos -> zodbot.
 
 import os
+import requests
 import sys
 import subprocess
 import shlex
@@ -52,7 +53,14 @@ def construct_url(slug):
         lines = [line.strip() for line in f.readlines()]
 
     if repo in lines and slug:
-        return " " + tmpl.format(repo=repo, slug=slug)
+        url = tmpl.format(repo=repo, slug=slug)
+        try:
+            short_url = requests.get('https://da.gd/s?strip=1&url=' + url)
+            if short_url.status_code == 200:
+                return " " + short_url.text
+        except:
+            pass
+        return " " + url
     else:
         return ""
 
