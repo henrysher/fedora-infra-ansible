@@ -45,7 +45,7 @@ def construct_url(slug):
     """
 
     # Our long url template.
-    tmpl = "http://infrastructure.fedoraproject.org/cgit/{repo}/commit/?id={slug}"
+    tmpl = "https://infrastructure.fedoraproject.org/cgit/{repo}/commit/?id={slug}"
 
     repo = repodir + ".git"
 
