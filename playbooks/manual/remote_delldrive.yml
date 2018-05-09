@@ -1,0 +1,21 @@
+# Call with, for example: -e 'target=ibiblio04.fedoraproject.org mgmt=ibiblio04-mgmt.fedoraproject.org'
+- name: Do a remote drive check
+  hosts: "{{target}}"
+  user: root
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  tasks:
+  - name: Copy script over to {{target}}
+    copy: src={{private}}/scripts/drivestatus.py dest=/root/drivestatus.py
+
+  - name: Run it for {{mgmt}}
+    shell: python /root/drivestatus.py {{mgmt}}
+    register: out
+
+  - name: Remove it
+    file: path=/root/drivestatus.py state=absent
+
+  - debug: var=out.stdout
