@@ -481,11 +481,11 @@
   tasks:
     - name: Add the worker label
       command: "oc -n {{ osbs_worker_namespace }} label nodes {{ item }} worker=true --overwrite"
-      with_items: groups['osbs-nodes-stg']
+      loop: "{{ groups['osbs-nodes-stg'] }}"
 
     - name: Add the orchestrator labels to the nodes
       command: "oc -n {{ osbs_namespace }} label nodes {{ item }} orchestrator=true --overwrite"
-      with_items: groups['osbs-nodes-stg']
+      loop: "{{ groups['osbs-nodes-stg'] }}"
 
 - name: setup reactor config secret in orchestrator namespace
   hosts: osbs-masters-stg[0]
