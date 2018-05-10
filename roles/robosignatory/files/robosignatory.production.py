@@ -78,7 +78,14 @@ config = {
                 },
                 {
                     "from": "f29-modular-signing-pending",
-                    "to": "f29-modular-updates-testing-pending",
+                    "to": "f29-modular",
+                    "key": "fedora-29",
+                    "keyid": "429476b4",
+                    "type": "modular"
+                },
+                {
+                    "from": "f29-modular-updates-candidate",
+                    "to": "f29-modular",
                     "key": "fedora-29",
                     "keyid": "429476b4",
                     "type": "modular"
