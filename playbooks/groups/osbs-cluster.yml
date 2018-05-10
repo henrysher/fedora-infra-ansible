@@ -473,22 +473,19 @@
   tags:
     - osbs-orchestrator-namespace
 
-- name: Add the worker labels to the nodes
+
+- name: Add the worker/orchestrator labels to the nodes
   hosts: osbs-masters-stg[0]
   tags:
-    - worker-labels-nodes
+    - osbs-labels-nodes
   tasks:
-    command: "oc -n {{ osbs_worker_namespace }} nodes {{ item }} worker=true --overwrite"
-  with_items: groups['osbs-nodes-stg']
+    - name: Add the worker label
+      command: "oc -n {{ osbs_worker_namespace }} nodes {{ item }} worker=true --overwrite"
+      with_items: groups['osbs-nodes-stg']
 
-
-- name: Add the orchestrator labels to the nodes
-  hosts: osbs-masters-stg[0]
-  tags:
-    - orchestrator-labels-nodes
-  tasks:
-    command: "oc -n {{ osbs_namespace }} nodes {{ item }} orchestrator=true --overwrite"
-  with_items: groups['osbs-nodes-stg']
+    - name: Add the orchestrator labels to the nodes
+      command: "oc -n {{ osbs_namespace }} nodes {{ item }} orchestrator=true --overwrite"
+      with_items: groups['osbs-nodes-stg']
 
 - name: setup reactor config secret in orchestrator namespace
   hosts: osbs-masters-stg[0]
