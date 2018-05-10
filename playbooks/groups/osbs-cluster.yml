@@ -714,13 +714,11 @@
     - name: buildroot container
       command: 'docker rmi buildroot; docker build --no-cache --rm -t buildroot /etc/osbs/buildroot/'
 
-    - name: restart docker
-      service:
+    - name: restart and reload docker service
+      systemd:
         name: docker
         state: restarted
-
-    - name: systemctl daemon-reload
-      command: 'systemctl daemon-reload'
+        daemon_reload: yes
 
   roles:
     - {
