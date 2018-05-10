@@ -12,6 +12,7 @@
   - pagure-milters
   - pagure-webhook
   - python-psycopg2
+  - python2-pygments2
   - redis
   - libsemanage-python
   - mod_ssl
@@ -83,6 +84,13 @@
                owner=git group=git mode=0775
   tags:
   - gitolite
+  - pagure
+
+- name: create the /attachments folder
+  file: state=directory
+         path=/srv/attachments
+         owner=git group=git mode=0775
+  tags:
   - pagure
 
 - name: Adjust owner of /srv/git
@@ -184,6 +192,19 @@
   - stunnel
   - config
 
+- name: Add the different service files for the different workers
+  copy: src={{ item }}.service
+        dest=/etc/systemd/system/{{ item }}.service
+        owner=root group=root mode=0755
+  with_items:
+  - pagure_fast_worker
+  - pagure_medium_worker
+  - pagure_slow_worker
+  notify:
+  - reload systemd
+  tags:
+  - pagure
+
 
 # Set-up Pagure
 
@@ -281,6 +302,43 @@
   tags:
   - pagure
 
+- name: check the selinux context of the git repo directory
+  command: matchpathcon /srv/git
+  register: distgitcontext
+  check_mode: no
+  changed_when: false
+  tags:
+  - config
+  - pagure
+  - selinux
+
+- name: set the SELinux policy for the distgit root directory
+  command: semanage fcontext -a -t gitosis_var_lib_t "/srv/git(/.*)?"
+  when: distgitcontext.stdout.find('gitosis_var_lib_t') == -1
+  tags:
+  - config
+  - pagure
+  - selinux
+
+- name: check the selinux context of the releases directory
+  command: matchpathcon /var/www/releases
+  register: distgitcontext
+  check_mode: no
+  changed_when: false
+  tags:
+  - config
+  - pagure
+  - selinux
+
+# Note: On Fedora its httpd_sys_content_rw_t - Don't we love confusions?
+- name: set the SELinux policy for the releases directory
+  command: semanage fcontext -a -t httpd_sys_rw_content_t "/var/www/releases(/.*)?"
+  when: distgitcontext.stdout.find('httpd_sys_rw_content_t') == -1
+  tags:
+  - config
+  - pagure
+  - selinux
+
 - name: copy over our custom selinux module
   copy: src=selinux/pagure.pp dest=/usr/local/share/pagure.pp
   register: selinux_module
@@ -338,10 +396,15 @@
   - redis
   - pagure_ev
   - pagure_ci
-  - pagure_loadjon
+  - pagure_loadjson
   - pagure_logcom
   - pagure_milter
   - pagure_webhook
+  - pagure_worker
+  - pagure_gitolite_worker
+  - pagure_fast_worker
+  - pagure_medium_worker
+  - pagure_slow_worker
   - haveged
   ignore_errors: true
   tags:

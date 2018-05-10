@@ -4,7 +4,7 @@
 # two possible version of python-sqlalchemy and python-jinja2
 # These lines make sure the application uses the correct version.
 import __main__
-__main__.__requires__ = ['SQLAlchemy >= 0.8', 'jinja2 >= 2.4']
+__main__.__requires__ = ['SQLAlchemy >= 0.8', 'jinja2 >= 2.4', 'Pygments>=2.1.0']
 import pkg_resources
 
 import os
@@ -23,6 +23,8 @@ os.environ['TEMP'] = '/srv/tmp/'
 #sys.path.insert(0, '/path/to/pagure/')
 
 
-## The most import line to make the wsgi working
-from pagure import APP as application
-#application.debug = True
+# The most import line to make the wsgi working
+from pagure.flask_app import create_app
+
+application = create_app()
+application.debug = True
