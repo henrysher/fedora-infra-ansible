@@ -790,7 +790,7 @@
       tags:
       - iptables
       notify:
-        - restart docker
+        - restart and reload docker service
 
     - name: copy docker custom service config
       copy:
@@ -799,8 +799,7 @@
       tags:
       - docker
       notify:
-        - systemctl daemon-reload
-        - restart docker
+        - restart and reload docker service
 
     - name: Create buildroot container conf directory
       file:
@@ -813,7 +812,8 @@
         dest: "/etc/osbs/buildroot/Dockerfile"
         mode: 0400
       notify:
-        - buildroot container
+        - Remove the previous buildroot image
+        - Build the new buildroot container
 
     - name: Upload krb5.conf for buildroot container
       template:
@@ -821,7 +821,8 @@
         dest: "/etc/osbs/buildroot/krb5.conf"
         mode: 0644
       notify:
-        - buildroot container
+        - Remove the previous buildroot image
+        - Build the new buildroot container
 
     - name: Upload internal CA for buildroot
       copy:
@@ -829,7 +830,8 @@
         dest: "/etc/osbs/buildroot/ca.crt"
         mode: 0400
       notify:
-        - buildroot container
+        - Remove the previous buildroot image
+        - Build the new buildroot container
 
     - name: stat infra repofile
       stat:
@@ -853,7 +855,9 @@
         dest: "/etc/osbs/buildroot/infra-tags.repo"
         remote_src: true
       notify:
-        - buildroot container
+        - Remove the previous buildroot image
+        - Build the new buildroot container
+
       when: etcosbs_infra_repo_stat.stat.exists == false
 
     - name: stat /etc/ keytab
@@ -878,7 +882,9 @@
         dest: "/etc/osbs/buildroot/krb5.osbs_{{osbs_url}}.keytab"
         state: hard
       notify:
-        - buildroot container
+        - Remove the previous buildroot image
+        - Build the new buildroot container
+
       when: etcosbs_kt_stat.stat.exists == false
 
     - name: pull fedora required docker images
