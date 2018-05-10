@@ -4,7 +4,6 @@ metadata:
   name: "greenwave-docker-build"
   labels:
     environment: "greenwave"
-{% if env == 'staging' %}
 spec:
   runPolicy: Serial
   source:
@@ -43,48 +42,3 @@ spec:
     to:
       kind: ImageStreamTag
       name: greenwave:latest
-{% else %}
-spec:
-  runPolicy: Serial
-  source:
-    dockerfile: |-
-      FROM fedora:28
-      LABEL \
-          name="Greenwave" \
-          vendor="Fedora Infrastructure" \
-          license="MIT"
-      RUN dnf -v -y install --setopt=tsflags=nodocs \
-          python-gunicorn \
-          python-requests \
-          PyYAML \
-          fedmsg-hub \
-          python2-flask \
-          python-memcached \
-          nc \
-          patch \
-          bind-utils
-{% if env == 'staging' %}
-      RUN dnf -v -y install --setopt=tsflags=nodocs \
-          https://kojipkgs.fedoraproject.org//packages/greenwave/0.7.1/1.fc28/noarch/greenwave-0.7.1-1.fc28.noarch.rpm
-{% else %}
-      RUN dnf -v -y install --setopt=tsflags=nodocs \
-          https://kojipkgs.fedoraproject.org//packages/greenwave/0.6.1/1.fc26/noarch/greenwave-0.6.1-1.fc26.noarch.rpm
-{% endif %}
-      # create a symlink for configuring the fedmsg consumers.
-      RUN ln -sfn /etc/fedmsg-greenwave.d/greenwave.py /etc/fedmsg.d/zz_greenwave.py
-      # And another two for putting the certs in place.
-      RUN mkdir -p /etc/pki/fedmsg/
-      RUN ln -sf /etc/pki/fedmsg/key/fedmsg-greenwave.key /etc/pki/fedmsg/greenwave.key
-      RUN ln -sf /etc/pki/fedmsg/crt/fedmsg-greenwave.crt /etc/pki/fedmsg/greenwave.crt
-      # Make sure fedmsg can write its CRL.
-      RUN chmod 777 /var/run/fedmsg/
-      ENV USER=openshift
-      EXPOSE 8080
-      ENTRYPOINT gunicorn --workers 8 --bind 0.0.0.0:8080 --access-logfile=- greenwave.wsgi:app
-  strategy:
-    type: Docker
-  output:
-    to:
-      kind: ImageStreamTag
-      name: greenwave:latest
-{% endif %}
