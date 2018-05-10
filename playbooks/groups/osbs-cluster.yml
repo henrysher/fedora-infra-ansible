@@ -326,13 +326,13 @@
 
   tasks:
     - name: set policy for koji builder in openshift for osbs
-      shell: "oadm policy add-role-to-user -n default edit htpasswd_provider: {{ osbs_koji_prod_username }} && touch /etc/origin/koji-builder-policy-added"
+      command: "oadm policy add-role-to-user -n default edit htpasswd_provider: {{ osbs_koji_prod_username }} && touch /etc/origin/koji-builder-policy-added"
       args:
         creates: "/etc/origin/koji-builder-policy-added"
       when: env == "production"
 
     - name: set policy for koji builder in openshift for atomic-reactor
-      shell: "oadm policy add-role-to-user -n default edit system:serviceaccount:default:builder && touch /etc/origin/atomic-reactor-policy-added"
+      command: "oadm policy add-role-to-user -n default edit system:serviceaccount:default:builder && touch /etc/origin/atomic-reactor-policy-added"
       args:
         creates: "/etc/origin/atomic-reactor-policy-added"
       when: env == "production"
@@ -378,13 +378,13 @@
 
   tasks:
     - name: set custom build policy for koji builder in openshift for osbs
-      shell: "oc adm policy add-role-to-user -n default osbs-custom-build {{ osbs_koji_prod_username }} --role-namespace=default && touch /etc/origin/koji-custom-build-policy-added"
+      command: "oc adm policy add-role-to-user -n default osbs-custom-build {{ osbs_koji_prod_username }} --role-namespace=default && touch /etc/origin/koji-custom-build-policy-added"
       args:
         creates: "/etc/origin/koji-builder-policy-added"
       when: env == "production"
       environment: "{{ osbs_environment }}"
     - name: set custom build policy for builder service account in openshift for osbs
-      shell: "oc adm policy add-role-to-user -n default osbs-custom-build system:serviceaccount:default:builder --role-namespace=default && touch /etc/origin/koji-builder-policy-added"
+      command: "oc adm policy add-role-to-user -n default osbs-custom-build system:serviceaccount:default:builder --role-namespace=default && touch /etc/origin/koji-builder-policy-added"
       args:
         creates: "/etc/origin/koji-builder-policy-added"
       when: env == "production"
@@ -569,26 +569,26 @@
 
   tasks:
     - name: pull fedora required docker images
-      shell: "docker pull {{item}}"
+      command: "docker pull {{item}}"
       with_items: "{{fedora_required_images}}"
       delegate_to: "{{ composer }}"
       register: docker_pull_fedora_delegated
       changed_when: "'Downloaded newer image' in docker_pull_fedora_delegated.stdout"
 
     - name: tag fedora required docker images for our registry
-      shell: "docker tag {{item}} {{docker_registry}}/{{item}}"
+      command: "docker tag {{item}} {{docker_registry}}/{{item}}"
       with_items: "{{fedora_required_images}}"
       delegate_to: "{{ composer }}"
       when: docker_pull_fedora_delegated is changed
 
     - name: push fedora required docker images to our registry
-      shell: "docker push {{docker_registry}}/{{item}}"
+      command: "docker push {{docker_registry}}/{{item}}"
       with_items: "{{fedora_required_images}}"
       delegate_to: "{{ composer }}"
       when: docker_pull_fedora_delegated is changed
 
     - name: register origin_version_out rpm query
-      shell: "rpm -q origin --qf '%{Version}'"
+      command: "rpm -q origin --qf '%{Version}'"
       register: origin_version_out
       always_run: true
       changed_when: False
@@ -597,26 +597,26 @@
         origin_version: "{{origin_version_out.stdout}}"
 
     - name: pull openshift required docker images
-      shell: "docker pull {{item}}:v{{origin_version}}"
+      command: "docker pull {{item}}:v{{origin_version}}"
       with_items: "{{openshift_required_images}}"
       delegate_to: "{{ composer }}"
       register: docker_pull_openshift_delegated
       changed_when: "'Downloaded newer image' in docker_pull_openshift_delegated.stdout"
 
     - name: tag openshift required docker images for our registry
-      shell: "docker tag {{item}}:v{{origin_version}} {{docker_registry}}/{{item}}:v{{origin_version}}"
+      command: "docker tag {{item}}:v{{origin_version}} {{docker_registry}}/{{item}}:v{{origin_version}}"
       with_items: "{{openshift_required_images}}"
       delegate_to: "{{ composer }}"
       when: docker_pull_openshift_delegated is changed
 
     - name: push openshift required docker images to our registry
-      shell: "docker push {{docker_registry}}/{{item}}:v{{origin_version}}"
+      command: "docker push {{docker_registry}}/{{item}}:v{{origin_version}}"
       with_items: "{{openshift_required_images}}"
       delegate_to: "{{ composer }}"
       when: docker_pull_openshift_delegated is changed
 
     - name: create fedora image stream for OpenShift
-      shell: "echo '{ \"apiVersion\": \"v1\", \"kind\": \"ImageStream\", \"metadata\": { \"name\": \"fedora\" }, \"spec\": { \"dockerImageRepository\": \"{{docker_registry}}/fedora\" } }' | oc create -f - && touch /etc/origin/fedoraimagestreamcreated"
+      command: "echo '{ \"apiVersion\": \"v1\", \"kind\": \"ImageStream\", \"metadata\": { \"name\": \"fedora\" }, \"spec\": { \"dockerImageRepository\": \"{{docker_registry}}/fedora\" } }' | oc create -f - && touch /etc/origin/fedoraimagestreamcreated"
       environment: "{{ osbs_environment }}"
       args:
         creates: /etc/origin/fedoraimagestreamcreated
@@ -643,12 +643,12 @@
 
   handlers:
     - name: oc secrets new
-      shell: "oc secrets new koji cert={{ koji_cert_path }} ca={{ koji_ca_cert_path }} serverca={{ koji_ca_cert_path }}"
+      command: "oc secrets new koji cert={{ koji_cert_path }} ca={{ koji_ca_cert_path }} serverca={{ koji_ca_cert_path }}"
       environment: "{{ osbs_environment }}"
       notify: oc secrets add
 
     - name: oc secrets add
-      shell: "oc secrets add serviceaccount/{{ osbs_builder_user }} secrets/koji --for=mount"
+      command: "oc secrets add serviceaccount/{{ osbs_builder_user }} secrets/koji --for=mount"
       environment: "{{ osbs_environment }}"
 
   tasks:
@@ -712,7 +712,7 @@
 
   handlers:
     - name: buildroot container
-      shell: 'docker rmi buildroot; docker build --no-cache --rm -t buildroot /etc/osbs/buildroot/'
+      command: 'docker rmi buildroot; docker build --no-cache --rm -t buildroot /etc/osbs/buildroot/'
 
     - name: restart docker
       service:
@@ -720,7 +720,7 @@
         state: restarted
 
     - name: systemctl daemon-reload
-      shell: 'systemctl daemon-reload'
+      command: 'systemctl daemon-reload'
 
   roles:
     - {
@@ -862,13 +862,13 @@
       when: etcosbs_kt_stat.stat.exists == false
 
     - name: pull fedora required docker images
-      shell: "docker pull {{docker_registry}}/{{item}}"
+      command: "docker pull {{docker_registry}}/{{item}}"
       with_items: "{{fedora_required_images}}"
       register: docker_pull_fedora
       changed_when: "'Downloaded newer image' in docker_pull_fedora.stdout"
 
     - name: register origin_version_out rpm query
-      shell: "rpm -q origin --qf '%{Version}'"
+      command: "rpm -q origin --qf '%{Version}'"
       register: origin_version_out
       always_run: true
       changed_when: False
@@ -877,14 +877,14 @@
         origin_version: "{{origin_version_out.stdout}}"
 
     - name: pull openshift required docker images
-      shell: "docker pull {{docker_registry}}/{{item}}:v{{origin_version}}"
+      command: "docker pull {{docker_registry}}/{{item}}:v{{origin_version}}"
       with_items: "{{openshift_required_images}}"
       register: docker_pull_openshift
       changed_when: "'Downloaded newer image' in docker_pull_openshift.stdout"
       when: env == "production"
 
     - name: tag openshift required docker images locally
-      shell: "docker tag {{docker_registry}}/{{item}}:v{{origin_version}} {{item}}:v{{origin_version}}"
+      command: "docker tag {{docker_registry}}/{{item}}:v{{origin_version}} {{item}}:v{{origin_version}}"
       with_items: "{{openshift_required_images}}"
       when:
         - docker_pull_openshift is changed
@@ -906,11 +906,11 @@
 
   tasks:
     - name: refresh fedora image streams
-      shell: "oc import-image fedora --all"
+      command: "oc import-image fedora --all"
       when: env == "staging" and hostvars[groups["osbs-masters-stg"][0]]["docker_pull_fedora"] is changed
 
     - name: refresh fedora image streams
-      shell: "oc import-image fedora --all"
+      command: "oc import-image fedora --all"
       when: env == "production" and hostvars[groups["osbs-masters"][0]]["docker_pull_fedora"] is changed
 
     - name: enable nrpe for monitoring (noc01)
