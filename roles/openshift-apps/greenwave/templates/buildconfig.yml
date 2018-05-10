@@ -4,6 +4,46 @@ metadata:
   name: "greenwave-docker-build"
   labels:
     environment: "greenwave"
+{% if env == 'staging' %}
+spec:
+  runPolicy: Serial
+  source:
+    dockerfile: |-
+      # See imagestream.yml for the definition
+      FROM greenwave-upstream:latest
+
+      # fedmsg needs a username.
+      ENV USER=greenwave
+
+      # Become root during build to chmod
+      USER 0
+
+      # create a symlink for configuring the fedmsg consumers.
+      RUN ln -sfn /etc/fedmsg-greenwave.d/greenwave.py /etc/fedmsg.d/zz_greenwave.py
+
+      # And another two for putting the certs in place.
+      RUN mkdir -p /etc/pki/fedmsg/
+      RUN ln -sf /etc/pki/fedmsg/key/fedmsg-greenwave.key /etc/pki/fedmsg/greenwave.key
+      RUN ln -sf /etc/pki/fedmsg/crt/fedmsg-greenwave.crt /etc/pki/fedmsg/greenwave.crt
+
+      # Make sure fedmsg can write its CRL.
+      RUN chmod 777 /var/run/fedmsg/
+
+      # Become non-root again
+      USER 1001
+  strategy:
+    type: Docker
+    dockerStrategy:
+      from:
+        kind: "ImageStreamTag"
+        name: "greenwave-upstream:latest"
+  triggers:
+      - type: ImageChange
+  output:
+    to:
+      kind: ImageStreamTag
+      name: greenwave:latest
+{% else %}
 spec:
   runPolicy: Serial
   source:
@@ -47,3 +87,4 @@ spec:
     to:
       kind: ImageStreamTag
       name: greenwave:latest
+{% endif %}
