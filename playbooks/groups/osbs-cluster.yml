@@ -711,8 +711,16 @@
 
 
   handlers:
-    - name: buildroot container
-      command: 'docker rmi buildroot; docker build --no-cache --rm -t buildroot /etc/osbs/buildroot/'
+    - name: Remove the previous buildroot image
+      docker_image:
+        state: absent
+        name: buildroot
+
+    - name: Build the new buildroot container
+      docker_image:
+        path: /etc/osbs/buildroot/
+        name: buildroot
+        nocache: yes
 
     - name: restart and reload docker service
       systemd:
