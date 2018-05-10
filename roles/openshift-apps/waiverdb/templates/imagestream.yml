@@ -1,17 +1,24 @@
 apiVersion: v1
 kind: ImageStream
 metadata:
-  name: waiverdb
-spec:
-  tags:
-  - name: latest
-    from:
-      kind: DockerImage
-      name: candidate-registry.fedoraproject.org/f26/waiverdb:latest
-    importPolicy:
-        scheduled: true
+  name: "waiverdb"
 ---
 apiVersion: v1
 kind: ImageStream
 metadata:
-  name: waiverdb-deployment
+   name: "waiverdb-upstream"
+spec:
+  tags:
+  - name: latest
+    importPolicy:
+      scheduled: true
+    from:
+      kind: DockerImage
+{% if env == 'staging' %}
+      # The latest successful build of master that passes tests
+      # is auto-tagged here.
+      name: quay.io/factory2/waiverdb:latest
+{% else %}
+      # This is 'prod' tag is maintained by hand.
+      name: quay.io/factory2/waiverdb:prod
+{% endif %}

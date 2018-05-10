@@ -6,15 +6,16 @@ metadata:
     environment: "waiverdb"
 spec:
   runPolicy: Serial
-  # This docker build exists only to layer some links ontop of the base waiverdb
-  # image from candidate-registry.fedoraproject.org
   source:
     dockerfile: |-
-      FROM candidate-registry.fedoraproject.org/f26/waiverdb:latest
+      # See imagestream.yml for the definition
+      FROM waiverdb-upstream:latest
 
+      # fedmsg needs a username.
+      ENV USER=waiverdb
+
+      # Become root during build to chmod
       USER 0
-
-      RUN dnf -y install --setopt=tsflags=nodocs fedmsg && dnf -y clean all
 
       # create a symlink for configuring fedmsg.
       RUN ln -sfn /etc/fedmsg-waiverdb.d/waiverdb.py /etc/fedmsg.d/zz_waiverdb.py
@@ -27,17 +28,17 @@ spec:
       # Make sure fedmsg can write its CRL.
       RUN chmod 777 /var/run/fedmsg/
 
+      # Become non-root again
       USER 1001
   strategy:
     type: Docker
     dockerStrategy:
-      # Unclear if caching needs to be regularly turned off here...
-      #noCache: true
-      forcePull: true
       from:
-        kind: DockerImage
-        name: candidate-registry.fedoraproject.org/f26/waiverdb:latest
+        kind: "ImageStreamTag"
+        name: "waiverdb-upstream:latest"
+  triggers:
+      - type: ImageChange
   output:
     to:
       kind: ImageStreamTag
-      name: waiverdb-deployment:latest
+      name: waiverdb:latest
