@@ -42,6 +42,13 @@ config = {
     'pdcupdater.pkgdb_url': 'https://admin.fedoraproject.org/pkgdb',
     {% endif %}
 
+    # MBS details
+    {% if env == 'staging' %}
+    'pdcupdater.mbs_url': 'https://mbs.stg.fedoraproject.org/module-build-service/2/module-builds/',
+    {% else %}
+    'pdcupdater.mbs_url': 'https://mbs.fedoraproject.org/module-build-service/2/module-builds/',
+    {% endif %}
+
     # dead.package details
     {% if env == 'staging' %}
     'pdcupdater.file_check_url': 'https://src.stg.fedoraproject.org/%(namespace)s/%(repo)s/blob/%(branch)s/f/%(file)s',
