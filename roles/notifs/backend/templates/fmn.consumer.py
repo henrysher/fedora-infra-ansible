@@ -92,7 +92,6 @@ config = {
             "port": 6379,
             "db": 0,
             "redis_expiration_time": 60*60*24,   # 1 day
-            "distributed_lock": True
         },
     },
 
