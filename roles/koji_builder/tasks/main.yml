@@ -277,3 +277,18 @@
   tags:
   - koji_builder
   when: inventory_hostname.startswith(('buildvm-armv7-01.arm', 'buildvm-armv7-02', 'buildvm-armv7-03'))
+
+#
+# Add haveged so that virtual maachines have enough randomness to boot in our lifetimes
+#
+- name: Install haveged for entropy
+  package: name=haveged state=present
+  tags:
+  - koji_builder
+  - koji_builder/haveged
+
+- name: Set haveged running/enabled
+  service: name=haveged enabled=yes state=started
+  tags:
+  - koji_builder
+  - koji_builder/haveged
