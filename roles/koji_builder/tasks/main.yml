@@ -279,10 +279,16 @@
   when: inventory_hostname.startswith(('buildvm-armv7-01.arm', 'buildvm-armv7-02', 'buildvm-armv7-03'))
 
 #
-# Add haveged so that virtual maachines have enough randomness to boot in our lifetimes
+# Add rngd so that virtual maachines have enough randomness to boot in our lifetimes
 #
-- name: Install haveged for entropy
-  package: name=haveged state=absent
+- name: Install rng-tools for entropy
+  package: name=rng-tools state=present
   tags:
   - koji_builder
-  - koji_builder/haveged
+  - koji_builder/rngd
+
+- name: Start rngd
+  service: name=rngd state=started enabled=yes
+  tags:
+  - koji_builder
+  - koji_builder/rngd
