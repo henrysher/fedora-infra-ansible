@@ -1,49 +1,7 @@
 # This playbook retrieves data that Fedora knows about a username and/or e-mail address.
 #
-# Admins:
-#
-#   To use this playbook, you should define the following vars: sar_fas_user, sar_email, and
-#   sar_tar_output_path. The first two identify the person you wish to make an archive for, and the
-#   last defines where the playbook will write the tarball on the local machine when its done. For
-#   example:
-#
-#       $ sudo ansible-playbook playbooks/manual/gdpr/sar.yml -e sar_fas_user=bowlofeggs \
-#           -e sar_email=bowlof@eggs.biz -e sar_tar_output_path=/home/bowlofeggs/bowlofeggs.tar.gz
-#
-#
-# Developers:
-#
-#   Your task is to create a script and ansible variables so that your application is compatible
-#   with this playbook.
-#
-#   Script
-#   ------
-#
-#   You need to create a script and have your project's Ansible role install that script somewhere
-#   (most likely on a host from your project - for example Bodhi's is going on bodhi-backend02.)
-#   It's not a bad idea to put your script into your upstream project - there are plans for upstream
-#   Bodhi to ship bodhi-sar. This script should accept two environment variables as input:
-#   SAR_USERNAME and SAR_EMAIL. Not all applications will use both, so do what makes sense for your
-#   app. The first will be a FAS username and the second will be an e-mail address. Your script
-#   should gather the required information related to those identifiers and print it in a machine
-#   readable format to stdout. Bodhi, for example, prints information to stdout in JSON.
-#
-#   Some scripts may need secrets embedded in them - if you must do this be careful to install the
-#   script with 0700 permissions, ensuring that only sar_script_user can run them. Bodhi worked
-#   around this concern by having the script run as apache and read Bodhi's server config file.
-#
-#   Variables
-#   ---------
-#
-#   In addition to configuring a script, you need to define some Ansible variables for the host that
-#   will run your script:
-#
-#     sar_script: The full path to the script (for example, /usr/bin/bodhi-sar).
-#     sar_script_user: The user the script should be run as (for example, Bodhi runs as apache).
-#     sar_output_file: The name of the file to write into the output tarball (for example, bodhi.json).
-#
-#   You also need to add your host to the [sar] group in inventory/inventory.
-
+# Please read http://fedora-infra-docs.readthedocs.io/en/latest/sysadmin-guide/sops/gdpr_sar.html
+# for information about how to use this playbook and how to integration applications with it.
 - name: Gather SAR data
   hosts: sar
   tasks:
