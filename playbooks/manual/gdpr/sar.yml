@@ -74,12 +74,10 @@
             content: "{{ hostvars[item]['sar_data'] }}"
             dest: "{{ sar_tmp_dir }}/{{ hostvars[item]['sar_output_file'] }}"
           loop: "{{ groups['sar'] }}"
-        # Generate a tarball of the files from each service.
-        - shell: "tar --transform \"s:^:{{ sar_fas_user }}_{{ sar_email }}/:\" -czf {{ sar_tmp_dir }}/{{ sar_fas_user }}_{{ sar_email }}.tar.gz *"
+        # Generate a private tarball of the files from each service.
+        - shell: "umask 0077 && tar --transform \"s:^:{{ sar_fas_user }}_{{ sar_email }}/:\" -czf {{ sar_tmp_dir }}/{{ sar_fas_user }}_{{ sar_email }}.tar.gz *"
           args:
             chdir: "{{ sar_tmp_dir }}"
-        # Make sure the tarball is private.
-        - command: "chmod 0700 {{ sar_tmp_dir }}/{{ sar_fas_user }}_{{ sar_email }}.tar.gz"
         # Move the tarball into the desired pick up location.
         - command: "mv {{ sar_tmp_dir }}/{{ sar_fas_user }}_{{ sar_email }}.tar.gz {{ sar_tar_output_path }}"
       always:
