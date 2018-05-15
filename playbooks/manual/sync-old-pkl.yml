@@ -1,0 +1,39 @@
+- name: Do mm-backend stuff
+  hosts: mm-backend01.phx2.fedoraproject.org
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  tasks:
+  - name: Copy borked pkl
+    copy: src=/var/lib/mirrormanager/mirrorlist_cache.pkl dest=/root/mirrorlist_cache.pkl-{{ ansible_date_time.date }}
+
+  - name: Nuke borked pkl
+    file: path=/var/lib/mirrormanager/mirrorlist_cache.pkl state=absent
+
+  - name: Copy old pkl/files into place
+    copy: src=/var/lib/mirrormanager/old/{{item}} dest=/var/lib/mirrormanager/{{item}} force=yes
+    with_items:
+    - mirrorlist_cache.pkl
+    - i2_netblocks.txt
+    - global_netblocks.txt
+
+  - name: Sync the pkl
+    command: /usr/local/bin/sync_pkl_to_mirrorlists.sh
+
+- name: Do mm-proxy stuff
+  hosts: mirrorlist-proxies
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  tasks:
+  - name: Restart mirrorlist1
+    command: systemctl restart mirrorlist1
+
+  - name: Stop mirrorlist2
+    command: systemctl stop mirrorlist2
