@@ -1,5 +1,6 @@
 - name: Do mm-backend stuff
   hosts: mm-backend01.phx2.fedoraproject.org
+  user: root
 
   vars_files:
    - /srv/web/infra/ansible/vars/global.yml
@@ -22,9 +23,12 @@
 
   - name: Sync the pkl
     command: /usr/local/bin/sync_pkl_to_mirrorlists.sh
+    become: yes
+    become_user: mirrormanager
 
 - name: Do mm-proxy stuff
   hosts: mirrorlist-proxies
+  user: root
 
   vars_files:
    - /srv/web/infra/ansible/vars/global.yml
