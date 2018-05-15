@@ -13,6 +13,12 @@
   when: privatefile is defined
   register: secret_privatefile
 
+- name: Delete existing secrets
+  shell: oc -n {{app}} delete secret/{{secret_name}}
+  register: delete_out
+  changed_when: "'NotFound' not in delete_out.stdout"
+  when: secret_template.changed or secret_file.changed or secret_privatefile.changed
+
 - name: Call `oc secrets new` on the copied file
   shell: oc -n {{app}} secrets new {{secret_name}} {{key}}=/etc/openshift_apps/{{app}}/{{key}}
   register: create_out
