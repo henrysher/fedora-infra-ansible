@@ -2,12 +2,15 @@
 ############################################################
 # general information
 ############################################################
-
-freezes: false
+deployment_type: dev
+external_hostname: taskotron-dev.fedoraproject.org
 tcp_ports: [ 80, 443, "{{ resultsdb_db_port }}", "{{ execdb_db_port }}" ]
 
-external_hostname: taskotron-dev.fedoraproject.org
-deployment_type: dev
+freezes: false
+
+
+
+
 
 ############################################################
 # resultsdb details
@@ -29,7 +32,7 @@ allowed_hosts:
     - 10.5.124
 
 ############################################################
-# resultsdb frontend details
+# resultsdb-frontend details
 ############################################################
 resultsdb_fe_endpoint: "resultsdb"
 resultsdb_frontend_secret_key: "{{ dev_resultsdb_frontend_secret_key }}"
@@ -38,7 +41,6 @@ resultsdb_frontend_secret_key: "{{ dev_resultsdb_frontend_secret_key }}"
 ############################################################
 # execdb details
 ############################################################
-
 execdb_db_host_machine: db-qa01.qa.fedoraproject.org
 execdb_db_host: "{{ execdb_db_host_machine }}"
 execdb_db_port: 5432
@@ -47,3 +49,23 @@ execdb_db_name: execdb_dev
 execdb_db_user: "{{ dev_execdb_db_user }}"
 execdb_db_password: "{{ dev_execdb_db_password }}"
 execdb_secret_key: "{{ dev_execdb_secret_key }}"
+
+
+############################################################
+# fedmsg details
+############################################################
+fedmsg_active: True
+fedmsg_cert_prefix: resultsdb
+
+fedmsg_certs:
+- service: shell
+  owner: root
+  group: sysadmin
+  can_send:
+  - logger.log
+- service: resultsdb
+  owner: root
+  group: apache
+  can_send:
+  - taskotron.result.new
+  - resultsdb.result.new
