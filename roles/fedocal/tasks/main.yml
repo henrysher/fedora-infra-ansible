@@ -59,3 +59,15 @@
                     state=true
                     persistent=true
 
+- name: Install the SAR script for GDPR
+  when: inventory_hostname.startswith('fedocal02')
+  template: src={{ item.file }}
+            dest={{ item.location }}/{{ item.file }}
+            owner=apache group=apache mode=0700
+  with_items:
+  - { file: 'fedocal_sar.py', location: /usr/local/bin/ }
+  tags:
+  - config
+  - GDPR
+  - SAR
+
