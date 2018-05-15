@@ -18,7 +18,7 @@ import requests
 from six.moves.urllib.parse import urljoin
 
 
-ENV_EMAIL = "GDPR_EMAIL"
+ENV_EMAIL = "SAR_EMAIL"
 HYPERKITTY_INSTANCE = "http://localhost/archives/"
 
 log = logging.getLogger()
