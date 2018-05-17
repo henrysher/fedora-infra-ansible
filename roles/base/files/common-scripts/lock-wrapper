@@ -8,6 +8,11 @@ fi
 NAME=$1
 SCRIPT=$2
 
+SILENT="no"
+if [ $# -ge 3 -a "$3" == "--silent" ]; then
+    SILENT="yes"
+fi
+
 LOCKDIR="/var/tmp/$NAME"
 PIDFILE="$LOCKDIR/pid"
 
@@ -22,6 +27,10 @@ if ! mkdir "$LOCKDIR"; then
     PID=$(cat "$PIDFILE")
     if [ -n "$PID" ] && /bin/ps $PID > /dev/null
     then
+        if [ "$SILENT" != "yes" ]; then
+	    echo "$PID is still running"
+	    /bin/ps -o user,pid,start,time,comm $PID
+	fi
         exit 1;
     else
         echo "$LOCKDIR exists but $PID is dead"
