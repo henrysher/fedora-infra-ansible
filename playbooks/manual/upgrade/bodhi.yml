@@ -45,8 +45,24 @@
      - python2-fedmsg-atomic-composer
     when: testing
 
-- name: verify the frontend and stop it
-  hosts: bodhi2:bodhi2-stg
+- name: find out if there are migrations to run
+  hosts: bodhi-backend:bodhi-backend-stg
+  user: root
+  vars_files: 
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  tasks:
+  - name: Find out what the current migration version is
+    command: /usr/bin/python2 /usr/bin/alembic -c /etc/bodhi/alembic.ini current
+    register: current_migration_version
+  - name: Find out what the latest available migration version is
+    command: /usr/bin/python2 /usr/bin/alembic -c /etc/bodhi/alembic.ini heads
+    register: latest_migration_version
+
+- name: Stop the front end if there are migrations to run
+  hosts: os-master01.stg.phx2.fedoraproject.org:os-master01.phx2.fedoraproject.org
   user: root
   vars_files: 
    - /srv/web/infra/ansible/vars/global.yml
@@ -61,11 +77,12 @@
     delegate_to: noc01.phx2.fedoraproject.org
     ignore_errors: true
 
-  roles:
-  - bodhi2/base
-
-  post_tasks:
-  - service: name="httpd" state=stopped
+  tasks:
+  - set_fact:
+      migrations: hostvars['bodhi-backend01{{ env_suffix }}.phx2.fedoraproject.org']['current_migration_version'].stdout + ' (head)' != hostvars['bodhi-backend01{{ env_suffix }}.phx2.fedoraproject.org']['latest_migration_version'].stdout
+  - name: Scale down to 0 pods
+    command: oc -n bodhi scale dc/bodhi-web --replicas=0
+    when: migrations
 
 - name: verify the backends, stop them, and then upgrade the db
   hosts: bodhi-backend:bodhi-backend-stg
@@ -106,7 +123,7 @@
     ignore_errors: true
 
 - name: restart the frontend
-  hosts: bodhi2:bodhi2-stg
+  hosts: os-master01.stg.phx2.fedoraproject.org:os-master01.phx2.fedoraproject.org
   user: root
   vars_files: 
    - /srv/web/infra/ansible/vars/global.yml
@@ -116,7 +133,9 @@
   - import_tasks: "{{ handlers_path }}/restart_services.yml"
 
   tasks:
-  - service: name="httpd" state=started
+  - name: Scale up pods
+    command: oc -n bodhi scale dc/bodhi-web --replicas={{ openshift_pods }}
+    when: migrations
 
   post_tasks:
   - name: tell nagios to unshush w.r.t. the frontend
