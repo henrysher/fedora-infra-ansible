@@ -134,8 +134,11 @@
 
   tasks:
   - name: Scale up pods
-    command: oc -n bodhi scale dc/bodhi-web --replicas={{ openshift_pods }}
-    when: migrations
+    command: oc -n bodhi scale dc/bodhi-web --replicas={{ groupvars['bodhi2']['openshift_pods'] }}
+    when: migrations and env != "staging"
+  - name: Scale up pods
+    command: oc -n bodhi scale dc/bodhi-web --replicas={{ groupvars['bodhi2-stg']['openshift_pods'] }}
+    when: migrations and env == "staging"
 
   post_tasks:
   - name: tell nagios to unshush w.r.t. the frontend

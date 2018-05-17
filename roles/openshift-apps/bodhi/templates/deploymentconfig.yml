@@ -8,7 +8,11 @@ items:
       service: web
     name: bodhi-web
   spec:
-    replicas: 2
+    {% if env == "staging" %}
+    replicas: {{ groupvars['bodhi2-stg']['openshift_pods'] }}
+    {% else %}
+    replicas: {{ groupvars['bodhi2']['openshift_pods'] }}
+    {% endif %}
     selector:
       deploymentconfig: bodhi-web
     strategy:
