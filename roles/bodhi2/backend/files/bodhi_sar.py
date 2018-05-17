@@ -48,6 +48,10 @@ if os.environ['SAR_USERNAME']:
              'anonymous': c.anonymous, 'timestamp': c.timestamp.strftime('%Y-%m-%d %H:%M:%S'),
              'update_alias': c.update.alias, 'username': c.user.name}
             for c in user.comments]
+        sar_data[user.name]['email'] = user.email
+        sar_data[user.name]['groups'] = [g.name for g in user.groups]
+        sar_data[user.name]['name'] = user.name
+        sar_data[user.name]['show_popups'] = user.show_popups
         sar_data[user.name]['updates'] = [
             {'autokarma': u.autokarma, 'stable_karma': u.stable_karma,
              'unstable_karma': u.unstable_karma, 'requirements': u.requirements,
