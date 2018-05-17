@@ -37,7 +37,10 @@ class SEntry(object):
         self.name = direntry.name
 
         info = direntry.stat(follow_symlinks=False)
-        self.modtime = max(info.st_mtime, info.st_ctime)
+        # The py2 backport of scandir gives direntrys whose stat info (ctime)
+        # is an int, while py3 returns a real os.stat result (float).
+        # Floats blow up mirrormanager UMDL, so let's just always use an int.
+        self.modtime = int(max(info.st_mtime, info.st_ctime))
         self.readable_group = info.st_mode & stat.S_IRGRP
         self.readable_world = info.st_mode & stat.S_IROTH
         self.size = info.st_size
