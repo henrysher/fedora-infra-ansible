@@ -119,18 +119,30 @@ def main():
         temp['projects'] = projects
 
         issues = get_issue_users(session, user.id)
-        issues = [
-            issue.to_json()
-            for issue in issues
-        ]
-        temp['issues'] = issues
+        issues_json = []
+        for issue in issues:
+            tmp = issue.to_json()
+            comments = []
+            for comment in tmp['comments']:
+                if comment['user']['name'] != username:
+                    continue
+                comments.append(comment)
+            tmp['comments'] = comments
+            issues_json.append(tmp)
+        temp['issues'] = issues_json
 
         prs = get_pr_users(session, user.id)
-        prs = [
-            pr.to_json()
-            for pr in prs
-        ]
-        temp['pull_requests'] = prs
+        prs_json = []
+        for pr in prs:
+            tmp = pr.to_json()
+            comments = []
+            for comment in tmp['comments']:
+                if comment['user']['name'] != username:
+                    continue
+                comments.append(comment)
+            tmp['comments'] = comments
+            prs_json.append(tmp)
+        temp['pull_requests'] = prs_json
 
         output[user.username] = temp
 
