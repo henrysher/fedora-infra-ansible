@@ -1,0 +1,63 @@
+- name: Generate (or renew) the certificate
+  delegate_to: certgetter01.phx2.fedoraproject.org
+  command: certbot certonly -n --webroot --webroot-path /var/www/html/ -d {{','.join([site_name] + server_aliases)}}
+  tags:
+  - letsencrypt
+
+# And once we do that, we need to copy some things.
+- name: Obtain the certificate
+  delegate_to: certgetter01.phx2.fedoraproject.org
+  command: cat /etc/letsencrypt/live/{{site_name}}/cert.pem
+  register: certbot_certificate
+  tags:
+  - letsencrypt
+
+- name: Obtain the intermediate certificate
+  delegate_to: certgetter01.phx2.fedoraproject.org
+  command: cat /etc/letsencrypt/live/{{site_name}}/chain.pem
+  register: certbot_chain
+  tags:
+  - letsencrypt
+
+- name: Obtain the key
+  delegate_to: certgetter01.phx2.fedoraproject.org
+  command: cat /etc/letsencrypt/live/{{site_name}}/privkey.pem
+  register: certbot_key
+  tags:
+  - letsencrypt
+
+- name: Install the certificate
+  copy: >
+    dest=/etc/pki/tls/certs/{{site_name}}.cert
+    contents={{certbot_certificate.stdout}}
+    owner=root
+    group=root
+    mode=0644
+  notify:
+  - reload proxyhttpd
+  tags:
+  - letsencrypt
+
+- name: Install the intermediate/chain certificate
+  copy: >
+    dest=/etc/pki/tls/certs/{{site_name}}.intermediate.cert
+    contents={{certbot_chain.stdout}}
+    owner=root
+    group=root
+    mode=0644
+  notify:
+  - reload proxyhttpd
+  tags:
+  - letsencrypt
+
+- name: Install the key
+  copy: >
+    dest=/etc/pki/tls/private/{{site_name}}.key
+    contents={{certbot_key.stdout}}
+    owner=root
+    group=root
+    mode=0600
+  notify:
+  - reload proxyhttpd
+  tags:
+  - letsencrypt
