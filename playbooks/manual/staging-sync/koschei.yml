@@ -37,29 +37,29 @@
   - import_tasks: "{{ handlers_path }}/restart_services.yml"
 
   tasks:
-  - shell: >
-      koschei-admin psql <<< "
-      BEGIN;
-      SET LOCAL bdr.permit_ddl_locking = true;
-      UPDATE base_package SET all_blocked = true;
-      UPDATE collection SET latest_repo_id = null, latest_repo_resolved = null;
-      DROP TABLE buildroot_problem;
-      DROP TABLE package CASCADE;
-      DROP TABLE build CASCADE;
-      DROP TABLE applied_change CASCADE;
-      DROP TABLE unapplied_change CASCADE;
-      DROP TABLE dependency CASCADE;
-      DROP TABLE koji_task CASCADE;
-      DROP TABLE resolution_change CASCADE;
-      DROP TABLE resolution_problem CASCADE;
-      DROP TABLE copr_rebuild_request CASCADE;
-      DROP TABLE copr_resolution_change CASCADE;
-      DROP TABLE copr_rebuild CASCADE;
-      DROP TABLE scalar_stats CASCADE;
-      DROP TABLE resource_consumption_stats CASCADE;
-      COMMIT;
-      "
-    when: 'pgbdr' in koschei_pgsql_hostname
+  # - shell: >
+  #     koschei-admin psql <<< "
+  #     BEGIN;
+  #     SET LOCAL bdr.permit_ddl_locking = true;
+  #     UPDATE base_package SET all_blocked = true;
+  #     UPDATE collection SET latest_repo_id = null, latest_repo_resolved = null;
+  #     DROP TABLE buildroot_problem;
+  #     DROP TABLE package CASCADE;
+  #     DROP TABLE build CASCADE;
+  #     DROP TABLE applied_change CASCADE;
+  #     DROP TABLE unapplied_change CASCADE;
+  #     DROP TABLE dependency CASCADE;
+  #     DROP TABLE koji_task CASCADE;
+  #     DROP TABLE resolution_change CASCADE;
+  #     DROP TABLE resolution_problem CASCADE;
+  #     DROP TABLE copr_rebuild_request CASCADE;
+  #     DROP TABLE copr_resolution_change CASCADE;
+  #     DROP TABLE copr_rebuild CASCADE;
+  #     DROP TABLE scalar_stats CASCADE;
+  #     DROP TABLE resource_consumption_stats CASCADE;
+  #     COMMIT;
+  #     "
+  #   when: 'pgbdr' in koschei_pgsql_hostname
   - postgresql_db: name=koschei state=absent
     become: yes
     become_user: postgres
