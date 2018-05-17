@@ -28,16 +28,16 @@ fi
 
 # start mirrorlist2 (old pkl and see that it's processing ok)
 systemctl start mirrorlist2
-echo "enable server mirror-lists-backend/mirrorlist-local2" | nc -U /var/run/haproxy-admin >& /dev/null
 
 sleep 40
-curl -q -H mirrors.fedoraproject.org "http://localhost:18082/metalink?repo=rawhide&arch=x86_64" -o/dev/null -s -f --retry 50 --retry-delay 10 --retry-connrefused --retry-max-time 180
+curl -q -H mirrors.fedoraproject.org "http://localhost:18082/metalink?repo=rawhide&arch=x86_64" -s -f --retry 50 --retry-delay 10 --retry-connrefused --retry-max-time 180 | grep "sha512" >/dev/null
 if [ $? != 0 ]; then
 	echo "ERROR: mirrorlist2 did not start correctly"
 	exit 1
 fi
 
 # Drain mirrorlist1. This is safe since we assured that local2 is serving
+echo "enable server mirror-lists-backend/mirrorlist-local2" | nc -U /var/run/haproxy-admin >& /dev/null
 echo "set server mirror-lists-backend/mirrorlist-local1 state drain" | nc -U /var/run/haproxy-admin >& /dev/null
 sleep 5
 echo "disable server mirror-lists-backend/mirrorlist-local1" | nc -U /var/run/haproxy-admin >& /dev/null
@@ -45,15 +45,17 @@ sleep 1
 
 # restart mirrorlist1 (new pkl and make sure it's processing ok)
 systemctl restart mirrorlist1
-sleep 1
-echo "enable server mirror-lists-backend/mirrorlist-local1" | nc -U /var/run/haproxy-admin >& /dev/null
 
 sleep 5
-curl -q -H mirrors.fedoraproject.org "http://localhost:18081/metalink?repo=rawhide&arch=x86_64" -o/dev/null -s -f --retry 50 --retry-delay 10 --retry-connrefused --retry-max-time 180
+curl -q -H mirrors.fedoraproject.org "http://localhost:18082/metalink?repo=rawhide&arch=x86_64" -s -f --retry 50 --retry-delay 10 --retry-connrefused --retry-max-time 180 | grep "sha512" >/dev/null
 if [ $? != 0 ]; then
 	echo "ERROR: mirrorlist1 did not restart correctly"
 	exit 1
 fi
+
+# New mirrorlist seems to be working, put it back into service
+sleep 1
+echo "enable server mirror-lists-backend/mirrorlist-local1" | nc -U /var/run/haproxy-admin >& /dev/null
 
 # copy new pkl to mirrorlist2
 cp -a /srv/mirrorlist/data/mirrorlist1/* /srv/mirrorlist/data/mirrorlist2/
