@@ -83,3 +83,11 @@
   - role: openshift/rollout
     app: bodhi
     dcname: bodhi-web
+
+  post_tasks:
+  - name: Scale up pods
+    command: oc -n bodhi scale dc/bodhi-web --replicas={{ groupvars['bodhi2']['openshift_pods'] }}
+    when: env != "staging"
+  - name: Scale up pods
+    command: oc -n bodhi scale dc/bodhi-web --replicas={{ groupvars['bodhi2-stg']['openshift_pods'] }}
+    when: env == "staging"
