@@ -71,6 +71,17 @@
     delegate_to: "{{ koschei_pgsql_hostname }}"
     when: "'pgbdr' not in koschei_pgsql_hostname"
   - command: koschei-admin create-db
+  - command: >
+      koschei-admin create-collection f29
+        --display-name 'Fedora Rawhide'
+        --target f29
+        --branch master
+        --bugzilla-product Fedora
+        --bugzilla-version rawhide
+    when: "'pgbdr' not in koschei_pgsql_hostname"
+  - command: >
+      koschei-admin create-group php
+    when: "'pgbdr' not in koschei_pgsql_hostname"
 
 - name: bring koschei staging services up
   hosts: koschei-backend-stg:koschei-web-stg
