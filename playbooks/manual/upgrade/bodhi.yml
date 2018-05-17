@@ -57,9 +57,6 @@
   - name: Find out what the current migration version is
     command: /usr/bin/python2 /usr/bin/alembic -c /etc/bodhi/alembic.ini current
     register: current_migration_version
-  - name: Find out what the latest available migration version is
-    command: /usr/bin/python2 /usr/bin/alembic -c /etc/bodhi/alembic.ini heads
-    register: latest_migration_version
 
 - name: Stop the front end if there are migrations to run
   hosts: os-masters[0]:os-masters-stg[0]
@@ -79,7 +76,8 @@
 
   tasks:
   - set_fact:
-      migrations: hostvars['bodhi-backend01{{ env_suffix }}.phx2.fedoraproject.org']['current_migration_version'].stdout + ' (head)' != hostvars['bodhi-backend01{{ env_suffix }}.phx2.fedoraproject.org']['latest_migration_version'].stdout
+      # This will be a bool that indicates whether we need to run migrations or not.
+      migrations: '(head)' not in hostvars['bodhi-backend01{{ env_suffix }}.phx2.fedoraproject.org']['current_migration_version'].stdout
   - name: Scale down to 0 pods
     command: oc -n bodhi scale dc/bodhi-web --replicas=0
     when: migrations
