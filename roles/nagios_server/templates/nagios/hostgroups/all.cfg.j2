@@ -4,13 +4,16 @@
 ## {{ env }}
 
 {% for key, value in groups.iteritems() %}
-{% if groups[key] != [] and hostvars[host].nagios_Check_Services['monitor'] == true %}
+{% if groups[key] != [] %}
+{% for host in groups[key] %}
+{% if hostvars[host].nagios_Check_Services['monitor'] == true %}
 define hostgroup{
        hostgroup_name {{ key }}
        alias          {{ key }}
        members        {% for host in groups[key] %}{% if hostvars[host].nagios_Check_Services['ping'] == true %}{{host}}, {% endif %}{% endfor %} 
 
 }
+{% endif %}
 {% endif %}
 {% endfor %}
 
