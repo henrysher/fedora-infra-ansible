@@ -8,14 +8,14 @@
 
   tasks:
   - name: Check for the existance of a mashing lock.
-    shell: "ls -alh /mnt/koji/compose/updates/MASHING*"
-    register: lockfile
-    ignore_errors: true
+    shell: "curl https://bodhi{{env_suffix}}.fedoraproject.org/composes/"
+    register: composes
 
   - name: Fail if we found that a mash was in progress
-    fail: msg="Presence of lockfile indicates that a mash is in progress."
+    fail:
+      msg: "There are composes in progress."
     any_errors_fatal: true
-    when: lockfile.rc == 0
+    when: lockfile.stdout != "{\"composes\": []}"
 
 - name: push packages out
   hosts: bodhi-backend:bodhi-backend-stg:bodhi2:bodhi2-stg
