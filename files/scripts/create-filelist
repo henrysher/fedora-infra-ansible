@@ -88,12 +88,20 @@ def recursedir(path='.', skip=[], alwaysskip=['.~tmp~'], in_restricted=False):
             continue
         if dentry.name in alwaysskip:
             continue
+        if dentry.name.startswith('.nfs'):
+            continue
 
         # Skip things which are not at least group readable
         # Symlinks are followed here so that clients won't see dangling
         # symlinks to content they can't transfer.  It's the default, but to
         # avoid confusion it's been made explicit.
-        if not (dentry.stat(follow_symlinks=True).st_mode & stat.S_IRGRP):
+        try:
+            s = dentry.stat(follow_symlinks=True)
+        except os.error:
+            print('Could not stat {0}.  Dangling symlink?'.format(dentry.name), file=sys.stderr)
+            continue
+
+        if not (s.st_mode & stat.S_IRGRP):
             # print('{} is not group readable; skipping.'.format(dentry.path))
             continue
 
