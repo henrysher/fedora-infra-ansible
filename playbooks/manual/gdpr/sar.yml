@@ -2,6 +2,18 @@
 #
 # Please read http://fedora-infra-docs.readthedocs.io/en/latest/sysadmin-guide/sops/gdpr_sar.html
 # for information about how to use this playbook and how to integration applications with it.
+- name: Create the archive location
+  hosts: localhost
+  tasks:
+    - name: "Create the archive"
+      block:
+        # Create a safe place to store the files.
+        - command: "mktemp -d"
+          register: sar_tmp_dir
+        # Let's make this a more conveniently expressed variable.
+        - set_fact:
+            sar_tmp_dir: "{{ sar_tmp_dir['stdout'] }}"
+
 - name: Gather SAR data
   hosts: sar
   tasks:
@@ -15,23 +27,22 @@
     # Let's make this a more conveniently expressed variable.
     - set_fact:
         sar_data: "{{ sar_data['stdout'] }}"
+    # Store the result on disk
+    - copy:
+        content: "{{ hostvars[item]['sar_data'] }}"
+        dest: "{{ sar_tmp_dir }}/{{ hostvars[item]['sar_output_file'] }}"
+      loop: "{{ groups['sar'] }}"
+      delegate_to: localhost
+      delegate_facts: true
+    # Remove the variable from memory
+    - command: "/usr/bin/true"
+      register: sar_data
 
 - name: Create the archive
   hosts: localhost
   tasks:
     - name: "Create the archive"
       block:
-        # Create a safe place to store the files.
-        - command: "mktemp -d"
-          register: sar_tmp_dir
-        # Let's make this a more conveniently expressed variable.
-        - set_fact:
-            sar_tmp_dir: "{{ sar_tmp_dir['stdout'] }}"
-        # Write files from each service into our protected folder.
-        - copy:
-            content: "{{ hostvars[item]['sar_data'] }}"
-            dest: "{{ sar_tmp_dir }}/{{ hostvars[item]['sar_output_file'] }}"
-          loop: "{{ groups['sar'] }}"
         # Generate a private tarball of the files from each service.
         - shell: "umask 0077 && tar --transform \"s:^:{{ sar_fas_user }}_{{ sar_email }}/:\" -czf {{ sar_tmp_dir }}/{{ sar_fas_user }}_{{ sar_email }}.tar.gz *"
           args:
