@@ -30,11 +30,10 @@
         sar_data: "{{ sar_data['stdout'] }}"
     # Store the result on disk
     - copy:
-        content: "{{ hostvars[item]['sar_data'] }}"
-        dest: "{{ sar_tmp_dir }}/{{ hostvars[item]['sar_output_file'] }}"
-      loop: "{{ groups['sar'] }}"
+        content: "{{ sar_data }}"
+        dest: "{{ hostvars['localhost']['sar_tmp_dir'] }}/{{ sar_output_file }}"
       delegate_to: localhost
-      delegate_facts: true
+      delegate_facts: false
     # Remove the variable from memory
     - command: "/usr/bin/true"
       register: sar_data
