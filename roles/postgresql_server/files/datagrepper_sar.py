@@ -46,7 +46,8 @@ TO '{tmpfile}' delimiter ',' CSV header;
     query = query.format(username=username, tmpfile=tempfilename)
     command = ['sudo', '-u', 'postgres', 'psql', 'datanommer', '-c', '"%s"' % query]
     subprocess.check_call(
-        ' '.join(command), shell=True, stdout=subprocess.PIPE)
+        ' '.join(command), shell=True, stdout=subprocess.PIPE,
+        cwd='/tmp')
     with open(tempfilename) as stream:
         data = stream.read()
     os.unlink(tempfilename)
