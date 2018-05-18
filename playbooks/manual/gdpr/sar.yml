@@ -18,6 +18,7 @@
   hosts: sar
   strategy: free
   tasks:
+    # Non-huge SAR retrieval
     - command: "{{ sar_script }}"
       environment:
         SAR_USERNAME: "{{ sar_fas_user }}"
@@ -25,15 +26,23 @@
       register: sar_data
       become: yes
       become_user: "{{ sar_script_user }}"
+      when: "sar_huge is not defined or not sar_huge"
     # Store the result on disk
     - copy:
         content: "{{ sar_data['stdout'] }}"
         dest: "{{ hostvars['localhost']['sar_tmp_dir'] }}/{{ sar_output_file }}"
       delegate_to: localhost
       delegate_facts: false
+      when: "sar_huge is not defined or not sar_huge"
     # Remove the variable from memory
     - command: "/bin/true"
       register: sar_data
+      when: "sar_huge is not defined or not sar_huge"
+
+    # Huge SAR retrieval
+    - shell: "ssh {{ inventory_hostname }} sudo -u {{ sar_script_user }} SAR_USERNAME={{ sar_fas_user }} SAR_EMAIL={{ sar_email }} {{ sar_script }} >{{ hostvars['localhost']['sar_tmp_dir'] }}/{{ sar_output_file }}"
+      delegate_to: localhost
+      when: "sar_huge is defined and sar_huge"
 
 - name: Create the archive
   hosts: localhost
