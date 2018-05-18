@@ -49,9 +49,9 @@ TO '{tmpfile}' delimiter ',' CSV header;
         ' '.join(command), shell=True, stdout=subprocess.PIPE,
         cwd='/tmp')
     with open(tempfilename) as stream:
-        data = stream.read()
+        for line in stream:
+            print(line)
     os.unlink(tempfilename)
-    print(data)
 
 
 if __name__ == '__main__':
