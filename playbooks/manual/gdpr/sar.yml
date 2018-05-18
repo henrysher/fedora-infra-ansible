@@ -25,12 +25,9 @@
       register: sar_data
       become: yes
       become_user: "{{ sar_script_user }}"
-    # Let's make this a more conveniently expressed variable.
-    - set_fact:
-        sar_data: "{{ sar_data['stdout'] }}"
     # Store the result on disk
     - copy:
-        content: "{{ sar_data }}"
+        content: "{{ sar_data['stdout'] }}"
         dest: "{{ hostvars['localhost']['sar_tmp_dir'] }}/{{ sar_output_file }}"
       delegate_to: localhost
       delegate_facts: false
