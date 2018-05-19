@@ -22,8 +22,8 @@ function cleanup {
 
 RESTORE_UMASK=$(umask -p)
 umask 0077
-if ! mkdir "$LOCKDIR"; then
-    echo "$LOCKDIR already exists"
+mkdir "$LOCKDIR" >& /dev/null
+if [ $? != 0 ]; then
     PID=$(cat "$PIDFILE")
     if [ -n "$PID" ] && /bin/ps $PID > /dev/null
     then
