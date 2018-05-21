@@ -14,6 +14,10 @@ etcd
 
 # Set variables common for all OSEv3 hosts
 [OSEv3:vars]
+{% if env == "staging" %}
+# Disable the service catalog. We don't use it and it needs persistent storage.
+openshift_enable_service_catalog=false
+{% endif %}
 # Have upgrader also restart systems in a rolling manner.
 openshift_rolling_restart_mode=system
 # Disable the disk and package version tests
@@ -410,14 +414,6 @@ openshift_master_default_subdomain={{openshift_app_subdomain}}
 # NFS volume must already exist with path "nfs_directory/_volume_name" on
 # the storage_host. For example, the remote volume path using these
 # options would be "nfs.example.com:/exports/registry"
-{% if env == "staging" %}
-openshift_hosted_registry_storage_kind=nfs
-openshift_hosted_registry_storage_access_modes=['ReadWriteMany']
-openshift_hosted_registry_storage_host=ntap-phx2-c01-fedora01-nfs.storage.phx2.redhat.com
-openshift_hosted_registry_storage_nfs_directory=/
-openshift_hosted_registry_storage_volume_name=openshift_stg_01
-openshift_hosted_registry_storage_volume_size=10Gi
-{% endif %}
 #openshift_hosted_registry_storage_kind=nfs
 #openshift_hosted_registry_storage_access_modes=['ReadWriteMany']
 #openshift_hosted_registry_storage_host=nfs.example.com
