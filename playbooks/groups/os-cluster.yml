@@ -180,7 +180,8 @@
       command: oc adm policy remove-cluster-role-from-group self-provisioner system:authenticated system:authenticated:oauth
       changed_when: false
       register: command_result
-      failed_when: "'unable to find target' not in command_result.stdout"
+      failed_when: "' removed:' not in command_result.stdout"
+      run_once: True
     - name: Allow some users cluster admin
       command: oadm policy add-cluster-role-to-user cluster-admin {{item}}
       with_items:
