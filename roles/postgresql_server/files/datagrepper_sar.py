@@ -36,7 +36,7 @@ COPY (
 )
 TO STDOUT delimiter ',' CSV header;
 '''
-    query = query.format(username=username, tmpfile=tempfilename)
+    query = query.format(username=username)
     command = ['sudo', '-u', 'postgres', 'psql', 'datanommer', '-c', '"%s"' % query]
     subprocess.check_call(' '.join(command), shell=True, cwd='/tmp')
 
