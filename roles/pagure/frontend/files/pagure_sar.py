@@ -108,6 +108,9 @@ def main():
     output = {}
 
     for user in users:
+        if not user:
+            continue
+
         temp = {}
         temp['user_info'] = user.to_json(public=False)
 
