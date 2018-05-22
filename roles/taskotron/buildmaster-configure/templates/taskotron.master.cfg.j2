@@ -190,15 +190,15 @@ factory.addStep(ShellCommand(command=["rm", "-f", "/var/log/taskotron/taskotron.
 
 {% if deployment_type in ['dev', 'stg', 'prod'] %}
 # clean out /var/tmp/taskotron (see T253)
-factory.addStep(ShellCommand(command=Interpolate("rm -rf /var/tmp/taskotron/%(prop:slavename)s/*"), name="rm_tmp", descriptionDone=['Clean tmp']))
-{% endif %}
+factory.addStep(ShellCommand(command=Interpolate("rm -rf /var/tmp/taskotron/%(prop:slavename)s/*"), name="rm_tmp", description='Clean tmp'))
 
 # check out the source
 factory.addStep(Git(repourl=Property('repo', default=Interpolate('{{ grokmirror_user }}@{{ buildmaster }}:/var/lib/git/mirror/fedoraqa/%(prop:taskname)s/')),
                     branch=Property('branch', default='{{ grokmirror_default_branch }}'),
                     mode='full',
                     method='clobber',
-                    shallow=True))
+                    shallow=True,
+                    descriptionDone='Clone task'))
 
 # run the runner
 factory.addStep(ShellCommand(command=["runtask",
@@ -208,7 +208,7 @@ factory.addStep(ShellCommand(command=["runtask",
                                         '-j', Interpolate('%(prop:buildername)s/%(prop:buildnumber)s'),
                                         '--uuid', Interpolate('%(prop:uuid)s'),
                                         '.'],
-                             descriptionDone=[Interpolate('%(prop:taskname)s on %(prop:item)s')],
+                             description=[Interpolate('%(prop:taskname)s on '), Interpolate('%(prop:item)s (%(prop:arch)s)')],
                              name='runtask',
                              timeout=20*60,
 {% if deployment_type in ['dev', 'stg', 'prod'] %}
@@ -226,19 +226,20 @@ factory.addStep(ShellCommand(command=["runtask",
 
 
 factory.addStep(ShellCommand(command=Interpolate('testcloud instance remove --force taskotron-%(prop:uuid)s; true'),
-                                   descriptionDone=['Make sure the minion is removed']))
+                                   description='Remove minion'))
 
 # create artifacts dir on master
 factory.addStep(MasterShellCommand(command=["mkdir", '-m', '0755', Interpolate('{{ public_artifacts_dir }}/%(prop:uuid)s')],
-                                   descriptionDone=['Create artifacs dir']))
+                                   descriptionDone='Create artifacs dir'))
 
 # copy artifacts to master
 factory.addStep(DirectoryUpload(slavesrc=Interpolate('/var/lib/taskotron/artifacts/%(prop:uuid)s/'),
-                                masterdest=Interpolate('{{ public_artifacts_dir }}/%(prop:uuid)s/')))
+                                masterdest=Interpolate('{{ public_artifacts_dir }}/%(prop:uuid)s/'),
+                                descriptionDone='Copy artifacts')
 
 # gzip artifacts
 factory.addStep(MasterShellCommand(command=Interpolate('find {{ public_artifacts_dir }}/%(prop:uuid)s/ -type f -exec gzip {} \;'),
-                                   descriptionDone=['gzip artifacs dir content']))
+                                   descriptionDone='gzip artifacs'))
 
 {% if deployment_type in ['local'] %}
 # copy taskotron log to master
@@ -257,7 +258,7 @@ def today(props):
 
 # move artifacts dir
 factory.addStep(MasterShellCommand(command=Interpolate('mkdir -p -m 0755 {{ public_artifacts_dir }}/%(kw:today)s && mkdir -p -m 0755 {{ public_artifacts_dir }}/all && mv {{ public_artifacts_dir }}/%(prop:uuid)s/ {{ public_artifacts_dir }}/%(kw:today)s/ && ln -s {{ public_artifacts_dir }}/%(kw:today)s/%(prop:uuid)s {{ public_artifacts_dir }}/all/', today=today),
-                                   descriptionDone=['Move artifacs dir']))
+                                   descriptionDone='Move artifacs'))
 
 
 
