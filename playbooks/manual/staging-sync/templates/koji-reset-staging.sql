@@ -117,6 +117,7 @@ insert into cg_users (cg_id, user_id, creator_id) values (
                                ('koschei', 'koschei/koschei-backend01.stg.phx2.fedoraproject.org'),
                                ('hotness', 'hotness/hotness01.stg.phx2.fedoraproject.org'),
                                ('containerbuild', 'osbs/osbs.stg.fedoraproject.org'),
+                               ('bodhi', 'bodhi/bodhi.stg.fedoraproject.org'),
                                ('kojira', 'kojira/koji.stg.fedoraproject.org')] %}
 update users set krb_principal='{{principal}}@STG.FEDORAPROJECT.ORG' where name='{{username}}';
 {% endfor %}
