@@ -32,7 +32,13 @@ def main():
     os.chdir(_logs_folder)
 
     def _grep_and_process(command):
-        cli_out = subprocess.check_output(command).decode('utf-8')
+        cli_out = ''
+        try:
+            cli_out = subprocess.check_output(command).decode('utf-8')
+        except subprocess.CalledProcessError as err:
+            if err.output:
+                print('ERROR: command: %s returned: %s' % (command, err.returncode))
+                print('ERROR: output:  %s' % (err.output))
         lines = cli_out.split('\n')
         for line in lines:
             if line.startswith('./'):
