@@ -103,7 +103,7 @@ def main():
     if email:
         user_email = pagure.lib.search_user(session, email=email)
         if user_email not in users:
-            users.apennd(user_email)
+            users.append(user_email)
 
     output = {}
 
