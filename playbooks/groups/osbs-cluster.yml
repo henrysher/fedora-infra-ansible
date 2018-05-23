@@ -499,6 +499,18 @@
   tags:
     - osbs-orchestrator-namespace
 
+- name: setup ODCS secret in orchestrator namespace
+  hosts: osbs-masters-stg[0]
+  roles:
+  - role: osbs-secret
+    osbs_secret_name: odcs-oidc-secret
+    osbs_secret_files:
+    - source: "{{ private }}/files/osbs/staging/odcs-oidc-token"
+      dest: token
+    when: env == "staging"
+  tags:
+    - osbs-orchestrator-namespace
+
 - name: setup client config secret in orchestrator namespace
   hosts: osbs-masters-stg[0]
   roles:
