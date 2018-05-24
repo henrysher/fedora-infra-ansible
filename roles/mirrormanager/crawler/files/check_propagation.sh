@@ -18,7 +18,7 @@ fi
 
 # check propagation for the active branches
 for version in `jq -r ".results[$i].version" < ${ACTIVE} | grep -v Rawhide`; do
-    if [[ ${version -lt 28 ]]; then
+    if [[ ${version} -lt 28 ]]; then
 	${CRAWLER} --propagation --proppath updates/${version}/x86_64/repodata --threads 50 2>&1 | grep SHA256 > ${LOGBASE}/f${version}_updates-propagation.log.$( date +%s )
     else
 	${CRAWLER} --propagation --proppath updates/${version}/Everything/x86_64/repodata --threads 50 2>&1 | grep SHA256 > ${LOGBASE}/f${version}_updates-propagation.log.$( date +%s )
