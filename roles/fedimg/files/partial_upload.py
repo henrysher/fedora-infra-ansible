@@ -10,6 +10,8 @@ import fedmsg.config
 
 from fedimg.config import AWS_ACCESS_ID
 from fedimg.config import AWS_SECRET_KEY
+from fedimg.config import AWS_BASE_REGION, AWS_REGIONS
+from fedimg.services.ec2.ec2copy import main as ec2copy
 from fedimg.services.ec2.ec2initiate import main as ec2main
 
 logging.config.dictConfig(fedmsg.config.load_config()['logging'])
@@ -47,7 +49,7 @@ def main():
     if volume is not None:
         volume = [volume]
 
-    ec2main(
+    images_metadata = ec2main(
         image_urls=url,
         access_id=AWS_ACCESS_ID,
         secret_key=AWS_SECRET_KEY,
@@ -56,6 +58,18 @@ def main():
         push_notifications=push_notifications,
         compose_id=compose_id
     )
+
+    for image_metadata in images_metadata:
+        image_id = image_metadata['image_id']
+        aws_regions = list(set(AWS_REGIONS) - set([AWS_BASE_REGION]))
+        ec2copy(
+            aws_regions,
+            AWS_ACCESS_ID,
+            AWS_SECRET_KEY,
+            image_ids=[image_id],
+            push_notifications=push_notifications,
+            compose_id=compose_id
+        )
 
 
 if __name__ == '__main__':
