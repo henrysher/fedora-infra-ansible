@@ -1,0 +1,23 @@
+[buildbot]
+url = http://127.0.0.1:8080/change_hook
+
+[trigger]
+valid_arches = x86_64,armhfp
+koji_url = http://koji.fedoraproject.org/kojihub
+datagrepper_url = https://apps.fedoraproject.org/datagrepper/raw
+execdb_server = {{ execdb_server }}
+runner_type = BuildbotRunner
+job_logging = True
+joblog_file = {{ trigger_joblog_file }}
+fuse_delay = 900 ; 15 minutes in seconds
+git_cache_dir = {{ trigger_cache_dir }}
+rules_template = {{ trigger_rules_template_path }}
+{# enable this if you want taskotron-stg to react to just stg fedmsgs
+{% if deployment_type in ['stg'] %}
+deployment_type = stg
+{% endif%}
+#}
+
+[koji_build_completed]
+critpath_filepath = {{ trigger_critpath_file }}
+

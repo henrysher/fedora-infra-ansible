@@ -20,7 +20,10 @@
   when: ansible_distribution_major_version|int > 21 and ansible_cmdline.ostree is not defined
 
 - name: generate trigger configuration
-  template: src=trigger.cfg.j2 dest=/etc/taskotron/trigger.cfg owner=root group=root mode=0744
+  template: src={{ item }} dest=/etc/taskotron/trigger.cfg owner=root group=root mode=0744
+  with_first_found:
+    - trigger.cfg.j2.{{ deployment_type }}
+    - trigger.cfg.j2
   notify:
   - restart fedmsg-hub
 
