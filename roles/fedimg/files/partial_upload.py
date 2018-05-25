@@ -50,7 +50,7 @@ def main():
         volume = [volume]
 
     images_metadata = ec2main(
-        image_urls=url,
+        image_urls=[url],
         access_id=AWS_ACCESS_ID,
         secret_key=AWS_SECRET_KEY,
         regions=None,
