@@ -31,6 +31,30 @@
   - distgit
   when: env == "staging"
 
+- name: install the http push configuration
+  copy: src=htpppush.conf dest=/etc/httpd/conf.d/htppush.conf
+  notify:
+  - reload httpd
+  tags:
+  - distgit
+  when: env == "staging"
+
+- name: Create suexec wrapper directory
+  file: path=/var/www/bin state=directory owner=pagure group=packager
+  tags:
+  - distgit
+  when: env == "staging"
+
+- name: Install suexec wrapper
+  copy:
+    src=gitolite-suexec-wrapper.sh
+    dest=/var/www/bin/gitolite-suexec-wrapper.sh
+    owner=pagure
+    group=packager
+  tags:
+  - distgit
+  when: env == "staging"
+
 - name: Put in git service config
   copy: src=git@.service dest=/etc/systemd/system/git@.service
   tags:
