@@ -119,9 +119,13 @@ class ProdConfiguration(BaseConfiguration):
     MESSAGING_CERT_FILE = "/etc/ssl/odcs/umb-client.crt"
     MESSAGING_KEY_FILE = "/etc/ssl/odcs/umb-client.key"
     MESSAGING_CA_CERT = "{{ odcs_messaging_ca_cert }}"
-    MESSAGING_TOPIC_PREFIX = "{{ odcs_messaging_topic_prefix }}"
-    MESSAGING_TOPIC = "VirtualTopic.eng.odcs.state.change"
-    INTERNAL_MESSAGING_TOPIC = "VirtualTopic.eng.odcs.internal.msg"
+{% if env == "staging" %}
+    MESSAGING_TOPIC_PREFIX = "org.fedoraproject.stg"
+{% else %}
+    MESSAGING_TOPIC_PREFIX = "org.fedoraproject.prod"
+{% endif %}
+    MESSAGING_TOPIC = "odcs.state.change"
+    INTERNAL_MESSAGING_TOPIC = "odcs.internal.msg"
 
     PUNGI_RUNROOT_ENABLED = {{ odcs_pungi_runroot_enabled }}
     PUNGI_PARENT_RUNROOT_CHANNEL = "{{ odcs_pungi_parent_runroot_channel }}"
