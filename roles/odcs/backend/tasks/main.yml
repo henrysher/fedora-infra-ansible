@@ -15,6 +15,14 @@
   tags:
   - odcs
   - odcs/backend
+- name: Make sure fedmsg-hub isn't running.
+  service:
+    name: fedmsg-hub
+    state: stopped
+    enabled: false
+  tags:
+  - odcs
+  - odcs/backend
 - name: generate the ODCS koji config
   template:
     src: etc/koji.conf.d/odcs.conf.j2
@@ -23,7 +31,7 @@
     group: odcs
     mode: 0440
   notify:
-  - restart fedmsg-hub
+  - restart odcs-backend
   tags:
   - odcs
   - odcs/backend
@@ -34,7 +42,7 @@
     groups: apache
     append: true
   notify:
-  - restart fedmsg-hub
+  - restart odcs-backend
   tags:
   - odcs
   - odcs/backend
