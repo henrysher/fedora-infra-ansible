@@ -29,6 +29,14 @@
   - ansible-ansible-openshift-ansible
   - ansible-ansible-openshift-ansible-config
 
+- name: run ansible prereqs playbook
+  shell: "ansible-playbook {{ openshift_ansible_pre_playbook }} -i {{ cluster_inventory_filename }}"
+  args:
+    chdir: "{{ openshift_ansible_path }}"
+  register: run_ansible_out
+  tags:
+  - ansible-ansible-openshift-ansible
+
 - name: run ansible
   shell: "ansible-playbook {{ openshift_ansible_playbook }} -i {{ cluster_inventory_filename }}"
   args:
