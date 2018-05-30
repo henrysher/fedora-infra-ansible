@@ -1,0 +1,58 @@
+---
+- name: start httpd (provided in the apache role)
+  service: name=httpd state=started
+
+- name: ensure packages required for vault are installed (yum)
+  package: name={{ item }} state=present
+  with_items:
+    - vault
+    - mod_wsgi
+    - python-psycopg2
+    - libsemanage-python
+  when: ansible_distribution_major_version|int < 22
+
+- name: ensure packages required for vault are installed (dnf)
+  dnf: name={{ item }} state=present enablerepo={{ extra_enablerepos }}
+  with_items:
+    - vault
+    - mod_wsgi
+    - python-psycopg2
+    - libsemanage-python
+  when: ansible_distribution_major_version|int > 21 and ansible_cmdline.ostree is not defined
+
+- name: ensure database is created
+  delegate_to: "{{ vault_db_host_machine }}"
+  become_user: postgres
+  become: true
+  postgresql_db: db={{ vault_db_name }}
+
+- name: ensure vault db user has access to database
+  delegate_to: "{{ vault_db_host_machine }}"
+  become_user: postgres
+  become: true
+  postgresql_user: db={{ vault_db_name }} user={{ vault_db_user }} password={{ vault_db_password }} role_attr_flags=NOSUPERUSER
+
+- name: ensure selinux lets httpd talk to postgres
+  seboolean: name=httpd_can_network_connect_db persistent=yes state=yes
+
+- name: generate vault config
+  template: src=settings.py.j2 dest=/etc/vault/settings.py owner=root group=root mode=0644
+  notify:
+    - reload httpd
+
+- name: generate vault apache config
+  template: src=vault.conf.j2 dest=/etc/httpd/conf.d/vault.conf owner=root group=root mode=0644
+  notify:
+    - reload httpd
+
+- name: generate alembic.ini
+  template: src=alembic.ini.j2 dest=/usr/share/vault/alembic.ini owner=root group=root mode=0644
+
+- name: initialize vault database
+  shell: PROD='true' vault init_db
+
+- name: initialize alembic
+  shell: PROD='true' vault init_alembic
+
+- name: upgrade vault database via alembic
+  shell: PROD='true' vault upgrade_db
