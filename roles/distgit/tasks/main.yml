@@ -14,14 +14,9 @@
   - mod_auth_gssapi
   - python-fedmsg-genacls
   - /usr/sbin/semanage
+  - mod_auth_openidc
   tags:
   - distgit
-
-- name: install stg packages
-  package: name=mod_auth_openidc state=present
-  tags:
-  - distgit
-  when: env == "staging"
 
 - name: install the mod_auth_openidc configuration
   template: src=auth_openidc.conf dest=/etc/httpd/conf.d/auth_openidc.conf
@@ -29,7 +24,6 @@
   - reload httpd
   tags:
   - distgit
-  when: env == "staging"
 
 - name: install the http push configuration
   copy: src=htpppush.conf dest=/etc/httpd/conf.d/htppush.conf
@@ -37,13 +31,11 @@
   - reload httpd
   tags:
   - distgit
-  when: env == "staging"
 
 - name: Create suexec wrapper directory
   file: path=/var/www/bin state=directory owner=pagure group=packager
   tags:
   - distgit
-  when: env == "staging"
 
 - name: Install suexec wrapper
   copy:
@@ -53,7 +45,6 @@
     group=packager
   tags:
   - distgit
-  when: env == "staging"
 
 - name: Put in git service config
   copy: src=git@.service dest=/etc/systemd/system/git@.service
