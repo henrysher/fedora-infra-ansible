@@ -65,42 +65,6 @@ Alias /buildgroups "/mnt/koji/buildgroups/"
     Require all granted
 </Directory>
 
-{% if inventory_hostname.startswith('koji') and env == "production"  %}
 # use redirects for compose and packages locations
 RewriteRule ^/compose(.+) https://kojipkgs.fedoraproject.org/compose$1  [R=301,L]
 RewriteRule ^/packages(.+) https://kojipkgs.fedoraproject.org/packages$1  [R=301,L]
-{% else %}
-Alias /compose "/mnt/koji/compose/"
-
-<Directory "/mnt/koji/compose/">
-    Options Indexes FollowSymLinks
-    Require all granted
-</Directory>
-
-Alias /packages "/mnt/koji/packages/"
-
-<Directory "/mnt/koji/packages/">
-    Options Indexes FollowSymLinks
-    Require all granted
-</Directory>
-
-# use redirects for compose and packages locations to be consistent with primary hub
-{% if inventory_hostname == 'arm-koji01.qa.fedoraproject.org' %}
-# Disable these for now since there's a cert issue and no virtual host definition to redirect to
-# We need to either add a apache virthost and a proper cert or a seperate vm for packages.
-#RewriteRule ^/compose(.+) http://arm.koji.fedoraproject.org/compose$1  [R=301,L]
-#RewriteRule ^/packages(.+) http://arm.koji.fedoraproject.org/packages$1  [R=301,L]
-{% endif %}
-{% if inventory_hostname == 'ppc-koji01.ppc.fedoraproject.org' %}
-# Disable these for now since there's a cert issue and no virtual host definition to redirect to
-# We need to either add a apache virthost and a proper cert or a seperate vm for packages.
-#RewriteRule ^/compose(.+) http://ppc.koji.fedoraproject.org/compose$1  [R=301,L]
-#RewriteRule ^/packages(.+) http://ppc.koji.fedoraproject.org/packages$1  [R=301,L]
-{% endif %}
-{% if inventory_hostname == 's390-koji01.qa.fedoraproject.org' %}
-# Disable these for now since there's a cert issue and no virtual host definition to redirect to
-# We need to either add a apache virthost and a proper cert or a seperate vm for packages.
-#RewriteRule ^/compose(.+) https://s390pkgs.fedoraproject.org/compose$1  [R=301,L]
-#RewriteRule ^/packages(.+) https://s390pkgs.fedoraproject.org/packages$1  [R=301,L]
-{% endif %}
-{% endif %}

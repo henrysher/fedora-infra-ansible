@@ -12,28 +12,12 @@ Alias /kojihub /usr/share/koji-hub/kojixmlrpc.py
     Require all granted
 </Directory>
 
-{% if inventory_hostname == 'arm-koji01.qa.fedoraproject.org' or inventory_hostname == 'ppc-koji01.ppc.fedoraproject.org' or inventory_hostname == 's390-koji01.s390.fedoraproject.org' %}
-# Also serve /mnt/koji
-Alias /kojifiles "/mnt/koji/"
-
-<Directory "/mnt/koji">
-   Options Indexes FollowSymLinks
-   AllowOverride None
-   Order allow,deny
-   Allow from all
-</Directory>
-{% endif %}
-
 <Location /kojihub/ssllogin>
 	 AuthType GSSAPI
 	 GssapiSSLonly Off
          GssapiLocalName On
 	 AuthName "GSSAPI Single Sign On Login"
-	 {% if fedmsg_koji_instance == "primary" %}
-		GssapiCredStore keytab:/etc/koji-hub/gssapi.keytab
-         {% else %}
-		GssapiCredStore keytab:/etc/krb5.HTTP_{{ fedmsg_koji_instance }}.koji.fedoraproject.org.keytab
-	 {% endif %}
+	 GssapiCredStore keytab:/etc/koji-hub/gssapi.keytab
 	 Require valid-user
 </Location>
 

@@ -3,7 +3,6 @@
 ## Basic options ##
 DBName = koji
 DBUser = koji
-{% if inventory_hostname.startswith('koji') %}
 {% if env == "staging" %}
 DBHost = db-koji01
 {% else %}
@@ -15,22 +14,6 @@ AuthPrincipal = host/koji{{env_suffix}}.fedoraproject.org
 ProxyPrincipals = modularity@STG.FEDORAPROJECT.ORG,HTTP/koji.stg.fedoraproject.org@STG.FEDORAPROJECT.ORG
 {% else %}
 ProxyPrincipals = HTTP/koji.fedoraproject.org@FEDORAPROJECT.ORG,sigul/sign-bridge01.phx2.fedoraproject.org@FEDORAPROJECT.ORG
-{% endif %}
-{% elif inventory_hostname == 's390-koji01.s390.fedoraproject.org' %}
-DBHost = db-s390-koji01.s390.fedoraproject.org
-DBPass = {{ s390kojiPassword }}
-AuthPrincipal = host/s390.koji.fedoraproject.org
-ProxyPrincipals = HTTP/koji.fedoraproject.org@FEDORAPROJECT.ORG,sigul/secondary-bridge01.phx2.fedoraproject.org@FEDORAPROJECT.ORG
-{% elif inventory_hostname == 'arm-koji01.qa.fedoraproject.org' %}
-DBHost = db-arm-koji01.qa.fedoraproject.org
-DBPass = {{ armkojiPassword }}
-AuthPrincipal = host/arm.koji.fedoraproject.org
-ProxyPrincipals = HTTP/koji.fedoraproject.org@FEDORAPROJECT.ORG,sigul/secondary-bridge01.phx2.fedoraproject.org@FEDORAPROJECT.ORG
-{% elif inventory_hostname == 'ppc-koji01.ppc.fedoraproject.org' %}
-DBHost = db-ppc-koji01.ppc.fedoraproject.org
-DBPass = {{ ppckojiPassword }}
-AuthPrincipal = host/ppc.koji.fedoraproject.org
-ProxyPrincipals = HTTP/koji.fedoraproject.org@FEDORAPROJECT.ORG,sigul/secondary-bridge01.phx2.fedoraproject.org@FEDORAPROJECT.ORG
 {% endif %}
 KojiDir = /mnt/koji
 MemoryWarnThreshold = 10000
@@ -50,16 +33,8 @@ AuthKeytab = /etc/koji-hub/koji-hub.keytab
 
 ## the client username is the common name of the subject of their client certificate
 DNUsernameComponent = CN
-{% if inventory_hostname.startswith('koji') %}
 ## separate multiple DNs with |
 ProxyDNs = emailAddress=buildsys@fedoraproject.org,CN=kojiweb,OU=Fedora Builders,O=Fedora Project,ST=North Carolina,C=US|emailAddress=releng@fedoraproject.org,CN=sign-bridge1,OU=Package Signing,O=Fedora Project,ST=North Carolina,C=US
-{% elif inventory_hostname == 's390-koji01.s390.fedoraproject.org' %}
-ProxyDNs = /C=US/ST=North Carolina/O=Fedora Project/OU=Fedora Builders/CN=s390.koji.fedoraproject.org/emailAddress=buildsys@fedoraproject.org|emailAddress=buildsys@fedoraproject.org,CN=secondary-signer,OU=Fedora Builders,O=Fedora Project,ST=North Carolina,C=US
-{% elif inventory_hostname == 'arm-koji01.qa.fedoraproject.org' %}
-ProxyDNs = /C=US/ST=North Carolina/O=Fedora Project/OU=Fedora Builders/CN=arm.koji.fedoraproject.org/emailAddress=buildsys@fedoraproject.org|emailAddress=buildsys@fedoraproject.org,CN=secondary-signer,OU=Fedora Builders,O=Fedora Project,ST=North Carolina,C=US
-{% elif inventory_hostname == 'ppc-koji01.ppc.fedoraproject.org' %}
-ProxyDNs = /C=US/ST=North Carolina/O=Fedora Project/OU=Buildsys/CN=ppc.koji.fedoraproject.org/emailAddress=ppc@fedoraproject.org|/C=US/ST=North Carolina/O=Fedora Project/OU=Fedora Builders/CN=secondary-signer/emailAddress=buildsys@fedoraproject.org|emailAddress=buildsys@fedoraproject.org,CN=secondary-signer,OU=Fedora Builders,O=Fedora Project,ST=North Carolina,C=US
-{% endif %}
 
 ## end SSL client certificate auth configuration
 
@@ -67,15 +42,7 @@ ProxyDNs = /C=US/ST=North Carolina/O=Fedora Project/OU=Buildsys/CN=ppc.koji.fedo
 
 ##  Other options  ##
 LoginCreatesUser = On
-{% if inventory_hostname.startswith('koji') %}
 KojiWebURL = http://koji.fedoraproject.org/koji
-{% elif inventory_hostname == 's390-koji01.s390.fedoraproject.org' %}
-KojiWebURL = http://s390.koji.fedoraproject.org/koji
-{% elif inventory_hostname == 'arm-koji01.qa.fedoraproject.org' %}
-KojiWebURL = http://arm.koji.fedoraproject.org/koji
-{% elif inventory_hostname == 'ppc-koji01.ppc.fedoraproject.org' %}
-KojiWebURL = http://ppc.koji.fedoraproject.org/koji
-{% endif %}
 # The domain name that will be appended to Koji usernames
 # when creating email notifications
 EmailDomain = fedoraproject.org
