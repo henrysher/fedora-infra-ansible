@@ -41,6 +41,10 @@
         src: "{{files}}/osbs/docker-storage-setup"
         dest:  "/etc/sysconfig/docker-storage-setup"
 
+    - name: install redhat ca file
+      package:
+         name: subscription-manager-rhsm-certificates
+         state: present
 
     - import_tasks: "{{ tasks_path }}/yumrepos.yml"
     - import_tasks: "{{ tasks_path }}/2fa_client.yml"
@@ -82,11 +86,6 @@
         section: ssh_connection
         option: pipelining
         value: "True"
-
-    - name: install redhat ca file
-      package:
-         name: subscription-manager-rhsm-certificates
-         state: present
 
 - name: Deploy OpenShift cluster
   hosts: os-control:os-control-stg
