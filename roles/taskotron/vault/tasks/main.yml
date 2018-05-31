@@ -35,6 +35,14 @@
 - name: ensure selinux lets httpd talk to postgres
   seboolean: name=httpd_can_network_connect_db persistent=yes state=yes
 
+- name: register with iddev
+  command: python /usr/lib/python2.7/site-packages/flask_oidc/registration_util.py https://iddev.fedorainfracloud.org {{ vault_public_url }}
+  args:
+      chdir: /etc/vault
+      creates: /etc/vault/client_secrets.json
+  notify:
+    - reload httpd
+
 - name: generate vault config
   template: src=settings.py.j2 dest=/etc/vault/settings.py owner=root group=root mode=0644
   notify:
