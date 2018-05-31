@@ -14,11 +14,10 @@ etcd
 
 # Set variables common for all OSEv3 hosts
 [OSEv3:vars]
-{% if env == "staging" %}
 # Disable the service catalog. We don't use it and it needs persistent storage.
 openshift_enable_service_catalog=false
+# Set this because we have nfs which isn't supported
 openshift_enable_unsupported_configurations=true
-{% endif %}
 # Have upgrader also restart systems in a rolling manner.
 openshift_rolling_restart_mode=system
 # Disable the disk and package version tests
@@ -437,12 +436,12 @@ openshift_hosted_registry_storage_nfs_directory=/
 openshift_hosted_registry_storage_volume_name=openshift-stg-registry
 openshift_hosted_registry_storage_volume_size=10Gi
 {% else %}
-#openshift_hosted_registry_storage_kind=nfs
-#openshift_hosted_registry_storage_access_modes=['ReadWriteMany']
-#openshift_hosted_registry_storage_host=ntap-phx2-c01-fedora01-nfs.storage.phx2.redhat.com
-#openshift_hosted_registry_storage_nfs_directory=/
-#openshift_hosted_registry_storage_volume_name=openshift_stg_01
-#openshift_hosted_registry_storage_volume_size=10Gi
+openshift_hosted_registry_storage_kind=nfs
+openshift_hosted_registry_storage_access_modes=['ReadWriteMany']
+openshift_hosted_registry_storage_host=ntap-phx2-c01-fedora01-nfs.storage.phx2.redhat.com
+openshift_hosted_registry_storage_nfs_directory=/
+openshift_hosted_registry_storage_volume_name=openshift-prod-registry
+openshift_hosted_registry_storage_volume_size=10Gi
 {% endif %}
 #
 # Openstack
