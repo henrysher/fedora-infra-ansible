@@ -16,8 +16,8 @@
 - name: Delete existing secrets
   shell: oc -n {{app}} delete secret/{{secret_name}}
   register: delete_out
-  changed_when: "'NotFound' in delete_out.stdout"
-  failed_when: "('NotFound' not in delete_out.stdout) and (delete_out.rc != 0)"
+  changed_when: "'NotFound' in delete_out.stderr"
+  failed_when: "('NotFound' not in delete_out.stderr) and (delete_out.rc != 0)"
   when: secret_template.changed or secret_file.changed or secret_privatefile.changed
 
 - name: Call `oc secrets new` on the copied file
