@@ -23,17 +23,17 @@ items:
         RUN sed -i '/nodocs/d' /etc/dnf/dnf.conf
         RUN dnf install -y bodhi-server-{{bodhi_version}} bodhi-docs-{{bodhi_version}}
         # Put the fedmsg config in place
-        RUN rm -f /etc/fedmsg.d/bodhi.py
+        RUN rm -f /etc/fedmsg.d/bodhi.py && \
         # Let's name it starting with zz so it sorts last.
-        RUN ln -sf /etc/bodhi-fedmsg.d/bodhi-openshift-web.py /etc/fedmsg.d/zzbodhi.py
+            ln -sf /etc/bodhi-fedmsg.d/bodhi-openshift-web.py /etc/fedmsg.d/zzbodhi.py && \
         # Put the fedmsg cert and key in place
-        RUN mkdir -p /etc/pki/fedmsg/
-        RUN ln -sf /etc/pki/fedmsg/key/fedmsg-bodhi.key /etc/pki/fedmsg/bodhi.key
-        RUN ln -sf /etc/pki/fedmsg/crt/fedmsg-bodhi.crt /etc/pki/fedmsg/bodhi.crt
+            mkdir -p /etc/pki/fedmsg/ && \
+            ln -sf /etc/pki/fedmsg/key/fedmsg-bodhi.key /etc/pki/fedmsg/bodhi.key && \
+            ln -sf /etc/pki/fedmsg/crt/fedmsg-bodhi.crt /etc/pki/fedmsg/bodhi.crt && \
         # Set up krb5
-        RUN rm -f /etc/krb5.conf
-        RUN ln -sf /etc/bodhi/krb5.conf /etc/krb5.conf
-        RUN ln -sf /etc/keytabs/koji-keytab /etc/krb5.bodhi_bodhi{{ env_suffix }}.fedoraproject.org.keytab
+            rm -f /etc/krb5.conf && \
+            ln -sf /etc/bodhi/krb5.conf /etc/krb5.conf && \
+            ln -sf /etc/keytabs/koji-keytab /etc/krb5.bodhi_bodhi{{ env_suffix }}.fedoraproject.org.keytab
         EXPOSE 8080
         ENV USER=openshift
         ENTRYPOINT bash /etc/bodhi/start.sh
