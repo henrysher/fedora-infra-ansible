@@ -215,6 +215,29 @@ image_build = {
                 'subvariant': 'AtomicHost',
                 'failable': ['*'],
             }
+        },
+        {
+            'image-build': {
+                'format': [('vagrant-libvirt','vagrant-libvirt.box'), ('vagrant-virtualbox','vagrant-virtualbox.box')],
+                'name': 'Fedora-AtomicHost-Vagrant',
+                'kickstart': 'fedora-atomic-vagrant.ks',
+                'distro': 'Fedora-22',
+                'disk_size': 40,
+                'target': 'f[[ release.version_int ]]',
+                'arches': ['x86_64'],
+                'install_tree_from':
+                    # For f29 the compose location is under /compose/branched/
+                    [% if release.version_int == 29 %]
+                        "https://kojipkgs{{ env_suffix }}.fedoraproject.org/compose/branched/latest-Fedora-[[ release.version_int ]]/compose/Everything/$arch/os/",
+                    [% else %]
+                        "https://kojipkgs{{ env_suffix }}.fedoraproject.org/compose/[[ release.version_int ]]/latest-Fedora-[[ release.version_int ]]/compose/Everything/$arch/os/",
+                    [% endif %]
+                'subvariant': 'AtomicHost',
+                'failable': ['*'],
+            },
+            'factory-parameters': {
+                'vagrant_sync_directory': '/home/vagrant/sync',
+            }
         }
     ]
 }
