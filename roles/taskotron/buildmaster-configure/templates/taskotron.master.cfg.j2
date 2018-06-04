@@ -225,7 +225,7 @@ factory.addStep(ShellCommand(command=["runtask",
 {% endif %}
 ))
 
-
+# make sure minion is removed
 factory.addStep(ShellCommand(command=Interpolate('testcloud instance remove --force taskotron-%(prop:uuid)s; true'),
                                    description='Remove minion'))
 
@@ -238,9 +238,17 @@ factory.addStep(DirectoryUpload(slavesrc=Interpolate('/var/lib/taskotron/artifac
                                 masterdest=Interpolate('{{ public_artifacts_dir }}/%(prop:uuid)s/'),
                                 descriptionDone='Copy artifacts'))
 
+# save stdio from runtask step
+factory.addStep(MasterShellCommand(command=['curl', '-o', Interpolate('/srv/taskotron/artifacts/%(prop:uuid)s/taskotron/stdio.log'), Interpolate('http://127.0.0.1/taskmaster/builders/%(prop:buildername)s/builds/%(prop:buildnumber)s/steps/runtask/logs/stdio/text')],
+				   descriptionDone='Save runtask stdio log'))
+
+# ensure all artifacts are readable
+factory.addStep(MasterShellCommand(command=['chmod', '-R', 'o+r', Interpolate('/srv/taskotron/artifacts/%(prop:uuid)s/')],
+	descriptionDone='Set file permissions'))
+
 # gzip artifacts
 factory.addStep(MasterShellCommand(command=Interpolate('find {{ public_artifacts_dir }}/%(prop:uuid)s/ -type f -exec gzip {} \;'),
-                                   descriptionDone='gzip artifacs'))
+                                   descriptionDone='Compress artifacs'))
 
 {% if deployment_type in ['local'] %}
 # copy taskotron log to master
