@@ -1,0 +1,531 @@
+# -*- python -*-
+# ex: set syntax=python:
+
+# This is a sample buildmaster config file. It must be installed as
+# 'master.cfg' in your buildmaster's base directory.
+
+# This is the dictionary that the buildmaster pays attention to. We also use
+# a shorter alias to save typing.
+c = BuildmasterConfig = {}
+
+####### BUILDSLAVES
+
+# The 'slaves' list defines the set of recognized buildslaves. Each element is
+# a BuildSlave object, specifying a unique slave name and password.  The same
+# slave name and password must be configured on the slave.
+from buildbot.buildslave import BuildSlave
+c['slaves'] = [
+                {% for buildslave in buildslaves %}
+                {% if deployment_type in ['dev', 'stg', 'prod'] %}
+                BuildSlave("{{ buildslave }}", "{{ buildslave_password }}"),
+                {% endif %}
+                {% if deployment_type == 'local' %}
+                BuildSlave("{{ buildslave }}", "{{ local_buildslave_password }}"),
+                {% endif %}
+                {% endfor %}
+              ]
+
+# 'slavePortnum' defines the TCP port to listen on for connections from slaves.
+# This must match the value configured into the buildslaves (with their
+# --master option)
+c['slavePortnum'] = {{ buildslave_port }}
+
+####### CHANGESOURCES
+
+# the 'change_source' setting tells the buildmaster how it should find out
+# about source code changes.  Here we point to the buildbot clone of pyflakes.
+
+#from buildbot.changes.gitpoller import GitPoller
+#c['change_source'] = []
+#c['change_source'].append(GitPoller(
+#        'gitolite3@localhost:exampletrigger',
+#        workdir='gitpoller-workdir', branch='master',
+#        pollinterval=300))
+
+#c['change_source'].append(GitPoller(
+#        'git://github.com/buildbot/pyflakes.git',
+#        workdir='gitpoller-workdir', branch='master',
+#        pollinterval=300))
+####### SCHEDULERS
+
+# Configure the Schedulers, which decide how to react to incoming changes.  In this
+# case, just kick off a 'runtests' build
+
+from buildbot.schedulers.basic import SingleBranchScheduler
+from buildbot.schedulers.forcesched import ForceScheduler, StringParameter
+from buildbot.changes import filter
+from buildbot.schedulers.basic import BaseBasicScheduler
+from buildbot import util
+
+class JobScheduler(BaseBasicScheduler):
+
+    def __init__(self, name, **kwargs):
+        BaseBasicScheduler.__init__(self, name, **kwargs)
+
+    def getChangeFilter(self, branch, branches, change_filter, categories):
+        return filter.ChangeFilter.fromSchedulerConstructorArgs(
+                change_filter=change_filter, categories=categories)
+
+    def getTimerNameForChange(self, changes):
+        return "only"
+
+    def getChangeClassificationsForTimer(self, objectid, timer_name):
+        return self.master.db.schedulers.getChangeClassifications(
+                self.objectid)
+
+
+c['schedulers'] = []
+c['schedulers'].append(JobScheduler(
+                            name="jobsched-noarch",
+                            builderNames=["all"],
+                            treeStableTimer=None,
+                            change_filter=filter.ChangeFilter(project='rpmcheck',
+                                                                category='noarch')))
+
+c['schedulers'].append(JobScheduler(
+                            name="jobsched-i386",
+                            builderNames=['i386'],
+                            treeStableTimer=None,
+                            change_filter=filter.ChangeFilter(project='rpmcheck',
+                                                                category='i386')))
+
+c['schedulers'].append(JobScheduler(
+                            name="jobsched-x86_64",
+                            builderNames=['x86_64'],
+                            treeStableTimer=None,
+                            change_filter=filter.ChangeFilter(project='rpmcheck',
+                                                                category='x86_64')))
+
+#c['schedulers'].append(SingleBranchScheduler(
+#                            name="all",
+#                            change_filter=filter.ChangeFilter(branch='master'),
+#                            treeStableTimer=None,
+#                            builderNames=["all", 'x86_64', 'i386']))
+c['schedulers'].append(ForceScheduler(
+                            name="force",
+                            builderNames=["all", 'x86_64', 'i386']))
+c['schedulers'].append(ForceScheduler(
+                            name="rpmcheck",
+                            builderNames=["all", 'x86_64', 'i386'],
+                            properties=[
+                            StringParameter(name='taskname',
+                                            label='name of check to run',
+                                            default='',
+                                            size=256),
+                            StringParameter(name='item',
+                                            label='object to use',
+                                            default='',
+                                            size=256),
+                            StringParameter(name='item_type',
+                                            label='type of object to use',
+                                            default='',
+                                            size=256),
+                            StringParameter(name='uuid',
+                                            label='UUID of the build in progress',
+                                            default='',
+                                            size=256),
+                            StringParameter(name='arch',
+                                            label='arch of rpm to test',
+                                            default='x86_64',
+                                            size=128)]))
+
+{% if deployment_type in ['dev', 'stg', 'prod'] %}
+c['schedulers'].append(JobScheduler(
+                            name="jobsched-distgit",
+                            builderNames=['distgit'],
+                            treeStableTimer=None,
+                            change_filter=filter.ChangeFilter(project='distgit_checks',
+                                                                category='x86_64')))
+
+
+c['schedulers'].append(ForceScheduler(
+                            name="distgit_checks",
+                            builderNames=["distgit"],
+                            properties=[
+                            StringParameter(name='taskname',
+                                            label='name of check to run',
+                                            default='',
+                                            size=256),
+                            StringParameter(name='item',
+                                            label='object to use',
+                                            default='',
+                                            size=256),
+                            StringParameter(name='item_type',
+                                            label='type of object to use',
+                                            default='',
+                                            size=256),
+                            StringParameter(name='uuid',
+                                            label='UUID of the build in progress',
+                                            default='',
+                                            size=256),
+                            StringParameter(name='arch',
+                                            label='arch of rpm to test',
+                                            default='x86_64',
+                                            size=128)]))
+{% endif %}
+
+####### BUILDERS
+
+# The 'builders' list defines the Builders, which tell Buildbot how to perform a build:
+# what steps, and which slaves can execute them.  Note that any particular build will
+# only take place on one slave.
+
+from buildbot.process.factory import BuildFactory
+from buildbot.steps.source.git import Git
+from buildbot.steps.shell import ShellCommand
+from buildbot.process.properties import Property, Interpolate
+from buildbot.steps.slave import RemoveDirectory
+from buildbot.steps.transfer import DirectoryUpload, FileUpload
+from buildbot.steps.master import MasterShellCommand
+
+factory = BuildFactory()
+
+{% if deployment_type in ['local'] %}
+# clean out /var/tmp/taskotron (see T253)
+factory.addStep(ShellCommand(command="rm -rf /var/tmp/taskotron/*", name="rm_tmp", descriptionDone=['Clean tmp']))
+
+# clean the log (see T230)
+factory.addStep(ShellCommand(command=["rm", "-f", "/var/log/taskotron/taskotron.log"], name="rm_log", descriptionDone=['Clean log']))
+{% endif %}
+
+{% if deployment_type in ['dev', 'stg', 'prod'] %}
+# clean out /var/tmp/taskotron (see T253)
+factory.addStep(ShellCommand(command=Interpolate("rm -rf /var/tmp/taskotron/%(prop:slavename)s/*"), name="rm_tmp", description='Clean tmp'))
+{% endif %}
+
+# check out the source
+factory.addStep(Git(repourl=Property('repo', default=Interpolate('{{ grokmirror_user }}@{{ buildmaster }}:/var/lib/git/mirror/fedoraqa/%(prop:taskname)s/')),
+                    branch=Property('branch', default='{{ grokmirror_default_branch }}'),
+                    mode='full',
+                    method='clobber',
+                    shallow=True,
+                    descriptionDone='Clone task'))
+
+# run the runner
+factory.addStep(ShellCommand(command=["runtask",
+                                        '-i', Interpolate('%(prop:item)s'),
+                                        '-t', Interpolate('%(prop:item_type)s'),
+                                        '-a', Interpolate('%(prop:arch)s'),
+                                        '-j', Interpolate('%(prop:buildername)s/%(prop:buildnumber)s'),
+                                        '--uuid', Interpolate('%(prop:uuid)s'),
+                                        '.'],
+                             description=[Interpolate('%(prop:taskname)s on '), Interpolate('%(prop:item)s (%(prop:arch)s)')],
+                             name='runtask',
+                             timeout=20*60,
+{% if deployment_type in ['dev', 'stg', 'prod'] %}
+                             sigtermTime=5*60,
+                             lazylogfiles=True,
+                             logfiles={
+                                 'taskotron.log': {'filename': Interpolate('/var/lib/taskotron/artifacts/%(prop:uuid)s/taskotron/taskotron.log')},
+                                 'heartbeat.log': {'filename': Interpolate('/var/lib/taskotron/artifacts/%(prop:uuid)s/taskotron/heartbeat.log')},
+                             }
+{% endif %}
+{% if deployment_type in ['local'] %}
+                             logfiles={'taskotron.log': {'filename': '/var/log/taskotron/taskotron.log', }}
+{% endif %}
+))
+
+# make sure minion is removed
+factory.addStep(ShellCommand(command=Interpolate('testcloud instance remove --force taskotron-%(prop:uuid)s; true'),
+                                   description='Remove minion'))
+
+# create artifacts dir on master
+factory.addStep(MasterShellCommand(command=["mkdir", '-m', '0755', Interpolate('{{ public_artifacts_dir }}/%(prop:uuid)s')],
+                                   descriptionDone='Create artifacs dir'))
+
+# copy artifacts to master
+factory.addStep(DirectoryUpload(slavesrc=Interpolate('/var/lib/taskotron/artifacts/%(prop:uuid)s/'),
+                                masterdest=Interpolate('{{ public_artifacts_dir }}/%(prop:uuid)s/'),
+                                descriptionDone='Copy artifacts'))
+
+# save stdio from runtask step
+factory.addStep(MasterShellCommand(command=['curl', '-o', Interpolate('/srv/taskotron/artifacts/%(prop:uuid)s/taskotron/stdio.log'), Interpolate('http://127.0.0.1/taskmaster/builders/%(prop:buildername)s/builds/%(prop:buildnumber)s/steps/runtask/logs/stdio/text')],
+				   descriptionDone='Save runtask stdio log'))
+
+# ensure all artifacts are readable
+factory.addStep(MasterShellCommand(command=['chmod', '-R', 'o+r', Interpolate('/srv/taskotron/artifacts/%(prop:uuid)s/')],
+	descriptionDone='Set file permissions'))
+
+# gzip artifacts
+factory.addStep(MasterShellCommand(command=Interpolate('find {{ public_artifacts_dir }}/%(prop:uuid)s/ -type f -exec gzip {} \;'),
+                                   descriptionDone='Compress artifacs'))
+
+{% if deployment_type in ['local'] %}
+# copy taskotron log to master
+factory.addStep(FileUpload(slavesrc='/var/log/taskotron/taskotron.log',
+                           masterdest=Interpolate('{{ public_artifacts_dir }}/%(prop:uuid)s/taskotron.log'),
+                           mode=0644))
+{% endif %}
+
+# move the artifacts to the correct dir on the master
+import datetime
+from buildbot.process.properties import renderer
+
+@renderer
+def today(props):
+    return datetime.datetime.now().strftime("%Y%m%d")
+
+# move artifacts dir
+factory.addStep(MasterShellCommand(command=Interpolate('mkdir -p -m 0755 {{ public_artifacts_dir }}/%(kw:today)s && mkdir -p -m 0755 {{ public_artifacts_dir }}/all && mv {{ public_artifacts_dir }}/%(prop:uuid)s/ {{ public_artifacts_dir }}/%(kw:today)s/ && ln -s {{ public_artifacts_dir }}/%(kw:today)s/%(prop:uuid)s {{ public_artifacts_dir }}/all/', today=today),
+                                   descriptionDone='Move artifacs'))
+
+
+
+{% if deployment_type in ['dev', 'stg', 'prod'] %}
+# this is for package-specific tasks
+distgit_factory = BuildFactory()
+
+# clean out /var/tmp/taskotron (see T253)
+distgit_factory.addStep(ShellCommand(command=Interpolate("rm -rf /var/tmp/taskotron/%(prop:slavename)s/*"), name="rm_tmp", descriptionDone=['Clean tmp']))
+
+{% if deployment_type in ['dev', 'prod'] %}
+# check out the source from prod dist-git
+distgit_factory.addStep(Git(repourl=Property('git_repo', default=Interpolate('http://pkgs02.phx2.fedoraproject.org/rpms/{}/'.format("%(prop:item)s".split('-')[0]))),
+                    branch=Property('git_branch', default='master'),
+                    mode='full',
+                    method='clobber',
+                    shallow=True))
+{% else %}
+# check out the source from stg dist-git
+distgit_factory.addStep(Git(repourl=Property('git_repo', default=Interpolate('http://pkgs01.stg.phx2.fedoraproject.org/rpms/{}/'.format("%(prop:item)s".split('-')[0]))),
+                    branch=Property('git_branch', default='master'),
+                    mode='full',
+                    method='clobber',
+                    shallow=True))
+{% endif %}
+# run the runner
+distgit_factory.addStep(ShellCommand(command=["runtask",
+                                        '-i', Interpolate('%(prop:item)s'),
+                                        '-t', Interpolate('%(prop:item_type)s'),
+                                        '-a', Interpolate('%(prop:arch)s'),
+                                        '-j', Interpolate('%(prop:buildername)s/%(prop:buildnumber)s'),
+                                        '--uuid', Interpolate('%(prop:uuid)s'),
+                                        Interpolate('%(prop:taskname)s')],
+                             descriptionDone=[Interpolate('%(prop:taskname)s on %(prop:item)s')],
+                             name='runtask',
+                             timeout=2400,
+                             logfiles={
+                                 'taskotron-overlord.log': {'filename': Interpolate('/var/lib/taskotron/artifacts/%(prop:uuid)s/taskotron-overlord.log')},
+                                 'taskotron-stdio.log': {'filename': Interpolate('/var/lib/taskotron/artifacts/%(prop:uuid)s/taskotron-stdio.log')},
+                                 'taskotron.log': {'filename': Interpolate('/var/lib/taskotron/artifacts/%(prop:uuid)s/taskotron.log')}
+                             }
+))
+
+
+distgit_factory.addStep(ShellCommand(command=Interpolate('testcloud instance remove --force taskotron-%(prop:uuid)s; true'),
+                                   descriptionDone=['Make sure the minion is removed']))
+
+# create artifacts dir on master
+distgit_factory.addStep(MasterShellCommand(command=["mkdir", '-m', '0755', Interpolate('{{ public_artifacts_dir }}/%(prop:uuid)s')],
+                                   descriptionDone=['Create artifacs dir']))
+
+# copy artifacts to master
+distgit_factory.addStep(DirectoryUpload(slavesrc=Interpolate('/var/lib/taskotron/artifacts/%(prop:uuid)s/'),
+                                masterdest=Interpolate('{{ public_artifacts_dir }}/%(prop:uuid)s/task_output')))
+
+# gzip artifacts
+distgit_factory.addStep(MasterShellCommand(command=Interpolate('find {{ public_artifacts_dir }}/%(prop:uuid)s/task_output/ -type f -exec gzip {} \;'),
+                                   descriptionDone=['gzip artifacs dir content']))
+
+{% endif %}
+
+# move artifacts dir
+distgit_factory.addStep(MasterShellCommand(command=Interpolate('mkdir -p -m 0755 {{ public_artifacts_dir }}/%(kw:today)s && mkdir -p -m 0755 {{ public_artifacts_dir }}/all && mv {{ public_artifacts_dir }}/%(prop:uuid)s/ {{ public_artifacts_dir }}/%(kw:today)s/ && ln -s {{ public_artifacts_dir }}/%(kw:today)s/%(prop:uuid)s {{ public_artifacts_dir }}/all/', today=today),
+                                   descriptionDone=['Move artifacs dir']))
+####### RESOURCE LOCKS
+#
+# This is a set of resource locks to make sure that we don't have too many things
+# going on on each slave at one time.
+
+from buildbot import locks
+
+build_lock = locks.SlaveLock("slave_builds",
+                             maxCount = 1)
+
+
+
+####### Builders
+#
+# The builders associate factories with slaves which are capable of executing those factory's tasks
+
+from buildbot.config import BuilderConfig
+
+c['builders'] = []
+c['builders'].append(
+    BuilderConfig(name="x86_64",
+      slavenames=[{% for buildslave in x86_64_buildslaves %}"{{ buildslave }}",{% endfor %}],
+      factory=factory, locks=[build_lock.access('counting')],
+      mergeRequests=False))
+
+c['builders'].append(
+    BuilderConfig(name="i386",
+      slavenames=[{% for buildslave in i386_buildslaves %}"{{ buildslave }}",{% endfor %}],
+      factory=factory, locks=[build_lock.access('counting')],
+      mergeRequests=False))
+
+c['builders'].append(
+    BuilderConfig(name="all",
+      slavenames=[{% for buildslave in buildslaves %}"{{ buildslave }}",{% endfor %}],
+      factory=factory, locks=[build_lock.access('counting')],
+      mergeRequests=False))
+
+c['builders'].append(
+    BuilderConfig(name="distgit",
+      slavenames=[{% for buildslave in x86_64_buildslaves %}"{{ buildslave }}",{% endfor %}],
+      factory=distgit_factory, locks=[build_lock.access('counting')],
+      mergeRequests=False))
+####### STATUS TARGETS
+
+# 'status' is a list of Status Targets. The results of each build will be
+# pushed to these targets. buildbot/status/*.py has a variety to choose from,
+# including web pages, email senders, and IRC bots.
+
+c['status'] = []
+
+from buildbot.status import html
+from buildbot.status.web import authz, auth
+
+authz_cfg=authz.Authz(
+    # change any of these to True to enable; see the manual for more
+    # options
+    {% if deployment_type == 'dev' %}
+    auth=auth.BasicAuth([("{{ dev_buildbot_user }}","{{ dev_buildbot_password }}")]),
+    {% endif %}
+    {% if deployment_type == 'stg' %}
+    auth=auth.BasicAuth([("{{ stg_buildbot_user }}","{{ stg_buildbot_password }}")]),
+    {% endif %}
+    {% if deployment_type == 'prod' %}
+    auth=auth.BasicAuth([("{{ prod_buildbot_user }}","{{ prod_buildbot_password }}")]),
+    {% endif %}
+    {% if deployment_type == 'local' %}
+    auth=auth.BasicAuth([("{{ local_buildbot_user }}","{{ local_buildbot_password }}")]),
+    {% endif %}
+    gracefulShutdown = False,
+    forceBuild = 'auth', # use this to test your slave once it is set up
+    forceAllBuilds = False,
+    pingBuilder = False,
+    stopBuild = False,
+    stopAllBuilds = True,
+    cancelPendingBuild = True,
+)
+c['status'].append(html.WebStatus(http_port=8080, authz=authz_cfg,
+                                    change_hook_dialects={'base':True}))
+c['status'].append(html.WebStatus(http_port=8010, authz=authz_cfg))
+
+from buildbot.status.mail import MailNotifier
+from buildbot.status.builder import Results
+from buildbot.status.results import FAILURE, EXCEPTION, WARNINGS
+
+import cgi
+import re
+
+# http://docs.buildbot.net/current/manual/cfg-statustargets.html#mailnotifier
+def html_message_formatter(mode, name, build, results, master_status):
+    """Provide a customized message to Buildbot's MailNotifier.
+
+    The last 80 lines of the log are provided as well as the changes
+    relevant to the build.  Message content is formatted as html.
+    """
+    result = Results[results]
+
+    limit_lines = 40
+    text = list()
+    text.append(u'<h4>Build status: %s</h4>' % result.upper())
+    text.append(u'<table cellspacing="10"><tr>')
+    text.append(u"<td>Buildslave for this Build:</td><td><b>%s</b></td></tr>" % build.getSlavename())
+    if master_status.getURLForThing(build):
+        text.append(u'<tr><td>Complete logs for all build steps:</td><td><a href="%s">%s</a></td></tr>'
+                    % (master_status.getURLForThing(build),
+                       master_status.getURLForThing(build))
+                    )
+        text.append(u'</table>')
+
+        logs = []
+        steps = build.getSteps()
+        for step in steps:
+            status, dummy = step.getResults()
+
+            if status not in [FAILURE, EXCEPTION, WARNINGS]:
+                continue
+
+            logs = step.getLogs()
+
+            # logs within a step are in reverse order. Search back until we find stdio
+            for log in reversed(logs):
+                if log.getName() == 'stdio':
+                    break
+
+            name = "%s.%s" % (log.getStep().getName(), log.getName())
+            status, dummy = log.getStep().getResults()
+            content = log.getText().splitlines() # Note: can be VERY LARGE
+
+            if step.getName() == 'runtask':
+                found = re.search("task=\['(.*)\.yml'\]", ''.join(content[0:5]))
+                if found:
+                    taskname = found.group(1)
+                    text.insert(0, '<h4>Task name: %s</h4>' % taskname.upper())
+
+            url = u'%s/steps/%s/logs/%s' % (master_status.getURLForThing(build),
+                                           log.getStep().getName(), log.getName())
+
+            text.append(u'<h4>Last %d lines of "%s"</h4>' % (limit_lines, name))
+
+            unilist = list()
+            for line in content[len(content)-limit_lines:]:
+                unilist.append(cgi.escape(unicode(line,'utf-8')))
+            text.append(u'<pre>')
+            text.extend(unilist)
+            text.append(u'</pre>')
+
+        return {
+            'body': u"\n".join(text),
+            'type': 'html'
+            }
+
+mn = MailNotifier(fromaddr='taskotron@fedoraproject.org',
+                  sendToInterestedUsers=False,
+                  subject="%(projectName)s %(result)s on {{ deployment_type }} %(builder)s",
+                  mode=('failing', 'exception', 'warnings'),
+                  extraRecipients=['qa-taskotron-admin-members@fedoraproject.org'],
+                  relayhost="bastion.phx2.fedoraproject.org",
+                  messageFormatter=html_message_formatter)
+
+c['status'].append(mn)
+
+# ExecDB's push-notifications:
+import buildbot.status.status_push
+sp = buildbot.status.status_push.HttpStatusPush(
+        serverUrl="{{ execdb_statuspush }}",
+        debug=True)
+c['status'].append(sp)
+
+####### PROJECT IDENTITY
+
+# the 'title' string will appear at the top of this buildbot
+# installation's html.WebStatus home page (linked to the
+# 'titleURL') and is embedded in the title of the waterfall HTML page.
+
+c['title'] = "Taskotron"
+c['titleURL'] = "http://{{ external_hostname }}/{{buildmaster_endpoint}}/"
+
+# the 'buildbotURL' string should point to the location where the buildbot's
+# internal web server (usually the html.WebStatus page) is visible. This
+# typically uses the port number set in the Waterfall 'status' entry, but
+# with an externally-visible host name which the buildbot cannot figure out
+# without some help.
+
+c['buildbotURL'] = "http://{{ external_hostname }}/{{buildmaster_endpoint}}/"
+
+####### DB URL
+
+c['db'] = {
+    # This specifies what database buildbot uses to store its state.  You can leave
+    # this at its default for all but the largest installations.
+    {% if deployment_type in ['dev', 'stg', 'prod'] %}
+    'db_url' : "postgresql://{{ buildmaster_db_user }}:{{ buildmaster_db_password }}@{{ buildmaster_db_host }}/{{ buildmaster_db_name }}",
+    {% endif %}
+    {% if deployment_type == 'local' %}
+    'db_url' : "postgresql://{{ local_buildmaster_db_user }}:{{ local_buildmaster_db_password }}@127.0.0.1/{{ buildmaster_db_name }}",
+    {% endif %}
+
+}

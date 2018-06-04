@@ -6,7 +6,10 @@
 - name: upload master config
   become: true
   become_user: "{{ buildmaster_user }}"
-  template: src={{ buildmaster_template }} dest={{ buildmaster_dir }}/master.cfg owner={{ buildmaster_user }} group={{ buildmaster_user }}
+  template: src={{ item }} dest={{ buildmaster_dir }}/master.cfg owner={{ buildmaster_user }} group={{ buildmaster_user }}
+  with_first_found:
+    - '{{ buildmaster_template }}.{{ deployment_type }}'
+    - '{{ buildmaster_template }}'
 
 - name: check master config
   become: true
