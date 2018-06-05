@@ -1,0 +1,25 @@
+---
+
+eth0_ip: 10.5.129.128
+gw: 10.5.129.254
+nm: 255.255.255.0
+dns: 10.5.126.21
+
+datacenter: phx2
+fas_client_groups: sysadmin-qa,sysadmin-main,sysadmin-noc,fi-apprentice,sysadmin-veteran,sysadmin-secondary
+nrpe_procs_warn: 250
+nrpe_procs_crit: 300
+
+sudoers: "{{ private }}/files/sudo/qavirt-sudoers"
+
+# openQA tap worker hosts (like this one) do stuff with ifcfg that base
+# doesn't understand. terrible, terrible stuff. seriously - it doesn't
+# handle the openvswitch config well. so let's tell it to just configure
+# the actual connected interface (which on this system is eth0) for us
+# and leave everything else alone.
+ansible_ifcfg_whitelist: ['eth0']
+
+openqa_workers: 3
+
+# has an HW RNG, so let's have rngd
+openqa_rngd: True
