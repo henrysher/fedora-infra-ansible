@@ -35,6 +35,9 @@ Role Variables
     # Then to re-enable node:
     osbs_enable_node: true
 
+    # Override default systemd unit files
+    osbs_systemd_override: true
+
 See `operations/defaults/main.yml` for a comprehensive list of all
 available variables.
 

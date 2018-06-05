@@ -17,7 +17,8 @@
   - name: bring up new cluster
     command: >
       oc cluster up
-      --version v3.6.0
+      --image {{ osbs_test_ocp_image | default('registry.access.redhat.com/openshift3/ose') }}
+      --version {{ osbs_test_ocp_version | default('v3.7') }}
     register: cmd_cluster_up
     changed_when: cmd_cluster_up.rc == 0
 
@@ -64,24 +65,11 @@
       oc -n test-worker get serviceaccount orchestrator
     changed_when: false
 
-  - name: policy binding created
-    command: >
-      oc -n test-worker get policybinding ':default'
-    changed_when: false
-
-  - name: custom builds roles created
-    command: >
-      oc -n test-worker get role osbs-custom-build
-    changed_when: false
-
   - name: expected rolebindings created in worker namespace
     command: >
       oc -n test-worker get rolebinding {{ item }}
     with_items:
     - osbs-admin
-    - osbs-admin
-    - osbs-custom-build-admin
-    - osbs-custom-build-readwrite
     - osbs-custom-build-serviceaccounts
     - osbs-readonly
     - osbs-readwrite
@@ -128,6 +116,28 @@
       {{ playbook_dir }}/tmp/test-orchestrator-client-config-secret.conf
     changed_when: false
 
+  - name: reactor config maps were generated properly
+    command: >
+      diff {{ playbook_dir }}/files/expected-{{ item }}.yml
+      {{ playbook_dir }}/tmp/test-host-test-orchestrator-{{ item }}.yml
+    changed_when: false
+    with_items:
+    - reactor-config-map-ppc64le-on-premise
+    - reactor-config-map-scratch-ppc64le-on-premise
+    - reactor-config-map-scratch-x86-64-aws
+    - reactor-config-map-scratch-x86-64-azure
+    - reactor-config-map-scratch-x86-64-on-premise
+    - reactor-config-map-scratch
+    - reactor-config-map-x86-64-aws
+    - reactor-config-map-x86-64-azure
+    - reactor-config-map-x86-64-on-premise
+    - reactor-config-map
+    register: cmd_diff_config_maps
+
+  - name: reactor config mpas were created
+    command: oc -n test-orchestrator get configmaps {{ item.item }}
+    changed_when: false
+    with_items: "{{ cmd_diff_config_maps.results }}"
 
 - name: setup namespace as non admin
   hosts: masters
@@ -151,6 +161,8 @@
       oc login -u system:admin
     register: cmd_login_admin
     changed_when: cmd_login_admin.rc == 0
+  tags:
+  - wip
 
 - name: test non-admin namespace
   hosts: masters
@@ -179,14 +191,13 @@
     failed_when: ('No resources found' not in cmd_rolebinding.stderr) and ('NotFound' not in cmd_rolebinding.stderr)
     with_items:
     - osbs-admin
-    - osbs-admin
-    - osbs-custom-build-admin
-    - osbs-custom-build-readwrite
     - osbs-custom-build-serviceaccounts
     - osbs-readonly
     - osbs-readwrite
     - osbs-readwrite-serviceaccounts
     changed_when: false
+  tags:
+  - wip
 
 - name: create limitrange namespace
   hosts: masters
@@ -292,6 +303,8 @@
       oc login -u system:admin
     register: cmd_login_admin
     changed_when: cmd_login_admin.rc == 0
+  tags:
+  - wip
 
 - name: test policybinding dedicated-admin namespace
   hosts: masters
@@ -310,3 +323,63 @@
     - osbs-readwrite
     - osbs-readwrite-serviceaccounts
     changed_when: false
+  tags:
+  - wip
+
+- name: setup users and groups in namespace
+  hosts: masters
+  roles:
+  - role: "{{ playbook_dir }}/../."
+    osbs_kubeconfig_path: "{{ lookup('env','HOME') }}/.kube/config"
+    osbs_openshift_home: tmp
+    osbs_namespace: test-users-and-groups
+    osbs_nodeselector: "worker=true"
+    osbs_admin_groups:
+    - admin-group
+    osbs_admin_users:
+    - admin-user
+    osbs_cluster_reader_groups:
+    - cluster-reader-group
+    osbs_cluster_reader_users:
+    - cluster-reader-user
+    osbs_readonly_groups:
+    - readonly-group
+    osbs_readonly_users:
+    - readonly-user
+    osbs_readwrite_groups:
+    - readwrite-group
+    osbs_readwrite_users:
+    - readwrite-user
+
+- name: test users and groups namespace
+  hosts: masters
+  vars:
+    osbs_users_groups_info:
+    - role_name: osbs-admin
+      type: rolebinding
+      expected: User Groupadmin-user admin-group
+    - role_name: osbs-readonly
+      type: rolebinding
+      expected: User Groupreadonly-user readonly-group
+    - role_name: osbs-readwrite
+      type: rolebinding
+      expected: User Groupreadwrite-user readwrite-group
+    - role_name: osbs-cluster-reader
+      type: clusterrolebinding
+      expected: User Groupcluster-reader-user cluster-reader-group
+  tasks:
+  - name: query rolebindings
+    command: >
+      oc -n test-users-and-groups get {{ item.type }} {{ item.role_name }}
+      -o jsonpath='{.subjects[*].kind}{.subjects[*].name}'
+    register: osbs_rolebindings
+    changed_when: false
+    with_items: "{{ osbs_users_groups_info }}"
+
+  - name: verify rolebindings
+    fail:
+      msg: "{{ item.1.type }} {{ item.1.role_name }} not as expected"
+    when: "item.0.stdout != item.1.expected"
+    with_together:
+    - "{{ osbs_rolebindings.results }}"
+    - "{{ osbs_users_groups_info }}"

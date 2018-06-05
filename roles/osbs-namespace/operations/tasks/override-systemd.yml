@@ -1,0 +1,11 @@
+---
+- name: Set LimitNOFILE in atomic-openshift-node
+  lineinfile:
+    path: /etc/systemd/system/atomic-openshift-node.service
+    regexp: '^LimitNOFILE='
+    line: 'LimitNOFILE={{ osbs_systemd_limit_nofile }}'
+    backup: yes
+  notify:
+  - restart atomic-openshift-node
+
+- meta: flush_handlers

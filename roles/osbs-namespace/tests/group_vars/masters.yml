@@ -16,3 +16,52 @@ osbs_worker_clusters:
     - allowed.domain.com
     - also-allowed.domain.com
     auto_build_node_selector: 'auto_build=true'
+
+_reactor_config_map:
+  version: 1
+
+  clusters:
+
+    x86_64:
+    - name: x86_64-on-premise
+      max_concurrent_builds: 10
+      enabled: True
+
+    - name: x86_64-aws
+      max_concurrent_builds: 20
+      enabled: False
+
+    - name: x86_64-azure
+      max_concurrent_builds: 30
+      enabled: False
+
+    ppc64le:
+    - name: ppc64le-on-premise
+      max_concurrent_builds: 11
+      enabled: True
+
+  artifacts_allowed_domains:
+  - example.com/beta
+  - example.com/released
+
+  image_labels:
+    vendor: "Example, Inc."
+    authoritative-source-url: registry.example.com
+    distribution-scope: public
+
+_scratch_reactor_config_map_overrides:
+
+  artifacts_allowed_domains: []
+
+  image_labels:
+    distribution-scope: private
+
+osbs_reactor_config_maps:
+
+- name: reactor-config-map
+  data: "{{ _reactor_config_map }}"
+
+- name: reactor-config-map-scratch
+  data: >
+    {{ _reactor_config_map |
+       combine(_scratch_reactor_config_map_overrides, recursive=True) }}
