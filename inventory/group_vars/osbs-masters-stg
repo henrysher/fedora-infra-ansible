@@ -14,7 +14,6 @@ source_registry: "registry.stg.fedoraproject.org"
 docker_registry: "candidate-registry.stg.fedoraproject.org"
 
 osbs_url: "osbs.stg.fedoraproject.org"
-osbs_koji_username: "kojibuilder_stg"
 
 koji_url: "koji.stg.fedoraproject.org"
 
@@ -51,8 +50,102 @@ osbs_conf_worker_clusters:
     openshift_url: "https://osbs.stg.fedoraproject.org/"
     verify_ssl: 'false'
 
+
+osbs_platform_descriptors:
+- platform: x86_64
+  architecture: amd64
+  enable_v1: True
+
+_osbs_reactor_config_map:
+    version: 1
+
+    clusters:
+      x86_64:
+      - name: "x86_64-stg"
+        max_concurrent_builds: 2
+
+    clusters_client_config_dir: "/var/run/secrets/atomic-reactor/client-config-secret"
+
+    koji:
+      hub_url: "https://koji.stg.fedoraproject.org/kojihub"
+      root_url: "https://koji.stg.fedoraproject.org/koji"
+      auth:
+        krb_principal: "FILE:/etc/krb5.osbs_{{ osbs_url }}.keytab"
+        krb_keytab: "osbs/{{osbs_url}}@{{ ipa_realm }}"
+
+    odcs:
+        api_url: "https://odcs{{ env_suffix }}.fedoraproject.org/api/1"
+        auth:
+          openidc_dir: "/var/run/secrets/atomic-reactor/odcs-oidc-secret"
+        #signing_intents: "{{ osbs_odcs_signing_intents }}"
+        #default_signing_intent: "{{ osbs_odcs_default_signing_intent }}"
+
+    image_labels:
+      vendor: "{{ osbs_conf_vendor }}"
+      authoritative-source-url: "{{ source_registry }}"
+      distribution-scope: public
+
+    image_equal_labels:
+      - ['description', 'io.k8s.description']
+    openshift:
+      url: "{{ osbs_url }}"
+      build_json_dir: /usr/share/osbs
+      auth:
+        enable: True
+
+    platform_descriptors: "{{ osbs_platform_descriptors }}"
+
+    prefer_schema1_digest: False
+
+    content_versions:
+    - v1
+    - v2
+
+    registries:
+    - url: "{{ docker_registry }}"
+      insecure: True
+      auth:
+        cfg_path: /var/run/secrets/atomic-reactor/registry-secret
+
+    source_registry:
+      url: "{{ source_registry }}"
+      insecure: True
+
+    group_manifests: True
+
+    sources_command: "{{ osbs_conf_sources_command }}"
+
+    artifacts_allowed_domains: []
+    #- download.devel.redhat.com/released
+    #- download.devel.redhat.com/devel/candidates
+
+    required_secrets:
+    - kojisecret
+    - registry-secret
+    - odcs-oidc-secret
+
+    worker_token_secrets:
+    - x86-64-osbs
+    - client-config-secret
+
+_osbs_scratch_reactor_config_map_overrides:
+  image_labels:
+    distribution-scope: private
+
+osbs_reactor_config_maps:
+- name: reactor-config-map
+  data: "{{ _osbs_reactor_config_map }}"
+- name: reactor-config-map-scratch
+  data: >
+    {{ _osbs_reactor_config_map |
+       combine(_osbs_scratch_reactor_config_map_overrides, recursive=True) }}
+
+osbs_odcs_enabled: true
+
+#Docker command delegated host
 composer: composer.stg.phx2.fedoraproject.org
 
+# Nagios configuration
 nagios_Check_Services:
   nrpe: true
   sshd: true
