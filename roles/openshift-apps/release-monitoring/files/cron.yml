@@ -1,0 +1,22 @@
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: anitya
+spec:
+  schedule: "10 */12 * * *"
+  jobTemplate:             
+    spec:
+      template:
+        metadata:
+          labels:          
+            parent: "cronjobanitya"
+        spec:
+          containers:
+          - name: release-monitoring-web
+            image: release-monitoring/release-monitoring-web:latest
+            image: perl
+            command: ["/usr/share/anitya/anitya_cron.py"]
+            env:
+            - name: ANITYA_WEB_CONFIG
+              value: /etc/anitya/anitya.cfg
+          restartPolicy: OnFailure 
