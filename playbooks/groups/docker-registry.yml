@@ -124,13 +124,9 @@
       role: push-docker,
         docker_cert_name: "containerstable",
         docker_cert_dir: "/etc/docker/certs.d/registry.stg.fedoraproject.org",
-      when: env == "staging",
-      delegate_to: compose-x86-01.phx2.fedoraproject.org
-    }
-    - {
-      role: push-docker,
-        docker_cert_name: "containerbuild",
-        docker_cert_dir: "/etc/docker/certs.d/candidate-registry.stg.fedoraproject.org",
+        candidate_registry: "candidate-registry.stg.fedoraproject.org",
+        candidate_registry_osbs_username: "{{candidate_registry_osbs_staging_username}}",
+        candidate_registry_osbs_password: "{{candidate_registry_osbs_staging_password}}"
       when: env == "staging",
       delegate_to: compose-x86-01.phx2.fedoraproject.org
     }
@@ -138,13 +134,9 @@
       role: push-docker,
         docker_cert_name: "containerstable",
         docker_cert_dir: "/etc/docker/certs.d/registry.fedoraproject.org",
-      when: env == "production",
-      delegate_to: compose-x86-01.phx2.fedoraproject.org
-    }
-    - {
-      role: push-docker,
-        docker_cert_name: "containerbuild",
-        docker_cert_dir: "/etc/docker/certs.d/candidate-registry.fedoraproject.org",
+        candidate_registry: "candidate-registry.fedoraproject.org",
+        candidate_registry_osbs_username: "{{candidate_registry_osbs_production_username}}",
+        candidate_registry_osbs_password: "{{candidate_registry_osbs_production_password}}"
       when: env == "production",
       delegate_to: compose-x86-01.phx2.fedoraproject.org
     }
