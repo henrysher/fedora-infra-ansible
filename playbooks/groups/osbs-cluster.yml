@@ -394,8 +394,8 @@
       when: env == "production"
       environment: "{{ osbs_environment }}"
 
-- name: Add dockercfg secret to allow registry push
-  hosts: osbs-masters-stg[0]:osbs-masters[0]
+- name: Create the dockercfg secret file
+  hosts: localhost
   tags:
     - osbs-dockercfg-secret
   user: root
@@ -404,26 +404,35 @@
     - /srv/web/infra/ansible/vars/global.yml
     - "/srv/private/ansible/vars.yml"
     - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
-  pre_tasks:
+  tasks:
     - name: Create the dockercfg secret file
       template:
         src: "{{ files }}/osbs/dockercfg-{{env}}-secret.j2"
-        dest: "/tmp/.dockercfg"
+        dest: "/tmp/dockercfg"
         mode: 0400
 
+- name: Add dockercfg secret to allow registry push
+  hosts: osbs-masters-stg[0]:osbs-masters[0]
+  tags:
+    - osbs-dockercfg-secret
   roles:
     - role: osbs-secret
       osbs_secret_name: "v2-registry-dockercfg"
       osbs_secret_type: kubernetes.io/dockercfg
       osbs_secret_files:
-      - source: "/tmp/.dockercfg"
+      - source: "/tmp/dockercfg"
         dest: .dockercfg
 
-  post_tasks:
+- name: Delete the temporary secret file
+  hosts: localhost
+  tags:
+    - osbs-dockercfg-secret
+  user: root
+  tasks:
     - name: Delete the temporary secret file
       file:
         state: absent
-        path: "/tmp/.dockercfg"
+        path: "/tmp/dockercfg"
 
 
 - name: Create worker namespace
