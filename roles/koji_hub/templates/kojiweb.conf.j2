@@ -65,6 +65,22 @@ Alias /buildgroups "/mnt/koji/buildgroups/"
     Require all granted
 </Directory>
 
+{% if env == "production"  %}
 # use redirects for compose and packages locations
 RewriteRule ^/compose(.+) https://kojipkgs.fedoraproject.org/compose$1  [R=301,L]
 RewriteRule ^/packages(.+) https://kojipkgs.fedoraproject.org/packages$1  [R=301,L]
+{% else %}
+Alias /compose "/mnt/koji/compose/"
+
+<Directory "/mnt/koji/compose/">
+    Options Indexes FollowSymLinks
+    Require all granted
+</Directory>
+
+Alias /packages "/mnt/koji/packages/"
+
+<Directory "/mnt/koji/packages/">
+    Options Indexes FollowSymLinks
+    Require all granted
+</Directory>
+{% endif %}
