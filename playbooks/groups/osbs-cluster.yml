@@ -947,7 +947,7 @@
 
 
 - name: Post-Install image stream refresh
-  hosts: osbs-masters[0]
+  hosts: osbs-masters[0]:osbs-masters-stg[0]
   tags:
     - osbs-post-install
   vars_files:
@@ -957,10 +957,6 @@
     - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
 
   tasks:
-    - name: refresh fedora image streams
-      command: "oc import-image fedora --all"
-      when: env == "staging" and hostvars[groups["osbs-masters-stg"][0]]["docker_pull_fedora"] is changed
-
     - name: refresh fedora image streams
       command: "oc import-image fedora --all"
       when: env == "production" and hostvars[groups["osbs-masters"][0]]["docker_pull_fedora"] is changed
