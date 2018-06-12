@@ -37,6 +37,24 @@ config = {
             'mbs_user': 'mbs/mbs.fedoraproject.org',
             'tags': [
                 # Temporary tags
+                {
+                    "from": "f29-kde",
+                    "to": "f29-kde",
+                    "key": "fedora-29",
+                    "keyid": "429476b4"
+                },
+                {
+                    "from": "f29-python",
+                    "to": "f29-python",
+                    "key": "fedora-29",
+                    "keyid": "429476b4"
+                },
+                {
+                    "from": "f29-granite",
+                    "to": "f29-granite",
+                    "key": "fedora-29",
+                    "keyid": "429476b4"
+                },
                 # Infra tags
                 {
                     "from": "epel6-infra-candidate",
