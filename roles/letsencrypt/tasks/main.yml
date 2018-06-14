@@ -1,7 +1,9 @@
 - name: Generate (or renew) the certificate
   delegate_to: certgetter01.phx2.fedoraproject.org
-  command: certbot certonly -n --webroot --webroot-path /var/www/html/ -d {{','.join([site_name] + server_aliases)}}
+  command: certbot certonly --keep -n --webroot --webroot-path /var/www/html/ -d {{','.join([site_name] + server_aliases)}}
   run_once: true
+  register: certbot_output
+  changed_when: "not ('no action taken' in certbot_output)"
   tags:
   - letsencrypt
 
@@ -10,6 +12,7 @@
   delegate_to: certgetter01.phx2.fedoraproject.org
   command: cat /etc/letsencrypt/live/{{site_name}}/cert.pem
   register: certbot_certificate
+  when: "not ('no action taken' in certbot_output)"
   tags:
   - letsencrypt
 
@@ -17,6 +20,7 @@
   delegate_to: certgetter01.phx2.fedoraproject.org
   command: cat /etc/letsencrypt/live/{{site_name}}/chain.pem
   register: certbot_chain
+  when: "not ('no action taken' in certbot_output)"
   tags:
   - letsencrypt
 
@@ -24,6 +28,7 @@
   delegate_to: certgetter01.phx2.fedoraproject.org
   command: cat /etc/letsencrypt/live/{{site_name}}/privkey.pem
   register: certbot_key
+  when: "not ('no action taken' in certbot_output)"
   tags:
   - letsencrypt
 
@@ -34,6 +39,7 @@
     owner=root
     group=root
     mode=0644
+  when: "not ('no action taken' in certbot_output)"
   notify:
   - reload proxyhttpd
   tags:
@@ -46,6 +52,7 @@
     owner=root
     group=root
     mode=0644
+  when: "not ('no action taken' in certbot_output)"
   notify:
   - reload proxyhttpd
   tags:
@@ -58,6 +65,7 @@
     owner=root
     group=root
     mode=0600
+  when: "not ('no action taken' in certbot_output)"
   notify:
   - reload proxyhttpd
   tags:
