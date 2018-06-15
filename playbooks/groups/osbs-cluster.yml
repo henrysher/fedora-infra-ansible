@@ -562,7 +562,7 @@
   tags:
     - osbs-orchestrator-namespace
 
-- name: Add dockercfg secret to allow registry push
+- name: Add dockercfg secret to allow registry push orchestrator
   hosts: osbs-masters-stg[0]:osbs-masters[0]
   tags:
     - osbs-dockercfg-secret
@@ -588,6 +588,33 @@
     - source: "/tmp/.dockercfg"
       dest: .dockercfg
 
+  post_tasks:
+    - name: Delete the temporary secret file
+      local_action: >
+        file
+        state=absent
+        path="/tmp/.dockercfg"
+
+
+- name: Add dockercfg secret to allow registry push worker
+  hosts: osbs-masters-stg[0]:osbs-masters[0]
+  tags:
+    - osbs-dockercfg-secret
+  user: root
+
+  vars_files:
+    - /srv/web/infra/ansible/vars/global.yml
+    - "/srv/private/ansible/vars.yml"
+    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+  pre_tasks:
+    - name: Create the dockercfg secret file
+      local_action: >
+        template
+        src="{{ files }}/osbs/dockercfg-{{env}}-secret.j2"
+        dest="/tmp/.dockercfg"
+        mode=0400
+
+  roles:
   - role: osbs-secret
     osbs_namespace: "{{ osbs_worker_namespace }}"
     osbs_secret_name: "v2-registry-dockercfg"
