@@ -437,6 +437,23 @@
       dest: cert
     when: env == "staging"
 
+- name: setup ODCS secret in worker namespace
+  hosts: osbs-masters-stg[0]
+  vars_files:
+    - /srv/web/infra/ansible/vars/global.yml
+    - "/srv/private/ansible/vars.yml"
+    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+  roles:
+  - role: osbs-secret
+    osbs_namespace: "{{ osbs_worker_namespace }}"
+    osbs_secret_name: odcs-oidc-secret
+    osbs_secret_files:
+    - source: "{{ private }}/files/osbs/staging/odcs-oidc-token"
+      dest: token
+    when: env == "staging"
+  tags:
+    - osbs-worker-namespace
+
 - name: Create orchestrator namespace
   hosts: osbs-masters-stg[0]
   roles:
