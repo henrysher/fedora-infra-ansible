@@ -578,7 +578,6 @@
         auth_info_prod: "{{candidate_registry_osbs_prod_username}}:{{candidate_registry_osbs_prod_password}}"
         auth_info_stg: "{{candidate_registry_osbs_stg_username}}:{{candidate_registry_osbs_stg_password}}"
 
-      origin_version: "{{origin_version_out.stdout}}"
     - name: Create the dockercfg secret file
       local_action: >
         template
@@ -593,15 +592,6 @@
     osbs_secret_files:
     - source: "/tmp/.dockercfg"
       dest: .dockercfg
-
-  - role: osbs-secret
-    osbs_namespace: "worker"
-    osbs_secret_name: "v2-registry-dockercfg"
-    osbs_secret_type: kubernetes.io/dockercfg
-    osbs_secret_files:
-    - source: "/tmp/.dockercfg"
-      dest: .dockercfg
-    when: env == "staging"
 
   post_tasks:
     - name: Delete the temporary secret file
@@ -626,7 +616,6 @@
         auth_info_prod: "{{candidate_registry_osbs_prod_username}}:{{candidate_registry_osbs_prod_password}}"
         auth_info_stg: "{{candidate_registry_osbs_stg_username}}:{{candidate_registry_osbs_stg_password}}"
 
-      origin_version: "{{origin_version_out.stdout}}"
     - name: Create the dockercfg secret file
       local_action: >
         template
@@ -634,14 +623,15 @@
         dest="/tmp/.dockercfg"
         mode=0400
 
-  - role: osbs-secret
-    osbs_namespace: "{{ osbs_worker_namespace }}"
-    osbs_secret_name: "v2-registry-dockercfg"
-    osbs_secret_type: kubernetes.io/dockercfg
-    osbs_secret_files:
-    - source: "/tmp/.dockercfg"
-      dest: .dockercfg
-    when: env == "staging"
+  roles:
+    - role: osbs-secret
+      osbs_namespace: "{{ osbs_worker_namespace }}"
+      osbs_secret_name: "v2-registry-dockercfg"
+      osbs_secret_type: kubernetes.io/dockercfg
+      osbs_secret_files:
+      - source: "/tmp/.dockercfg"
+        dest: .dockercfg
+      when: env == "staging"
 
   post_tasks:
     - name: Delete the temporary secret file
