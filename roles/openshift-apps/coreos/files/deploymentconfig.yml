@@ -1,0 +1,50 @@
+---
+apiVersion: v1
+kind: DeploymentConfig
+metadata:
+  labels:
+    app: coreos
+    service: coreos
+  name: coreos
+spec:
+  replicas: 2
+  selector:
+    app: coreos
+    deploymentconfig: coreos
+  strategy:
+    resources: {}
+  template:
+    metadata:
+      labels:
+        app: coreos
+        deploymentconfig: coreos
+    spec:
+      containers:
+      - image: coreos:latest
+        name: coreos
+        ports:
+        - containerPort: 8080
+          protocol: TCP
+        readinessProbe:
+          timeoutSeconds: 1
+          initialDelaySeconds: 5
+          httpGet:
+            path: /
+            port: 8080
+        livenessProbe:
+          timeoutSeconds: 1
+          initialDelaySeconds: 30
+          httpGet:
+            path: /
+            port: 8080
+
+  triggers:
+  - type: ConfigChange
+  - type: ImageChange
+    imageChangeParams:
+      automatic: true
+      containerNames:
+      - coreos
+      from:
+        kind: ImageStreamTag
+        name: coreos:latest

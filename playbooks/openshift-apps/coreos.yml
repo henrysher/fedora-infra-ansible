@@ -1,0 +1,51 @@
+- name: make the app be real
+  hosts: os-masters[0]:os-masters-stg[0]
+  user: root
+  gather_facts: False
+
+  vars_files:
+    - /srv/web/infra/ansible/vars/global.yml
+    - "/srv/private/ansible/vars.yml"
+    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  roles:
+  - role: openshift/project
+    app: coreos
+    description: coreos.fedoraproject.org static website
+    appowners:
+    - misc
+    - sanja
+  - role: openshift/object
+    app: coreos
+    template: imagestream.yml
+    objectname: imagestream.yml
+  - role: openshift/object
+    app: coreos
+    template: buildconfig.yml
+    objectname: buildconfig.yml
+
+  - role: openshift/start-build
+    app: coreos
+    buildname: coreos-build
+    objectname: coreos-build
+
+  - role: openshift/object
+    app: coreos
+    file: service.yml
+    objectname: service.yml
+
+  - role: openshift/route
+    app: coreos
+    routename: coreos
+    host: "coreos.fedoraproject.org"
+    serviceport: web
+    servicename: coreos
+
+  - role: openshift/object
+    app: coreos
+    file: deploymentconfig.yml
+    objectname: deploymentconfig.yml
+
+  - role: openshift/rollout
+    app: coreos
+    dcname: coreos
