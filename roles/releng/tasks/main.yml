@@ -101,21 +101,6 @@
     - pungi-utils
   when: "'releng-compose' in group_names"
 
-# add sigul to secondary arch compose boxes
-- name: add pkgs
-  dnf: state=present pkg={{ item }}
-  with_items:
-    - sigul
-  when: ansible_distribution_major_version|int > 21 and "'releng-secondary' in group_names"
-
-# put secondary sigul config on secondary compose boxes
-- name: secondary sigul config
-  copy: src="sigul-client-secondary.conf" dest=/etc/sigul/client.conf
-  when: "'releng-secondary' in group_names"
-
-- name: copy over our mash.conf
-  template: src=mash.conf dest=/etc/mash/mash.conf
-
 - name: Custom compose-koji
   template: src=compose-koji.j2 dest=/usr/bin/compose-koji
             mode=0755
@@ -126,14 +111,6 @@
 - name: make a mnt/koji link
   file: state=link src=/mnt/fedora_koji/koji dest=/mnt/koji
   when: "'releng-compose' in group_names or 'releng-stg' in group_names"
-
-- name: make a mnt/koji link for AltArch
-  file: state=link src=/mnt/fedora_koji dest=/mnt/koji
-  when: "'releng-secondary' in group_names"
-
-- name: symlink /srv/pungi
-  file: src=/mnt/fedora_koji/koji/compose dest=/srv/pungi  state=link
-  when: "'releng-secondary' not in group_names"
 
 - name: add pkgs for nightly compose
   package:  state=present pkg={{ item }}

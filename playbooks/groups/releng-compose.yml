@@ -6,7 +6,7 @@
 - import_playbook: "/srv/web/infra/ansible/playbooks/include/virt-create.yml myhosts=releng-compose:releng-stg"
 
 - name: Setup releng compose hosts
-  hosts: releng-compose:releng-secondary:releng-stg
+  hosts: releng-compose:releng-stg
   user: root
   gather_facts: True
   tags:
@@ -48,7 +48,6 @@
     when: inventory_hostname == 'composer.stg.phx2.fedoraproject.org'
   - { role: nfs/client, when: "'releng-stg' not in group_names",  mnt_dir: '/mnt/fedora_koji',  nfs_src_dir: "{{ koji_hub_nfs }}" }
   - { role: nfs/client, when: "'releng-compose' in group_names", mnt_dir: '/pub',  nfs_src_dir: 'fedora_ftp/fedora.redhat.com/pub' }
-  - { role: nfs/client, when: "'releng-secondary' in group_names", mnt_dir: '/pub/fedora-secondary',  nfs_src_dir: 'fedora_ftp/fedora.redhat.com/pub/fedora-secondary' }
   - { role: nfs/client, when: "'releng-stg' in group_names", mnt_dir: '/mnt/fedora_koji_prod',  nfs_src_dir: "{{ koji_hub_nfs }}" }
   - fedmsg/base
   - role: releng
