@@ -1,0 +1,16 @@
+# This playbook removes some data that Fedora knows about a username and/or e-mail address.
+#
+# Please read http://fedora-infra-docs.readthedocs.io/en/latest/sysadmin-guide/sops/gdpr_delete.html
+# for information about how to use this playbook and how to integration applications with it.
+
+- name: Delete user data
+  hosts: gdpr_delete
+  strategy: free
+  tasks:
+    # Non-huge SAR retrieval
+    - command: "{{ gdpr_delete_script }}"
+      environment:
+        SAR_USERNAME: "{{ gdpr_delete_fas_user }}"
+        SAR_EMAIL: "{{ gdpr_delete_email }}"
+      become: yes
+      become_user: "{{ gdpr_delete_script_user }}"
