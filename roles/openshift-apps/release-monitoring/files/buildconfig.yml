@@ -10,7 +10,7 @@ items:
     runPolicy: Serial
     source:
       dockerfile: |-
-        FROM fedora:27
+        FROM fedora:28
         LABEL \
           name="release-monitoring-web" \
           vendor="Fedora Infrastructure" \
@@ -30,6 +30,7 @@ items:
                 python3-pip \
                 python3-psycopg2 \
                 python3-setuptools \
+                python3-sphinxcontrib-httpdomain \
                 python3-social-auth-app-flask-sqlalchemy \
                 python3-straight-plugin \
                 python3-sqlalchemy \
@@ -37,6 +38,17 @@ items:
             dnf autoremove -y && \
             dnf clean all -y
         RUN pip-3 install git+https://github.com/release-monitoring/anitya.git
+        RUN git clone https://github.com/release-monitoring/anitya.git && \
+                pushd anitya && \
+                git checkout 0.12.0 && \
+                pushd docs && \
+                sphinx-build-3 -b html . _build/html && \
+                mkdir -p ../anitya/static/docs/ && \
+                cp -r _build/html/* ../anitya/static/docs/ && \
+                popd && \
+                pip-3 install . && \
+                popd && \
+                rm -rf anitya
         ENV USER=anitya
         EXPOSE 8080
         EXPOSE 9940
