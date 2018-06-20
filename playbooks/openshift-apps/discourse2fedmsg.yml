@@ -1,0 +1,48 @@
+- name: make the app be real
+  hosts: os-masters-stg[0]
+  user: root
+  gather_facts: False
+
+  vars_files:
+    - /srv/web/infra/ansible/vars/global.yml
+    - "/srv/private/ansible/vars.yml"
+    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  roles:
+  - role: openshift/project
+    app: discourse2fedmsg
+    description: discourse2fedmsg
+    appowners:
+    - puiterwijk
+  - role: openshift/object
+    app: discourse2fedmsg
+    file: imagestream.yml
+    objectname: imagestream.yml
+  - role: openshift/object
+    app: discourse2fedmsg
+    file: buildconfig.yml
+    objectname: buildconfig.yml
+
+  - role: openshift/start-build
+    app: discourse2fedmsg
+    buildname: discourse2fedmsg-build
+
+  - role: openshift/object
+    app: discourse2fedmsg
+    file: service.yml
+    objectname: service.yml
+
+  - role: openshift/route
+    app: discourse2fedmsg
+    routename: discourse2fedmsg
+    serviceport: 8080-tcp
+    servicename: discourse2fedmsg
+
+  - role: openshift/object
+    app: discourse2fedmsg
+    template: deploymentconfig.yml
+    objectname: deploymentconfig.yml
+
+  - role: openshift/rollout
+    app: discourse2fedmsg
+    dcname: discourse2fedmsg

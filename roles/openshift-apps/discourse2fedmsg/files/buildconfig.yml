@@ -1,0 +1,24 @@
+apiVersion: v1
+kind: BuildConfig
+metadata:
+  name: discourse2fedmsg-build
+  labels:
+    environment: "discourse2fedmsg"
+spec:
+  output:
+    to:
+      kind: ImageStreamTag
+      name: discourse2fedmsg:latest
+  source:
+    type: Git
+    git:
+      uri: https://pagure.io/discourse2fedmsg.git
+  strategy:
+    type: Source
+    sourceStrategy:
+      from:
+        kind: ImageStreamTag
+        name: python-33-rhel7:latest
+  triggers:
+  - type: ConfigChange
+  - type: ImageChange

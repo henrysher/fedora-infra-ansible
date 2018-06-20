@@ -1,0 +1,50 @@
+---
+apiVersion: v1
+kind: DeploymentConfig
+metadata:
+  labels:
+    app: discourse2fedmsg
+    service: discourse2fedmsg
+  name: discourse2fedmsg
+spec:
+  replicas: 2
+  selector:
+    app: discourse2fedmsg
+    deploymentconfig: discourse2fedmsg
+  strategy:
+    resources: {}
+  template:
+    metadata:
+      labels:
+        app: discourse2fedmsg
+        deploymentconfig: discourse2fedmsg
+    spec:
+      containers:
+      - image: discourse2fedmsg:latest
+        name: discourse2fedmsg
+        ports:
+        - containerPort: 8080
+          protocol: TCP
+        readinessProbe:
+          timeoutSeconds: 1
+          initialDelaySeconds: 5
+          httpGet:
+            path: /
+            port: 8080
+        livenessProbe:
+          timeoutSeconds: 1
+          initialDelaySeconds: 30
+          httpGet:
+            path: /
+            port: 8080
+
+  triggers:
+  - type: ConfigChange
+  - type: ImageChange
+    imageChangeParams:
+      automatic: true
+      containerNames:
+      - discourse2fedmsg
+      from:
+        kind: ImageStreamTag
+        name: discourse2fedmsg:latest
