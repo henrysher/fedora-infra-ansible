@@ -30,16 +30,6 @@
   - osbs-client
   when: env == 'production'
 
-
-- name: Upload OSBS Orchestrator Customizations plugin conf
-  copy:
-    src: "osbs-orchestrator-customize.json"
-    dest: "/usr/share/osbs/orchestrator_customize.json"
-    mode: 0644
-  tags:
-  - osbs-client
-  when: env == 'staging'
-
 - name: Symlink in OSBS input configs provided by package
   file:
     src: "/usr/share/osbs/{{item}}.json"
@@ -52,8 +42,7 @@
   - osbs-client
   when: env == 'production'
 
-- name: We do not want orchestrator.json in production
+- name: We do not want orchestrator.json on the buildvm
   file: name=/etc/osbs/input/orchestrator.json state=absent
   tags:
   - osbs-client
-  when: env == 'production'

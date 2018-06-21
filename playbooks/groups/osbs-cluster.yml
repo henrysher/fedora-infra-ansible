@@ -880,6 +880,16 @@
       notify:
         - restart and reload docker service
 
+    - name: copy the osbs customization file
+      copy:
+        src: "{{item}}"
+        dest: "/etc/osbs/buildroot/"
+        owner: root
+        mode: 600
+      with_file:
+        - "{{files}}/osbs/worker_customize.json"
+        - "{{files}}/osbs/orchestrator_customize.json"
+
     - name: Create buildroot container conf directory
       file:
         path: "/etc/osbs/buildroot/"
