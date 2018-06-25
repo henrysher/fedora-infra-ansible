@@ -7,7 +7,10 @@ sleep $[ ( $RANDOM % 7200 )  + 1 ]s
 DB=$1
 
 # Make our latest backup
-/usr/bin/pg_dump --exclude-table-data=sessions -C $DB | /usr/bin/pxz > /backups/$DB-$(date +%F).dump.xz
+# Make it use a limited number of threads because pxz will use all the
+# cpus which causes pg_dump to starve which causes...
+
+/usr/bin/pg_dump --exclude-table-data=sessions -C $DB | /usr/bin/pxz -T4 > /backups/$DB-$(date +%F).dump.xz
 
 # Also, delete the backup from a few days ago.
 rm -f /backups/$DB-$(date --date="1 days ago" +%F).dump.xz
