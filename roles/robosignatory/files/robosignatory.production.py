@@ -38,6 +38,12 @@ config = {
             'tags': [
                 # Temporary tags
                 {
+                    "from": "f29-perl",
+                    "to": "f29-perl",
+                    "key": "fedora-29",
+                    "keyid": "429476b4"
+                },
+                {
                     "from": "f29-kde",
                     "to": "f29-kde",
                     "key": "fedora-29",
