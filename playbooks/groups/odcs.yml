@@ -101,8 +101,27 @@
    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
 
   roles:
-  - odcs/backend
-  - fedmsg/base
+  - role: odcs/backend
+  - role: fedmsg/base
+  - role: keytab/service
+    service: odcs
+    owner_user: odcs
+    owner_group: odcs
+    host: "odcs{{env_suffix}}.fedoraproject.org"
+  - role: fedmsg/hub
+
+  handlers:
+  - import_tasks: "{{ handlers_path }}/restart_services.yml"
+
+- name: Set up /mnt/koji on both the frontend and backend
+  hosts: odcs:odcs-stg
+  user: root
+  gather_facts: True
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
 
   - role: nfs/client
     mnt_dir: '/mnt/fedora_koji'
@@ -115,17 +134,6 @@
     nfs_src_dir: 'fedora_koji'
     when: env == 'staging'
 
-  - role: keytab/service
-    service: odcs
-    owner_user: odcs
-    owner_group: odcs
-    host: "odcs{{env_suffix}}.fedoraproject.org"
-
-  - role: fedmsg/hub
-
   post_tasks:
   - file: src=/mnt/fedora_koji/koji dest=/mnt/koji state=link
     tags: nfs/client
-
-  handlers:
-  - import_tasks: "{{ handlers_path }}/restart_services.yml"
