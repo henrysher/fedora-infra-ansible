@@ -365,6 +365,17 @@ class FedoraTemplate extends QuickTemplate {
         ?>
     });
   </script>
+  <script>
+    $(function() {
+      $('.mw-headline').each(
+        function(f) {
+          $(this).prepend(
+            '<a href="#' + $(this).attr('id') + '">' + String.fromCodePoint(128279) + '</a> '
+          );
+        }
+      );
+    });
+  </script>
 
 <?php $this->html('reporttime') ?>
 <?php if ( $this->data['debug'] ): ?>
