@@ -5,6 +5,18 @@
 # Things in here are things we want to do to every machine no matter what.
 #
 
+- name: setup a /etc/ansible/fact.d dir if needed. 
+  file: path="/etc/ansible/facts.d/" state=directory mode=0700
+  when: vmhost is defined
+  tags:
+  - vmhost_fact
+
+- name: set a vmhost fact on vmguests
+  copy: content="{{vmhost}}" dest=/etc/ansible/facts.d/vmhost.fact
+  when: vmhost is defined
+  tags:
+  - vmhost_fact
+
 - name: ensure packages required for semanage are installed (yum)
   package: name={{ item }} state=present
   when: ansible_distribution_major_version|int < 22
