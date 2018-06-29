@@ -9,24 +9,35 @@
 #
 
 - name: check for updates
-  hosts: all
-  gather_facts: true
-  user: root
+  hosts: distro_RedHat:distro_CentOS:!*.app.os.fedoraproject.org:!*.app.os.stg.fedoraproject.org
+  gather_facts: false
 
   tasks:
 
   - name: check for updates (yum)
     yum: list=updates update_cache=true
     register: yumoutput
-    when: ansible_distribution_major_version|int < 22
+
+  - debug: msg="{{ inventory_hostname}} {{ yumoutput.results|length }}"
+    when: yumoutput.results|length > 0
+
+- name: check for updates
+  hosts: distro_Fedora:!*.app.os.fedoraproject.org:!*.app.os.stg.fedoraproject.org
+  gather_facts: false
+
+  tasks:
+
+#
+# We use the command module here because the real module can't expire
+#
+
+  - name: make dnf recheck for new metadata from repos
+    command: dnf clean expire-cache
+    warn: False
 
   - name: check for updates (dnf)
     dnf: list=updates
     register: dnfoutput
-    when: ansible_distribution_major_version|int > 21
-
-  - debug: msg="{{ inventory_hostname}} {{ yumoutput.results|length }}"
-    when: yumoutput is defined and yumoutput.results|length > 0
 
   - debug: msg="{{ inventory_hostname}} {{ dnfoutput.results|length }}"
-    when: dnfoutput is defined and dnfoutput.results|length > 0
+    when: dnfoutput.results|length > 0

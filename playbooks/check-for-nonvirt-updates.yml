@@ -8,25 +8,54 @@
 # time ansible-playbook check-for-updates.yml | grep msg\": | awk -F: '{print $2}' | sort
 #
 
-- name: check for updates
-  hosts: all
-  gather_facts: true
-  user: root
+- name: check for updates (EL)
+  hosts: virt_host:&distro_RedHat
+  gather_facts: false
 
   tasks:
 
   - name: check for updates (yum)
     yum: list=updates update_cache=true
     register: yumoutput
-    when: ansible_distribution_major_version|int < 22 and ansible_virtualization_role == 'host'
+
+  - debug: msg="{{ inventory_hostname}} {{ yumoutput.results|length }}"
+
+- name: check for updates (Fedora)
+  hosts: virt_host:&distro_Fedora
+  gather_facts: false
+
+  tasks:
 
   - name: check for updates (dnf)
     dnf: list=updates
     register: dnfoutput
-    when: ansible_distribution_major_version|int > 21 and ansible_virtualization_role == 'host'
-
-  - debug: msg="{{ inventory_hostname}} {{ yumoutput.results|length }}"
-    when: yumoutput is defined and yumoutput.results|length > 0
 
   - debug: msg="{{ inventory_hostname}} {{ dnfoutput.results|length }}"
-    when: dnfoutput is defined and dnfoutput.results|length > 0
+
+#
+# For some reason ansible detects aarch64/armv7 hosts as virt type "NA"
+#
+
+- name: check for updates (aarch64/armv7) EL
+  hosts: virt_NA:&distro_RedHat
+  gather_facts: false
+
+  tasks:
+
+  - name: check for updates (yum)
+    yum: list=updates update_cache=true
+    register: yumoutput
+
+  - debug: msg="{{ inventory_hostname}} {{ yumoutput.results|length }}"
+
+- name: check for updates (aarch64/armv7) Fedora
+  hosts: virt_NA:&distro_Fedora
+  gather_facts: false
+
+  tasks:
+
+  - name: check for updates (dnf)
+    dnf: list=updates
+    register: dnfoutput
+
+  - debug: msg="{{ inventory_hostname}} {{ dnfoutput.results|length }}"
