@@ -66,6 +66,11 @@
   include_role: name=certbot
   when: env == 'staging'
 
+- template: src="ssl.conf.j2" dest="/etc/httpd/conf.d/ssl.conf" owner=root group=root mode=0644
+  when: env == 'staging'
+  notify:
+  - reload httpd
+
 - name: temporary logrotation fix until copr-dist-git 0.26 is released & deployed
   copy: src="logrotate.d/copr-dist-git" dest="/etc/logrotate.d/copr-dist-git"
 

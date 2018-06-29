@@ -1,0 +1,44 @@
+<VirtualHost *:80>
+        RewriteRule "^/?(.*)" "https://%{HTTP_HOST}/$1" [L,R=301,NE]
+</VirtualHost>
+
+Listen 443 https
+
+SSLPassPhraseDialog exec:/usr/libexec/httpd-ssl-pass-dialog
+SSLSessionCache         shmcb:/run/httpd/sslcache(512000)
+SSLSessionCacheTimeout  300
+SSLRandomSeed startup file:/dev/urandom  256
+SSLRandomSeed connect builtin
+SSLCryptoDevice builtin
+
+<VirtualHost _default_:443>
+        SSLCertificateFile    /etc/letsencrypt/live/{{ inventory_hostname }}/cert.pem
+        SSLCertificateKeyFile  /etc/letsencrypt/live/{{ inventory_hostname }}/privkey.pem
+        SSLCertificateChainFile /etc/letsencrypt/live/{{ inventory_hostname }}/fullchain.pem
+
+        ErrorLog logs/ssl_error_log
+        TransferLog logs/ssl_access_log
+        LogLevel warn
+
+        SSLEngine on
+
+        SSLProtocol all -SSLv3
+        SSLProxyProtocol all -SSLv3
+        SSLHonorCipherOrder on
+        SSLCipherSuite PROFILE=SYSTEM
+        SSLProxyCipherSuite PROFILE=SYSTEM
+
+        <FilesMatch "\.(cgi|shtml|phtml|php)$">
+            SSLOptions +StdEnvVars
+        </FilesMatch>
+        <Directory "/var/www/cgi-bin">
+            SSLOptions +StdEnvVars
+        </Directory>
+
+        BrowserMatch "MSIE [2-5]" \
+                 nokeepalive ssl-unclean-shutdown \
+                 downgrade-1.0 force-response-1.0
+
+        CustomLog logs/ssl_request_log \
+                  "%t %h %{SSL_PROTOCOL}x %{SSL_CIPHER}x \"%r\" %b"
+</VirtualHost>
