@@ -65,14 +65,14 @@
   tags:
     - armv7-kernel
 
+- name: when armv7kernelupdate is set we are done
+  fail: msg="armv7kernelupdate was set, so kernel has been updated and target booted up"
+  when: armv7kernelupdate is defined
+
 - name: start the vm up and set it to autostart
   virt: state=running name={{ inventory_hostname }} autostart=True
   delegate_to: "{{ vmhost }}"
   when: inventory_hostname not in result.list_vms
-
-- name: when armv7kernelupdate is set we are done
-  fail: msg="armv7kernelupdate was set, so kernel has been updated and target booted up"
-  when: armv7kernelupdate is defined
 
 - name: ARMv7 pause while VM updates
   pause: seconds=5
