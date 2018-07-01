@@ -64,6 +64,13 @@
     package: name=bc state=present
     when: inventory_hostname == 'download-ib01.fedoraproject.org'
 
+  - name: put in script for syncing on download-cc-rdu01
+    copy: src="{{ files }}/download/sync-up-downloads.sh.cc-rdu01" dest=/usr/local/bin/sync-up-downloads owner=root group=root mode=755
+    when: inventory_hostname == 'download-cc-rdu01.fedoraproject.org'
+  - name: put in cron job for syncing
+    copy: src="{{ files }}/download/download-sync.cron"  dest=/etc/cron.d/download-sync owner=root group=root mode=644
+    when: inventory_hostname == 'download-cc-rdu01.fedoraproject.org'
+
 
 
 
