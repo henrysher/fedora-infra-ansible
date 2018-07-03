@@ -26,8 +26,11 @@ spec:
         - name: DATABASE_ENGINE
           value: postgresql
         - name: DATABASE_NAME
-          value: transtats
-        - name: POSTGRES_SERVICE_HOST
+          valueFrom:
+            secretKeyRef:
+              name: transtats-secret
+              key: database-name
+        - name: DATABASE_HOST
           valueFrom:
             secretKeyRef:
               name: transtats-secret
@@ -42,11 +45,11 @@ spec:
             secretKeyRef:
               name: transtats-secret
               key: database-password
-        - name: DJANGO_SECRET_KEY
+        - name: INITIAL_DATA_FILE_PATH
           valueFrom:
             secretKeyRef:
               name: transtats-secret
-              key: django-secret-key
+              key: initial-data-file-path
         readinessProbe:
           timeoutSeconds: 1
           initialDelaySeconds: 5
