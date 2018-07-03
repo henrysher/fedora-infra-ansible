@@ -14,11 +14,34 @@
     description: transtats
     appowners:
     - suanand
-  - { role: openshift/object, vars: {app: transtats, template: secret.yml }}
-  - { role: openshift/object, vars: {app: transtats, file: imagestream.yml }}
-  - { role: openshift/object, vars: {app: transtats, file: buildconfig.yml }}
-  - { role: openshift/start-build, vars: {app: transtats, name: transtats-build }}
-  - { role: openshift/object, vars: {app: transtats, file: service.yml }}
-  - { role: openshift/object, vars: {app: transtats, file: route.yml }}
-  - { role: openshift/object, vars: {app: transtats, file: deploymentconfig.yml }}
-  - { role: openshift/rollout, vars: {app: transtats, name: transtats-web }}
+  - role: openshift/object
+    app: transtats
+    template: secret.yml
+  - role: openshift/object
+    app: transtats
+    file: imagestream.yml
+    imagename: transtats
+  - role: openshift/object
+    app: transtats
+    file: buildconfig.yml
+    objectname: buildconfig.yml
+  - role: openshift/start-build
+    app: transtats
+    buildname: transtats-web
+  - role: openshift/object
+    app: transtats
+    file: service.yml
+    objectname: service.yml
+  - role: openshift/object
+    app: transtats
+    routename: transtats-web
+    file: route.yml
+    serviceport: web
+    servicename: transtats-web
+  - role: openshift/object
+    app: transtats
+    file: deploymentconfig.yml
+    objectname: deploymentconfig.yml
+  - role: openshift/rollout
+    app: transtats
+    name: transtats-web
