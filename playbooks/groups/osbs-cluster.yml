@@ -234,10 +234,11 @@
         cluster_inventory_filename: "cluster-inventory",
         openshift_htpasswd_file: "/etc/origin/htpasswd",
         openshift_master_public_api_url: "https://{{ osbs_url }}:8443",
-        openshift_release: "v3.6.0",
+        openshift_release: "v3.9.0",
         openshift_ansible_path: "/root/openshift-ansible",
-        openshift_ansible_playbook: "playbooks/byo/config.yml",
-        openshift_ansible_version: "release-3.6-fedora-compat",
+        openshift_ansible_pre_playbook: "playbooks/prerequisites.yml",
+        openshift_ansible_playbook: "playbooks/deploy_cluster.yml",
+        openshift_ansible_version: "openshift-ansible-3.9.30-1",
         openshift_ansible_ssh_user: root,
         openshift_ansible_install_examples: false,
         openshift_ansible_containerized_deploy: false,
@@ -319,86 +320,8 @@
         src: "{{files}}/osbs/fedora-dnsmasq.conf.{{env}}"
         dest: "/etc/dnsmasq.d/fedora-dns.conf"
 
-- name: Setup requirements for OpenShift master
-  hosts: osbs-masters-stg:osbs-masters
-  tags:
-    - osbs-master-req
-  user: root
-  gather_facts: True
-
-  vars_files:
-    - /srv/web/infra/ansible/vars/global.yml
-    - "/srv/private/ansible/vars.yml"
-    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
-
-  tasks:
-    - name: set policy for koji builder in openshift for osbs
-      command: "oadm policy add-role-to-user -n default edit htpasswd_provider: {{ osbs_koji_prod_username }} && touch /etc/origin/koji-builder-policy-added"
-      args:
-        creates: "/etc/origin/koji-builder-policy-added"
-      when: env == "production"
-
-    - name: set policy for koji builder in openshift for atomic-reactor
-      command: "oadm policy add-role-to-user -n default edit system:serviceaccount:default:builder && touch /etc/origin/atomic-reactor-policy-added"
-      args:
-        creates: "/etc/origin/atomic-reactor-policy-added"
-      when: env == "production"
-
-- name: Deploy OSBS on top of OpenShift
-  hosts: osbs-masters-stg[0]:osbs-masters[0]
-  tags:
-    - osbs-deploy-on-openshift
-  user: root
-  gather_facts: True
-
-  vars_files:
-    - /srv/web/infra/ansible/vars/global.yml
-    - "/srv/private/ansible/vars.yml"
-    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
-
-  vars:
-    osbs_kubeconfig_path: /etc/origin/master/admin.kubeconfig
-    osbs_environment:
-      KUBECONFIG: "{{ osbs_kubeconfig_path }}"
-
-  roles:
-    - {
-      role: osbs-on-openshift,
-        osbs_openshift_home: "/var/lib/origin",
-        osbs_namespace: "default",
-        osbs_namespace_create: "false",
-        osbs_kubeconf_path: "/etc/origin/master/admin.kubeconfig",
-        osbs_environment: [
-          KUBECONFIG: "{{ osbs_kubeconfig_path }}"
-          ],
-        osbs_service_accounts: [],
-        osbs_readonly_users: [],
-        osbs_readonly_groups: [],
-        osbs_readwrite_users: ["{{ osbs_koji_prod_username }}"],
-        osbs_readwrite_groups: [ "system:authenticated"],
-        osbs_admin_users: [],
-        osbs_admin_groups: [],
-        osbs_docker_registry: false,
-        osbs_docker_registry_storage: "/opt/openshift-registry",
-      when: env == "production"
-    }
-
-  tasks:
-    - name: set custom build policy for koji builder in openshift for osbs
-      command: "oc adm policy add-role-to-user -n default osbs-custom-build {{ osbs_koji_prod_username }} --role-namespace=default && touch /etc/origin/koji-custom-build-policy-added"
-      args:
-        creates: "/etc/origin/koji-builder-policy-added"
-      when: env == "production"
-      environment: "{{ osbs_environment }}"
-    - name: set custom build policy for builder service account in openshift for osbs
-      command: "oc adm policy add-role-to-user -n default osbs-custom-build system:serviceaccount:default:builder --role-namespace=default && touch /etc/origin/koji-builder-policy-added"
-      args:
-        creates: "/etc/origin/koji-builder-policy-added"
-      when: env == "production"
-      environment: "{{ osbs_environment }}"
-
 - name: Create worker namespace
-  hosts: osbs-masters-stg[0]
+  hosts: osbs-masters-stg[0]:osbs-masters[0]
   tags:
     - osbs-worker-namespace
   user: root
@@ -420,10 +343,10 @@
       osbs_authoritative_registry: "{{ source_registry }}"
       osbs_sources_command: "{{ osbs_conf_sources_command }}"
       osbs_vendor: "{{ osbs_conf_vendor }}"
-      when: env == "staging"
+
 
 - name: setup koji secret in worker namespace
-  hosts: osbs-masters-stg[0]
+  hosts: osbs-masters-stg[0]:osbs-masters[0]
   vars_files:
     - /srv/web/infra/ansible/vars/global.yml
     - "/srv/private/ansible/vars.yml"
@@ -437,10 +360,9 @@
     osbs_secret_files:
     - source: "{{ private }}/files/koji/containerbuild.pem"
       dest: cert
-    when: env == "staging"
 
 - name: setup ODCS secret in worker namespace
-  hosts: osbs-masters-stg[0]
+  hosts: osbs-masters-stg[0]:osbs-masters[0]
   vars_files:
     - /srv/web/infra/ansible/vars/global.yml
     - "/srv/private/ansible/vars.yml"
@@ -450,14 +372,13 @@
     osbs_namespace: "{{ osbs_worker_namespace }}"
     osbs_secret_name: odcs-oidc-secret
     osbs_secret_files:
-    - source: "{{ private }}/files/osbs/staging/odcs-oidc-token"
+    - source: "{{ private }}/files/osbs/{{ env }}/odcs-oidc-token"
       dest: token
-    when: env == "staging"
   tags:
     - osbs-worker-namespace
 
 - name: Create orchestrator namespace
-  hosts: osbs-masters-stg[0]
+  hosts: osbs-masters-stg[0]:osbs-masters[0]
   roles:
   - role: osbs-namespace
     osbs_orchestrator: true
@@ -474,38 +395,48 @@
     koji_use_kerberos: true
     koji_kerberos_keytab: "FILE:/etc/krb5.osbs_{{ osbs_url }}.keytab"
     koji_kerberos_principal: "osbs/{{osbs_url}}@{{ ipa_realm }}"
-    when: env == "staging"
   tags:
     - osbs-orchestrator-namespace
 
 
 - name: Add the worker/orchestrator labels to the nodes
-  hosts: osbs-masters-stg[0]
+  hosts: osbs-masters-stg[0]:osbs-masters[0]
   tags:
     - osbs-labels-nodes
   tasks:
     - name: Add the worker label
       command: "oc -n {{ osbs_worker_namespace }} label nodes {{ item }} worker=true --overwrite"
       loop: "{{ groups['osbs-nodes-stg'] }}"
+      when: env == "staging"
 
     - name: Add the orchestrator labels to the nodes
       command: "oc -n {{ osbs_namespace }} label nodes {{ item }} orchestrator=true --overwrite"
       loop: "{{ groups['osbs-nodes-stg'] }}"
+      when: env == "staging"
+
+    - name: Add the worker label
+      command: "oc -n {{ osbs_worker_namespace }} label nodes {{ item }} worker=true --overwrite"
+      loop: "{{ groups['osbs-nodes'] }}"
+      when: env == "production"
+
+    - name: Add the orchestrator labels to the nodes
+      command: "oc -n {{ osbs_namespace }} label nodes {{ item }} orchestrator=true --overwrite"
+      loop: "{{ groups['osbs-nodes'] }}"
+      when: env == "production"
 
 - name: setup reactor config secret in orchestrator namespace
-  hosts: osbs-masters-stg[0]
+  hosts: osbs-masters-stg[0]:osbs-masters[0]
   roles:
   - role: osbs-secret
     osbs_secret_name: reactor-config-secret
     osbs_secret_files:
     - source: "/tmp/{{ osbs_namespace }}-reactor-config-secret.yml"
       dest: config.yaml
-    when: env == "staging"
   tags:
     - osbs-orchestrator-namespace
 
 - name: setup ODCS secret in orchestrator namespace
-  hosts: osbs-masters-stg[0]
+  hosts: osbs-masters-stg[0]:osbs-masters[0]
   vars_files:
     - /srv/web/infra/ansible/vars/global.yml
     - "/srv/private/ansible/vars.yml"
@@ -514,26 +445,24 @@
   - role: osbs-secret
     osbs_secret_name: odcs-oidc-secret
     osbs_secret_files:
-    - source: "{{ private }}/files/osbs/staging/odcs-oidc-token"
+    - source: "{{ private }}/files/osbs/{{ env }}/odcs-oidc-token"
       dest: token
-    when: env == "staging"
   tags:
     - osbs-orchestrator-namespace
 
 - name: setup client config secret in orchestrator namespace
-  hosts: osbs-masters-stg[0]
+  hosts: osbs-masters-stg[0]:osbs-masters[0]
   roles:
   - role: osbs-secret
     osbs_secret_name: client-config-secret
     osbs_secret_files:
     - source: "/tmp/{{ osbs_namespace }}-client-config-secret.conf"
       dest: osbs.conf
-    when: env == "staging"
   tags:
     - osbs-orchestrator-namespace
 
 - name: setup koji secret in orchestrator namespace
-  hosts: osbs-masters-stg[0]
+  hosts: osbs-masters-stg[0]:osbs-masters[0]
   vars_files:
     - /srv/web/infra/ansible/vars/global.yml
     - "/srv/private/ansible/vars.yml"
@@ -544,23 +473,21 @@
     osbs_secret_files:
     - source: "{{ private }}/files/koji/containerbuild.pem"
       dest: cert
-    when: env == "staging"
   tags:
     - osbs-orchestrator-namespace
 
 - name: setup orchestrator token for x86_64-osbs
-  hosts: osbs-masters-stg[0]
+  hosts: osbs-masters-stg[0]:osbs-masters[0]
   vars_files:
     - /srv/web/infra/ansible/vars/global.yml
     - "/srv/private/ansible/vars.yml"
     - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
   roles:
   - role: osbs-secret
-    osbs_secret_name: x86-64-stg-orchestrator
+    osbs_secret_name: x86-64-orchestrator
     osbs_secret_files:
-    - source: "{{ private }}/files/osbs/staging/x86-64-osbs-stg-orchestrator"
+    - source: "{{ private }}/files/osbs/{{ env }}/x86-64-osbs-orchestrator"
       dest: token
-    when: env == "staging"
   tags:
     - osbs-orchestrator-namespace
 
@@ -633,7 +560,6 @@
       osbs_secret_files:
       - source: "/tmp/.dockercfg"
         dest: .dockercfg
-      when: env == "staging"
 
   post_tasks:
     - name: Delete the temporary secret file
@@ -641,80 +567,6 @@
         file
         state=absent
         path="/tmp/.dockercfg"
-
-- name: Manage docker images and image stream
-  hosts: osbs-masters[0]
-  tags:
-    - osbs-post-install
-    - manage-docker-images
-  vars_files:
-    - /srv/web/infra/ansible/vars/global.yml
-    - /srv/private/ansible/vars.yml
-    - /srv/private/ansible/files/openstack/passwords.yml
-    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
-  vars:
-    osbs_kubeconfig_path: /etc/origin/master/admin.kubeconfig
-    osbs_environment:
-      KUBECONFIG: "{{ osbs_kubeconfig_path }}"
-    koji_pki_dir: /etc/pki/koji
-    koji_ca_cert_path: "{{koji_pki_dir}}/fedora-server-ca.cert"
-    koji_cert_path: "{{koji_pki_dir}}/fedora-builder.pem"
-    koji_builder_user: dockerbuilder
-    osbs_builder_user: builder
-
-  tasks:
-    - name: pull fedora required docker images
-      command: "docker pull {{item}}"
-      with_items: "{{fedora_required_images}}"
-      delegate_to: "{{ composer }}"
-      register: docker_pull_fedora_delegated
-      changed_when: "'Downloaded newer image' in docker_pull_fedora_delegated.stdout"
-
-    - name: tag fedora required docker images for our registry
-      command: "docker tag {{item}} {{docker_registry}}/{{item}}"
-      with_items: "{{fedora_required_images}}"
-      delegate_to: "{{ composer }}"
-      when: docker_pull_fedora_delegated is changed
-
-    - name: push fedora required docker images to our registry
-      command: "docker push {{docker_registry}}/{{item}}"
-      with_items: "{{fedora_required_images}}"
-      delegate_to: "{{ composer }}"
-      when: docker_pull_fedora_delegated is changed
-
-    - name: register origin_version_out rpm query
-      command: "rpm -q origin --qf '%{Version}'"
-      register: origin_version_out
-      check_mode: no
-      changed_when: False
-
-    - set_fact:
-        origin_version: "{{origin_version_out.stdout}}"
-
-    - name: pull openshift required docker images
-      command: "docker pull {{item}}:v{{origin_version}}"
-      with_items: "{{openshift_required_images}}"
-      delegate_to: "{{ composer }}"
-      register: docker_pull_openshift_delegated
-      changed_when: "'Downloaded newer image' in docker_pull_openshift_delegated.stdout"
-
-    - name: tag openshift required docker images for our registry
-      command: "docker tag {{item}}:v{{origin_version}} {{docker_registry}}/{{item}}:v{{origin_version}}"
-      with_items: "{{openshift_required_images}}"
-      delegate_to: "{{ composer }}"
-      when: docker_pull_openshift_delegated is changed
-
-    - name: push openshift required docker images to our registry
-      command: "docker push {{docker_registry}}/{{item}}:v{{origin_version}}"
-      with_items: "{{openshift_required_images}}"
-      delegate_to: "{{ composer }}"
-      when: docker_pull_openshift_delegated is changed
-
-    - name: create fedora image stream for OpenShift
-      command: "echo '{ \"apiVersion\": \"v1\", \"kind\": \"ImageStream\", \"metadata\": { \"name\": \"fedora\" }, \"spec\": { \"dockerImageRepository\": \"{{docker_registry}}/fedora\" } }' | oc create -f - && touch /etc/origin/fedoraimagestreamcreated"
-      environment: "{{ osbs_environment }}"
-      args:
-        creates: /etc/origin/fedoraimagestreamcreated
 
 - name: post-install master host osbs tasks
   hosts: osbs-masters-stg:osbs-masters
@@ -786,7 +638,7 @@
 
 
 - name: post-install osbs tasks
-  hosts: osbs-nodes-stg:osbs-masters:osbs-nodes
+  hosts: osbs-nodes-stg:osbs-nodes
   tags:
     - osbs-post-install
   vars_files:
@@ -822,40 +674,6 @@
         name: docker
         state: restarted
         daemon_reload: yes
-
-  roles:
-    - {
-      role: osbs-client,
-        general: {
-          verbose: 0,
-          build_json_dir: '/etc/osbs/input/',
-          openshift_required_version: 1.1.0,
-        },
-        default: {
-          username: "{{ osbs_koji_prod_username }}",
-          password: "{{ osbs_koji_prod_password }}",
-          koji_use_kerberos: True,
-          koji_kerberos_keytab: "FILE:/etc/krb5.osbs_{{osbs_url}}.keytab",
-          koji_kerberos_principal: "osbs/{{osbs_url}}@{{ipa_realm}}",
-          openshift_url: 'https://{{osbs_url}}/',
-          registry_uri: 'https://{{docker_registry}}/v2',
-          source_registry_uri: 'https://{{source_registry}}/v2',
-          build_host: '{{osbs_url}}',
-          koji_root: 'https://{{koji_url}}/koji',
-          koji_hub: 'https://{{koji_url}}/kojihub',
-          sources_command: 'fedpkg sources',
-          build_type: 'prod',
-          authoritative_registry: 'registry.fedoraproject.org',
-          vendor: 'Fedora Project',
-          verify_ssl: true,
-          use_auth: true,
-          builder_use_auth: true,
-          distribution_scope: 'private',
-          registry_api_versions: 'v2',
-          builder_openshift_url: 'https://{{osbs_url}}'
-        },
-      when: env == "production"
-      }
 
   tasks:
     - name: enable nrpe for monitoring (noc01)
@@ -990,26 +808,6 @@
       check_mode: no
       changed_when: False
 
-    - set_fact:
-        origin_version: "{{origin_version_out.stdout}}"
-
-    - name: pull openshift required docker images
-      command: "docker pull {{docker_registry}}/{{item}}:v{{origin_version}}"
-      with_items: "{{openshift_required_images}}"
-      register: docker_pull_openshift
-      changed_when: "'Downloaded newer image' in docker_pull_openshift.stdout"
-      when: env == "production"
-
-    - name: tag openshift required docker images locally
-      command: "docker tag {{docker_registry}}/{{item}}:v{{origin_version}} {{item}}:v{{origin_version}}"
-      with_items: "{{openshift_required_images}}"
-      when:
-        - docker_pull_openshift is changed
-        - env == "production"
-
-    - set_fact:
-        docker_pull_openshift: "{{ docker_pull_openshift }}"
-
 
 - name: Post-Install image stream refresh
   hosts: osbs-masters[0]:osbs-masters-stg[0]
@@ -1022,10 +820,6 @@
     - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
 
   tasks:
-    - name: refresh fedora image streams
-      command: "oc import-image fedora --all"
-      when: env == "production" and hostvars[groups["osbs-masters"][0]]["docker_pull_fedora"] is changed
-
     - name: enable nrpe for monitoring (noc01)
       iptables: action=insert chain=INPUT destination_port=5666 protocol=tcp source=10.5.126.41 state=present jump=ACCEPT
 

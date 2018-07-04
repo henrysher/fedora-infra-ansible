@@ -111,8 +111,8 @@
           client_config_secret: 'client-config-secret',
           reactor_config_secret: 'reactor-config-secret',
           registry_secret_name: 'v2-registry-dockercfg',
-          token_secrets: 'x86-64-osbs:/var/run/secrets/atomic-reactor/x86-64-stg-orchestrator',
-          token_file: '/etc/osbs/x86-64-osbs-stg-koji',
+          token_secrets: 'x86-64-osbs:/var/run/secrets/atomic-reactor/x86-64-orchestrator',
+          token_file: '/etc/osbs/x86-64-osbs-koji',
           namespace: 'osbs-fedora',
           can_orchestrate: true,
           builder_odcs_url: "https://odcs{{ env_suffix }}.fedoraproject.org",
@@ -129,7 +129,7 @@
         when: env == 'production' and ansible_architecture == 'x86_64',
         general: {
           verbose: 0,
-          build_json_dir: '/etc/osbs/input/',
+          build_json_dir: '/usr/share/osbs/',
           openshift_required_version: 1.1.0,
         },
         default: {
@@ -154,7 +154,18 @@
           distribution_scope: 'private',
           registry_api_versions: 'v2',
           builder_openshift_url: 'https://{{osbs_url}}',
-          registry_secret_name: 'v2-registry-dockercfg'
+          registry_secret_name: 'v2-registry-dockercfg',
+          token_secrets: 'x86-64-osbs:/var/run/secrets/atomic-reactor/x86-64-orchestrator',
+          token_file: '/etc/osbs/x86-64-osbs-koji',
+          namespace: 'osbs-fedora',
+          can_orchestrate: true,
+          builder_odcs_url: "https://odcs{{ env_suffix }}.fedoraproject.org",
+          builder_odcs_openidc_secret: "odcs-oidc-secret",
+          builder_pdc_url: "https://pdc.fedoraproject.org/api/1",
+          flatpak_base_image: "registry.fedoraproject.org/fedora:latest",
+          reactor_config_map: "reactor-config-map",
+          reactor_config_map_scratch: "reactor-config-map-scratch",
+          build_from: "image:buildroot:latest"
         }
     }
   handlers:

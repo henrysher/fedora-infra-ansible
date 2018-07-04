@@ -45,7 +45,7 @@ osbs_conf_readwrite_users:
 
 osbs_conf_worker_clusters:
   x86_64:
-  - name: x86_64-stg
+  - name: x86_64
     max_concurrent_builds: 2
     openshift_url: "https://osbs.stg.fedoraproject.org/"
     verify_ssl: 'false'
@@ -61,14 +61,14 @@ _osbs_reactor_config_map:
 
     clusters:
       x86_64:
-      - name: "x86_64-stg"
+      - name: "x86_64"
         max_concurrent_builds: 2
 
     clusters_client_config_dir: "/var/run/secrets/atomic-reactor/client-config-secret"
 
     koji:
-      hub_url: "https://koji.stg.fedoraproject.org/kojihub"
-      root_url: "https://koji.stg.fedoraproject.org/"
+      hub_url: "https://koji{{ env_suffix }}.fedoraproject.org/kojihub"
+      root_url: "https://koji{{ env_suffix }}.fedoraproject.org/"
       auth:
         krb_principal: "osbs/{{osbs_url}}@{{ ipa_realm }}"
         krb_keytab_path: "FILE:/etc/krb5.osbs_{{ osbs_url }}.keytab"
@@ -83,7 +83,7 @@ _osbs_reactor_config_map:
         default_signing_intent: "unsigned"
 
     pdc:
-        api_url: "https://pdc.stg.fedoraproject.org/rest_api/v1/"
+        api_url: "https://pdc{{ env_suffix }}.fedoraproject.org/rest_api/v1/"
 
     image_labels:
       vendor: "{{ osbs_conf_vendor }}"
@@ -131,7 +131,7 @@ _osbs_reactor_config_map:
     - odcs-oidc-secret
 
     worker_token_secrets:
-    - x86-64-stg-orchestrator
+    - x86-64-orchestrator
     - client-config-secret
 
 _osbs_scratch_reactor_config_map_overrides:

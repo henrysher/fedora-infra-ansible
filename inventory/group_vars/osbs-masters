@@ -23,8 +23,139 @@ osbs_client_conf_path: /etc/osbs.conf
 openshift_node_labels: {'region':'infra'}
 openshift_schedulable: False
 
+osbs_namespace: "osbs-fedora"
+osbs_worker_namespace: worker
+
+osbs_worker_service_accounts:
+  - orchestrator
+  - builder
+
+
+osbs_conf_sources_command: fedpkg sources
+osbs_conf_vendor: Fedora Project
+
+osbs_orchestrator_cpu_limitrange: "95m"
+
+osbs_worker_default_nodeselector: "worker=true"
+osbs_orchestrator_default_nodeselector: "orchestrator=true"
+
+osbs_conf_service_accounts:
+  - koji
+  - builder
+
+osbs_conf_readwrite_users:
+  - "system:serviceaccount:{{ osbs_namespace }}:default"
+  - "system:serviceaccount:{{ osbs_namespace }}:builder"
+
+osbs_conf_worker_clusters:
+  x86_64:
+  - name: x86_64
+    max_concurrent_builds: 2
+    openshift_url: "https://osbs.fedoraproject.org/"
+    verify_ssl: 'false'
+
+
+osbs_platform_descriptors:
+- platform: x86_64
+  architecture: amd64
+  enable_v1: True
+
+_osbs_reactor_config_map:
+    version: 1
+
+    clusters:
+      x86_64:
+      - name: "x86_64"
+        max_concurrent_builds: 2
+
+    clusters_client_config_dir: "/var/run/secrets/atomic-reactor/client-config-secret"
+
+    koji:
+      hub_url: "https://koji{{ env_suffix }}.fedoraproject.org/kojihub"
+      root_url: "https://koji{{ env_suffix }}.fedoraproject.org/"
+      auth:
+        krb_principal: "osbs/{{osbs_url}}@{{ ipa_realm }}"
+        krb_keytab_path: "FILE:/etc/krb5.osbs_{{ osbs_url }}.keytab"
+
+    odcs:
+        api_url: "https://odcs{{ env_suffix }}.fedoraproject.org/api/1"
+        auth:
+          openidc_dir: "/var/run/secrets/atomic-reactor/odcs-oidc-secret"
+        signing_intents:
+          - name: unsigned
+            keys: []
+        default_signing_intent: "unsigned"
+
+    pdc:
+        api_url: "https://pdc{{ env_suffix }}.fedoraproject.org/rest_api/v1/"
+
+    image_labels:
+      vendor: "{{ osbs_conf_vendor }}"
+      authoritative-source-url: "{{ source_registry }}"
+      distribution-scope: public
+
+    image_equal_labels:
+      - ['description', 'io.k8s.description']
+    openshift:
+      url: "https://{{ osbs_url }}"
+      insecure: true
+      build_json_dir: /usr/share/osbs
+      auth:
+        enable: True
+
+    platform_descriptors: "{{ osbs_platform_descriptors }}"
+
+    prefer_schema1_digest: False
+
+    content_versions:
+    - v1
+    - v2
+
+    registries:
+    - url: "{{ docker_registry }}"
+      insecure: True
+      auth:
+        cfg_path: /var/run/secrets/atomic-reactor/v2-registry-dockercfg
+
+    source_registry:
+      url: "{{ source_registry }}"
+      insecure: True
+
+    group_manifests: True
+
+    sources_command: "{{ osbs_conf_sources_command }}"
+
+    artifacts_allowed_domains: []
+    #- download.devel.redhat.com/released
+    #- download.devel.redhat.com/devel/candidates
+
+    required_secrets:
+    - kojisecret
+    - v2-registry-dockercfg
+    - odcs-oidc-secret
+
+    worker_token_secrets:
+    - x86-64-orchestrator
+    - client-config-secret
+
+_osbs_scratch_reactor_config_map_overrides:
+  image_labels:
+    distribution-scope: private
+
+osbs_reactor_config_maps:
+- name: reactor-config-map
+  data: "{{ _osbs_reactor_config_map }}"
+- name: reactor-config-map-scratch
+  data: >
+    {{ _osbs_reactor_config_map |
+       combine(_osbs_scratch_reactor_config_map_overrides, recursive=True) }}
+
+osbs_odcs_enabled: true
+
+#Docker command delegated host
 composer: compose-x86-01.phx2.fedoraproject.org
 
+# Nagios configuration
 nagios_Check_Services:
   nrpe: true
   sshd: true
