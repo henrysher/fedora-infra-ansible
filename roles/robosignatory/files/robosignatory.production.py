@@ -61,6 +61,12 @@ config = {
                     "key": "fedora-29",
                     "keyid": "429476b4"
                 },
+                {
+                    "from": "f29-boost",
+                    "to": "f29-boost",
+                    "key": "fedora-29",
+                    "keyid": "429476b4"
+                },
                 # Infra tags
                 {
                     "from": "epel6-infra-candidate",
