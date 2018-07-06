@@ -140,6 +140,26 @@ config = dict(
                 body=['^((?!fedora-commops).)*$'],
             ),
         ),
+        # A third one! for that commops crew that watches for the admin user to post on planet
+        dict(
+            network='chat.freenode.net',
+            port=6667,
+            make_pretty=True,
+            make_terse=True,
+
+            {% if env == 'staging' %}
+            nickname='commopsplanet-s',
+            {% else %}
+            nickname='commoppslanet',
+            {% endif %}
+            channel='fedora-commops',
+            filters=dict(
+                topic=[
+                    '^((?!(planet)).)*$',
+                ],
+                body=['^((?!admin).)*$'],
+            ),
+        ),
 
         # For that python3 porting fad.  AMAZING!
         dict(
@@ -529,6 +549,33 @@ config = dict(
                 ],
             ),
         ),
+
+        # For #koji
+        dict(
+            network='chat.freenode.net',
+            port=6667,
+            make_pretty=True,
+            make_terse=True,
+
+            {% if env == 'staging' %}
+            nickname='fm-stg-koji',
+            {% else %}
+            nickname='fm-koji',
+            {% endif %}
+            channel='koji',
+            filters=dict(
+                topic=[
+                    '^((?!(pagure)).)*$',
+                ],
+                body=[
+                    "^((?!(koji)).)*$",
+                ],
+            ),
+        ),
+
+     # For fedora-hubs (not fedora-apps)
+     dict(
+         network='chat.freenode.net',
     ],
 
     ### Possible colors are ###
