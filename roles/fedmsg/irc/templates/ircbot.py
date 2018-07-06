@@ -572,10 +572,6 @@ config = dict(
                 ],
             ),
         ),
-
-     # For fedora-hubs (not fedora-apps)
-     dict(
-         network='chat.freenode.net',
     ],
 
     ### Possible colors are ###
