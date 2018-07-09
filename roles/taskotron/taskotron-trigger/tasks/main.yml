@@ -53,14 +53,14 @@
 
 - name: download critpath list
   get_url: url={{ trigger_critpath_url }} dest={{ trigger_critpath_file }} mode=0644 owner=fedmsg group=fedmsg
-  when: deployment_type in ['stg', 'prod']
+  when: deployment_type in ['prod']
 
 - name: create a cronjob to download crithpath list as a task-libabigail whitelist
   cron:
     name="download crithpath list"
     special_time=daily
     job="{ wget -O {{ trigger_critpath_file }} {{ trigger_critpath_url }}; chown fedmsg:fedmsg {{ trigger_critpath_file }}; } >& /dev/null"
-  when: deployment_type in ['stg', 'prod']
+  when: deployment_type in ['prod']
 
 - name: copy tmpfiles.d for trigger distgit cache
   template: src=tmpfiles.d.trigger.conf.j2 dest=/etc/tmpfiles.d/trigger.conf owner=root group=root mode=0644
