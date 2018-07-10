@@ -1,0 +1,15 @@
+---
+# Install static JSON file needed by gnome-software, on proxies.
+- name: Copy static JSON file into place
+  copy: src=pkgdb-gnome-software-collections.json dest=/srv/web/pkgdb-gnome-software-collections.json owner=root group=root mode=755
+  tags:
+  - gnome-software
+  - pkgdb2
+
+- name: Copy httpd config
+  copy: src=pkgdb-gnome-software.conf dest=/etc/httpd/conf.d/admin.fedoraproject.org/pkgdb.conf owner=root group=root mode=755
+  notify:
+  - restart httpd
+  tags:
+  - gnome-software
+  - pkgdb2
