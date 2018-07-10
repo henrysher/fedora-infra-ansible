@@ -11,7 +11,7 @@ RS_DEADLY="--delete --delete-excluded --delete-delay --delay-updates"
 EPL_EXCLUDES=""
 FED_EXCLUDES=""
 
-SERVER=dl.fedoraproject.org
+SERVER=download-ib01.fedoraproject.org
 
 # http://dl.fedoraproject.org/pub/epel/
 ${RSYNC} ${RS_OPT} ${RS_DEADLY} ${EPL_EXCLUDES} ${SERVER}::fedora-epel/ /srv/pub/epel/ | tail -n2 | logger -p local0.notice -t rsync_updates_epel
@@ -19,6 +19,10 @@ ${RSYNC} ${RS_OPT} ${RS_DEADLY} ${EPL_EXCLUDES} ${SERVER}::fedora-epel/ /srv/pub
 ${RSYNC} ${RS_OPT} ${RS_DEADLY} ${FED_EXCLUDES} ${SERVER}::fedora-enchilada0/ /srv/pub/fedora/ | tail -n2 | logger -p local0.notice -t rsync_updates_fedora
 # http://dl.fedoraproject.org/pub/fedora-secondary/
 ${RSYNC} ${RS_OPT} ${RS_DEADLY} ${FED_EXCLUDES} ${SERVER}::fedora-secondary0/ /srv/pub/fedora-secondary/ | tail -n2 | logger -p local0.notice -t rsync_updates_fedora_2nd
+
+# CentOS
+${RSYNC} ${RS_OPT} ${RD_DEADLY} mirrors.kernel.org::centos/ /srv/pub/centos/ | tail -n2 | logger -p local0.notice -t rsync_centos
+
 
 # Let MM know I'm all up to date
 #/usr/bin/report_mirror
