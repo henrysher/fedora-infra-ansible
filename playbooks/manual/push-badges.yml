@@ -18,11 +18,19 @@
    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
 
   vars:
-   tempdir: /var/tmp/badges-tempdir
    upstream: "https://pagure.io/fedora-badges.git"
    workingdir: /srv/web/infra/badges/
 
   tasks:
+  - name: Make a tmp directory
+    tempfile:
+      state: directory
+      suffix: /var/tmp/badges-tempdir
+    register: tmp
+
+  - set_fact:
+      tempdir: tmp.path
+
   - name: clone the local bare repo
     git: dest={{tempdir}} repo=/git/badges remote=origin update=yes
 
