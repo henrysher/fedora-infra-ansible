@@ -1,0 +1,81 @@
+#
+# setup a transient instance in the Fedora infrastructure private cloud
+#
+# This playbook is used to spin up a transient instance for someone to test something.
+# In particular transient instances will all be terminated at least by the next
+# maint window for the cloud, but ideally people will terminate instances they
+# are done using.
+#
+# If you have an application or longer term item that should always be around
+# please use the persistent playbook instead.
+#
+# You MUST pass a name to it, ie: -e 'name=somethingdescriptive'
+# You can optionally override defaults by passing any of the following:
+# image=imagename (default is centos70_x86_64)
+# instance_type=some instance type (default is m1.small)
+# root_auth_users='user1 user2 user3' (default is sysadmin-main group)
+#
+# Note: if you run this playbook with the same name= multiple times
+# openstack is smart enough to just return the current ip of that instance
+# and go on. This way you can re-run if you want to reconfigure it without
+# reprovisioning it.
+#
+# Example command:
+# transient_cloud_instance.yml --extra-vars="name='foo'  image='Fedora-Cloud-Base-20141203-21.x86_64'"
+#
+
+- name: check/create instance
+  hosts: batcave01.phx2.fedoraproject.org
+  user: root
+  gather_facts: False
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - /srv/private/ansible/vars.yml
+   - /srv/web/infra/ansible/vars/fedora-cloud.yml
+   - /srv/private/ansible/files/openstack/passwords.yml
+  vars:
+    image: "{{ centos70_x86_64 }}"
+    instance_type: m1.small
+
+  tasks:
+  - name: fail when name is not provided
+    fail: msg="Please specify the name of the instance"
+    when: name is not defined
+
+  - import_tasks: "{{ tasks_path }}/transient_newcloud.yml"
+
+  - name: gather facts
+    setup:
+    check_mode: no
+    ignore_errors: True
+    register: facts
+
+  - name: install python2 and dnf stuff
+    raw: dnf -y install python-dnf libselinux-python
+    when: facts is failed
+
+- name: provision instance
+  hosts: tmp_just_created
+  gather_facts: True
+  environment:
+    ANSIBLE_HOST_KEY_CHECKING: False
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  tasks:
+  - name: install cloud-utils (yum)
+    package: name=cloud-utils state=present
+    when: ansible_distribution_major_version|int < 22
+
+  - name: install cloud-utils (dnf)
+    command: dnf install -y cloud-utils
+    when: ansible_distribution_major_version|int > 21 and ansible_cmdline.ostree is not defined
+
+  - import_tasks: "{{ tasks_path }}/cloud_setup_basic.yml"
+
+  handlers:
+  - import_tasks: "{{ handlers_path }}/restart_services.yml"
