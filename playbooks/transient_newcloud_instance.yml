@@ -46,12 +46,14 @@
   - import_tasks: "{{ tasks_path }}/transient_newcloud.yml"
 
   - name: gather facts
+    delegate_to: tmp_just_created
     setup:
     check_mode: no
     ignore_errors: True
     register: facts
 
   - name: install python2 and dnf stuff
+    delegate_to: tmp_just_created
     raw: dnf -y install python-dnf libselinux-python
     when: facts is failed
 
