@@ -16,35 +16,35 @@
     key_name: fedora-admin-20130801
     auto_floating_ip: true
     userdata: "#cloud-config\ndisable_root: 0"
-  register: nova_result
+  register: instance
 
 - name: add it to the special group
-  local_action: add_host hostname="{{ nova_result.public_ip }}" groupname=tmp_just_created
+  local_action: add_host hostname="{{ instance.server.accessIPv4 }}" groupname=tmp_just_created
 
-#- name: mail off about where it is
-#  local_action: mail
-#    to=sysadmin-main-members@fedoraproject.org
-#    from=ansible-create@fedoraproject.org
-#    subject="{{ nova_result.public_ip }}"
-#    body="transient cloud instance created on {{ nova_result.public_ip }}
-#          name = {{ name }}
-#          root_auth_users = {{ root_auth_users }}
-#          image = {{ image }}"
+- name: mail off about where it is
+  local_action: mail
+    to=codeblock@fedoraproject.org
+    from=ansible-create@fedoraproject.org
+    subject="{{ instance.server.accessIPv4 }}"
+    body="transient cloud instance created on {{ instance.server.accessIPv4 }}
+          name = {{ name }}
+          root_auth_users = {{ root_auth_users }}
+          image = {{ image }}"
 
 - name: wait for he host to be hot
-  local_action: wait_for host={{ nova_result.public_ip }} port=22 delay=1 timeout=600
+  local_action: wait_for host={{ instance.server.accessIPv4 }} port=22 delay=1 timeout=600
 
-#- name: gather ssh host key from new instance
-#  local_action: command ssh-keyscan -t rsa {{ nova_result.public_ip }}
-#  ignore_errors: True
-#  register: hostkey
+- name: gather ssh host key from new instance
+  local_action: command ssh-keyscan -t rsa {{ instance.server.accessIPv4 }}
+  ignore_errors: True
+  register: hostkey
 
-#- name: add new ssh host key (you still need to add it to official ssh_host_keys later)
-#  local_action: known_hosts path={{item}} key="{{ hostkey.stdout }}" host={{ nova_result.public_ip }} state=present
-#  ignore_errors: True
-#  with_items:
-#  - /root/.ssh/known_hosts
-#  - /etc/ssh/ssh_known_hosts
+- name: add new ssh host key (you still need to add it to official ssh_host_keys later)
+  local_action: known_hosts path={{item}} key="{{ hostkey.stdout }}" host={{ instance.server.accessIPv4 }} state=present
+  ignore_errors: True
+  with_items:
+  - /root/.ssh/known_hosts
+  - /etc/ssh/ssh_known_hosts
 
 # SSH is up and running, however cloud-init still did not deployed ssh keypair
 # we have to wait some time. 10 sec is usually enough, but not always.
