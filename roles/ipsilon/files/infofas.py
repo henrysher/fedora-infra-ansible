@@ -46,6 +46,7 @@ aws_groups = {
     'aws-s3-readonly': 'arn:aws:iam::125523088429:role/aws-s3-readonly',
     'aws-fedoramirror': 'arn:aws:iam::125523088429:role/aws-fedoramirror',
     'aws-s3': 'arn:aws:iam::125523088429:role/aws-s3',
+    'aws-cloud-poc': 'arn:aws:iam::125523088429:role/aws-cloud-poc',
 }
 
 
