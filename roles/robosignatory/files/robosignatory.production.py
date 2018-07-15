@@ -38,20 +38,8 @@ config = {
             'tags': [
                 # Temporary tags
                 {
-                    "from": "f29-perl",
-                    "to": "f29-perl",
-                    "key": "fedora-29",
-                    "keyid": "429476b4"
-                },
-                {
                     "from": "f29-kde",
                     "to": "f29-kde",
-                    "key": "fedora-29",
-                    "keyid": "429476b4"
-                },
-                {
-                    "from": "f29-python",
-                    "to": "f29-python",
                     "key": "fedora-29",
                     "keyid": "429476b4"
                 },
@@ -64,6 +52,12 @@ config = {
                 {
                     "from": "f29-boost",
                     "to": "f29-boost",
+                    "key": "fedora-29",
+                    "keyid": "429476b4"
+                },
+                {
+                    "from": "f29-rebuild",
+                    "to": "f29-rebuild",
                     "key": "fedora-29",
                     "keyid": "429476b4"
                 },
