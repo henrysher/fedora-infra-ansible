@@ -11,8 +11,6 @@ PLUS_PLUS_TOKEN = '{{ plus_plus_service_token }}'
 
 {% if env == 'staging' %}
 FAS_URL = 'https://admin.stg.fedoraproject.org/accounts/'
-PKGDB_URL = 'https://admin.stg.fedoraproject.org/pkgdb/'
 {% else %}
 FAS_URL = 'https://admin.fedoraproject.org/accounts/'
-PKGDB_URL = 'https://admin.fedoraproject.org/pkgdb/'
 {% endif %}

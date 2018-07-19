@@ -13,12 +13,6 @@ backend mirrorlists {
     .port = "10002";
 }
 
-backend pkgdb {
-    .host = "localhost";
-    .port = "10003";
-    .first_byte_timeout = 160s;
-}
-
 backend mailman {
     .host = "mailman01";
     .port = "http";
@@ -214,14 +208,6 @@ sub vcl_recv {
     if (req.url ~ "^/mirrorlist/") {
         set req.backend_hint = mirrorlists;
     }
-    if (req.url ~ "^/pkgdb") {
-        set req.backend_hint = pkgdb;
-        if (req.url ~ "^/pkgdb/static/") {
-            unset req.http.cookie;
-            set req.http.clear-cookies = "yes";
-            set req.url = regsub(req.url, "\?.*", "");
-        }
-    }
     if (req.url ~ "^/accounts/") {
         set req.backend_hint = fas.backend();
         if (req.url ~ "^/accounts/static/") {
@@ -386,14 +372,6 @@ sub vcl_recv {
 #        }
 #    }
 }
-
-# When requesting application icons, don't allow cherrypy to set cookies
-#sub vcl_backend_fetch {
-#    if (req.url ~ "^/pkgdb/appicon/show/") {
-#        unset beresp.http.set-cookie;
-#    }
-#}
-
 
 # Make sure mirrormanager/mirrors doesn't set any cookies
 # (Setting cookies would make varnish store a HIT-FOR-PASS

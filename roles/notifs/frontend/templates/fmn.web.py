@@ -33,10 +33,8 @@ config = {
     "fmn.rules.utils.use_pagure_for_ownership": True,
     {% if env == 'staging' %}
     "fmn.rules.utils.pagure_api_url": "https://src.stg.fedoraproject.org/api/",
-    "fmn.rules.utils.pkgdb_url": "https://admin.stg.fedoraproject.org/pkgdb/api",
     {% else %}
     'fmn.rules.utils.pagure_api_url': 'https://src.fedoraproject.org/api/',
-    "fmn.rules.utils.pkgdb_url": "https://pkgdb01.phx2.fedoraproject.org/pkgdb/api",
     {% endif %}
 
     "fmn.rules.cache": {

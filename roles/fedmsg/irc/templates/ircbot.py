@@ -203,7 +203,7 @@ config = dict(
             ),
         ),
 
-        # Show only pkgdb retirement msgs and compose msgs to the releng crew.
+        # Show only compose msgs to the releng crew.
         dict(
             network='chat.freenode.net',
             port=6667,
@@ -218,7 +218,7 @@ config = dict(
             channel='fedora-releng',
             filters=dict(
                 topic=[
-                    '^((?!(bodhi.mashtask.complete|pungi.compose.status.change|pkgdb\.package\.update\.status|compose.branched.complete|compose.branched.start|compose.rawhide.complete|compose.rawhide.start|bodhi.updates.|pagure)).)*$',
+                    '^((?!(bodhi.mashtask.complete|pungi.compose.status.change|compose.branched.complete|compose.branched.start|compose.rawhide.complete|compose.rawhide.start|bodhi.updates.|pagure)).)*$',
                 ],
                 body=[
                     "^((?!(u'success': False|u'status': u'DOOMED'|u'status': u'Retired'|u'prev_status': u'Retired'|compose|bodhi\.updates\.|\/srv\/git\/releng|'name': 'releng'|'name': 'pungi-fedora')).)*$",
@@ -598,7 +598,6 @@ config = dict(
         "fedoratagger": "brown",
         "wiki": "purple",
         "logger": "orange",
-        "pkgdb": "teal",
         "buildsys": "yellow",
         "fedoraplanet": "light green",
         "trac": "pink",

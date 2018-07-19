@@ -76,12 +76,10 @@ config = {
 
     'hotness.repo_url': 'https://pagure.io/releng/fedora-scm-requests',
 {% if env == 'staging' %}
-    'hotness.pkgdb_url': 'https://admin.stg.fedoraproject.org/pkgdb/api',
     "hotness.mdapi_url": "https://apps.stg.fedoraproject.org/mdapi",
     'hotness.pdc_url': 'https://pdc.stg.fedoraproject.org',
     'hotness.dist_git_url': 'https://src.stg.fedoraproject.org',
 {% else %}
-    'hotness.pkgdb_url': 'https://admin.fedoraproject.org/pkgdb/api',
     "hotness.mdapi_url": "https://apps.fedoraproject.org/mdapi",
     'hotness.pdc_url': 'https://pdc.fedoraproject.org',
     'hotness.dist_git_url': 'https://src.fedoraproject.org',

@@ -35,13 +35,6 @@ config = {
         'password': '{{ fedoraDummyUserPassword }}',
     },
 
-    # PkgDB details
-    {% if env == 'staging' %}
-    'pdcupdater.pkgdb_url': 'https://admin.stg.fedoraproject.org/pkgdb',
-    {% else %}
-    'pdcupdater.pkgdb_url': 'https://admin.fedoraproject.org/pkgdb',
-    {% endif %}
-
     # MBS details
     {% if env == 'staging' %}
     'pdcupdater.mbs_url': 'https://mbs.stg.fedoraproject.org/module-build-service/2/module-builds/',
