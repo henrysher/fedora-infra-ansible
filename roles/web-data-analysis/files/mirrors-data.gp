@@ -135,7 +135,7 @@ unset output
 
 set output "/var/www/html/csv-reports/images/fedora-os-latest.png"
 set title "Fedora Selected Versions Unique IPs"
-plot ["2014-01-01":"2018-12-31"] \
+plot ["2015-01-01":"2018-12-31"] \
      '/var/www/html/csv-reports/mirrors/mirrorsdata-all.csv' using 1:36 title 'Fedora' with lines lw 3,\
      '/var/www/html/csv-reports/mirrors/mirrorsdata-all.csv' using 1:30 title 'fed27' with lines lw 3,\
      '/var/www/html/csv-reports/mirrors/mirrorsdata-all.csv' using 1:31 title 'fed28' with lines lw 3,\
@@ -155,7 +155,7 @@ unset output
 
 set output "/var/www/html/csv-reports/images/fedora-os-latest-stacked.png"
 set title "Fedora Selected Versions Unique IPs"
-plot ["2013-01-01":"2018-12-31"] \
+plot ["2015-01-01":"2018-12-31"] \
      '/var/www/html/csv-reports/mirrors/mirrorsdata-all.csv' using 1:36 title 'Fedora' with lines lw 3,\
      '/var/www/html/csv-reports/mirrors/mirrorsdata-all.csv' using 1:($27+$28+$29+$30+$31+$33) title 'fed24' with filledcurves x1,\
      '/var/www/html/csv-reports/mirrors/mirrorsdata-all.csv' using 1:($28+$29+$30+$31+$33) title 'fed25' with filledcurves x1,\
@@ -310,7 +310,7 @@ unset output
 
 set output "/var/www/html/csv-reports/images/fedora-rev-latest-stacked.png"
 set title "Fedora Yum Unique IPs"
-plot ["2007-05-17":"2018-12-31"] \
+plot ["2015-01-01":"2018-12-31"] \
      '/var/www/html/csv-reports/mirrors/mirrorsdata-all.csv' using 1:($34+$33+$32+$31+$30+$29+$28+$27) title 'fed24' w filledcurves x1, \
      '/var/www/html/csv-reports/mirrors/mirrorsdata-all.csv' using 1:($34+$33+$32+$31+$30+$29+$28) title 'fed25' w filledcurves x1, \
      '/var/www/html/csv-reports/mirrors/mirrorsdata-all.csv' using 1:($34+$33+$32+$31+$30+$29) title 'fed26' w filledcurves x1, \
