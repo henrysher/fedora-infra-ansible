@@ -47,9 +47,9 @@ fi
 # Drain mirrorlist1. This is safe since we assured that local2 is serving
 echo "enable server mirror-lists-backend/mirrorlist-local2" | nc -U /var/run/haproxy-admin >& /dev/null
 echo "set server mirror-lists-backend/mirrorlist-local1 state drain" | nc -U /var/run/haproxy-admin >& /dev/null
-sleep 5
+sleep 10
 echo "disable server mirror-lists-backend/mirrorlist-local1" | nc -U /var/run/haproxy-admin >& /dev/null
-sleep 1
+sleep 5
 
 # restart mirrorlist1 (new pkl and make sure it's processing ok)
 systemctl restart mirrorlist1
@@ -62,17 +62,18 @@ if [ $? != 0 ]; then
 fi
 
 # New mirrorlist seems to be working, put it back into service
-sleep 1
+sleep 5
 echo "enable server mirror-lists-backend/mirrorlist-local1" | nc -U /var/run/haproxy-admin >& /dev/null
+sleep 5
 
 # copy new pkl to mirrorlist2
 cp -a /srv/mirrorlist/data/mirrorlist1/* /srv/mirrorlist/data/mirrorlist2/
 
 # Drain mirrorlist2
 echo "set server mirror-lists-backend/mirrorlist-local2 state drain" | nc -U /var/run/haproxy-admin >& /dev/null
-sleep 5
+sleep 10
 echo "disable server mirror-lists-backend/mirrorlist-local2" | nc -U /var/run/haproxy-admin >& /dev/null
-sleep 1
+sleep 5
 
 # restart mirrorlist2
 systemctl restart mirrorlist2
