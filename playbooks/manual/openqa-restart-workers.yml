@@ -1,0 +1,15 @@
+- name: restart worker services on openQA worker hosts (production)
+  hosts: openqa-workers
+  user: root
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+  handlers:
+  - import_tasks: "{{ handlers_path }}/restart_services.yml"
+
+  tasks:
+  - name: restart all the worker services
+    service: name=openqa-worker@{{ item }} state=restarted
+    with_sequence: "count={{ openqa_workers }}"
+
