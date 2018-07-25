@@ -45,3 +45,16 @@
       arches:
         - noarch
 
+{% if deployment_type in ['dev'] %}
+{# This is sufficient to run in a single environment only #}
+- when:
+    message_type: PagureGitReceive
+    repo:
+      $regex: '/taskotron\/.+/'
+  do:
+    - discover: {repo: 'https://pagure.io/taskotron/task-dockerbuild.git'}
+      arches:
+        - x86_64
+      match_host_arch: True
+{% endif%}
+
