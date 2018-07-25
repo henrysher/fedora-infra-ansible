@@ -56,8 +56,8 @@ config = {
                     "keyid": "429476b4"
                 },
                 {
-                    "from": "f29-rebuild",
-                    "to": "f29-rebuild",
+                    "from": "f29-ghc",
+                    "to": "f29-ghc",
                     "key": "fedora-29",
                     "keyid": "429476b4"
                 },
