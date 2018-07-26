@@ -13,7 +13,7 @@
   delegate_to: certgetter01.phx2.fedoraproject.org
   command: cat /etc/letsencrypt/live/{{site_name}}/cert.pem
   register: certbot_certificate
-  when: "not ('not yet due for renewal' in certbot_output.stderr)"
+  changed_when: 'false'
   tags:
   - letsencrypt
 
@@ -21,7 +21,7 @@
   delegate_to: certgetter01.phx2.fedoraproject.org
   command: cat /etc/letsencrypt/live/{{site_name}}/chain.pem
   register: certbot_chain
-  when: "not ('not yet due for renewal' in certbot_output.stderr)"
+  changed_when: 'false'
   tags:
   - letsencrypt
 
@@ -29,7 +29,7 @@
   delegate_to: certgetter01.phx2.fedoraproject.org
   command: cat /etc/letsencrypt/live/{{site_name}}/privkey.pem
   register: certbot_key
-  when: "not ('not yet due for renewal' in certbot_output.stderr)"
+  changed_when: 'false'
   tags:
   - letsencrypt
 
@@ -40,7 +40,6 @@
     owner=root
     group=root
     mode=0644
-  when: "not ('not yet due for renewal' in certbot_output.stderr)"
   notify:
   - reload proxyhttpd
   tags:
@@ -53,7 +52,6 @@
     owner=root
     group=root
     mode=0644
-  when: "not ('not yet due for renewal' in certbot_output.stderr)"
   notify:
   - reload proxyhttpd
   tags:
@@ -66,7 +64,6 @@
     owner=root
     group=root
     mode=0600
-  when: "not ('not yet due for renewal' in certbot_output.stderr)"
   notify:
   - reload proxyhttpd
   tags:
