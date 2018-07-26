@@ -569,7 +569,6 @@ config = dict(
                 ],
                 body=['^((?!(koji)).)*$',
                       "u'fullname': u'koji'"],
-                ],
             ),
         ),
     ],
