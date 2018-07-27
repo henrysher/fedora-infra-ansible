@@ -157,7 +157,7 @@ config = dict(
                 topic=[
                     '^((?!(planet)).)*$',
                 ],
-                body=['^((?!admin).)*$'],
+                body=['^((?!communityblog.fedoraproject.org).)*$'],
             ),
         ),
 
