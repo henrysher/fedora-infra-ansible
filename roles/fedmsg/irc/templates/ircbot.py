@@ -150,7 +150,7 @@ config = dict(
             {% if env == 'staging' %}
             nickname='commopsplanet-s',
             {% else %}
-            nickname='commoppslanet',
+            nickname='commopslanet',
             {% endif %}
             channel='fedora-commops',
             filters=dict(
