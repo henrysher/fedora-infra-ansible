@@ -34,12 +34,18 @@ BEGIN{
     f28=0;
     f29=0;
     f30=0;
+    f31=0;
+    f32=0;
+    f33=0;
     rawhide=0;
     rawhide_modular=0;
     modular_f27=0;
     modular_f28=0;
     modular_f29=0;
     modular_f30=0;
+    modular_f31=0;
+    modular_f32=0;
+    modular_f33=0;
     modular=0;
     unknown_release = 0;
     # arch
@@ -66,7 +72,7 @@ BEGIN{
     unknown_arch = 0;
     centos = 0;
     rhel = 0;
-    print olddate ",02-epel4,03-epel5,04-epel6,05-epel7,06-f03,07-f04,08-f05,09-f06,10-f07,11-f08,12-f09,13-f10,14-f11,15-f12,16-f13,17-f14,18-f15,19-f16,20-f17,21-f18,22-f19,23-f20,24-f21,25-f22,26-f23,27-f24,28-f25,29-f26,30-f27,31-f28,32-f29,33-rawhide,34-unk_rel,35-epel,36-fedora,37-alpha,38-arm,39-arm64,40-ia64,41-mips,42-ppc,43-s390,44-sparc,45-tilegx,46-x86_32,47-x86_64,48-x86_32_e,49-x86_32_f,50-x86_64_e,51-x86_64_f,52-ppc_e,53-ppc_f,54-unk_arc,55-centos,56-rhel,57-ppc64,58-ppc64le,59-modular,60-modular_rawhide,61-modular_f27,62-modular_f28,63-modular_f29,64-modular_f30";
+    print olddate ",02-epel4,03-epel5,04-epel6,05-epel7,06-f03,07-f04,08-f05,09-f06,10-f07,11-f08,12-f09,13-f10,14-f11,15-f12,16-f13,17-f14,18-f15,19-f16,20-f17,21-f18,22-f19,23-f20,24-f21,25-f22,26-f23,27-f24,28-f25,29-f26,30-f27,31-f28,32-f29,33-rawhide,34-unk_rel,35-epel,36-fedora,37-alpha,38-arm,39-arm64,40-ia64,41-mips,42-ppc,43-s390,44-sparc,45-tilegx,46-x86_32,47-x86_64,48-x86_32_e,49-x86_32_f,50-x86_64_e,51-x86_64_f,52-ppc_e,53-ppc_f,54-unk_arc,55-centos,56-rhel,57-ppc64,58-ppc64le,59-modular,60-modular_rawhide,61-modular_f27,62-modular_f28,63-modular_f29,64-modular_f30,65-f30,66-f31,67-f32,68-f33,69-modular_f31,70-modular_f32,71-modular_f33";
     olddate="1970-01-02";
 }
 
@@ -80,6 +86,9 @@ BEGIN{
 	else if ($3 ~"modular_f28") { modular_f28=modular_f28+1; f28=f28+1; modular=modular+1; fedora=fedora+1 }
 	else if ($3 ~"modular_f29") { modular_f29=modular_f29+1; f29=f29+1; modular=modular+1; fedora=fedora+1 }
 	else if ($3 ~"modular_f30") { modular_f30=modular_f30+1; f30=f30+1; modular=modular+1; fedora=fedora+1 }
+	else if ($3 ~"modular_f31") { modular_f31=modular_f31+1; f31=f31+1; modular=modular+1; fedora=fedora+1 }
+	else if ($3 ~"modular_f32") { modular_f32=modular_f32+1; f32=f32+1; modular=modular+1; fedora=fedora+1 }
+	else if ($3 ~"modular_f33") { modular_f33=modular_f33+1; f33=f33+1; modular=modular+1; fedora=fedora+1 }
 	else if ($3 ~"f03")     { f03=f03+1; fedora=fedora+1}
 	else if ($3 ~"f04")     { f04=f04+1; fedora=fedora+1}
 	else if ($3 ~"f05")     { f05=f05+1; fedora=fedora+1}
@@ -108,6 +117,9 @@ BEGIN{
 	else if ($3 ~"f28")     { f28=f28+1; fedora=fedora+1}
 	else if ($3 ~"f29")     { f29=f29+1; fedora=fedora+1}
 	else if ($3 ~"f30")     { f30=f30+1; fedora=fedora+1}
+	else if ($3 ~"f31")     { f31=f31+1; fedora=fedora+1}
+	else if ($3 ~"f32")     { f32=f32+1; fedora=fedora+1}
+	else if ($3 ~"f33")     { f33=f33+1; fedora=fedora+1}
 	else if ($3 ~"rawhide_modular") { rawhide_modular=rawhide_modular+1; rawhide=rawhide+1; modular=modular+1; fedora=fedora+1}
 	else if ($3 ~"rawhide") { rawhide=rawhide+1; fedora=fedora+1}
 	else if ($3 ~"modular") { modular=modular+1; fedora=fedora+1 }
@@ -151,7 +163,7 @@ BEGIN{
 	else                   {unknown_arch = unknown_arch +1; };
     } else {
 	if ( olddate !~ "1970-01-01" ) {
-	  print olddate "," epel4 "," epel5 "," epel6 "," epel7 "," f03 "," f04 "," f05 "," f06 "," f07 "," f08 "," f09 "," f10 "," f11 "," f12 "," f13 "," f14 "," f15 "," f16 "," f17 "," f18 "," f19 "," f20 "," f21 "," f22 "," f23 "," f24 "," f25 "," f26 "," f27 "," f28 "," f29 "," rawhide "," unknown_release "," epel "," fedora "," alpha "," arm "," arm64 "," ia64 "," mips "," ppc "," s390 "," sparc "," tilegx "," x86_32 "," x86_64 "," x86_32_e "," x86_32_f "," x86_64_e "," x86_64_f "," ppc_e "," ppc_f "," unknown_arch "," centos "," rhel "," ppc64 "," ppc64le "," modular "," rawhide_modular "," modular_f27 "," modular_f28 "," modular_f29 "," modular_f30;
+	  print olddate "," epel4 "," epel5 "," epel6 "," epel7 "," f03 "," f04 "," f05 "," f06 "," f07 "," f08 "," f09 "," f10 "," f11 "," f12 "," f13 "," f14 "," f15 "," f16 "," f17 "," f18 "," f19 "," f20 "," f21 "," f22 "," f23 "," f24 "," f25 "," f26 "," f27 "," f28 "," f29 "," rawhide "," unknown_release "," epel "," fedora "," alpha "," arm "," arm64 "," ia64 "," mips "," ppc "," s390 "," sparc "," tilegx "," x86_32 "," x86_64 "," x86_32_e "," x86_32_f "," x86_64_e "," x86_64_f "," ppc_e "," ppc_f "," unknown_arch "," centos "," rhel "," ppc64 "," ppc64le "," modular "," rawhide_modular "," modular_f27 "," modular_f28 "," modular_f29  "," modular_f30 "," f30 "," f31 "," f32 "," f33 "," modular_f31 "," modular_f32 "," modular_f33 ;
 	};
 	olddate=$1
     epel=0;
@@ -188,12 +200,18 @@ BEGIN{
     f28=0;
     f29=0;
     f30=0;
+    f31=0;
+    f32=0;
+    f33=0;
     rawhide=0;
     rawhide_modular=0;
     modular_f27=0;
     modular_f28=0;
     modular_f29=0;
     modular_f30=0;
+    modular_f31=0;
+    modular_f32=0;
+    modular_f33=0;
     modular=0;
     unknown_release = 0;
     # arch
@@ -225,7 +243,7 @@ BEGIN{
 }
 
 END {
-  print olddate "," epel4 "," epel5 "," epel6 "," epel7 "," f03 "," f04 "," f05 "," f06 "," f07 "," f08 "," f09 "," f10 "," f11 "," f12 "," f13 "," f14 "," f15 "," f16 "," f17 "," f18 "," f19 "," f20 "," f21 "," f22 "," f23 "," f24 "," f25 "," f26 "," f27 "," f28 "," f29 "," rawhide "," unknown_release "," epel "," fedora "," alpha "," arm "," arm64 "," ia64 "," mips "," ppc "," s390 "," sparc "," tilegx "," x86_32 "," x86_64 "," x86_32_e "," x86_32_f "," x86_64_e "," x86_64_f "," ppc_e "," ppc_f "," unknown_arch "," centos "," rhel "," ppc64 "," ppc64le "," modular "," rawhide_modular "," modular_f27 "," modular_f28 "," modular_f29 "," modular_f30;
+	  print olddate "," epel4 "," epel5 "," epel6 "," epel7 "," f03 "," f04 "," f05 "," f06 "," f07 "," f08 "," f09 "," f10 "," f11 "," f12 "," f13 "," f14 "," f15 "," f16 "," f17 "," f18 "," f19 "," f20 "," f21 "," f22 "," f23 "," f24 "," f25 "," f26 "," f27 "," f28 "," f29 "," rawhide "," unknown_release "," epel "," fedora "," alpha "," arm "," arm64 "," ia64 "," mips "," ppc "," s390 "," sparc "," tilegx "," x86_32 "," x86_64 "," x86_32_e "," x86_32_f "," x86_64_e "," x86_64_f "," ppc_e "," ppc_f "," unknown_arch "," centos "," rhel "," ppc64 "," ppc64le "," modular "," rawhide_modular "," modular_f27 "," modular_f28 "," modular_f29  "," modular_f30 "," f30 "," f31 "," f32 "," f33 "," modular_f31 "," modular_f32 "," modular_f33 ;
 
 }
 

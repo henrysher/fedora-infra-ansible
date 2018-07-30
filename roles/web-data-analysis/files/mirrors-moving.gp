@@ -42,6 +42,10 @@ plot ["2007-05-17":"2018-12-31"] \
      '/var/www/html/csv-reports/mirrors/mirrorsdata-all-7day-ma.csv' using 1:30 title 'fed27' with lines lw 3,\
      '/var/www/html/csv-reports/mirrors/mirrorsdata-all-7day-ma.csv' using 1:31 title 'fed28' with lines lw 3,\
      '/var/www/html/csv-reports/mirrors/mirrorsdata-all-7day-ma.csv' using 1:32 title 'fed29' with lines lw 3,\
+     '/var/www/html/csv-reports/mirrors/mirrorsdata-all-7day-ma.csv' using 1:65 title 'fed30' with lines lw 3, \
+     '/var/www/html/csv-reports/mirrors/mirrorsdata-all-7day-ma.csv' using 1:66 title 'fed31' with lines lw 3, \
+     '/var/www/html/csv-reports/mirrors/mirrorsdata-all-7day-ma.csv' using 1:67 title 'fed32' with lines lw 3, \
+     '/var/www/html/csv-reports/mirrors/mirrorsdata-all-7day-ma.csv' using 1:68 title 'fed33' with lines lw 3, \
      '/var/www/html/csv-reports/mirrors/mirrorsdata-all-7day-ma.csv' using 1:33 title 'rawhide' with lines lw 3,\
      '/var/www/html/csv-reports/mirrors/mirrorsdata-all-7day-ma.csv' using 1:34 title 'unk_rel' with lines lw 3,\
      '/var/www/html/csv-reports/mirrors/mirrorsdata-all-7day-ma.csv' using 1:35 title 'EPEL' with lines lw 3,\
@@ -73,7 +77,15 @@ plot ["2007-05-17":"2018-12-31"] \
      '/var/www/html/csv-reports/mirrors/mirrorsdata-all-7day-ma.csv' using 1:61 title 'modular_f27' with lines lw 3, \
      '/var/www/html/csv-reports/mirrors/mirrorsdata-all-7day-ma.csv' using 1:62 title 'modular_f28' with lines lw 3, \
      '/var/www/html/csv-reports/mirrors/mirrorsdata-all-7day-ma.csv' using 1:63 title 'modular_f29' with lines lw 3, \
-     '/var/www/html/csv-reports/mirrors/mirrorsdata-all-7day-ma.csv' using 1:64 title 'modular_f30' with lines lw 3
+     '/var/www/html/csv-reports/mirrors/mirrorsdata-all-7day-ma.csv' using 1:64 title 'modular_f30' with lines lw 3, \
+     '/var/www/html/csv-reports/mirrors/mirrorsdata-all-7day-ma.csv' using 1:65 title 'fed30' with lines lw 3, \
+     '/var/www/html/csv-reports/mirrors/mirrorsdata-all-7day-ma.csv' using 1:66 title 'fed31' with lines lw 3, \
+     '/var/www/html/csv-reports/mirrors/mirrorsdata-all-7day-ma.csv' using 1:67 title 'fed32' with lines lw 3, \
+     '/var/www/html/csv-reports/mirrors/mirrorsdata-all-7day-ma.csv' using 1:68 title 'fed33' with lines lw 3, \
+     '/var/www/html/csv-reports/mirrors/mirrorsdata-all-7day-ma.csv' using 1:69 title 'modular_f31' with lines lw 3, \
+     '/var/www/html/csv-reports/mirrors/mirrorsdata-all-7day-ma.csv' using 1:70 title 'modular_f32' with lines lw 3, \
+     '/var/www/html/csv-reports/mirrors/mirrorsdata-all-7day-ma.csv' using 1:71 title 'modular_f33' with lines lw 3
+
 
 unset output
 
@@ -113,6 +125,10 @@ plot ["2007-05-17":"2018-12-31"] \
      '/var/www/html/csv-reports/mirrors/mirrorsdata-all-7day-ma.csv' using 1:30 title 'fed27' with lines lw 3,\
      '/var/www/html/csv-reports/mirrors/mirrorsdata-all-7day-ma.csv' using 1:31 title 'fed28' with lines lw 3,\
      '/var/www/html/csv-reports/mirrors/mirrorsdata-all-7day-ma.csv' using 1:32 title 'fed29' with lines lw 3,\
+     '/var/www/html/csv-reports/mirrors/mirrorsdata-all-7day-ma.csv' using 1:65 title 'fed30' with lines lw 3, \
+     '/var/www/html/csv-reports/mirrors/mirrorsdata-all-7day-ma.csv' using 1:66 title 'fed31' with lines lw 3, \
+     '/var/www/html/csv-reports/mirrors/mirrorsdata-all-7day-ma.csv' using 1:67 title 'fed32' with lines lw 3, \
+     '/var/www/html/csv-reports/mirrors/mirrorsdata-all-7day-ma.csv' using 1:68 title 'fed33' with lines lw 3, \
      '/var/www/html/csv-reports/mirrors/mirrorsdata-all-7day-ma.csv' using 1:33 title 'rawhide' with lines lw 3,\
      '/var/www/html/csv-reports/mirrors/mirrorsdata-all-7day-ma.csv' using 1:59 title 'modular' with lines lw 3, \
      '/var/www/html/csv-reports/mirrors/mirrorsdata-all-7day-ma.csv' using 1:60 title 'modular_rawhide' with lines lw 3, \
@@ -146,6 +162,10 @@ plot ["2015-01-01":"2018-12-31"] \
      '/var/www/html/csv-reports/mirrors/mirrorsdata-all-7day-ma.csv' using 1:28 title 'fed25' with lines lw 3,\
      '/var/www/html/csv-reports/mirrors/mirrorsdata-all-7day-ma.csv' using 1:29 title 'fed26' with lines lw 3,\
      '/var/www/html/csv-reports/mirrors/mirrorsdata-all-7day-ma.csv' using 1:32 title 'fed29' with lines lw 3,\
+     '/var/www/html/csv-reports/mirrors/mirrorsdata-all-7day-ma.csv' using 1:65 title 'fed30' with lines lw 3, \
+     '/var/www/html/csv-reports/mirrors/mirrorsdata-all-7day-ma.csv' using 1:66 title 'fed31' with lines lw 3, \
+     '/var/www/html/csv-reports/mirrors/mirrorsdata-all-7day-ma.csv' using 1:67 title 'fed32' with lines lw 3, \
+     '/var/www/html/csv-reports/mirrors/mirrorsdata-all-7day-ma.csv' using 1:68 title 'fed33' with lines lw 3, \
      '/var/www/html/csv-reports/mirrors/mirrorsdata-all-7day-ma.csv' using 1:33 title 'rawhide' with lines lw 3,\
      '/var/www/html/csv-reports/mirrors/mirrorsdata-all-7day-ma.csv' using 1:59 title 'modular' with lines lw 3, \
      '/var/www/html/csv-reports/mirrors/mirrorsdata-all-7day-ma.csv' using 1:60 title 'modular_rawhide' with lines lw 3, \

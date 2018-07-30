@@ -74,6 +74,13 @@ plot ["2007-05-17":"2018-12-31"] \
      '/var/www/html/csv-reports/mirrors/mirrorsdata-all.csv' using 1:62 title 'modular_f28' with lines lw 3, \
      '/var/www/html/csv-reports/mirrors/mirrorsdata-all.csv' using 1:63 title 'modular_f29' with lines lw 3, \
      '/var/www/html/csv-reports/mirrors/mirrorsdata-all.csv' using 1:64 title 'modular_f30' with lines lw 3
+     '/var/www/html/csv-reports/mirrors/mirrorsdata-all.csv' using 1:65 title 'fed30' with lines lw 3, \
+     '/var/www/html/csv-reports/mirrors/mirrorsdata-all.csv' using 1:66 title 'fed31' with lines lw 3, \
+     '/var/www/html/csv-reports/mirrors/mirrorsdata-all.csv' using 1:67 title 'fed32' with lines lw 3, \
+     '/var/www/html/csv-reports/mirrors/mirrorsdata-all.csv' using 1:68 title 'fed33' with lines lw 3, \
+     '/var/www/html/csv-reports/mirrors/mirrorsdata-all.csv' using 1:69 title 'modular_f31' with lines lw 3, \
+     '/var/www/html/csv-reports/mirrors/mirrorsdata-all.csv' using 1:70 title 'modular_f32' with lines lw 3, \
+     '/var/www/html/csv-reports/mirrors/mirrorsdata-all.csv' using 1:71 title 'modular_f33' with lines lw 3
 unset output
 
 set output "/var/www/html/csv-reports/images/fedora-daily.png"
