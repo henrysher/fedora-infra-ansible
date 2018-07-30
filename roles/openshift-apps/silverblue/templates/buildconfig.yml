@@ -1,0 +1,28 @@
+apiVersion: v1
+kind: BuildConfig
+metadata:
+  name: silverblue-build
+  labels:
+    environment: "silverblue"
+spec:
+  output:
+    to:
+      kind: ImageStreamTag
+      name: silverblue:latest
+  source:
+    type: Git
+    git:
+      uri: https://github.com/teamsilverblue/silverblue-site.git
+  strategy:
+    type: Source
+    sourceStrategy:
+      from:
+        kind: ImageStreamTag
+        name: s2i-golang:latest
+  triggers:
+# TODO add that once it is clear on how to store the secret
+#  - type: GitHub
+#    github:
+#      secret: "some_coreos_github_secret"
+  - type: ConfigChange
+  - type: ImageChange
