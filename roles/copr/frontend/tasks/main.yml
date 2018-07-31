@@ -59,12 +59,6 @@
     state: yes
     persistent: yes
 
-- name: install copr-frontend ssl vhost for production
-  template: src="httpd/coprs_ssl.conf.j2" dest="/etc/httpd/conf.d/copr_ssl.conf"
-  when: not devel
-  tags:
-  - config
-
 - import_tasks: "psql_setup.yml"
 
 - name: upgrade db to head
@@ -98,6 +92,29 @@
 - name: install ssl certificates for production
   import_tasks: "install_certs.yml"
   when: not devel
+  tags:
+  - config
+
+- name: letsencrypt cert
+  include_role: name=certbot
+  when: devel
+  tags:
+  - config
+
+- name: Check that cert file exists
+  stat:
+    path: "/etc/letsencrypt/live/{{ inventory_hostname }}/cert.pem"
+  register: stat_cert
+
+- name: Should admin run certbot?
+  fail:
+    msg: Please see roles/certbot/README step (2) and manually run certbot
+  when:
+    - stat_cert.stat.exists == False
+    - devel
+
+- name: install copr-frontend ssl vhost
+  template: src="httpd/coprs_ssl.conf.j2" dest="/etc/httpd/conf.d/coprs_ssl.conf"
   tags:
   - config
 

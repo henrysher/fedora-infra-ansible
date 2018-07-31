@@ -1,3 +1,6 @@
+Listen 443 https
+
+
 <VirtualHost *:443>
     SSLEngine on
     SSLProtocol {{ ssl_protocols }}
@@ -6,11 +9,17 @@
     SSLHonorCipherOrder on
     Header always add Strict-Transport-Security "max-age=31536000; preload"
 
+    {% if not devel %}
     SSLCertificateFile /etc/pki/tls/certs/copr.fedorainfracloud.org.crt
     SSLCertificateKeyFile /etc/pki/tls/private/copr.fedorainfracloud.org.key
     SSLCertificateChainFile /etc/pki/tls/certs/copr.fedorainfracloud.org.intermediate.crt
+    {% else %}
+    SSLCertificateFile    /etc/letsencrypt/live/{{ inventory_hostname }}/cert.pem
+    SSLCertificateKeyFile  /etc/letsencrypt/live/{{ inventory_hostname }}/privkey.pem
+    SSLCertificateChainFile /etc/letsencrypt/live/{{ inventory_hostname }}/fullchain.pem
+    {% endif %}
 
-    ServerName copr.fedorainfracloud.org
+    ServerName {{ inventory_hostname }}
 
     WSGIPassAuthorization On
     WSGIScriptAlias / /usr/share/copr/coprs_frontend/application
@@ -54,13 +63,19 @@
     SSLHonorCipherOrder on
     Header always add Strict-Transport-Security "max-age=31536000; preload"
 
+    {% if not devel %}
     SSLCertificateFile /etc/pki/tls/certs/copr.fedorainfracloud.org.crt
     SSLCertificateKeyFile /etc/pki/tls/private/copr.fedorainfracloud.org.key
     SSLCertificateChainFile /etc/pki/tls/certs/copr.fedorainfracloud.org.intermediate.crt
+    {% else %}
+    SSLCertificateFile    /etc/letsencrypt/live/{{ inventory_hostname }}/cert.pem
+    SSLCertificateKeyFile  /etc/letsencrypt/live/{{ inventory_hostname }}/privkey.pem
+    SSLCertificateChainFile /etc/letsencrypt/live/{{ inventory_hostname }}/fullchain.pem
+    {% endif %}
 
-    ServerAlias copr.fedoraproject.org
+    ServerAlias {{ inventory_hostname }}
 
-    Redirect 302 / https://copr.fedorainfracloud.org/
+    Redirect 302 / https://{{ inventory_hostname }}/
 </VirtualHost>
 
 
