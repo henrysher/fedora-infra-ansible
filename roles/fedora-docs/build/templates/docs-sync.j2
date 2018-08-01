@@ -20,3 +20,23 @@ cd /srv/web/docs
 /usr/bin/git checkout -q prod
 {% endif %}
 /usr/bin/git pull -q --ff-only
+
+if [ ! -d /srv/web/docs-redirects ]
+then
+	echo "/srv/web/docs-redirects missing"
+	cd /srv/web
+{% if env == 'staging' %}
+	git clone --branch redirects-stg https://pagure.io/fedora-docs/fedora-docs-web.git docs-redirects
+{% else %}
+	git clone --branch redirects https://pagure.io/fedora-docs/fedora-docs-web.git docs-redirects
+{% endif %}
+fi
+
+cd /srv/web/docs-redirects
+/usr/bin/git reset -q --hard
+{% if env == 'staging' %}
+/usr/bin/git checkout -q redirects-stg
+{% else %}
+/usr/bin/git checkout -q redirects
+{% endif %}
+/usr/bin/git pull -q --ff-only
