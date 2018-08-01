@@ -287,17 +287,14 @@ config = dict(
         ),
 
         # And #ipsilon
+        {% if env == "production" %}
         dict(
             network='chat.freenode.net',
             port=6667,
             make_pretty=True,
             make_terse=True,
 
-            {% if env == 'staging' %}
-            nickname='fm-stg-ipsilon',
-            {% else %}
             nickname='fm-ipsilon',
-            {% endif %}
             channel='#ipsilon',
             # If the word ipsilon appears in any message, forward it.
             filters=dict(
@@ -307,6 +304,7 @@ config = dict(
                 body=['^((?!ipsilonpagure).)*$'],
             ),
         ),
+        {% endif %}
 
         # For pagure
         dict(
