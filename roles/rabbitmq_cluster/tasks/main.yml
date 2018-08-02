@@ -23,9 +23,15 @@
   - rabbitmq_cluster
   - config
 
+- name: create node cert directory
+  file: path=/etc/rabbitmq/nodecert/ owner=root group=root mode=0644 state=directory
+  tags:
+  - rabbitmq_cluster
+  - config
+
 - name: deploy node certificate
   copy: src="{{private}}/files/rabbitmq/{{env}}/pki/issued/{{inventory_hostname}}.crt"
-        dest=/etc/rabbitmq/node.crt
+        dest=/etc/rabbitmq/nodecert/node.crt
         owner=root group=root mode=0644
   tags:
   - rabbitmq_cluster
@@ -33,8 +39,15 @@
 
 - name: deploy node private key
   copy: src="{{private}}/files/rabbitmq/{{env}}/pki/private/{{inventory_hostname}}.key"
-        dest=/etc/rabbitmq/node.key
+        dest=/etc/rabbitmq/nodecert/node.key
         owner=rabbitmq group=rabbitmq mode=0600
+  tags:
+  - rabbitmq_cluster
+  - config
+
+- name: build combined node key
+  assemble: src=/etc/rabbitmq/nodecert/ dest=/etc/rabbitmq/nodecert.combined.pem
+            owner=rabbitmq group=rabbitmq mode=0600
   tags:
   - rabbitmq_cluster
   - config
