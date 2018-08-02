@@ -1,0 +1,50 @@
+- name: install needed packages
+  package: name={{ item }} state=present
+  with_items:
+  - rabbitmq-server
+  tags:
+  - rabbitmq_cluster
+  - packages
+
+- name: deploy CA certificate
+  copy: src="{{private}}/files/rabbitmq/{{env}}/pki/ca.crt"
+        dest=/etc/rabbitmq/ca.crt
+        owner=root group=root mode=0644
+  tags:
+  - rabbitmq_cluster
+  - config
+
+- name: deploy node certificate
+  copy: src="{{private}}/files/rabbitmq/{{env}}/pki/issued/{{inventory_hostname}}.crt"
+        dest=/etc/rabbitmq/node.crt
+        owner=root group=root mode=0644
+  tags:
+  - rabbitmq_cluster
+  - config
+
+- name: deploy node private key
+  copy: src="{{private}}/files/rabbitmq/{{env}}/pki/private/{{inventory_hostname}}.key"
+        dest=/etc/rabbitmq/node.key
+        owner=root group=root mode=0600
+  tags:
+  - rabbitmq_cluster
+  - config
+
+- name: enable plugins
+  copy: src=enabled_plugins dest=/etc/rabbitmq/enabled_plugins owner=root group=root mode=0644
+  with_items:
+  - rabbitmq.config
+  - enabled_plugins
+  tags:
+  - rabbitmq_cluster
+  - config
+
+- name: deploy configuration
+  template: src=rabbitmq.config dest=/etc/rabbitmq/rabbitmq.config owner=root group=root mode=0644
+  tags:
+  - rabbitmq_cluster
+  - config
+
+#- name: start rabbitmq
+#  service: name=rabbitmq-server state=started enabled=yes
+#  tags: rabbitmq
