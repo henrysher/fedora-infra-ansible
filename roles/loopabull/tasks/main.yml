@@ -6,23 +6,31 @@
   with_items:
     - git
     - loopabull
+  tags:
+  - loopabull
 
 - name: configure loopabull
   template:
     src: loopabull.yml.j2
     dest: /etc/loopabull.yml
   notify: restart loopabull
+  tags:
+  - loopabull
 
 - name: clone the playbooks repo into playbooks dir
   git:
     repo: "https://pagure.io/Fedora-Infra/loopabull-tasks.git"
     dest: "/srv/loopabull-tasks/"
+  tags:
+  - loopabull
 
 - name: Install the loopabull@.service template
   copy:
     src: "loopabull@.service"
     dest: "/usr/lib/systemd/system/loopabull@.service"
   notify: restart loopabull
+  tags:
+  - loopabull
 
 - name: start and enable loopabull@
   service:
@@ -35,4 +43,6 @@
     - loopabull@3
     - loopabull@4
     - loopabull@5
+  tags:
+  - loopabull
 
