@@ -17,6 +17,26 @@
   tags:
   - loopabull
 
+- name: ensure /srv/private dir exists with the expected permissions
+  file:
+    path: "/srv/private"
+    state: directory
+    mode: 0640
+    owner: root
+    group: fedmsg
+  tags:
+  - loopabull
+
+- name: place the private variables file
+  copy:
+    src: "{{ private }}/vars_loopabull.yml"
+    dest: "/srv/private/vars_loopabull.yml"
+    mode: 0640
+    owner: root
+    group: fedmsg
+  tags:
+  - loopabull
+
 - name: clone the playbooks repo into playbooks dir
   git:
     repo: "https://pagure.io/Fedora-Infra/loopabull-tasks.git"
