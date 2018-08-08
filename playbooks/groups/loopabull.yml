@@ -44,6 +44,20 @@
   - import_tasks: "{{ handlers_path }}/restart_services.yml"
 
   tasks:
+    - name: ensure /srv/private dir exists with the expected permissions
+      file:
+        path: "/srv/private"
+        state: directory
+        mode: 0640
+        owner: root
+        group: fedmsg
+    - name: place the private variables file
+      copy:
+        src: "{{ private }}/vars_loopabull.yml"
+        dest: "/srv/private/vars_loopabull.yml"
+        mode: 0640
+        owner: root
+        group: fedmsg
     - name: ensure ~/.ssh dir exists
       file:
         path: "/home/root/.ssh/"
