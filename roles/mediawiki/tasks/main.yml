@@ -165,3 +165,17 @@
         dest=/srv/web/fp-wiki/extensions/OpenIDConnect/OpenIDConnect.class.php
   tags:
   - mediawiki
+
+- name: ensure a directory exists for our SELinux policy
+  file: dest=/usr/local/share/selinux/ state=directory
+  tags: selinux
+
+- name: copy over our custom selinux policy
+  copy: src=mediawiki.pp dest=/usr/local/share/selinux/mediawiki.pp
+  register: selinux_module
+  tags: selinux
+
+- name: install our custom selinux policy
+  command: semodule -i /usr/local/share/selinux/mediawiki.pp
+  when: selinux_module is changed
+  tags: selinux
