@@ -145,7 +145,12 @@ class ProdConfiguration(BaseConfiguration):
 
 {% else %}
     KOJI_PROFILE = 'production'
-    KOJI_ARCHES = ['aarch64', 'armv7hl', 'i686', 'ppc64', 'ppc64le', 'x86_64', 's390x']
+    KOJI_ARCHES = ['aarch64', 'armv7hl', 'i686', 'ppc64le', 'x86_64', 's390x']
+    BASE_MODULE_KOJI_ARCHES = {
+        # Fedora 28 includes 'ppc64'.  F29 and later drops it.
+        # https://fedoraproject.org/wiki/Changes/DiscontinuePPC64
+        'platform:f28': ['aarch64', 'armv7hl', 'i686', 'ppc64', 'ppc64le', 'x86_64', 's390x'],
+    }
     KOJI_REPOSITORY_URL = 'http://kojipkgs.fedoraproject.org/repos'
     MESSAGING_TOPIC_PREFIX = ['org.fedoraproject.prod']
     PDC_URL = 'https://pdc.fedoraproject.org/rest_api/v1'
