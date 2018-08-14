@@ -101,6 +101,26 @@ config = {
 
                 # Gated rawhide and branched
                 {
+                    "from": "f30-pending",
+                    "to": "f30",
+                    "key": "fedora-30",
+                    "keyid": "cfc659b9"
+                },
+                {
+                    "from": "f30-modular-signing-pending",
+                    "to": "f30-modular",
+                    "key": "fedora-30",
+                    "keyid": "cfc659b9",
+                    "type": "modular"
+                },
+                {
+                    "from": "f30-modular-updates-candidate",
+                    "to": "f30-modular",
+                    "key": "fedora-30",
+                    "keyid": "cfc659b9",
+                    "type": "modular"
+                },
+                {
                     "from": "f29-pending",
                     "to": "f29",
                     "key": "fedora-29",
