@@ -62,8 +62,8 @@ config = {
                     "keyid": "429476b4"
                 },
                 {
-                    "from": "f29",
-                    "to": "f29",
+                    "from": "f30",
+                    "to": "f30",
                     "key": "fedora-30",
                     "keyid": "cfc659b9"
                 },
