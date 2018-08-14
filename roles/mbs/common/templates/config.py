@@ -178,8 +178,6 @@ class ProdConfiguration(BaseConfiguration):
 
     # New name
     NUM_CONCURRENT_BUILDS = 20
-    # Old name https://pagure.io/fm-orchestrator/issue/574
-    NUM_CONSECUTIVE_BUILDS = 20
 
     # Delete module-* targets one hour after build
     KOJI_TARGET_DELETE_TIME = 3600
