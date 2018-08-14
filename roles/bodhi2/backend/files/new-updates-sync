@@ -20,7 +20,58 @@ FEDORAALTDEST = '/pub/fedora-secondary/updates/'
 EPELDEST = '/pub/epel/'
 ATOMICSOURCE = '/mnt/koji/compose/atomic/repo/'
 ATOMICDEST = '/mnt/koji/atomic/repo/'
-RELEASES = {'f28': {'topic': 'fedora',
+RELEASES = {'f29': {'topic': 'fedora',
+                    'version': '29',
+                    'modules': ['fedora', 'fedora-secondary'],
+                    'repos': {'updates': {
+                        'from': 'f29-updates',
+                        'ostrees': [{'ref': 'fedora/29/%(arch)s/updates/atomic-host',
+                                     'dest': ATOMICDEST,
+                                     'arches': ['x86_64', 'ppc64le', 'aarch64']},
+                                    {'ref': 'fedora/29/x86_64/updates/workstation',
+                                     'dest': ATOMICDEST},
+                                    # Hack around for the fact that ostree on f25 doesn't know links
+                                    {'ref': 'fedora/29/x86_64/workstation',
+                                     'dest': ATOMICDEST}],
+                        'to': [{'arches': ['x86_64', 'armhfp', 'aarch64', 'source'],
+                                'dest': os.path.join(FEDORADEST, '29', 'Everything')},
+                               {'arches': ['i386', 'ppc64le', 's390x'],
+                                'dest': os.path.join(FEDORAALTDEST, '29', 'Everything')}
+                              ]},
+                              'updates-testing': {
+                        'from': 'f29-updates-testing',
+                        'ostrees': [{'ref': 'fedora/29/%(arch)s/testing/atomic-host',
+                                     'dest': ATOMICDEST,
+                                     'arches': ['x86_64', 'ppc64le', 'aarch64']},
+                                    {'ref': 'fedora/29/x86_64/testing/workstation',
+                                     'dest': ATOMICDEST}],
+                        'to': [{'arches': ['x86_64', 'aarch64', 'armhfp', 'source'],
+                                'dest': os.path.join(FEDORADEST, 'testing', '29', 'Everything')},
+                               {'arches': ['i386', 'ppc64le', 's390x'],
+                                'dest': os.path.join(FEDORAALTDEST, 'testing', '29', 'Everything')}
+                              ]}}
+                   },
+            'f29m': {'topic': 'fedora',
+                    'version': '29m',
+                    'modules': ['fedora', 'fedora-secondary'],
+                    'repos': {'updates': {
+                        'from': 'f29-modular-updates',
+                        'ostrees': [],
+                        'to': [{'arches': ['x86_64', 'aarch64', 'armhfp', 'source'],
+                                'dest': os.path.join(FEDORADEST, '29', 'Modular')},
+                               {'arches': ['i386', 'ppc64le', 's390x'],
+                                'dest': os.path.join(FEDORAALTDEST, '29', 'Modular')}
+                              ]},
+                              'updates-testing': {
+                        'from': 'f29-modular-updates-testing',
+                        'ostrees': [],
+                        'to': [{'arches': ['x86_64', 'aarch64', 'armhfp', 'source'],
+                                'dest': os.path.join(FEDORADEST, 'testing', '29', 'Modular')},
+                               {'arches': ['i386', 'ppc64le', 's390x'],
+                                'dest': os.path.join(FEDORAALTDEST, 'testing', '29', 'Modular')}
+                              ]}}
+                   },
+             'f28': {'topic': 'fedora',
                     'version': '28',
                     'modules': ['fedora', 'fedora-secondary'],
                     'repos': {'updates': {
