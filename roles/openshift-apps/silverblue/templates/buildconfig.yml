@@ -20,9 +20,10 @@ spec:
         kind: ImageStreamTag
         name: s2i-golang:latest
   triggers:
-# TODO add that once it is clear on how to store the secret
-#  - type: GitHub
-#    github:
-#      secret: "some_coreos_github_secret"
+{% if silverblue_github_secret is defined %}
+  - type: GitHub
+    github:
+      secret: "{{ silverblue_github_secret }}"
+{% endif %}
   - type: ConfigChange
   - type: ImageChange
