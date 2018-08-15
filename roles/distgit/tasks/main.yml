@@ -347,20 +347,6 @@
   notify:
   - reload httpd
 
-# Get the letsencrypt ssl cert for pkgs.fedoraproject.org from proxy01
-# It's stored there because the role that requests/updates it is called
-# via the proxy playbooks.
-
-- name: copy pkgs.fedoraproject.org ssl cert to pkgs machine
-  synchronize:
-    src: "{{ item }}"
-    dest: "{{ item }}"
-  with_items:
-  - /etc/pki/tls/certs/pkgs.fedoraproject.org.cert
-  - /etc/pki/tls/certs/pkgs.fedoraproject.org.intermediate.cert
-  - /etc/pki/tls/private/pkgs.fedoraproject.org.key
-  delegate_to: proxy01.phx2.fedoraproject.org
-
 # -- Lookaside Cache -------------------------------------
 # This is the annex to Dist Git, where we host source tarballs.
 - name: install the Lookaside Cache httpd configs
