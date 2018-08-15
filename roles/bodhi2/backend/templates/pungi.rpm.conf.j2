@@ -203,7 +203,11 @@ image_build = {
             'image-build': {
                 'format': [('qcow2', 'qcow2'), ('raw-xz', 'raw.xz')],
                 'name': 'Fedora-AtomicHost',
-                'version': '!VERSION_FROM_VERSION'
+                [% if request.name == 'stable' %]
+                    # Use a different version string for the updates vs updates-testing
+                    # runs so that NVRs don't conflict
+                    'version': '!VERSION_FROM_VERSION'
+                [% endif %]
                 'release': '!RELEASE_FROM_DATE_RESPIN'
                 'kickstart': 'fedora-atomic.ks',
                 'distro': 'Fedora-22',
@@ -225,7 +229,11 @@ image_build = {
             'image-build': {
                 'format': [('vagrant-libvirt','vagrant-libvirt.box'), ('vagrant-virtualbox','vagrant-virtualbox.box')],
                 'name': 'Fedora-AtomicHost-Vagrant',
-                'version': '!VERSION_FROM_VERSION'
+                [% if request.name == 'stable' %]
+                    # Use a different version string for the updates vs updates-testing
+                    # runs so that NVRs don't conflict
+                    'version': '!VERSION_FROM_VERSION'
+                [% endif %]
                 'release': '!RELEASE_FROM_DATE_RESPIN'
                 'kickstart': 'fedora-atomic-vagrant.ks',
                 'distro': 'Fedora-22',
