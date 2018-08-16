@@ -107,16 +107,23 @@
     owner: root
     group: root
     mode: 0775
+  tags:
+  - mbs
+  - mbs/common
 
 - name: copy default modules to /etc/module-build-service/default-modules
   copy: src={{ item }} dest=/etc/module-build-service/default-modules
   with_fileglob:
   - default-modules.{{ env }}/*.yaml
+  tags:
+  - mbs
+  - mbs/common
 
 - name: import default-modules
   command: /usr/bin/mbs-manager import_module /etc/module-build-service/default-modules/{{ item | basename }}
   with_fileglob:
   - default-modules.{{ env }}/*.yaml
   when: mbs_import_default_modules | default(True)
-
-
+  tags:
+  - mbs
+  - mbs/common
