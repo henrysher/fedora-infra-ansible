@@ -132,6 +132,7 @@
 - name: Get soon-to-expire certificates to sign
   set_fact:
     certs_to_sign: "{{certs_to_sign}} + [ '{{item.item.path}}' ]"
+  with_items: "{{ssh_cert_files.results}}"
   when: "item.stat.exists and item.stat.mtime < (ansible_date_time.epoch - 25920000)"
   tags:
   - basessh
