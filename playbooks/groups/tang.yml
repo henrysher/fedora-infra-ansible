@@ -1,0 +1,31 @@
+- import_playbook: "/srv/web/infra/ansible/playbooks/include/virt-create.yml myhosts=tang"
+
+- name: make the box be real
+  hosts: -stg
+  user: root
+  gather_facts: True
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  pre_tasks:
+  - import_tasks: "{{ tasks_path }}/yumrepos.yml"
+
+  roles:
+  - base
+  - rkhunter
+  - nagios_client
+  - hosts
+  - fas_client
+  - rsyncd
+  - sudo
+  - tang
+
+  tasks:
+  - import_tasks: "{{ tasks_path }}/2fa_client.yml"
+  - import_tasks: "{{ tasks_path }}/motd.yml"
+
+  handlers:
+  - import_tasks: "{{ handlers_path }}/restart_services.yml"
