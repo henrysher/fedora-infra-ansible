@@ -128,7 +128,18 @@
   - sshd
   - base
 
-# TODO: Get expired certificates, and add them to certs_to_sign
+# Renew if last mod was more than 10 months ago
+- name: Get soon-to-expire certificates to sign
+  set_fact:
+    certs_to_sign: "{{certs_to_sign}} + [ '{{item.item.path}}' ]"
+  when: "item.stat.exists and item.stat.mtime < (ansible_date_time.epoch - 25920000)"
+  tags:
+  - basessh
+  - sshd_cert
+  - sshd_config
+  - config
+  - sshd
+  - base
 
 - set_fact:
     pubkeydir: "/tmp/sshkeysign/{{inventory_hostname}}"
