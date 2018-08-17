@@ -92,14 +92,6 @@ resultsdb_frontend: {{ resultsdb_external_url }}
 ## Please make sure the URL doesn't have a trailing slash.
 execdb_server: {{ execdb_external_url }}
 
-## URL of taskotron buildmaster, to construct log URLs from.
-## Please make sure the URL doesn't have a trailing slash.
-taskotron_master: {{ taskotron_master }}
-
-## URL of artifacts base directory, to construct artifacts URLs from.
-## Please make sure the URL doesn't have a trailing slash.
-artifacts_baseurl: {{ artifacts_base_url }}
-
 {% if deployment_type in ['dev'] %}
 ## URL of VAULT server API interface, which stores secrets.
 ## Please make sure the URL doesn't have a trailing slash.
@@ -114,6 +106,16 @@ vault_username: {{ vault_api_username }}
 ## Password for vault server
 vault_password: {{ vault_api_password }}
 {% endif %}
+
+## URL of taskotron buildmaster, to construct log URLs from.
+## Please make sure the URL doesn't have a trailing slash.
+taskotron_master: {{ taskotron_master }}
+
+## URL of artifacts base directory, to construct artifacts URLs from. The final
+## URL will be $artifacts_baseurl/<uuid>.
+## Please make sure the URL doesn't have a trailing slash.
+artifacts_baseurl: {{ artifacts_base_url }}
+
 ## Whether to cache downloaded files to speed up subsequent downloads. If True,
 ## files will be downloaded to a common directory specified by "cachedir". At
 ## the moment, Taskotron only supports Koji RPM downloads to be cached.
@@ -154,7 +156,7 @@ imagesdir: {{ imagesdir }}
 force_imageurl: False
 
 ## Url of an image to download and use for disposable client, if force_imageurl was set
-#imageurl:
+#imageurl: http://download.fedoraproject.org/pub/fedora/linux/releases/27/CloudImages/x86_64/images/Fedora-Cloud-Base-27-1.6.x86_64.qcow2
 
 ## Default  distro/release/flavor/arch for the disposable images discovery
 #default_disposable_distro: fedora
@@ -179,6 +181,10 @@ minion_repos:
   - copr:kparal/taskotron-dev
 {% endif %}
 
+## If one or more minions repos fail to be added (e.g. not accessible), should
+## we abort the execution or ignore the error and continue?
+## [default: False]
+minion_repos_ignore_errors: True
 
 ## ==== LOGGING section ====
 ## This section contains configuration of logging.
