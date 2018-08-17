@@ -214,6 +214,16 @@
   tags:
   - koji_builder
 
+# non-bkernel x86_64 builders run container_build, which needs osbs
+- name: special pkgs for the x86_64 builders
+  package: state=present pkg={{ item }}
+  with_items:
+  - python2-osbs-client.noarch
+  - python3-osbs-client.noarch
+  when: "ansible_architecture == 'x86_64' and not ansible_inventory_hostname.startswith('bkernel')"
+  tags:
+  - koji_builder
+
 # Before, the builders had the "apache" role. This is a temporary play to remove the httpd daemon everywhere
 - name: Uninstall httpd
   package: name=httpd
