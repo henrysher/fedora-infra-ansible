@@ -73,9 +73,10 @@ Listen 443 https
     SSLCertificateChainFile /etc/letsencrypt/live/{{ copr_frontend_public_hostname }}/fullchain.pem
     {% endif %}
 
-    ServerAlias {{ copr_frontend_public_hostname }}
-
-    Redirect 302 / https://{{ copr_frontend_public_hostname }}/
+    {% if not devel %}
+    ServerAlias copr.fedoraproject.org
+    Redirect 302 / https://copr.fedorainfracloud.org/
+    {% endif %}
 </VirtualHost>
 
 
