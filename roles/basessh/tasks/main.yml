@@ -133,7 +133,7 @@
   set_fact:
     certs_to_sign: "{{certs_to_sign}} + [ '{{item.item.path}}' ]"
   with_items: "{{ssh_cert_files.results}}"
-  when: "item.stat.exists and item.stat.mtime|int < (ansible_date_time.epoch|int - 25920000)"
+  when: "item.stat.exists and item.stat.mtime|int < (lookup('pipe', 'date date +%s')|int - 25920000)"
   tags:
   - basessh
   - sshd_cert
