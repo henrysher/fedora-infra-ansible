@@ -9,7 +9,6 @@ MACHINES='signal.gnome.org
           webapps2.gnome.org
           blogs.gnome.org
           palette.gnome.org 
-          git.gnome.org
           webapps.gnome.org
           cloud.gnome.org
           bastion.gnome.org
@@ -31,7 +30,8 @@ MACHINES='signal.gnome.org
           scale.gnome.org
           sdkbuilder.gnome.org
           webapps3.gnome.org
-          gitlab.gnome.org'
+          gitlab.gnome.org
+          oscp-master01.gnome.org'
 
 BACKUP_DIR='/gnome_backups'
 
