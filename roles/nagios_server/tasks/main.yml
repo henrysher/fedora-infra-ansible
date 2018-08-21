@@ -468,3 +468,15 @@
   when: selinux_module is changed
   tags:
   - nagios_server
+
+- name: Copy over our custom selinux module
+  copy: src=selinux/nagios_nrpe.pp dest=/usr/local/share/nagios-policy/nagios_nrpe.pp
+  register: selinux_module2
+  tags:
+  - nagios_server
+
+- name: Install our custom selinux module
+  command: semodule -i /usr/local/share/nagios-policy/nagios_nrpe.pp
+  when: selinux_module2 is changed
+  tags:
+  - nagios_server
