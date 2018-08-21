@@ -3,6 +3,7 @@ kind: CronJob
 metadata:
   name: anitya
 spec:
+  concurrencyPolicy: Forbid
   schedule: "10 */12 * * *"
   jobTemplate:             
     spec:
@@ -13,9 +14,18 @@ spec:
         spec:
           containers:
           - name: release-monitoring-web
-            image: release-monitoring/release-monitoring-web:latest
-            command: ["/usr/share/anitya/anitya_cron.py"]
+            image: docker-registry.default.svc:5000/release-monitoring/release-monitoring-web:latest
+            command: ["/usr/local/bin/anitya_cron.py"]
             env:
             - name: ANITYA_WEB_CONFIG
-              value: /etc/anitya/anitya.cfg
+              value: /etc/anitya/anitya.toml
+            volumeMounts:
+            - mountPath: /etc/anitya
+              name: config-volume
+              readOnly: true
           restartPolicy: OnFailure 
+          volumes:
+          - configMap:
+              defaultMode: 420
+              name: release-monitoring-configmap
+            name: config-volume
