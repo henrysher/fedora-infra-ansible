@@ -23,11 +23,21 @@
 
 - name: generate the inventory file
   template:
+    src: "cluster-inventory-stg.j2"
+    dest: "{{ openshift_ansible_path }}/{{ cluster_inventory_filename }}"
+  tags:
+  - ansible-ansible-openshift-ansible
+  - ansible-ansible-openshift-ansible-config
+  when: env == 'staging' and inventory_hostname.startswith('os-')
+
+- name: generate the inventory file
+  template:
     src: "cluster-inventory.j2"
     dest: "{{ openshift_ansible_path }}/{{ cluster_inventory_filename }}"
   tags:
   - ansible-ansible-openshift-ansible
   - ansible-ansible-openshift-ansible-config
+  when: env == 'production' or inventory_hostname.startswith('osbs-')
 
 - name: run ansible prereqs playbook
   shell: "ansible-playbook {{ openshift_ansible_pre_playbook }} -i {{ cluster_inventory_filename }}"
