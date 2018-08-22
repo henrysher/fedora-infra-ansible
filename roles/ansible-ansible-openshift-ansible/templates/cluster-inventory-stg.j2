@@ -62,6 +62,20 @@ openshift_deployment_type={{openshift_deployment_type}}
 # release.
 openshift_release={{openshift_release}}
 
+{% if openshift_master_ha is defined %}
+{% if openshift_master_ha %}
+# Native high availability cluster method with optional load balancer.
+# If no lb group is defined, the installer assumes that a load balancer has
+# been preconfigured. For installation the value of
+# openshift_master_cluster_hostname must resolve to the load balancer
+# or to one or all of the masters defined in the inventory if no load
+# balancer is present.
+openshift_master_cluster_method=native
+openshift_master_cluster_hostname={{openshift_internal_cluster_url}}
+openshift_master_cluster_public_hostname={{openshift_cluster_url}}
+{% endif %}
+{% endif %}
+
 # default subdomain to use for exposed routes, you should have wildcard dns
 # for *.apps.test.example.com that points at your infra nodes which will run
 # your router
@@ -70,11 +84,6 @@ openshift_release={{openshift_release}}
 openshift_master_default_subdomain={{openshift_app_subdomain}}
 {% endif %}
 {% endif %}
-
-#Set cluster_hostname to point at your load balancer
-openshift_master_cluster_hostname=ose3-lb.test.example.com
-
-
 
 ###############################################################################
 # Additional configuration variables follow                                   #
@@ -359,20 +368,6 @@ openshift_master_identity_providers=[{"name": "fedoraidp", "login": "true", "cha
 #
 # Set cockpit plugins
 #osm_cockpit_plugins=['cockpit-kubernetes']
-
-{% if openshift_master_ha is defined %}
-{% if openshift_master_ha %}
-# Native high availability cluster method with optional load balancer.
-# If no lb group is defined, the installer assumes that a load balancer has
-# been preconfigured. For installation the value of
-# openshift_master_cluster_hostname must resolve to the load balancer
-# or to one or all of the masters defined in the inventory if no load
-# balancer is present.
-openshift_master_cluster_method=native
-openshift_master_cluster_hostname={{openshift_internal_cluster_url}}
-openshift_master_cluster_public_hostname={{openshift_cluster_url}}
-{% endif %}
-{% endif %}
 
 # If an external load balancer is used public hostname should resolve to
 # external load balancer address
