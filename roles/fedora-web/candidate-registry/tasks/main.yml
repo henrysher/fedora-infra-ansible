@@ -1,22 +1,3 @@
-- name: Copy over the Fedora Server CA cert
-  copy: src="{{ private }}/files/fedora-ca.cert" dest=/etc/pki/httpd/fedora-server-ca.cert
-        owner=root group=root mode=0644
-  notify:
-  - reload proxyhttpd
-  tags:
-  - fedora-web
-  - fedora-web/candidate-registry
-
-- name: Copy over the registry CA
-  copy: src="{{private}}/files/docker-registry/{{env}}/docker-registry-ca.pem"
-        dest="/etc/pki/httpd/registry-ca-{{env}}.cert"
-        owner=root group=root mode=0644
-  notify:
-  - reload proxyhttpd
-  tags:
-  - fedora-web
-  - fedora-web/candidate-registry
-
 - name: Copy over the registry passwd
   copy: src="{{private}}/files/docker-registry/{{env}}/candidate-htpasswd" dest=/etc/httpd/conf.d/candidate-registry.fedoraproject.org/passwd
         owner=root group=root mode=0644
