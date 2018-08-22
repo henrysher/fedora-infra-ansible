@@ -7,11 +7,15 @@
     state: present
   with_items:
     - skopeo
+  tags:
+  - manage-container-images
 
 - name: ensure cert dir exists
   file:
     path: "{{cert_dest_dir}}"
     state: directory
+  tags:
+  - manage-container-images
 
 - name: install docker client cert for registry
   copy:
@@ -20,6 +24,8 @@
     owner: root
     group: "{{ certs_group }}"
     mode: 0640
+  tags:
+  - manage-container-images
 
 - name: install docker client key for registry
   copy:
@@ -27,3 +33,5 @@
     dest: "{{cert_dest_dir}}/client.key"
     group: "{{ certs_group }}"
     mode: 0640
+  tags:
+  - manage-container-images
