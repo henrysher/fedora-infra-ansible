@@ -44,7 +44,7 @@
   args:
     chdir: "{{ openshift_ansible_path }}"
   register: run_ansible_out
-  when: openshift_ansible_pre_playbook is defined
+  when: openshift_ansible_pre_playbook is defined and not openshift_ansible_upgrading is defined
   tags:
   - ansible-ansible-openshift-ansible
 
@@ -55,6 +55,7 @@
   register: run_ansible_out
   tags:
   - ansible-ansible-openshift-ansible
+  when: not openshift_ansible_upgrading is defined
 
 - name: display run ansible stdout_lines
   debug:
