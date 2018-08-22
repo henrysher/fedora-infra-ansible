@@ -98,6 +98,18 @@ config = {
                     "key": "fedora-infra",
                     "keyid": "47dd8ef9"
                 },
+                {
+                    "from": "f29-infra-candidate",
+                    "to": "f29-infra-stg",
+                    "key": "fedora-infra",
+                    "keyid": "47dd8ef9"
+                },
+                {
+                    "from": "f30-infra-candidate",
+                    "to": "f30-infra-stg",
+                    "key": "fedora-infra",
+                    "keyid": "47dd8ef9"
+                },
 
                 # Gated rawhide and branched
                 {
