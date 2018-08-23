@@ -30,7 +30,7 @@
 - debug:
     var: openshift_master_default_subdomain
 
-- name: generate the inventory file
+- name: generate the inventory file (staging)
   template:
     src: "cluster-inventory-stg.j2"
     dest: "{{ openshift_ansible_path }}/{{ cluster_inventory_filename }}"
@@ -39,14 +39,23 @@
   - ansible-ansible-openshift-ansible-config
   when: env == 'staging' and inventory_hostname.startswith('os-')
 
-- name: generate the inventory file
+- name: generate the inventory file (production)
+  template:
+    src: "cluster-inventory-prod.j2"
+    dest: "{{ openshift_ansible_path }}/{{ cluster_inventory_filename }}"
+  tags:
+  - ansible-ansible-openshift-ansible
+  - ansible-ansible-openshift-ansible-config
+  when: env == 'production' and inventory_hostname.startswith('os-')
+
+- name: generate the inventory file (osbs)
   template:
     src: "cluster-inventory.j2"
     dest: "{{ openshift_ansible_path }}/{{ cluster_inventory_filename }}"
   tags:
   - ansible-ansible-openshift-ansible
   - ansible-ansible-openshift-ansible-config
-  when: env == 'production' or inventory_hostname.startswith('osbs-')
+  when: inventory_hostname.startswith('osbs-')
 
 - name: run ansible prereqs playbook
   shell: "ansible-playbook {{ openshift_ansible_pre_playbook }} -i {{ cluster_inventory_filename }}"
