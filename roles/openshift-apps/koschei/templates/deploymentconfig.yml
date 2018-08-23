@@ -1,0 +1,55 @@
+apiVersion: v1
+items:
+- apiVersion: v1
+  kind: DeploymentConfig
+  metadata:
+    labels:
+      app: koschei
+      service: web
+    name: koschei-web
+  spec:
+    replicas: 1
+    selector:
+      deploymentconfig: koschei-web
+    strategy:
+      activeDeadlineSeconds: 21600
+      recreateParams:
+        timeoutSeconds: 600
+      resources: {}
+      rollingParams:
+        intervalSeconds: 1
+        maxSurge: 25%
+        maxUnavailable: 25%
+        timeoutSeconds: 600
+        updatePeriodSeconds: 1
+      type: Rolling
+    template:
+      metadata:
+        creationTimestamp: null
+        labels:
+          app: koschei-web
+          deploymentconfig: koschei-web
+      spec:
+        containers:
+        - name: koschei-web
+          image: koschei-web:latest
+          ports:
+          - containerPort: 80
+          resources: {}
+          volumeMounts: {}
+          readinessProbe:
+            timeoutSeconds: 10
+            initialDelaySeconds: 5
+            httpGet:
+              path: /
+              port: 80
+          livenessProbe:
+            timeoutSeconds: 10
+            initialDelaySeconds: 30
+            httpGet:
+              path: /
+              port: 80
+        volumes: {}
+    triggers: {}
+kind: List
+metadata: {}
