@@ -1,0 +1,27 @@
+apiVersion: v1
+items:
+- apiVersion: v1
+  kind: BuildConfig
+  metadata:
+    labels:
+      build: koschei-web
+    name: koschei-web
+  spec:
+    runPolicy: Serial
+    source:
+      dockerfile: |-
+        FROM fedora-minimal:28
+        RUN microdnf install koschei-frontend-fedora
+        EXPOSE 80
+        CMD httpd -DFOREGROUND
+      type: Dockerfile
+    strategy:
+      type: Docker
+      dockerStrategy:
+        noCache: false
+    output:
+      to:
+        kind: ImageStreamTag
+        name: koschei-web:latest
+kind: List
+metadata: {}
