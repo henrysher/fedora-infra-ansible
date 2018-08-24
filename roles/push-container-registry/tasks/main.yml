@@ -1,6 +1,10 @@
 ---
-# tasks file for push-docker
-#
+# tasks file for push-container-registry
+# This role install skopeo and the certificates
+# needed to push container images to our production registry.
+# Note : push to the candidate-registry is done using docker login
+# see the push-docker role.
+
 - name: install necessary packages
   package:
     name: "{{item}}"
@@ -8,16 +12,16 @@
   with_items:
     - skopeo
   tags:
-  - manage-container-images
+  - push-container-registry
 
 - name: ensure cert dir exists
   file:
     path: "{{cert_dest_dir}}"
     state: directory
   tags:
-  - manage-container-images
+  - push-container-registry
 
-- name: install docker client cert for registry
+- name: install client cert for registry
   copy:
     src: "{{cert_src}}"
     dest: "{{cert_dest_dir}}/client.cert"
@@ -25,13 +29,13 @@
     group: "{{ certs_group }}"
     mode: 0640
   tags:
-  - manage-container-images
+  - push-container-registry
 
-- name: install docker client key for registry
+- name: install client key for registry
   copy:
     src: "{{key_src}}"
     dest: "{{cert_dest_dir}}/client.key"
     group: "{{ certs_group }}"
     mode: 0640
   tags:
-  - manage-container-images
+  - push-container-registry
