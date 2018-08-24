@@ -346,10 +346,6 @@ config = {
             'directory': '/mnt/fedora_koji/koji/compose/atomic/repo/',
             'key': 'fedora-28'
         },
-        'fedora/rawhide/x86_64/atomic-host': {
-            'directory': '/mnt/fedora_koji/koji/compose/atomic/repo/',
-            'key': 'fedora-29'
-        },
         'fedora/28/x86_64/workstation': {
             'directory': '/mnt/fedora_koji/koji/compose/atomic/repo/',
             'key': 'fedora-28'
@@ -361,6 +357,10 @@ config = {
         'fedora/28/x86_64/testing/workstation': {
             'directory': '/mnt/fedora_koji/koji/compose/atomic/repo/',
             'key': 'fedora-28'
+        },
+        'fedora/rawhide/x86_64/atomic-host': {
+            'directory': '/mnt/fedora_koji/koji/compose/atomic/repo/',
+            'key': 'fedora-29'
         },
         'fedora/rawhide/ppc64le/atomic-host': {
             'directory': '/mnt/fedora_koji/koji/compose/atomic/repo/',
