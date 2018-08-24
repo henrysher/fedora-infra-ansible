@@ -358,6 +358,54 @@ config = {
             'directory': '/mnt/fedora_koji/koji/compose/atomic/repo/',
             'key': 'fedora-28'
         },
+        'fedora/29/x86_64/atomic-host': {
+            'directory': '/mnt/fedora_koji/koji/compose/atomic/repo/',
+            'key': 'fedora-29'
+        },
+        'fedora/29/ppc64le/atomic-host': {
+            'directory': '/mnt/fedora_koji/koji/compose/atomic/repo/',
+            'key': 'fedora-29'
+        },
+        'fedora/29/aarch64/atomic-host': {
+            'directory': '/mnt/fedora_koji/koji/compose/atomic/repo/',
+            'key': 'fedora-29'
+        },
+        'fedora/29/x86_64/updates/atomic-host': {
+            'directory': '/mnt/fedora_koji/koji/compose/atomic/repo/',
+            'key': 'fedora-29'
+        },
+        'fedora/29/ppc64le/updates/atomic-host': {
+            'directory': '/mnt/fedora_koji/koji/compose/atomic/repo/',
+            'key': 'fedora-29'
+        },
+        'fedora/29/aarch64/updates/atomic-host': {
+            'directory': '/mnt/fedora_koji/koji/compose/atomic/repo/',
+            'key': 'fedora-29'
+        },
+        'fedora/29/x86_64/testing/atomic-host': {
+            'directory': '/mnt/fedora_koji/koji/compose/atomic/repo/',
+            'key': 'fedora-29'
+        },
+        'fedora/29/ppc64le/testing/atomic-host': {
+            'directory': '/mnt/fedora_koji/koji/compose/atomic/repo/',
+            'key': 'fedora-29'
+        },
+        'fedora/29/aarch64/testing/atomic-host': {
+            'directory': '/mnt/fedora_koji/koji/compose/atomic/repo/',
+            'key': 'fedora-29'
+        },
+        'fedora/29/x86_64/workstation': {
+            'directory': '/mnt/fedora_koji/koji/compose/atomic/repo/',
+            'key': 'fedora-29'
+        },
+        'fedora/29/x86_64/updates/workstation': {
+            'directory': '/mnt/fedora_koji/koji/compose/atomic/repo/',
+            'key': 'fedora-29'
+        },
+        'fedora/29/x86_64/testing/workstation': {
+            'directory': '/mnt/fedora_koji/koji/compose/atomic/repo/',
+            'key': 'fedora-29'
+        },
         'fedora/rawhide/x86_64/atomic-host': {
             'directory': '/mnt/fedora_koji/koji/compose/atomic/repo/',
             'key': 'fedora-30'
