@@ -88,13 +88,6 @@
   - nb
   - kevin
 
-- name: rebuild indexes
-  command: ./manage.py update_indexes
-  become: yes
-  become_user: copr-fe
-  args:
-    chdir: /usr/share/copr/coprs_frontend/
-
 - name: install ssl certificates for production
   import_tasks: "install_certs.yml"
   when: not devel
@@ -136,3 +129,10 @@
 - name: disallow robots on dev instance
   when: devel
   copy: src=robots.txt dest=/var/www/html/
+
+- name: rebuild indexes
+  command: ./manage.py update_indexes
+  become: yes
+  become_user: copr-fe
+  args:
+    chdir: /usr/share/copr/coprs_frontend/
