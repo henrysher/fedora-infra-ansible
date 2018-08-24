@@ -495,7 +495,8 @@
     - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
 
   pre_tasks:
-    - set_fact:
+    - name: Create the username:password string needed by the template
+      set_fact:
         auth_info_prod: "{{candidate_registry_osbs_prod_username}}:{{candidate_registry_osbs_prod_password}}"
         auth_info_stg: "{{candidate_registry_osbs_stg_username}}:{{candidate_registry_osbs_stg_password}}"
 
@@ -533,7 +534,8 @@
     - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
 
   pre_tasks:
-    - set_fact:
+    - name: Create the username:password string needed by the template
+      set_fact:
         auth_info_prod: "{{candidate_registry_osbs_prod_username}}:{{candidate_registry_osbs_prod_password}}"
         auth_info_stg: "{{candidate_registry_osbs_stg_username}}:{{candidate_registry_osbs_stg_password}}"
 
@@ -697,7 +699,7 @@
         src: "{{item}}"
         dest: "/etc/osbs/buildroot/"
         owner: root
-        mode: 600
+        mode: 0600
       with_items:
         - "{{files}}/osbs/worker_customize.json"
         - "{{files}}/osbs/orchestrator_customize.json"
