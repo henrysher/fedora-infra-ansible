@@ -270,35 +270,6 @@
     - "/srv/private/ansible/vars.yml"
     - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
 
-  pre_tasks:
-    - name: Make sure python2-docker-py is not installed
-      dnf:
-        name: python2-docker-py
-        state: absent
-
-  roles:
-    - {
-      role: push-docker,
-        candidate_registry: "{{docker_registry}}",
-        candidate_registry_osbs_username: "{{candidate_registry_osbs_stg_username}}",
-        candidate_registry_osbs_password: "{{candidate_registry_osbs_stg_password}}",
-      when: env == "staging"
-    }
-    - {
-      role: push-docker,
-        candidate_registry: "{{docker_registry}}",
-        candidate_registry_osbs_username: "{{candidate_registry_osbs_prod_username}}",
-        candidate_registry_osbs_password: "{{candidate_registry_osbs_prod_password}}",
-      when: env == "production"
-    }
-
-
-  handlers:
-    - name: restart dnsmasq
-      service:
-        name: dnsmasq
-        state: restarted
-
   tasks:
     - name: Ensures /etc/dnsmasq.d/ dir exists
       file: path="/etc/dnsmasq.d/" state=directory
@@ -577,36 +548,7 @@
     koji_builder_user: dockerbuilder
     osbs_builder_user: builder
 
-
-  handlers:
-    - name: oc secrets new
-      command: "oc secrets new koji cert={{ koji_cert_path }} ca={{ koji_ca_cert_path }} serverca={{ koji_ca_cert_path }}"
-      environment: "{{ osbs_environment }}"
-      notify: oc secrets add
-
-    - name: oc secrets add
-      command: "oc secrets add serviceaccount/{{ osbs_builder_user }} secrets/koji --for=mount"
-      environment: "{{ osbs_environment }}"
-
   tasks:
-    - name: Ensure koji dockerbuilder cert path exists
-      file:
-        path: "{{ koji_pki_dir }}"
-        state: "directory"
-        mode: 0400
-
-    - name: Add koji dockerbuilder cert for Content Generator import
-      copy:
-        src: "{{private}}/files/koji/containerbuild.pem"
-        dest: "{{ koji_cert_path }}"
-      notify: oc secrets new
-
-    - name: Add koji dockerbuilder ca cert for Content Generator import
-      copy:
-        src: "{{private}}/files/koji/buildercerts/fedora-ca.cert"
-        dest: "{{ koji_ca_cert_path }}"
-      notify: oc secrets new
-
     - name: cron entry to clean up old builds
       copy:
         src: "{{files}}/osbs/cleanup-old-osbs-builds"
@@ -792,21 +734,5 @@
       register: docker_pull_fedora
       changed_when: "'Downloaded newer image' in docker_pull_fedora.stdout"
 
-
-
-- name: Post-Install image stream refresh
-  hosts: osbs-masters[0]:osbs-masters-stg[0]
-  tags:
-    - osbs-post-install
-  vars_files:
-    - /srv/web/infra/ansible/vars/global.yml
-    - /srv/private/ansible/vars.yml
-    - /srv/private/ansible/files/openstack/passwords.yml
-    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
-
-  tasks:
     - name: enable nrpe for monitoring (noc01)
       iptables: action=insert chain=INPUT destination_port=5666 protocol=tcp source=10.5.126.41 state=present jump=ACCEPT
-
-#    - name: enable nrpe for monitoring (noc01.stg)
-#      iptables: action=insert chain=INPUT destination_port=5666 protocol=tcp source=1#0.5.126.2 state=present jump=ACCEPT
