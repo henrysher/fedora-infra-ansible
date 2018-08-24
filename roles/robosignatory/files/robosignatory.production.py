@@ -360,19 +360,19 @@ config = {
         },
         'fedora/rawhide/x86_64/atomic-host': {
             'directory': '/mnt/fedora_koji/koji/compose/atomic/repo/',
-            'key': 'fedora-29'
+            'key': 'fedora-30'
         },
         'fedora/rawhide/ppc64le/atomic-host': {
             'directory': '/mnt/fedora_koji/koji/compose/atomic/repo/',
-            'key': 'fedora-29'
+            'key': 'fedora-30'
         },
         'fedora/rawhide/aarch64/atomic-host': {
             'directory': '/mnt/fedora_koji/koji/compose/atomic/repo/',
-            'key': 'fedora-29'
+            'key': 'fedora-30'
         },
         'fedora/rawhide/x86_64/workstation': {
             'directory': '/mnt/fedora_koji/koji/compose/atomic/repo/',
-            'key': 'fedora-29'
+            'key': 'fedora-30'
         },
     }
 }
