@@ -394,15 +394,15 @@ config = {
             'directory': '/mnt/fedora_koji/koji/compose/atomic/repo/',
             'key': 'fedora-29'
         },
-        'fedora/29/x86_64/workstation': {
+        'fedora/29/x86_64/silverblue': {
             'directory': '/mnt/fedora_koji/koji/compose/atomic/repo/',
             'key': 'fedora-29'
         },
-        'fedora/29/x86_64/updates/workstation': {
+        'fedora/29/x86_64/updates/silverblue': {
             'directory': '/mnt/fedora_koji/koji/compose/atomic/repo/',
             'key': 'fedora-29'
         },
-        'fedora/29/x86_64/testing/workstation': {
+        'fedora/29/x86_64/testing/silverblue': {
             'directory': '/mnt/fedora_koji/koji/compose/atomic/repo/',
             'key': 'fedora-29'
         },
@@ -418,7 +418,7 @@ config = {
             'directory': '/mnt/fedora_koji/koji/compose/atomic/repo/',
             'key': 'fedora-30'
         },
-        'fedora/rawhide/x86_64/workstation': {
+        'fedora/rawhide/x86_64/silverblue': {
             'directory': '/mnt/fedora_koji/koji/compose/atomic/repo/',
             'key': 'fedora-30'
         },
