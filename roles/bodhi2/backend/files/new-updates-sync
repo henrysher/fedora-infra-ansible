@@ -14,6 +14,7 @@ logger = logging.getLogger('updates-sync')
 
 
 SOURCE = '/mnt/koji/compose/updates/'
+RAWHIDESOURCE = '/mnt/koji/compose/rawhide/'
 FEDORADEST = '/pub/fedora/linux/updates/'
 FEDORAMODDEST = '/pub/fedora/linux/modular/updates/'
 FEDORAALTDEST = '/pub/fedora-secondary/updates/'
@@ -24,7 +25,7 @@ RELEASES = {'f30': {'topic': 'fedora',
                     'version': '30',
                     'modules': ['fedora', 'fedora-secondary'],
                     'repos': {'rawhide': {
-                        'from': 'f30',
+                        'from': 'latest-Fedora-Rawhide',
                         'ostrees': [{'ref': 'fedora/rawhide/%(arch)s/atomic-host',
                                      'dest': ATOMICDEST,
                                      'arches': ['x86_64', 'ppc64le', 'aarch64']},
@@ -291,9 +292,14 @@ def to_human(num_bytes):
 
 
 def sync_single_repo_arch(release, repo, arch, dest_path):
-    source_path = os.path.join(SOURCE,
-                               RELEASES[release]['repos'][repo]['from'],
-                               'compose', 'Everything', arch)
+    if repo == 'rawhide':
+        source_path = os.path.join(RAWHIDESOURCE,
+                                   RELEASES[release]['repos'][repo]['from'],
+                                   'compose', 'Everything', arch)
+    else:
+        source_path = os.path.join(SOURCE,
+                                   RELEASES[release]['repos'][repo]['from'],
+                                   'compose', 'Everything', arch)
 
     maindir = 'tree' if arch == 'source' else 'os'
 
@@ -356,8 +362,12 @@ def sync_single_repo(release, repo):
 
 
 def determine_last_link(release, repo):
-    source_path = os.path.join(SOURCE,
-                               RELEASES[release]['repos'][repo]['from'])
+    if repo == 'rawhide':
+        source_path = os.path.join(RAWHIDESOURCE,
+                                   RELEASES[release]['repos'][repo]['from'])
+    else:
+        source_path = os.path.join(SOURCE,
+                                   RELEASES[release]['repos'][repo]['from'])
     target = os.readlink(source_path)
     logger.info('Release %s, repo %s, target %s', release, repo, target)
     RELEASES[release]['repos'][repo]['from'] = target
