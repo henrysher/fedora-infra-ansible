@@ -1,0 +1,80 @@
+Listen 443 https
+
+
+<VirtualHost *:443>
+    SSLEngine on
+    SSLProtocol {{ ssl_protocols }}
+    # Use secure TLSv1.1 and TLSv1.2 ciphers
+    SSLCipherSuite {{ ssl_ciphers }}
+    SSLHonorCipherOrder on
+    Header always add Strict-Transport-Security "max-age=31536000; preload"
+
+    {% if not devel %}
+    SSLCertificateFile /etc/pki/tls/certs/copr.fedorainfracloud.org.crt
+    SSLCertificateKeyFile /etc/pki/tls/private/copr.fedorainfracloud.org.key
+    SSLCertificateChainFile /etc/pki/tls/certs/copr.fedorainfracloud.org.intermediate.crt
+    {% else %}
+    SSLCertificateFile    /etc/letsencrypt/live/{{ copr_frontend_public_hostname }}/cert.pem
+    SSLCertificateKeyFile  /etc/letsencrypt/live/{{ copr_frontend_public_hostname }}/privkey.pem
+    SSLCertificateChainFile /etc/letsencrypt/live/{{ copr_frontend_public_hostname }}/fullchain.pem
+    {% endif %}
+
+    ServerName {{ copr_frontend_public_hostname }}
+
+    WSGIPassAuthorization On
+    WSGIScriptAlias / /usr/share/copr/coprs_frontend/application
+    WSGIProcessGroup 127.0.0.1
+
+    <Location /api>
+        WSGIProcessGroup api
+    </Location>
+    <Location /backend>
+        WSGIProcessGroup backend
+    </Location>
+    <Location /stats_rcv>
+        WSGIProcessGroup stats
+    </Location>
+    <Location /tmp>
+        WSGIProcessGroup tmp
+    </Location>
+
+    #ErrorLog logs/error_coprs
+    #CustomLog logs/access_coprs common
+
+    <Directory /usr/share/copr>
+        WSGIApplicationGroup %{GLOBAL}
+        Require all granted
+    </Directory>
+
+    RewriteEngine on
+    RewriteRule ^/coprs/sgallagh/cockpit-preview/repo/(.*)/.*\.repo$ /coprs/g/cockpit/cockpit-preview/repo/$1/ [R=301]
+    RewriteRule ^/coprs/sgallagh/cockpit-preview/(.*)$ /coprs/g/cockpit/cockpit-preview/$1 [R=301]
+
+    # https://bugzilla.redhat.com/show_bug.cgi?id=1582294 - yum copr enable does not work
+    RewriteRule ^/coprs/([^/]*)/([^/]*)/repo/epel-(.*)-(.*)/(.*)$ /coprs/$1/$2/repo/epel-$3/$5 [PT]
+    RewriteRule ^/coprs/g/([^/]*)/([^/]*)/repo/epel-(.*)-(.*)/(.*)$ /coprs/g/$1/$2/repo/epel-$3/$5 [PT]
+</VirtualHost>
+
+<VirtualHost *:443>
+    SSLEngine on
+    SSLProtocol {{ ssl_protocols }}
+    # Use secure TLSv1.1 and TLSv1.2 ciphers
+    SSLCipherSuite {{ ssl_ciphers }}
+    SSLHonorCipherOrder on
+    Header always add Strict-Transport-Security "max-age=31536000; preload"
+
+    {% if not devel %}
+    SSLCertificateFile /etc/pki/tls/certs/copr.fedorainfracloud.org.crt
+    SSLCertificateKeyFile /etc/pki/tls/private/copr.fedorainfracloud.org.key
+    SSLCertificateChainFile /etc/pki/tls/certs/copr.fedorainfracloud.org.intermediate.crt
+    {% else %}
+    SSLCertificateFile    /etc/letsencrypt/live/{{ copr_frontend_public_hostname }}/cert.pem
+    SSLCertificateKeyFile  /etc/letsencrypt/live/{{ copr_frontend_public_hostname }}/privkey.pem
+    SSLCertificateChainFile /etc/letsencrypt/live/{{ copr_frontend_public_hostname }}/fullchain.pem
+    {% endif %}
+
+    {% if not devel %}
+    ServerAlias copr.fedoraproject.org
+    Redirect 302 / https://copr.fedorainfracloud.org/
+    {% endif %}
+</VirtualHost>

@@ -1,0 +1,14 @@
+- name: copy httpd ssl certificates (crt)
+  copy: src="{{ private }}/files/httpd/{{item}}"
+        dest="/etc/pki/tls/certs/"
+        owner=root group=root mode=0600
+  with_items:
+  - copr.fedorainfracloud.org.crt
+  - copr.fedorainfracloud.org.intermediate.crt
+  tags:
+  - config
+
+- name: copy httpd ssl certificates (key)
+  copy: src="{{ private }}/files/httpd/copr.fedorainfracloud.org.key" dest="/etc/pki/tls/private/" owner=root group=root mode=0600
+  tags:
+  - config
