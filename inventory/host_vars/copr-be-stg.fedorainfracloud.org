@@ -1,0 +1,26 @@
+---
+instance_type: m1.xlarge
+image: "{{ fedora27_x86_64 }}"
+keypair: fedora-admin-20130801
+security_group: web-80-anywhere-persistent,web-443-anywhere-persistent,ssh-anywhere-persistent,default,allow-nagios-persistent,fedmsg-relay-persistent
+zone: nova
+hostbase: copr-be-stg-
+public_ip: 209.132.184.53
+root_auth_users: msuchy pingou frostyx dturecek clime
+description: copr dispatcher and repo server - stg instance
+tcp_ports: ['22', '80', '443', '2003', '4001']
+# volumes: copr-be-stg-data
+volumes: [ {volume_id: 'a3325e22-bdc0-4eeb-bb73-45365ddb7a01', device: '/dev/vdc'} ]
+
+inventory_tenant: persistent
+# name of machine in OpenStack
+inventory_instance_name: copr-be-stg
+cloud_networks:
+  # persistent-net
+  - net-id: "67b77354-39a4-43de-b007-bb813ac5c35f"
+  # coprdev-net
+  - net-id: "a440568f-b90a-46af-8ca6-d8fa743a7e7a"
+
+# Copr vars
+copr_hostbase: copr-be-stg
+_copr_be_conf: copr-be.conf-stg
