@@ -367,10 +367,14 @@ def determine_last_link(release, repo):
     if repo == 'rawhide':
         source_path = os.path.join(RAWHIDESOURCE,
                                    RELEASES[release]['repos'][repo]['from'])
+        #Since latest-Fedora-Rawhide is a symlink pointing to just the
+        #compose dir rather than its full path, we need the absolute path
+        #of the compose rather than relative path
+        target = os.path.realpath(source_path)
     else:
         source_path = os.path.join(SOURCE,
                                    RELEASES[release]['repos'][repo]['from'])
-    target = os.readlink(source_path)
+        target = os.readlink(source_path)
     logger.info('Release %s, repo %s, target %s', release, repo, target)
     RELEASES[release]['repos'][repo]['from'] = target
     return target
