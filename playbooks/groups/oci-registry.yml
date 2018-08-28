@@ -1,8 +1,8 @@
 # create an osbs server
-- import_playbook:  "/srv/web/infra/ansible/playbooks/include/virt-create.yml myhosts=oci-registry:docker-registry-stg"
+- import_playbook:  "/srv/web/infra/ansible/playbooks/include/virt-create.yml myhosts=oci-registry:oci-registry-stg"
 
 - name: make the box be real
-  hosts: oci-registry:docker-registry-stg
+  hosts: oci-registry:oci-registry-stg
   user: root
   gather_facts: True
 
@@ -35,8 +35,8 @@
 
 - name: set up gluster on stg
   hosts:
-  - docker-registry01.stg.phx2.fedoraproject.org
-  - docker-registry02.stg.phx2.fedoraproject.org
+  - oci-registry01.stg.phx2.fedoraproject.org
+  - oci-registry02.stg.phx2.fedoraproject.org
   user: root
   gather_facts: True
 
@@ -50,7 +50,7 @@
     gluster_brick_dir: /srv/glusterfs
     gluster_mount_dir: /srv/docker/
     gluster_brick_name: registry
-    gluster_server_group: docker-registry-gluster-stg
+    gluster_server_group: oci-registry-gluster-stg
     tags: gluster
 
 - name: set up gluster on prod
@@ -74,7 +74,7 @@
     tags: gluster
 
 - name: setup docker distribution registry
-  hosts: oci-registry:docker-registry-stg
+  hosts: oci-registry:oci-registry-stg
   vars_files:
     - /srv/web/infra/ansible/vars/global.yml
     - /srv/private/ansible/vars.yml
