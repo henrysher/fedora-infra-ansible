@@ -1,0 +1,59 @@
+- name: make the app be real
+  hosts: os-masters[0]:os-masters-stg[0]
+  user: root
+  gather_facts: False
+
+  vars_files:
+    - /srv/web/infra/ansible/vars/global.yml
+    - "/srv/private/ansible/vars.yml"
+    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  roles:
+  - role: openshift/project
+    app: containers
+    description: containers.fedoraproject.org static website
+    appowners:
+    - misc
+    - sanja
+  - role: openshift/object
+    app: containers
+    template: imagestream.yml
+    objectname: imagestream.yml
+  - role: openshift/object
+    app: containers
+    template: buildconfig.yml
+    objectname: buildconfig.yml
+
+  - role: openshift/start-build
+    app: containers
+    buildname: containers-build
+    objectname: containers-build
+
+  - role: openshift/object
+    app: containers
+    file: service.yml
+    objectname: service.yml
+
+  - role: openshift/route
+    app: containers
+    routename: containers
+    host: "containers.fedoraproject.org"
+    serviceport: 8080-tcp
+    servicename: containers
+    when: env == "production"
+
+  - role: openshift/route
+    app: containers
+    routename: containers
+    host: "containers{{ env_suffix }}.fedoraproject.org"
+    serviceport: 8080-tcp
+    servicename: containers
+
+  - role: openshift/object
+    app: containers
+    file: deploymentconfig.yml
+    objectname: deploymentconfig.yml
+
+  - role: openshift/rollout
+    app: containers
+    dcname: containers
