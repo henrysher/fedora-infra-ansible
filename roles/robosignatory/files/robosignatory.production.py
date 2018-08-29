@@ -132,28 +132,21 @@ config = {
                     "keyid": "cfc659b9",
                     "type": "modular"
                 },
+
+                # Gated bodhi updates
                 {
-                    "from": "f29-pending",
-                    "to": "f29",
+                    "from": "f29-modular-signing-pending",
+                    "to": "f29-modular-updates-testing-pending",
+                    "key": "fedora-29",
+                    "keyid": "429476b4",
+                    "type": "modular"
+                },
+                {
+                    "from": "f29-signing-pending",
+                    "to": "f29-updates-testing-pending",
                     "key": "fedora-29",
                     "keyid": "429476b4"
                 },
-                {
-                    "from": "f29-modular-signing-pending",
-                    "to": "f29-modular",
-                    "key": "fedora-29",
-                    "keyid": "429476b4",
-                    "type": "modular"
-                },
-                {
-                    "from": "f29-modular-updates-candidate",
-                    "to": "f29-modular",
-                    "key": "fedora-29",
-                    "keyid": "429476b4",
-                    "type": "modular"
-                },
-
-                # Gated bodhi updates
                 {
                     "from": "f28-modular-signing-pending",
                     "to": "f28-modular-updates-testing-pending",
