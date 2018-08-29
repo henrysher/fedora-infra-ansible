@@ -121,7 +121,7 @@ ostree = {
                 "version": "!VERSION_FROM_VERSION_DATE_RESPIN",
             [% endif %]
             "force_new_commit": True
-            "treefile": "fedora-atomic-host-updates-[[ request.name ]].json",
+            "treefile": "fedora-atomic-host.json",
             "config_url": "https://pagure.io/fedora-atomic.git",
             "config_branch": "f[[ release.version ]]",
             "repo": [
@@ -138,6 +138,11 @@ ostree = {
                 [% endif %]
             ]
             "ostree_repo": "/mnt/koji/compose/atomic/repo",
+            [% if request.name == 'stable' %]
+                "ostree_ref": "fedora/[[ release.version_int ]]/${basearch}/updates/atomic-host",
+            [% else %]
+                "ostree_ref": "fedora/[[ release.version_int ]]/${basearch}/testing/atomic-host",
+            [% endif %]
             "tag_ref": False,
             "arches": ["x86_64",
                        [% if release.version_int >= 27 %]
@@ -154,11 +159,13 @@ ostree = {
             [% if release.version_int >= 28 %]
                 "version": "!VERSION_FROM_VERSION_DATE_RESPIN",
             [% endif %]
-            [% if release.version_int >= 28 %]
+            [% if release.version_int >= 29 %]
+                "treefile": "fedora-silverblue.json",
+            [% elif release.version_int == 28 %]
                 "treefile": "fedora-atomic-workstation-updates-[[ request.name ]].json",
-        [% else %]
+            [% else %]
                 "treefile": "fedora-ostree-workstation-updates-[[ request.name ]].json",
-        [% endif %]
+            [% endif %]
             "config_url": "https://pagure.io/workstation-ostree-config.git",
             "config_branch": "f[[ release.version ]]",
             "repo": [
@@ -175,6 +182,15 @@ ostree = {
                 [% endif %]
             ]
             "ostree_repo": "/mnt/koji/compose/atomic/repo",
+            # For f29+ we are changing the ref to silverblue. For f28/f27 let the files
+            # still specify the workstation ref.
+            [% if release.version_int >= 29 %]
+                [% if request.name == 'stable' %]
+                    "ostree_ref": "fedora/[[ release.version_int ]]/${basearch}/updates/silverblue",
+                [% else %]
+                    "ostree_ref": "fedora/[[ release.version_int ]]/${basearch}/testing/silverblue",
+                [% endif %]
+            [% endif %]
             "tag_ref": False,
             "arches": ["x86_64"],
             "failable": ["x86_64"]
