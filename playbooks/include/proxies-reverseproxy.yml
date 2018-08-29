@@ -36,6 +36,15 @@
     localpath: /api
     remotepath: /api
     proxyurl: https://copr.fedorainfracloud.org
+    when: env != "staging"
+    tags: copr
+
+  - role: httpd/reverseproxy
+    website: copr.fedoraproject.org
+    destname: copr
+    proxyurl: http://localhost:10070
+    when: env == "staging"
+    tags: copr
 
   - role: httpd/reverseproxy
     website: nagios.fedoraproject.org
@@ -292,6 +301,14 @@
     localpath: /koschei
     remotepath: /koschei
     proxyurl: "{{ varnish_url }}"
+
+  - role: httpd/reverseproxy
+    website: koschei.fedoraproject.org
+    destname: koschei
+    # haproxy entry for os-nodes-frontend
+    proxyurl: http://localhost:10065
+    keephost: true
+    tags: koschei
 
   - role: httpd/reverseproxy
     website: apps.fedoraproject.org
@@ -726,6 +743,15 @@
     proxyurl: http://localhost:10065
     keephost: true
     tags: silverblue
+
+  - role: httpd/reverseproxy
+    website: stg.release-monitoring.org
+    destname: stg.release-monitoring
+    # haproxy entry for os-nodes-frontend
+    proxyurl: http://localhost:10065
+    keephost: true
+    tags: release-montoring.org
+    when: env == "staging"
 
   - role: httpd/reverseproxy
     website: data-analysis.fedoraproject.org

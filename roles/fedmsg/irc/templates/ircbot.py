@@ -109,9 +109,9 @@ config = dict(
             make_terse=True,
 
             {% if env == 'staging' %}
-            nickname='commopsbot-s',
+            nickname='commops-bot-s',
             {% else %}
-            nickname='commopsbot',
+            nickname='commops-bot',
             {% endif %}
             channel='fedora-commops',
             filters=dict(
@@ -128,9 +128,9 @@ config = dict(
             make_terse=True,
 
             {% if env == 'staging' %}
-            nickname='commopswatch-s',
+            nickname='commops-watch-s',
             {% else %}
-            nickname='commopswatch',
+            nickname='commops-watch',
             {% endif %}
             channel='fedora-commops',
             filters=dict(
@@ -140,7 +140,7 @@ config = dict(
                 body=['^((?!fedora-commops).)*$'],
             ),
         ),
-        # A third one! for that commops crew that watches for the admin user to post on planet
+        # A third one to listen for new Community Blog posts
         dict(
             network='chat.freenode.net',
             port=6667,
@@ -148,9 +148,9 @@ config = dict(
             make_terse=True,
 
             {% if env == 'staging' %}
-            nickname='commopsplanet-s',
+            nickname='fm-commblog-s',
             {% else %}
-            nickname='commopslanet',
+            nickname='fm-commblog',
             {% endif %}
             channel='fedora-commops',
             filters=dict(

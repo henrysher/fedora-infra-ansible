@@ -1,9 +1,33 @@
 ---
-copr_frontend_public_hostname: "copr-fe-dev.cloud.fedoraproject.org"
+# Define resources for this group of hosts here.
+lvm_size: 10000
+mem_size: 2048
+num_cpus: 1
 
+# for systems that do not match the above - specify the same parameter in
+# the host_vars/$hostname file
+
+copr_frontend_public_hostname: "copr.stg.fedoraproject.org"
+
+copruser_db_password: "{{ copruser_db_password_stg }}"
+
+tcp_ports: [ 80 ]
+
+custom_rules: [
+    # Need for rsync from log01 for logs.
+    '-A INPUT -p tcp -m tcp -s 10.5.126.13 --dport 873 -j ACCEPT',
+    '-A INPUT -p tcp -m tcp -s 192.168.1.59 --dport 873 -j ACCEPT',
+ ]
+
+fas_client_groups: sysadmin-copr,fi-apprentice,sysadmin-noc,sysadmin-veteran
+
+freezes: false
+
+# For the MOTD
 csi_security_category: Low
-csi_primary_contact: "msuchy (mirek), clime, frostyx, dturecek IRC #fedora-admin, #fedora-buildsys"
-csi_purpose: Provide the testing environment of copr's frontend
-csi_relationship: This host is the testing environment for copr's web interface
-
-copr_mbs_cli_login: Y29wcg==##vtvvikhcjncwkfkdcssv
+csi_primary_contact: Fedora admins - admin@fedoraproject.org
+csi_purpose: Copr community build service
+csi_relationship: |
+    This machine depends on:
+    - PostgreSQL DB server
+    - bastion (for mail relay)

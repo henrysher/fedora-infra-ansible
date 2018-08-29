@@ -2,7 +2,6 @@
 # configuration in /usr/share/koschei/config.cfg. It is a python file expecting
 # assignment to config dictionary which will be recursively merged with the
 # default one.
-{% set env_prefix = ".stg" if env == "staging" else "" %}
 config = {
     "database_config": {
         "host": "{{ koschei_pgsql_hostname }}",
@@ -56,7 +55,7 @@ config = {
         },
     },
     "pagure": {
-        "api_url": "https://src{{ env_prefix }}.fedoraproject.org/api/0",
+        "api_url": "https://src{{ env_suffix }}.fedoraproject.org/api/0",
     },
     "frontend": {
         "builds_per_page": 8,
@@ -70,11 +69,11 @@ config = {
     },
     "links": [
         {"name": "Packages",
-         "url": "https://apps{{ env_prefix }}.fedoraproject.org/packages/{package.name}"},
+         "url": "https://apps{{ env_suffix }}.fedoraproject.org/packages/{package.name}"},
         {"name": "Bodhi",
-         "url": "https://bodhi{{ env_prefix }}.fedoraproject.org/updates?packages={package.name}"},
+         "url": "https://bodhi{{ env_suffix }}.fedoraproject.org/updates?packages={package.name}"},
         {"name": "Dist-git",
-         "url": "https://src{{ env_prefix }}.fedoraproject.org/rpms/{package.name}"},
+         "url": "https://src{{ env_suffix }}.fedoraproject.org/rpms/{package.name}"},
         {"name": "Bugzilla",
          "url": "https://{{ koschei_bugzilla }}/buglist.cgi?product={package.collection.bugzilla_product}&component={package.name}"},
         {"name": "Koji",

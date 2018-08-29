@@ -1,55 +1,36 @@
 ---
-- import_tasks: "mount_fs.yml"
-
-- command: "ls -dZ /var/lib/pgsql"
-  register: pgsql_ls
-
-- name: update selinux context for postgress db dir if it's wrong
-  command: "restorecon -vvRF /var/lib/pgsql"
-  when: pgsql_ls.stdout is defined and 'postgresql_db_t' not in  pgsql_ls.stdout
-
-- name: install copr-frontend and copr-selinux
-  dnf: state=latest name={{ item }}
+- name: install copr-frontend packages
+  package: name={{ item }} state=present
   with_items:
   - copr-frontend
   - copr-selinux
+  # workaround for https://bugzilla.redhat.com/show_bug.cgi?id=1622513
+  - python3-requests
   tags:
+  - copr
   - packages
-
-  # we install python-alembic because https://bugzilla.redhat.com/show_bug.cgi?id=1536058
-- name: install additional pkgs for copr-frontend
-  dnf: state=present pkg={{ item }}
-  with_items:
-  - "bash-completion"
-  - "mod_ssl"
-  - redis
-  - pxz
-  - python3-alembic
-  tags:
-  - packages
-
-- name: install a newer version of xstatic-jquery-ui-common
-  command: dnf install -y https://kojipkgs.fedoraproject.org//packages/python-XStatic-jquery-ui/1.12.0.1/2.fc26/noarch/xstatic-jquery-ui-common-1.12.0.1-2.fc26.noarch.rpm
 
 - name: install copr configs
-  template: src="copr.conf" dest=/etc/copr/copr.conf mode=600
+  template: src=copr.conf dest=/etc/copr/copr.conf mode=600
   notify:
   - reload httpd
   tags:
+  - copr
   - config
 
-- name: enable and start redis  # TODO: .service in copr-backend should depend on redis
-  service: name=redis enabled=yes state=started
-
-- name: enable and start pagure-events
-  service: name=pagure-events enabled=yes state=started
-
-- name: copy apache files to conf.d
-  copy: src="httpd/{{ item }}" dest="/etc/httpd/conf.d/{{ item }}"
-  with_items:
-  - "welcome.conf"
-  - "coprs.conf"
+- name: copy apache files to conf.d (templates)
+  template: src=httpd.conf dest=/etc/httpd/conf.d/coprs.conf
+  notify:
+  - reload httpd
   tags:
+  - copr
+  - config
+
+- name: set staging banner for staging instance
+  when: env == 'staging'
+  copy: src=banner-include.html dest=/var/lib/copr/
+  tags:
+  - copr
   - config
 
 # https://bugzilla.redhat.com/show_bug.cgi?id=1535689
@@ -58,21 +39,22 @@
     name: httpd_execmem
     state: yes
     persistent: yes
-
-- name: install copr-frontend ssl vhost for production
-  template: src="httpd/coprs_ssl.conf.j2" dest="/etc/httpd/conf.d/copr_ssl.conf"
-  when: not devel
   tags:
-  - config
+  - copr
+  - selinux
 
-- import_tasks: "psql_setup.yml"
+- name: enable and start httpd
+  service: name=httpd state=started enabled=yes
+  tags:
+  - copr
+  - service
 
-- name: upgrade db to head
-  command: alembic-3 upgrade head
-  become: yes
-  become_user: copr-fe
-  args:
-    chdir: /usr/share/copr/coprs_frontend/
+- name: enable and start pagure-events
+  service: name=pagure-events enabled=yes state=started
+  when: not 'pagure-events.service is missing in latest copr-frontend rpm in f28 repos'
+  tags:
+  - copr
+  - service
 
 - name: set up admins
   command: ./manage.py alter_user --admin {{ item }}
@@ -80,7 +62,7 @@
   become_user: copr-fe
   args:
     chdir: /usr/share/copr/coprs_frontend/
-  ignore_errors: yes
+  when: False
   with_items:
   - msuchy
   - sgallagh
@@ -94,22 +76,4 @@
   become_user: copr-fe
   args:
     chdir: /usr/share/copr/coprs_frontend/
-
-- name: install ssl certificates for production
-  import_tasks: "install_certs.yml"
-  when: not devel
-  tags:
-  - config
-
-- name: enable services
-  service: state=started enabled=yes name={{ item }}
-  with_items:
-  - httpd
-
-- name: set dev banner for dev instance
-  when: devel
-  copy: src=banner-include.html dest=/var/lib/copr/
-
-- name: disallow robots on dev instance
-  when: devel
-  copy: src=robots.txt dest=/var/www/html/
+  when: False

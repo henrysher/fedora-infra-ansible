@@ -68,3 +68,45 @@
   - reload proxyhttpd
   tags:
   - letsencrypt
+
+- name: Install the certificate (additional host)
+  copy: >
+    dest=/etc/pki/tls/certs/{{site_name}}.cert
+    content="{{certbot_certificate.stdout}}"
+    owner=root
+    group=root
+    mode=0644
+  notify:
+  - reload proxyhttpd
+  tags:
+  - letsencrypt
+  delegate_to: "{{ certbot_addhost }}"
+  when: certbot_addhost is defined
+
+- name: Install the intermediate/chain certificate (additional host)
+  copy: >
+    dest=/etc/pki/tls/certs/{{site_name}}.intermediate.cert
+    content="{{certbot_chain.stdout}}"
+    owner=root
+    group=root
+    mode=0644
+  notify:
+  - reload proxyhttpd
+  tags:
+  - letsencrypt
+  delegate_to: "{{ certbot_addhost }}"
+  when: certbot_addhost is defined
+
+- name: Install the key (additional host)
+  copy: >
+    dest=/etc/pki/tls/private/{{site_name}}.key
+    content="{{certbot_key.stdout}}"
+    owner=root
+    group=root
+    mode=0600
+  notify:
+  - reload proxyhttpd
+  tags:
+  - letsencrypt
+  delegate_to: "{{ certbot_addhost }}"
+  when: certbot_addhost is defined

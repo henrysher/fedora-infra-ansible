@@ -98,6 +98,18 @@ config = {
                     "key": "fedora-infra",
                     "keyid": "47dd8ef9"
                 },
+                {
+                    "from": "f29-infra-candidate",
+                    "to": "f29-infra-stg",
+                    "key": "fedora-infra",
+                    "keyid": "47dd8ef9"
+                },
+                {
+                    "from": "f30-infra-candidate",
+                    "to": "f30-infra-stg",
+                    "key": "fedora-infra",
+                    "keyid": "47dd8ef9"
+                },
 
                 # Gated rawhide and branched
                 {
@@ -210,6 +222,18 @@ config = {
     },
 
     'robosignatory.ostree_refs': {
+        'fedora/30/x86_64/iot': {
+            'directory': '/mnt/fedora_koji/koji/compose/iot/repo/',
+            'key': 'fedora-30'
+        },
+        'fedora/30/aarch64/iot': {
+            'directory': '/mnt/fedora_koji/koji/compose/iot/repo/',
+            'key': 'fedora-30'
+        },
+        'fedora/30/armhfp/iot': {
+            'directory': '/mnt/fedora_koji/koji/compose/iot/repo/',
+            'key': 'fedora-30'
+        },
         'fedora/29/x86_64/iot': {
             'directory': '/mnt/fedora_koji/koji/compose/iot/repo/',
             'key': 'fedora-29'
@@ -322,10 +346,6 @@ config = {
             'directory': '/mnt/fedora_koji/koji/compose/atomic/repo/',
             'key': 'fedora-28'
         },
-        'fedora/rawhide/x86_64/atomic-host': {
-            'directory': '/mnt/fedora_koji/koji/compose/atomic/repo/',
-            'key': 'fedora-29'
-        },
         'fedora/28/x86_64/workstation': {
             'directory': '/mnt/fedora_koji/koji/compose/atomic/repo/',
             'key': 'fedora-28'
@@ -338,17 +358,69 @@ config = {
             'directory': '/mnt/fedora_koji/koji/compose/atomic/repo/',
             'key': 'fedora-28'
         },
-        'fedora/rawhide/ppc64le/atomic-host': {
+        'fedora/29/x86_64/atomic-host': {
             'directory': '/mnt/fedora_koji/koji/compose/atomic/repo/',
             'key': 'fedora-29'
+        },
+        'fedora/29/ppc64le/atomic-host': {
+            'directory': '/mnt/fedora_koji/koji/compose/atomic/repo/',
+            'key': 'fedora-29'
+        },
+        'fedora/29/aarch64/atomic-host': {
+            'directory': '/mnt/fedora_koji/koji/compose/atomic/repo/',
+            'key': 'fedora-29'
+        },
+        'fedora/29/x86_64/updates/atomic-host': {
+            'directory': '/mnt/fedora_koji/koji/compose/atomic/repo/',
+            'key': 'fedora-29'
+        },
+        'fedora/29/ppc64le/updates/atomic-host': {
+            'directory': '/mnt/fedora_koji/koji/compose/atomic/repo/',
+            'key': 'fedora-29'
+        },
+        'fedora/29/aarch64/updates/atomic-host': {
+            'directory': '/mnt/fedora_koji/koji/compose/atomic/repo/',
+            'key': 'fedora-29'
+        },
+        'fedora/29/x86_64/testing/atomic-host': {
+            'directory': '/mnt/fedora_koji/koji/compose/atomic/repo/',
+            'key': 'fedora-29'
+        },
+        'fedora/29/ppc64le/testing/atomic-host': {
+            'directory': '/mnt/fedora_koji/koji/compose/atomic/repo/',
+            'key': 'fedora-29'
+        },
+        'fedora/29/aarch64/testing/atomic-host': {
+            'directory': '/mnt/fedora_koji/koji/compose/atomic/repo/',
+            'key': 'fedora-29'
+        },
+        'fedora/29/x86_64/silverblue': {
+            'directory': '/mnt/fedora_koji/koji/compose/atomic/repo/',
+            'key': 'fedora-29'
+        },
+        'fedora/29/x86_64/updates/silverblue': {
+            'directory': '/mnt/fedora_koji/koji/compose/atomic/repo/',
+            'key': 'fedora-29'
+        },
+        'fedora/29/x86_64/testing/silverblue': {
+            'directory': '/mnt/fedora_koji/koji/compose/atomic/repo/',
+            'key': 'fedora-29'
+        },
+        'fedora/rawhide/x86_64/atomic-host': {
+            'directory': '/mnt/fedora_koji/koji/compose/atomic/repo/',
+            'key': 'fedora-30'
+        },
+        'fedora/rawhide/ppc64le/atomic-host': {
+            'directory': '/mnt/fedora_koji/koji/compose/atomic/repo/',
+            'key': 'fedora-30'
         },
         'fedora/rawhide/aarch64/atomic-host': {
             'directory': '/mnt/fedora_koji/koji/compose/atomic/repo/',
-            'key': 'fedora-29'
+            'key': 'fedora-30'
         },
-        'fedora/rawhide/x86_64/workstation': {
+        'fedora/rawhide/x86_64/silverblue': {
             'directory': '/mnt/fedora_koji/koji/compose/atomic/repo/',
-            'key': 'fedora-29'
+            'key': 'fedora-30'
         },
     }
 }

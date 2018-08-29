@@ -54,10 +54,24 @@
     tags:
     - releng
   - {
-    role: "manage-container-images",
+    role: "push-container-registry",
       cert_dest_dir: "/etc/docker/certs.d/registry.stg.fedoraproject.org",
       cert_src: "{{private}}/files/docker-registry/{{env}}/docker-registry-internal.pem",
       key_src: "{{private}}/files/docker-registry/{{env}}/docker-registry-internal.key",
+    when: env == "staging"
+  }
+  - {
+    role: "push-container-registry",
+      cert_dest_dir: "/etc/docker/certs.d/registry.fedoraproject.org",
+      cert_src: "{{private}}/files/docker-registry/{{env}}/pki/issued/containerstable.crt",
+      key_src: "{{private}}/files/docker-registry/{{env}}/pki/private/containerstable.key",
+    when: env == "production"
+  }
+  - {
+    role: push-docker,
+      candidate_registry: "candidate-registry.stg.fedoraproject.org",
+      candidate_registry_osbs_username: "{{candidate_registry_osbs_stg_username}}",
+      candidate_registry_osbs_password: "{{candidate_registry_osbs_stg_password}}",
     when: env == "staging"
   }
   - {
@@ -65,14 +79,6 @@
       candidate_registry: "candidate-registry.fedoraproject.org",
       candidate_registry_osbs_username: "{{candidate_registry_osbs_prod_username}}",
       candidate_registry_osbs_password: "{{candidate_registry_osbs_prod_password}}",
-      docker_cert_dir: "/etc/docker/certs.d/candidate-registry.fedoraproject.org",
-    when: env == "production"
-  }
-  - {
-    role: "manage-container-images",
-      cert_dest_dir: "/etc/docker/certs.d/registry.fedoraproject.org",
-      cert_src: "{{private}}/files/koji/containerstable.cert.pem",
-      key_src: "{{private}}/files/koji/containerstable.key.pem",
     when: env == "production"
   }
 

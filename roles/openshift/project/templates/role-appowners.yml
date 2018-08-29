@@ -1,11 +1,5 @@
 apiVersion: v1
-{% if env == "staging" %}
 kind: Role
-{% else %}
-# Namespace-local roles did not work until openshift 3.6
-# https://github.com/openshift/origin/issues/14078
-kind: ClusterRole
-{% endif %}
 metadata:
   annotations:
     openshift.io/description: An application owner. Can view everything but ConfigMaps.
@@ -13,7 +7,7 @@ metadata:
   namespace: "{{ app }}"
 rules:
 - apiGroups:
-  - ""
+  - "*"
   attributeRestrictions: null
   resources:
   - endpoints
@@ -34,23 +28,65 @@ rules:
   - update
 {% endif %}
 - apiGroups:
-  - ""
+  - "*"
   attributeRestrictions: null
   resources:
+  - appliedclusterresourcequotas
   - bindings
+  - buildconfigs
+  - buildconfigs/webhooks
+  - buildlogs
+  - builds
+  - builds/log
+  - deploymentconfigs
+  - deploymentconfigs/log
+  - deploymentconfigs/scale
+  - deploymentconfigs/status
+  - deployments
+  - deployments/scale
   - events
+  - horizontalpodautoscalers
+  - imagestreamimages
+  - imagestreammappings
+  - imagestreams
+  - imagestreams/status
+  - imagestreamtags
+  - jobs
   - limitranges
   - namespaces
   - namespaces/status
   - pods/log
   - pods/status
+  - processedtemplates
+  - replicasets
+  - replicasets/scale
   - replicationcontrollers/status
   - resourcequotas
   - resourcequotas/status
+  - resourcequotausages
+  - routes
+  - routes/status
+  - statefulsets
+  - templateconfigs
+  - templates
   verbs:
   - get
   - list
   - watch
+- apiGroups:
+  - "*"
+  attributeRestrictions: null
+  resources:
+  - buildconfigs/instantiate
+  verbs:
+  - create
+- apiGroups:
+  - "*"
+  attributeRestrictions: null
+  resources:
+  - projects
+  verbs:
+  - get
 - apiGroups:
   - autoscaling
   attributeRestrictions: null
@@ -72,58 +108,6 @@ rules:
   - list
   - watch
 - apiGroups:
-  - "*"
-  attributeRestrictions: null
-  resources:
-  - deployments
-  - deployments/scale
-  - horizontalpodautoscalers
-  - jobs
-  - replicasets
-  - replicasets/scale
-  verbs:
-  - get
-  - list
-  - watch
-- apiGroups:
-  - extensions
-  attributeRestrictions: null
-  resources:
-  - daemonsets
-  verbs:
-  - get
-  - list
-  - watch
-- apiGroups:
-  - apps
-  attributeRestrictions: null
-  resources:
-  - statefulsets
-  verbs:
-  - get
-  - list
-  - watch
-- apiGroups:
-  - "*"
-  attributeRestrictions: null
-  resources:
-  - buildconfigs
-  - buildconfigs/webhooks
-  - builds
-  verbs:
-  - get
-  - list
-  - watch
-- apiGroups:
-  - "*"
-  attributeRestrictions: null
-  resources:
-  - builds/log
-  verbs:
-  - get
-  - list
-  - watch
-- apiGroups:
   - build.openshift.io
   attributeRestrictions: null
   resources:
@@ -131,105 +115,10 @@ rules:
   verbs:
   - view
 - apiGroups:
-  - "*"
+  - extensions
   attributeRestrictions: null
   resources:
-  - deploymentconfigs
-  - deploymentconfigs/scale
-  verbs:
-  - get
-  - list
-  - watch
-- apiGroups:
-  - "*"
-  attributeRestrictions: null
-  resources:
-  - deploymentconfigs/log
-  - deploymentconfigs/status
-  verbs:
-  - get
-  - list
-  - watch
-- apiGroups:
-  - ""
-  attributeRestrictions: null
-  resources:
-  - imagestreamimages
-  - imagestreammappings
-  - imagestreams
-  - imagestreamtags
-  verbs:
-  - get
-  - list
-  - watch
-- apiGroups:
-  - ""
-  attributeRestrictions: null
-  resources:
-  - imagestreams/status
-  verbs:
-  - get
-  - list
-  - watch
-- apiGroups:
-  - ""
-  attributeRestrictions: null
-  resources:
-  - projects
-  verbs:
-  - get
-- apiGroups:
-  - ""
-  attributeRestrictions: null
-  resources:
-  - appliedclusterresourcequotas
-  verbs:
-  - get
-  - list
-  - watch
-- apiGroups:
-  - ""
-  attributeRestrictions: null
-  resources:
-  - routes
-  verbs:
-  - get
-  - list
-  - watch
-- apiGroups:
-  - ""
-  attributeRestrictions: null
-  resources:
-  - routes/status
-  verbs:
-  - get
-  - list
-  - watch
-- apiGroups:
-  - ""
-  attributeRestrictions: null
-  resources:
-  - processedtemplates
-  - templateconfigs
-  - templates
-  verbs:
-  - get
-  - list
-  - watch
-- apiGroups:
-  - ""
-  attributeRestrictions: null
-  resources:
-  - buildlogs
-  verbs:
-  - get
-  - list
-  - watch
-- apiGroups:
-  - ""
-  attributeRestrictions: null
-  resources:
-  - resourcequotausages
+  - daemonsets
   verbs:
   - get
   - list

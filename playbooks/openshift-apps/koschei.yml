@@ -1,0 +1,37 @@
+- name: provision koschei
+  hosts: os-masters-stg[0]
+  user: root
+  gather_facts: False
+
+  vars_files:
+    - /srv/web/infra/ansible/vars/global.yml
+    - "/srv/private/ansible/vars.yml"
+    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  roles:
+  - role: openshift/project
+    app: koschei
+    description: koschei
+    appowners:
+    - mizdebsk
+  - role: openshift/imagestream
+    app: koschei
+    imagename: koschei-web
+  - role: openshift/object
+    app: koschei
+    template: buildconfig.yml
+    objectname: buildconfig.yml
+  - role: openshift/object
+    app: koschei
+    template: service.yml
+    objectname: service.yml
+  - role: openshift/object
+    app: koschei
+    template: deploymentconfig.yml
+    objectname: deploymentconfig.yml
+  - role: openshift/route
+    app: koschei
+    routename: koschei-web
+    host: "koschei{{ env_suffix }}.fedoraproject.org"
+    serviceport: web
+    servicename: koschei-web

@@ -1,0 +1,34 @@
+- name: upgrade copr packages
+  hosts: copr-front-stg
+  tasks:
+  - name: clean dnf metadata
+    command: dnf clean all
+    args:
+      warn: False
+  - name: create dnf metadata cache
+    command: dnf makecache
+    args:
+      warn: False
+  - name: lits installed copr packages
+    dnf:
+      list: "copr*"
+      disablerepo: "*"
+    register: copr_packages
+  - name: update copr packages
+    dnf:
+      name: "{{ item.name }}"
+      state: latest
+    register: copr_upgrade
+    with_items: "{{ copr_packages.results }}"
+  - name: stop httpd
+    service: name="httpd" state=stopped
+    when: copr_upgrade.changed
+  - name: run db migration
+    become: yes
+    become_user: copr-fe
+    command: alembic-3 upgrade head
+    args:
+      chdir: /usr/share/copr/coprs_frontend/
+    when: copr_upgrade.changed
+  - name: start httpd
+    service: name="httpd" state=started

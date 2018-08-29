@@ -35,7 +35,7 @@ class BaseConfiguration(object):
     PDC_URL = 'http://modularity.fedorainfracloud.org:8080/rest_api/v1'
     PDC_INSECURE = True
     PDC_DEVELOP = True
-    SCMURLS = ["git://pkgs.stg.fedoraproject.org/modules/"]
+    SCMURLS = ["git+https://src.fedoraproject.org/modules/"]
 
     # How often should we resort to polling, in seconds
     # Set to zero to disable polling
@@ -48,12 +48,12 @@ class BaseConfiguration(object):
     # Old name https://pagure.io/fm-orchestrator/issue/574
     NUM_CONSECUTIVE_BUILDS = 5
 
-    RPMS_DEFAULT_REPOSITORY = 'git://pkgs.fedoraproject.org/rpms/'
+    RPMS_DEFAULT_REPOSITORY = 'git+https://src.fedoraproject.org/rpms/'
     RPMS_ALLOW_REPOSITORY = False
-    RPMS_DEFAULT_CACHE = 'http://pkgs.fedoraproject.org/repo/pkgs/'
+    RPMS_DEFAULT_CACHE = 'https://src.fedoraproject.org/repo/pkgs/'
     RPMS_ALLOW_CACHE = False
 
-    MODULES_DEFAULT_REPOSITORY = 'git://pkgs.fedoraproject.org/modules/'
+    MODULES_DEFAULT_REPOSITORY = 'git+https://src.fedoraproject.org/modules/'
     MODULES_ALLOW_REPOSITORY = False
 
     # Available backends are: console, file, journal.
@@ -135,11 +135,10 @@ class ProdConfiguration(BaseConfiguration):
 {% if env == 'staging' %}
     KOJI_PROFILE = 'staging'
     KOJI_ARCHES = ['x86_64', 'i686']
-    KOJI_REPOSITORY_URL = 'http://kojipkgs.stg.fedoraproject.org/repos'
+    KOJI_REPOSITORY_URL = 'https://kojipkgs.stg.fedoraproject.org/repos'
     MESSAGING_TOPIC_PREFIX = ['org.fedoraproject.stg']
     PDC_URL = 'https://pdc.stg.fedoraproject.org/rest_api/v1'
-    SCMURLS = ['git://pkgs.stg.fedoraproject.org/modules/',
-               'git+https://src.stg.fedoraproject.org/modules/',
+    SCMURLS = ['git+https://src.stg.fedoraproject.org/modules/',
                'https://src.stg.fedoraproject.org/modules/',
                'https://src.stg.fedoraproject.org/git/modules/']
 
@@ -151,11 +150,10 @@ class ProdConfiguration(BaseConfiguration):
         # https://fedoraproject.org/wiki/Changes/DiscontinuePPC64
         'platform:f28': ['aarch64', 'armv7hl', 'i686', 'ppc64', 'ppc64le', 'x86_64', 's390x'],
     }
-    KOJI_REPOSITORY_URL = 'http://kojipkgs.fedoraproject.org/repos'
+    KOJI_REPOSITORY_URL = 'https://kojipkgs.fedoraproject.org/repos'
     MESSAGING_TOPIC_PREFIX = ['org.fedoraproject.prod']
     PDC_URL = 'https://pdc.fedoraproject.org/rest_api/v1'
-    SCMURLS = ['git://pkgs.fedoraproject.org/modules/',
-               'git+https://src.fedoraproject.org/modules/',
+    SCMURLS = ['git+https://src.fedoraproject.org/modules/',
                'https://src.fedoraproject.org/modules/',
                'https://src.fedoraproject.org/git/modules/']
 {% endif %}

@@ -2,25 +2,27 @@
   package: state=present name=sigul-bridge
   tags:
   - packages
+  - sigul
+  - sigul/bridge
 
 - name: Setup sigul bridge.conf
   template: src=bridge.conf.j2 dest=/etc/sigul/bridge.conf
             owner=sigul group=sigul mode=0640
   tags:
   - config
+  - sigul
+  - sigul/bridge
 
 - name: Setup primary koji config file
   template: src=koji-primary.conf.j2 dest=/etc/koji-primary.conf owner=root group=root mode=644
   when: inventory_hostname.startswith('sign') and env == "production"
+  tags:
+  - sigul
+  - sigul/bridge
 
 - name: Setup primary stg koji config file
   copy: src=koji-primary.stg.conf dest=/etc/koji-primary.conf owner=root group=root mode=644
   when: inventory_hostname.startswith('sign') and env == "staging"
-
-- name: Setup secondary koji config files
-  copy: src={{ item }} dest=/etc/{{ item }} owner=root group=root mode=644
-  with_items:
-  - koji-arm.conf
-  - koji-ppc.conf
-  - koji-s390.conf
-  when: inventory_hostname.startswith('secondary')
+  tags:
+  - sigul
+  - sigul/bridge

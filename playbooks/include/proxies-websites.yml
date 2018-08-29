@@ -137,7 +137,6 @@
     - www.projectofedora.org
     - www.getfedora.com
     - getfedora.com
-    - www.getfedora.org
     - fedoraplayground.org
     - fedoraplayground.com
 
@@ -292,9 +291,10 @@
 
   - role: httpd/website
     site_name: copr.fedoraproject.org
-    ssl: true
     sslonly: true
+    server_aliases: [copr.stg.fedoraproject.org]
     cert_name: "{{wildcard_cert_name}}"
+    tags: copr
 
   - role: httpd/website
     site_name: bugz.fedoraproject.org
@@ -416,6 +416,14 @@
     certbot: true
     tags:
     - whatcanidoforfedora.org
+
+  - role: httpd/website
+    site_name: docs.teamsilverblue.org
+    ssl: true
+    sslonly: true
+    certbot: true
+    tags:
+    - docs.teamsilverblue.org
 
   - role: httpd/website
     site_name: fedoramagazine.org
@@ -844,6 +852,12 @@
     cert_name: "{{wildcard_cert_name}}"
 
   - role: httpd/website
+    site_name: koschei.fedoraproject.org
+    sslonly: true
+    server_aliases: [koschei.stg.fedoraproject.org]
+    cert_name: "{{wildcard_cert_name}}"
+
+  - role: httpd/website
     site_name: waiverdb.fedoraproject.org
     sslonly: true
     server_aliases: [waiverdb.stg.fedoraproject.org]
@@ -866,6 +880,14 @@
     sslonly: true
     server_aliases: [silverblue.stg.fedoraproject.org]
     cert_name: "{{wildcard_cert_name}}"
+
+  - role: httpd/website
+    site_name: stg.release-monitoring.org
+    sslonly: true
+    certbot: true
+    tags:
+    - release-monitoring.org
+    when: env == "staging"
 
 # fedorahosted is retired. We have the site here so we can redirect it.
 
@@ -896,6 +918,17 @@
     ssl: true
     sslonly: true
     certbot: true
+    certbot_addhost: pkgs02.phx2.fedoraproject.org
     tags:
     - pkgs.fedoraproject.org
     when: env == "production" and "phx2" in inventory_hostname
+
+  - role: httpd/website
+    site_name: pkgs.stg.fedoraproject.org
+    ssl: true
+    sslonly: true
+    certbot: true
+    certbot_addhost: pkgs01.stg.phx2.fedoraproject.org
+    tags:
+    - pkgs.fedoraproject.org
+    when: env == "staging" and "phx2" in inventory_hostname

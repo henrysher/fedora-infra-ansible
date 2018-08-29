@@ -1,0 +1,125 @@
+# create an osbs server
+- import_playbook:  "/srv/web/infra/ansible/playbooks/include/virt-create.yml myhosts=oci-registry:oci-registry-stg"
+
+- name: make the box be real
+  hosts: oci-registry:oci-registry-stg
+  user: root
+  gather_facts: True
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  roles:
+  - base
+  - rkhunter
+  - nagios_client
+  - hosts
+  - fas_client
+  - collectd/base
+  - rsyncd
+  - sudo
+  - { role: openvpn/client,
+      when: env != "staging" }
+
+  pre_tasks:
+  - import_tasks: "{{ tasks_path }}/yumrepos.yml"
+
+  tasks:
+  - import_tasks: "{{ tasks_path }}/2fa_client.yml"
+  - import_tasks: "{{ tasks_path }}/motd.yml"
+
+  handlers:
+  - import_tasks: "{{ handlers_path }}/restart_services.yml"
+
+- name: set up gluster on stg
+  hosts:
+  - oci-registry01.stg.phx2.fedoraproject.org
+  - oci-registry02.stg.phx2.fedoraproject.org
+  user: root
+  gather_facts: True
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  roles:
+  - role: gluster/consolidated
+    gluster_brick_dir: /srv/glusterfs
+    gluster_mount_dir: /srv/docker/
+    gluster_brick_name: registry
+    gluster_server_group: oci-registry-gluster-stg
+    tags: gluster
+
+- name: set up gluster on prod
+  hosts:
+  - oci-registry01.phx2.fedoraproject.org
+  - oci-registry02.phx2.fedoraproject.org
+  user: root
+  gather_facts: True
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  roles:
+  - role: gluster/consolidated
+    gluster_brick_dir: /srv/glusterfs
+    gluster_mount_dir: /srv/docker/
+    gluster_brick_name: registry
+    gluster_server_group: oci-registry-gluster
+    tags: gluster
+
+- name: setup docker distribution registry
+  hosts: oci-registry:oci-registry-stg
+  vars_files:
+    - /srv/web/infra/ansible/vars/global.yml
+    - /srv/private/ansible/vars.yml
+    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+
+  # NOTE: tls is disabled for docker-distribution because we are listening only
+  #       on localhost and all external connections will be through httpd which
+  #       will be SSL enabled.
+  roles:
+    - {
+      role: docker-distribution,
+        conf_path: "/etc/docker-distribution/registry/config.yml",
+        tls: {
+          enabled: False,
+        },
+        log: {
+          fields: {
+            service: "registry"
+          }
+        },
+        storage: {
+          filesystem: {
+            rootdirectory: "/srv/"
+          }
+        },
+        http: {
+          addr: ":5000"
+        }
+      }
+
+    # Setup compose-x86-01 push docker images to registry
+    - {
+      role: push-docker,
+        candidate_registry: "candidate-registry.stg.fedoraproject.org",
+        candidate_registry_osbs_username: "{{candidate_registry_osbs_stg_username}}",
+        candidate_registry_osbs_password: "{{candidate_registry_osbs_stg_password}}",
+      when: env == "staging",
+      delegate_to: compose-x86-01.phx2.fedoraproject.org
+    }
+    - {
+      role: push-docker,
+        candidate_registry: "candidate-registry.fedoraproject.org",
+        candidate_registry_osbs_username: "{{candidate_registry_osbs_prod_username}}",
+        candidate_registry_osbs_password: "{{candidate_registry_osbs_prod_password}}",
+      when: env == "production",
+      delegate_to: compose-x86-01.phx2.fedoraproject.org
+    }

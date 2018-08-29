@@ -20,21 +20,50 @@
   tags:
   - ansible-ansible-openshift-ansible
   - ansible-ansible-openshift-ansible-config
+  ignore_errors: true
 
-- name: generate the inventory file
+- debug:
+    var: os_app_url
+
+- debug:
+    var: openshift_app_subdomain
+
+- debug:
+    var: openshift_master_default_subdomain
+
+- name: generate the inventory file (staging)
+  template:
+    src: "cluster-inventory-stg.j2"
+    dest: "{{ openshift_ansible_path }}/{{ cluster_inventory_filename }}"
+  tags:
+  - ansible-ansible-openshift-ansible
+  - ansible-ansible-openshift-ansible-config
+  when: env == 'staging' and inventory_hostname.startswith('os-')
+
+- name: generate the inventory file (production)
+  template:
+    src: "cluster-inventory-prod.j2"
+    dest: "{{ openshift_ansible_path }}/{{ cluster_inventory_filename }}"
+  tags:
+  - ansible-ansible-openshift-ansible
+  - ansible-ansible-openshift-ansible-config
+  when: env == 'production' and inventory_hostname.startswith('os-')
+
+- name: generate the inventory file (osbs)
   template:
     src: "cluster-inventory.j2"
     dest: "{{ openshift_ansible_path }}/{{ cluster_inventory_filename }}"
   tags:
   - ansible-ansible-openshift-ansible
   - ansible-ansible-openshift-ansible-config
+  when: inventory_hostname.startswith('osbs-')
 
 - name: run ansible prereqs playbook
   shell: "ansible-playbook {{ openshift_ansible_pre_playbook }} -i {{ cluster_inventory_filename }}"
   args:
     chdir: "{{ openshift_ansible_path }}"
   register: run_ansible_out
-  when: openshift_ansible_pre_playbook is defined
+  when: openshift_ansible_pre_playbook is defined and not openshift_ansible_upgrading is defined
   tags:
   - ansible-ansible-openshift-ansible
 
@@ -45,6 +74,7 @@
   register: run_ansible_out
   tags:
   - ansible-ansible-openshift-ansible
+  when: not openshift_ansible_upgrading is defined
 
 - name: display run ansible stdout_lines
   debug:

@@ -1,34 +1,12 @@
 ---
-# tasks file for push-docker
-#
+# tasks file for push-docker role
+# This role is used to login to a registry using the
+# docker client.
+
 - name: install docker and python-docker
   package: name="{{ item }}" state=present
   with_items:
     - docker
-    - python-docker
-
-- name: ensure docker daemon cert dir exists
-  file:
-    path: "{{docker_cert_dir}}"
-    state: directory
-
-#- name: install docker client cert for registry
-#  copy:
-#    src: "{{private}}/files/koji/{{docker_cert_name}}.cert.pem"
-#    dest: "{{docker_cert_dir}}/client.cert"
-#    owner: root
-#    group: "releng-team"
-#    mode: 0640
-#  when: docker_cert_name is defined
-#
-#- name: install docker client key for registry
-#  copy:
-#    src: "{{private}}/files/koji/{{docker_cert_name}}.key.pem"
-#    dest: "{{docker_cert_dir}}/client.key"
-#    owner: root
-#    group: "releng-team"
-#    mode: 0640
-#  when: docker_cert_name is defined
 
 - name: start and enable docker
   service: name=docker state=started enabled=yes

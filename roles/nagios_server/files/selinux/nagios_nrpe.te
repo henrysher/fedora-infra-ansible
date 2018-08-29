@@ -1,0 +1,32 @@
+module nagios_nrpe 1.0;
+
+require {
+        type nagios_t;
+        type nagios_checkdisk_plugin_t;
+        type nagios_unconfined_plugin_t;
+        type nrpe_t;
+        type system_mail_t;
+        class process { noatsecure rlimitinh siginh };
+        class tcp_socket { read write };
+}
+
+#============= nagios_checkdisk_plugin_t ==============
+# src="nagios_checkdisk_plugin_t" tgt="nrpe_t" class="tcp_socket", perms="{ read write }"
+# comm="check_disk" exe="" path="socket:[270138836]"
+allow nagios_checkdisk_plugin_t nrpe_t:tcp_socket { read write };
+
+#============= nagios_t ==============
+# src="nagios_t" tgt="nagios_unconfined_plugin_t" class="process", perms="{ noatsecure rlimitinh siginh }"
+# comm="check_ping" exe="" path=""
+allow nagios_t nagios_unconfined_plugin_t:process { noatsecure rlimitinh siginh };
+# src="nagios_t" tgt="system_mail_t" class="process", perms="{ noatsecure rlimitinh siginh }"
+# comm="sendmail" exe="" path=""
+allow nagios_t system_mail_t:process { noatsecure rlimitinh siginh };
+
+#============= nrpe_t ==============
+# src="nrpe_t" tgt="nagios_checkdisk_plugin_t" class="process", perms="{ noatsecure rlimitinh siginh }"
+# comm="check_disk" exe="" path=""
+allow nrpe_t nagios_checkdisk_plugin_t:process { noatsecure rlimitinh siginh };
+# src="nrpe_t" tgt="nagios_unconfined_plugin_t" class="process", perms="{ noatsecure rlimitinh siginh }"
+# comm="check_swap" exe="" path=""
+allow nrpe_t nagios_unconfined_plugin_t:process { noatsecure rlimitinh siginh };

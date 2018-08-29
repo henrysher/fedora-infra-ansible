@@ -44,8 +44,7 @@ tcp_ports: [80, 2049]
 # These people get told when something goes wrong.
 fedmsg_error_recipients:
 - adamwill@fedoraproject.org
-- tflink@fedoraproject.org
-- pschindl@fedoraproject.org
+- lruzicka@fedoraproject.org
 
 # These are consumed by a task in roles/fedmsg/base/main.yml
 fedmsg_certs:
@@ -69,6 +68,14 @@ fedmsg_certs:
   - openqa.jobs.restart
   - openqa.job.update.result
   - openqa.job.done
+- service: ci
+  owner: root
+  group: geekotest
+  can_send:
+  - ci.productmd-compose.test.queued
+  - ci.productmd-compose.test.running
+  - ci.productmd-compose.test.complete
+  - ci.productmd-compose.test.error
 
 # we need this to log with fedmsg-logger
 fedmsg_active: True
