@@ -1,0 +1,65 @@
+# Create the aarch64 Origin cluster for OSBS
+
+- import_playbook:  "/srv/web/infra/ansible/playbooks/include/virt-create.yml myhosts=osbs-aarch64-nodes-stg:osbs-aarch64-masters-stg"
+
+- name: Deploy OpenShift Cluster
+  hosts: osbs-control-stg
+  tags:
+    - osbs-aarch64-deploy-openshift
+  user: root
+  gather_facts: True
+
+  vars_files:
+    - /srv/web/infra/ansible/vars/global.yml
+    - "/srv/private/ansible/vars.yml"
+    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  roles:
+    - {
+      role: ansible-ansible-openshift-ansible,
+        cluster_inventory_filename: "cluster-inventory-stg",
+        openshift_htpasswd_file: "/etc/origin/htpasswd",
+        openshift_master_public_api_url: "https://{{ osbs_url }}:8443",
+        openshift_release: "v3.9.0",
+        openshift_ansible_path: "/root/openshift-ansible",
+        openshift_ansible_pre_playbook: "playbooks/prerequisites.yml",
+        openshift_ansible_playbook: "playbooks/deploy_cluster.yml",
+        openshift_ansible_version: "openshift-ansible-3.9.30-1",
+        openshift_ansible_ssh_user: root,
+        openshift_ansible_install_examples: false,
+        openshift_ansible_containerized_deploy: false,
+        openshift_cluster_masters_group: "osbs-aarch64-masters-stg",
+        openshift_cluster_nodes_group: "osbs-aarch64-nodes-stg",
+        openshift_cluster_infra_group: "osbs-aarch64-masters-stg",
+        openshift_auth_profile: "osbs",
+        openshift_cluster_url: "https://{{osbs_url}}",
+        openshift_master_ha: false,
+        openshift_debug_level: 2,
+        openshift_shared_infra: true,
+        openshift_deployment_type: "origin",
+        openshift_ansible_python_interpreter: "/usr/bin/python3",
+        openshift_ansible_use_crio: false,
+        openshift_ansible_crio_only: false,
+      when: env == 'staging',
+      tags: ['openshift-cluster','ansible-ansible-openshift-ansible']
+    }
+
+- name: Setup OSBS requirements for OpenShift cluster hosts
+  hosts: osbs-aarch64-masters-stg:osbs-aarch64-nodes-stg
+  tags:
+    - osbs-aarch64-cluster-req
+  user: root
+  gather_facts: True
+
+  vars_files:
+    - /srv/web/infra/ansible/vars/global.yml
+    - "/srv/private/ansible/vars.yml"
+    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  tasks:
+    - name: Ensures /etc/dnsmasq.d/ dir exists
+      file: path="/etc/dnsmasq.d/" state=directory
+    - name: install fedora dnsmasq specific config
+      copy:
+        src: "{{files}}/osbs/fedora-dnsmasq.conf.{{env}}"
+        dest: "/etc/dnsmasq.d/fedora-dns.conf"
