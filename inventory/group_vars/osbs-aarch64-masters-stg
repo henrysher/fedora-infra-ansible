@@ -44,24 +44,24 @@ osbs_conf_readwrite_users:
   - "system:serviceaccount:{{ osbs_namespace }}:builder"
 
 osbs_conf_worker_clusters:
-  x86_64:
-  - name: x86_64
-    max_concurrent_builds: 2
+  aarch64:
+  - name: aarch64
+    max_concurrent_builds: 1
     openshift_url: "https://osbs.stg.fedoraproject.org/"
     verify_ssl: 'false'
 
 osbs_platform_descriptors:
-- platform: x86_64
-  architecture: amd64
+- platform: aarch64
+  architecture: aarch64
   enable_v1: True
 
 _osbs_reactor_config_map:
     version: 1
 
     clusters:
-      x86_64:
-      - name: "x86_64"
-        max_concurrent_builds: 2
+      aarch64:
+      - name: "aarch64"
+        max_concurrent_builds: 1
 
     clusters_client_config_dir: "/var/run/secrets/atomic-reactor/client-config-secret"
 
@@ -129,7 +129,7 @@ _osbs_reactor_config_map:
     - odcs-oidc-secret
 
     worker_token_secrets:
-    - x86-64-orchestrator
+    - aarch64-orchestrator
     - client-config-secret
 
 _osbs_scratch_reactor_config_map_overrides:
@@ -144,7 +144,7 @@ osbs_reactor_config_maps:
     {{ _osbs_reactor_config_map |
        combine(_osbs_scratch_reactor_config_map_overrides, recursive=True) }}
 
-osbs_odcs_enabled: true
+osbs_odcs_enabled: false
 
 #Docker command delegated host
 composer: composer.stg.phx2.fedoraproject.org
