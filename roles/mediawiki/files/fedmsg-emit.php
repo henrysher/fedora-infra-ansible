@@ -205,7 +205,7 @@ function article_save(
   &$flags,
   $revision,
   &$status,
-  $baseRevId,
+  $baseRevId=0,
   $undidRevId
 ) {
 
