@@ -3,17 +3,28 @@
 <!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
 <!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
 <!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js"> <!--<![endif]-->
+<!--[if gt IE 8]><!-->
+<html class="no-js">
+<!--<![endif]-->
+
 <head>
     <meta charset="utf-8">
-    <base href="/" >
+    <base href="/">
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-    <title>{{ .RegistryDomain }}</title>
+    <title>Fedora Container Registry</title>
     <link rel="icon" type="image/ico" href="/favicon.ico">
     <link rel="stylesheet" href="/css/styles.css" />
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.3.1/css/all.css" integrity="sha384-mzrmE5qonljUremFsqc01SB46JvROS7bZs3IO2EmfFsd15uHvIt+Y8vEf7N7fWAU"
+        crossorigin="anonymous">
 </head>
+
 <body>
-    <h1>{{ .RegistryDomain }}</h1>
+    <div>
+        <h1>
+            <img src="/fedora.png"> Fedora Container Registry
+        </h1>
+    </div>
+    <h3>{{ .RegistryDomain }}</h3>
     <form>
         <input name="filter" type="search"><a class="clear">clear</a>
     </form>
@@ -28,14 +39,19 @@
             <tr>
                 <td valign="top">
                     <a href="/repo/{{ $value.Name | urlquery }}/tags">
-                    {{ $value.Name }}
+                        {{ $value.Name }}
                     </a>
                 </td>
 
                 <td align="right" nowrap>
-                    <a href="/repo/{{ $value.Name | urlquery }}/tags">
-                    <code>docker pull {{ $value.URI }}</code>
-                    </a>
+                    <div>
+                        <input type="text" value="podman pull {{ $value.URI }}" id="podman-input-{{ $key }}">
+                        <i class="fa fa-clipboard"></i>
+                    </div>
+                    <div>
+                        <input type="text" value="docker pull {{ $value.URI }}" id="docker-input-{{ $key }}">
+                        <i class="fa fa-clipboard"></i>
+                    </div>
                 </td>
             </tr>
             {{ end }}
@@ -45,25 +61,38 @@
     <div class="footer">
         <p>Last Updated: {{ .LastUpdated }}</p>
         <p>
-        Fedora Container Layered Images brought to you by the
-        <a href="https://fedoraproject.org/wiki/Atomic_WG">Fedora Atomic Working
-        Group</a>
+            Fedora Container Layered Images brought to you by the
+            <a href="https://fedoraproject.org/wiki/Container_SIG">Fedora Container SIG
+            </a>
         </p>
         <p>
-        <a href="https://github.com/jessfraz/reg/tree/master/server">reg-server
-            was originally written and is maintained upstream by</a>
-        <a href="https://twitter.com/jessfraz">@jessfraz</a>
+            <a href="https://github.com/jessfraz/reg/tree/master/server">reg-server was originally written and is maintained
+                upstream by</a>
+            <a href="https://twitter.com/jessfraz">@jessfraz</a>
         </p>
-    </div><!--/.footer-->
+    </div>
+    <!--/.footer-->
     <script src="/js/scripts.js"></script>
     <script>
-(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
-ga('create', 'UA-29404280-12', 'jessfraz.com');
-ga('send', 'pageview');
+        (function () {
+            let clipboards = document.querySelectorAll('.fa-clipboard'); //Select all copy to clipboard icons
+            clipboards.forEach((item, idx) => {
+                item.addEventListener('click', (e => {
+                    if (idx % 2 === 0) { //If the id is even copy the podman command
+                        let copyText = document.getElementById('podman-input-' + (idx / 2).toString());
+                        copyText.select();
+                        document.execCommand('copy');
+                    }
+                    else { //Else copy the docker command
+                        let copyText = document.getElementById('docker-input-' + ((idx - 1) / 2).toString());
+                        copyText.select();
+                        document.execCommand('copy');
+                    }
+                }), false); //End of the click listener
+            }); // Add an click listener to all clipboard icons
+        })();
     </script>
 </body>
+
 </html>
 {{end}}
