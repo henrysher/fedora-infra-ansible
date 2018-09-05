@@ -25,19 +25,19 @@
   environment:
     PGSETUP_INITDB_OPTIONS: --locale C
   tags:
-  - postgresql
+  - postgres
 
 - name: Install pg_hba
   copy: src=pg_hba.conf dest=/var/lib/pgsql/data/pg_hba.conf
   tags:
   - postgres
-  - configuration
+  - config
 
 - name: Enable and start postgres
   service: name=postgresql state=started enabled=yes
   tags:
   - service
-  - postgresql
+  - postgres
 
 - name: Create postgres java-deptools role
   postgresql_user: name=java-deptools role_attr_flags=SUPERUSER,LOGIN
@@ -83,11 +83,15 @@
 
 - name: Install proxy config
   copy: src=proxy.conf dest=/etc/httpd/conf.d/java-deptools-proxy.conf
+  tags:
+  - config
 
 - name: Set httpd sebools
   seboolean: name={{ item }} state=yes persistent=yes
   with_items:
   - httpd_can_network_relay
+  tags:
+  - selinux
 
 - name: Enable and start httpd
   service: name=httpd state=started enabled=true
