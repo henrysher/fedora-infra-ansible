@@ -38,6 +38,12 @@ config = {
             'tags': [
                 # Temporary tags
                 {
+                    "from": "f29-gnome",
+                    "to": "f29-gnome",
+                    "key": "fedora-29",
+                    "keyid": "429476b4"
+                },
+                {
                     "from": "f29-kde",
                     "to": "f29-kde",
                     "key": "fedora-29",
@@ -60,12 +66,6 @@ config = {
                     "to": "f29-ghc",
                     "key": "fedora-29",
                     "keyid": "429476b4"
-                },
-                {
-                    "from": "f30",
-                    "to": "f30",
-                    "key": "fedora-30",
-                    "keyid": "cfc659b9"
                 },
                 # Infra tags
                 {
