@@ -93,6 +93,20 @@
     - name: Install java (used in installs)
       package: name=java-1.8.0-openjdk-headless state=present
 
+- name: Pre tasks for master/nodes
+  hosts: os-masters-stg:os-nodes-stg:os-masters:os-nodes
+  tags:
+    - os-cluster-deploy
+  user: root
+  gather_facts: True
+
+  vars_files:
+    - /srv/web/infra/ansible/vars/global.yml
+    - "/srv/private/ansible/vars.yml"
+    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  tasks:
+
     - name: setup link to known ca list for id.fedoraproject.org
       file: state=link src=/etc/pki/ca-trust/extracted/openssl/ca-bundle.trust.crt dest=/etc/origin/master/fedoraidp_openid_ca.crt
 
@@ -175,7 +189,6 @@
   vars_files:
     - /srv/web/infra/ansible/vars/global.yml
     - /srv/private/ansible/vars.yml
-    - /srv/private/ansible/files/openstack/passwords.yml
     - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
 
   tasks:
@@ -191,7 +204,6 @@
   vars_files:
     - /srv/web/infra/ansible/vars/global.yml
     - /srv/private/ansible/vars.yml
-    - /srv/private/ansible/files/openstack/passwords.yml
     - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
 
   tasks:
