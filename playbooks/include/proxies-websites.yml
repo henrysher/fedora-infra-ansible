@@ -164,6 +164,7 @@
     server_aliases: [src.stg.fedoraproject.org]
     cert_name: "{{wildcard_cert_name}}"
     sslonly: true
+    use_h2: false
 
   - role: httpd/website
     site_name: download.fedoraproject.org
@@ -591,6 +592,9 @@
     site_name: os.stg.fedoraproject.org
     sslonly: true
     cert_name: "{{wildcard_cert_name}}"
+    # The Connection and Upgrade headers don't work for h2
+    # So non-h2 is needed to fix websockets.
+    use_h2: false
     tags:
     - os.stg.fedoraproject.org
 
@@ -600,6 +604,9 @@
     sslonly: true
     cert_name: "{{os_wildcard_cert_name}}"
     SSLCertificateChainFile: "{{os_wildcard_int_file}}"
+    # The Connection and Upgrade headers don't work for h2
+    # So non-h2 is needed to fix websockets.
+    use_h2: false
     tags:
     - app.os.stg.fedoraproject.org
 
