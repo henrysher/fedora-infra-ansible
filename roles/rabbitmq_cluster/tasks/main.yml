@@ -78,6 +78,24 @@
   - rabbitmq_cluster
   - config
 
+- name: Create RabbitMQ systemd override directory
+  file:
+    path: /etc/systemd/system/rabbitmq-server.service.d/
+    state: directory
+  tags:
+  - rabbitmq_cluster
+  - config
+
+- name: Override file limit on rabbitmq
+  copy:
+    content: "[Service]\nLimitNOFILE={{rabbitmq_cluster_file_limit}}\n"
+    dest: /etc/systemd/system/rabbitmq-server.service.d/override.conf
+  notify:
+    - restart rabbitmq
+  tags:
+  - rabbitmq_cluster
+  - config
+
 - name: start rabbitmq
   service: name=rabbitmq-server state=started enabled=yes
   tags:
