@@ -38,7 +38,7 @@ for koji_env in config['tag2distrepo.tags'].keys():
     koji_session.multicall = True
     for tag, [repo] in zip(tags, repos):
         if not repo:
-            print('Tag {}: dist repo not available'.format(tag, age))
+            print('Tag {}: dist repo not available'.format(tag))
         elif repo['state'] == koji.REPO_INIT:
             print('Tag {}: dist repo is being generated right now'.format(tag))
             continue
