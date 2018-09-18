@@ -19,14 +19,24 @@
   - openvpn
   when: ansible_distribution_major_version|int > 7 and ansible_cmdline.ostree is not defined
 
+- name: Install main config file (rhel7 and fedora)
+  template: src=client.conf
+            dest=/etc/openvpn/client/openvpn.conf
+            owner=root group=root mode=0644
+  tags:
+  - install
+  - openvpn
+#  notify:
+#  - restart openvpn (Fedora)
+#  - restart openvpn (RHEL7)
+#  - restart openvpn (RHEL6)
+  when: ( ansible_distribution_major_version|int != 6 and ansible_distribution_major_version|int != 24) and ansible_cmdline.ostree is not defined
+
 - name: Install configuration files (rhel7 and fedora)
   copy: src={{ item.file }}
         dest={{ item.dest }}
         owner=root group=root mode={{ item.mode }}
   with_items:
-  - { file: client.conf,
-      dest: /etc/openvpn/client/openvpn.conf,
-      mode: '0644' }
   - { file: "{{ private }}/files/vpn/pki/issued/{{ inventory_hostname }}.crt",
       dest: "/etc/openvpn/client/client.crt",
       mode: '0600' }
