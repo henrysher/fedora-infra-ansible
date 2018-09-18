@@ -11,11 +11,18 @@
       - mod_ssl
   when: ansible_distribution_major_version|int > 21 and ansible_cmdline.ostree is not defined
 
-- name: copy ssl key
-  copy: src={{ private }}/files/taskotron/certs/{{ inventory_hostname }}/{{ inventory_hostname }}.key dest=/etc/pki/tls/private/{{ inventory_hostname }}.key
+#- name: copy ssl key
+#  copy: src={{ private }}/files/taskotron/certs/{{ inventory_hostname }}/{{ inventory_hostname }}.key dest=/etc/pki/tls/private/{{ inventory_hostname }}.key
+#
+#- name: copy ssl cert
+#  copy: src={{ private }}/files/taskotron/certs/{{ inventory_hostname }}/{{ inventory_hostname }}.crt dest=/etc/pki/tls/certs/{{ inventory_hostname }}.crt
 
-- name: copy ssl cert
-  copy: src={{ private }}/files/taskotron/certs/{{ inventory_hostname }}/{{ inventory_hostname }}.crt dest=/etc/pki/tls/certs/{{ inventory_hostname }}.crt
+- name: redirect letsencrypt to fedora proxies so certgetter can get this cert. 
+  copy: src=certgetter.conf dest=/etc/httpd/conf.d/certgetter.conf owner=root group=root mode=0644
+  tags:
+  - httpd
+  notify:
+  - reload httpd
 
 - name: generate rhel httpd ssl config
   template: src=ssl.conf.rhel.j2 dest=/etc/httpd/conf.d/ssl.conf owner=root group=root mode=0644
