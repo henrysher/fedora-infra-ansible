@@ -1,0 +1,56 @@
+- name: make the app be real
+  hosts: os-masters-stg[0]
+  user: root
+  gather_facts: False
+
+  vars_files:
+    - /srv/web/infra/ansible/vars/global.yml
+    - "/srv/private/ansible/vars.yml"
+    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  roles:
+  - role: openshift/project
+    app: fpdc
+    description: Fedora Product Definition Center
+    appowners:
+    - cverna
+    - abompard
+  - role: openshift/object
+    app: fpdc
+    template: imagestream.yml
+    objectname: imagestream.yml
+  - role: openshift/object
+    app: fpdc
+    template: buildconfig.yml
+    objectname: buildconfig.yml
+
+  - role: openshift/object
+    app: fpdc
+    template: configmap.yml
+    objectname: configmap.yml
+
+  - role: openshift/start-build
+    app: fpdc
+    buildname: coreos-build
+    objectname: coreos-build
+
+  - role: openshift/object
+    app: fpdc
+    file: service.yml
+    objectname: service.yml
+
+  - role: openshift/route
+    app: fpdc
+    routename: fpdc
+    host: "fpdc{{ env_suffix }}.fedoraproject.org"
+    serviceport: 8080-tcp
+    servicename: fpdc
+
+  - role: openshift/object
+    app: fpdc
+    file: deploymentconfig.yml
+    objectname: deploymentconfig.yml
+
+  - role: openshift/rollout
+    app: fpdc
+    dcname: fpdc

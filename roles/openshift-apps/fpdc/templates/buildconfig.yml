@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: BuildConfig
+metadata:
+  name: fpdc-build
+  labels:
+    environment: "fpdc"
+spec:
+  output:
+    to:
+      kind: ImageStreamTag
+      name: fpdc:latest
+  source:
+    type: Git
+    git:
+      uri: https://github.com/fedora-infra/fpdc.git
+  strategy:
+    type: Source
+    sourceStrategy:
+      from:
+        kind: ImageStreamTag
+        name: python:3.6
+  triggers:
+{% if fpdc_github_secret is defined %}
+  - type: GitHub
+    github:
+      secret: "{{ fpdc_github_secret }}"
+{% endif %}
+  - type: ConfigChange
+  - type: ImageChange

@@ -1,0 +1,43 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: fpdc-configmap
+  labels:
+    app: fpdc
+data:
+  prod.py: |-
+    # Django settings for fpdc project.
+    from base import  *
+
+{% if env == 'staging' %}
+    SECRET_KEY = '{{ stg_fpdc_secret_key }}'
+{% else %}
+    SECRET_KEY = '{{ fpdc_secret_key }}'
+{% endif %}
+
+    DEBUG = False
+    ALLOWED_HOSTS = []
+{% if env == 'staging' %}
+    DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'fpdc',
+        'USER': 'fpdc',
+        'PASSWORD': '{{ fpdc_stg_db_pass }}',
+        'HOST': '{{ fpdc_stg_db_server }}',
+        'PORT': '',
+      }
+    }
+{% else %}
+    DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'fpdc',
+        'USER': 'fpdc',
+        'PASSWORD': '{{ fpdc_db_pass }}',
+        'HOST': '{{ fpdc_db_server }}',
+        'PORT': '',
+      }
+    }
+{% endif %}
