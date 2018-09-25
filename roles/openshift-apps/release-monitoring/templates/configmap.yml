@@ -147,18 +147,19 @@ items:
           "validate_signatures": True,
           "crypto_backend": "x509",
           "ssldir": "/etc/pki/fedmsg/",
-          "certnames": {
-              "release-monitoring." + socket.gethostname(): "release-monitoring",
-          },
           "topic_prefix": "org.release-monitoring",
 {% if env == 'staging' %}
           "environment": "stg",
           "relay_inbound": ["tcp://busgateway01.stg.phx2.fedoraproject.org:9941"],
           # Pointless because we don't listen for anything, but fedmsg explodes without it
           "endpoints": {"staging_gateway": ['tcp://stg.fedoraproject.org:9940']},
+          "name": "stg-release-monitoring",
+          "certnames": {"stg-release-monitoring": "release-monitoring.stg.release-monitoring.org"},
 {% else %}
           "environment": "prod",
           "relay_inbound": ["tcp://busgateway01.phx2.fedoraproject.org:9941"],
           "endpoints": {"production_gateway": ['tcp://fedoraproject.org:9940']},
+          "name": "release-monitoring",
+          "certnames": {"release-monitoring": "release-monitoring.release-monitoring.org"},
 {% endif %}
       }
