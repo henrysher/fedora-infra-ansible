@@ -73,28 +73,30 @@ items:
 
       # The logging configuration, in dictConfig format.
       [anitya_log_config]
-          version = 1
-          disable_existing_loggers = false
+      version = 1
+      disable_existing_loggers = false
 
-          [anitya_log_config.formatters]
-              [anitya_log_config.formatters.simple]
-                  format = "[%(name)s %(levelname)s] %(message)s"
+      [anitya_log_config.formatters.simple]
+      format = "[%(name)s %(levelname)s] %(message)s"
 
-          [anitya_log_config.handlers]
-              [anitya_log_config.handlers.console]
-                  class = "logging.StreamHandler"
-                  formatter = "simple"
-                  stream = "ext://sys.stdout"
+      [anitya_log_config.handlers.console]
+      class = "logging.StreamHandler"
+      formatter = "simple"
+      stream = "ext://sys.stdout"
 
-          [anitya_log_config.loggers]
-              [anitya_log_config.loggers.anitya]
-                  level = "INFO"
-                  propagate = false
-                  handlers = ["console"]
+      [anitya_log_config.loggers.anitya]
+      level = "INFO"
+      propagate = false
+      handlers = ["console"]
 
-          [anitya_log_config.root]
-              level = "ERROR"
-              handlers = ["console"]
+      [anitya_log_config.loggers.fedmsg]
+      level = "INFO"
+      propagate = false
+      handlers = ["console"]
+
+      [anitya_log_config.root]
+      level = "ERROR"
+      handlers = ["console"]
     alembic.ini: |-
       [alembic]
       script_location = anitya:db/migrations
@@ -152,8 +154,11 @@ items:
 {% if env == 'staging' %}
           "environment": "stg",
           "relay_inbound": ["tcp://busgateway01.stg.phx2.fedoraproject.org:9941"],
+          # Pointless because we don't listen for anything, but fedmsg explodes without it
+          "endpoints": {"staging_gateway": ['tcp://stg.fedoraproject.org:9940']},
 {% else %}
           "environment": "prod",
           "relay_inbound": ["tcp://busgateway01.phx2.fedoraproject.org:9941"],
+          "endpoints": {"production_gateway": ['tcp://fedoraproject.org:9940']},
 {% endif %}
       }
