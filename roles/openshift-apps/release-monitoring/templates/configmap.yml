@@ -1,128 +1,159 @@
 ---
 apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: release-monitoring-configmap
-  labels:
-    app: release-monitoring
-data:
-  anitya.toml: |-
-    # This is a TOML-format file. For the spec, see https://github.com/toml-lang/toml#spec
+kind: List
+metadata: {}
+items:
+- apiVersion: v1
+  kind: ConfigMap
+  metadata:
+    name: release-monitoring-configmap
+    labels:
+      app: release-monitoring
+  data:
+    anitya.toml: |-
+      # This is a TOML-format file. For the spec, see https://github.com/toml-lang/toml#spec
 
-    # Secret key used to generate the CSRF token in the forms.
+      # Secret key used to generate the CSRF token in the forms.
 {% if env == 'staging' %}
-    secret_key = '{{ stg_anitya_secrect_key }}'
+      secret_key = '{{ stg_anitya_secrect_key }}'
 {% else %}
-    secret_key = '{{ anitya_secret_key }}'
+      secret_key = '{{ anitya_secret_key }}'
 {% endif %}
 
-    # The lifetime of the session, in seconds.
-    permanent_session_lifetime = 3600
+      # The lifetime of the session, in seconds.
+      permanent_session_lifetime = 3600
 
 {% if env == 'staging' %}
-    db_url = "postgresql://{{ anitya_stg_db_user }}:{{ anitya_stg_db_pass }}@{{ anitya_stg_db_host }}/{{ anitya_stg_db_name }}"
+      db_url = "postgresql://{{ anitya_stg_db_user }}:{{ anitya_stg_db_pass }}@{{ anitya_stg_db_host }}/{{ anitya_stg_db_name }}"
 {% else %}
-    db_url = "postgresql://{{ anitya_db_user }}:{{ anitya_db_pass }}@{{ anitya_db_host }}/{{ anitya_db_name }}"
+      db_url = "postgresql://{{ anitya_db_user }}:{{ anitya_db_pass }}@{{ anitya_db_host }}/{{ anitya_db_name }}"
 {% endif %}
 
-    # List of admins
-    anitya_web_admins = [
-        "922611f6-2371-49b7-a6fd-464e77856259",
-    ]
+      # List of admins
+      anitya_web_admins = [
+          "922611f6-2371-49b7-a6fd-464e77856259",
+      ]
 
-    # The email to use in the 'From' header when sending emails.
-    admin_email = "admin@fedoraproject.org"
+      # The email to use in the 'From' header when sending emails.
+      admin_email = "admin@fedoraproject.org"
 
-    # The SMTP server to send mail through
-    smtp_server = "smtp.example.com"
+      # The SMTP server to send mail through
+      smtp_server = "smtp.example.com"
 
-    # Whether or not to send emails to MAIL_ADMIN via SMTP_SERVER when HTTP 500
-    # errors occur.
-    email_errors = false
+      # Whether or not to send emails to MAIL_ADMIN via SMTP_SERVER when HTTP 500
+      # errors occur.
+      email_errors = false
 
-    # List of users that are not allowed to sign in
-    blacklisted_users = []
+      # List of users that are not allowed to sign in
+      blacklisted_users = []
 
-    librariesio_platform_whitelist = [
-        'pypi',
-        'rubygems',
-    ]
+      librariesio_platform_whitelist = [
+          'pypi',
+          'rubygems',
+      ]
 
-    social_auth_authentication_backends = [
-        'social_core.backends.fedora.FedoraOpenId',
-        'social_core.backends.yahoo.YahooOpenId',
-        'social_core.backends.open_id.OpenIdAuth',
-    ]
+      social_auth_authentication_backends = [
+          'social_core.backends.fedora.FedoraOpenId',
+          'social_core.backends.yahoo.YahooOpenId',
+          'social_core.backends.open_id.OpenIdAuth',
+      ]
 
-    # Default regular expression used for backend
-    default_regex = """\
-                    %(name)s(?:[-_]?(?:minsrc|src|source))?[-_]([^-/_\\s]+?)(?i)(?:[-_]\
-                    (?:minsrc|src|source|asc|release))?\\.(?:tar|t[bglx]z|tbz2|zip)\
-                    """
+      # Default regular expression used for backend
+      default_regex = """\
+                      %(name)s(?:[-_]?(?:minsrc|src|source))?[-_]([^-/_\\s]+?)(?i)(?:[-_]\
+                      (?:minsrc|src|source|asc|release))?\\.(?:tar|t[bglx]z|tbz2|zip)\
+                      """
 
-    # Github access token
+      # Github access token
 {% if env == 'staging' %}
-    github_access_token = "{{ github_stg_release_monitoring }}"
+      github_access_token = "{{ github_stg_release_monitoring }}"
 {% else %}
-    github_access_token = "{{ github_prod_release_monitoring }}"
+      github_access_token = "{{ github_prod_release_monitoring }}"
 {% endif %}
 
-    # The logging configuration, in dictConfig format.
-    [anitya_log_config]
-        version = 1
-        disable_existing_loggers = false
+      # The logging configuration, in dictConfig format.
+      [anitya_log_config]
+          version = 1
+          disable_existing_loggers = false
 
-        [anitya_log_config.formatters]
-            [anitya_log_config.formatters.simple]
-                format = "[%(name)s %(levelname)s] %(message)s"
+          [anitya_log_config.formatters]
+              [anitya_log_config.formatters.simple]
+                  format = "[%(name)s %(levelname)s] %(message)s"
 
-        [anitya_log_config.handlers]
-            [anitya_log_config.handlers.console]
-                class = "logging.StreamHandler"
-                formatter = "simple"
-                stream = "ext://sys.stdout"
+          [anitya_log_config.handlers]
+              [anitya_log_config.handlers.console]
+                  class = "logging.StreamHandler"
+                  formatter = "simple"
+                  stream = "ext://sys.stdout"
 
-        [anitya_log_config.loggers]
-            [anitya_log_config.loggers.anitya]
-                level = "INFO"
-                propagate = false
-                handlers = ["console"]
+          [anitya_log_config.loggers]
+              [anitya_log_config.loggers.anitya]
+                  level = "INFO"
+                  propagate = false
+                  handlers = ["console"]
 
-        [anitya_log_config.root]
-            level = "ERROR"
-            handlers = ["console"]
-  alembic.ini: |-
-    [alembic]
-    script_location = anitya:db/migrations
-    sourceless = false
+          [anitya_log_config.root]
+              level = "ERROR"
+              handlers = ["console"]
+    alembic.ini: |-
+      [alembic]
+      script_location = anitya:db/migrations
+      sourceless = false
 {% if env == 'staging' %}
-    sqlalchemy.url = postgresql://{{ anitya_stg_db_admin_user }}:{{ anitya_stg_db_admin_pass }}@{{ anitya_stg_db_host }}/{{ anitya_stg_db_name }}
+      sqlalchemy.url = postgresql://{{ anitya_stg_db_admin_user }}:{{ anitya_stg_db_admin_pass }}@{{ anitya_stg_db_host }}/{{ anitya_stg_db_name }}
 {% else %}
-    sqlalchemy.url = postgresql://{{ anitya_db_admin_user }}:{{ anitya_db_admin_pass }}@{{ anitya_db_host }}/{{ anitya_db_name }}
+      sqlalchemy.url = postgresql://{{ anitya_db_admin_user }}:{{ anitya_db_admin_pass }}@{{ anitya_db_host }}/{{ anitya_db_name }}
 {% endif %}
-    [loggers]
-    keys = root,sqlalchemy,alembic
-    [handlers]
-    keys = console
-    [formatters]
-    keys = generic
-    [logger_root]
-    level = WARN
-    handlers = console
-    qualname =
-    [logger_sqlalchemy]
-    level = WARN
-    handlers =
-    qualname = sqlalchemy.engine
-    [logger_alembic]
-    level = INFO
-    handlers =
-    qualname = alembic
-    [handler_console]
-    class = StreamHandler
-    args = (sys.stderr,)
-    level = NOTSET
-    formatter = generic
-    [formatter_generic]
-    format = %(levelname)-5.5s [%(name)s] %(message)s
-    datefmt = %H:%M:%S
+      [loggers]
+      keys = root,sqlalchemy,alembic
+      [handlers]
+      keys = console
+      [formatters]
+      keys = generic
+      [logger_root]
+      level = WARN
+      handlers = console
+      qualname =
+      [logger_sqlalchemy]
+      level = WARN
+      handlers =
+      qualname = sqlalchemy.engine
+      [logger_alembic]
+      level = INFO
+      handlers =
+      qualname = alembic
+      [handler_console]
+      class = StreamHandler
+      args = (sys.stderr,)
+      level = NOTSET
+      formatter = generic
+      [formatter_generic]
+      format = %(levelname)-5.5s [%(name)s] %(message)s
+      datefmt = %H:%M:%S
+- apiVersion: v1
+  kind: ConfigMap
+  metadata:
+    name: fedmsg-configmap
+    labels:
+      app: release-monitoring
+  data:
+    anitya.py: |-
+      import socket
+      config = {
+          "active": True,
+          "sign_messages": True,
+          "validate_signatures": True,
+          "crypto_backend": "x509",
+          "ssldir": "/etc/pki/fedmsg/"
+          "certnames": {
+              "release-monitoring." + socket.gethostname(): "release-monitoring",
+          },
+          "topic_prefix": "org.release-monitoring",
+{% if env == 'staging' %}
+          "environment": "stg",
+          "relay_inbound": ["tcp://busgateway01.stg.phx2.fedoraproject.org:9941"],
+{% else %}
+          "environment": "prod",
+          "relay_inbound": ["tcp://busgateway01.phx2.fedoraproject.org:9941"],
+{% endif %}
+      }
