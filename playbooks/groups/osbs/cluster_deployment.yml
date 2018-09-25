@@ -32,6 +32,119 @@
   handlers:
   - import_tasks: "{{ handlers_path }}/restart_services.yml"
 
+- name: OSBS control hosts pre-req setup
+  hosts: osbs-control-stg
+  tags:
+    - osbs-cluster-prereq
+  user: root
+  gather_facts: True
+
+  vars_files:
+    - /srv/web/infra/ansible/vars/global.yml
+    - "/srv/private/ansible/vars.yml"
+    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  tasks:
+    - name: deploy private key to control hosts
+      copy:
+        src: "{{private}}/files/osbs/{{env}}/control_key"
+        dest: "/root/.ssh/id_rsa"
+        owner: root
+        mode: 0600
+
+    - name: set ansible to use pipelining
+      ini_file:
+        dest: /etc/ansible/ansible.cfg
+        section: ssh_connection
+        option: pipelining
+        value: "True"
+
+- name: Setup cluster hosts pre-reqs
+  hosts: osbs-aarch64-masters-stg 
+  tags:
+    - osbs-cluster-prereq
+  user: root
+  gather_facts: True
+
+  vars_files:
+    - /srv/web/infra/ansible/vars/global.yml
+    - "/srv/private/ansible/vars.yml"
+    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  handlers:
+    - name: restart NetworkManager
+      service:
+        name: NetworkManager
+        state: restarted
+
+  tasks:
+    - name: Install necessary packages that openshift-ansible needs
+      package: name="{{ item }}" state=installed
+      with_items:
+        - tar
+        - rsync
+        - dbus-python
+        - NetworkManager
+        - libselinux-python
+        - python3-PyYAML
+
+    - name: Deploy controller public ssh keys to osbs cluster hosts
+      authorized_key:
+        user: root
+        key: "{{ lookup('file', '{{private}}/files/osbs/{{env}}/control_key.pub') }}"
+
+    # This is required for OpenShift built-in SkyDNS inside the overlay network
+    # of the cluster
+    - name: ensure NM_CONTROLLED is set to "yes" for osbs cluster
+      lineinfile:
+        dest: "/etc/sysconfig/network-scripts/ifcfg-eth0"
+        line: "NM_CONTROLLED=yes"
+      notify:
+        - restart NetworkManager
+
+    # This is required for OpenShift built-in SkyDNS inside the overlay network
+    # of the cluster
+    - name: ensure NetworkManager is enabled and started
+      service:
+        name: NetworkManager
+        state: started
+        enabled: yes
+
+    - name: cron entry to clean up docker storage
+      copy:
+        src: "{{files}}/osbs/cleanup-docker-storage"
+        dest: "/etc/cron.d/cleanup-docker-storage"
+
+    - name: copy docker-storage-setup config
+      copy:
+        src: "{{files}}/osbs/docker-storage-setup"
+        dest:  "/etc/sysconfig/docker-storage-setup"
+
+- name: Deploy kerberose keytab to cluster hosts
+  hosts: osbs-aarch64-masters-stg
+  tags:
+    - osbs-cluster-prereq
+  user: root
+  gather_facts: True
+
+  vars_files:
+    - /srv/web/infra/ansible/vars/global.yml
+    - "/srv/private/ansible/vars.yml"
+    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  roles:
+  - role: keytab/service
+    owner_user: root
+    owner_group: root
+    service: osbs
+    host: "osbs.fedoraproject.org"
+    when: env == "production"
+  - role: keytab/service
+    owner_user: root
+    owner_group: root
+    service: osbs
+    host: "osbs.stg.fedoraproject.org"
+    when: env == "staging"
 - name: Deploy OpenShift Cluster
   hosts: osbs-control-stg
   tags:
