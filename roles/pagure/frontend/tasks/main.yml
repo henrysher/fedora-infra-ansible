@@ -159,8 +159,6 @@
       group: paguremirroring
       shell: /bin/nologin
       home: /srv/mirror
-      groups: git
-      append: yes
   when: env == 'pagure-staging'
   tags:
   - pagure
@@ -320,6 +318,13 @@
   - pagure
   notify:
   - restart apache
+
+- name: let paguremirroring read the pagure config
+  command: /usr/bin/setfacl -dm user:paguremirroring:rx /etc/pagure/pagure.cfg
+  when: env == 'pagure-staging'
+  tags:
+  - pagure
+  - mirror
 
 - name: Add default facl so apache can read git repos
   acl: default=yes etype=user entity=apache permissions="rx" name=/srv/git state=present
