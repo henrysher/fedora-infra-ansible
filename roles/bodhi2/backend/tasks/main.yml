@@ -450,3 +450,26 @@
   when: inventory_hostname.startswith('bodhi-backend01.stg')
   tags:
   - bodhi
+
+- name: Install cron job to regenerate dist repos regularly
+  cron:
+    cron_file: dist-repo-regen
+    name: dist-repo-regen
+    job: /usr/local/bin/dist-repo-regen.py
+    user: apache
+    minute: 17
+  when: inventory_hostname.startswith('bodhi-backend01.stg')
+  tags:
+  - bodhi
+  - cron
+
+- name: Redirect debugging output from dist-repo-regen cron to mizdebsk
+  cron:
+    cron_file: dist-repo-regen
+    name: MAILTO
+    value: mizdebsk
+    env: yes
+  when: inventory_hostname.startswith('bodhi-backend01.stg')
+  tags:
+  - bodhi
+  - cron
