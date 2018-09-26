@@ -197,3 +197,7 @@ class ProdConfiguration(BaseConfiguration):
 
     # Set the priority to 4 to have higher priority than F27 mass rebuild.
     KOJI_BUILD_PRIORITY = 4
+
+    # Check branch EOL before building.  Block EOL modules from building.
+    # https://pagure.io/fm-orchestrator/issue/960
+    CHECK_FOR_EOL = True
