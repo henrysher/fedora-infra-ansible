@@ -4,15 +4,28 @@ kind: DeploymentConfig
 metadata:
   labels:
     app: fpdc
-    service: fpdc 
-  name: fpdc 
+    service: fpdc
+  name: fpdc
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     app: fpdc
     deploymentconfig: fpdc
   strategy:
-    resources: {}
+    type: Recreate
+    recreateParams:
+      mid:
+        failurePolicy: Abort
+        execNewPod:
+          containerName: fpdc
+          command: [ "django-admin", "migrate", "--no-input"]
+          env:
+            - name: PYTHONPATH
+              value: /opt/app-root/src
+            - name: DJANGO_SETTINGS_MODULE
+              value: fpdc.settings.prod
+          volumes:
+            - config-volume
   template:
     metadata:
       labels:
