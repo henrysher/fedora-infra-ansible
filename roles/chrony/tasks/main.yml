@@ -1,0 +1,27 @@
+- name: install chrony
+  package: name=chrony state=present
+  tags:
+  - chrony
+  - package
+  - base
+
+- name: install chrony.conf
+  template: src=chrony.conf.j2 dest=/etc/chrony.conf
+  tags:
+  - chrony
+  - config
+  - base
+
+- name: disable and stop ntp
+  service: name=ntp state=stopped enabled=no
+  tags:
+  - chrony
+  - service
+  - base
+
+- name: Start and enable chrony
+  service: name=chrony state=started enabled=yes
+  tags:
+  - ntp
+  - service
+  - base
