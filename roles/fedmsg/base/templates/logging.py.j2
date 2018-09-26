@@ -64,7 +64,7 @@ class ContextInjector(logging.Filter):
         record.callstack = self.format_callstack()
         record.farewell = ""
 
-        key = hashlib.sha256(record.callstack).hexdigest()
+        key = hashlib.sha256(record.callstack.encode("utf-8")).hexdigest()
         if not key in seen_errors:
             seen_errors[key] = 0
 
@@ -123,6 +123,9 @@ class ContextInjector(logging.Filter):
                 break
 
         def _format_frame(frame):
+            if type(frame) not in [tuple, list]:
+                # It must be FrameSummary, convert it to tuples.
+                frame = (frame.filename, frame.lineno, frame.name, "")
             return '  File "%s", line %i in %s\n    %s' % (frame)
 
         stack = traceback.extract_stack()
