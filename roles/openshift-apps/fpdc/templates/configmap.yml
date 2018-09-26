@@ -6,38 +6,15 @@ metadata:
   labels:
     app: fpdc
 data:
-  prod.py: |-
-    # Django settings for fpdc project.
-    from base import  *
-
+  config.json: |-
+    {
 {% if env == 'staging' %}
-    SECRET_KEY = '{{ stg_fpdc_secret_key }}'
+    "SECRET_KEY": "{{ stg_fpdc_secret_key }}",
+    "DB_PASSWORD": "{{ fpdc_stg_db_pass }}",
+    "DB_HOST": "{{ fpdc_stg_db_server }}"
 {% else %}
-    SECRET_KEY = '{{ fpdc_secret_key }}'
+    "SECRET_KEY": "{{ fpdc_secret_key }}",
+    "DB_PASSWORD": "{{ fpdc_db_pass }}",
+    "DB_HOST": "{{ fpdc_db_server }}"
 {% endif %}
-
-    DEBUG = False
-    ALLOWED_HOSTS = []
-{% if env == 'staging' %}
-    DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'fpdc',
-        'USER': 'fpdc',
-        'PASSWORD': '{{ fpdc_stg_db_pass }}',
-        'HOST': '{{ fpdc_stg_db_server }}',
-        'PORT': '',
-      }
     }
-{% else %}
-    DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'fpdc',
-        'USER': 'fpdc',
-        'PASSWORD': '{{ fpdc_db_pass }}',
-        'HOST': '{{ fpdc_db_server }}',
-        'PORT': '',
-      }
-    }
-{% endif %}
