@@ -21,35 +21,8 @@
   tags:
   - packages
 
-- name: remove some packages (yum)
-  package: state=absent pkg={{ item }}
-  with_items:
-  - chrony
-  tags:
-  - packages
-  when: ansible_distribution_major_version|int < 22
-
-- name: remove some packages (dnf)
-  dnf: state=absent pkg={{ item }}
-  with_items:
-  - chrony
-  tags:
-  - packages
-  when: ansible_distribution_major_version|int > 21 and ansible_cmdline.ostree is not defined
-
 - name: Include basessh
   include_role: name=basessh
-
-- name: put step-tickers in place
-  copy: src="{{ files }}/common/step-tickers" dest=/etc/ntp/step-tickers
-  when: ansible_cmdline.ostree is not defined
-  tags:
-  - ntp
-  - config
-
-- name: enable the service
-  service: name=ntpd state=started enabled=true
-  when: ansible_cmdline.ostree is not defined
 
 #- name: edit hostname to be instance name - prefix hostbase var if it exists
 #  shell: hostname  {{ hostbase }}`curl -s http://169.254.169.254/latest/meta-data/instance-id`
