@@ -73,7 +73,7 @@ for koji_env in config['tag2distrepo.tags'].keys():
         }
 
         keys = koji_config['tags'][tag_info['name']]
-        koji_session.distRepo(tag_info['id'], keys, **opts)
+        koji_session.distRepo(tag_info['name'], keys, **opts)
     task_ids = koji_session.multiCall(strict=True)
         
     for [tag_info], [task_id] in zip(tag_infos, task_ids):
