@@ -200,4 +200,7 @@ class ProdConfiguration(BaseConfiguration):
 
     # Check branch EOL before building.  Block EOL modules from building.
     # https://pagure.io/fm-orchestrator/issue/960
-    CHECK_FOR_EOL = True
+    # Because of https://lists.fedoraproject.org/archives/list/devel@lists.fedoraproject.org/thread/KGXBMTUR72FHQEG7IBHDPPX276QHSD2I/#MFT5SAWPKMCNLKAWEJFCFIVX5GJ7RBSP
+    # we decided to hold on to this and ask the maintainers to create a
+    # releng ticket to retire their modules.
+    CHECK_FOR_EOL = False 
