@@ -52,15 +52,6 @@
   - rabbitmq_cluster
   - config
 
-- name: enable plugins
-  copy: src=enabled_plugins dest=/etc/rabbitmq/enabled_plugins owner=root group=root mode=0644
-  with_items:
-  - rabbitmq.config
-  - enabled_plugins
-  tags:
-  - rabbitmq_cluster
-  - config
-
 - name: deploy configuration
   template: src={{item}} dest=/etc/rabbitmq/{{item}} owner=root group=root mode=0644
   with_items:
@@ -96,6 +87,13 @@
   - rabbitmq_cluster
   - config
 
+- name: Enable the HTTP management console and SSL authentication plugins
+  rabbitmq_plugin:
+    names: rabbitmq_management,rabbitmq_auth_mechanism_ssl
+  tags:
+  - rabbitmq_cluster
+  - config
+
 - name: start rabbitmq
   service: name=rabbitmq-server state=started enabled=yes
   tags:
@@ -103,6 +101,28 @@
 
 - name: Nope. No standard users. Even if we user TLS auth
   rabbitmq_user: user=guest state=absent
+  tags:
+  - rabbitmq_cluster
+  - config
+
+- name: Configure the pubsub virtual host
+  rabbitmq_vhost:
+    name: /pubsub
+    state: present
+  tags:
+  - rabbitmq_cluster
+  - config
+
+- name: Configure the HA policy for queues on the pubsub virtual
+  rabbitmq_policy:
+    name: HA
+    apply_to: queues
+    pattern: .*
+    tags:
+      ha-mode: all
+      ha-sync-mode: automatic  # Auto sync queues to new cluster members
+      ha-sync-batch-size: 10000  # Larger is faster, but must finish in 1 net_ticktime
+    vhost: /pubsub
   tags:
   - rabbitmq_cluster
   - config
