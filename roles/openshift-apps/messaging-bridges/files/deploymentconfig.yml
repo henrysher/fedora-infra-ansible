@@ -1,0 +1,216 @@
+---
+apiVersion: v1
+kind: List
+metadata: {}
+items:
+- apiVersion: v1
+  kind: DeploymentConfig
+  metadata:
+    labels:
+      app: messaging-bridges
+    name: amqp-to-zmq
+  spec:
+    replicas: 1
+    selector:
+      deploymentconfig: amqp-to-zmq
+    strategy:
+      resources: {}
+    template:
+      metadata:
+        labels:
+          app: messaging-bridges
+          deploymentconfig: amqp-to-zmq
+      spec:
+        containers:
+        - name: fedmsg-migration-tools
+          image: fedmsg-migration-tools:latest
+          env:
+          - name: APP_SCRIPT
+            value: "./.s2i/amqp-to-zmq"
+          - name: FEDORA_MESSAGING_CONF
+            value: "/etc/fedora-messaging/amqp-to-zmq.toml"
+          volumeMounts:
+            - name: config-volume
+              mountPath: /etc/fedora-messaging/
+              readOnly: true
+            - name: fedmsg-config-volume
+              mountPath: /etc/fedmsg.d/
+              readOnly: true
+            - name: fedmsg-key-volume
+              mountPath: /etc/pki/fedmsg/key
+              readOnly: true
+            - name: fedmsg-crt-volume
+              mountPath: /etc/pki/fedmsg/crt
+              readOnly: true
+          #readinessProbe:
+          #  timeoutSeconds: 1
+          #  initialDelaySeconds: 5
+          #  httpGet:
+          #    path: /api/v1/
+          #    port: 8080
+          #livenessProbe:
+          #  timeoutSeconds: 1
+          #  initialDelaySeconds: 30
+          #  httpGet:
+          #    path: /api/v1/
+          #    port: 8080
+        volumes:
+          - name: config-volume
+            configMap:
+              name: fedora-messaging-configmap
+          - name: fedmsg-config-volume
+            configMap:
+              name: fedmsg-configmap
+          - name: fedmsg-key-volume
+            secret:
+              secretName: fedmsg-key
+          - name: fedmsg-crt-volume
+            secret:
+              secretName: fedmsg-cert
+
+    triggers:
+    - type: ConfigChange
+    - type: ImageChange
+      imageChangeParams:
+        automatic: true
+        containerNames:
+        - fedmsg-migration-tools
+        from:
+          kind: ImageStreamTag
+          name: fedmsg-migration-tools:latest
+---
+apiVersion: v1
+kind: List
+metadata: {}
+items:
+- apiVersion: v1
+  kind: DeploymentConfig
+  metadata:
+    labels:
+      app: messaging-bridges
+    name: zmq-to-amqp
+  spec:
+    replicas: 1
+    selector:
+      deploymentconfig: zmq-to-amqp
+    strategy:
+      resources: {}
+    template:
+      metadata:
+        labels:
+          app: messaging-bridges
+          deploymentconfig: zmq-to-amqp
+      spec:
+        containers:
+        - name: fedmsg-migration-tools
+          image: fedmsg-migration-tools:latest
+          env:
+          - name: APP_SCRIPT
+            value: "./.s2i/zmq-to-amqp"
+          - name: FEDMSG_MIGRATION_TOOLS_CONF
+            value: "/etc/fedora-messaging/zmq-to-amqp.toml"
+          volumeMounts:
+            - name: config-volume
+              mountPath: /etc/fedora-messaging/
+              readOnly: true
+            - name: fedmsg-config-volume
+              mountPath: /etc/fedmsg.d/
+              readOnly: true
+          #readinessProbe:
+          #  timeoutSeconds: 1
+          #  initialDelaySeconds: 5
+          #  httpGet:
+          #    path: /api/v1/
+          #    port: 8080
+          #livenessProbe:
+          #  timeoutSeconds: 1
+          #  initialDelaySeconds: 30
+          #  httpGet:
+          #    path: /api/v1/
+          #    port: 8080
+        volumes:
+          - name: config-volume
+            configMap:
+              name: fedora-messaging-configmap
+          - name: fedmsg-config-volume
+            configMap:
+              name: fedmsg-configmap
+
+    triggers:
+    - type: ConfigChange
+    - type: ImageChange
+      imageChangeParams:
+        automatic: true
+        containerNames:
+        - fedmsg-migration-tools
+        from:
+          kind: ImageStreamTag
+          name: fedmsg-migration-tools:latest
+---
+apiVersion: v1
+kind: List
+metadata: {}
+items:
+- apiVersion: v1
+  kind: DeploymentConfig
+  metadata:
+    labels:
+      app: messaging-bridges
+    name: verify-missing
+  spec:
+    replicas: 1
+    selector:
+      deploymentconfig: verify-missing
+    strategy:
+      resources: {}
+    template:
+      metadata:
+        labels:
+          app: messaging-bridges
+          deploymentconfig: verify-missing
+      spec:
+        containers:
+        - name: fedmsg-migration-tools
+          image: fedmsg-migration-tools:latest
+          env:
+          - name: APP_SCRIPT
+            value: "./.s2i/verify-missing"
+          - name: FEDMSG_MIGRATION_TOOLS_CONF
+            value: "/etc/fedora-messaging/verify-missing.toml"
+          volumeMounts:
+            - name: config-volume
+              mountPath: /etc/fedora-messaging/
+              readOnly: true
+            - name: fedmsg-config-volume
+              mountPath: /etc/fedmsg.d/
+              readOnly: true
+          #readinessProbe:
+          #  timeoutSeconds: 1
+          #  initialDelaySeconds: 5
+          #  httpGet:
+          #    path: /api/v1/
+          #    port: 8080
+          #livenessProbe:
+          #  timeoutSeconds: 1
+          #  initialDelaySeconds: 30
+          #  httpGet:
+          #    path: /api/v1/
+          #    port: 8080
+        volumes:
+          - name: config-volume
+            configMap:
+              name: fedora-messaging-configmap
+          - name: fedmsg-config-volume
+            configMap:
+              name: fedmsg-configmap
+
+    triggers:
+    - type: ConfigChange
+    - type: ImageChange
+      imageChangeParams:
+        automatic: true
+        containerNames:
+        - fedmsg-migration-tools
+        from:
+          kind: ImageStreamTag
+          name: fedmsg-migration-tools:latest

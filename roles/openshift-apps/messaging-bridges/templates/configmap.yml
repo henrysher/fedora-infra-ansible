@@ -1,0 +1,272 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: fedora-messaging-configmap
+  labels:
+    app: messaging-bridges
+data:
+  config.toml: |-
+    amqp_url = "amqp://rabbitmq01{{ env_suffix }}.phx2.fedoraproject.org"
+    publish_exchange = "amq.topic"
+    
+    #[tls]
+    #ca_cert = "/etc/pki/tls/certs/ca-bundle.crt"
+    #keyfile = "/my/client/key.pem"
+    #certfile = "/my/client/cert.pem"
+    
+    [client_properties]
+    app = "fedmsg-migration-tools"
+    
+    [qos]
+    prefetch_size = 0
+    prefetch_count = 25
+    
+    [log_config]
+    version = 1
+    disable_existing_loggers = true
+    [log_config.formatters.simple]
+    format = "[%(name)s %(levelname)s] %(message)s"
+    [log_config.handlers.console]
+    class = "logging.StreamHandler"
+    formatter = "simple"
+    stream = "ext://sys.stdout"
+    [log_config.loggers.fedora_messaging]
+    level = "INFO"
+    propagate = false
+    handlers = ["console"]
+    [log_config.loggers.fedmsg_migration_tools]
+    level = "INFO"
+    propagate = false
+    handlers = ["console"]
+    [log_config.root]
+    level = "WARNING"
+    handlers = ["console"]
+  amqp-to-zmq.toml: |-
+    amqp_url = "amqp://rabbitmq01{{ env_suffix }}.phx2.fedoraproject.org"
+    publish_exchange = "amq.topic"
+    
+    [[bindings]]
+    queue = "amqp_to_zmq"
+    exchange = "amq.topic"
+    routing_keys = ["#"]
+    
+    #[tls]
+    #ca_cert = "/etc/pki/tls/certs/ca-bundle.crt"
+    #keyfile = "/my/client/key.pem"
+    #certfile = "/my/client/cert.pem"
+    
+    [client_properties]
+    app = "AMQP to ZMQ"
+    
+    [queues.amqp_to_zmq]
+    durable = true
+    auto_delete = false
+    exclusive = false
+    arguments = {}
+    
+    [qos]
+    prefetch_size = 0
+    prefetch_count = 25
+    
+    [log_config]
+    version = 1
+    disable_existing_loggers = true
+    [log_config.formatters.simple]
+    format = "[%(name)s %(levelname)s] %(message)s"
+    [log_config.handlers.console]
+    class = "logging.StreamHandler"
+    formatter = "simple"
+    stream = "ext://sys.stdout"
+    [log_config.loggers.fedora_messaging]
+    level = "INFO"
+    propagate = false
+    handlers = ["console"]
+    [log_config.loggers.fedmsg]
+    level = "INFO"
+    propagate = false
+    handlers = ["console"]
+    [log_config.root]
+    level = "WARNING"
+    handlers = ["console"]
+  zmq-to-amqp.toml: |-
+    [zmq_to_amqp]
+    # The AMQP exchange to publish to.
+    exchange = "zmq.topic"
+    # A list of topics to filter the incoming ZMQ messages on; by default all
+    # messages are forwarded to AMQP.
+    topics = [""]
+    # A list of strings in the ZeroMQ socket format (e.g. "tcp://host:socket")
+    zmq_endpoints = [
+{% if env == 'staging' %}
+        "tcp://stg.fedoraproject.org:9940",
+{% else %}
+        "tcp://fedoraproject.org:9940",
+{% endif %}
+        #"tcp://release-monitoring.org:9940",
+    ]
+    
+    [log_config]
+    version = 1
+    disable_existing_loggers = true
+    [log_config.formatters.simple]
+    format = "[%(name)s %(levelname)s] %(message)s"
+    [log_config.handlers.console]
+    class = "logging.StreamHandler"
+    formatter = "simple"
+    stream = "ext://sys.stdout"
+    [log_config.loggers.fedora_messaging]
+    level = "INFO"
+    propagate = false
+    handlers = ["console"]
+    [log_config.loggers.fedmsg_migration_tools]
+    level = "INFO"
+    propagate = false
+    handlers = ["console"]
+    [log_config.loggers.fedmsg]
+    level = "INFO"
+    propagate = false
+    handlers = ["console"]
+    [log_config.root]
+    level = "WARNING"
+    handlers = ["console"]
+  verify-missing.toml: |-
+    [zmq_to_amqp]
+    # The AMQP exchange to publish to.
+    exchange = "zmq.topic"
+    # A list of topics to filter the incoming ZMQ messages on; by default all
+    # messages are forwarded to AMQP.
+    topics = [""]
+    # A list of strings in the ZeroMQ socket format (e.g. "tcp://host:socket")
+    zmq_endpoints = [
+{% if env == 'staging' %}
+        "tcp://stg.fedoraproject.org:9940",
+{% else %}
+        "tcp://fedoraproject.org:9940",
+{% endif %}
+        #"tcp://release-monitoring.org:9940",
+    ]
+    
+    [verify_missing]
+    # The bindings to use for the AMQP queue
+    [[verify_missing.bindings]]
+    exchange = "zmq.topic"
+    queue = "amqp_bridge_verify_missing"
+    routing_keys = ["#"]
+    [[verify_missing.bindings]]
+    exchange = "amq.topic"
+    queue = "amqp_bridge_verify_missing"
+    routing_keys = ["#"]
+
+    [queues.verify_missing]
+    durable = true
+    auto_delete = false
+    exclusive = false
+    arguments = {}
+    
+    [log_config]
+    version = 1
+    disable_existing_loggers = true
+    [log_config.formatters.simple]
+    format = "[%(name)s %(levelname)s] %(message)s"
+    [log_config.handlers.console]
+    class = "logging.StreamHandler"
+    formatter = "simple"
+    stream = "ext://sys.stdout"
+    [log_config.loggers.fedmsg_migration_tools]
+    level = "INFO"
+    propagate = false
+    handlers = ["console"]
+    [log_config.loggers.fedora_messaging]
+    level = "INFO"
+    propagate = false
+    handlers = ["console"]
+    [log_config.loggers.fedmsg]
+    level = "INFO"
+    propagate = false
+    handlers = ["console"]
+    [log_config.root]
+    level = "WARNING"
+    handlers = ["console"]
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: fedmsg-configmap
+  labels:
+    app: messaging-bridges
+data:
+  fedmsg-migration-tools.py: |-
+    # TODO: fedmsg configuration
+    import socket
+    hostname = socket.gethostname().split('.', 1)[0]
+    config = {
+        'sign_messages': True,
+        'active': True,
+        'cert_prefix': 'fedmsg-migration-tools',
+        'certnames': {'fedmsg-migration-tools.{}'.format(socket.gethostname()): 'fedmsg-migration-tools'},
+        'relay_inbound': 'tcp://busgateway01{{ env_suffix }}.phx2.fedoraproject.org:9941',
+        'bodhi.%s' % hostname: ['tcp://busgateway01{{ env_suffix }}.phx2.fedoraproject.org:9941'],
+        'environment': '{{ env }}',
+{% if env == 'staging' %}
+        # stg should listen to the stg bus
+        'endpoints': {
+            'staging_gateway': ['tcp://stg.fedoraproject.org:9940']
+        },
+{% endif %}
+        "validate_signatures": True,
+        "crypto_backend": 'x509',
+        "crypto_validate_backends": ['x509'],
+        "ssldir": "/etc/pki/fedmsg",
+        "crl_location": "https://fedoraproject.org/fedmsg/crl.pem",
+        "crl_cache": "/tmp/fedmsg/crl.pem",
+        "crl_cache_expiry": 3600,
+        "ca_cert_location": "https://fedoraproject.org/fedmsg/ca.crt",
+        "ca_cert_cache": "/tmp/fedmsg/ca.crt",
+        "ca_cert_cache_expiry": 0,  # Never expires
+        "certnames": {
+            # In prod/stg, map hostname to the name of the cert in ssldir.
+            # Unfortunately, we can't use socket.getfqdn()
+            # "app01.stg": "app01.stg.phx2.fedoraproject.org",
+        },
+        # A mapping of fully qualified topics to a list of cert names for which
+        # a valid signature is to be considered authorized.  Messages on topics not
+        # listed here are considered automatically authorized.
+        "routing_policy": {
+            "org.fedoraproject.prod.announce.announcement": [
+                "announce-lockbox.phx2.fedoraproject.org",
+            ],
+        },
+        # Set this to True if you want messages to be dropped that aren't
+        # explicitly whitelisted in the routing_policy.
+        # When this is False, only messages that have a topic in the routing_policy
+        # but whose cert names aren't in the associated list are dropped; messages
+        # whose topics do not appear in the routing_policy are not dropped.
+        "routing_nitpicky": False,
+        # Logging
+        "logging": {
+            "version": 1,
+            "loggers": {
+                "fedmsg_migration_tools": {
+                    "handlers": ["console"], "propagate": False, "level": "DEBUG"},
+                "fedmsg": {
+                    "handlers": ["console"], "propagate": False, "level": "DEBUG"},
+                "moksha": {
+                    "handlers": ["console"], "propagate": False, "level": "DEBUG"},
+            },
+            "handlers": {
+                "console": {
+                    "formatter": "bare",
+                    "class": "logging.StreamHandler",
+                    "stream": "ext://sys.stdout",
+                    "level": "DEBUG"
+                }
+            },
+            "formatters": {
+                "bare": {
+                    "datefmt": "%Y-%m-%d %H:%M:%S",
+                    "format": "[%(asctime)s][%(name)10s %(levelname)7s] %(message)s"
+                },
+            },
+        },
+    }

@@ -15,3 +15,68 @@
     appowners:
     - abompard
     - jcline
+
+  - role: openshift/secret-file
+    app: messaging-bridges
+    secret_name: fedmsg-key
+    key: fedmsg-fedmsg-migration-tools.key
+    privatefile: fedmsg-certs/keys/messaging-bridges-stg.key
+    when: env == "staging"
+  - role: openshift/secret-file
+    app: messaging-bridges
+    secret_name: fedmsg-cert
+    key: fedmsg-fedmsg-migration-tools.crt
+    privatefile: fedmsg-certs/keys/messaging-bridges-stg.crt
+    when: env == "staging"
+  - role: openshift/secret-file
+    app: messaging-bridges
+    secret_name: fedmsg-key
+    key: fedmsg-fedmsg-migration-tools.key
+    privatefile: fedmsg-certs/keys/messaging-bridges.key
+    when: env != "staging"
+  - role: openshift/secret-file
+    app: messaging-bridges
+    secret_name: fedmsg-cert
+    key: fedmsg-fedmsg-migration-tools.crt
+    privatefile: fedmsg-certs/keys/messaging-bridges.crt
+    when: env != "staging"
+
+  - role: openshift/object
+    app: messaging-bridges
+    file: imagestream.yml
+    objectname: imagestream.yml
+  - role: openshift/object
+    app: messaging-bridges
+    template: buildconfig.yml
+    objectname: buildconfig.yml
+
+  - role: openshift/start-build
+    app: messaging-bridges
+    buildname: messaging-bridges-build
+
+  - role: openshift/object
+    app: messaging-bridges
+    template: configmap.yml
+    objectname: configmap.yml
+  - role: openshift/object
+    app: messaging-bridges
+    file: service.yml
+    objectname: service.yml
+  - role: openshift/object
+    app: messaging-bridges
+    template: endpoints.yml
+    objectname: endpoints.yml
+  - role: openshift/object
+    app: messaging-bridges
+    file: deploymentconfig.yml
+    objectname: deploymentconfig.yml
+
+  - role: openshift/rollout
+    app: messaging-bridges
+    dcname: amqp-to-zmq
+  - role: openshift/rollout
+    app: messaging-bridges
+    dcname: zmq-to-amqp
+  - role: openshift/rollout
+    app: messaging-bridges
+    dcname: verify-missing

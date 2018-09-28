@@ -1,0 +1,30 @@
+apiVersion: v1
+kind: BuildConfig
+metadata:
+  name: messaging-bridges-build
+  labels:
+    environment: "fedmsg-migration-tools"
+spec:
+  output:
+    to:
+      kind: ImageStreamTag
+      name: fedmsg-migration-tools:latest
+  source:
+    type: Git
+    git:
+      uri: https://github.com/fedora-infra/fedmsg-migration-tools.git
+  strategy:
+    type: Source
+    sourceStrategy:
+      from:
+        kind: ImageStreamTag
+        namespace: openshift
+        name: python:3.6
+  triggers:
+{% if fedmsg_migration_tools_github_secret is defined %}
+  - type: GitHub
+    github:
+      secret: "{{ fedmsg_migration_tools_github_secret }}"
+{% endif %}
+  - type: ConfigChange
+  - type: ImageChange
