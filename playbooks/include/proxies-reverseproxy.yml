@@ -280,8 +280,8 @@
   - role: httpd/reverseproxy
     website: bodhi.fedoraproject.org
     destname: bodhi
-    # haproxy entry for os-nodes-frontend
-    proxyurl: http://localhost:10065
+    balancer_name: app-os
+    balancer_members: {{ openshift_nodes }}
     keephost: true
     tags: bodhi
 
@@ -312,8 +312,8 @@
   - role: httpd/reverseproxy
     website: koschei.fedoraproject.org
     destname: koschei
-    # haproxy entry for os-nodes-frontend
-    proxyurl: http://localhost:10065
+    balancer_name: app-os
+    balancer_members: {{ openshift_nodes }}
     keephost: true
     tags: koschei
 
@@ -658,44 +658,22 @@
     keephost: true
 
   - role: httpd/reverseproxy
-    website: os.fedoraproject.org
+    website: "os{{ env_suffix }}.fedoraproject.org"
     destname: os
     balancer_name: os
-    balancer_members: ['os-master01.vpn.fedoraproject.org', 'os-master02.vpn.fedoraproject.org', 'os-master03.vpn.fedoraproject.org']
+    balancer_members: {{ openshift_masters }}
     keephost: true
     tags:
     - os.fedoraproject.org
 
   - role: httpd/reverseproxy
-    website: app.os.fedoraproject.org
+    website: "app.os{{ env_suffix }}.fedoraproject.org"
     destname: app.os
     balancer_name: app-os
-    balancer_members: ['os-node01.vpn.fedoraproject.org', 'os-node02.vpn.fedoraproject.org', 'os-node03.vpn.fedoraproject.org', 'os-node04.vpn.fedoraproject.org', 'os-node05.vpn.fedoraproject.org']
+    balancer_members: {{ openshift_nodes }}
     keephost: true
     tags:
     - app.os.fedoraproject.org
-
-  - role: httpd/reverseproxy
-    website: os.stg.fedoraproject.org
-    destname: os
-    proxyurl: https://os.stg.phx2.fedoraproject.org
-    balancer_name: os-stg
-    balancer_members: ['os-master01.stg.phx2.fedoraproject.org', 'os-master02.stg.phx2.fedoraproject.org', 'os-master03.stg.phx2.fedoraproject.org']
-    keephost: true
-    tags:
-    - os.fedoraproject.org
-    when: env == "staging"
-
-  - role: httpd/reverseproxy
-    website: app.os.stg.fedoraproject.org
-    destname: app.os
-    balancer_name: app-os-stg
-    balancer_members: ['os-node01.stg.phx2.fedoraproject.org', 'os-node02.stg.phx2.fedoraproject.org', 'os-node03.stg.phx2.fedoraproject.org', 'os-node04.stg.phx2.fedoraproject.org']
-    proxyurl: http://app.os.phx2.fedoraproject.org
-    keephost: true
-    tags:
-    - app.os.fedoraproject.org
-    when: env == "staging"
 
   - role: httpd/reverseproxy
     website: odcs.fedoraproject.org
@@ -714,40 +692,40 @@
   - role: httpd/reverseproxy
     website: greenwave.fedoraproject.org
     destname: greenwave
-    # haproxy entry for os-nodes-frontend
-    proxyurl: http://localhost:10065
+    balancer_name: app-os
+    balancer_members: {{ openshift_nodes }}
     keephost: true
     tags: greenwave
 
   - role: httpd/reverseproxy
     website: waiverdb.fedoraproject.org
     destname: waiverdb
-    # haproxy entry for os-nodes-frontend
-    proxyurl: http://localhost:10065
+    balancer_name: app-os
+    balancer_members: {{ openshift_nodes }}
     keephost: true
     tags: waiverdb
 
   - role: httpd/reverseproxy
     website: coreos.fedoraproject.org
     destname: coreos
-    # haproxy entry for os-nodes-frontend
-    proxyurl: http://localhost:10065
+    balancer_name: app-os
+    balancer_members: {{ openshift_nodes }}
     keephost: true
     tags: coreos
 
   - role: httpd/reverseproxy
     website: silverblue.fedoraproject.org
     destname: silverblue
-    # haproxy entry for os-nodes-frontend
-    proxyurl: http://localhost:10065
+    balancer_name: app-os
+    balancer_members: {{ openshift_nodes }}
     keephost: true
     tags: silverblue
 
   - role: httpd/reverseproxy
     website: stg.release-monitoring.org
     destname: stg.release-monitoring
-    # haproxy entry for os-nodes-frontend
-    proxyurl: http://localhost:10065
+    balancer_name: app-os
+    balancer_members: {{ openshift_nodes }}
     keephost: true
     tags: release-montoring.org
     when: env == "staging"
@@ -755,8 +733,8 @@
   - role: httpd/reverseproxy
     website: fpdc.fedoraproject.org
     destname: fpdc
-    # haproxy entry for os-nodes-frontend
-    proxyurl: http://localhost:10065
+    balancer_name: app-os
+    balancer_members: {{ openshift_nodes }}
     keephost: true
     tags: fpdc
 
