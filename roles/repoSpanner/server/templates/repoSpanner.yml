@@ -1,0 +1,44 @@
+---
+storage:
+  state: /var/lib/repospanner/state
+  git:
+    type: tree
+    clustered: true
+    directory: /var/lib/repospanner/gitstore
+listen:
+  rpc:  0.0.0.0:8444
+  http: 0.0.0.0:8443
+certificates:
+  ca: /etc/repospanner/ca.crt
+  client:
+    cert: /etc/repospanner/node.crt
+    key:  /etc/repospanner/node.key
+  server:
+    default:
+      cert: /etc/repospanner/node.crt
+      key:  /etc/repospanner/node.key
+hooks:
+  bubblewrap:
+    enabled: true
+    unshare:
+    - net
+    - ipc
+    - pid
+    - uts
+    share_net: false
+    mount_proc: true
+    mount_dev: true
+    uid:
+    gid:
+    hostname: myhostname
+    bind:
+    ro_bind:
+    - - /usr
+      - /usr
+    symlink:
+    - - usr/lib64
+      - /lib64
+    - - usr/bin
+      - /bin
+  runner: /usr/libexec/repohookrunner
+  user: 0

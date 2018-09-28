@@ -1,0 +1,95 @@
+---
+# Configuration for repoSpanner server
+
+- name: install needed packages
+  package: name={{ item }} state=present
+  with_items:
+  - repoSpanner
+  tags:
+  - repoSpanner/server
+  - packages
+
+- name: Create group
+  group:
+    name: repoSpanner
+    state: present
+  tags:
+  - repoSpanner/server
+  - config
+
+- name: Create user
+  user:
+    name: repoSpanner
+    state: present
+    group: repoSpanner
+    shell: /sbin/nologin
+  tags:
+  - repoSpanner/server
+  - config
+
+- name: Create directory
+  file:
+    path: /var/lib/repospanner
+    state: directory
+    owner: repoSpanner
+    group: repoSpanner
+    mode: 0755
+  tags:
+  - repoSpanner/server
+  - config
+
+- name: Deploy configuration
+  template: src=repoSpanner.conf
+            dest=/etc/repoSpanner/config.yml
+            owner=repoSpanner group=repoSpanner mode=0600
+  notify:
+  - reload repoSpanner
+  tags:
+  - repoSpanner/server
+  - config
+
+- name: Deploy certificates
+  copy: src="{{private}}/files/repoSpanner/{{env}}/ca/{{item.src}}
+        dest=/etc/repospanner/{{item.dest}}
+        owner=repoSpanner group=repoSpanner mode=0600
+  with_items:
+  - src: ca.crt
+    dest: ca.crt
+  - src: {{node}}.{{region}}.crt
+    dest: node.crt
+  - src: {{node}}.{{region}}.key
+    dest: node.key
+  notify:
+  - reload repoSpanner
+  tags:
+  - repoSpanner/server
+  - config
+
+- name: Deploy unit file
+  template: src=repoSpanner.service
+            dest=/etc/systemd/system/repospanner@.service
+  notify:
+  - reload repoSpanner
+  tags:
+  - repoSpanner/server
+  - config
+
+- name: Spawn node
+  command: repospanner --config /etc/repospanner/config.yml serve --spawn
+  creates: /var/lib/repospanner/state/state.json
+  become: yes
+  become_user: repoSpanner
+  when: "spawn_repospanner_node"
+
+- name: Join node
+  command: repospanner --config /etc/repospanner/config.yml serve --joinnode {{ join_repospanner_node }}
+  creates: /var/lib/repospanner/state/state.json
+  become: yes
+  become_user: repoSpanner
+  when: "not spawn_repospanner_node"
+
+- name: Start and enable
+  service: name=repoSpanner@config state=started enabled=yes
+  tags:
+  - repoSpanner/server
+  - config
