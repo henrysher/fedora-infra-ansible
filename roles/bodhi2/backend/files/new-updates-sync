@@ -14,32 +14,13 @@ logger = logging.getLogger('updates-sync')
 
 
 SOURCE = '/mnt/koji/compose/updates/'
-RAWHIDESOURCE = '/mnt/koji/compose/rawhide/'
 FEDORADEST = '/pub/fedora/linux/updates/'
 FEDORAMODDEST = '/pub/fedora/linux/modular/updates/'
 FEDORAALTDEST = '/pub/fedora-secondary/updates/'
-RAWHIDEDEST = '/pub/fedora/linux/development/'
-RAWHIDEALTDEST = '/pub/fedora-secondary/development/'
 EPELDEST = '/pub/epel/'
 ATOMICSOURCE = '/mnt/koji/compose/atomic/repo/'
 ATOMICDEST = '/mnt/koji/atomic/repo/'
-RELEASES = {'rawhide': {'topic': 'fedora',
-                    'version': 'rawhide',
-                    'modules': ['fedora', 'fedora-secondary'],
-                    'repos': {'rawhide': {
-                        'from': 'latest-Fedora-Rawhide',
-                        'ostrees': [{'ref': 'fedora/rawhide/%(arch)s/atomic-host',
-                                     'dest': ATOMICDEST,
-                                     'arches': ['x86_64', 'ppc64le', 'aarch64']},
-                                    {'ref': 'fedora/rawhide/x86_64/silverblue',
-                                     'dest': ATOMICDEST}],
-                        'to': [{'arches': ['x86_64', 'armhfp', 'aarch64', 'source'],
-                                'dest': os.path.join(RAWHIDEDEST, 'rawhide', 'Everything')},
-                               {'arches': ['i386', 'ppc64le', 's390x'],
-                                'dest': os.path.join(RAWHIDEALTDEST, 'rawhide', 'Everything')}
-                              ]}},
-                   },
-            'f29': {'topic': 'fedora',
+RELEASES = {'f29': {'topic': 'fedora',
                     'version': '29',
                     'modules': ['fedora', 'fedora-secondary'],
                     'repos': {'updates': {
@@ -47,10 +28,10 @@ RELEASES = {'rawhide': {'topic': 'fedora',
                         'ostrees': [{'ref': 'fedora/29/%(arch)s/updates/atomic-host',
                                      'dest': ATOMICDEST,
                                      'arches': ['x86_64', 'ppc64le', 'aarch64']},
-                                    {'ref': 'fedora/29/x86_64/updates/silverblue',
+                                    {'ref': 'fedora/29/x86_64/updates/workstation',
                                      'dest': ATOMICDEST},
                                     # Hack around for the fact that ostree on f25 doesn't know links
-                                    {'ref': 'fedora/29/x86_64/silverblue',
+                                    {'ref': 'fedora/29/x86_64/workstation',
                                      'dest': ATOMICDEST}],
                         'to': [{'arches': ['x86_64', 'armhfp', 'aarch64', 'source'],
                                 'dest': os.path.join(FEDORADEST, '29', 'Everything')},
@@ -62,7 +43,7 @@ RELEASES = {'rawhide': {'topic': 'fedora',
                         'ostrees': [{'ref': 'fedora/29/%(arch)s/testing/atomic-host',
                                      'dest': ATOMICDEST,
                                      'arches': ['x86_64', 'ppc64le', 'aarch64']},
-                                    {'ref': 'fedora/29/x86_64/testing/silverblue',
+                                    {'ref': 'fedora/29/x86_64/testing/workstation',
                                      'dest': ATOMICDEST}],
                         'to': [{'arches': ['x86_64', 'aarch64', 'armhfp', 'source'],
                                 'dest': os.path.join(FEDORADEST, 'testing', '29', 'Everything')},
@@ -294,14 +275,9 @@ def to_human(num_bytes):
 
 
 def sync_single_repo_arch(release, repo, arch, dest_path):
-    if repo == 'rawhide':
-        source_path = os.path.join(RAWHIDESOURCE,
-                                   RELEASES[release]['repos'][repo]['from'],
-                                   'compose', 'Everything', arch)
-    else:
-        source_path = os.path.join(SOURCE,
-                                   RELEASES[release]['repos'][repo]['from'],
-                                   'compose', 'Everything', arch)
+    source_path = os.path.join(SOURCE,
+                               RELEASES[release]['repos'][repo]['from'],
+                               'compose', 'Everything', arch)
 
     maindir = 'tree' if arch == 'source' else 'os'
 
@@ -344,10 +320,7 @@ def sync_single_repo(release, repo):
     for archdef in RELEASES[release]['repos'][repo]['to']:
         for arch in archdef['arches']:
             destarch = 'SRPMS' if arch == 'source' else arch
-            if repo == 'rawhide':
-                dest_path = os.path.join(archdef['dest'], destarch, 'os')
-            else:
-                dest_path = os.path.join(archdef['dest'], destarch)
+            dest_path = os.path.join(archdef['dest'], destarch)
             results.append(sync_single_repo_arch(release, repo, arch, dest_path))
 
     stats = collect_stats(results)
@@ -367,17 +340,9 @@ def sync_single_repo(release, repo):
 
 
 def determine_last_link(release, repo):
-    if repo == 'rawhide':
-        source_path = os.path.join(RAWHIDESOURCE,
-                                   RELEASES[release]['repos'][repo]['from'])
-        #Since latest-Fedora-Rawhide is a symlink pointing to just the
-        #compose dir rather than its full path, we need the absolute path
-        #of the compose rather than relative path
-        target = os.path.realpath(source_path)
-    else:
-        source_path = os.path.join(SOURCE,
-                                   RELEASES[release]['repos'][repo]['from'])
-        target = os.readlink(source_path)
+    source_path = os.path.join(SOURCE,
+                               RELEASES[release]['repos'][repo]['from'])
+    target = os.readlink(source_path)
     logger.info('Release %s, repo %s, target %s', release, repo, target)
     RELEASES[release]['repos'][repo]['from'] = target
     return target
