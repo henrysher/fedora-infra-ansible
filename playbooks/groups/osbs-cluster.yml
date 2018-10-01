@@ -187,10 +187,11 @@
     host: "osbs.stg.fedoraproject.org"
     when: env == "staging"
 
-- name: Deploy OpenShift Cluster
+- name: Deploy OpenShift Cluster x86_64
   hosts: osbs-control:osbs-control-stg
   tags:
     - osbs-deploy-openshift
+    - osbs-x86-deploy-openshift
   user: root
   gather_facts: True
 
@@ -224,7 +225,47 @@
       openshift_ansible_python_interpreter: "/usr/bin/python3"
       openshift_ansible_use_crio: false
       openshift_ansible_crio_only: false
-      tags: ['openshift-cluster','ansible-ansible-openshift-ansible']
+      tags: ['openshift-cluster-aarch','ansible-ansible-openshift-ansible']
+
+- name: Deploy OpenShift Cluster aarch64
+  hosts: osbs-control:osbs-control-stg
+  tags:
+    - osbs-deploy-openshift
+    - osbs-aarch-deploy-openshift
+  user: root
+  gather_facts: True
+
+  vars_files:
+    - /srv/web/infra/ansible/vars/global.yml
+    - "/srv/private/ansible/vars.yml"
+    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  roles:
+    - role: ansible-ansible-openshift-ansible
+      cluster_inventory_filename: "{{ inventory_filename }}"
+      openshift_htpasswd_file: "/etc/origin/htpasswd"
+      openshift_master_public_api_url: "https://{{ osbs_url }}:8443"
+      openshift_release: "v3.9.0"
+      openshift_ansible_path: "/root/openshift-ansible"
+      openshift_ansible_pre_playbook: "playbooks/prerequisites.yml"
+      openshift_ansible_playbook: "playbooks/deploy_cluster.yml"
+      openshift_ansible_version: "openshift-ansible-3.9.30-1"
+      openshift_ansible_ssh_user: root
+      openshift_ansible_install_examples: false
+      openshift_ansible_containerized_deploy: false
+      openshift_cluster_masters_group: "{{ aarch_masters_group }}"
+      openshift_cluster_nodes_group: "{{ aarch_nodes_group }}"
+      openshift_cluster_infra_group: "{{ aarch_infra_group }}"
+      openshift_auth_profile: "osbs"
+      openshift_cluster_url: "https://{{osbs_url}}"
+      openshift_master_ha: false
+      openshift_debug_level: 2
+      openshift_shared_infra: true
+      openshift_deployment_type: "origin"
+      openshift_ansible_python_interpreter: "/usr/bin/python3"
+      openshift_ansible_use_crio: false
+      openshift_ansible_crio_only: false
+      tags: ['openshift-cluster-aarch','ansible-ansible-openshift-ansible']
 
 - name: Setup OSBS requirements for OpenShift cluster hosts
   hosts: osbs-masters-stg:osbs-nodes-stg:osbs-masters:osbs-nodes
