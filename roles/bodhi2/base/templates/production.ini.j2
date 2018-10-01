@@ -231,10 +231,12 @@ container.source_registry = candidate-registry.stg.fedoraproject.org
 {% if env == 'production' %}
 master_repomd = http://download01.phx2.fedoraproject.org/pub/fedora/linux/updates/%s/%s/repodata/repomd.xml
 fedora_master_repomd = http://download01.phx2.fedoraproject.org/pub/fedora/linux/updates/%s/%s/repodata/repomd.xml
-fedora_28_stable_master_repomd = http://download01.phx2.fedoraproject.org/pub/fedora/linux/updates/%s/Everything/%s/repodata/repomd.xml
-fedora_28_testing_master_repomd = http://download01.phx2.fedoraproject.org/pub/fedora/linux/updates/testing/%s/Everything/%s/repodata/repomd.xml
-fedora_29_stable_master_repomd = http://download01.phx2.fedoraproject.org/pub/fedora/linux/updates/%s/Everything/%s/repodata/repomd.xml
-fedora_29_testing_master_repomd = http://download01.phx2.fedoraproject.org/pub/fedora/linux/updates/testing/%s/Everything/%s/repodata/repomd.xml
+fedora_{{ FedoraCycleNumber }}_stable_master_repomd = http://download01.phx2.fedoraproject.org/pub/fedora/linux/updates/%s/Everything/%s/repodata/repomd.xml
+fedora_{{ FedoraCycleNumber }}_testing_master_repomd = http://download01.phx2.fedoraproject.org/pub/fedora/linux/updates/testing/%s/Everything/%s/repodata/repomd.xml
+{% if FedoraBranched %}
+fedora_{{ FedoraBranchedNumber }}_stable_master_repomd = http://download01.phx2.fedoraproject.org/pub/fedora/linux/updates/%s/Everything/%s/repodata/repomd.xml
+fedora_{{ FedoraBranchedNumber }}_testing_master_repomd = http://download01.phx2.fedoraproject.org/pub/fedora/linux/updates/testing/%s/Everything/%s/repodata/repomd.xml
+{% endif %}
 fedora_epel_master_repomd = http://download01.phx2.fedoraproject.org/pub/epel/%s/%s/repodata/repomd.xml
 {% endif %}
 
@@ -283,10 +285,12 @@ fedora_modular_testing_master_repomd = https://kojipkgs.stg.fedoraproject.org/co
 {% if env == 'production' %}
 fedora_stable_alt_master_repomd = http://download01.phx2.fedoraproject.org/pub/fedora-secondary/updates/%s/%s/repodata/repomd.xml
 fedora_testing_alt_master_repomd = http://download01.phx2.fedoraproject.org/pub/fedora-secondary/updates/testing/%s/%s/repodata/repomd.xml
-fedora_28_stable_alt_master_repomd = http://download01.phx2.fedoraproject.org/pub/fedora-secondary/updates/%s/Everything/%s/repodata/repomd.xml
-fedora_28_testing_alt_master_repomd = http://download01.phx2.fedoraproject.org/pub/fedora-secondary/updates/testing/%s/Everything/%s/repodata/repomd.xml
-fedora_29_stable_alt_master_repomd = http://download01.phx2.fedoraproject.org/pub/fedora-secondary/updates/%s/Everything/%s/repodata/repomd.xml
-fedora_29_testing_alt_master_repomd = http://download01.phx2.fedoraproject.org/pub/fedora-secondary/updates/testing/%s/Everything/%s/repodata/repomd.xml
+fedora_{{ FedoraCycleNumber }}_stable_alt_master_repomd = http://download01.phx2.fedoraproject.org/pub/fedora-secondary/updates/%s/Everything/%s/repodata/repomd.xml
+fedora_{{ FedoraCycleNumber }}_testing_alt_master_repomd = http://download01.phx2.fedoraproject.org/pub/fedora-secondary/updates/testing/%s/Everything/%s/repodata/repomd.xml
+{% if FedoraBranched %}
+fedora_{{ FedoraBranchedNumber }}_stable_alt_master_repomd = http://download01.phx2.fedoraproject.org/pub/fedora-secondary/updates/%s/Everything/%s/repodata/repomd.xml
+fedora_{{ FedoraBranchedNumber }}_testing_alt_master_repomd = http://download01.phx2.fedoraproject.org/pub/fedora-secondary/updates/testing/%s/Everything/%s/repodata/repomd.xml
+{% endif %}
 {% elif env == 'staging' %}
 fedora_stable_alt_master_repomd = https://kojipkgs.stg.fedoraproject.org/compose/updates/f%s-updates/compose/Everything/%s/os/repodata/repomd.xml
 fedora_testing_alt_master_repomd = https://kojipkgs.stg.fedoraproject.org/compose/updates/f%s-updates-testing/compose/Everything/%s/os/repodata/repomd.xml
@@ -572,14 +576,17 @@ fedora_modular.mandatory_days_in_testing = 7
 # critpath number of admin approvals, and the critpath minimum karma. For example, if we want to set
 # Fedora 28 as a pre-beta, and we want it to have different rules in pre-beta and post-beta, we
 # could do something like this:
-#f29.status = post_beta
-#f29.post_beta.mandatory_days_in_testing = 7
-#f29.post_beta.critpath.min_karma = 2
-#f29.post_beta.critpath.stable_after_days_without_negative_karma = 14
-#f29.status = pre_beta
-#f29.pre_beta.mandatory_days_in_testing = 3
-#f29.pre_beta.critpath.min_karma = 1
-#f29.pre_beta.critpath.stable_after_days_without_negative_karma = 14
+{% if FedoraBranchedBodhi is defined and FedoraBranchedBodhi == 'prebeta' %}
+f{{ FedoraBranchedNumber }}.status = pre_beta
+f{{ FedoraBranchedNumber }}.pre_beta.mandatory_days_in_testing = 3
+f{{ FedoraBranchedNumber }}.pre_beta.critpath.min_karma = 1
+f{{ FedoraBranchedNumber }}.pre_beta.critpath.stable_after_days_without_negative_karma = 14
+{% elif FedoraBranchedBodhi is defined and FedoraBranchedBodhi == 'postbeta' %}
+f{{ FedoraBranchedNumber }}.status = post_beta
+f{{ FedoraBranchedNumber }}.post_beta.mandatory_days_in_testing = 7
+f{{ FedoraBranchedNumber }}.post_beta.critpath.min_karma = 2
+f{{ FedoraBranchedNumber }}.post_beta.critpath.stable_after_days_without_negative_karma = 14
+{% endif %}
 
 ##
 ## Buildroot Override
