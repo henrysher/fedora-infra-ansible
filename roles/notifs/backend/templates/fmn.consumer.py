@@ -135,7 +135,6 @@ config = {
         "fas": "light blue",
         "bodhi": "green",
         "git": "red",
-        "tagger": "brown",
         "wiki": "purple",
         "logger": "orange",
         "pkgdb": "teal",

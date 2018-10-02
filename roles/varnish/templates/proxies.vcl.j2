@@ -99,11 +99,6 @@ backend packages {
     .port = "10016";
 }
 
-backend tagger {
-    .host = "localhost";
-    .port = "10017";
-}
-
 backend askbot {
     .host = "localhost";
     .port = "10021";
@@ -248,13 +243,6 @@ sub vcl_recv {
     if (req.url ~ "^/freemedia/") {
         set req.backend_hint = freemedia;
     }
-    if (req.url ~ "^/tagger/") {
-        set req.backend_hint = tagger;
-        if (req.url ~ "^/tagger/ui/static/") {
-            unset req.http.cookie;
-            set req.http.clear-cookies = "yes";
-            set req.url = regsub(req.url, "\?.*", "");
-        }
     }
     if (req.http.X-Forwarded-Server ~ "^paste.fedoraproject.org") {
         set req.backend_hint = paste;
