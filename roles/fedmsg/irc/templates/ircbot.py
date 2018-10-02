@@ -569,6 +569,28 @@ config = dict(
                       "u'fullname': u'koji'"],
             ),
         ),
+
+        # For #fedora-join
+        dict(
+            network='chat.freenode.net',
+            port=6667,
+            make_pretty=True,
+            make_terse=True,
+
+            {% if env == 'staging' %}
+            nickname='fm-stg-join',
+            {% else %}
+            nickname='fm-join',
+            {% endif %}
+            channel='fedora-join',
+            filters=dict(
+                topic=[
+                    '^((?!(pagure)).)*$',
+                ],
+                body=['^((?!(fedora-join)).)*$',
+                ],
+            ),
+        ),
     ],
 
     ### Possible colors are ###
