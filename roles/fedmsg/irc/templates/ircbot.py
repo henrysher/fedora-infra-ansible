@@ -116,7 +116,7 @@ config = dict(
             channel='fedora-commops',
             filters=dict(
                 topic=[
-                    '^((?!(fedora_elections|meetbot\.meeting\.item\.help|fedocal\.meeting\.new|fedocal\.meeting\.update|fedocal\.calendar|anitya\.distro\.add)).)*$',
+                    '^((?!(happinesspacket|fedora_elections|meetbot\.meeting\.item\.help|fedocal\.meeting\.new|fedocal\.meeting\.update|fedocal\.calendar|anitya\.distro\.add)).)*$',
                 ],
             ),
         ),
