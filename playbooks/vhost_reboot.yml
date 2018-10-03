@@ -44,6 +44,11 @@
   serial: 1
 
   tasks:
+  - name: drain OS node if necessary
+    command: oc adm drain {{inventory_hostname }} --ignore-daemonsets --delete-local-data
+    delegate_to: os-master01{{env_suffix}.phx2.fedoraproject.org
+    when: inventory_hostname.startswith('os-node')
+
   - name: schedule regular host downtime
     nagios: action=downtime minutes=30 service=host host={{ inventory_hostname_short }}{{ env_suffix }}
     delegate_to: noc01.phx2.fedoraproject.org
@@ -101,6 +106,17 @@
     delegate_to: noc01.phx2.fedoraproject.org
     ignore_errors: true
     when: nonagios is not defined or not nonagios
+
+- name: post reboot tasks
+  hosts: newvmlist
+  user: root
+  gather_facts: False
+  serial: 1
+
+  - name: Add back to openshift
+    command: oc adm uncordon {{inventory_hostname}}
+    delegate_to: os-master01{{env_suffix}.phx2.fedoraproject.org
+    when: inventory_hostname.startswith('os-node')
 
 # Call out to that dns playbook.  Put proxies back in now that they're back
 - import_playbook: update-proxy-dns.yml status=enable proxies=myvms_new:&proxies
