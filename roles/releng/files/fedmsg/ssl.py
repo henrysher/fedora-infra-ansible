@@ -39,9 +39,6 @@ config = dict(
         ("shell.packages0%i" % i, "shell-packages0%i.%s" % (i, suffix))
         for i in range(1, 3)
     ] + [
-        ("fedoratagger.packages0%i" % i, "fedoratagger-packages0%i.%s" % (i, suffix))
-        for i in range(1, 3)
-    ] + [
         ("shell.pkgs0%i" % i, "shell-pkgs0%i.%s" % (i, suffix))
         for i in range(1, 2)
     ] + [

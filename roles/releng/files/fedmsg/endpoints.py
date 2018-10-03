@@ -60,14 +60,6 @@ config = dict(
             "tcp://fas01.%s:300%i" % (suffix, i)
             for i in range(8)
         ],
-        "fedoratagger.tagger01": [
-            "tcp://tagger01.%s:300%i" % (suffix, i)
-            for i in range(8)
-        ],
-        "fedoratagger.tagger02": [
-            "tcp://tagger02.%s:300%i" % (suffix, i)
-            for i in range(8)
-        ],
         "busmon.app01": [
             "tcp://app01.%s:3008" % suffix,
         ],

@@ -614,7 +614,6 @@ config = dict(
         "fas": "light blue",
         "bodhi": "green",
         "git": "red",
-        "fedoratagger": "brown",
         "wiki": "purple",
         "logger": "orange",
         "buildsys": "yellow",
