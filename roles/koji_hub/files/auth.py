@@ -71,6 +71,10 @@ class Session(object):
         self.exclusive = False
         self.lockerror = None
         self.callnum = None
+-        # we look up perms, groups, and host_id on demand, see __getattr__
+        self._perms = None
+        self._groups = None
+        self._host_id = ''
         #get session data from request
         if args is None:
             environ = getattr(context, 'environ', {})
@@ -81,7 +85,7 @@ class Session(object):
             args = urlparse.parse_qs(args, strict_parsing=True)
         hostip = self.get_remote_ip(override=hostip)
         try:
-            id = long(args['session-id'][0])
+            id = int(args['session-id'][0])
             key = args['session-key'][0]
         except KeyError as field:
             raise koji.AuthError('%s not specified in session args' % field)
@@ -204,10 +208,6 @@ class Session(object):
         self.master = session_data['master']
         self.session_data = session_data
         self.user_data = user_data
-        # we look up perms, groups, and host_id on demand, see __getattr__
-        self._perms = None
-        self._groups = None
-        self._host_id = ''
         self.logged_in = True
 
     def __getattr__(self, name):
