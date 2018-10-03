@@ -94,6 +94,10 @@
     virt: command=list_vms
     register: newvmlist
 
+  - name: add them to myvms_postreboot group
+    local_action: add_host hostname={{ item }} groupname=myvms_postreboot
+    with_items: "{{ newvmlist.list_vms }}"
+
   - name: sync time
     command: ntpdate -u 1.rhel.pool.ntp.org
 
@@ -108,7 +112,7 @@
     when: nonagios is not defined or not nonagios
 
 - name: post reboot tasks
-  hosts: newvmlist
+  hosts: myvms_postreboot
   user: root
   gather_facts: False
   serial: 1
