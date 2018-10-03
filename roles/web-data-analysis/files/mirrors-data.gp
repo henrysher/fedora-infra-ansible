@@ -73,7 +73,7 @@ plot ["2007-05-17":"2018-12-31"] \
      '/var/www/html/csv-reports/mirrors/mirrorsdata-all.csv' using 1:61 title 'modular_f27' with lines lw 3, \
      '/var/www/html/csv-reports/mirrors/mirrorsdata-all.csv' using 1:62 title 'modular_f28' with lines lw 3, \
      '/var/www/html/csv-reports/mirrors/mirrorsdata-all.csv' using 1:63 title 'modular_f29' with lines lw 3, \
-     '/var/www/html/csv-reports/mirrors/mirrorsdata-all.csv' using 1:64 title 'modular_f30' with lines lw 3
+     '/var/www/html/csv-reports/mirrors/mirrorsdata-all.csv' using 1:64 title 'modular_f30' with lines lw 3, \
      '/var/www/html/csv-reports/mirrors/mirrorsdata-all.csv' using 1:65 title 'fed30' with lines lw 3, \
      '/var/www/html/csv-reports/mirrors/mirrorsdata-all.csv' using 1:66 title 'fed31' with lines lw 3, \
      '/var/www/html/csv-reports/mirrors/mirrorsdata-all.csv' using 1:67 title 'fed32' with lines lw 3, \
