@@ -22,6 +22,14 @@
   - sudo
   - { role: openvpn/client,
       when: env != "staging" }
+  - { role: nfs/client,
+      mnt_dir: '/srv/registry',
+      nfs_src_dir: "oci_registry_stg",
+      when: "env == 'staging'" }
+  - { role: nfs/client,
+      mnt_dir: '/srv/registry',
+      nfs_src_dir: "oci_registry",
+      when: "env != 'staging'" }
 
   pre_tasks:
   - import_tasks: "{{ tasks_path }}/yumrepos.yml"
