@@ -45,45 +45,6 @@
   handlers:
   - import_tasks: "{{ handlers_path }}/restart_services.yml"
 
-- name: set up gluster on stg
-  hosts:
-  - oci-registry01.stg.phx2.fedoraproject.org
-  user: root
-  gather_facts: True
-
-  vars_files:
-   - /srv/web/infra/ansible/vars/global.yml
-   - "/srv/private/ansible/vars.yml"
-   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
-
-  roles:
-  - role: gluster/consolidated
-    gluster_brick_dir: /srv/glusterfs
-    gluster_mount_dir: /srv/docker/
-    gluster_brick_name: registry
-    gluster_server_group: oci-registry-gluster-stg
-    tags: gluster
-
-- name: set up gluster on prod
-  hosts:
-  - oci-registry01.phx2.fedoraproject.org
-  - oci-registry02.phx2.fedoraproject.org
-  user: root
-  gather_facts: True
-
-  vars_files:
-   - /srv/web/infra/ansible/vars/global.yml
-   - "/srv/private/ansible/vars.yml"
-   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
-
-  roles:
-  - role: gluster/consolidated
-    gluster_brick_dir: /srv/glusterfs
-    gluster_mount_dir: /srv/docker/
-    gluster_brick_name: registry
-    gluster_server_group: oci-registry-gluster
-    tags: gluster
-
 - name: setup docker distribution registry
   hosts: oci-registry:oci-registry-stg
   vars_files:
