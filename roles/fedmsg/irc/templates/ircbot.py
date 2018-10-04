@@ -160,6 +160,24 @@ config = dict(
                 body=['^((?!communityblog.fedoraproject.org).)*$'],
             ),
         ),
+        dict(
+            network='chat.freenode.net',
+            port=6667,
+            make_pretty=True,
+            make_terse=True,
+
+            {% if env == 'staging' %}
+            nickname='fm-planet-s',
+            {% else %}
+            nickname='fm-planet',
+            {% endif %}
+            channel='fedora-planet',
+            filters=dict(
+                topic=[
+                    '^((?!(planet)).)*$',
+                ],
+            ),
+        ),
 
         # For that python3 porting fad.  AMAZING!
         dict(
