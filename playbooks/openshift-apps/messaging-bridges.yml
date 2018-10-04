@@ -1,3 +1,59 @@
+# Create the RabbitMQ users
+
+tasks: 
+  hosts: rabbitmq-stg[0]
+  user: root
+  gather_facts: False
+
+  tasks:
+  - name: Create the RabbitMQ user
+    rabbitmq_user:
+      user: messaging-bridges
+      vhost: /pubsub
+      read_priv: .*
+      write_priv: .*
+    tags:
+    - config
+  - name: Create the RabbitMQ exchanges
+    rabbitmq_exchange:
+      name: "{{item}}"
+      exchange_type: topic
+      vhost: /pubsub
+    with_items:
+    - amq.topic
+    - zmq.topic
+    tags:
+    - config
+  - name: Create the RabbitMQ queues
+    rabbitmq_queue:
+      name: "{{item}}"
+      vhost: /pubsub
+    with_items:
+    - amqp_to_zmq
+    - amqp_bridge_verify_missing
+    tags:
+    - config
+  - name: Create the amqp-to-zmq bindings
+    rabbitmq_binding:
+      source: amq.topic
+      destination: amqp_to_zmq
+      vhost: /pubsub
+    tags:
+    - config
+  - name: Create the verify-missing bindings
+    rabbitmq_binding:
+      source: "{{item}}"
+      destination: amqp_bridge_verify_missing
+      vhost: /pubsub
+    with_items:
+    - amq.topic
+    - zmq.topic
+    tags:
+    - config
+
+
+# Now create the app
+
 - name: make the app be real
   hosts: os-masters-stg[0]
   user: root
