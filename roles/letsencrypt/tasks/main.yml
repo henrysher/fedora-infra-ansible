@@ -8,10 +8,20 @@
   tags:
   - letsencrypt
 
+# Find the directory to use
+- name: Get the directory to use
+  delegate_to: certgetter01.phx2.fedoraproject.org
+  # Sometimes we get directories like site-0001, site-0002, etc. We want the latest
+  shell: "file /etc/letsencrypt/live/{{site_name}}* | tail -1 | awk '{print $1} | sed -e 's/://' | tr -d '\n'"
+  register: certbot_dir
+  changed_when: 'false'
+  tags:
+  - letsencrypt
+
 # And once we do that, we need to copy some things.
 - name: Obtain the certificate
   delegate_to: certgetter01.phx2.fedoraproject.org
-  command: cat /etc/letsencrypt/live/{{site_name}}/cert.pem
+  command: cat {{certbot_dir.stdout}}/cert.pem
   register: certbot_certificate
   changed_when: 'false'
   tags:
@@ -19,7 +29,7 @@
 
 - name: Obtain the intermediate certificate
   delegate_to: certgetter01.phx2.fedoraproject.org
-  command: cat /etc/letsencrypt/live/{{site_name}}/chain.pem
+  command: cat {{certbot_dir}}/chain.pem
   register: certbot_chain
   changed_when: 'false'
   tags:
@@ -27,7 +37,7 @@
 
 - name: Obtain the key
   delegate_to: certgetter01.phx2.fedoraproject.org
-  command: cat /etc/letsencrypt/live/{{site_name}}/privkey.pem
+  command: cat {{certbot_dir}}/privkey.pem
   register: certbot_key
   changed_when: 'false'
   tags:
