@@ -189,6 +189,22 @@
   - distgit
   - mass-branching
 
+# -- repoSpanner certs ---....etc...
+- name: Install the certificates for repoSpanner access
+  copy: src="{{private}}/files/repoSpanner/{{env}}/ca/{{item}}"
+        dest="/etc/pagure/{{item}}"
+        owner=git group=git mode=0600
+  with_items:
+  - ca.crt
+  - fedora_rpms_admin.crt
+  - fedora_rpms_admin.key
+  - fedora_rpms_push.crt
+  - fedora_rpms_push.key
+  when: env == "staging"
+  tags:
+  - config
+  - distgit
+
 # -- Gitolite --------------------------------------------
 # This is the permission management for package maintainers, using Gitolite.
 - name: create the /var/log/gitolite directory
