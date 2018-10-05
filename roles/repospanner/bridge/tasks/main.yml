@@ -1,0 +1,62 @@
+---
+# Configuration for repoSpanner bridge
+
+- name: install needed packages
+  package: name={{ item }} state=present
+  with_items:
+  - repoSpanner-bridge
+  tags:
+  - repospanner/bridge
+  - packages
+
+- name: Create group
+  group:
+    name: repoBridge
+    state: present
+  tags:
+  - repospanner/bridge
+  - config
+
+- name: Create user
+  user:
+    name: repoBridge
+    state: present
+    group: repoBridge
+    shell: /sbin/nologin
+  tags:
+  - repospanner/bridge
+  - config
+
+- name: Create directory
+  file:
+    path: /etc/repobridge
+    state: directory
+    owner: repoBridge
+    group: repoBridge
+    mode: 0755
+  tags:
+  - repospanner/bridge
+  - config
+
+- name: Deploy configuration
+  template: src=repoBridge.json
+            dest=/etc/repobridge/{{zone}}.json
+            owner=repoBridge group=repoBridge mode=0644
+  tags:
+  - repospanner/bridge
+  - config
+
+- name: Deploy certificates
+  copy: src="{{private}}/files/repoSpanner/{{env}}/ca/{{item.src}}"
+        dest="/etc/repobridge/{{item.dest}}"
+        owner=repoBridge group=repoBridge mode=0644
+  with_items:
+  - src: ca.crt
+    dest: ca.crt
+  - src: "{{zonecert}}.crt"
+    dest: user.crt
+  - src: "{{zonecert}.key"
+    dest: user.key
+  tags:
+  - repospanner/bridge
+  - config
