@@ -42,29 +42,31 @@
     - amqp_bridge_verify_missing
     tags:
     - config
-  - name: Create the amqp-to-zmq bindings
-    rabbitmq_binding:
-      source: amq.topic
-      destination: amqp_to_zmq
-      destination_type: queue
-      vhost: /pubsub
-      login_user: admin
-      login_password: "{{ rabbitmq_admin_password_staging }}"
-    tags:
-    - config
-  - name: Create the verify-missing bindings
-    rabbitmq_binding:
-      source: "{{item}}"
-      destination: amqp_bridge_verify_missing
-      destination_type: queue
-      vhost: /pubsub
-      login_user: admin
-      login_password: "{{ rabbitmq_admin_password_staging }}"
-    with_items:
-    - amq.topic
-    - zmq.topic
-    tags:
-    - config
+  # Do this manually until an Ansible bugfix is deployed
+  # https://github.com/ansible/ansible/pull/45109
+  #- name: Create the amqp-to-zmq bindings
+  #  rabbitmq_binding:
+  #    source: amq.topic
+  #    destination: amqp_to_zmq
+  #    destination_type: queue
+  #    vhost: /pubsub
+  #    login_user: admin
+  #    login_password: "{{ rabbitmq_admin_password_staging }}"
+  #  tags:
+  #  - config
+  #- name: Create the verify-missing bindings
+  #  rabbitmq_binding:
+  #    source: "{{item}}"
+  #    destination: amqp_bridge_verify_missing
+  #    destination_type: queue
+  #    vhost: /pubsub
+  #    login_user: admin
+  #    login_password: "{{ rabbitmq_admin_password_staging }}"
+  #  with_items:
+  #  - amq.topic
+  #  - zmq.topic
+  #  tags:
+  #  - config
 
 
 # Now create the app
