@@ -19,6 +19,8 @@
       name: "{{item}}"
       exchange_type: topic
       vhost: /pubsub
+      login_user: admin
+      login_password: "{{ rabbitmq_admin_password_staging }}"
     with_items:
     - amq.topic
     - zmq.topic
@@ -28,6 +30,8 @@
     rabbitmq_queue:
       name: "{{item}}"
       vhost: /pubsub
+      login_user: admin
+      login_password: "{{ rabbitmq_admin_password_staging }}"
     with_items:
     - amqp_to_zmq
     - amqp_bridge_verify_missing
@@ -38,6 +42,8 @@
       source: amq.topic
       destination: amqp_to_zmq
       vhost: /pubsub
+      login_user: admin
+      login_password: "{{ rabbitmq_admin_password_staging }}"
     tags:
     - config
   - name: Create the verify-missing bindings
@@ -45,6 +51,8 @@
       source: "{{item}}"
       destination: amqp_bridge_verify_missing
       vhost: /pubsub
+      login_user: admin
+      login_password: "{{ rabbitmq_admin_password_staging }}"
     with_items:
     - amq.topic
     - zmq.topic
