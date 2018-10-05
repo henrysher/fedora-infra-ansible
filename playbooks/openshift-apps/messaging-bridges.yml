@@ -15,8 +15,9 @@
     rabbitmq_user:
       user: "messaging-bridge{{ env_suffix }}.fedoraproject.org"
       vhost: /pubsub
-      read_priv: "(amqp_to_zmq|amqp_bridge_verify_missing)"
+      read_priv: "((a|z)mq\\.topic|amqp_to_zmq|amqp_bridge_verify_missing)"
       write_priv: "(a|z)mq\\.topic"
+      configure_priv: "((a|z)mq\\.topic|amqp_to_zmq|amqp_bridge_verify_missing)"
     tags:
     - config
   - name: Create the RabbitMQ exchanges
@@ -31,15 +32,21 @@
     - zmq.topic
     tags:
     - config
-  - name: Create the RabbitMQ queues
+  - name: Create the RabbitMQ queue amqp_to_zmq
     rabbitmq_queue:
-      name: "{{item}}"
+      name: amqp_to_zmq
       vhost: /pubsub
       login_user: admin
       login_password: "{{ rabbitmq_admin_password_staging }}"
-    with_items:
-    - amqp_to_zmq
-    - amqp_bridge_verify_missing
+    tags:
+    - config
+  - name: Create the RabbitMQ queue for verify-missing
+    rabbitmq_queue:
+      name: amqp_bridge_verify_missing
+      vhost: /pubsub
+      auto_delete: True
+      login_user: admin
+      login_password: "{{ rabbitmq_admin_password_staging }}"
     tags:
     - config
   # Do this manually until an Ansible bugfix is deployed
