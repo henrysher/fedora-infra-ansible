@@ -19,16 +19,4 @@ class OpenidCExtension(OpenidCExtensionBase):
             'display_name': 'Delete a Release record',
             'claims': [],
         },
-        'https://fpdc.fedoraproject.org/oidc/create-release-type': {
-            'display_name': 'Create a ReleaseType record',
-            'claims': [],
-        },
-        'https://fpdc.fedoraproject.org/oidc/edit-release-type': {
-            'display_name': 'Edit a ReleaseType record',
-            'claims': [],
-        },
-        'https://fpdc.fedoraproject.org/oidc/delete-release-type': {
-            'display_name': 'Delete a ReleaseType record',
-            'claims': [],
-        },
     }
