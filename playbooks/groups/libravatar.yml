@@ -1,0 +1,37 @@
+- name: check/create instance
+  hosts: libravatar-stg:libravatar
+  gather_facts: False
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - /srv/private/ansible/vars.yml
+   - /srv/web/infra/ansible/vars/fedora-cloud.yml
+   - /srv/private/ansible/files/openstack/passwords.yml
+
+  tasks:
+  - import_tasks: "{{ tasks_path }}/persistent_cloud.yml"
+
+- name: cloud basic setup
+  hosts: libravatar-stg:libravatar
+  gather_facts: True
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - /srv/private/ansible/vars.yml
+
+  tasks:
+  - import_tasks: "{{ tasks_path }}/cloud_setup_basic.yml"
+  - import_tasks: "{{ tasks_path }}/yumrepos.yml"
+
+- name: provision instance
+  hosts: libravatar-stg:libravatar
+  gather_facts: True
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - /srv/private/ansible/vars.yml
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  roles:
+   - base
+   - libravatar
+   - { role: letsencrypt, site_name: {{ inventory_hostname }} }

@@ -1,0 +1,89 @@
+---
+- import_tasks: "mount_fs.yml"
+
+- name: install prerequisities
+  package: state=present pkg={{ item }}
+  with_items:
+  - "postgresql-server"
+  - "postgresql-contrib"
+  - "python3-psycopg2"
+  - "libselinux-python"
+  - "libsemanage-python"
+  - "python3-virtualenv"
+  - "community-mysql-devel"
+  - "openldap-devel"
+  - "python3-pip"
+  - "gcc"
+  - "git"
+  - "httpd"
+  - "python3-mod_wsgi"
+
+- group: name=www
+- user: name=www group=www
+
+- git:
+    repo: https://git.linux-kernel.at/oliver/ivatar.git
+    dest: /srv/libravatar
+  ignore_errors: yes
+
+- pip:
+    requirements: requirements.txt
+    virtualenv: /srv/data/.virtualenv
+    virtualenv_command: virtualenv-3
+    chdir: /srv/libravatar
+
+- name: copy run-in-venv.sh script
+  copy: src="/srv/data/run-in-venv.sh" dest="/usr/local/bin/run-in-venv.sh" mode=755
+
+- name: 'postgresql host is localhost'
+  lineinfile:
+    dest: '/etc/hosts'
+    line: '127.0.0.1 postgresql'
+    state: 'present'
+  tags:
+  - config
+
+- name: ensure postgresql state
+  service: state=started enabled=yes name={{ item }}
+  with_items:
+  - postgresql
+
+- name: upgrade db to head
+  command: "run-in-venv.sh python3 manage.py migrate"
+  args:
+    chdir: /srv/libravatar
+
+- name: collect static
+  command: "run-in-venv.sh python3 manage.py collectstatic --noinput"
+  args:
+    chdir: /srv/libravatar
+
+# https://bugzilla.redhat.com/show_bug.cgi?id=1535689
+- name: Allow execmem for Apache
+  seboolean:
+    name: httpd_execmem
+    state: yes
+    persistent: yes
+
+- name: copy apache files to conf.d (templates)
+  template: src="httpd/{{ item }}" dest="/etc/httpd/conf.d/{{ item }}"
+  with_items:
+  - "libravatar.conf"
+  notify:
+  - reload httpd
+  tags:
+  - config
+
+- name: copy httpd config
+  copy: src="httpd/{{ item }}" dest="/etc/httpd/conf.d/{{ item }}"
+  with_items:
+  - welcome.conf
+  notify:
+  - reload httpd
+  tags:
+  - config
+
+- name: ensure httpd state
+  service: state=started enabled=yes name={{ item }}
+  with_items:
+  - httpd
