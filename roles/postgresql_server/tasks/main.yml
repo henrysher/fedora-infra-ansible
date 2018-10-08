@@ -84,6 +84,18 @@
   tags:
   - postgresql
 
+- name: Copy over anitya public backup scriplet
+  copy: src=backup-database.anitya dest=/usr/local/bin/backup-database.anitya mode=0755
+  tags:
+  - postgresql
+  when: inventory_hostname.startswith('db01.phx2')
+
+- name: Copy over anitya publib backup cron
+  copy: src=cron-backup-anitya-public dest=/etc/cron.d/cron-backup-anitya-public mode=0755
+  tags:
+  - postgresql
+  when: inventory_hostname.startswith('db01.phx2')
+
 - name: Set up some cronjobs to backup databases as configured
   template: >
     src=cron-backup-database
