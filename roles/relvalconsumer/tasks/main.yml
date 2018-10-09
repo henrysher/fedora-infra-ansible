@@ -16,29 +16,23 @@
 
 # note: kept around for when we need packages from u-t
 #- name: Install required packages (testing)
-#  dnf: name={{ item }} state=present enablerepo="updates-testing"
-#  with_items:
-#  - python2-fedfind
-#  - python2-wikitcms
+#  dnf:
+#    name: ['python2-fedfind', 'python2-wikitcms']
+#    state: present
+#    enablerepo: "updates-testing"
 #  tags:
 #  - packages
 
 - name: Install required packages
-  dnf: name={{ item }} state=present
-  with_items:
-  - python2-fedfind
-  - python2-wikitcms
-  - python2-fedmsg-consumers
-  - python2-mwclient
-  - python-setuptools
-  - relval
+  dnf:
+    name: ['python2-fedfind', 'python2-wikitcms', 'python2-fedmsg-consumers', 'python2-mwclient',
+           'python2-setuptools', 'relval']
+    state: present
   tags:
   - packages
 
 - name: Install required packages (wiki oidc auth)
-  dnf: name={{ item }} state=present enablerepo="updates"
-  with_items:
-  - python2-openidc-client
+  dnf: name=python2-openidc-client state=present enablerepo="updates"
   when: "wikitcms_token is defined"
   tags:
   - packages
