@@ -85,9 +85,9 @@ CMD="aws s3 sync                   \
   #--dryrun                         \
 
 # Sync EPEL
-echo $CMD /pub/epel/ s3://s3-mirror-us-west-1-02.fedoraproject.org/pub/epel/
-$CMD /pub/epel/ s3://s3-mirror-us-west-1-02.fedoraproject.org/pub/epel/
+echo $CMD /srv/pub/epel/ s3://s3-mirror-us-west-1-02.fedoraproject.org/pub/epel/
+$CMD /srv/pub/epel/ s3://s3-mirror-us-west-1-02.fedoraproject.org/pub/epel/
 
 # Sync Fedora
-echo $CMD /pub/fedora/ s3://s3-mirror-us-west-1-02.fedoraproject.org/pub/fedora/
-$CMD /pub/fedora/ s3://s3-mirror-us-west-1-02.fedoraproject.org/pub/fedora/
+echo $CMD /srv/pub/fedora/ s3://s3-mirror-us-west-1-02.fedoraproject.org/pub/fedora/
+$CMD /srv/pub/fedora/ s3://s3-mirror-us-west-1-02.fedoraproject.org/pub/fedora/
