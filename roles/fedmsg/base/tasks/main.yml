@@ -34,20 +34,19 @@
   tags: fedmsg/base
 
 - name: install needed packages
-  dnf: pkg={{ item }} state=present
-  with_items:
-  - libsemanage-python
-  - python-psutil
-  - policycoreutils-python  # This is in the kickstart now.  Here for old hosts.
+  dnf:
+    # policycoreutils-python is in the kickstart now.  Here for old hosts.
+    name: ['libsemanage-python', 'python-psutil', 'policycoreutils-python']
+    state: present
   tags:
   - packages
   - fedmsg/base
   when: ansible_distribution_major_version|int > 21
 
 - name: install needed packages
-  dnf: pkg={{ item }} state=present
-  with_items:
-  - policycoreutils-python-utils
+  dnf:
+    name: ['policycoreutils-python-utils']
+    state: present
   tags:
   - packages
   - fedmsg/base
