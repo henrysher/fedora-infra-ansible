@@ -1,26 +1,12 @@
 - name: Create s3-mirror group
   group: gid=442 name=s3-mirror
+  tags:
+  - s3-mirror
 
 - name: Create s3-mirror user
   user: group=s3-mirror name=s3-mirror comment="s3-mirror user" home=/home/s3-mirror shell=/bin/bash
-
-- name: s3cfg file
-  template: src=s3cfg dest=/home/s3-mirror/.s3cfg owner=s3-mirror group=s3-mirror mode=0600
-
-- name: Install packages
-  package: name={{ item }} state=present
-  with_items:
-  - s3cmd
-  - mirrormanager2-client
-
-- name: Create report_mirror config files
-  template: src=report_mirror.conf dest=/etc/mirrormanager-client/report_mirror_{{ item }}.conf owner=s3-mirror group=s3-mirror mode=0400
-  with_items:
-  - s3-mirror-us-east-1
-  - s3-mirror-us-west-1
-  - s3-mirror-us-west-2
-  - s3-mirror-eu-west-1
-  - s3-mirror-ap-northeast-1
+  tags:
+  - s3-mirror
 
 - name: Create needed directories
   file: path={{item}} owner=s3-mirror group=s3-mirror state=directory mode=0755
@@ -28,29 +14,44 @@
   - /var/log/s3-mirror
   - /var/lib/s3-mirror
   - /var/run/s3-mirror
-  - /var/log/s3-mirror-logs
-  - /var/log/s3-mirror-logs/bucket
+  - /home/s3-mirror/.aws
+  #- /var/log/s3-mirror-logs
+  #- /var/log/s3-mirror-logs/bucket
+  tags:
+  - s3-mirror
 
-- name: s3sync and symmetric_diff scripts
+- name: aws credentials file
+  template: src=credentials dest=/home/s3-mirror/.aws/credentials owner=s3-mirror group=s3-mirror mode=0600
+  tags:
+  - s3-mirror
+
+- name: aws config file
+  copy: src=config dest=/home/s3-mirror/.aws/config owner=s3-mirror group=s3-mirror mode=0600
+  tags:
+  - s3-mirror
+
+- name: Install packages
+  package: name={{ item }} state=present
+  with_items:
+  - awscli
+  #  - mirrormanager2-client
+  tags:
+  - s3-mirror
+
+- name: s3 script
   copy: src={{item}} dest=/usr/local/bin/{{item}} owner=s3-mirror group=s3-mirror mode=0755
   with_items:
-  - s3sync
-  - symmetric_diff
-
-- name: s3-mirror-excludes.txt
-  copy: src=s3-excludes.txt dest=/usr/local/etc/s3-mirror-excludes.txt owner=s3-mirror group=s3-mirror mode=0644
-
-- name: s3-mirror logrotate
-  copy: src=s3-mirror.logrotate dest=/etc/logrotate.d/s3-mirror owner=root group=root mode=0644
-
-- name: s3sync-logs
-  copy: src=s3sync-logs dest=/usr/local/bin/s3sync-logs owner=s3-mirror group=s3-mirror mode=0755
+  - s3.sh
+  tags:
+  - s3-mirror
 
 - name: s3sync cron
-  cron: name="s3sync" minute="3,18,33,48" user="s3-mirror"
-        job='/usr/local/bin/lock-wrapper s3sync /usr/local/bin/s3sync 2>&1 | /usr/local/bin/nag-once s3sync 1d 2>&1'
-        cron_file=s3sync
+  cron: name="s3sync" minute="0" hour="0,11" user="s3-mirror"
+        job='/usr/local/bin/lock-wrapper s3sync /usr/local/bin/s3.sh 2>&1 | /usr/local/bin/nag-once s3.sh 1d 2>&1'
+        cron_file=s3.sh
   when: env != 'staging'
+  tags:
+  - s3-mirror
 
 #- name: s3sync-logs cron
 #  cron: name="s3sync-logs" hour="0" user="root"
