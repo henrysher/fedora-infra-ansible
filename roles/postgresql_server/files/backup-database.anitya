@@ -10,7 +10,7 @@ DB=anitya
 # Make it use a limited number of threads because pxz will use all the
 # cpus which causes pg_dump to starve which causes...
 
-/usr/bin/pg_dump -T users -T tokens -T 'social*' -T sessions -C $DB | /usr/bin/pxz -T4 > /backups/$DB-public-$(date +%F).dump.xz
+/usr/bin/pg_dump --exclude-table-data users --exclude-table-data tokens --exclude-table-data 'social*' --exclude-table-data sessions -C $DB | /usr/bin/pxz -T4 > /backups/$DB-public-$(date +%F).dump.xz
 
 # Also, delete the backup from a few days ago.
 rm -f /backups/$DB-public-$(date --date="1 days ago" +%F).dump.xz
