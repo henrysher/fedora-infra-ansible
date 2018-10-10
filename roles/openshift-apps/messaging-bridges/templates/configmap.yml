@@ -236,10 +236,16 @@ data:
         # A mapping of fully qualified topics to a list of cert names for which
         # a valid signature is to be considered authorized.  Messages on topics not
         # listed here are considered automatically authorized.
+        # ** policy dynamically generated from inventory vars
+        # See ansible/filter_plugins/fedmsg.py for this inversion filter.
         "routing_policy": {
-            "org.fedoraproject.prod.announce.announcement": [
-                "announce-lockbox.phx2.fedoraproject.org",
+            {% for topic, certs in groups | invert_fedmsg_policy(hostvars, env) %}
+            "{{topic}}": [
+            {% for cert in certs %}
+                "{{ cert }}",
+            {% endfor %}
             ],
+            {% endfor %}
         },
         # Set this to True if you want messages to be dropped that aren't
         # explicitly whitelisted in the routing_policy.
