@@ -43,10 +43,17 @@
   tags:
   - config
 
-- name: ensure postgresql state
-  service: state=started enabled=yes name={{ item }}
+- name: copy pg_hba.conf
+  copy: src="pg/{{ item }}" dest="/var/lib/pgsql/data/{{ item }}"
   with_items:
-  - postgresql
+  - pg_hba.conf
+  notify:
+  - restart postgresql
+  tags:
+  - config
+
+- name: ensure postgresql state
+  service: state=started enabled=yes name=postgresql
 
 - name: upgrade db to head
   command: "run-in-venv.sh python3 manage.py migrate"
