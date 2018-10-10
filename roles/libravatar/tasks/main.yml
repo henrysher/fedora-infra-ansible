@@ -21,6 +21,18 @@
 - group: name=www
 - user: name=www group=www
 
+- name: Allow apache to modify files in /srv/.well-known
+  sefcontext:
+    target: '/srv/.well-known(/.*)?'
+    setype: httpd_git_rw_content_t
+    state: present
+
+- name: Allow apache to read files in /srv/libravatar
+  sefcontext:
+    target: '/srv/libravatar(/.*)?'
+    setype: httpd_git_sys_content_t
+    state: present
+
 - git:
     repo: https://git.linux-kernel.at/oliver/ivatar.git
     dest: /srv/libravatar
