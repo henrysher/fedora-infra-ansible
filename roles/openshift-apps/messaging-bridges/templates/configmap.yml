@@ -151,6 +151,22 @@ data:
     ]
     
     [verify_missing]
+    # The queue to setup
+    [verify_missing.queue]
+    queue = "amqp_bridge_verify_missing"
+    durable = true
+    auto_delete = false
+    exclusive = false
+    arguments = {"x-message-ttl": 60000}
+    # The exchanges to declare
+    [[verify_missing.exchanges]]
+    exchange = "amq.topic"
+    exchange_type = "topic"
+    durable = true
+    [[verify_missing.exchanges]]
+    exchange = "zmq.topic"
+    exchange_type = "topic"
+    durable = true
     # The bindings to use for the AMQP queue
     [[verify_missing.bindings]]
     exchange = "zmq.topic"
@@ -160,12 +176,6 @@ data:
     exchange = "amq.topic"
     queue = "amqp_bridge_verify_missing"
     routing_keys = ["#"]
-
-    [queues.verify_missing]
-    durable = true
-    auto_delete = false
-    exclusive = false
-    arguments = {}
     
     [log_config]
     version = 1
