@@ -239,6 +239,16 @@
   - pagure
   when: env == "staging"
 
+- name: set sebooleans so pagure can talk to repospanner
+  seboolean: name=httpd_can_network_connect
+                    state=true
+                    persistent=true
+  tags:
+  - selinux
+  - web
+  - pagure
+  when: env == "staging"
+
 # HOTFIX: adjust bugzilla overrides
 - name: HOTFIX - adjust bugzilla overrides
   copy: src=fas2.py dest=/usr/lib/python2.7/site-packages/fedora/client/fas2.py
