@@ -21,6 +21,7 @@
   - python2-neutronclient
   - python2-keystoneclient
   - php-cli
+  - cronolog
 
 # disable this in favor of excluding it in /etc/dnf/dnf.conf. 
 # https://github.com/ansible/ansible/issues/33187
@@ -78,6 +79,11 @@
   copy: src="boto" dest=/home/copr/.boto owner=copr group=copr
 
 # setup webserver
+- name: add access_log.conf for lighttpd
+  copy: src="access_log.conf" dest=/etc/lighttpd/conf.d/access_log.conf owner=root group=root mode=0644
+  notify:
+  - restart lighttpd
+
 - name: add config for copr-repo path
   copy: src="{{ _lighttpd_conf_src }}" dest=/etc/lighttpd/lighttpd.conf owner=root group=root mode=0644
   notify:
