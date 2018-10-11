@@ -22,11 +22,17 @@
 - group: name=www
 - user: name=www group=www
 
-- name: Allow apache to read files in /srv
+- name: set fcontext for /srv/libravatar
   sefcontext:
-    target: '/srv(/.*)?'
+    target: '/srv/libravatar(/.*)?'
     setype: httpd_sys_content_t
     state: present
+
+- name: create /srv/libravatar
+  file:
+    path: /srv/libravatar
+    setype: httpd_sys_content_t
+    state: directory
 
 - git:
     repo: https://git.linux-kernel.at/oliver/ivatar.git
