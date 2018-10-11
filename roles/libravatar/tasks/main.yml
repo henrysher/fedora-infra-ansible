@@ -78,8 +78,13 @@
   args:
     chdir: /srv/libravatar
 
-# so Apache can execute psyco shared lib in virtualenv with httpd_sys_content_t type
-- name: Set unified flag for Apache
+- name: So that Apache can talk to PostgreSQL
+  seboolean:
+    name: httpd_can_network_connect_db
+    state: yes
+    persistent: yes
+
+- name: So Apache can execute psyco shared lib in virtualenv with httpd_sys_content_t type
   seboolean:
     name: httpd_unified
     state: yes
