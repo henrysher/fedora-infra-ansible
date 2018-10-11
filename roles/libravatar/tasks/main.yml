@@ -45,8 +45,8 @@
     virtualenv_command: virtualenv-3
     chdir: /srv/libravatar
 
-- name: copy run-in-venv.sh script
-  shell: cp /mnt/data/run-in-venv.sh /usr/local/bin
+- name: copy run-in-venv script
+  shell: cp /mnt/data/run-in-venv /usr/local/bin
 
 - name: 'postgresql host is localhost'
   lineinfile:
@@ -69,16 +69,16 @@
   service: state=started enabled=yes name=postgresql
 
 - name: upgrade db to head
-  command: "run-in-venv.sh python3 manage.py migrate"
+  command: "run-in-venv python3 manage.py migrate"
   args:
     chdir: /srv/libravatar
 
 - name: collect static
-  command: "run-in-venv.sh python3 manage.py collectstatic --noinput"
+  command: "run-in-venv python3 manage.py collectstatic --noinput"
   args:
     chdir: /srv/libravatar
 
-# otherwise Apache cannot execute psyco shared lib in virtualenv with httpd_sys_content_t type
+# so Apache can execute psyco shared lib in virtualenv with httpd_sys_content_t type
 - name: Set unified flag for Apache
   seboolean:
     name: httpd_unified
