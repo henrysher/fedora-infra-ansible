@@ -200,7 +200,7 @@ ostree = {
 }
 [% endif %]
 
-[% if release.id_prefix == 'FEDORA' and release.version_int >= 28 %]
+[% if release.id_prefix == 'FEDORA' and release.version_int >= 29 %]
 global_ksurl = 'git+https://pagure.io/fedora-kickstarts.git?#origin/f[[ release.version_int ]]'
 global_release = '!RELEASE_FROM_LABEL_DATE_TYPE_RESPIN'
 image_name_format = '%(release_short)s-%(variant)s-%(disc_type)s-%(arch)s-%(version)s-%(date)s%(type_suffix)s.%(respin)s.iso'
@@ -225,7 +225,14 @@ image_build = {
                     'version': '!VERSION_FROM_VERSION'
                 [% endif %]
                 'release': '!RELEASE_FROM_DATE_RESPIN'
-                'kickstart': 'fedora-atomic.ks',
+                [% if request.name == 'stable' %]
+                    # Use updates ref to build updates images and testing ref to build
+                    # updates-testing images.
+                    # https://pagure.io/fedora-kickstarts/c/899bc45aa1d432ca67372ed112de16c0ea89251c?branch=f29
+                    'kickstart': 'fedora-atomic-updates.ks',
+                [% else %]
+                    'kickstart': 'fedora-atomic-testing.ks',
+                [% endif %]
                 'distro': 'Fedora-22',
                 'disk_size': 6,
                 'target': 'f[[ release.version_int ]]',
@@ -251,7 +258,14 @@ image_build = {
                     'version': '!VERSION_FROM_VERSION'
                 [% endif %]
                 'release': '!RELEASE_FROM_DATE_RESPIN'
-                'kickstart': 'fedora-atomic-vagrant.ks',
+                [% if request.name == 'stable' %]
+                    # Use updates ref to build updates images and testing ref to build
+                    # updates-testing images.
+                    # https://pagure.io/fedora-kickstarts/c/899bc45aa1d432ca67372ed112de16c0ea89251c?branch=f29
+                    'kickstart': 'fedora-atomic-vagrant-updates.ks',
+                [% else %]
+                    'kickstart': 'fedora-atomic-vagrant-testing.ks',
+                [% endif %]
                 'distro': 'Fedora-22',
                 'disk_size': 40,
                 'target': 'f[[ release.version_int ]]',
