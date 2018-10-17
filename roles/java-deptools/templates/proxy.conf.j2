@@ -1,4 +1,8 @@
+MDomain {{ inventory_hostname }}
 ServerName {{ inventory_hostname }}
+ServerAdmin mizdebsk@fedoraproject.org
+MDCertificateAgreement https://letsencrypt.org/documents/LE-SA-v1.2-November-15-2017.pdf
+MDRequireHttps temporary
 
 <Proxy *>
     AddDefaultCharset off
@@ -8,9 +12,6 @@ ServerName {{ inventory_hostname }}
 
 <VirtualHost *:443>
     SSLEngine on
-    SSLCertificateFile /etc/letsencrypt/live/{{ inventory_hostname }}/cert.pem
-    SSLCertificateKeyFile /etc/letsencrypt/live/{{ inventory_hostname }}/privkey.pem
-    SSLCertificateChainFile /etc/letsencrypt/live/{{ inventory_hostname }}/fullchain.pem
     SSLHonorCipherOrder On
     SSLCipherSuite {{ ssl_ciphers }}
     SSLProtocol {{ ssl_protocols }}
@@ -18,7 +19,3 @@ ServerName {{ inventory_hostname }}
     ProxyPass         /   http://localhost:9000/
     ProxyPassReverse  /   http://localhost:9000/
 </VirtualHost>
-
-RewriteEngine On
-RewriteCond %{HTTPS} off
-RewriteRule (.*) https://%{SERVER_NAME}/$1 [R,L]
