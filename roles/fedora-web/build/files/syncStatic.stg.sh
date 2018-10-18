@@ -51,7 +51,6 @@ cd /srv/web/fedora-websites
 build labs.fedoraproject.org
 build spins.fedoraproject.org
 build arm.fedoraproject.org
-build iot.fedoraproject.org
 build getfedora.org
 build alt.fedoraproject.org
 
@@ -72,3 +71,4 @@ build fedoracommunity.org
 build fudcon.fedoraproject.org
 build start.fedoraproject.org
 build fedoraproject.org
+build iot.fedoraproject.org
