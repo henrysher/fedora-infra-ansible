@@ -289,7 +289,7 @@
         dest: "/etc/dnsmasq.d/fedora-dns.conf"
 
 - name: Create worker namespace
-  hosts: osbs-masters-stg[0]:osbs-masters[0]
+  hosts: osbs-masters-stg[0]:osbs-masters[0]:osbs-aarch64-masters-stg[0]
   tags:
     - osbs-worker-namespace
   user: root
@@ -312,7 +312,7 @@
       osbs_sources_command: "{{ osbs_conf_sources_command }}"
       osbs_vendor: "{{ osbs_conf_vendor }}"
 
-
+#TODO Remove post F29 freeze
 - name: setup koji secret in worker namespace
   hosts: osbs-masters[0]
   vars_files:
@@ -330,7 +330,7 @@
       dest: cert
 
 - name: setup ODCS secret in worker namespace
-  hosts: osbs-masters-stg[0]:osbs-masters[0]
+  hosts: osbs-masters-stg[0]:osbs-masters[0]:osbs-aarch64-masters-stg[0]
   vars_files:
     - /srv/web/infra/ansible/vars/global.yml
     - "/srv/private/ansible/vars.yml"
@@ -460,6 +460,21 @@
   tags:
     - osbs-orchestrator-namespace
 
+- name: setup orchestrator token for aarch64-osbs
+  hosts: osbs-masters-stg[0]
+  vars_files:
+    - /srv/web/infra/ansible/vars/global.yml
+    - "/srv/private/ansible/vars.yml"
+    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+  roles:
+  - role: osbs-secret
+    osbs_secret_name: aarch64-orchestrator
+    osbs_secret_files:
+    - source: "{{ private }}/files/osbs/{{ env }}/aarch64-osbs-orchestrator"
+      dest: token
+  tags:
+    - osbs-orchestrator-namespace
+
 - name: Add dockercfg secret to allow registry push orchestrator
   hosts: osbs-masters-stg[0]:osbs-masters[0]
   tags:
@@ -500,7 +515,7 @@
         path="/tmp/.dockercfg"
 
 - name: Add dockercfg secret to allow registry push worker
-  hosts: osbs-masters-stg[0]:osbs-masters[0]
+  hosts: osbs-masters-stg[0]:osbs-masters[0]:osbs-aarch64-masters-stg[0]
   tags:
     - osbs-dockercfg-secret
   user: root
@@ -540,7 +555,7 @@
         path="/tmp/.dockercfg"
 
 - name: post-install master host osbs tasks
-  hosts: osbs-masters-stg:osbs-masters
+  hosts: osbs-masters-stg:osbs-masters:osbs-aarch64-masters-stg[0]
   tags:
     - osbs-post-install
   vars_files:
@@ -580,7 +595,7 @@
 
 
 - name: post-install osbs tasks
-  hosts: osbs-nodes-stg:osbs-nodes
+  hosts: osbs-nodes-stg:osbs-nodes:osbs-aarch64-nodes-stg
   tags:
     - osbs-post-install
   vars_files:
