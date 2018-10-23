@@ -16,6 +16,10 @@
 
   - python3-gunicorn
   - python3-psycopg2
+  # So we don't have to rebuild them in the virtualenv
+  - python3-cairo
+  - python3-cryptography
+  - python3-pyOpenSSL
   - gettext
 
   - git
@@ -29,6 +33,8 @@
   - libxslt-devel
   - libjpeg-turbo-devel
   - postgresql-devel
+  # To build the frontend
+  - npm
 # need this for letsencrypt cert
   - certbot
   tags: taiga
@@ -92,52 +98,59 @@
   tags: taiga
 ### DONE with db stuff
 
-### NEXT, Install our plugin for the backend first
-- command: sudo -u taiga git clone https://github.com/fedora-infra/taiga-contrib-fas-openid-auth.git
-           chdir=/home/taiga/
-           creates=/home/taiga/taiga-contrib-fas-openid-auth
+
+- block:
+  become: yes
+  become_user: taiga
   tags: taiga
 
-- command: python3 setup.py develop
-           chdir=/home/taiga/taiga-contrib-fas-openid-auth/back
-  tags: taiga
-### DONE with our plugin
+  # Create the python virtualenv
+  - name: setup the virtualenv
+    pip:
+      name: pip
+      state: latest
+      chdir: /home/taiga
+      virtualenv: /home/taiga/venv
+      vitualenv_command: pyvenv
+      virtualenv_site_packages: yes
+  
+  - name: install Gunicorn
+    pip:
+      name: gunicorn
+      virtualenv: /home/taiga/venv
 
-### THEN, setup taiga-back from git
-- name: copy systemd service file in for taiga
-  copy: src=taiga-back.service dest=/usr/lib/systemd/system/taiga-back.service
-  notify: reload systemd service files
-  tags: taiga
+  # Install our plugin for the backend first
+  - name: install the OIDC auth plugin
+    git:
+      dest: /home/taiga/taiga-contrib-oidc-auth
+      repo: https://github.com/fedora-infra/taiga-contrib-oidc-auth.git
+    tags: taiga
+  
+  - pip:
+      name: .
+      editable: yes
+      chdir: /home/taiga/taiga-contrib-oidc-auth/back
+      virtualenv: /home/taiga/venv
+    tags: taiga
 
-- command: sudo -u taiga git clone https://github.com/taigaio/taiga-back.git
-           chdir=/home/taiga/
-           creates=/home/taiga/taiga-back
-  tags: taiga
-
-- command: sudo -u taiga git checkout {{taiga_back_version}}
-           chdir=/home/taiga/taiga-back
-  tags: taiga
-
-# change default admin password
-- name: change admin password
-  command : sudo -u taiga sed -i -e 's/\"pbkdf2_sha256.*\"/\"{{taiga_admin_pw}}\"/' /home/taiga/taiga-back/taiga/users/fixtures/initial_user.json
-  tags: taiga
-
-# settle for os unicorn
-- name: remove gunicorn
-  command: sudo -u taiga sed -i -e '/^gunicorn.*$/d' requirements.txt
-           chdir=/home/taiga/taiga-back
-  tags: taiga
-
-- command: pip3 install -r requirements.txt
-           chdir=/home/taiga/taiga-back
-           creates=/usr/lib/python3.4/site-packages/django/
-  tags: taiga
-
-# make sure this is the working version of html5lib
-- command: pip3 install html5lib==0.9999999
-  tags: taiga
-
+  # setup taiga-back from git
+  - git:
+      repo: https://github.com/taigaio/taiga-back.git
+      dest: /home/taiga/taiga-back
+      version: "{{taiga_back_version}}"
+  
+  - name: remove some versionned dependencies
+    lineinfile:
+      path: /home/taiga/taiga-back/requirements.txt
+      regexp: '^(CairoSVG|cryptography)==.*$'
+      line: '\1'
+      backrefs: yes
+  
+  - name: install taiga-back dependencies
+    pip:
+      requirements: /home/taiga/taiga-back/requirements.txt
+      virtualenv: /home/taiga/venv
+    tags: taiga
 
 - name: copy in our taiga backend config
   template: src=local.py dest=/home/taiga/taiga-back/settings/local.py
@@ -145,44 +158,54 @@
   notify: restart taiga-back
   tags: taiga
 
+- name: copy in our taiga backend URLs config
+  copy: src=urls.py dest=/home/taiga/taiga-back/settings/urls.py
+            mode=0640 owner=taiga group=taiga
+  notify: restart taiga-back
+  tags: taiga
+
 - file: dest=/home/taiga/taiga-back/locale state=directory
+        owner=taiga group=taiga
   tags: taiga
 
-## TODO -- make these idempotent with creates=...
-- command: sudo -u taiga python3 manage.py migrate --noinput
-           chdir=/home/taiga/taiga-back
-  tags: taiga
-- command: sudo -u taiga python3 manage.py loaddata initial_user
-           chdir=/home/taiga/taiga-back
-  tags: taiga
-- command: sudo -u taiga python3 manage.py loaddata initial_project_templates
-           chdir=/home/taiga/taiga-back
-  tags: taiga
-- command: sudo -u taiga python3 manage.py loaddata initial_role
-           chdir=/home/taiga/taiga-back
-  tags: taiga
-- command: sudo -u taiga python3 manage.py compilemessages
-           chdir=/home/taiga/taiga-back
-  tags: taiga
-- command: sudo -u taiga python3 manage.py collectstatic --noinput
-           chdir=/home/taiga/taiga-back
+  # change default admin password
+- name: copy in our initial_user fixture
+  template: src=initial_user.json dest=/home/taiga/initial_user.json
+            mode=0640 owner=taiga group=taiga
   tags: taiga
 
-- name: set taiga-back to start
-  service: name=taiga-back state=started enabled=yes
+- block:
+  become: yes
+  become_user: taiga
   tags: taiga
 
-### DONE with taiga-back
+  - django_manage:
+      app_path: /home/taiga/taiga-back
+      virtualenv: /home/taiga/venv
+      command: migrate
 
-### Getting close to the end.. setup taiga-front-dist from git
-- command: sudo -u taiga git clone https://github.com/taigaio/taiga-front-dist.git
-           chdir=/home/taiga/
-           creates=/home/taiga/taiga-front-dist
-  tags: taiga
+  - django_manage:
+      app_path: /home/taiga/taiga-back
+      virtualenv: /home/taiga/venv
+      command: loaddata
+      fixtures: /home/taiga/initial_user.json initial_project_templates initial_role
 
-- command: sudo -u taiga git checkout {{taiga_front_version}}
-           chdir=/home/taiga/taiga-front-dist
-  tags: taiga
+  - django_manage:
+      app_path: /home/taiga/taiga-back
+      virtualenv: /home/taiga/venv
+      command: compilemessages
+
+  - django_manage:
+      app_path: /home/taiga/taiga-back
+      virtualenv: /home/taiga/venv
+      command: collectstatic
+  ### DONE with taiga-back
+
+  ### Setup taiga-front-dist from git
+  - git:
+      repo: https://github.com/taigaio/taiga-front-dist.git
+      dest: /home/taiga/taiga-front-dist
+      version: "{{taiga_front_version}}"
 
 - template:
     src=conf.json
@@ -194,15 +217,48 @@
 - file: dest=/home/taiga/taiga-front-dist/dist/plugins state=directory owner=taiga group=taiga
   tags: taiga
 
+# Build the frontend
+# npm config set strict-ssl false
+# npm install
+# npm install gulp
+# ./node_modules/.bin/gulp build
+
+- block:
+  become: yes
+  become_user: taiga
+  tags: taiga
+
+  # Build our plugin
+  - npm:
+      path: /home/taiga/taiga-contrib-oidc-auth/front
+  - npm:
+      path: /home/taiga/taiga-contrib-oidc-auth/front
+      name: gulp
+  - command: ./node_modules/.bin/gulp build
+      args:
+        chdir: /home/taiga/taiga-contrib-oidc-auth/front
+        creates: /home/taiga/taiga-contrib-oidc-auth/front/dist/oidc_auth.js
+
 # Link our plugin pieces in place
-- file: src=/home/taiga/taiga-contrib-fas-openid-auth/front/dist
-        dest=/home/taiga/taiga-front-dist/dist/plugins/fas-openid-auth
+- file: src=/home/taiga/taiga-contrib-oidc-auth/front/dist
+        dest=/home/taiga/taiga-front-dist/dist/plugins/oidc-auth
         state=link
         owner=taiga
         group=taiga
   tags: taiga
 
 ### DONE with taiga-front
+
+
+## taiga-back service
+- name: copy systemd service file in for taiga
+  copy: src=taiga-back.service dest=/usr/lib/systemd/system/taiga-back.service
+  notify: reload systemd service files
+  tags: taiga
+
+- name: set taiga-back to start
+  service: name=taiga-back state=started enabled=yes
+  tags: taiga
 
 ### letsencrypt
 

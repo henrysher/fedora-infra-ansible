@@ -15,10 +15,32 @@ PUBLIC_REGISTER_ENABLED = True
 DEFAULT_FROM_EMAIL = "nobody@fedoraproject.org"
 SERVER_EMAIL = DEFAULT_FROM_EMAIL
 
-INSTALLED_APPS += ["taiga_contrib_fas_openid_auth"]
-# We monkey patch the rest_framework exception handler to allow us to do
-# the 303 redirects that we need to do for openid to finish.
-REST_FRAMEWORK['EXCEPTION_HANDLER'] = "taiga_contrib_fas_openid_auth.services.exception_handler"
+INSTALLED_APPS += [
+    "mozilla_django_oidc",
+    "taiga_contrib_oidc_auth",
+]
+
+AUTHENTICATION_BACKENDS = list(AUTHENTICATION_BACKENDS) + [
+    "taiga_contrib_oidc_auth.oidc.TaigaOIDCAuthenticationBackend",
+]
+
+# OIDC Settings
+OIDC_CALLBACK_CLASS = "taiga_contrib_oidc_auth.views.TaigaOIDCAuthenticationCallbackView"
+OIDC_RP_SCOPES = "openid profile email"
+OIDC_RP_SIGN_ALGO = "RS256"
+# Set the OIDC provider here.
+OIDC_BASE_URL = "https://id{{ env_suffix }}.fedoraproject.org/openidc"
+# Those URL values work for Ipsilon.
+OIDC_OP_JWKS_ENDPOINT = OIDC_BASE_URL + "/Jwks"
+OIDC_OP_AUTHORIZATION_ENDPOINT = OIDC_BASE_URL + "/Authorization"
+OIDC_OP_TOKEN_ENDPOINT = OIDC_BASE_URL + "/Token"
+OIDC_OP_USER_ENDPOINT = OIDC_BASE_URL + "/UserInfo"
+# These two are private! Don't commit them to VCS.
+OIDC_RP_CLIENT_ID = "{{ taiga_stg_oidc_client_id }}"
+OIDC_RP_CLIENT_SECRET = "{{ taiga_stg_oidc_client_secret }}"
+
+# Add the OIDC urls
+ROOT_URLCONF = "settings.urls"
 
 ## Uncomment all this stuff to get the async celery stuff working.
 ## It is not necessary.. it just makes everything snappier.
