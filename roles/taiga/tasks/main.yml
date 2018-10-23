@@ -99,10 +99,10 @@
 ### DONE with db stuff
 
 
-- block:
-  become: yes
+- become: yes
   become_user: taiga
   tags: taiga
+  block:
 
   # Create the python virtualenv
   - name: setup the virtualenv
@@ -113,7 +113,7 @@
       virtualenv: /home/taiga/venv
       vitualenv_command: pyvenv
       virtualenv_site_packages: yes
-  
+
   - name: install Gunicorn
     pip:
       name: gunicorn
@@ -125,7 +125,7 @@
       dest: /home/taiga/taiga-contrib-oidc-auth
       repo: https://github.com/fedora-infra/taiga-contrib-oidc-auth.git
     tags: taiga
-  
+
   - pip:
       name: .
       editable: yes
@@ -138,14 +138,14 @@
       repo: https://github.com/taigaio/taiga-back.git
       dest: /home/taiga/taiga-back
       version: "{{taiga_back_version}}"
-  
+
   - name: remove some versionned dependencies
     lineinfile:
       path: /home/taiga/taiga-back/requirements.txt
       regexp: '^(CairoSVG|cryptography)==.*$'
       line: '\1'
       backrefs: yes
-  
+
   - name: install taiga-back dependencies
     pip:
       requirements: /home/taiga/taiga-back/requirements.txt
@@ -174,10 +174,10 @@
             mode=0640 owner=taiga group=taiga
   tags: taiga
 
-- block:
-  become: yes
+- become: yes
   become_user: taiga
   tags: taiga
+  block:
 
   - django_manage:
       app_path: /home/taiga/taiga-back
@@ -223,10 +223,10 @@
 # npm install gulp
 # ./node_modules/.bin/gulp build
 
-- block:
-  become: yes
+- become: yes
   become_user: taiga
   tags: taiga
+  block:
 
   # Build our plugin
   - npm:
@@ -235,9 +235,9 @@
       path: /home/taiga/taiga-contrib-oidc-auth/front
       name: gulp
   - command: ./node_modules/.bin/gulp build
-      args:
-        chdir: /home/taiga/taiga-contrib-oidc-auth/front
-        creates: /home/taiga/taiga-contrib-oidc-auth/front/dist/oidc_auth.js
+    args:
+      chdir: /home/taiga/taiga-contrib-oidc-auth/front
+      creates: /home/taiga/taiga-contrib-oidc-auth/front/dist/oidc_auth.js
 
 # Link our plugin pieces in place
 - file: src=/home/taiga/taiga-contrib-oidc-auth/front/dist
