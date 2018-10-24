@@ -261,23 +261,6 @@
   service: name=taiga-back state=started enabled=yes
   tags: taiga
 
-### letsencrypt
-
-### script to renew certificate
-- name: copy cert renew script
-  copy: src=renew-cert.sh dest=/usr/local/bin/renew-cert.sh mode=0755
-  tags:
-  - taiga
-  - cron
-  - letsencrypt
-
-### cron to renew cert
-- name: install cron for cert renewal
-  copy: src=cron-renew-cert dest=/etc/cron.d/cron-renew-cert
-  notify: restart crond
-  tags:
-  - taiga
-  - cron
 
 ### FINALLY, nginx to serve/proxy it all
 - template: src=default.nginx dest=/etc/nginx/default.d/taiga.conf
