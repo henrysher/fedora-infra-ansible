@@ -37,6 +37,7 @@
   - npm
 # need this for letsencrypt cert
   - certbot
+  - python3-certbot-nginx
   tags: taiga
 
 - user: name=taiga comment="Taiga System Account"
@@ -260,6 +261,29 @@
 - name: set taiga-back to start
   service: name=taiga-back state=started enabled=yes
   tags: taiga
+
+
+# Letsencrypt
+
+- name: get the letsencrypt cert
+  command: certbot certonly -n --standalone --pre-hook "systemctl stop nginx" --post-hook "systemctl start nginx" -d {{ inventory_hostname }} --agree-tos --email admin@fedoraproject.org
+  args:
+    creates: "/etc/letsencrypt/live/{{ inventory_hostname }}/fullchain.pem"
+  notify: restart nginx
+
+- name: copy cert renew script
+  copy: src=renew-cert.sh dest=/usr/local/bin/renew-cert.sh mode=0755
+  tags:
+  - taiga
+  - cron
+  - letsencrypt
+
+- name: install cron for cert renewal
+  copy: src=cron-renew-cert dest=/etc/cron.d/cron-renew-cert
+  notify: restart crond
+  tags:
+  - taiga
+  - cron
 
 
 ### FINALLY, nginx to serve/proxy it all
