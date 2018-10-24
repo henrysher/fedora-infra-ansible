@@ -430,6 +430,7 @@
   tags:
     - osbs-orchestrator-namespace
 
+#TODO Remove post f29 freeze
 - name: setup koji secret in orchestrator namespace
   hosts: osbs-masters[0]
   vars_files:
@@ -460,6 +461,19 @@
   tags:
     - osbs-orchestrator-namespace
 
+- name: Save orchestrator token aarch64
+  hosts: osbs-aarch64-masters-stg[0]
+  tasks:
+    - name: get orchestrator service account token
+      command: "oc -n {{ osbs_worker_namespace }} sa get-token orchestrator"
+      register: orchestator-token-x86_64
+    - name: save the token locally
+      local_action: >
+        copy
+        content=orchestator-token-x86_64
+        dest=/tmp/.orchestator-token-x86_64
+        mode=0400
+
 - name: setup orchestrator token for aarch64-osbs
   hosts: osbs-masters-stg[0]
   vars_files:
@@ -470,7 +484,7 @@
   - role: osbs-secret
     osbs_secret_name: aarch64-orchestrator
     osbs_secret_files:
-    - source: "{{ private }}/files/osbs/{{ env }}/aarch64-osbs-orchestrator"
+    - source: "/tmp/.orchestator-token-x86_64"
       dest: token
   tags:
     - osbs-orchestrator-namespace
