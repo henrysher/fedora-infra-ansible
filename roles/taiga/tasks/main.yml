@@ -110,69 +110,69 @@
     pip:
       name: pip
       state: latest
-      chdir: /home/taiga
-      virtualenv: /home/taiga/venv
+      chdir: /srv/taiga
+      virtualenv: /srv/taiga/venv
       virtualenv_command: pyvenv
       virtualenv_site_packages: yes
 
   - name: install Gunicorn
     pip:
       name: gunicorn
-      virtualenv: /home/taiga/venv
+      virtualenv: /srv/taiga/venv
 
   # Install our plugin for the backend first
   - name: install the OIDC auth plugin
     git:
-      dest: /home/taiga/taiga-contrib-oidc-auth
+      dest: /srv/taiga/taiga-contrib-oidc-auth
       repo: https://github.com/fedora-infra/taiga-contrib-oidc-auth.git
     tags: taiga
 
   - pip:
       name: .
       editable: yes
-      chdir: /home/taiga/taiga-contrib-oidc-auth/back
-      virtualenv: /home/taiga/venv
+      chdir: /srv/taiga/taiga-contrib-oidc-auth/back
+      virtualenv: /srv/taiga/venv
     tags: taiga
 
   # setup taiga-back from git
   - git:
       repo: https://github.com/taigaio/taiga-back.git
-      dest: /home/taiga/taiga-back
+      dest: /srv/taiga/taiga-back
       version: "{{taiga_back_version}}"
       # We modify the requirements.txt, we need to force here.
       force: yes
 
   - name: remove some versionned dependencies
     replace:
-      path: /home/taiga/taiga-back/requirements.txt
+      path: /srv/taiga/taiga-back/requirements.txt
       regexp: '^(CairoSVG|cryptography)==.*$'
       replace: '\1'
 
   - name: install taiga-back dependencies
     pip:
-      requirements: /home/taiga/taiga-back/requirements.txt
-      virtualenv: /home/taiga/venv
+      requirements: /srv/taiga/taiga-back/requirements.txt
+      virtualenv: /srv/taiga/venv
     tags: taiga
 
 - name: copy in our taiga backend config
-  template: src=local.py dest=/home/taiga/taiga-back/settings/local.py
+  template: src=local.py dest=/srv/taiga/taiga-back/settings/local.py
             mode=0640 owner=taiga group=taiga
   notify: restart taiga-back
   tags: taiga
 
 - name: copy in our taiga backend URLs config
-  copy: src=urls.py dest=/home/taiga/taiga-back/settings/urls.py
+  copy: src=urls.py dest=/srv/taiga/taiga-back/settings/urls.py
             mode=0640 owner=taiga group=taiga
   notify: restart taiga-back
   tags: taiga
 
-- file: dest=/home/taiga/taiga-back/locale state=directory
+- file: dest=/srv/taiga/taiga-back/locale state=directory
         owner=taiga group=taiga
   tags: taiga
 
   # change default admin password
 - name: copy in our initial_user fixture
-  template: src=initial_user.json dest=/home/taiga/initial_user.json
+  template: src=initial_user.json dest=/srv/taiga/initial_user.json
             mode=0640 owner=taiga group=taiga
   tags: taiga
 
@@ -182,41 +182,41 @@
   block:
 
   - django_manage:
-      app_path: /home/taiga/taiga-back
-      virtualenv: /home/taiga/venv
+      app_path: /srv/taiga/taiga-back
+      virtualenv: /srv/taiga/venv
       command: migrate
 
   - django_manage:
-      app_path: /home/taiga/taiga-back
-      virtualenv: /home/taiga/venv
+      app_path: /srv/taiga/taiga-back
+      virtualenv: /srv/taiga/venv
       command: loaddata
-      fixtures: /home/taiga/initial_user.json initial_project_templates
+      fixtures: /srv/taiga/initial_user.json initial_project_templates
 
   - django_manage:
-      app_path: /home/taiga/taiga-back
-      virtualenv: /home/taiga/venv
+      app_path: /srv/taiga/taiga-back
+      virtualenv: /srv/taiga/venv
       command: compilemessages
 
   - django_manage:
-      app_path: /home/taiga/taiga-back
-      virtualenv: /home/taiga/venv
+      app_path: /srv/taiga/taiga-back
+      virtualenv: /srv/taiga/venv
       command: collectstatic
   ### DONE with taiga-back
 
   ### Setup taiga-front-dist from git
   - git:
       repo: https://github.com/taigaio/taiga-front-dist.git
-      dest: /home/taiga/taiga-front-dist
+      dest: /srv/taiga/taiga-front-dist
       version: "{{taiga_front_version}}"
 
 - template:
     src=conf.json
-    dest=/home/taiga/taiga-front-dist/dist/conf.json
+    dest=/srv/taiga/taiga-front-dist/dist/conf.json
     mode=0644 owner=taiga group=taiga
   tags: taiga
 
 # create plugins directory - new in taiga 3.0.0
-- file: dest=/home/taiga/taiga-front-dist/dist/plugins state=directory owner=taiga group=taiga
+- file: dest=/srv/taiga/taiga-front-dist/dist/plugins state=directory owner=taiga group=taiga
   tags: taiga
 
 # Build the frontend
@@ -232,18 +232,18 @@
 
   # Build our plugin
   - npm:
-      path: /home/taiga/taiga-contrib-oidc-auth/front
+      path: /srv/taiga/taiga-contrib-oidc-auth/front
   - npm:
-      path: /home/taiga/taiga-contrib-oidc-auth/front
+      path: /srv/taiga/taiga-contrib-oidc-auth/front
       name: gulp
   - command: ./node_modules/.bin/gulp build
     args:
-      chdir: /home/taiga/taiga-contrib-oidc-auth/front
-      creates: /home/taiga/taiga-contrib-oidc-auth/front/dist/oidc_auth.js
+      chdir: /srv/taiga/taiga-contrib-oidc-auth/front
+      creates: /srv/taiga/taiga-contrib-oidc-auth/front/dist/oidc_auth.js
 
 # Link our plugin pieces in place
-- file: src=/home/taiga/taiga-contrib-oidc-auth/front/dist
-        dest=/home/taiga/taiga-front-dist/dist/plugins/oidc-auth
+- file: src=/srv/taiga/taiga-contrib-oidc-auth/front/dist
+        dest=/srv/taiga/taiga-front-dist/dist/plugins/oidc-auth
         state=link
         owner=taiga
         group=taiga
@@ -303,7 +303,7 @@
 # Add nginx to the taiga group so it gets rights to read all our static stuff
 - user: name=nginx groups=taiga append=yes
   tags: taiga
-- file: dest=/home/taiga mode=0750
+- file: dest=/srv/taiga mode=0750
   tags: taiga
 - seboolean: name="{{item}}" state=true persistent=true
   with_items:
