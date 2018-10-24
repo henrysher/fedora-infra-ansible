@@ -138,13 +138,14 @@
       repo: https://github.com/taigaio/taiga-back.git
       dest: /home/taiga/taiga-back
       version: "{{taiga_back_version}}"
+      # We modify the requirements.txt, we need to force here.
+      force: yes
 
   - name: remove some versionned dependencies
-    lineinfile:
+    replace:
       path: /home/taiga/taiga-back/requirements.txt
       regexp: '^(CairoSVG|cryptography)==.*$'
-      line: '\1'
-      backrefs: yes
+      replace: '\1'
 
   - name: install taiga-back dependencies
     pip:
