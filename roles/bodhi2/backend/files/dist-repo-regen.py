@@ -68,6 +68,7 @@ for koji_env in config['tag2distrepo.tags'].keys():
             'inherit': False,
             'latest': True,
             'multilib': False,
+            'split_debuginfo': False,
             'skip_missing_signatures': False,
             'allow_missing_signatures': False
         }
