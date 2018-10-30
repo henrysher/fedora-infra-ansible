@@ -1,0 +1,20 @@
+---
+- name: install ci_resultsdb's
+  package: name={{ item }} state=present
+  with_items:
+    - ccsdb
+    - mod_wsgi
+    - python-psycopg2
+    - libsemanage-python
+
+- name: generate ci-resultsdb config
+  template: src=ci-resultsdb-listener.py
+        dest=/etc/fedmsg.d/ci-resultsdb-listener.py
+        owner=root group=root mode=0644
+  notify:
+    - reload httpd
+
+- name: Start and enable the fedmsg-hub service
+  service: name={{ item }} enabled=yes state=started
+  with_items:
+  - fedmsg-hub
