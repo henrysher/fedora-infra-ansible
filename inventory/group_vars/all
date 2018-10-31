@@ -74,6 +74,7 @@ virt_install_command: "{{ virt_install_command_one_nic }}"
 main_bridge: br0
 nfs_bridge: br1
 mac_address: RANDOM
+mac_address1: RANDOM
 
 virt_install_command_one_nic: virt-install -n {{ inventory_hostname }}
                  --memory={{ mem_size }},maxmemory={{ max_mem_size }} --memballoon virtio
@@ -94,7 +95,7 @@ virt_install_command_two_nic: virt-install -n {{ inventory_hostname }}
                   ip={{ eth0_ip }}::{{ gw }}:{{ nm }}:{{ inventory_hostname }}:eth0:none
                   ip={{ eth1_ip }}:::{{ nm }}:{{ inventory_hostname }}-nfs:eth1:none'
                  --network bridge={{ main_bridge }},model=virtio,mac={{ mac_address }}
-                 --network=bridge={{ nfs_bridge }},model=virtio,mac={{ mac_address }}
+                 --network=bridge={{ nfs_bridge }},model=virtio,mac={{ mac_address1 }}
                  --autostart --noautoconsole --watchdog default --rng /dev/random
 
 virt_install_command_aarch64_one_nic: virt-install -n {{ inventory_hostname }}
@@ -115,7 +116,8 @@ virt_install_command_aarch64_two_nic: virt-install -n {{ inventory_hostname }}
                   hostname={{ inventory_hostname }} nameserver={{ dns }}
                   ip={{ eth0_ip }}::{{ gw }}:{{ nm }}:{{ inventory_hostname }}:eth0:none
                   ip={{ eth1_ip }}:::{{ nm }}:{{ inventory_hostname }}-nfs:eth1:none'
-                 --network bridge={{ main_bridge }},model=virtio --network=bridge={{ nfs_bridge }},model=virtio
+                 --network bridge={{ main_bridge }},model=virtio,mac={{ mac_address }}
+                 --network=bridge={{ nfs_bridge }},model=virtio,mac={{ mac_address1 }}
                  --autostart --noautoconsole --rng /dev/random
 
 virt_install_command_armv7_one_nic: virt-install -n {{ inventory_hostname }} --arch armv7l
