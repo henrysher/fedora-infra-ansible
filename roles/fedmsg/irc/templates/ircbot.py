@@ -609,6 +609,28 @@ config = dict(
                 ],
             ),
         ),
+
+        # For #fedora-neuro
+        dict(
+            network='chat.freenode.net',
+            port=6667,
+            make_pretty=True,
+            make_terse=True,
+
+            {% if env == 'staging' %}
+            nickname='fm-stg-neuro',
+            {% else %}
+            nickname='fm-neuro',
+            {% endif %}
+            channel='fedora-neuro',
+            filters=dict(
+                topic=[
+                    '^((?!(pagure)).)*$',
+                ],
+                body=['^((?!(neuro)).)*$',
+                ],
+            ),
+        ),
     ],
 
     ### Possible colors are ###
