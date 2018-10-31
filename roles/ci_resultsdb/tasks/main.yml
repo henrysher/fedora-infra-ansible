@@ -16,10 +16,22 @@
   tags:
   - config
 
-- name: generate ci-resultsdb config
-  template: src=ci-resultsdb-listener.py
-        dest=/etc/fedmsg.d/ci-resultsdb-listener.py
-        owner=root group=root mode=0644
+- name: Create /etc/ci-resultsdb-listener/
+  file: name=/etc/ci-resultsdb-listener/
+        state=directory
+        recurse=yes
+        owner=root group=root
+  tags:
+  - config
+
+- name: generate ci-resultsdb config files
+  template: src={{ item.file }}
+            dest={{ item.location }}/{{ item.file }}
+            owner=root group=root mode=0644
+  with_items:
+  - { file: listerner.cfg, location: /etc/ci-resultsdb-listener/ }
+  - { file: endpoints.py, location: /etc/fedmsg.d/ }
+  - { file: ci-resultsdb-listener.py, location: /etc/fedmsg.d/ }
   notify:
     - reload httpd
 
