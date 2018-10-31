@@ -49,3 +49,27 @@
   service: name={{ item }} enabled=yes state=started
   with_items:
   - fedmsg-hub
+
+- name: letsencrypt cert
+  include_role: name=certbot
+  tags:
+  - config
+  - certbot
+
+- name: Check that cert file exists
+  stat:
+    path: "/etc/letsencrypt/live/resultsdb.ci.centos.org/cert.pem"
+  register: stat_cert
+  tags:
+  - config
+  - certbot
+
+- name: Should admin run certbot?
+  fail:
+    msg: Please see roles/certbot/README step (2) and manually run certbot
+  when:
+    - stat_cert.stat.exists == False
+  tags:
+  - config
+  - certbot
+
