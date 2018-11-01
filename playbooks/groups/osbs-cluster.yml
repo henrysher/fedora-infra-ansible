@@ -312,23 +312,6 @@
       osbs_sources_command: "{{ osbs_conf_sources_command }}"
       osbs_vendor: "{{ osbs_conf_vendor }}"
 
-#TODO Remove post F29 freeze
-- name: setup koji secret in worker namespace
-  hosts: osbs-masters[0]
-  vars_files:
-    - /srv/web/infra/ansible/vars/global.yml
-    - "/srv/private/ansible/vars.yml"
-    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
-  tags:
-    - osbs-worker-namespace
-  roles:
-  - role: osbs-secret
-    osbs_namespace: "{{ osbs_worker_namespace }}"
-    osbs_secret_name: kojisecret
-    osbs_secret_files:
-    - source: "{{ private }}/files/koji/containerbuild.pem"
-      dest: cert
-
 - name: setup ODCS secret in worker namespace
   hosts: osbs-masters-stg[0]:osbs-masters[0]:osbs-aarch64-masters-stg[0]
   vars_files:
@@ -427,22 +410,6 @@
     osbs_secret_files:
     - source: "/tmp/{{ osbs_namespace }}-client-config-secret.conf"
       dest: osbs.conf
-  tags:
-    - osbs-orchestrator-namespace
-
-#TODO Remove post f29 freeze
-- name: setup koji secret in orchestrator namespace
-  hosts: osbs-masters[0]
-  vars_files:
-    - /srv/web/infra/ansible/vars/global.yml
-    - "/srv/private/ansible/vars.yml"
-    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
-  roles:
-  - role: osbs-secret
-    osbs_secret_name: kojisecret
-    osbs_secret_files:
-    - source: "{{ private }}/files/koji/containerbuild.pem"
-      dest: cert
   tags:
     - osbs-orchestrator-namespace
 
