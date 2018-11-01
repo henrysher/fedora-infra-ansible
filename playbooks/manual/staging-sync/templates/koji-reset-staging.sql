@@ -80,6 +80,7 @@ update repo set state = 3 where state in (0, 1, 2);
 {% for group in builder_groups %}
 {% for host in groups[group.name] %}
 select now() as time, 'adding staging host {{ host }}' as msg;
+delete from host_config where host_id in (select * from host where name='{{host}}');
 delete from host where name='{{ host }}';
 delete from users where name='{{ host }}';
 insert into users (name, usertype, krb_principal, status) values ('{{ host }}', 1, 'compile/{{ host }}@STG.FEDORAPROJECT.ORG', 0);
