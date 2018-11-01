@@ -86,7 +86,7 @@ insert into users (name, usertype, krb_principal, status) values ('{{ host }}', 
 insert into host (user_id, name) values (
     (select id from users where name='{{host}}'), '{{host}}');
 insert into host_config (host_id, arches, creator_id) values (
-    (select id from hosts where name='{{host}}'), '{{ group.arches }}', 2045);
+    (select id from host where name='{{host}}'), '{{ group.arches }}', 2045);
 {% for channel in [ 'default', 'appliance', 'vm', 'secure-boot', 'compose', 'eclipse', 'images', 'image'] + group.extra_channels|default([]) %}
 insert into host_channels (host_id, channel_id) values (
     (select id from host where name='{{host}}'), (select id from channels where name='{{channel}}'));
