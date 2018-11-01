@@ -228,17 +228,6 @@ container.source_registry = candidate-registry.stg.fedoraproject.org
 ##
 # file_url: Used in the repo metadata to set RPM URLs.
 # file_url = https://download.fedoraproject.org/pub/fedora/linux/updates
-{% if env == 'production' %}
-master_repomd = http://download01.phx2.fedoraproject.org/pub/fedora/linux/updates/%s/%s/repodata/repomd.xml
-fedora_master_repomd = http://download01.phx2.fedoraproject.org/pub/fedora/linux/updates/%s/%s/repodata/repomd.xml
-fedora_stable_master_repomd = http://download01.phx2.fedoraproject.org/pub/fedora/linux/updates/%s/Everything/%s/repodata/repomd.xml
-fedora_testing_master_repomd = http://download01.phx2.fedoraproject.org/pub/fedora/linux/updates/testing/%s/Everything/%s/repodata/repomd.xml
-{% if FedoraBranched %}
-fedora_{{ FedoraBranchedNumber }}_stable_master_repomd = http://download01.phx2.fedoraproject.org/pub/fedora/linux/updates/%s/Everything/%s/repodata/repomd.xml
-fedora_{{ FedoraBranchedNumber }}_testing_master_repomd = http://download01.phx2.fedoraproject.org/pub/fedora/linux/updates/testing/%s/Everything/%s/repodata/repomd.xml
-{% endif %}
-fedora_epel_master_repomd = http://download01.phx2.fedoraproject.org/pub/epel/%s/%s/repodata/repomd.xml
-{% endif %}
 
 # {release}_({version}_){request}_master_repomd: This is used by the masher to determine when a
 #     primary architecture push has been synchronized to the master mirror for a given release and
@@ -256,6 +245,11 @@ fedora_epel_master_repomd = http://download01.phx2.fedoraproject.org/pub/epel/%s
 #    fedora_epel_stable_master_repomd = http://download01.phx2.fedoraproject.org/pub/epel/%s/%s/repodata/repomd.xml
 #    fedora_epel_testing_master_repomd = http://download01.phx2.fedoraproject.org/pub/epel/testing/%s/%s/repodata/repomd.xml
 {% if env == 'production' %}
+fedora_stable_master_repomd = http://download01.phx2.fedoraproject.org/pub/fedora/linux/updates/%s/Everything/%s/repodata/repomd.xml
+fedora_testing_master_repomd = http://download01.phx2.fedoraproject.org/pub/fedora/linux/updates/testing/%s/Everything/%s/repodata/repomd.xml
+# Fedora 28 changed the repo layout, so the next two lines are overrides until Fedora 27 goes EOL (and then they can be dropped).
+fedora_27_stable_master_repomd = http://download01.phx2.fedoraproject.org/pub/fedora/linux/updates/%s/%s/repodata/repomd.xml
+fedora_27_testing_master_repomd = http://download01.phx2.fedoraproject.org/pub/fedora/linux/updates/testing/%s/%s/repodata/repomd.xml
 fedora_epel_stable_master_repomd = http://download01.phx2.fedoraproject.org/pub/epel/%s/%s/repodata/repomd.xml
 fedora_epel_testing_master_repomd = http://download01.phx2.fedoraproject.org/pub/epel/testing/%s/%s/repodata/repomd.xml
 fedora_modular_stable_master_repomd = http://download01.phx2.fedoraproject.org/pub/fedora/linux/updates/%s/Modular/%s/repodata/repomd.xml
@@ -283,14 +277,11 @@ fedora_modular_testing_master_repomd = https://kojipkgs.stg.fedoraproject.org/co
 #    fedora_28_stable_alt_master_repomd = http://download01.phx2.fedoraproject.org/pub/fedora-secondary/updates/%s/Everything/%s/repodata/repomd.xml
 #    fedora_testing_alt_master_repomd = http://download01.phx2.fedoraproject.org/pub/fedora-secondary/updates/testing/%s/%s/repodata/repomd.xml
 {% if env == 'production' %}
-fedora_stable_alt_master_repomd = http://download01.phx2.fedoraproject.org/pub/fedora-secondary/updates/%s/%s/repodata/repomd.xml
-fedora_testing_alt_master_repomd = http://download01.phx2.fedoraproject.org/pub/fedora-secondary/updates/testing/%s/%s/repodata/repomd.xml
-fedora_{{ FedoraCycleNumber }}_stable_alt_master_repomd = http://download01.phx2.fedoraproject.org/pub/fedora-secondary/updates/%s/Everything/%s/repodata/repomd.xml
-fedora_{{ FedoraCycleNumber }}_testing_alt_master_repomd = http://download01.phx2.fedoraproject.org/pub/fedora-secondary/updates/testing/%s/Everything/%s/repodata/repomd.xml
-{% if FedoraBranched %}
-fedora_{{ FedoraBranchedNumber }}_stable_alt_master_repomd = http://download01.phx2.fedoraproject.org/pub/fedora-secondary/updates/%s/Everything/%s/repodata/repomd.xml
-fedora_{{ FedoraBranchedNumber }}_testing_alt_master_repomd = http://download01.phx2.fedoraproject.org/pub/fedora-secondary/updates/testing/%s/Everything/%s/repodata/repomd.xml
-{% endif %}
+fedora_stable_alt_master_repomd = http://download01.phx2.fedoraproject.org/pub/fedora-secondary/updates/%s/Everything/%s/repodata/repomd.xml
+fedora_testing_alt_master_repomd = http://download01.phx2.fedoraproject.org/pub/fedora-secondary/updates/testing/%s/Everything/%s/repodata/repomd.xml
+# Fedora 28 changed the repo layout, so the next two lines are overrides until Fedora 27 goes EOL (and then they can be dropped).
+fedora_27_stable_alt_master_repomd = http://download01.phx2.fedoraproject.org/pub/fedora-secondary/updates/%s/%s/repodata/repomd.xml
+fedora_27_testing_alt_master_repomd = http://download01.phx2.fedoraproject.org/pub/fedora-secondary/updates/testing/%s/%s/repodata/repomd.xml
 {% elif env == 'staging' %}
 fedora_stable_alt_master_repomd = https://kojipkgs.stg.fedoraproject.org/compose/updates/f%s-updates/compose/Everything/%s/os/repodata/repomd.xml
 fedora_testing_alt_master_repomd = https://kojipkgs.stg.fedoraproject.org/compose/updates/f%s-updates-testing/compose/Everything/%s/os/repodata/repomd.xml
