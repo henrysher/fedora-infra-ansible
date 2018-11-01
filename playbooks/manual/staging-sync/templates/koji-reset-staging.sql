@@ -88,8 +88,8 @@ insert into host (user_id, name) values (
 insert into host_config (host_id, arches, creator_id) values (
     (select id from host where name='{{host}}'), '{{ group.arches }}', 2045);
 {% for channel in [ 'default', 'appliance', 'vm', 'secure-boot', 'compose', 'eclipse', 'images', 'image'] + group.extra_channels|default([]) %}
-insert into host_channels (host_id, channel_id) values (
-    (select id from host where name='{{host}}'), (select id from channels where name='{{channel}}'));
+insert into host_channels (host_id, channel_id, creator_id) values (
+    (select id from host where name='{{host}}'), (select id from channels where name='{{channel}}'), 2045);
 {% endfor %}
 {% endfor %}
 {% endfor %}
