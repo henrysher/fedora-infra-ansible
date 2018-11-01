@@ -65,7 +65,7 @@ select now() as time, 'expiring active buildroots' as msg;
 update standard_buildroot set state=3, retire_event=get_event() where state=0;
 
 -- enable/disable hosts
-update host set enabled=False;
+update host_config set enabled=False where active;
 
 -- fix host_channels
 truncate host_channels;
