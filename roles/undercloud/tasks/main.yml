@@ -16,8 +16,29 @@
   - undercloud
 
 - name: Create stack user
-  user: name=stack comment="openstack user"
+  user: name=stack comment="openstack user" home=/home/stack
   tags:
   - config
   - users
+  - undercloud
+
+- name: Create templates directory
+  file: path=/home/stack/templates state=directory owner=stack group=stack mode=0755
+  tags:
+  - config
+  - undercloud
+
+- name: Copy files to ~/stack/
+  copy: src={{item}} dest=/home/stack/{{item}} owner=stack group=stack mode=0644
+  with_items:
+  - undercloud.conf
+  - templates/node-info.yaml
+  tags:
+  - config
+  - undercloud
+
+- name: Copy nodes.json
+  template: src=nodes.json dest=/home/stack/nodes.json owner=stack group=stack mode=0644
+  tags:
+  - config
   - undercloud
