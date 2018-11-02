@@ -264,6 +264,14 @@
   - bodhi
   - cron
 
+- name: put bodhi-automated-pushes.py in place
+  copy: src=bodhi-automated-pushes.py dest=/usr/local/bin/bodhi-automated-pushes.py mode=0755
+  when: inventory_hostname.startswith('bodhi-backend01') and env == "production"
+  tags:
+  - config
+  - bodhi
+  - cron
+
 - name: put update-fullfiletimelist in place
   copy: src="{{ files }}/scripts/update-fullfiletimelist" dest=/usr/local/bin/update-fullfiletimelist mode=0755
   when: inventory_hostname.startswith('bodhi-backend01') and env == "production"
@@ -282,6 +290,14 @@
 
 - name: Set the updates sync cron job
   copy: src=new-updates-sync.cron dest=/etc/cron.d/updates-sync
+  when: inventory_hostname.startswith('bodhi-backend01') and env == "production"
+  tags:
+  - config
+  - bodhi
+  - cron
+
+- name: Set the bodhi-automated-pushes cron job
+  template: src=bodhi-automated-pushes.cron.j2 dest=/etc/cron.d/bodhi-automated-pushes
   when: inventory_hostname.startswith('bodhi-backend01') and env == "production"
   tags:
   - config
