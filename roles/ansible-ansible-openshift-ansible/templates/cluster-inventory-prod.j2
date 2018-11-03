@@ -94,13 +94,13 @@ debug_level={{openshift_debug_level}}
 # WARNING: This value will be used for all hosts in containerized environments, even those that have another version installed.
 # This could potentially trigger an upgrade and downtime, so be careful with modifying this value after the cluster is set up.
 #openshift_image_tag=v3.10.0
-openshift_image_tag="v3.10"
+openshift_image_tag="v3.11"
 
 # Specify an exact rpm version to install or configure.
 # WARNING: This value will be used for all hosts in RPM based environments, even those that have another version installed.
 # This could potentially trigger an upgrade and downtime, so be careful with modifying this value after the cluster is set up.
 #openshift_pkg_version=-3.10.0
-openshift_pkg_version="-3.10.14"
+openshift_pkg_version="-3.11.16"
 
 # If using Atomic Host, you may specify system container image registry for the nodes:
 #system_images_registry="docker.io"
@@ -211,12 +211,12 @@ openshift_use_crio_only={{ openshift_ansible_crio_only }}
 #openshift_docker_additional_registries=registry.example.com
 
 # If oreg_url points to a registry requiring authentication, provide the following:
-#oreg_auth_user=some_user
-#oreg_auth_password='my-pass'
+oreg_auth_user="{{ os_prod_registry_user }}"
+oreg_auth_password="{{ os_prod_registry_password }}"
 # NOTE: oreg_url must be defined by the user for oreg_auth_* to have any affect.
 # oreg_auth_pass should be generated from running docker login.
 # To update registry auth credentials, uncomment the following:
-#oreg_auth_credentials_replace: True
+oreg_auth_credentials_replace=True
 
 # OpenShift repository configuration
 #openshift_additional_repos=[{'id': 'openshift-origin-copr', 'name': 'OpenShift Origin COPR', 'baseurl': 'https://copr-be.cloud.fedoraproject.org/results/maxamillion/origin-next/epel-7-$basearch/', 'enabled': 1, 'gpgcheck': 1, 'gpgkey': 'https://copr-be.cloud.fedoraproject.org/results/maxamillion/origin-next/pubkey.gpg'}]
@@ -968,10 +968,10 @@ template_service_broker_install=true
 # Specify an openshift_service_catalog image
 # (defaults for origin and openshift-enterprise, repsectively)
 #openshift_service_catalog_image="docker.io/openshift/origin-service-catalog:{ openshift_image_tag }""
-openshift_service_catalog_image="registry.access.redhat.com/openshift3/ose-service-catalog:v3.10"
+openshift_service_catalog_image="registry.access.redhat.com/openshift3/ose-service-catalog:v3.11.16"
 
 # TSB image tag
-template_service_broker_version='v3.10'
+template_service_broker_version='v3.11.16'
 
 # Configure one of more namespaces whose templates will be served by the TSB
 openshift_template_service_broker_namespaces=['openshift']
