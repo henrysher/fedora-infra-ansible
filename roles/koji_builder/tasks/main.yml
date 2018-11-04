@@ -103,6 +103,16 @@
   notify:
   - restart kojid
 
+- name: Remove old python optimization caches
+  file: path=/usr/lib/python2.7/site-packages/oz/Guest.{{item}} state=absent
+  with_items:
+  - pyc
+  - pyo
+  tags:
+  - koji_builder
+  notify:
+  - restart kojid
+
 - name: enable virtlogd service
   service: name=virtlogd state=started enabled=yes
   tags:
