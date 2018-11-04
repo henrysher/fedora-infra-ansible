@@ -476,6 +476,8 @@ class Guest(object):
         if cmdline:
             if self.tdl.arch == "armv7l":
                 cmdline += " console=ttyAMA0"
+            elif self.tdl.arch == "aarch64":
+                cmdline = "console=tty0 " + cmdline
             oz.ozutil.lxml_subelement(osNode, "cmdline", cmdline)
         if self.tdl.arch == "aarch64":
             loader, nvram = oz.ozutil.find_uefi_firmware(self.tdl.arch)
