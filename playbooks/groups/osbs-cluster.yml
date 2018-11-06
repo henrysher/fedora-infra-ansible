@@ -433,12 +433,12 @@
   tasks:
     - name: get orchestrator service account token
       command: "oc -n {{ osbs_worker_namespace }} sa get-token orchestrator"
-      register: orchestator-token-x86_64
+      register: orchestator-token-aarch64
     - name: save the token locally
       local_action: >
         copy
-        content={{ orchestator-token-x86_64.stdout }}
-        dest=/tmp/.orchestator-token-x86_64
+        content="{{ orchestator-token-aarch64.stdout }}"
+        dest=/tmp/.orchestator-token-aarch64
         mode=0400
 
 - name: setup orchestrator token for aarch64-osbs
@@ -451,8 +451,16 @@
   - role: osbs-secret
     osbs_secret_name: aarch64-orchestrator
     osbs_secret_files:
-    - source: "/tmp/.orchestator-token-x86_64"
+    - source: "/tmp/.orchestator-token-aarch64"
       dest: token
+
+  post_tasks:
+  - name: Delete the temporary secret file
+    local_action: >
+      file
+      state=absent
+      path="/tmp/.orchestator-token-aarch64"
+
   tags:
     - osbs-orchestrator-namespace
 
