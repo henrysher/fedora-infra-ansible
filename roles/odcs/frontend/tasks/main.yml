@@ -41,6 +41,18 @@
   - odcs
   - odcs/frontend
 
+- name: Disable PrivateTmp=true in httpd.service.
+  lineinfile:
+    path: /usr/lib/systemd/system/httpd.service
+    regexp: '^PrivateTmp'
+    line: 'PrivateTmp=false'
+  notify:
+  - systemctl daemon-reload
+  - restart httpd service
+  tags:
+  - odcs
+  - odcs/frontend
+
 - name: ensure selinux lets httpd talk to postgres
   seboolean: name={{item}} state=yes persistent=yes
   with_items:
