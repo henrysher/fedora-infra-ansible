@@ -19,20 +19,6 @@
   - config
   - bodhi
 
-- name: setup basic /etc/bodhi/ contents
-  template: >
-    src="production.ini.j2"
-    dest="/etc/bodhi/production.ini"
-    owner=bodhi
-    group=bodhi
-    mode=0600
-  when: inventory_hostname.startswith('bodhi0')
-  notify:
-  - reload bodhi httpd
-  tags:
-  - config
-  - bodhi
-
 - name: Configure alembic
   template:
     src: alembic.ini
@@ -59,20 +45,6 @@
   - signed_handler.py
   notify:
   - restart fedmsg-hub
-  tags:
-  - config
-  - bodhi
-
-- name: setup basic /etc/httpd/conf.d/ bodhi contents
-  template: >
-    src="bodhi-app.conf"
-    dest="/etc/httpd/conf.d/bodhi.conf"
-    owner=root
-    group=root
-    mode=0644
-  when: inventory_hostname.startswith('bodhi0')
-  notify:
-  - reload bodhi httpd
   tags:
   - config
   - bodhi
