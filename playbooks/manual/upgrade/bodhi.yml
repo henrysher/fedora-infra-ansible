@@ -54,8 +54,15 @@
 
   tasks:
   - name: Find out what the current migration version is
+    command: /usr/bin/alembic-3 -c /etc/bodhi/alembic.ini current
+    register: current_migration_version
+    # This line can be dropped once production is upgraded to bodhi-3.11.0.
+    when: env == "staging"
+  # This block can be dropped once production is upgraded to bodhi-3.11.0.
+  - name: Find out what the current migration version is
     command: /usr/bin/python2 /usr/bin/alembic -c /etc/bodhi/alembic.ini current
     register: current_migration_version
+    when: env == "production"
 
 - name: Stop the front end if there are migrations to run
   hosts: os-masters[0]:os-masters-stg[0]
@@ -101,17 +108,39 @@
   - bodhi2/backend
 
   tasks:
+  - name: Stop the fedmsg-hub-3 backend
+    service: name="fedmsg-hub-3" state=stopped
+    # This line can be dropped once production is upgraded to bodhi-3.11.0.
+    when: env == "staging"
+
+  # This block can be dropped once production is upgraded to bodhi-3.11.0.
   - name: Stop the fedmsg-hub backend
     service: name="fedmsg-hub" state=stopped
+    when: env == "production"
 
+  - name: Upgrade the database
+    command: /usr/bin/alembic-3 -c /etc/bodhi/alembic.ini upgrade head
+    args:
+      chdir: /usr/share/bodhi/
+    # We need to drop the env == "staging" once production is upgraded to 3.11.0.
+    when: inventory_hostname.startswith(('bodhi-backend01.phx2', 'bodhi-backend01.stg.phx2')) and env == "staging"
+
+  # This block can be dropped once production is upgraded to bodhi-3.11.0.
   - name: Upgrade the database
     command: /usr/bin/alembic -c /etc/bodhi/alembic.ini upgrade head
     args:
       chdir: /usr/share/bodhi/
-    when: inventory_hostname.startswith(('bodhi-backend01.phx2', 'bodhi-backend01.stg.phx2'))
+    when: inventory_hostname.startswith(('bodhi-backend01.phx2', 'bodhi-backend01.stg.phx2')) and env == "production"
 
   - name: And... start the backend again
+    service: name="fedmsg-hub-3" state=started
+    # This line can be dropped once production is upgraded to bodhi-3.11.0.
+    when: env == "staging"
+
+  # This block can be dropped once production is upgraded to bodhi-3.11.0.
+  - name: And... start the backend again
     service: name="fedmsg-hub" state=started
+    when: env == "production"
 
   post_tasks:
   - name: tell nagios to unshush w.r.t. the backend
