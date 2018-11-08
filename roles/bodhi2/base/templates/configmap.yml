@@ -72,7 +72,11 @@ data:
         AllowOverride None
         Require all granted
     </Directory>
+{% if env == 'staging' %}
+    <Directory "/usr/lib/python3.7/site-packages/bodhi/server/static/">
+{% else %}
     <Directory "/usr/lib/python2.7/site-packages/bodhi/server/static/">
+{% endif %}
         AllowOverride None
         Require all granted
     </Directory>
@@ -97,7 +101,11 @@ data:
     AddDefaultCharset UTF-8
     CoreDumpDirectory /tmp
     Alias /docs /usr/share/doc/bodhi-docs/html/
+{% if env == 'staging' %}
+    Alias /static /usr/lib/python3.7/site-packages/bodhi/server/static/
+{% else %}
     Alias /static /usr/lib/python2.7/site-packages/bodhi/server/static/
+{% endif %}
     WSGIDaemonProcess bodhi display-name=bodhi processes=2 threads=2 maximum-requests=1000 home=/httpdir
     WSGIApplicationGroup %{GLOBAL}
     WSGISocketPrefix run/wsgi

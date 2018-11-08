@@ -15,6 +15,27 @@
 - name: install needed packages
   package: name={{ item }} state=present
   with_items:
+  - bodhi-composer
+  - sigul
+  # Are these still needed?
+  - compose-utils
+  - pungi-utils
+  - python-scandir
+  - python2-fedfind
+  - python2-fedmsg-meta-fedora-infrastructure
+  - python2-koji-cli-plugins
+  - python2-pdc-client
+  - python2-productmd
+  tags:
+  - packages
+  - bodhi
+  # This line can be dropped when Bodhi 3.11.0 is deployed to production.
+  when: env == "staging"
+
+# This block can be dropped when Bodhi 3.11.0 is deployed to production.
+- name: install needed packages
+  package: name={{ item }} state=present
+  with_items:
   - mock
   - fedmsg-hub
   - fedmsg-relay
@@ -34,6 +55,7 @@
   tags:
   - packages
   - bodhi
+  when: env == "production"
 
 - name: install tag2distrepo on fedora bodhi backends
   package: name=python2-tag2distrepo state=present
@@ -64,11 +86,13 @@
   - packages
   - bodhi
 
+# This block can be dropped when Bodhi 3.11.0 is deployed to production.
 - name: hotfix /usr/bin/alembic to use our webob forward compat package
   copy: src=alembic dest=/usr/bin/alembic
   tags:
   - hotfix
   - bodhi
+  when: env == "production"
 
 - name: add masher group
   group: name=masher gid=751 system=yes state=present
@@ -241,6 +265,8 @@
   - bodhi
   - koji-sync
 
+# This block can be dropped when bodhi-3.11.0 is deployed to production. Don't forget to update the vars
+# so that /usr/bin/bodhi-sar is used instead of /usr/local/bin/bodhi_sar.py. 
 - name: Install bodhi_sar.py
   copy:
     src: bodhi_sar.py
@@ -251,6 +277,7 @@
   when: inventory_hostname.startswith('bodhi-backend02')
   tags:
   - bodhi
+  when: env == "production"
 
 #
 # cron job that syncs updates to master mirror
@@ -380,10 +407,28 @@
     mode=0644
   notify:
   - reload systemd
+  - restart fedmsg-hub-3
+  tags:
+  - bodhi
+  - config
+  # This line can be dropped once production is upgraded to Bodhi 3.11.0.
+  when: env == "staging"
+
+# This block can be dropped once production is upgraded to Bodhi 3.11.0.
+- name: install a femdsg-hub.service drop-in to run it as the apache
+  copy: >
+    src="fedmsg-hub.conf"
+    dest="/usr/lib/systemd/system/fedmsg-hub.service.d/fedmsg-hub.conf"
+    owner=root
+    group=root
+    mode=0644
+  notify:
+  - reload systemd
   - restart fedmsg-hub
   tags:
   - bodhi
   - config
+  when: env == "production"
 
 - name: have the apache own /var/cache/bodhi because of course..
   file: >
@@ -415,10 +460,28 @@
     state=directory
   ignore_errors: true
   notify:
+  - restart fedmsg-hub-3
+  tags:
+  - fedmsgmonitor
+  - bodhi
+  # This line can be removed once production is upgraded to bodhi-3.11.0.
+  when: env == "staging"
+
+# This block can be removed once production is upgraded to bodhi-3.11.0.
+- name: ensure that nrpe has rights to monitor us (dir), including setgid bit.
+  file: >
+    dest=/var/run/fedmsg
+    mode=2775
+    owner=apache
+    group=nrpe
+    state=directory
+  ignore_errors: true
+  notify:
   - restart fedmsg-hub
   tags:
   - fedmsgmonitor
   - bodhi
+  when: env == "production"
 
 - name: ensure that nrpe has rights to monitor us (file)
   file: >
@@ -437,10 +500,19 @@
   tags:
   - bodhi
 
+- name: ensure fedmsg-hub-3 is enabled and started on the backend
+  service: name=fedmsg-hub-3 enabled=yes state=started
+  tags:
+  - bodhi
+  # This line can be removed once production is upgraded to bodhi-3.11.0.
+  when: env == "staging"
+
+# This block can be removed once production is upgraded to bodhi-3.11.0.
 - name: ensure fedmsg-hub is enabled and started on the backend
   service: name=fedmsg-hub enabled=yes state=started
   tags:
   - bodhi
+  when: env == "production"
 
 - name: Set up koji profile
   template: src=kojiprofile.conf dest=/etc/koji.conf.d/bodhi.conf

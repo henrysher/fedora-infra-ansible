@@ -8,7 +8,6 @@
   - bodhi-docs
   - bodhi-server
   - libsemanage-python
-  - python-psycopg2
   tags:
   - packages
   - bodhi
@@ -29,6 +28,29 @@
   - config
   - bodhi
 
+- name: Copy some fedmsg configuration of our own for fedmsg-hub-3
+  template: >
+      src={{item}}
+      dest=/etc/fedmsg.d/{{item}}
+      owner=root
+      group=root
+      mode=0644
+  with_items:
+  - bodhi-logging.py
+  - bodhi-threading.py
+  - bodhi.py
+  - masher.py
+  - updates_handler.py
+  - signed_handler.py
+  notify:
+  - restart fedmsg-hub-3
+  tags:
+  - config
+  - bodhi
+  # This line can be dropped once Bodhi 3.11 is in production.
+  when: env == "staging"
+
+# This block can be dropped once Bodhi 3.11 is in production.
 - name: Copy some fedmsg configuration of our own for fedmsg-hub
   template: >
       src={{item}}
@@ -48,6 +70,7 @@
   tags:
   - config
   - bodhi
+  when: env == "production"
 
 - name: setup /etc/pki/bodhi directory
   file: path=/etc/pki/bodhi owner=root group=root mode=0755 state=directory
