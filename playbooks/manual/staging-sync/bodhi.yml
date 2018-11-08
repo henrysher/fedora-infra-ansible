@@ -23,7 +23,7 @@
   tasks:
   - command: oc -n bodhi scale dc/bodhi-web --replicas=0
 
-- name: bring staging services down (fedmsg-hub)
+- name: bring staging services down (fedmsg-hub-3)
   hosts: bodhi-backend-stg
   user: root
   vars_files:
@@ -32,7 +32,7 @@
    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
 
   tasks:
-  - service: name=fedmsg-hub state=stopped
+  - service: name=fedmsg-hub-3 state=stopped
 
 # Here's the meaty part in the middle
 - name: drop and re-create the staging db entirely
@@ -82,7 +82,7 @@
   tasks:
   - service: name=httpd state=started
 
-- name: bring staging services up (fedmsg-hub)
+- name: bring staging services up (fedmsg-hub-3)
   hosts: bodhi-backend-stg
   user: root
   vars_files:
@@ -91,4 +91,4 @@
    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
 
   tasks:
-  - service: name=fedmsg-hub state=started
+  - service: name=fedmsg-hub-3 state=started
