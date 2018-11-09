@@ -53,16 +53,16 @@
    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
 
   tasks:
-  - name: Find out what the current migration version is
-    command: /usr/bin/alembic-3 -c /etc/bodhi/alembic.ini current
-    register: current_migration_version
-    # This line can be dropped once production is upgraded to bodhi-3.11.0.
-    when: env == "staging"
   # This block can be dropped once production is upgraded to bodhi-3.11.0.
   - name: Find out what the current migration version is
     command: /usr/bin/python2 /usr/bin/alembic -c /etc/bodhi/alembic.ini current
     register: current_migration_version
     when: env == "production"
+  - name: Find out what the current migration version is
+    command: /usr/bin/alembic-3 -c /etc/bodhi/alembic.ini current
+    register: current_migration_version
+    # This line can be dropped once production is upgraded to bodhi-3.11.0.
+    when: env == "staging"
 
 - name: Stop the front end if there are migrations to run
   hosts: os-masters[0]:os-masters-stg[0]
