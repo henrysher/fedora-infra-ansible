@@ -21,7 +21,7 @@ for line in mdstat:
     if line[0:2] == 'md':
         device = string.split(line)[0]
         devices.append(device)
-        status = string.split(mdstat[i+1])[3]
+        status = string.split(mdstat[i+1])[-1]
         if string.count(status, "_"):
             # see if we can figure out what's going on
             err = string.split(mdstat[i+2])
