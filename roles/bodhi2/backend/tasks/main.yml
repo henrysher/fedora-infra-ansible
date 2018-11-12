@@ -391,11 +391,21 @@
   tags:
   - bodhi
 
+- name: create the /usr/lib/systemd/system/fedmsg-hub-3.service.d drop-in directory
+  file: path=/usr/lib/systemd/system/fedmsg-hub-3.service.d state=directory mode=0755
+  tags:
+  - config
+  - bodhi
+  # This line can be dropped once production is upgraded to Bodhi 3.11.0.
+  when: env == "staging"
+
+# This block can be dropped once production is upgraded to Bodhi 3.11.0.
 - name: create the /usr/lib/systemd/system/fedmsg-hub.service.d drop-in directory
   file: path=/usr/lib/systemd/system/fedmsg-hub.service.d state=directory mode=0755
   tags:
   - config
   - bodhi
+  when: env == "production"
 
 - name: install a femdsg-hub-3.service drop-in to run it as the apache
   copy: >
