@@ -1,0 +1,656 @@
+- name: configure overcloud from undercloud
+  hosts: newcloud-undercloud
+  user: root
+  gather_facts: True
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  tasks:
+
+  - name: create non-standard flavor
+    nova_flavor:
+      login_username="admin" login_password="{{ ADMIN_PASS }}" login_tenant_name="admin"
+      auth_url="https://{{controller_publicname}}:35357/v2.0"
+      name="{{item.name}}" ram="{{item.ram}}" root="{{item.disk}}" vcpus="{{item.vcpus}}" swap="{{item.swap}}"
+      ephemeral=0
+    with_items:
+      - { name: m1.builder, ram: 5120, disk: 50, vcpus: 2, swap: 5120 }
+      - { name: ms2.builder, ram: 5120, disk: 20, vcpus: 2, swap: 100000 }
+      - { name: m2.prepare_builder, ram: 5000, disk: 16, vcpus: 2, swap: 0 }
+      # same as m.* but with swap
+      - { name: ms1.tiny, ram: 512, disk: 1, vcpus: 1, swap: 512 }
+      - { name: ms1.small, ram: 2048, disk: 20, vcpus: 1, swap: 2048 }
+      - { name: ms1.medium, ram: 4096, disk: 40, vcpus: 2, swap: 4096 }
+      - { name: ms1.medium.bigswap, ram: 4096, disk: 40, vcpus: 2, swap: 40000 }
+      - { name: ms1.large, ram: 8192, disk: 50, vcpus: 4, swap: 4096 }
+      - { name: ms1.xlarge, ram: 16384, disk: 160, vcpus: 8, swap: 16384 }
+      # inspired by http://aws.amazon.com/ec2/instance-types/
+      - { name: c4.large, ram: 3072, disk: 0, vcpus: 2, swap: 0 }
+      - { name: c4.xlarge, ram: 7168, disk: 0, vcpus: 4, swap: 0 }
+      - { name: c4.2xlarge, ram: 14336, disk: 0, vcpus: 8, swap: 0 }
+      - { name: r3.large, ram: 16384, disk: 32, vcpus: 2, swap: 16384 }
+
+  #####  download common Images #####
+  # restricted images (RHEL) are handled two steps below
+  - name: Add the images
+    glance_image:
+      login_username="admin" login_password="{{ ADMIN_PASS }}" login_tenant_name="admin"
+      auth_url="https://{{controller_publicname}}:35357/v2.0"
+      name="{{ item.name }}"
+      disk_format=qcow2
+      is_public=True
+      copy_from="{{ item.copy_from }}"
+    with_items:
+      - name: Fedora-Cloud-Base-27-1.6.ppc64le
+        copy_from: https://download.fedoraproject.org/pub/fedora-secondary/releases/27/CloudImages/ppc64le/images/Fedora-Cloud-Base-27-1.6.ppc64le.qcow2
+
+  ##### PROJECTS ######
+  - name: Create tenants
+    keystone_user:
+      login_user="admin" login_password="{{ ADMIN_PASS }}" login_tenant_name="admin"
+      endpoint="https://{{controller_publicname}}:35357/v2.0"
+      tenant="{{ item.name }}"
+      tenant_description="{{ item.desc }}"
+      state=present
+    with_items:
+      - { name: persistent, desc: "persistent instances" }
+      - { name: qa, desc: "developmnet and test-day applications of QA" }
+      - { name: transient, desc: 'transient instances' }
+      - { name: infrastructure, desc: "one off instances for infrastructure folks to test or check something (proof-of-concept)" }
+      - { name: copr, desc: 'Space for Copr builders' }
+      - { name: coprdev, desc: 'Development version of Copr' }
+      - { name: pythonbots, desc: 'project for python build bot users - twisted, etc' }
+      - { name: openshift, desc: 'Tenant for openshift deployment' }
+      - { name: maintainertest, desc: 'Tenant for maintainer test machines' }
+      - { name: aos-ci-cd, desc: 'Tenant for aos-ci-cd' }
+
+
+  ##### USERS #####
+  - name: Create users
+    keystone_user:
+      login_user="admin" login_password="{{ ADMIN_PASS }}" login_tenant_name="admin"
+      endpoint="https://{{controller_publicname}}:35357/v2.0"
+      user="{{ item.name }}"
+      email="{{ item.email }}"
+      tenant="{{ item.tenant }}"
+      password="{{ item.password }}"
+      state=present
+    no_log: True
+    with_items:
+      - { name: anthomas, email: 'anthomas@redhat.com', tenant: cloudintern, password: "{{anthomas_password}}" }
+      - { name: ausil, email: 'dennis@ausil.us', tenant: infrastructure, password: "{{ausil_password}}" }
+      - { name: atomic, email: 'walters@redhat.com', tenant: scratch, password: "{{cockpit_password}}" }
+      - { name: codeblock, email: 'codeblock@elrod.me', tenant: infrastructure, password: "{{codeblock_password}}" }
+      - { name: copr, email: 'admin@fedoraproject.org', tenant: copr, password: "{{copr_password}}" }
+      - { name: gholms, email: 'gholms@fedoraproject.org', tenant: cloudintern, password: "{{gholms_password}}" }
+      - { name: jskladan, email: 'jskladan@redhat.com', tenant: qa, password: "{{jskladan_password}}" }
+      - { name: kevin, email: 'kevin@fedoraproject.org', tenant: infrastructure, password: "{{kevin_password}}" }
+      - { name: laxathom, email: 'laxathom@fedoraproject.org', tenant: infrastructure, password: "{{laxathom_password}}" }
+      - { name: mattdm, email: 'mattdm@fedoraproject.org', tenant: infrastructure, password: "{{mattdm_password}}" }
+      - { name: msuchy, email: 'msuchy@redhat.com', tenant: copr, password: "{{msuchy_password}}" }
+      - { name: nb, email: 'nb@fedoraproject.org', tenant: infrastructure, password: "{{nb_password}}" }
+      - { name: pingou, email: 'pingou@pingoured.fr', tenant: infrastructure, password: "{{pingou_password}}" }
+      - { name: puiterwijk, email: 'puiterwijk@fedoraproject.org', tenant: infrastructure, password: "{{puiterwijk_password}}" }
+      - { name: stefw, email: 'stefw@fedoraproject.org', tenant: scratch, password: "{{stefw_password}}" }
+      - { name: mizdebsk, email: 'mizdebsk@fedoraproject.org', tenant: infrastructure, password: "{{mizdebsk_password}}" }
+      - { name: kushal, email: 'kushal@fedoraproject.org', tenant: infrastructure, password: "{{kushal_password}}" }
+      - { name: red, email: 'red@fedoraproject.org', tenant: infrastructure, password: "{{red_password}}" }
+      - { name: samkottler, email: 'samkottler@fedoraproject.org', tenant: infrastructure, password: "{{samkottler_password}}" }
+      - { name: tflink, email: 'tflink@fedoraproject.org', tenant: qa, password: "{{tflink_password}}" }
+      - { name: twisted, email: 'buildbot@twistedmatrix.com', tenant: pythonbots, password: "{{twisted_password}}" }
+      - { name: roshi, email: 'roshi@fedoraproject.org', tenant: qa, password: "{{roshi_password}}" }
+      - { name: maxamillion, email: 'maxamillion@fedoraproject.org', tenant: infrastructure, password: "{{maxamillion_password}}" }
+      - { name: clime, email: 'clime@redhat.com', tenant: copr, password: "{{clime_password}}" }
+      - { name: jkadlcik, email: 'jkadlcik@redhat.com', tenant: copr, password: "{{clime_password}}" }
+      - { name: misc, email: 'misc@redhat.com', tenant: openshift, password: "{{misc_password}}" }
+      - { name: bowlofeggs, email: 'bowlofeggs@fedoraproject.org', tenant: transient, password: "{{bowlofeggs_password}}" }
+      - { name: alivigni, email: 'alivigni@redhat.com', tenant: aos-ci-cd, password: "{{alivigni_password}}" }
+      - { name: jbieren, email: 'jbieren@redhat.com', tenant: aos-ci-cd, password: "{{jbieren_password}}" }
+      - { name: bpeck, email: 'bpeck@redhat.com', tenant: aos-ci-cd, password: "{{bpeck_password}}" }
+      - { name: srallaba, email: 'srallaba@redhat.com', tenant: aos-ci-cd, password: "{{srallaba_password}}" }
+      - { name: jburke, email: 'jburke@redhat.com', tenant: aos-ci-cd, password: "{{jburke_password}}" }
+    tags:
+    - openstack_users
+
+  - name: upload SSH keys for users
+    nova_keypair:
+      auth_url="https://{{controller_publicname}}:35357/v2.0"
+      login_username="{{ item.username }}"
+      login_password="{{ item.password }}" login_tenant_name="{{item.tenant}}" name="{{ item.name }}"
+      public_key="{{ item.public_key }}"
+    ignore_errors: yes
+    no_log: True
+    with_items:
+      - { username: anthomas, name: anthomas, tenant: cloudintern, password: "{{anthomas_password}}", public_key: "{{ lookup('pipe', '/srv/web/infra/ansible/scripts/auth-keys-from-fas anthomas') }}" }
+      - { username: ausil, name: ausil, tenant: infrastructure, password: "{{ausil_password}}", public_key: "{{ lookup('pipe', '/srv/web/infra/ansible/scripts/auth-keys-from-fas ausil') }}" }
+      - { username: codeblock, name: codeblock, tenant: infrastructure, password: "{{codeblock_password}}", public_key: "{{ lookup('pipe', '/srv/web/infra/ansible/scripts/auth-keys-from-fas codeblock') }}" }
+      - { username: buildsys, name: buildsys, tenant: copr, password: "{{copr_password}}", public_key: "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCeTO0ddXuhDZYM9HyM0a47aeV2yIVWhTpddrQ7/RAIs99XyrsicQLABzmdMBfiZnP0FnHBF/e+2xEkT8hHJpX6bX81jjvs2bb8KP18Nh8vaXI3QospWrRygpu1tjzqZT0Llh4ZVFscum8TrMw4VWXclzdDw6x7csCBjSttqq8F3iTJtQ9XM9/5tCAAOzGBKJrsGKV1CNIrfUo5CSzY+IUVIr8XJ93IB2ZQVASK34T/49egmrWlNB32fqAbDMC+XNmobgn6gO33Yq5Ly7Dk4kqTUx2TEaqDkZfhsVu0YcwV81bmqsltRvpj6bIXrEoMeav7nbuqKcPLTxWEY/2icePF" }
+      - { username: gholms, name: gholms, tenant: cloudintern, password: "{{gholms_password}}", public_key: "{{ lookup('pipe', '/srv/web/infra/ansible/scripts/auth-keys-from-fas gholms') }}" }
+      - { username: jskladan, name: jskladan, tenant: qa, password: "{{jskladan_password}}", public_key: "{{ lookup('pipe', '/srv/web/infra/ansible/scripts/auth-keys-from-fas jskladan') }}" }
+      - { username: kevin, name: kevin, tenant: infrastructure, password: "{{kevin_password}}", public_key: "{{ lookup('pipe', '/srv/web/infra/ansible/scripts/auth-keys-from-fas kevin') }}" }
+      - { username: maxamillion, name: maxamillion, tenant: infrastructure, password: "{{maxamillion_password}}", public_key: "{{ lookup('pipe', '/srv/web/infra/ansible/scripts/auth-keys-from-fas maxamillion') }}" }
+      - { username: laxathom, name: laxathom, tenant: infrastructure, password: "{{laxathom_password}}", public_key: "{{ lookup('pipe', '/srv/web/infra/ansible/scripts/auth-keys-from-fas laxathom') }}" }
+      - { username: mattdm, name: mattdm, tenant: infrastructure, password: "{{mattdm_password}}", public_key: "{{ lookup('pipe', '/srv/web/infra/ansible/scripts/auth-keys-from-fas mattdm') }}" }
+      - { username: msuchy, name: msuchy, tenant: copr, password: "{{msuchy_password}}", public_key: "{{ lookup('pipe', '/srv/web/infra/ansible/scripts/auth-keys-from-fas msuchy') }}" }
+      - { username: nb, name: nb, tenant: infrastructure, password: "{{nb_password}}", public_key: "{{ lookup('pipe', '/srv/web/infra/ansible/scripts/auth-keys-from-fas nb') }}" }
+      - { username: pingou, name: pingou, tenant: infrastructure, password: "{{pingou_password}}", public_key: "{{ lookup('pipe', '/srv/web/infra/ansible/scripts/auth-keys-from-fas pingou') }}" }
+      - { username: puiterwijk, name: puiterwijk, tenant: infrastructure, password: "{{puiterwijk_password}}", public_key: "{{ lookup('pipe', '/srv/web/infra/ansible/scripts/auth-keys-from-fas puiterwijk') }}" }
+      - { username: stefw, name: stefw, tenant: scratch, password: "{{stefw_password}}", public_key: "{{ lookup('pipe', '/srv/web/infra/ansible/scripts/auth-keys-from-fas stefw') }}" }
+      - { username: mizdebsk, name: mizdebsk, tenant: infrastructure, password: "{{mizdebsk_password}}", public_key: "{{ lookup('pipe', '/srv/web/infra/ansible/scripts/auth-keys-from-fas mizdebsk') }}" }
+      - { username: kushal, name: kushal, tenant: infrastructure, password: "{{kushal_password}}", public_key: "{{ lookup('pipe', '/srv/web/infra/ansible/scripts/auth-keys-from-fas kushal') }}" }
+      - { username: red, name: red, tenant: infrastructure, password: "{{red_password}}", public_key: "{{ lookup('pipe', '/srv/web/infra/ansible/scripts/auth-keys-from-fas red') }}" }
+      - { username: roshi, name: roshi, tenant: qa, password: "{{roshi_password}}", public_key: "{{ lookup('pipe', '/srv/web/infra/ansible/scripts/auth-keys-from-fas roshi') }}" }
+      - { username: samkottler, name: samkottler, tenant: infrastructure, password: "{{samkottler_password}}", public_key: "{{ lookup('pipe', '/srv/web/infra/ansible/scripts/auth-keys-from-fas skottler') }}" }
+      - { username: tflink, name: tflink, tenant: qa, password: "{{tflink_password}}", public_key: "{{ lookup('pipe', '/srv/web/infra/ansible/scripts/auth-keys-from-fas tflink') }}" }
+      - { username: atomic, name: atomic, tenant: scratch, password: "{{cockpit_password}}", public_key: "{{ lookup('pipe', '/srv/web/infra/ansible/scripts/auth-keys-from-fas walters') }}" }
+#      - { name: twisted, tenant: pythonbots, password: "{{twisted_password}}", public_key: "" }
+      - { username: admin, name: fedora-admin-20130801, tenant: admin, password: "{{ADMIN_PASS}}", public_key: "{{ lookup('file', files + '/fedora-cloud/fedora-admin-20130801.pub') }}" }
+      - { username: asamalik, name: asamalik, tenant: scratch, password: "{{asamalik_password}}", public_key: "{{ lookup('pipe', '/srv/web/infra/ansible/scripts/auth-keys-from-fas asamalik') }}" }
+      - { username: clime, name: clime, tenant: copr, password: "{{clime_password}}", public_key: "{{ lookup('pipe', '/srv/web/infra/ansible/scripts/auth-keys-from-fas clime') }}" }
+      - { username: jkadlcik, name: jkadlcik, tenant: copr, password: "{{clime_password}}", public_key: "{{ lookup('pipe', '/srv/web/infra/ansible/scripts/auth-keys-from-fas jkadlcik') }}" }
+      - { username: misc, name: misc, tenant: openshift, password: "{{misc_password}}", public_key: "{{ lookup('pipe', '/srv/web/infra/ansible/scripts/auth-keys-from-fas misc') }}" }
+      - { username: alivigni, name: alivigni, tenant: aos-ci-cd, password: "{{alivigni_password}}", public_key: "{{ lookup('pipe', '/srv/web/infra/ansible/scripts/auth-keys-from-fas alivigni') }}" }
+      - { username: jbieren, name: jbieren, tenant: aos-ci-cd, password: "{{jbieren_password}}", public_key: "{{ lookup('pipe', '/srv/web/infra/ansible/scripts/auth-keys-from-fas jbieren') }}" }
+      - { username: bpeck, name: bpeck, tenant: aos-ci-cd, password: "{{bpeck_password}}", public_key: "{{ lookup('pipe', '/srv/web/infra/ansible/scripts/auth-keys-from-fas bpeck') }}" }
+      - { username: srallaba, name: srallaba, tenant: aos-ci-cd, password: "{{srallaba_password}}", public_key: "{{ lookup('pipe', '/srv/web/infra/ansible/scripts/auth-keys-from-fas srallaba') }}" }
+      - { username: jburke, name: jburke, tenant: aos-ci-cd, password: "{{jburke_password}}", public_key: "{{ lookup('pipe', '/srv/web/infra/ansible/scripts/auth-keys-from-fas jburke') }}" }
+    tags:
+    - openstack_users
+
+  - name: Create roles for additional tenants
+    shell: source /root/keystonerc_admin && keystone role-list |grep ' {{item}} ' || keystone role-create --name {{ item }}
+    with_items: "{{all_tenants}}"
+  - name: Assign users to secondary tentants
+    shell: source /root/keystonerc_admin && keystone user-role-list --user "{{item.user}}" --tenant "{{item.tenant}}" | grep ' {{item.tenant }} ' || keystone user-role-add --user {{item.user}} --role {{item.tenant}} --tenant {{item.tenant}} || true
+    #keystone_user:
+    #  endpoint="https://{{controller_publicname}}:35357/v2.0"
+    #  login_user="admin" login_password="{{ ADMIN_PASS }}"
+    #  role=coprdev user={{ item }} tenant=coprdev
+    with_items:
+      - { user: admin, tenant: cloudintern }
+      - { user: admin, tenant: cloudsig }
+      - { user: admin, tenant: copr }
+      - { user: admin, tenant: coprdev }
+      - { user: admin, tenant: persistent }
+      - { user: admin, tenant: pythonbots }
+      - { user: admin, tenant: qa }
+      - { user: admin, tenant: infrastructure }
+      - { user: admin, tenant: scratch }
+      - { user: admin, tenant: transient }
+      - { user: admin, tenant: maintainertest }
+      - { user: admin, tenant: aos-ci-cd }
+      - { user: copr, tenant: coprdev }
+      - { user: kevin, tenant: cloudintern }
+      - { user: kevin, tenant: cloudsig }
+      - { user: kevin, tenant: copr }
+      - { user: kevin, tenant: coprdev }
+      - { user: kevin, tenant: persistent }
+      - { user: kevin, tenant: pythonbots }
+      - { user: kevin, tenant: qa }
+      - { user: kevin, tenant: scratch }
+      - { user: kevin, tenant: transient }
+      - { user: kevin, tenant: maintainertest }
+      - { user: kevin, tenant: aos-ci-cd }
+      - { user: msuchy, tenant: cloudintern }
+      - { user: msuchy, tenant: cloudsig }
+      - { user: msuchy, tenant: coprdev }
+      - { user: msuchy, tenant: infrastructure }
+      - { user: msuchy, tenant: persistent }
+      - { user: msuchy, tenant: pythonbots }
+      - { user: msuchy, tenant: qa }
+      - { user: msuchy, tenant: scratch }
+      - { user: msuchy, tenant: transient }
+      - { user: pingou, tenant: persistent }
+      - { user: puiterwijk, tenant: cloudintern }
+      - { user: puiterwijk, tenant: cloudsig }
+      - { user: puiterwijk, tenant: copr }
+      - { user: puiterwijk, tenant: coprdev }
+      - { user: puiterwijk, tenant: persistent }
+      - { user: puiterwijk, tenant: pythonbots }
+      - { user: puiterwijk, tenant: qa }
+      - { user: puiterwijk, tenant: scratch }
+      - { user: puiterwijk, tenant: transient }
+      - { user: puiterwijk, tenant: maintainertest }
+      - { user: puiterwijk, tenant: aos-ci-cd }
+      - { user: mizdebsk, tenant: aos-ci-cd }
+      - { user: mizdebsk, tenant: cloudintern }
+      - { user: mizdebsk, tenant: cloudsig }
+      - { user: mizdebsk, tenant: copr }
+      - { user: mizdebsk, tenant: coprdev }
+      - { user: mizdebsk, tenant: infrastructure }
+      - { user: mizdebsk, tenant: maintainertest }
+      - { user: mizdebsk, tenant: openshift }
+      - { user: mizdebsk, tenant: persistent }
+      - { user: mizdebsk, tenant: pythonbots }
+      - { user: mizdebsk, tenant: qa }
+      - { user: mizdebsk, tenant: scratch }
+      - { user: mizdebsk, tenant: transient }
+      - { user: clime, tenant: coprdev }
+      - { user: clime, tenant: persistent }
+      - { user: jkadlcik, tenant: coprdev }
+    tags:
+     - openstack_users
+
+  ##### NETWORK ####
+  # http://docs.openstack.org/havana/install-guide/install/apt/content/install-neutron.configure-networks.html
+  #
+  # external network is a class C: 209.132.184.0/24
+  # 209.132.184.1  to .25 - reserved for hardware.
+  # 209.132.184.26 to .30 - reserver for test cloud external ips
+  # 209.132.184.31 to .69 - icehouse cloud
+  # 209.132.184.70 to .89 - reserved for arm03 SOCs
+  # 209.132.184.90 to .251 - folsom cloud
+  #
+  - name: Create en external network
+    neutron_network:
+      login_username="admin" login_password="{{ ADMIN_PASS }}" login_tenant_name="admin"
+      auth_url="https://{{controller_publicname}}:35357/v2.0"
+      name=external
+      router_external=True
+      provider_network_type=flat
+      provider_physical_network=floatnet
+    register: EXTERNAL_ID
+  - name: Create an external subnet
+    neutron_subnet:
+      login_username="admin" login_password="{{ ADMIN_PASS }}" login_tenant_name="admin"
+      auth_url="https://{{controller_publicname}}:35357/v2.0"
+      name=external-subnet
+      network_name=external
+      cidr="{{ public_interface_cidr }}"
+      allocation_pool_start="{{ public_floating_start }}"
+      allocation_pool_end="{{ public_floating_end }}"
+      gateway_ip="{{ public_gateway_ip }}"
+      enable_dhcp=false
+    register: EXTERNAL_SUBNET_ID
+  #- shell: source /root/keystonerc_admin && nova floating-ip-create external
+  #  when: packstack_sucessfully_finished.stat.exists == False
+
+  # 172.16.0.1/16 -- 172.22.0.1/16 - free (can be split to /20)
+  # 172.23.0.1/16 - free (but used by old cloud)
+  # 172.24.0.1/24 - RESERVED it is used internally for OS
+  # 172.24.1.0/24 -- 172.24.255.0/24 - likely free (?)
+  # 172.25.0.1/20  - Cloudintern (172.25.0.1 - 172.25.15.254)
+  # 172.25.16.1/20 - infrastructure (172.25.16.1 - 172.25.31.254)
+  # 172.25.32.1/20 - persistent (172.25.32.1 - 172.25.47.254)
+  # 172.25.48.1/20 - transient (172.25.48.1 - 172.25.63.254)
+  # 172.25.64.1/20 - scratch (172.25.64.1 - 172.25.79.254)
+  # 172.25.80.1/20 - copr (172.25.80.1 - 172.25.95.254)
+  # 172.25.96.1/20 - cloudsig (172.25.96.1 - 172.25.111.254)
+  # 172.25.112.1/20 - qa (172.25.112.1 - 172.25.127.254)
+  # 172.25.128.1/20 - pythonbots (172.25.128.1 - 172.25.143.254)
+  # 172.25.144.1/20 - coprdev (172.25.144.1 - 172.25.159.254)
+  # 172.25.160.1/20 -- 172.25.240.1/20 - free
+  # 172.26.0.1/16 -- 172.31.0.1/16 - free (can be split to /20)
+
+  - name: Create a router for all tenants
+    neutron_router:
+      login_username="admin" login_password="{{ ADMIN_PASS }}" login_tenant_name="admin"
+      auth_url="https://{{controller_publicname}}:35357/v2.0"
+      tenant_name="{{ item }}"
+      name="ext-to-{{ item }}"
+    with_items: "{{all_tenants}}"
+  - name: "Connect router's gateway to the external network"
+    neutron_router_gateway:
+      login_username="admin" login_password="{{ ADMIN_PASS }}" login_tenant_name="admin"
+      auth_url="https://{{controller_publicname}}:35357/v2.0"
+      router_name="ext-to-{{ item }}"
+      network_name="external"
+    with_items: "{{all_tenants}}"
+  - name: Create a private network for all tenants
+    neutron_network:
+      login_username="admin" login_password="{{ ADMIN_PASS }}" login_tenant_name="admin"
+      auth_url="https://{{controller_publicname}}:35357/v2.0"
+      tenant_name="{{ item.name }}"
+      name="{{ item.name }}-net"
+      shared="{{ item.shared }}"
+    with_items:
+      - { name: cloudintern, shared: false }
+      - { name: cloudsig, shared: false }
+      - { name: copr, shared: true }
+      - { name: coprdev, shared: true }
+      - { name: infrastructure, shared: false }
+      - { name: persistent, shared: false }
+      - { name: pythonbots, shared: false }
+      - { name: qa, shared: false }
+      - { name: scratch, shared: false }
+      - { name: transient, shared: false }
+      - { name: openshift, shared: false }
+      - { name: maintainertest, shared: false }
+      - { name: aos-ci-cd, shared: false }
+  - name: Create a subnet for all tenants
+    neutron_subnet:
+      login_username="admin" login_password="{{ ADMIN_PASS }}" login_tenant_name="admin"
+      auth_url="https://{{controller_publicname}}:35357/v2.0"
+      tenant_name="{{ item.name }}"
+      network_name="{{ item.name }}-net"
+      name="{{ item.name }}-subnet"
+      cidr="{{ item.cidr }}"
+      gateway_ip="{{ item.gateway }}"
+      dns_nameservers="66.35.62.163,140.211.169.201"
+    with_items:
+      - { name: cloudintern, cidr: '172.25.0.1/20', gateway: '172.25.0.1' }
+      - { name: cloudsig, cidr: '172.25.96.1/20', gateway: '172.25.96.1' }
+      - { name: copr, cidr: '172.25.80.1/20', gateway: '172.25.80.1' }
+      - { name: coprdev, cidr: '172.25.144.1/20', gateway: '172.25.144.1' }
+      - { name: infrastructure, cidr: '172.25.16.1/20', gateway: '172.25.16.1' }
+      - { name: persistent, cidr: '172.25.32.1/20', gateway: '172.25.32.1' }
+      - { name: pythonbots, cidr: '172.25.128.1/20', gateway: '172.25.128.1' }
+      - { name: qa, cidr: '172.25.112.1/20', gateway: '172.25.112.1' }
+      - { name: scratch, cidr: '172.25.64.1/20', gateway: '172.25.64.1' }
+      - { name: transient, cidr: '172.25.48.1/20', gateway: '172.25.48.1' }
+      - { name: openshift, cidr: '172.25.160.1/20', gateway: '172.25.160.1' }
+      - { name: maintainertest, cidr: '172.25.176.1/20', gateway: '172.25.176.1' }
+      - { name: aos-ci-cd, cidr: '172.25.180.1/20', gateway: '172.25.180.1' }
+  - name: "Connect router's interface to the TENANT-subnet"
+    neutron_router_interface:
+      login_username="admin" login_password="{{ ADMIN_PASS }}" login_tenant_name="admin"
+      auth_url="https://{{controller_publicname}}:35357/v2.0"
+      tenant_name="{{ item }}"
+      router_name="ext-to-{{ item }}"
+      subnet_name="{{ item }}-subnet"
+    with_items: "{{all_tenants}}"
+
+  #################
+  # Security Groups
+  ################
+  - name: "Create 'ssh-anywhere' security group"
+    neutron_sec_group:
+      login_username: "admin"
+      login_password: "{{ ADMIN_PASS }}"
+      login_tenant_name: "admin"
+      auth_url: "https://{{controller_publicname}}:35357/v2.0"
+      state: "present"
+      name: 'ssh-anywhere-{{item}}'
+      description: "allow ssh from anywhere"
+      tenant_name: "{{item}}"
+      rules:
+        - direction: "ingress"
+          port_range_min: "22"
+          port_range_max: "22"
+          ethertype: "IPv4"
+          protocol: "tcp"
+          remote_ip_prefix: "0.0.0.0/0"
+    with_items: "{{all_tenants}}"
+
+  - name: "Allow nagios checks"
+    neutron_sec_group:
+      login_username: "admin"
+      login_password: "{{ ADMIN_PASS }}"
+      login_tenant_name: "admin"
+      auth_url: "https://{{controller_publicname}}:35357/v2.0"
+      state: "present"
+      name: 'allow-nagios-{{item}}'
+      description: "allow nagios checks"
+      tenant_name: "{{item}}"
+      rules:
+        - direction: "ingress"
+          port_range_min: "5666"
+          port_range_max: "5666"
+          ethertype: "IPv4"
+          protocol: "tcp"
+          remote_ip_prefix: "209.132.181.35/32"
+        - direction: "ingress"
+          ethertype: "IPv4"
+          protocol: "icmp"
+          remote_ip_prefix: "209.132.181.35/32"
+    with_items:
+    - persistent
+
+  - name: "Create 'ssh-from-persistent' security group"
+    neutron_sec_group:
+      login_username: "admin"
+      login_password: "{{ ADMIN_PASS }}"
+      login_tenant_name: "admin"
+      auth_url: "https://{{controller_publicname}}:35357/v2.0"
+      state: "present"
+      name: 'ssh-from-persistent-{{item}}'
+      description: "allow ssh from persistent"
+      tenant_name: "{{item}}"
+      rules:
+        - direction: "ingress"
+          port_range_min: "22"
+          port_range_max: "22"
+          ethertype: "IPv4"
+          protocol: "tcp"
+          remote_ip_prefix: "172.25.32.1/20"
+    with_items:
+      - copr
+      - coprdev
+
+
+  - name: "Create 'ssh-internal' security group"
+    neutron_sec_group:
+      login_username: "admin"
+      login_password: "{{ ADMIN_PASS }}"
+      login_tenant_name: "admin"
+      auth_url: "https://{{controller_publicname}}:35357/v2.0"
+      state: "present"
+      name: 'ssh-internal-{{item.name}}'
+      description: "allow ssh from {{item.name}}-network"
+      tenant_name: "{{ item.name }}"
+      rules:
+        - direction: "ingress"
+          port_range_min: "22"
+          port_range_max: "22"
+          ethertype: "IPv4"
+          protocol: "tcp"
+          remote_ip_prefix: "{{ item.prefix }}"
+    with_items:
+      - { name: cloudintern, prefix: '172.25.0.1/20' }
+      - { name: cloudsig, prefix: '172.25.96.1/20' }
+      - { name: copr, prefix: '172.25.80.1/20' }
+      - { name: coprdev, prefix: '172.25.80.1/20' }
+      - { name: infrastructure, prefix: "172.25.16.1/20" }
+      - { name: persistent, prefix: "172.25.32.1/20" }
+      - { name: pythonbots, prefix: '172.25.128.1/20' }
+      - { name: qa, prefix: "172.25.112.1/20" }
+      - { name: scratch, prefix: '172.25.64.1/20' }
+      - { name: transient, prefix: '172.25.48.1/20' }
+      - { name: openshift, prefix: '172.25.160.1/20' }
+      - { name: maintainertest, prefix: '172.25.180.1/20' }
+      - { name: aos-ci-cd, prefix: '172.25.200.1/20' }
+
+  - name: "Create 'web-80-anywhere' security group"
+    neutron_sec_group:
+      login_username: "admin"
+      login_password: "{{ ADMIN_PASS }}"
+      login_tenant_name: "admin"
+      auth_url: "https://{{controller_publicname}}:35357/v2.0"
+      state: "present"
+      name: 'web-80-anywhere-{{item}}'
+      description: "allow web-80 from anywhere"
+      tenant_name: "{{item}}"
+      rules:
+        - direction: "ingress"
+          port_range_min: "80"
+          port_range_max: "80"
+          ethertype: "IPv4"
+          protocol: "tcp"
+          remote_ip_prefix: "0.0.0.0/0"
+    with_items: "{{all_tenants}}"
+
+  - name: "Create 'web-443-anywhere' security group"
+    neutron_sec_group:
+      login_username: "admin"
+      login_password: "{{ ADMIN_PASS }}"
+      login_tenant_name: "admin"
+      auth_url: "https://{{controller_publicname}}:35357/v2.0"
+      state: "present"
+      name: 'web-443-anywhere-{{item}}'
+      description: "allow web-443 from anywhere"
+      tenant_name: "{{item}}"
+      rules:
+        - direction: "ingress"
+          port_range_min: "443"
+          port_range_max: "443"
+          ethertype: "IPv4"
+          protocol: "tcp"
+          remote_ip_prefix: "0.0.0.0/0"
+    with_items: "{{all_tenants}}"
+
+  - name: "Create 'oci-registry-5000-anywhere' security group"
+    neutron_sec_group:
+      login_username: "admin"
+      login_password: "{{ ADMIN_PASS }}"
+      login_tenant_name: "admin"
+      auth_url: "https://{{controller_publicname}}:35357/v2.0"
+      state: "present"
+      name: 'oci-registry-5000-anywhere-{{item}}'
+      description: "allow oci-registry-5000 from anywhere"
+      tenant_name: "{{item}}"
+      rules:
+        - direction: "ingress"
+          port_range_min: "5000"
+          port_range_max: "5000"
+          ethertype: "IPv4"
+          protocol: "tcp"
+          remote_ip_prefix: "0.0.0.0/0"
+    with_items: "{{all_tenants}}"
+
+  - name: "Create 'wide-open' security group"
+    neutron_sec_group:
+      login_username: "admin"
+      login_password: "{{ ADMIN_PASS }}"
+      login_tenant_name: "admin"
+      auth_url: "https://{{controller_publicname}}:35357/v2.0"
+      state: "present"
+      name: 'wide-open-{{item}}'
+      description: "allow anything from anywhere"
+      tenant_name: "{{item}}"
+      rules:
+        - direction: "ingress"
+          port_range_min: "0"
+          port_range_max: "65535"
+          ethertype: "IPv4"
+          protocol: "tcp"
+          remote_ip_prefix: "0.0.0.0/0"
+        - direction: "ingress"
+          port_range_min: "0"
+          port_range_max: "65535"
+          ethertype: "IPv4"
+          protocol: "udp"
+          remote_ip_prefix: "0.0.0.0/0"
+    with_items: "{{all_tenants}}"
+
+  - name: "Create 'ALL ICMP' security group"
+    neutron_sec_group:
+      login_username: "admin"
+      login_password: "{{ ADMIN_PASS }}"
+      login_tenant_name: "admin"
+      auth_url: "https://{{controller_publicname}}:35357/v2.0"
+      state: "present"
+      name: 'all-icmp-{{item}}'
+      description: "allow all ICMP traffic"
+      tenant_name: "{{item}}"
+      rules:
+        - direction: "ingress"
+          ethertype: "IPv4"
+          protocol: "icmp"
+          remote_ip_prefix: "0.0.0.0/0"
+    with_items: "{{all_tenants}}"
+
+  - name: "Create 'keygen-persistent' security group"
+    neutron_sec_group:
+      login_username: "admin"
+      login_password: "{{ ADMIN_PASS }}"
+      login_tenant_name: "admin"
+      auth_url: "https://{{controller_publicname}}:35357/v2.0"
+      state: "present"
+      name: 'keygen-persistent'
+      description: "rules for copr-keygen"
+      tenant_name: "persistent"
+      rules:
+        - direction: "ingress"
+          port_range_min: "5167"
+          port_range_max: "5167"
+          ethertype: "IPv4"
+          protocol: "tcp"
+          remote_ip_prefix: "172.25.32.1/20"
+        - direction: "ingress"
+          port_range_min: "80"
+          port_range_max: "80"
+          ethertype: "IPv4"
+          protocol: "tcp"
+          remote_ip_prefix: "172.25.32.1/20"
+
+  - name: "Create 'pg-5432-anywhere' security group"
+    neutron_sec_group:
+      login_username: "admin"
+      login_password: "{{ ADMIN_PASS }}"
+      login_tenant_name: "admin"
+      auth_url: "https://{{controller_publicname}}:35357/v2.0"
+      state: "present"
+      name: 'pg-5432-anywhere-{{item}}'
+      description: "allow postgresql-5432 from anywhere"
+      tenant_name: "{{item}}"
+      rules:
+        - direction: "ingress"
+          port_range_min: "5432"
+          port_range_max: "5432"
+          ethertype: "IPv4"
+          protocol: "tcp"
+          remote_ip_prefix: "0.0.0.0/0"
+    with_items: "{{all_tenants}}"
+
+  - name: "Create 'fedmsg-relay-persistent' security group"
+    neutron_sec_group:
+      login_username: "admin"
+      login_password: "{{ ADMIN_PASS }}"
+      login_tenant_name: "admin"
+      auth_url: "https://{{controller_publicname}}:35357/v2.0"
+      state: "present"
+      name: 'fedmsg-relay-persistent'
+      description: "allow incoming 2003 and 4001 from internal network"
+      tenant_name: "{{item}}"
+      rules:
+        - direction: "ingress"
+          port_range_min: "2003"
+          port_range_max: "2003"
+          ethertype: "IPv4"
+          protocol: "tcp"
+          remote_ip_prefix: "172.25.80.1/16"
+        - direction: "ingress"
+          port_range_min: "4001"
+          port_range_max: "4001"
+          ethertype: "IPv4"
+          protocol: "tcp"
+          remote_ip_prefix: "172.25.80.1/16"
+    with_items: "{{all_tenants}}"
+
+  # Update quota for Copr
+  #   SEE:
+  #   nova quota-defaults
+  #   nova quota-show --tenant $TENANT_ID
+  # default is 10 instances, 20 cores, 51200 RAM, 10 floating IPs
+  - shell: source /root/keystonerc_admin && keystone tenant-list | grep 'copr ' | awk '{print $2}'
+    register: TENANT_ID
+    check_mode: no
+    changed_when: false
+  - shell: source /root/keystonerc_admin && nova quota-update --instances 50 --cores 100 --ram 350000 --floating-ips 10 --security-groups 20 {{ TENANT_ID.stdout }}
+
+  - shell: source /root/keystonerc_admin && keystone tenant-list | grep 'coprdev ' | awk '{print $2}'
+    check_mode: no
+    changed_when: false
+    register: TENANT_ID
+  - shell: source /root/keystonerc_admin && nova quota-update --instances 40 --cores 80 --ram 300000 --floating-ips 10 --security-groups 20 {{ TENANT_ID.stdout }}
+
+#
+# Note that we set manually the amount of volumes for this tenant to 20 in the web interface.
+# nova quota-update cannot do so.
+#
+  - shell: source /root/keystonerc_admin && keystone tenant-list | grep 'persistent ' | awk '{print $2}'
+    check_mode: no
+    changed_when: false
+    register: TENANT_ID
+  - shell: source /root/keystonerc_admin && nova quota-update --instances 60 --cores 175 --ram 288300 --security-groups 20 {{ TENANT_ID.stdout }}
+
+# Transient quota
+  - shell: source /root/keystonerc_admin && keystone tenant-list | grep 'transient ' | awk '{print $2}'
+    check_mode: no
+    changed_when: false
+    register: TENANT_ID
+  - shell: source /root/keystonerc_admin && nova quota-update --instances 30 --cores 70 --ram 153600 --security-groups 20 {{ TENANT_ID.stdout }}
+

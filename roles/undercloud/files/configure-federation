@@ -1,0 +1,786 @@
+#!/bin/sh
+
+prog_name=`basename $0`
+action=
+dry_run=0
+verbose=0
+
+base_dir=$(pwd)
+stage_dir="${base_dir}/fed_deployment"
+
+mellon_root="/v3"
+mellon_endpoint="mellon"
+mellon_app_name="v3"
+
+overcloud_deploy_script="overcloud_deploy.sh"
+overcloudrc_file="./overcloudrc"
+
+function cmd_template {
+    local status=0
+    local cmd="$1"
+    if [ $verbose -ne 0 -o $dry_run -ne 0 ]; then
+        echo $cmd
+    fi
+    if [ $dry_run -ne 0 ]; then
+        return $status
+    fi
+
+    $cmd
+    status=$?
+    if [ $status -ne 0 ]; then
+        (>&2 echo -e "ERROR cmd \"$cmd\" failed\nstatus = $status")
+    fi
+    return $status
+}
+
+function cmds_template {
+    local return_status=0
+    declare -a cmds=(
+        "date"
+        "ls xxx"
+        "head $0"
+    )
+
+    if [ $dry_run -ne 0 ]; then
+        for cmd in "${cmds[@]}"; do
+            echo $cmd
+        done
+    else
+        for cmd in "${cmds[@]}"; do
+            if [ $verbose -ne 0 ]; then
+                echo $cmd
+            fi
+            $cmd
+            status=$?
+            if [ $status -ne 0 ]; then
+                (>&2 echo -e "ERROR cmd \"$cmd\" failed\nstatus = $status")
+                return_status=$status
+            fi
+        done
+    fi
+    return $return_status
+}
+
+function show_variables {
+    echo "base_dir: $base_dir"
+    echo "stage_dir: $stage_dir"
+    echo "config_tar_filename: $config_tar_filename"
+    echo "config_tar_pathname: $config_tar_pathname"
+    echo "overcloud_deploy_script: $overcloud_deploy_script"
+    echo "overcloudrc_file: $overcloudrc_file"
+
+    echo "puppet_override_apache_pathname: $puppet_override_apache_pathname"
+    echo "puppet_override_keystone_pathname: $puppet_override_keystone_pathname"
+
+    echo
+
+    echo "FED_RHSSO_URL: $FED_RHSSO_URL"
+    echo "FED_RHSSO_ADMIN_PASSWORD: $FED_RHSSO_ADMIN_PASSWORD"
+    echo "FED_RHSSO_REALM: $FED_RHSSO_REALM"
+
+    echo
+
+    echo "FED_KEYSTONE_HOST: $FED_KEYSTONE_HOST"
+    echo "FED_KEYSTONE_HTTPS_PORT: $FED_KEYSTONE_HTTPS_PORT"
+    echo "mellon_http_url: $mellon_http_url"
+    echo "mellon_root: $mellon_root"
+    echo "mellon_endpoint: $mellon_endpoint"
+    echo "mellon_app_name: $mellon_app_name"
+    echo "mellon_endpoint_path: $mellon_endpoint_path"
+    echo "mellon_entity_id: $mellon_entity_id"
+
+    echo
+
+    echo "FED_OPENSTACK_IDP_NAME: $FED_OPENSTACK_IDP_NAME"
+    echo "openstack_mapping_pathname: $openstack_mapping_pathname"
+    echo "FED_OPENSTACK_MAPPING_NAME: $FED_OPENSTACK_MAPPING_NAME"
+
+    echo
+
+    echo "idp_metadata_filename: $idp_metadata_filename"
+    echo "mellon_httpd_config_filename: $mellon_httpd_config_filename"
+}
+
+function initialize {
+    local return_status=0
+    declare -a cmds=(
+        "mkdir -p $stage_dir"
+    )
+
+    if [ $dry_run -ne 0 ]; then
+        for cmd in "${cmds[@]}"; do
+            echo $cmd
+        done
+    else
+        for cmd in "${cmds[@]}"; do
+            if [ $verbose -ne 0 ]; then
+                echo $cmd
+            fi
+            $cmd
+            status=$?
+            if [ $status -ne 0 ]; then
+                (>&2 echo -e "ERROR cmd \"$cmd\" failed\nstatus = $status")
+                return_status=$status
+            fi
+        done
+    fi
+    return $return_status
+}
+
+function copy_helper_to_controller {
+    local status=0
+    local controller=${1:-"controller-0"}
+    local cmd="scp configure-federation fed_variables heat-admin@${controller}:/home/heat-admin"
+    if [ $verbose -ne 0 -o $dry_run -ne 0 ]; then
+        echo $cmd
+    fi
+    if [ $dry_run -ne 0 ]; then
+        return $status
+    fi
+
+    $cmd
+    status=$?
+    if [ $status -ne 0 ]; then
+        (>&2 echo -e "ERROR cmd \"$cmd\" failed\nstatus = $status")
+    fi
+    return $status
+}
+
+function install_mod_auth_mellon {
+    local status=0
+    local cmd="sudo yum -y install mod_auth_mellon"
+
+    if [ $verbose -ne 0 -o $dry_run -ne 0 ]; then
+        echo $cmd
+    fi
+    if [ $dry_run -ne 0 ]; then
+        return $status
+    fi
+
+    $cmd
+    status=$?
+    if [ $status -ne 0 ]; then
+        (>&2 echo -e "ERROR cmd \"$cmd\" failed\nstatus = $status")
+    fi
+    return $status
+}
+
+function create_ipa_service_account {
+    # Note, after setting up the service account it can be tested
+    # by performing a user search like this:
+    # ldapsearch -H $ldap_url -x -D "$service_dn" -w "$FED_IPA_RHSSO_SERVICE_PASSWD" -b "cn=users,cn=accounts,$FED_IPA_BASE_DN"
+
+    local status=0
+    local ldap_url="ldaps://$FED_IPA_HOST"
+    local dir_mgr_dn="cn=Directory Manager"
+    local service_name="rhsso"
+    local service_dn="uid=$service_name,cn=sysaccounts,cn=etc,$FED_IPA_BASE_DN"
+    local cmd="ldapmodify -H \"$ldap_url\" -x -D \"$dir_mgr_dn\" -w \"$FED_IPA_ADMIN_PASSWD\""
+
+    read -r -d '' contents <<EOF
+dn: $service_dn
+changetype: add
+objectclass: account
+objectclass: simplesecurityobject
+uid: $service_name
+userPassword: $FED_IPA_RHSSO_SERVICE_PASSWD
+passwordExpirationTime: 20380119031407Z
+nsIdleTimeout: 0
+
+EOF
+
+    if [ $verbose -ne 0 -o $dry_run -ne 0 ]; then
+        echo $cmd
+        echo -e "$contents"
+    fi
+    if [ $dry_run -ne 0 ]; then
+        return $status
+    fi
+
+    sh <<< "$cmd <<< \"$contents\""
+    status=$?
+    if [ $status -ne 0 ]; then
+        (>&2 echo -e "ERROR cmd \"$cmd\" failed\nstatus = $status")
+    fi
+
+    return $status
+}
+
+
+
+function client_install {
+    local status=0
+    local cmd_client_install="sudo yum -y install keycloak-httpd-client-install"
+    local cmd="sudo keycloak-httpd-client-install \
+   --client-originate-method registration \
+   --mellon-https-port $FED_KEYSTONE_HTTPS_PORT \
+   --mellon-hostname $FED_KEYSTONE_HOST  \
+   --mellon-root $mellon_root \
+   --keycloak-server-url $FED_RHSSO_URL  \
+   --keycloak-admin-password  $FED_RHSSO_ADMIN_PASSWORD \
+   --app-name $mellon_app_name \
+   --keycloak-realm $FED_RHSSO_REALM \
+   -l "/v3/auth/OS-FEDERATION/websso/mapped" \
+   -l "/v3/auth/OS-FEDERATION/identity_providers/rhsso/protocols/mapped/websso" \
+   -l "/v3/OS-FEDERATION/identity_providers/rhsso/protocols/mapped/auth"
+"
+    if [ $verbose -ne 0 -o $dry_run -ne 0 ]; then
+        echo $cmd_client_install
+        echo $cmd
+    fi
+    if [ $dry_run -ne 0 ]; then
+        return $status
+    fi
+
+    $cmd_client_install
+    status=$?
+    if [ $status -ne 0 ]; then
+        (>&2 echo -e "ERROR cmd \"$cmd_client_install\" failed\nstatus = $status")
+    else
+        $cmd
+        status=$?
+        if [ $status -ne 0 ]; then
+            (>&2 echo -e "ERROR cmd \"$cmd\" failed\nstatus = $status")
+        fi
+    fi
+    return $status
+}
+
+function create_sp_archive {
+    # Note, we put the exclude patterns in a file because it is
+    # insanely difficult to put --exclude patttern in the $cmd shell
+    # variable and get the final quoting correct.
+
+    local status=0
+    local cmd="tar -cvzf $config_tar_pathname --exclude-from $stage_dir/tar_excludes /etc/httpd/saml2 /etc/httpd/conf.d/$mellon_httpd_config_filename"
+    if [ $verbose -ne 0 -o $dry_run -ne 0 ]; then
+        echo $cmd
+    fi
+    if [ $dry_run -ne 0 ]; then
+        return $status
+    fi
+
+    cat <<'EOF' > $stage_dir/tar_excludes
+*.orig
+*~
+EOF
+
+    $cmd
+    status=$?
+    if [ $status -ne 0 ]; then
+        (>&2 echo -e "ERROR cmd \"$cmd\" failed\nstatus = $status")
+    fi
+    return $status
+}
+
+function fetch_sp_archive {
+    local return_status=0
+    declare -a cmds=(
+        "scp heat-admin@controller-0:/home/heat-admin/fed_deployment/$config_tar_filename $stage_dir"
+        "tar -C $stage_dir -xvf $config_tar_pathname"
+    )
+
+    if [ $dry_run -ne 0 ]; then
+        for cmd in "${cmds[@]}"; do
+            echo $cmd
+        done
+    else
+        for cmd in "${cmds[@]}"; do
+            if [ $verbose -ne 0 ]; then
+                echo $cmd
+            fi
+            $cmd
+            status=$?
+            if [ $status -ne 0 ]; then
+                (>&2 echo -e "ERROR cmd \"$cmd\" failed\nstatus = $status")
+                return_status=$status
+            fi
+        done
+    fi
+    return $return_status
+}
+
+function deploy_mellon_configuration {
+    local status=0
+    local cmd="upload-swift-artifacts -f $config_tar_pathname"
+    if [ $verbose -ne 0 -o $dry_run -ne 0 ]; then
+        echo $cmd
+    fi
+    if [ $dry_run -ne 0 ]; then
+        return $status
+    fi
+
+    $cmd
+    status=$?
+    if [ $status -ne 0 ]; then
+        (>&2 echo -e "ERROR cmd \"$cmd\" failed\nstatus = $status")
+    fi
+    return $status
+}
+
+function idp_entity_id {
+    local metadata_file=${1:-$idp_metadata_filename}
+
+    # Extract the entitID from the metadata file, should really be parsed
+    # with an XML xpath but a simple string match is probably OK
+
+    entity_id=`sed -rne 's/^.*entityID="([^"]*)".*$/\1/p' ${metadata_file}`
+    status=$?
+    if [ $status -ne 0 -o "$entity_id"x = "x" ]; then
+        (>&2 echo -e "ERROR search for entityID in ${metadata_file} failed\nstatus = $status")
+        return 1
+    fi
+    echo $entity_id
+    return 0
+}
+
+function append_deploy_script {
+    local status=0
+    local deploy_script=$1
+    local extra_line=$2
+    local count
+
+    count=$(grep -c -e "$extra_line" $deploy_script)
+    if [ $count -eq 1 ]; then
+        echo -e "SKIP appending:\n$extra_line"
+        echo "already present in $deploy_script"
+        return $status
+    elif [ $count -gt 1 ]; then
+        status=1
+        (>&2 echo -e "ERROR multiple copies of line in  ${deploy_script}\nstatus = $status\nline=$extra_line")
+        return $status
+    fi
+
+    if [ $verbose -ne 0 -o $dry_run -ne 0 ]; then
+        echo "appending $deploy_script with:"
+        echo -e $extra_line
+    fi
+    if [ $dry_run -ne 0 ]; then
+        return $status
+    fi
+
+    # insert line after last -e line already in script
+    #
+    # This is not easy with sed, we'll use tac and awk instead.  Here
+    # is how this works: The logic is easier if you insert before the
+    # first line rather than trying to find the last line and insert
+    # after it. We use tac to reverse the lines in the file. Then the
+    # awk script looks for the candidate line. If found it outputs the
+    # line we're adding, sets a flag (p) to indicate it's already been
+    # printed. The "; 1" pattern always output the input line. Then we
+    # run the output through tac again to set things back in the
+    # original order.
+
+    local tmp_file=$(mktemp)
+
+    tac $deploy_script | awk "!p && /^-e/{print \"${extra_line} \\\\\"; p=1}; 1" | tac > $tmp_file
+
+    count=$(grep -c -e "${extra_line}" $tmp_file)
+    if [ $count -ne 1 ]; then
+        status=1
+    fi
+    if [ $status -ne 0 ]; then
+        rm $tmp_file
+        (>&2 echo -e "ERROR failed to append ${deploy_script}\nstatus = $status\nline=$extra_line")
+    else
+        mv $tmp_file $deploy_script
+    fi
+
+
+    return $status
+}
+
+function puppet_override_apache {
+    local status=0
+    local pathname=${1:-$puppet_override_apache_pathname}
+    local deploy_cmd="-e $pathname"
+
+    read -r -d '' contents <<'EOF'
+parameter_defaults:
+  ControllerExtraConfig:
+    apache::purge_configs: false
+EOF
+
+    if [ $verbose -ne 0 -o $dry_run -ne 0 ]; then
+        echo "writing pathname = $pathname with contents"
+        echo -e "$contents"
+    fi
+    if [ $dry_run -ne 0 ]; then
+        return $status
+    fi
+
+    echo -e "$contents" > $pathname
+    status=$?
+    if [ $status -ne 0 ]; then
+        (>&2 echo -e "ERROR failed to write ${pathname}\nstatus = $status")
+    fi
+
+    append_deploy_script $overcloud_deploy_script "$deploy_cmd"
+    status=$?
+
+    return $status
+}
+
+function puppet_override_keystone {
+    local status=0
+    local pathname=${1:-$puppet_override_keystone_pathname}
+    local deploy_cmd="-e $pathname"
+
+    read -r -d '' contents <<EOF
+parameter_defaults:
+  controllerExtraConfig:
+    keystone::using_domain_config: true
+    keystone::config::keystone_config:
+      identity/domain_configurations_from_database:
+        value: true
+      auth/methods:
+        value: external,password,token,oauth1,mapped
+      federation/trusted_dashboard:
+        value: https://$FED_KEYSTONE_HOST/dashboard/auth/websso/
+      federation/sso_callback_template:
+        value: /etc/keystone/sso_callback_template.html
+      federation/remote_id_attribute:
+        value: MELLON_IDP
+
+EOF
+
+    if [ $verbose -ne 0 -o $dry_run -ne 0 ]; then
+        echo "writing pathname = $pathname with contents"
+        echo -e "$contents"
+    fi
+    if [ $dry_run -ne 0 ]; then
+        return $status
+    fi
+
+    echo -e "$contents" > $pathname
+    status=$?
+    if [ $status -ne 0 ]; then
+        (>&2 echo -e "ERROR failed to write ${pathname}\nstatus = $status")
+    fi
+
+    append_deploy_script $overcloud_deploy_script "$deploy_cmd"
+    status=$?
+
+    return $status
+}
+
+function create_federated_resources {
+    # follow example in Keystone federation documentation
+    # http://docs.openstack.org/developer/keystone/federation/federated_identity.html#create-keystone-groups-and-assign-roles
+    local return_status=0
+    declare -a cmds=(
+    "openstack domain create federated_domain"
+    "openstack project create  --domain federated_domain federated_project"
+    "openstack group create federated_users --domain federated_domain"
+    "openstack role add --group federated_users --group-domain federated_domain --domain federated_domain _member_"
+    "openstack role add --group federated_users --project federated_project Member"
+    )
+
+    if [ $dry_run -ne 0 ]; then
+        for cmd in "${cmds[@]}"; do
+            echo $cmd
+        done
+    else
+        for cmd in "${cmds[@]}"; do
+            if [ $verbose -ne 0 ]; then
+                echo $cmd
+            fi
+            $cmd
+            status=$?
+            if [ $status -ne 0 ]; then
+                (>&2 echo -e "ERROR cmd \"$cmd\" failed\nstatus = $status")
+                return_status=$status
+            fi
+        done
+    fi
+    return $return_status
+}
+
+function create_mapping {
+    # Matches documentation
+    # http://docs.openstack.org/developer/keystone/federation/federated_identity.html#create-keystone-groups-and-assign-roles
+    local status=0
+    local pathname=${1:-$openstack_mapping_pathname}
+
+    read -r -d '' contents <<'EOF'
+[
+    {
+        "local": [
+            {
+                "user": {
+                    "name": "{0}"
+                },
+                "group": {
+                    "domain": {
+                        "name": "federated_domain"
+                    },
+                    "name": "federated_users"
+                }
+            }
+        ],
+        "remote": [
+            {
+                "type": "MELLON_NAME_ID"
+            },
+            {
+                "type": "MELLON_groups",
+                "any_one_of": ["openstack-users"]
+            }
+        ]
+    }
+]
+EOF
+
+    if [ $verbose -ne 0 -o $dry_run -ne 0 ]; then
+        echo "writing pathname = $pathname with contents"
+        echo -e "$contents"
+    fi
+    if [ $dry_run -ne 0 ]; then
+        return $status
+    fi
+
+
+    echo -e "$contents" > $pathname
+    status=$?
+    if [ $status -ne 0 ]; then
+        (>&2 echo -e "ERROR failed to write ${pathname}\nstatus = $status")
+    fi
+
+    return $status
+}
+
+function create_v3_rcfile {
+    local status=0
+    local input_file=${1:-$overcloudrc_file}
+    local output_file="${input_file}.v3"
+
+    source $input_file
+    #clear the old environment
+    NEW_OS_AUTH_URL=`echo $OS_AUTH_URL | sed 's!v2.0!v3!'`
+
+    read -r -d '' contents <<EOF
+for key in \$( set | sed 's!=.*!!g'  | grep -E '^OS_') ; do unset $key ; done
+export OS_AUTH_URL=$NEW_OS_AUTH_URL
+export OS_USERNAME=$OS_USERNAME
+export OS_PASSWORD=$OS_PASSWORD
+export OS_USER_DOMAIN_NAME=Default
+export OS_PROJECT_DOMAIN_NAME=Default
+export OS_PROJECT_NAME=$OS_TENANT_NAME
+export OS_IDENTITY_API_VERSION=3
+EOF
+
+    if [ $verbose -ne 0 -o $dry_run -ne 0 ]; then
+        echo "writeing output_file = $output_file with contents:"
+        echo -e "$contents"
+    fi
+    if [ $dry_run -ne 0 ]; then
+        return $status
+    fi
+
+    echo -e "$contents" > $output_file
+    status=$?
+    if [ $status -ne 0 ]; then
+        (>&2 echo -e "ERROR failed to write ${output_file}\nstatus = $status")
+    fi
+
+    return $status
+}
+
+function openstack_create_idp {
+    local status=0
+    local metadata_file="$stage_dir/etc/httpd/saml2/$idp_metadata_filename"
+    local entity_id
+    entity_id=$(idp_entity_id $metadata_file)
+    status=$?
+    if [ $status -ne 0 ]; then
+        return $status
+    fi
+
+    local cmd="openstack identity provider create --remote-id $entity_id $FED_OPENSTACK_IDP_NAME"
+
+    if [ $verbose -ne 0 -o $dry_run -ne 0 ]; then
+        echo $cmd
+    fi
+    if [ $dry_run -ne 0 ]; then
+        return $status
+    fi
+
+    $cmd
+    status=$?
+    if [ $status -ne 0 ]; then
+        (>&2 echo -e "ERROR cmd \"$cmd\" failed\nstatus = $status")
+    fi
+    return $status
+}
+
+function openstack_create_mapping {
+    local status=0
+    local mapping_file=${1:-$openstack_mapping_pathname}
+    local mapping_name=${2:-$FED_OPENSTACK_MAPPING_NAME}
+    cmd="openstack mapping create --rules $mapping_file $mapping_name"
+
+    if [ $verbose -ne 0 -o $dry_run -ne 0 ]; then
+        echo $cmd
+    fi
+    if [ $dry_run -ne 0 ]; then
+        return $status
+    fi
+
+    $cmd
+    status=$?
+    if [ $status -ne 0 ]; then
+        (>&2 echo -e "ERROR cmd \"$cmd\" failed\nstatus = $status")
+    fi
+    return $status
+}
+
+function openstack_create_protocol {
+    local status=0
+    local idp_name=${1:-$FED_OPENSTACK_IDP_NAME}
+    local mapping_name=${2:-$FED_OPENSTACK_MAPPING_NAME}
+    cmd="openstack federation protocol create --identity-provider $idp_name --mapping $mapping_name mapped"
+
+    if [ $verbose -ne 0 -o $dry_run -ne 0 ]; then
+        echo $cmd
+    fi
+    if [ $dry_run -ne 0 ]; then
+        return $status
+    fi
+
+    $cmd
+    status=$?
+    if [ $status -ne 0 ]; then
+        (>&2 echo -e "ERROR cmd \"$cmd\" failed\nstatus = $status")
+    fi
+    return $status
+}
+
+function usage {
+cat <<EOF
+$prog_name action
+
+-h --help        print usage
+-n --dry-run     dry run, just print computed command
+-v --verbose     be chatty
+
+action may be one of:
+
+show-variables
+initialize
+copy-helper-to-controller
+install-mod-auth-mellon
+create-ipa-service-account
+client-install
+create-sp-archive
+fetch-sp-archive
+deploy-mellon-configuration
+puppet-override-apache
+puppet-override-keystone
+create-federated-resources
+create-mapping
+create-v3-rcfile
+openstack-create-idp
+openstack-create-mapping
+openstack-create-protocol
+
+EOF
+}
+
+#-----------------------------------------------------------------------------
+# options may be followed by one colon to indicate they have a required argument
+if ! options=$(getopt -o hnv -l help,dry-run,verbose -- "$@")
+then
+    # something went wrong, getopt will put out an error message for us
+    exit 1
+fi
+
+eval set -- "$options"
+
+while [ $# -gt 0 ]
+do
+    case $1 in
+    -h|--help) usage; exit 1 ;;
+    -n|--dry-run) dry_run=1 ;;
+    -v|--verbose) verbose=1 ;;
+    # for options with required arguments, an additional shift is required
+    (--) shift; break;;
+    (-*) echo "$0: error - unrecognized option $1" 1>&2; exit 1;;
+    (*) break;;
+    esac
+    shift
+done
+#-----------------------------------------------------------------------------
+source ./fed_variables
+
+
+# Strip leading and trailing space and slash from these variables
+mellon_root=`echo ${mellon_root} | perl -pe 's!^[ /]*(.*?)[ /]*$!\1!'`
+mellon_endpoint=`echo ${mellon_endpoint} | perl -pe 's!^[ /]*(.*?)[ /]*$!\1!'`
+
+mellon_root="/${mellon_root}"
+
+mellon_endpoint_path="${mellon_root}/${mellon_endpoint}"
+mellon_http_url="https://${FED_KEYSTONE_HOST}:${FED_KEYSTONE_HTTPS_PORT}"
+mellon_entity_id="${mellon_http_url}${mellon_endpoint_path}/metadata"
+
+openstack_mapping_pathname="${stage_dir}/mapping_${FED_OPENSTACK_IDP_NAME}_saml2.json"
+idp_metadata_filename="${mellon_app_name}_keycloak_${FED_RHSSO_REALM}_idp_metadata.xml"
+mellon_httpd_config_filename="${mellon_app_name}_mellon_keycloak_${FED_RHSSO_REALM}.conf"
+config_tar_filename="rhsso_config.tar.gz"
+config_tar_pathname="${stage_dir}/${config_tar_filename}"
+puppet_override_apache_pathname="${stage_dir}/puppet_override_apache.yaml"
+puppet_override_keystone_pathname="${stage_dir}/puppet_override_keystone.yaml"
+
+#-----------------------------------------------------------------------------
+
+if [ $# -lt 1 ]; then
+  echo "ERROR: no action specified"
+  exit 1
+fi
+action="$1"; shift
+
+if [ $dry_run -ne 0 ]; then
+    echo "Dry Run Enabled!"
+fi
+
+case $action in
+    show-var*)
+        show_variables ;;
+    initialize)
+        initialize ;;
+    copy-helper-to-controller)
+        copy_helper_to_controller "$1" ;;
+    install-mod-auth-mellon)
+        install_mod_auth_mellon ;;
+    create-ipa-service-account)
+        create_ipa_service_account ;;
+    client-install)
+        client_install ;;
+    create-sp-archive)
+        create_sp_archive ;;
+    fetch-sp-archive)
+        fetch_sp_archive ;;
+    deploy-mellon-configuration)
+        deploy_mellon_configuration ;;
+    create-v3-rcfile)
+        create_v3_rcfile "$1" ;;
+    puppet-override-apache)
+        puppet_override_apache "$1" ;;
+    puppet-override-keystone)
+        puppet_override_keystone "$1" ;;
+    create-federated-resources)
+        create_federated_resources ;;
+    create-mapping)
+        create_mapping "$1" ;;
+    openstack-create-idp)
+        openstack_create_idp "$1" ;;
+    openstack-create-mapping)
+        openstack_create_mapping "$1" "$2" ;;
+    openstack-create-protocol)
+        openstack_create_protocol "$1" "$2" ;;
+    *)
+        echo "unknown action: $action"
+        usage
+        exit 1
+        ;;
+esac

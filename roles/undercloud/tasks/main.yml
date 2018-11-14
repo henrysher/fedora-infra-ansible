@@ -35,12 +35,28 @@
   - undercloud.conf
   - templates/node-info.yaml
   - openstack-overcloud-deploy.sh
+  - configure-federation
+  tags:
+  - config
+  - undercloud
+
+- name: Copy files to ~/stack/templates/
+  copy: src={{item}} dest=/home/stack/templates/{{item}} owner=stack group=stack mode=0644
+  with_items:
+  - cinder-dellps-config.yaml
+  - environment-rhel-registration.yaml
   tags:
   - config
   - undercloud
 
 - name: Copy nodes.json
   template: src=nodes.json dest=/home/stack/nodes.json owner=stack group=stack mode=0644
+  tags:
+  - config
+  - undercloud
+
+- name: Copy fed_variables
+  template: src=fed_variables dest=/home/stack/fed_variables owner=stack group=stack mode=0644
   tags:
   - config
   - undercloud
