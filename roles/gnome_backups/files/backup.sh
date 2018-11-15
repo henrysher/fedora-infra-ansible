@@ -24,7 +24,6 @@ MACHINES='signal.gnome.org
           account.gnome.org
           bugzilla.gnome.org
           socket.gnome.org
-          odrs.gnome.org
           gnome-hispano.gnome.org
           scale.gnome.org
           sdkbuilder.gnome.org
