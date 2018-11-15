@@ -137,18 +137,27 @@ class Ticket(object):
 
 
 def gather_bugzilla_easyfix():
-    """ From the Red Hat bugzilla, retrieve all new tickets flagged as
-    easyfix.
+    """ From the Red Hat bugzilla, retrieve all new tickets with keyword
+    easyfix or whiteboard trivial.
     """
-    bugbz = bzclient.query(
-         {'f1': 'keywords',
+    bugbz_easyfix = bzclient.query(
+        {'f1': 'keywords',
          'o1': 'allwords',
          'v1': 'easyfix',
          'query_format': 'advanced',
          'bug_status': ['NEW'],
          'classification': 'Fedora'})
-    #print " {0} easyfix bugs retrieve from the BZ ".format(len(bugbz))
-    return bugbz
+    # print " {0} easyfix bugs retrieved from BZ".format(len(bugbz_easyfix))
+    bugbz_trivial = bzclient.query(
+        {
+            'status_whiteboard': 'trivial',
+            'status_whiteboard_type': 'anywords',
+            'query_format': 'advanced',
+            'bug_status': ['NEW'],
+            'classification': 'Fedora'
+        })
+    # print " {0} trivial bugs retrieved from BZ".format(len(bugbz))
+    return (bugbz_easyfix + bugbz_trivial)
 
 
 def gather_project():
