@@ -19,11 +19,12 @@
             username: admin
             password: "{{ OS_PASSWORD }}"
             project_name: admin
-            project_domain_name: Default
-            user_domain_name: Default
-        auth_type: password
+            project_domain_name: default
+            user_domain_name: default
+        auth_type: v3password
         region_name: regionOne
         auth_version: 3
+        identity_api_version: 3
 
   - name: create non-standard flavor
     os_nova_flavor:
@@ -76,6 +77,7 @@
       description: "{{ item.desc }}"
       state: present
       enabled: True
+      domain_id: default
     with_items:
       - { name: persistent, desc: "persistent instances" }
       - { name: qa, desc: "developmnet and test-day applications of QA" }
@@ -102,7 +104,6 @@
     os_network:
       cloud: "{{ os_cloud }}"
       name: external
-      router_external: True
       provider_network_type: flat
       provider_physical_network: datacenter
       external: true
