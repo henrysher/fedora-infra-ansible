@@ -25,23 +25,6 @@
     version: "{{ git_branch }}"
   ignore_errors: yes
 
-- name: set correct file attributes for /srv/libravatar
-  file:
-    path: /srv/libravatar
-    owner: apache
-    group: apache
-    state: directory
-    recurse: yes
-
-- name: set fcontext for /srv/libravatar
-  sefcontext:
-    target: '/srv/libravatar(/.*)?'
-    setype: httpd_sys_content_t
-    state: present
-
-- name: Apply new SELinux file context to filesystem
-  command: restorecon -ir /srv/libravatar
-
 - pip:
     requirements: requirements.txt
     virtualenv: /mnt/data/.virtualenv
@@ -80,6 +63,23 @@
   command: "run-in-venv python3 manage.py collectstatic --noinput"
   args:
     chdir: /srv/libravatar
+
+- name: set correct file attributes for /srv/libravatar
+  file:
+    path: /srv/libravatar
+    owner: apache
+    group: apache
+    state: directory
+    recurse: yes
+
+- name: set fcontext for /srv/libravatar
+  sefcontext:
+    target: '/srv/libravatar(/.*)?'
+    setype: httpd_sys_content_t
+    state: present
+
+- name: Apply new SELinux file context to filesystem
+  command: restorecon -ir /srv/libravatar
 
 - name: Allow libravatar connect to db remote services
   seboolean:
