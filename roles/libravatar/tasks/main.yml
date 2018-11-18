@@ -19,8 +19,19 @@
   - "python3-mod_wsgi"
   - "policycoreutils-python"
 
-- group: name=www
-- user: name=www group=www
+- git:
+    repo: https://git.linux-kernel.at/oliver/ivatar.git
+    dest: /srv/libravatar
+    version: "{{ git_branch }}"
+  ignore_errors: yes
+
+- name: set correct file attributes for /srv/libravatar
+  file:
+    path: /srv/libravatar
+    owner: apache
+    group: apache
+    state: directory
+    recurse: yes
 
 - name: set fcontext for /srv/libravatar
   sefcontext:
@@ -28,17 +39,8 @@
     setype: httpd_sys_content_t
     state: present
 
-- name: create /srv/libravatar
-  file:
-    path: /srv/libravatar
-    setype: httpd_sys_content_t
-    state: directory
-
-- git:
-    repo: https://git.linux-kernel.at/oliver/ivatar.git
-    dest: /srv/libravatar
-    version: "{{ git_branch }}"
-  ignore_errors: yes
+- name: Apply new SELinux file context to filesystem
+  command: restorecon -ir /srv/libravatar
 
 - pip:
     requirements: requirements.txt
@@ -79,13 +81,17 @@
   args:
     chdir: /srv/libravatar
 
-- name: So that Apache can talk to PostgreSQL
+- name: Allow libravatar connect to db remote services
   seboolean:
-    name: httpd_can_network_connect_db
+    name: {{ item }}
     state: yes
     persistent: yes
+  with_items:
+  - httpd_can_network_connect_db
+  - httpd_can_network_connect
+  - nis_enabled
 
-- name: So Apache can execute psyco shared lib in virtualenv with httpd_sys_content_t type
+- name: Allow Apache use psyco shared lib in virtualenv with httpd_sys_content_t type
   seboolean:
     name: httpd_unified
     state: yes
