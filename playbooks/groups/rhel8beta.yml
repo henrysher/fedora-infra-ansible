@@ -1,5 +1,9 @@
+# create a new rhel8 beta test server
+
+- import_playbook: "/srv/web/infra/ansible/playbooks/include/virt-create.yml myhosts=rhel8beta"
+
 - name: dole out the generic configuration
-  hosts: el8betatest01.stg.phx2.fedoraproject.org
+  hosts: rhel8beta
   user: root
   gather_facts: True
 
@@ -8,15 +12,15 @@
    - "/srv/private/ansible/vars.yml"
    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
 
-  pre_tasks:
-  - import_tasks: "{{ tasks_path }}/yumrepos.yml"
-
   roles:
   - base
   - rkhunter
   - hosts
   - fas_client
   - sudo
+
+  pre_tasks:
+  - import_tasks: "{{ tasks_path }}/yumrepos.yml"
 
   tasks:
   - import_tasks: "{{ tasks_path }}/2fa_client.yml"
