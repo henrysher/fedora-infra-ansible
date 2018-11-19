@@ -59,11 +59,7 @@ data:
     LoadModule alias_module modules/mod_alias.so
     LoadModule rewrite_module modules/mod_rewrite.so
     LoadModule version_module modules/mod_version.so
-{% if env == 'staging' %}
     LoadModule wsgi_module modules/mod_wsgi_python3.so
-{% else %}
-    LoadModule wsgi_module modules/mod_wsgi.so
-{% endif %}
     LoadModule authn_core_module modules/mod_authn_core.so
     LoadModule authz_core_module modules/mod_authz_core.so
     LoadModule unixd_module modules/mod_unixd.so
@@ -76,11 +72,7 @@ data:
         AllowOverride None
         Require all granted
     </Directory>
-{% if env == 'staging' %}
     <Directory "/usr/lib/python3.7/site-packages/bodhi/server/static/">
-{% else %}
-    <Directory "/usr/lib/python2.7/site-packages/bodhi/server/static/">
-{% endif %}
         AllowOverride None
         Require all granted
     </Directory>
@@ -105,11 +97,7 @@ data:
     AddDefaultCharset UTF-8
     CoreDumpDirectory /tmp
     Alias /docs /usr/share/doc/bodhi-docs/html/
-{% if env == 'staging' %}
     Alias /static /usr/lib/python3.7/site-packages/bodhi/server/static/
-{% else %}
-    Alias /static /usr/lib/python2.7/site-packages/bodhi/server/static/
-{% endif %}
     WSGIDaemonProcess bodhi display-name=bodhi processes=2 threads=2 maximum-requests=1000 home=/httpdir
     WSGIApplicationGroup %{GLOBAL}
     WSGISocketPrefix run/wsgi
