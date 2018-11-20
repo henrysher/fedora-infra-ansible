@@ -43,6 +43,18 @@
   - packages
   - yumrepos
 
+- name: put fedora modular repos on primary architecture systems
+  template: src="{{ files }}/common/{{ item }}" dest="/etc/yum.repos.d/{{ item }}"
+  with_items:
+  - fedora-modular.repo
+  - fedora-updates-modular.repo
+  - fedora-updates-testing-modular.repo
+  when: ansible_distribution == 'Fedora' and ansible_distribution_major_version >= 29 and (ansible_architecture == 'aarch64' or ansible_architecture == 'x86_64' or ansible_architecture == 'i386' or ansible_architecture == 'armv7l') and not inventory_hostname.startswith('arm03') and not inventory_hostname.startswith('wiki01.stg')
+  tags:
+  - config
+  - packages
+  - yumrepos
+
 - name: put fedora repos on secondary architecture systems
   template: src="{{ files }}/common/{{ item }}-secondary" dest="/etc/yum.repos.d/{{ item }}"
   with_items:
@@ -50,6 +62,18 @@
   - fedora-updates.repo
   - fedora-updates-testing.repo
   when: ansible_distribution == 'Fedora' and (ansible_architecture == 'ppc64' or ansible_architecture == 'ppc64le' or ansible_architecture == 's390x')
+  tags:
+  - config
+  - packages
+  - yumrepos
+
+- name: put fedora repos on secondary architecture systems
+  template: src="{{ files }}/common/{{ item }}-secondary" dest="/etc/yum.repos.d/{{ item }}"
+  with_items:
+  - fedora-modular.repo
+  - fedora-updates-modular.repo
+  - fedora-updates-testing-modular.repo
+  when: ansible_distribution == 'Fedora' and ansible_distribution_major_version >= 29 and (ansible_architecture == 'ppc64le' or ansible_architecture == 's390x')
   tags:
   - config
   - packages
