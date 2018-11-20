@@ -18,7 +18,19 @@ spec:
         failurePolicy: Abort
         execNewPod:
           containerName: fpdc
-          command: [ "django-admin", "migrate", "--no-input"]
+          command: ["django-admin", "migrate", "--no-input"]
+          env:
+          - name: PYTHONPATH
+            value: /opt/app-root/src
+          - name: DJANGO_SETTINGS_MODULE
+            value: fpdc.settings.prod
+          volumes:
+            - config-volume
+      post:
+        failurePolicy: Ignore
+        execNewPod:
+          containerName: fpdc
+          command: ["django-admin", "add_permissions", "releng-team"]
           env:
           - name: PYTHONPATH
             value: /opt/app-root/src
