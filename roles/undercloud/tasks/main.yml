@@ -12,6 +12,7 @@
   with_items:
   - subscription-manager-rhsm-certificates
   - python-tripleoclient
+  - rhosp-director-images-all
   tags:
   - packages
   - undercloud
@@ -23,8 +24,13 @@
   - users
   - undercloud
 
-- name: Create templates directory
-  file: path=/home/stack/templates state=directory owner=stack group=stack mode=0755
+- name: Create some directories
+  file: path=/home/stack/{{item}} state=directory owner=stack group=stack mode=0755
+  with_items:
+  - templates
+  - images
+  - images/x86_64
+  - images/ppc64le
   tags:
   - config
   - undercloud
@@ -69,3 +75,18 @@
   args:
     chdir: /home/stack/
     creates: /home/stack/stackrc
+
+- name: Copy over images
+  become: yes
+  become_user: stack
+  shell: |
+    for arch in x86_64 ppc64le; do
+      for i in /usr/share/rhosp-director-images/overcloud-full-latest-13.0-${arch}.tar \
+        /usr/share/rhosp-director-images/ironic-python-agent-latest-13.0-${arch}.tar; do
+          tar -C $arch -xf $i;
+      done;
+    done
+  args:
+    chdir: /home/stack/images/
+    creates: /home/stack/imagex/x86_64/overcloud-full.initrd
+
