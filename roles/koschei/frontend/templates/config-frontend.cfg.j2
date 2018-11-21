@@ -39,9 +39,9 @@ config = {
         },
     },
     {% if env == 'staging' %}
-    "plugins": ['pagure', 'copr'],
+    "plugins": ['hotfix_pagure_extras', 'copr'],
     {% else %}
-    "plugins": ['pagure'],
+    "plugins": ['hotfix_pagure_extras'],
     {% endif %}
     "caching": {
         "pagure": {
@@ -53,9 +53,19 @@ config = {
                 },
             },
         },
+        "hotfix_pagure_extras": {
+            "backend": "dogpile.cache.memcached",
+            "expiration_time": 3600,  # 1 hour
+            "arguments": {
+                "url": "memcached01:11211",
+            },
+        },
     },
     "pagure": {
         "api_url": "https://src{{ env_suffix }}.fedoraproject.org/api/0",
+    },
+    "hotfix_pagure_extras": {
+        "owner_alias_url": "https://src{{ env_suffix }}.fedoraproject.org/extras/pagure_owner_alias.json",
     },
     "frontend": {
         "builds_per_page": 8,
