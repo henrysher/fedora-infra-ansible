@@ -259,6 +259,25 @@
   notify:
   - restart apache
 
+- name: Create the repoSpanner cert directory
+  file: /etc/pagure/repospanner state=directory mode=0640 owner=git group=git
+  tags:
+  - config
+  - pagure
+  - repospanner
+
+- name: Copy repoSpanner certs and keys
+  copy: src={{private}}/files/repoSpanner/{{env}}/ca/{{item}} dest=/etc/pagure/repospanner/{{item}}
+        owner=git group=git mode=0640
+  with_items:
+  - ca.crt
+  - ansible-push.crt
+  - ansible-push.key
+  tags:
+  - config
+  - pagure
+  - repospanner
+
 - name: create the database scheme
   command: /usr/bin/python2 /usr/share/pagure/pagure_createdb.py
   changed_when: "1 != 1"
