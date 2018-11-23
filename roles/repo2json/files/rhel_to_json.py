@@ -61,6 +61,16 @@ class Package(BASE):
 # os.path.walk() doesn't follow links, so it would not find any repodata.
 
 PATHS = {
+    'el8b': [
+        '/mnt/fedora/app/fi-repo/rhel/rhel8-beta/x86_64/rhel-8-for-x86_64-baseos-beta-rpms',
+        '/mnt/fedora/app/fi-repo/rhel/rhel8-beta/x86_64/codeready-builder-beta-for-rhel-8-x86_64-rpms',
+        '/mnt/fedora/app/fi-repo/rhel/rhel8-beta/aarch64/rhel-8-for-x86_64-baseos-beta-rpms',
+        '/mnt/fedora/app/fi-repo/rhel/rhel8-beta/aarch64/codeready-builder-beta-for-rhel-8-x86_64-rpms',
+        '/mnt/fedora/app/fi-repo/rhel/rhel8-beta/ppc64le/rhel-8-for-x86_64-baseos-beta-rpms',
+        '/mnt/fedora/app/fi-repo/rhel/rhel8-beta/ppc64le/codeready-builder-beta-for-rhel-8-x86_64-rpms',
+        '/mnt/fedora/app/fi-repo/rhel/rhel8-beta/s390x/rhel-8-for-x86_64-baseos-beta-rpms',
+        '/mnt/fedora/app/fi-repo/rhel/rhel8-beta/s390x/codeready-builder-beta-for-rhel-8-x86_64-rpms',
+    ],
     'el7': [
         '/mnt/fedora/app/fi-repo/rhel/rhel7/x86_64/rhel-7-server-extras-rpms',
         '/mnt/fedora/app/fi-repo/rhel/rhel7/x86_64/rhel-7-server-optional-rpms',
