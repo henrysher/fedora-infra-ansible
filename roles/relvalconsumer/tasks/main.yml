@@ -40,8 +40,8 @@
 
 - name: Install required packages (Python 3)
   dnf:
-    name: ['python3-fedfind', 'python3-wikitcms', 'python3-fedmsg', 'python3-mwclient',
-           'python3-setuptools', 'relval']
+    name: ['python2-pip', 'python3-fedfind', 'python3-wikitcms', 'python3-fedmsg',
+           'python3-mwclient', 'python3-setuptools', 'relval']
     state: present
   when: "'python34-fedmsg' in group_names"
   tags:
@@ -57,7 +57,7 @@
   find:
     paths: /usr/lib/python2.7/site-packages
     patterns: "relvalconsumer*"
-    register: py2rvinstalled
+  register: py2rvinstalled
   changed_when: "1 != 1"
   failed_when: "1 != 1"
   check_mode: no
@@ -112,7 +112,7 @@
   - restart fedmsg-hub
 
 - name: Remove relvalconsumer (Python 2)
-  command: "pip2 uninstall relvalconsumer"
+  command: "pip2 --disable-pip-version-check --yes uninstall relvalconsumer"
   when: "py2rvinstalled is defined and py2rvinstalled and 'python34-fedmsg' in group_names"
   notify:
   - restart fedmsg-hub
