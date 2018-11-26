@@ -23,19 +23,44 @@
 #  tags:
 #  - packages
 
-- name: Install required packages
+- name: Install required packages (Python 2)
   dnf:
     name: ['python2-fedfind', 'python2-wikitcms', 'python2-fedmsg-consumers', 'python2-mwclient',
            'python2-setuptools', 'relval']
     state: present
+  when: "'python34-fedmsg' not in group_names"
   tags:
   - packages
 
-- name: Install required packages (wiki oidc auth)
+- name: Install required packages (wiki oidc auth) (Python 2)
   dnf: name=python2-openidc-client state=present enablerepo="updates"
-  when: "wikitcms_token is defined"
+  when: "wikitcms_token is defined and 'python34-fedmsg' not in group_names"
   tags:
   - packages
+
+- name: Install required packages (Python 3)
+  dnf:
+    name: ['python3-fedfind', 'python3-wikitcms', 'python3-fedmsg-consumers', 'python3-mwclient',
+           'python3-setuptools', 'relval']
+    state: present
+  when: "'python34-fedmsg' in group_names"
+  tags:
+  - packages
+
+- name: Install required packages (wiki oidc auth) (Python 3)
+  dnf: name=python3-openidc-client state=present enablerepo="updates"
+  when: "wikitcms_token is defined and 'python34-fedmsg' in group_names"
+  tags:
+  - packages
+
+- name: Check if Python 2 relvalconsumer is installed
+  find:
+    paths: /usr/lib/python2.7/site-packages
+    patterns: "relvalconsumer*"
+    register: py2rvinstalled
+  changed_when: "1 != 1"
+  failed_when: "1 != 1"
+  check_mode: no
 
 # next two duplicated with openqa/dispatcher, but I kinda don't want to
 # move them up somewhere shared, I like the roles to be somewhat usable
@@ -78,11 +103,25 @@
     dest: /root/relvalconsumer
   register: gitrvc
 
-- name: Install relvalconsumer
-  command: "python setup.py install"
+- name: Install relvalconsumer (Python 2)
+  command: "python2 setup.py install"
   args:
     chdir: /root/relvalconsumer
-  when: "gitrvc is changed"
+  when: "gitrvc is changed and 'python34-fedmsg' not in group_names"
+  notify:
+  - restart fedmsg-hub
+
+- name: Remove relvalconsumer (Python 2)
+  command: "pip2 uninstall relvalconsumer"
+  when: "py2rvinstalled is defined and py2rvinstalled|length>0 and 'python34-fedmsg' in group_names"
+  notify:
+  - restart fedmsg-hub
+
+- name: Install relvalconsumer (Python 3)
+  command: "python3 setup.py install"
+  args:
+    chdir: /root/relvalconsumer
+  when: "(gitrvc is changed or (py2rvinstalled is defined and py2rvinstalled|length>0)) and 'python34-fedmsg' in group_names"
   notify:
   - restart fedmsg-hub
 
@@ -93,3 +132,12 @@
   - restart fedmsg-hub
   tags:
   - config
+
+- name: Remove Python 2 packages
+  dnf:
+    name: ['python2-fedfind', 'python2-wikitcms', 'python2-fedmsg-consumers', 'python2-mwclient',
+           'python2-setuptools']
+    state: absent
+  when: "'python34-fedmsg' in group_names"
+  tags:
+  - packages

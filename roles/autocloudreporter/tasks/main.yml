@@ -11,13 +11,32 @@
 ##              EVER BE TRUE ON ONE SYSTEM IN THE WORLD**
 ##       default - False
 
-- name: Install required packages
+- name: Install required packages (Python 2)
   dnf:
     name: ['python2-fedfind', 'python2-fedmsg-consumers', 'python2-resultsdb_api',
            'python2-resultsdb_conventions-fedora', 'python2-setuptools']
     state: present
+  when: "'python34-fedmsg' not in group_names"
   tags:
   - packages
+
+- name: Install required packages (Python 3)
+  dnf:
+    name: ['python3-fedfind', 'python3-fedmsg-consumers', 'python3-resultsdb_api',
+           'python3-resultsdb_conventions-fedora', 'python3-setuptools']
+    state: present
+  when: "'python34-fedmsg' in group_names"
+  tags:
+  - packages
+
+- name: Check if Python 2 autocloudreporter is installed
+  find:
+    paths: /usr/lib/python2.7/site-packages
+    patterns: "autocloudreporter*"
+    register: py2acrinstalled
+  changed_when: "1 != 1"
+  failed_when: "1 != 1"
+  check_mode: no
 
 - name: Check out autocloudreporter
   git:
@@ -25,11 +44,25 @@
     dest: /root/autocloudreporter
   register: gitacr
 
-- name: Install autocloudreporter
-  command: "python setup.py install"
+- name: Install autocloudreporter (Python 2)
+  command: "python2 setup.py install"
   args:
     chdir: /root/autocloudreporter
-  when: "gitacr is changed"
+  when: "gitacr is changed and 'python34-fedmsg' not in group_names"
+  notify:
+  - restart fedmsg-hub
+
+- name: Remove autocloudreporter (Python 2)
+  command: "pip2 --disable-pip-version-check uninstall autocloudreporter"
+  when: "py2acrinstalled is defined and py2acrinstalled|length>0 and 'python34-fedmsg' in group_names"
+  notify:
+  - restart fedmsg-hub
+
+- name: Install autocloudreporter (Python 3)
+  command: "python3 setup.py install"
+  args:
+    chdir: /root/autocloudreporter
+  when: "(gitcc is changed or (py2acrinstalled is defined and py2acrinstalled|length>0)) and 'python34-fedmsg' in group_names"
   notify:
   - restart fedmsg-hub
 
@@ -39,3 +72,12 @@
   - restart fedmsg-hub
   tags:
   - config
+
+- name: Remove Python 2 packages
+  dnf:
+    name: ['python2-fedfind', 'python2-fedmsg-consumers', 'python2-resultsdb_api',
+           'python2-resultsdb_conventions-fedora', 'python2-setuptools']
+    state: absent
+  when: "'python34-fedmsg' in group_names"
+  tags:
+  - packages

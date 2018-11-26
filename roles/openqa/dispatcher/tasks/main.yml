@@ -49,20 +49,39 @@
 #  tags:
 #  - packages
 
-- name: Install required packages
+- name: Install required packages (Python 2)
   dnf:
     name: ['python2-fedfind', 'python2-wikitcms', 'python2-fedmsg-consumers',
            'python2-openqa_client', 'python2-requests', 'python2-resultsdb_api',
            'python2-resultsdb_conventions-fedora', 'python2-setuptools', 'python-six']
     state: present
+  when: "'python34-fedmsg' not in group_names"
   tags:
   - packages
 
-- name: Install required packages (wiki oidc auth)
+- name: Install required packages (wiki oidc auth) (Python 2)
   dnf:
     name: python2-openidc-client
     state: present
-  when: "wikitcms_token is defined"
+  when: "wikitcms_token is defined and 'python34-fedmsg' not in group_names"
+  tags:
+  - packages
+
+- name: Install required packages (Python 3)
+  dnf:
+    name: ['python2-pip', 'python3-fedfind', 'python3-wikitcms', 'python3-fedmsg-consumers',
+           'python3-openqa_client', 'python3-requests', 'python3-resultsdb_api',
+           'python3-resultsdb_conventions-fedora', 'python3-setuptools', 'python3-six']
+    state: present
+  when: "'python34-fedmsg' in group_names"
+  tags:
+  - packages
+
+- name: Install required packages (wiki oidc auth) (Python 3)
+  dnf:
+    name: python3-openidc-client
+    state: present
+  when: "wikitcms_token is defined and 'python34-fedmsg' in group_names"
   tags:
   - packages
 
@@ -95,13 +114,46 @@
   failed_when: "1 != 1"
   check_mode: no
 
-- name: Install fedora_openqa
-  command: "python setup.py install"
+- name: Check if Python 2 fedora_openqa is installed
+  find:
+    paths: /usr/lib/python2.7/site-packages
+    patterns: "fedora_openqa*"
+    register: py2oqainstalled
+  changed_when: "1 != 1"
+  failed_when: "1 != 1"
+  check_mode: no
+
+- name: Install fedora_openqa (Python 2)
+  command: "python2 setup.py install"
   args:
     chdir: /root/fedora_openqa
-  when: "gittools is changed or not insttools.stat.exists"
+  when: "(gittools is changed or not insttools.stat.exists) and 'python34-fedmsg' not in group_names"
   notify:
   - restart fedmsg-hub
+
+- name: Remove fedora_openqa (Python 2)
+  command: "pip2 --disable-pip-version-check uninstall fedora-openqa"
+  when: "py2oqainstalled is defined and py2oqainstalled|length>0 and 'python34-fedmsg' in group_names"
+  notify:
+  - restart fedmsg-hub
+
+- name: Install fedora_openqa (Python 3)
+  command: "python3 setup.py install"
+  args:
+    chdir: /root/fedora_openqa
+  when: "(gittools is changed or not insttools.stat.exists or (py2oqainstalled is defined and py2oqainstalled|length>0)) and 'python34-fedmsg' in group_names"
+  notify:
+  - restart fedmsg-hub
+
+- name: Remove Python 2 packages
+  dnf:
+    name: ['python2-fedfind', 'python2-wikitcms', 'python2-fedmsg', 'python2-fedmsg-consumers',
+           'python2-openqa_client', 'python2-requests', 'python2-resultsdb_api',
+           'python2-resultsdb_conventions-fedora', 'python2-setuptools', 'python-six']
+    state: absent
+  when: "'python34-fedmsg' in group_names"
+  tags:
+  - packages
 
 # For now, we want ppc64 jobs generated on staging but not prod (as we
 # have ppc64 workers for stg but not prod). So we have a WANTED file
