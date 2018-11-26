@@ -22,7 +22,7 @@
 
 - name: Install required packages (Python 3)
   dnf:
-    name: ['python2-pip, python3-fedfind', 'python3-fedmsg', 'python3-resultsdb_api',
+    name: ['python3-fedfind', 'python3-fedmsg', 'python3-resultsdb_api',
            'python3-resultsdb_conventions-fedora', 'python3-setuptools']
     state: present
   when: "'python34-fedmsg' in group_names"
@@ -52,9 +52,17 @@
   notify:
   - restart fedmsg-hub
 
+- name: Install python2-pip if needed to remove py2 autocloudreporter
+  dnf:
+    name: python2-pip
+    state: present
+  when: "py2acrinstalled is defined and py2acrinstalled.files and 'python34-fedmsg' in group_names"
+  tags:
+  - packages
+
 - name: Remove autocloudreporter (Python 2)
   command: "pip2 uninstall --disable-pip-version-check --yes autocloudreporter"
-  when: "py2acrinstalled is defined and py2acrinstalled and 'python34-fedmsg' in group_names"
+  when: "py2acrinstalled is defined and py2acrinstalled.files and 'python34-fedmsg' in group_names"
   notify:
   - restart fedmsg-hub
 
@@ -62,7 +70,7 @@
   command: "python3 setup.py install"
   args:
     chdir: /root/autocloudreporter
-  when: "(gitacr is changed or (py2acrinstalled is defined and py2acrinstalled)) and 'python34-fedmsg' in group_names"
+  when: "(gitacr is changed or (py2acrinstalled is defined and py2acrinstalled.files)) and 'python34-fedmsg' in group_names"
   notify:
   - restart fedmsg-hub
 
@@ -76,7 +84,7 @@
 - name: Remove Python 2 packages
   dnf:
     name: ['python2-fedfind', 'python2-fedmsg', 'python2-resultsdb_api',
-           'python2-resultsdb_conventions-fedora', 'python2-setuptools']
+           'python2-resultsdb_conventions-fedora']
     state: absent
   when: "'python34-fedmsg' in group_names"
   tags:

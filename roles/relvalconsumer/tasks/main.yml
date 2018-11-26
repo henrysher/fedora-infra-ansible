@@ -40,7 +40,7 @@
 
 - name: Install required packages (Python 3)
   dnf:
-    name: ['python2-pip', 'python3-fedfind', 'python3-wikitcms', 'python3-fedmsg',
+    name: ['python3-fedfind', 'python3-wikitcms', 'python3-fedmsg',
            'python3-mwclient', 'python3-setuptools', 'relval']
     state: present
   when: "'python34-fedmsg' in group_names"
@@ -111,9 +111,17 @@
   notify:
   - restart fedmsg-hub
 
+- name: Install python2-pip if needed to remove py2 relvalconsumer
+  dnf:
+    name: python2-pip
+    state: present
+  when: "py2rvinstalled is defined and py2rvinstalled.files and 'python34-fedmsg' in group_names"
+  tags:
+  - packages
+
 - name: Remove relvalconsumer (Python 2)
   command: "pip2 uninstall --disable-pip-version-check --yes relvalconsumer"
-  when: "py2rvinstalled is defined and py2rvinstalled and 'python34-fedmsg' in group_names"
+  when: "py2rvinstalled is defined and py2rvinstalled.files and 'python34-fedmsg' in group_names"
   notify:
   - restart fedmsg-hub
 
@@ -121,7 +129,7 @@
   command: "python3 setup.py install"
   args:
     chdir: /root/relvalconsumer
-  when: "(gitrvc is changed or (py2rvinstalled is defined and py2rvinstalled)) and 'python34-fedmsg' in group_names"
+  when: "(gitrvc is changed or (py2rvinstalled is defined and py2rvinstalled.files)) and 'python34-fedmsg' in group_names"
   notify:
   - restart fedmsg-hub
 
@@ -135,8 +143,7 @@
 
 - name: Remove Python 2 packages
   dnf:
-    name: ['python2-fedfind', 'python2-wikitcms', 'python2-fedmsg', 'python2-mwclient',
-           'python2-setuptools']
+    name: ['python2-fedfind', 'python2-wikitcms', 'python2-fedmsg', 'python2-mwclient']
     state: absent
   when: "'python34-fedmsg' in group_names"
   tags:
