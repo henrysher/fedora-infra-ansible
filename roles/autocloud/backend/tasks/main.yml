@@ -69,6 +69,19 @@
   - autocloud
   - autocloud/backend
 
+- name: install libvirt for the aarch64 host
+  dnf: pkg={{ item }} state=present
+  with_items:
+  - libvirt
+  when: autocloud_specialization == 'aarch64'
+  notify:
+  - restart fedmsg-hub
+  - restart autocloud
+  tags:
+  - autocloud
+  - autocloud/backend
+
+
 - name: Setup virtualbox requirements where needed
   copy: src=virtualbox.repo dest=/etc/yum.repos.d/virtualbox.repo
   when: autocloud_specialization == 'virtualbox'
