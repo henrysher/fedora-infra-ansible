@@ -83,7 +83,7 @@
 
 - name: Remove check-compose (Python 2)
   command: "pip2 uninstall --disable-pip-version-check --yes check-compose"
-  when: "py2ccinstalled is defined and py2ccinstalled and 'python34-fedmsg' in group_names"
+  when: "py2ccinstalled is defined and py2ccinstalled.files and 'python34-fedmsg' in group_names"
   notify:
   - restart fedmsg-hub
 
@@ -91,7 +91,7 @@
   command: "python3 setup.py install"
   args:
     chdir: /root/check-compose
-  when: "(gitcc is changed or (py2ccinstalled is defined and py2ccinstalled)) and 'python34-fedmsg' in group_names"
+  when: "(gitcc is changed or (py2ccinstalled is defined and py2ccinstalled.files)) and 'python34-fedmsg' in group_names"
   notify:
   - restart fedmsg-hub
 
