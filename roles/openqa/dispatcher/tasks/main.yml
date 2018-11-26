@@ -51,7 +51,7 @@
 
 - name: Install required packages (Python 2)
   dnf:
-    name: ['python2-fedfind', 'python2-wikitcms', 'python2-fedmsg-consumers',
+    name: ['python2-fedfind', 'python2-wikitcms', 'python2-fedmsg',
            'python2-openqa_client', 'python2-requests', 'python2-resultsdb_api',
            'python2-resultsdb_conventions-fedora', 'python2-setuptools', 'python-six']
     state: present
@@ -69,7 +69,7 @@
 
 - name: Install required packages (Python 3)
   dnf:
-    name: ['python2-pip', 'python3-fedfind', 'python3-wikitcms', 'python3-fedmsg-consumers',
+    name: ['python2-pip', 'python3-fedfind', 'python3-wikitcms', 'python3-fedmsg',
            'python3-openqa_client', 'python3-requests', 'python3-resultsdb_api',
            'python3-resultsdb_conventions-fedora', 'python3-setuptools', 'python3-six']
     state: present
@@ -133,7 +133,7 @@
 
 - name: Remove fedora_openqa (Python 2)
   command: "pip2 --disable-pip-version-check uninstall fedora-openqa"
-  when: "py2oqainstalled is defined and py2oqainstalled|length>0 and 'python34-fedmsg' in group_names"
+  when: "py2oqainstalled is defined and py2oqainstalled and 'python34-fedmsg' in group_names"
   notify:
   - restart fedmsg-hub
 
@@ -141,13 +141,13 @@
   command: "python3 setup.py install"
   args:
     chdir: /root/fedora_openqa
-  when: "(gittools is changed or not insttools.stat.exists or (py2oqainstalled is defined and py2oqainstalled|length>0)) and 'python34-fedmsg' in group_names"
+  when: "(gittools is changed or not insttools.stat.exists or (py2oqainstalled is defined and py2oqainstalled)) and 'python34-fedmsg' in group_names"
   notify:
   - restart fedmsg-hub
 
 - name: Remove Python 2 packages
   dnf:
-    name: ['python2-fedfind', 'python2-wikitcms', 'python2-fedmsg', 'python2-fedmsg-consumers',
+    name: ['python2-fedfind', 'python2-wikitcms', 'python2-fedmsg',
            'python2-openqa_client', 'python2-requests', 'python2-resultsdb_api',
            'python2-resultsdb_conventions-fedora', 'python2-setuptools', 'python-six']
     state: absent
