@@ -109,7 +109,7 @@
 
 - name: Check if fedora_openqa has ever been installed (Python 2)
   stat: path=/usr/bin/fedora-openqa
-  register: insttools
+  register: insttools2
   when: "'python34-fedmsg' not in group_names"
   changed_when: "1 != 1"
   failed_when: "1 != 1"
@@ -117,7 +117,7 @@
 
 - name: Check if fedora_openqa has ever been installed (Python 3)
   stat: path=/usr/local/bin/fedora-openqa
-  register: insttools
+  register: insttools3
   when: "'python34-fedmsg' not in group_names"
   changed_when: "1 != 1"
   failed_when: "1 != 1"
@@ -136,7 +136,7 @@
   command: "python2 setup.py install --nodeps"
   args:
     chdir: /root/fedora_openqa
-  when: "(gittools is changed or not insttools.stat.exists) and 'python34-fedmsg' not in group_names"
+  when: "'python34-fedmsg' not in group_names and (gittools is changed or not insttools2.stat.exists)"
   notify:
   - restart fedmsg-hub
 
@@ -158,7 +158,7 @@
   command: "python3 setup.py install --nodeps"
   args:
     chdir: /root/fedora_openqa
-  when: "(gittools is changed or not insttools.stat.exists or (py2oqainstalled is defined and py2oqainstalled.files)) and 'python34-fedmsg' in group_names"
+  when: "'python34-fedmsg' in group_names and (gittools is changed or not insttools3.stat.exists or (py2oqainstalled is defined and py2oqainstalled.files))"
   notify:
   - restart fedmsg-hub
 
