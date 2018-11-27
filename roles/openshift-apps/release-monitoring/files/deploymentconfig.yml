@@ -40,6 +40,10 @@ items:
         containers:
         - name: release-monitoring-web
           image: release-monitoring/release-monitoring-web:latest
+          command: python3-gunicorn --bind 0.0.0.0:8080 --access-logfile=- anitya.wsgi:application
+          env:
+            - name: USER
+              value: anitya
           ports:
           - containerPort: 8080
           resources: {}
@@ -124,7 +128,11 @@ items:
       spec:
         containers:
         - name: fedmsg-hub
-          image: release-monitoring/fedmsg-hub:latest
+          image: release-monitoring/release-monitoring-web:latest
+          command: fedmsg-hub
+          env:
+            - name: USER
+              value: fedmsg
           resources: {}
           volumeMounts:
           - name: config-volume
@@ -141,7 +149,7 @@ items:
         - fedmsg-hub
         from:
           kind: ImageStreamTag
-          name: fedmsg-hub:latest
+          name: release-monitoring-web:latest
           namespace: release-monitoring
       type: ImageChange
     - type: ConfigChange
