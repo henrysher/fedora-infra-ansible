@@ -142,12 +142,24 @@ items:
           resources: {}
           volumeMounts:
           - name: config-volume
-            mountPath: /etc/anitya
+            mountPath: /etc/fedmsg.d/
+            readOnly: true
+          - name: fedmsg-key-volume
+            mountPath: /etc/pki/fedmsg/key
+            readOnly: true
+          - name: fedmsg-crt-volume
+            mountPath: /etc/pki/fedmsg/crt
             readOnly: true
         volumes:
         - name: config-volume
           configMap:
             name: fedmsg-configmap
+        - name: fedmsg-key-volume
+          secret:
+            secretName: release-monitoring-fedmsg-key
+        - name: fedmsg-crt-volume
+          secret:
+            secretName: release-monitoring-fedmsg-cert
     triggers:
     - imageChangeParams:
         automatic: true
