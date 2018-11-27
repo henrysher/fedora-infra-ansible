@@ -19,3 +19,10 @@
 
 - import_tasks: cron.yml
   tags: cron
+
+- name: Remove old repos
+  command: "faf cleanup-packages Fedora '{{ item }}' "
+  become: yes
+  become_user: faf
+  when: not devel
+  with_items: "{{ rs_internal_fedora_vers_removed }}"
