@@ -40,7 +40,12 @@ items:
         containers:
         - name: release-monitoring-web
           image: release-monitoring/release-monitoring-web:latest
-          command: python3-gunicorn --bind 0.0.0.0:8080 --access-logfile=- anitya.wsgi:application
+          command:
+            - python3-gunicorn
+          args:
+            - '--bind 0.0.0.0:8080'
+            - '--access-logfile=-'
+            - anitya.wsgi:application
           env:
             - name: USER
               value: anitya
@@ -129,7 +134,8 @@ items:
         containers:
         - name: fedmsg-hub
           image: release-monitoring/release-monitoring-web:latest
-          command: fedmsg-hub
+          command:
+            - fedmsg-hub
           env:
             - name: USER
               value: fedmsg
