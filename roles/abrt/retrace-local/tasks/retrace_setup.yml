@@ -2,7 +2,7 @@
 
 #long running tasks - run them in background - we do not actually care about the results
 - name: reposync for fedora
-  command: nohup retrace-server-reposync fedora {{ item[0] }} {{ item[1] }} </dev/null >/tmp/ansible.reposync_for_fedora.log &
+  shell: nohup retrace-server-reposync fedora {{ item[0] }} {{ item[1] }} </dev/null >$(mktemp ansible.reposync_for_fedoraXXXXXX.log) &
   with_nested:
     - "{{ rs_internal_fedora_vers }}"
     - "{{ rs_internal_arch_list }}"
@@ -12,7 +12,7 @@
   when: not devel
 
 - name: reposync for centos
-  command: nohup retrace-server-reposync centos 7 x86_64 </dev/null >/tmp/ansible.reposync_for_centos.log &
+  shell: nohup retrace-server-reposync centos 7 x86_64 </dev/null >$(mktemp ansible.reposync_for_centosXXXXXX.log) &
   become: yes
   become_user: retrace
   tags: [rs_reposync, rs_fedora]
