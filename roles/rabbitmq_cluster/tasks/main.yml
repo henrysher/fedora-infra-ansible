@@ -69,6 +69,14 @@
   - rabbitmq_cluster
   - config
 
+- name: deploy production cookie
+  copy: content="{{rabbitmq_cluster_cookie_production}}" dest=/var/lib/rabbitmq/.erlang.cookie
+        owner=rabbitmq group=rabbitmq mode=0600
+  when: "env == 'production'"
+  tags:
+  - rabbitmq_cluster
+  - config
+
 - name: Create RabbitMQ systemd override directory
   file:
     path: /etc/systemd/system/rabbitmq-server.service.d/
