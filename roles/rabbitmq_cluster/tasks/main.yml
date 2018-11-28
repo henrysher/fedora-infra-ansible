@@ -140,3 +140,17 @@
   tags:
   - rabbitmq_cluster
   - config
+
+- name: Create the admin user for the pubsub vhost
+  rabbitmq_user:
+    user: admin
+    password: "{{ rabbitmq_admin_password_production }}"
+    vhost: /pubsub
+    configure_priv: .*
+    read_priv: .*
+    write_priv: .*
+    tags: management
+  when: env == "production" and inventory_hostname.startswith('rabbitmq01')
+  tags:
+  - rabbitmq_cluster
+  - config
