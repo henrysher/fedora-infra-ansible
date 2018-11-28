@@ -117,6 +117,13 @@
   tags:
   - config
 
+- name: Set SELinux context for certs generation
+  sefcontext:
+    target: "/srv/web/acme-challenge/.well-known"
+    setype: httpd_sys_content_t
+    state: present
+  when: devel
+
 - name: enable services
   service: state=started enabled=yes name={{ item }}
   with_items:
