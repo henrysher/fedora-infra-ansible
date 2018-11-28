@@ -53,6 +53,28 @@
     - config
   # Do this manually until an Ansible bugfix is deployed
   # https://github.com/ansible/ansible/pull/45109
+  #
+  # == Dirty manual way while bug 45109 isn't fixed
+  - name: Get the rabbitmqadmin command
+    get_url:
+      url: http://localhost:15672/cli/rabbitmqadmin
+      dest: /usr/local/bin/rabbitmqadmin
+      mode: 0755
+    tags:
+    - config
+  - name: Create the amqp-to-zmq bindings
+    command: /usr/local/bin/rabbitmqadmin -V /pubsub -u admin -p {{ (env == 'production')|ternary(rabbitmq_admin_password_production, rabbitmq_admin_password_staging) }} declare binding source=amq.topic destination=amq_to_zmq destination_type=queue
+    tags:
+    - config
+  - name: Create the verify-missing bindings
+    command: /usr/local/bin/rabbitmqadmin -V /pubsub -u admin -p {{ (env == 'production')|ternary(rabbitmq_admin_password_production, rabbitmq_admin_password_staging) }} declare binding source={{ item }} destination=amqp_bridge_verify_missing destination_type=queue
+    with_items:
+    - amq.topic
+    - zmq.topic
+    tags:
+    - config
+  #
+  # == Proper ansible way of doing it
   #- name: Create the amqp-to-zmq bindings
   #  rabbitmq_binding:
   #    source: amq.topic
