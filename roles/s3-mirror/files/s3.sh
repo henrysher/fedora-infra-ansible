@@ -88,6 +88,18 @@ CMD="aws s3 sync                   \
 echo $CMD /srv/pub/epel/ s3://s3-mirror-us-west-1-02.fedoraproject.org/pub/epel/
 $CMD /srv/pub/epel/ s3://s3-mirror-us-west-1-02.fedoraproject.org/pub/epel/
 
+for file in $(echo /srv/pub/epel/6/*/repodata/repomd.xml | sed 's#/srv##g'); do
+  aws cloudfront create-invalidation --distribution-id E2KJMDC0QAJDMU --paths "$file"
+done
+
+for file in $(echo /srv/pub/epel/7/*/repodata/repomd.xml | sed 's#/srv##g'); do
+  aws cloudfront create-invalidation --distribution-id E2KJMDC0QAJDMU --paths "$file"
+done
+
 # Sync Fedora
 echo $CMD /srv/pub/fedora/ s3://s3-mirror-us-west-1-02.fedoraproject.org/pub/fedora/
 $CMD /srv/pub/fedora/ s3://s3-mirror-us-west-1-02.fedoraproject.org/pub/fedora/
+
+for file in $(echo /srv/pub/fedora/linux/updates/*/*/*/repodata/repomd.xml | sed 's#/srv##g'); do
+  aws cloudfront create-invalidation --distribution-id E2KJMDC0QAJDMU --paths "$file"
+done
