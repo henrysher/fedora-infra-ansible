@@ -96,7 +96,7 @@ items:
       handlers = ["console"]
 
       [anitya_log_config.loggers.fedmsg]
-      level = "DEBUG"
+      level = "INFO"
       propagate = false
       handlers = ["console"]
 
@@ -228,18 +228,40 @@ items:
           "topic_prefix": "org.release-monitoring",
           "sign_messages": True,
           "validate_signatures": True,
-          "anitya.libraryio.enabled": True,
           "crypto_backend": "x509",
           "ssldir": "/etc/pki/fedmsg/",
           "cert_prefix": "release-monitoring",
           "certnames": {"anitya.{}".format(socket.gethostname()): "release-monitoring"},
 {% if env == 'staging' %}
-          "endpoints": {"anitya.stg": "tcp://busgateway01.stg.phx2.fedoraproject.org:9940"},
           "environment": "stg",
           "relay_inbound": ["tcp://busgateway01.stg.phx2.fedoraproject.org:9941"],
 {% else %}
-          "endpoints": {"anitya.prod": "tcp://busgateway01.phx2.fedoraproject.org:9940"},
           "environment": "prod",
           "relay_inbound": ["tcp://busgateway01.phx2.fedoraproject.org:9941"],
 {% endif %}
       }
+- apiVersion: v1
+  kind: ConfigMap
+  metadata:
+    name: fedmsg-consumer-configmap
+    labels:
+      app: fedmsg-consumer
+  data:
+    anitya.py: |-
+      import socket
+      config = {
+          "zmq_enabled": True,
+          "topic_prefix": "org.fedoraproject",
+          "anitya.libraryio.enabled": True,
+          "crypto_backend": "x509",
+          "ssldir": "/etc/pki/fedmsg/",
+          "cert_prefix": "release-monitoring",
+          "certnames": {"anitya.{}".format(socket.gethostname()): "release-monitoring"},
+  {% if env == 'staging' %}
+          "endpoints": {"anitya.stg": "tcp://busgateway01.stg.phx2.fedoraproject.org:9940"},
+          "environment": "stg",
+  {% else %}
+          "endpoints": {"anitya.prod": "tcp://busgateway01.phx2.fedoraproject.org:9940"},
+          "environment": "prod",
+  {% endif %}
+  }
