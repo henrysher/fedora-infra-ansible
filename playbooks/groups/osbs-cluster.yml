@@ -431,6 +431,19 @@
   tags:
     - osbs-orchestrator-namespace
 
+- name: Save orchestrator token x86_64
+  hosts: osbs-masters-stg[0]:osbs-masters[0]
+  tasks:
+    - name: get orchestrator service account token
+      command: "oc -n {{ osbs_worker_namespace }} sa get-token orchestrator"
+      register: orchestator_token_x86_64
+    - name: save the token locally
+      local_action: >
+        copy
+        content="{{ orchestator_token_x86_64.stdout }}"
+        dest=/tmp/.orchestator-token-x86_64
+        mode=0400
+
 - name: setup orchestrator token for x86_64-osbs
   hosts: osbs-masters-stg[0]:osbs-masters[0]
   vars_files:
@@ -441,8 +454,15 @@
   - role: osbs-secret
     osbs_secret_name: x86-64-orchestrator
     osbs_secret_files:
-    - source: "{{ private }}/files/osbs/{{ env }}/x86-64-osbs-orchestrator"
+    - source: "/tmp/.orchestator-token-x86_64"
       dest: token
+
+  post_tasks:
+  - name: Delete the temporary secret file
+    local_action: >
+      file
+      state=absent
+      path="/tmp/.orchestator-token-x86_64"
   tags:
     - osbs-orchestrator-namespace
 
