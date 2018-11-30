@@ -86,5 +86,10 @@ sub vcl_recv {
     if (req.url ~ "h264") {
         return (pipe);
     }
+
+    # Rewrite toplink URLs to improve cache hit ratio
+    # See: https://pagure.io/fedora-infrastructure/issue/7383
+    set req.url = regsub(req.url, "^/repos/[^/]+/[^/]+/[^/]+/toplink/", "/");
+
     return (hash);
 }
