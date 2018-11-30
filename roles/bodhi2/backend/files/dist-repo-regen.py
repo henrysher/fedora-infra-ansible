@@ -60,6 +60,20 @@ for koji_env in config['tag2distrepo.tags'].keys():
 
     koji_session.multicall = True
     for [tag_info] in tag_infos:
+        koji_session.listTaggedRPMS(tag_info['id'], rpmsigs=True)
+    tagged_rpms = koji_session.multiCall(strict=True)
+
+    koji_session.multicall = True
+    for [tag_info], [[rpms, _]] in zip(tag_infos, tagged_rpms):
+        keys = koji_config['tags'][tag_info['name']]
+        for rpm in rpms:
+            for key in keys:
+                if rpm['sigkey'] == key:
+                    koji_session.writeSignedRPM(rpm['id'], key)
+    koji_session.multiCall(strict=True)
+
+    koji_session.multicall = True
+    for [tag_info] in tag_infos:
         opts = {
             'arch': (tag_info['arches'] or '').split(),
             'comp': None,
