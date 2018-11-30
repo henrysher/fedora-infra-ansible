@@ -11,21 +11,17 @@
 ##       default - ansible_nodename
 #
 # Optional vars
-# - wikitcms_user
-##      string - FAS username for reporting results to wiki
-# - wikitcms_password
-##      string - password for wikitcms_user
 # - wikitcms_token
 ##      string - a token file to install for unattended reporting to
-#                a wiki using openidc auth (Fedora wikis after 2017-11)
+#                a wiki using openidc auth
 # - deployment_type
 ##      string - Fedora Infrastructure thing; for this role, the
 ##               fedora_openqa config file will be set appropriately
 ##               for infra deployments if this is set, so don't set
 ##               it for private deployments
 #
-# When all of the above are set, a wikitcms 'credentials' file will
-# be created and result submission to the wiki will be enabled. If
+# When all of the above are set, a wikitcms 'token' file will be
+# installed and result submission to the wiki will be enabled. If
 # deployment_type is set to 'prod', results will be submitted to the
 # production wiki in response to openQA production 'job complete'
 # fedmsgs; if set to 'stg', results will be submitted to the staging
@@ -127,12 +123,8 @@
   tags:
   - config
 
-- name: Create /etc/fedora (credentials files location)
-  file: path=/etc/fedora state=directory owner=root group=fedmsg mode=0750
-
-- name: Write wikitcms credentials file
-  template: src=credentials.j2 dest=/etc/fedora/credentials owner=root group=fedmsg mode=0640
-  when: "wikitcms_user is defined and wikitcms_password is defined"
+- name: Remove old wikitcms credentials file
+  file: path=/etc/fedora/credentials state=absent
   tags:
   - config
 
