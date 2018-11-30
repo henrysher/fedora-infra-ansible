@@ -36,36 +36,17 @@
 #- name: Install required packages (testing)
 #  dnf: name={{ item }} state=present enablerepo="updates-testing"
 #  with_items:
-#  - python2-fedfind
+#  - python3-fedfind
 #  tags:
 #  - packages
 
-- name: Install required packages (Python 2)
-  dnf:
-    name: ['python2-fedfind', 'python2-fedmsg', 'python2-openqa_client',
-           'python2-setuptools', 'python2-six']
-    state: present
-  when: "'python34-fedmsg' not in group_names"
-  tags:
-  - packages
-
-- name: Install required packages (Python 3)
+- name: Install required packages
   dnf:
     name: ['python3-fedfind', 'python3-fedmsg', 'python3-openqa_client',
            'python3-setuptools', 'python3-six']
     state: present
-  when: "'python34-fedmsg' in group_names"
   tags:
   - packages
-
-- name: Check if Python 2 check-compose is installed
-  find:
-    paths: /usr/lib/python2.7/site-packages
-    patterns: "check_compose*"
-  register: py2ccinstalled
-  changed_when: "1 != 1"
-  failed_when: "1 != 1"
-  check_mode: no
 
 - name: Check out check-compose
   git:
@@ -73,33 +54,11 @@
     dest: /root/check-compose
   register: gitcc
 
-- name: Install check-compose (Python 2)
-  command: "python2 setup.py install --nodeps"
-  args:
-    chdir: /root/check-compose
-  when: "gitcc is changed and 'python34-fedmsg' not in group_names"
-  notify:
-  - restart fedmsg-hub
-
-- name: Install python2-pip if needed to remove py2 check-compose
-  dnf:
-    name: python2-pip
-    state: present
-  when: "py2ccinstalled is defined and py2ccinstalled.files and 'python34-fedmsg' in group_names"
-  tags:
-  - packages
-
-- name: Remove check-compose (Python 2)
-  command: "pip2 uninstall --disable-pip-version-check --yes check-compose"
-  when: "py2ccinstalled is defined and py2ccinstalled.files and 'python34-fedmsg' in group_names"
-  notify:
-  - restart fedmsg-hub
-
-- name: Install check-compose (Python 3)
+- name: Install check-compose
   command: "python3 setup.py install --nodeps"
   args:
     chdir: /root/check-compose
-  when: "(gitcc is changed or (py2ccinstalled is defined and py2ccinstalled.files)) and 'python34-fedmsg' in group_names"
+  when: "gitcc is changed"
   notify:
   - restart fedmsg-hub
 
@@ -109,14 +68,6 @@
   - restart fedmsg-hub
   tags:
   - config
-
-- name: Remove Python 2 packages
-  dnf:
-    name: ['python2-fedfind', 'python2-openqa_client']
-    state: absent
-  when: "'python34-fedmsg' in group_names"
-  tags:
-  - packages
 
 - name: Install config file
   template: src=check-compose.conf.j2 dest=/etc/check-compose.conf mode=0644

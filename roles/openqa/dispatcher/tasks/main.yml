@@ -49,39 +49,20 @@
 #  tags:
 #  - packages
 
-- name: Install required packages (Python 2)
-  dnf:
-    name: ['python2-fedfind', 'python2-wikitcms', 'python2-fedmsg',
-           'python2-openqa_client', 'python2-requests', 'python2-resultsdb_api',
-           'python2-resultsdb_conventions-fedora', 'python2-setuptools', 'python-six']
-    state: present
-  when: "'python34-fedmsg' not in group_names"
-  tags:
-  - packages
-
-- name: Install required packages (wiki oidc auth) (Python 2)
-  dnf:
-    name: python2-openidc-client
-    state: present
-  when: "wikitcms_token is defined and 'python34-fedmsg' not in group_names"
-  tags:
-  - packages
-
-- name: Install required packages (Python 3)
+- name: Install required packages
   dnf:
     name: ['python3-fedfind', 'python3-wikitcms', 'python3-fedmsg',
            'python3-openqa_client', 'python3-requests', 'python3-resultsdb_api',
            'python3-resultsdb_conventions-fedora', 'python3-setuptools', 'python3-six']
     state: present
-  when: "'python34-fedmsg' in group_names"
   tags:
   - packages
 
-- name: Install required packages (wiki oidc auth) (Python 3)
+- name: Install required packages (wiki oidc auth)
   dnf:
     name: python3-openidc-client
     state: present
-  when: "wikitcms_token is defined and 'python34-fedmsg' in group_names"
+  when: "wikitcms_token is defined"
   tags:
   - packages
 
@@ -107,69 +88,20 @@
   register: gittools
   when: "(toolsbranch.stderr.find('Not a git repository') != -1) or (toolsbranch.stdout.find('On branch master') != -1)"
 
-- name: Check if fedora_openqa has ever been installed (Python 2)
-  stat: path=/usr/bin/fedora-openqa
-  register: insttools
-  when: "'python34-fedmsg' not in group_names"
-  changed_when: "1 != 1"
-  failed_when: "1 != 1"
-  check_mode: no
-
-- name: Check if fedora_openqa has ever been installed (Python 3)
+- name: Check if fedora_openqa has ever been installed
   stat: path=/usr/local/bin/fedora-openqa
   register: insttools
-  when: "'python34-fedmsg' in group_names"
   changed_when: "1 != 1"
   failed_when: "1 != 1"
   check_mode: no
 
-- name: Check if Python 2 fedora_openqa is installed
-  find:
-    paths: /usr/lib/python2.7/site-packages
-    patterns: "fedora_openqa*"
-  register: py2oqainstalled
-  changed_when: "1 != 1"
-  failed_when: "1 != 1"
-  check_mode: no
-
-- name: Install fedora_openqa (Python 2)
-  command: "python2 setup.py install --nodeps"
-  args:
-    chdir: /root/fedora_openqa
-  when: "'python34-fedmsg' not in group_names and (gittools is changed or not insttools.stat.exists)"
-  notify:
-  - restart fedmsg-hub
-
-- name: Install python2-pip if needed to remove py2 fedora_openqa
-  dnf:
-    name: python2-pip
-    state: present
-  when: "py2oqainstalled is defined and py2oqainstalled.files and 'python34-fedmsg' in group_names"
-  tags:
-  - packages
-
-- name: Remove fedora_openqa (Python 2)
-  command: "pip2 uninstall --disable-pip-version-check --yes fedora-openqa"
-  when: "py2oqainstalled is defined and py2oqainstalled.files and 'python34-fedmsg' in group_names"
-  notify:
-  - restart fedmsg-hub
-
-- name: Install fedora_openqa (Python 3)
+- name: Install fedora_openqa
   command: "python3 setup.py install --nodeps"
   args:
     chdir: /root/fedora_openqa
-  when: "'python34-fedmsg' in group_names and (gittools is changed or not insttools.stat.exists or (py2oqainstalled is defined and py2oqainstalled.files))"
+  when: "gittools is changed or not insttools.stat.exists"
   notify:
   - restart fedmsg-hub
-
-- name: Remove Python 2 packages
-  dnf:
-    name: ['python2-fedfind', 'python2-wikitcms', 'python2-openqa_client', 'python2-resultsdb_api',
-           'python2-resultsdb_conventions-fedora']
-    state: absent
-  when: "'python34-fedmsg' in group_names"
-  tags:
-  - packages
 
 # For now, we want ppc64 jobs generated on staging but not prod (as we
 # have ppc64 workers for stg but not prod). So we have a WANTED file
