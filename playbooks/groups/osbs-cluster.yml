@@ -350,7 +350,22 @@
     - osbs-orchestrator-namespace
 
 
-- name: Add the worker/orchestrator labels to the nodes
+- name: Add the orchestrator labels to the nodes
+  hosts: osbs-masters-stg[0]:osbs-masters[0]
+  tags:
+    - osbs-labels-nodes
+  tasks:
+    - name: Add the orchestrator labels to the nodes
+      command: "oc -n {{ osbs_namespace }} label nodes {{ item }} orchestrator=true --overwrite"
+      loop: "{{ groups['osbs-nodes-stg'] }}"
+      when: env == "staging"
+
+    - name: Add the orchestrator labels to the nodes
+      command: "oc -n {{ osbs_namespace }} label nodes {{ item }} orchestrator=true --overwrite"
+      loop: "{{ groups['osbs-nodes'] }}"
+      when: env == "production"
+
+- name: Add the worker labels to the nodes x86_64
   hosts: osbs-masters-stg[0]:osbs-masters[0]
   tags:
     - osbs-labels-nodes
@@ -359,20 +374,23 @@
       command: "oc -n {{ osbs_worker_namespace }} label nodes {{ item }} worker=true --overwrite"
       loop: "{{ groups['osbs-nodes-stg'] }}"
       when: env == "staging"
-
-    - name: Add the orchestrator labels to the nodes
-      command: "oc -n {{ osbs_namespace }} label nodes {{ item }} orchestrator=true --overwrite"
-      loop: "{{ groups['osbs-nodes-stg'] }}"
-      when: env == "staging"
-
     - name: Add the worker label
       command: "oc -n {{ osbs_worker_namespace }} label nodes {{ item }} worker=true --overwrite"
       loop: "{{ groups['osbs-nodes'] }}"
       when: env == "production"
 
-    - name: Add the orchestrator labels to the nodes
-      command: "oc -n {{ osbs_namespace }} label nodes {{ item }} orchestrator=true --overwrite"
-      loop: "{{ groups['osbs-nodes'] }}"
+- name: Add the worker labels to the nodes aarch64
+  hosts: osbs-aarch64-masters-stg[0]
+  tags:
+    - osbs-labels-nodes
+  tasks:
+    - name: Add the worker label
+      command: "oc -n {{ osbs_worker_namespace }} label nodes {{ item }} worker=true --overwrite"
+      loop: "{{ groups['osbs-aarch64-nodes-stg'] }}"
+      when: env == "staging"
+    - name: Add the worker label
+      command: "oc -n {{ osbs_worker_namespace }} label nodes {{ item }} worker=true --overwrite"
+      loop: "{{ groups['osbs-aarch64-nodes'] }}"
       when: env == "production"
 
 - name: setup reactor config secret in orchestrator namespace
