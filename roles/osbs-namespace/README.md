@@ -106,7 +106,6 @@ Role Variables
     - user2
 
     # Koji integration
-    osbs_koji_secret_name: kojisecret
     osbs_koji_hub: https://koji.fedoraproject.org  # Empty default value
     osbs_koji_root: https://koji.fedoraproject.org/kojihub  # Empty default value
 
