@@ -13,6 +13,19 @@ acl repoallowed {
 acl purge {
   "127.0.0.1"/32;
 }
+
+{% if env == 'staging' %}
+backend koji01 {
+    .host = "koji01.stg.phx2.fedoraproject.org";
+    .probe = {
+        .url = "/";
+        .timeout = 1s;
+        .interval = 5s;
+        .window = 5;
+        .threshold = 3;
+    }
+}
+{% else %}
 backend kojipkgs01 {
     .host = "kojipkgs01.phx2.fedoraproject.org";
     .probe = {
@@ -40,12 +53,17 @@ sub vcl_init {
     primarykojipkgs.add_backend(kojipkgs01);
     primarykojipkgs.add_backend(kojipkgs02);
 }
+{% endif %}
 
 sub vcl_recv {
     # This gets arround the silly, ::1 that Apache adds on the proxies (still need to look at that)
     set req.http.X-Forwarded-For = regsub(req.http.X-Forwarded-For, "^([a-f0-9:.]+), .+$", "\1");
 
+{% if env == 'staging' %}
+    set req.backend_hint = koji01;
+{% else %}
     set req.backend_hint = primarykojipkgs.backend();
+{% endif %}
     unset req.http.cookie;
     set req.http.clear-cookies = "yes";
 
