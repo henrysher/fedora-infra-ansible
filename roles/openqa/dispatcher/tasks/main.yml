@@ -9,6 +9,12 @@
 # - external_hostname
 ##       string - The public hostname of the openQA server (used in ResultsDB links)
 ##       default - ansible_nodename
+# - openqa_extraarches
+##      bool - when this is set, this instance will be configured to
+##             create jobs for 'extra' arches beyond x86_64 (currently
+##             ppc64 and aarch64). Only set it if this instance will
+##             have worker hosts for those arches
+##      default - false
 #
 # Optional vars
 # - wikitcms_token
@@ -99,12 +105,12 @@
   notify:
   - restart fedmsg-hub
 
-# For now, we want ppc64 jobs generated on staging but not prod (as we
-# have ppc64 workers for stg but not prod). So we have a WANTED file
-# for staging.
-- name: Install ppc64-imbued WANTED file if this is staging
-  copy: src=images.json.ppc64 dest=/etc/fedora-openqa/images.json
-  when: (deployment_type is defined) and (deployment_type == 'stg')
+# For now, we only have enough ppc64/aarch64 workers for one instance,
+# so we have a variant WANTED file that we deploy based on a config
+# variable.
+- name: Install extra arch WANTED images config if enabled
+  copy: src=images.json.extraarches dest=/etc/fedora-openqa/images.json
+  when: openqa_extraarches
   notify:
   - restart fedmsg-hub
 
