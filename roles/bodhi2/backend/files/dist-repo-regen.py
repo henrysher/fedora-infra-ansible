@@ -80,7 +80,7 @@ for koji_env in config['tag2distrepo.tags'].keys():
             'delta': [],
             'event': None,
             'inherit': False,
-            'latest': True,
+            'latest': False,
             'multilib': False,
             'split_debuginfo': False,
             'skip_missing_signatures': False,
