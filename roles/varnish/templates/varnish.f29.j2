@@ -1,0 +1,16 @@
+{% if "proxy" in inventory_hostname %}
+{% set VARNISH_LISTEN_PORT=6081 %}
+{% else %}
+{% set VARNISH_LISTEN_PORT=80 %}
+{% endif %}
+
+{% if varnish_group == 'kojipkgs' %}
+{% set VARNISH_STORAGE="malloc,48GB" %}
+{% elif varnish_group == 's390kojipkgs' %}
+{% set VARNISH_STORAGE="file,/var/lib/varnish/varnish_storage.bin,20G" %}
+{% else %}
+{% set VARNISH_STORAGE="malloc,256M" %}
+{% endif %}
+
+[Service]
+ExecStart=/usr/sbin/varnishd -a :{{VARNISH_LISTEN_PORT}} -f /etc/varnish/default.vcl -s {{VARNISH_STORAGE}}
