@@ -205,8 +205,8 @@ function article_save(
   &$flags,
   $revision,
   &$status,
-  $baseRevId=0,
-  $undidRevId
+  $baseRevId,
+  $undidRevId=0
 ) {
 
   # If for some reason or another we can't create our socket, then bail.
