@@ -197,7 +197,7 @@ config = dict(
                     '^((?!(github\.create|github\.issue\.open|github\.pull_request\.open)).)*$',
                 ],
                 body=[
-                    '^((?!(portingdb)).)*$',
+                    '^((?!(fedora-python)).)*$',
                 ],
             ),
         ),
