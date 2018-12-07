@@ -1,0 +1,61 @@
+---
+# Define resources for this group of hosts here.
+lvm_size: 60000
+mem_size: 8192
+max_mem_size: "{{ mem_size }}"
+num_cpus: 2
+max_cpu: "{{ num_cpus }}"
+virt_install_command: "{{ virt_install_command_aarch64_one_nic }}"
+
+tcp_ports: [ 80, 443, 8443]
+
+openshift_node_labels: {'region':'infra'}
+openshift_schedulable: False
+
+fas_client_groups: sysadmin-releng,sysadmin-noc,sysadmin-osbs
+sudoers: "{{ private }}/files/sudo/osbs-sudoers"
+
+docker_cert_dir: "/etc/docker/certs.d/candidate-registry.fedoraproject.org"
+source_registry: "registry.fedoraproject.org"
+docker_registry: "candidate-registry.fedoraproject.org"
+
+osbs_url: "osbs.fedoraproject.org"
+
+koji_url: "koji.fedoraproject.org"
+
+osbs_client_conf_path: /etc/osbs.conf
+
+osbs_namespace: "osbs-fedora"
+osbs_worker_namespace: worker
+
+osbs_worker_service_accounts:
+  - orchestrator
+  - builder
+
+
+osbs_conf_sources_command: fedpkg sources
+
+osbs_orchestrator_cpu_limitrange: "95m"
+
+osbs_worker_default_nodeselector: "worker=true"
+osbs_orchestrator_default_nodeselector: "orchestrator=true"
+
+osbs_conf_service_accounts:
+  - koji
+  - builder
+
+osbs_conf_readwrite_users:
+  - "system:serviceaccount:{{ osbs_namespace }}:default"
+  - "system:serviceaccount:{{ osbs_namespace }}:builder"
+
+#Docker command delegated host
+composer: composer.phx2.fedoraproject.org
+
+# Nagios configuration
+nagios_Check_Services:
+  nrpe: true
+  sshd: true
+  named: false
+  dhcpd: false
+  httpd: false
+  swap: false
