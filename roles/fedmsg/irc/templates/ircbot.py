@@ -194,7 +194,7 @@ config = dict(
             channel='fedora-python',
             filters=dict(
                 topic=[
-                    '^((?!(github)).)*$',
+                    '^((?!(github\.create|github\.issue\.open|github\.pull_request\.open)).)*$',
                 ],
                 body=[
                     '^((?!(portingdb)).)*$',
