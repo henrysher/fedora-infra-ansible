@@ -28,7 +28,7 @@ class BaseConfiguration(object):
     MESSAGING_TOPIC_PREFIX = ['org.fedoraproject.prod']
     KOJI_CONFIG = '/etc/module-build-service/koji.conf'
     KOJI_PROFILE = 'koji'
-    KOJI_ARCHES = ['i686', 'armv7hl', 'x86_64']
+    ARCHES = ['i686', 'armv7hl', 'x86_64']
     KOJI_PROXYUSER = True
     KOJI_REPOSITORY_URL = 'https://kojipkgs.stg.fedoraproject.org/repos'
     COPR_CONFIG = '/etc/module-build-service/copr.conf'
@@ -134,7 +134,7 @@ class ProdConfiguration(BaseConfiguration):
     KOJI_CONFIG = path.join(confdir, 'koji.conf')
 {% if env == 'staging' %}
     KOJI_PROFILE = 'staging'
-    KOJI_ARCHES = ['aarch64', 'x86_64', 'i686']
+    ARCHES = ['aarch64', 'x86_64', 'i686']
     KOJI_REPOSITORY_URL = 'https://kojipkgs.stg.fedoraproject.org/repos'
     MESSAGING_TOPIC_PREFIX = ['org.fedoraproject.stg']
     PDC_URL = 'https://pdc.stg.fedoraproject.org/rest_api/v1'
@@ -144,8 +144,8 @@ class ProdConfiguration(BaseConfiguration):
 
 {% else %}
     KOJI_PROFILE = 'production'
-    KOJI_ARCHES = ['aarch64', 'armv7hl', 'i686', 'ppc64le', 'x86_64', 's390x']
-    BASE_MODULE_KOJI_ARCHES = {
+    ARCHES = ['aarch64', 'armv7hl', 'i686', 'ppc64le', 'x86_64', 's390x']
+    BASE_MODULE_ARCHES = {
         # Fedora 28 includes 'ppc64'.  F29 and later drops it.
         # https://fedoraproject.org/wiki/Changes/DiscontinuePPC64
         'platform:f28': ['aarch64', 'armv7hl', 'i686', 'ppc64', 'ppc64le', 'x86_64', 's390x'],
