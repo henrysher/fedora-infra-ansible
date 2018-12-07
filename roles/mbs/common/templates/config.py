@@ -204,3 +204,6 @@ class ProdConfiguration(BaseConfiguration):
     # we decided to hold on to this and ask the maintainers to create a
     # releng ticket to retire their modules.
     CHECK_FOR_EOL = False 
+
+    # Koji Content Generator "-devel" modules aren't used in Fedora, so we can just disable them
+    KOJI_CG_DEVEL_MODULE = False
