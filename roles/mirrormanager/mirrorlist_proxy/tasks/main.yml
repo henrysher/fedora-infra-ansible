@@ -46,21 +46,10 @@
   tags:
   - mirrorlist_proxy
 
-- name: Install docker
+- name: Install podman
   package: name={{item}} state=present
   with_items:
-  - docker
-  - python-docker
-  tags:
-  - mirrorlist_proxy
-
-- name: setup daemon.json to not restart containers on docker service restarts
-  copy: src=daemon.json dest=/etc/docker/daemon.json
-  tags:
-  - mirrorlist_proxy
-
-- name: Run docker
-  service: name=docker state=started enabled=yes
+  - podman
   tags:
   - mirrorlist_proxy
 
@@ -83,10 +72,14 @@
   notify:
   - reload systemd
 
-# We enable mirrorlist1 so we have one that always starts on boot. The pkl deployment script
-# will make sure that at least one is running and the other is killed.
+# enable both of them to run on boot
 - name: Enable mirrorlist1
   service: name=mirrorlist1 enabled=yes
+  tags:
+  - mirrorlist_proxy
+
+- name: Enable mirrorlist2
+  service: name=mirrorlist2 enabled=yes
   tags:
   - mirrorlist_proxy
 

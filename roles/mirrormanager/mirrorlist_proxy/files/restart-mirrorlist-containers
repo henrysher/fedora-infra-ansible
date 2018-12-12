@@ -37,14 +37,10 @@ if [ `systemctl show mirrorlist1 -p ActiveState` != 'ActiveState=active' ]; then
 	exit 1
 fi
 
-# start mirrorlist2 (old pkl and see that it's processing ok)
-
-systemctl start mirrorlist2
-
-sleep ${TIME_RESTART}
+# check mirrorlist2 (old pkl and see that it's processing ok)
 curl -q -H mirrors.fedoraproject.org ${mirrorlist2} -s -f --retry 50 --retry-delay 10 --retry-connrefused --retry-max-time 180 | grep "sha512" >/dev/null
 if [ $? != 0 ]; then
-	echo "ERROR: mirrorlist2 did not start correctly"
+	echo "ERROR: mirrorlist2 not processing correctly"
 	exit 1
 fi
 
