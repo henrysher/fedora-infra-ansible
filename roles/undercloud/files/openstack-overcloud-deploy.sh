@@ -1,4 +1,4 @@
-!/bin/bash
+#!/bin/bash
 
 openstack overcloud deploy --templates \
   -e /home/stack/templates/node-info.yaml\
