@@ -15,10 +15,24 @@
   - hosts
   - sudo
   - undercloud
+  - apache
+
+  - role: httpd/mod_ssl
+
+  - role: httpd/website
+    site_name: controller.fedorainfracloud.org
+    ssl: true
+    sslonly: true
+    certbot: true
+
+  - role: httpd/reverseproxy
+    website: controller.fedorainfracloud.org
+    destname: overcloud
+    proxyurl: http://192.168.20.51
+    balancer_name: controller.fedorainfracloud.org
 
   pre_tasks:
   - import_tasks: "{{ tasks_path }}/yumrepos.yml"
-
 
   tasks:
   - import_tasks: "{{ tasks_path }}/motd.yml"
