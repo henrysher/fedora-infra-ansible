@@ -110,6 +110,12 @@ config = {
                     "key": "fedora-infra",
                     "keyid": "47dd8ef9"
                 },
+                {
+                    "from": "f30-kde",
+                    "to": "f30-kde",
+                    "key": "fedora-30",
+                    "keyid": "cfc659b9"
+                },
 
                 # Gated rawhide and branched
                 {
