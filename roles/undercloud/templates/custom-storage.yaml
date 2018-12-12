@@ -1,0 +1,45 @@
+parameter_defaults:
+  CinderEnableIscsiBackend: false
+  CinderEnableRbdBackend: false
+  CinderEnableNfsBackend: false
+  NovaEnableRbdBackend: false
+  GlanceBackend: file
+  ControllerExtraConfig:
+    cinder::config::cinder_config:
+        fed-cloud-eql01/volume_driver:
+            value: cinder.volume.drivers.dell_emc.ps.PSSeriesISCSIDriver
+        fed-cloud-eql01/eqlx_pool:
+            value: default
+        fed-cloud-eql01/eqlx_group_name:
+            value: cloud-equallogics
+        fed-cloud-eql01/volume_backend_name:
+            value: fed-cloud-eql01
+        fed-cloud-eql01/san_ip:
+            value: 192.168.20.31
+        fed-cloud-eql01/san_login:
+            value: "{{ san01_login }}"
+        fed-cloud-eql01/san_password:
+            value: "{{ san01_pass }}"
+        fed-cloud-eql01/san_thin_provision:
+            value: True
+        fed-cloud-eql01/use_chap_auth:
+            value: False
+        fed-cloud-eql02/volume_driver:
+            value: cinder.volume.drivers.dell_emc.ps.PSSeriesISCSIDriver
+        fed-cloud-eql02/eqlx_pool:
+            value: default
+        fed-cloud-eql02/eqlx_group_name:
+            value: fedora-equallogics
+        fed-cloud-eql02/volume_backend_name:
+            value: fed-cloud-eql02
+        fed-cloud-eql02/san_ip:
+            value: 192.168.20.30
+        fed-cloud-eql02/san_login:
+            value: "{{ san02_login }}"
+        fed-cloud-eql02/san_password:
+            value: "{{ san02_pass }}"
+        fed-cloud-eql02/san_thin_provision:
+            value: True
+        fed-cloud-eql02/use_chap_auth:
+            value: False
+    cinder_user_enabled_backends: ['fed-cloud-eql01','fed-cloud-eql02']
