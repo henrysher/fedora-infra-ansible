@@ -218,16 +218,13 @@
   tags:
   - koji_builder
 
-#
-# x86_64 builders run pungify, that needs hfs module in order to make
-# The efi/mac images. This module is only needed on rhel.
-#
-
+# x86_64 builders run both x86_64 and i686 builds, that requires multilib
+# version of nosync installed to fully take advantage of nosync
 - name: special pkgs for the x86_64 builders
   package: state=present pkg={{ item }}
   with_items:
-  - kmod-hfsplus
-  when: is_rhel is defined and ansible_architecture == 'x86_64' and ansible_distribution_major_version|int == '6'
+  - nosync.i686
+  when: ansible_architecture == 'x86_64'
   tags:
   - koji_builder
 
