@@ -50,16 +50,14 @@
   package: name={{item}} state=present
   with_items:
   - podman
-  - python2-docker-py
   tags:
   - mirrorlist_proxy
 
 - name: Pull mirrorlist image
-  docker_image:
-    name: "{{ mirrorlist_container_image }}"
-    tls_verify: true
+  command: podman pull -q  "{{ mirrorlist_container_image }}"
   tags:
   - mirrorlist_proxy
+  check_mode: no
 
 # We deploy two service files. Both listen on a different port, so that we can switch
 # them out as part of the pkl deployment without having any local downtime.
