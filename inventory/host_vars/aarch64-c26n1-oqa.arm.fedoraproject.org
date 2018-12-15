@@ -15,9 +15,11 @@ sudoers: "{{ private }}/files/sudo/qavirt-sudoers"
 # openQA tap worker hosts (like this one) do stuff with ifcfg that base
 # doesn't understand. terrible, terrible stuff. seriously - it doesn't
 # handle the openvswitch config well. so let's tell it to just configure
-# the actual connected interface (which on this system is eth0) for us
-# and leave everything else alone.
-ansible_ifcfg_whitelist: ['eth0']
+# the regular interfaces (which on this system is eth0 and eth1) for us,
+# disabling all but the one we want to use (eth0), and leave everything
+# else alone.
+ansible_ifcfg_whitelist: ['eth0', 'eth1']
+ansible_ifcfg_disabled: ['eth1']
 
 openqa_workers: 4
 # firewall ports for server->worker websockets connections
