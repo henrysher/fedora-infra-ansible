@@ -78,6 +78,17 @@
   - import_tasks: "{{ handlers_path }}/restart_services.yml"
 
   pre_tasks:
+
+  roles:
+  - httpd/mod_ssl
+  - httpd/proxy
+  - varnish
+  #
+  # Re-run hosts here so things are ok for the haproxy check
+  #
+  - hosts
+  
+  tasks:
   #
   # When we have a prerelease we also need to drop the config files.
 
@@ -130,15 +141,6 @@
     file: path=/etc/httpd/conf.d/getfedora.org/prerelease-to-final-gfo-ws-redirectmatch.conf state=file
     tags:
     - httpd/redirect
-
-  roles:
-  - httpd/mod_ssl
-  - httpd/proxy
-  - varnish
-  #
-  # Re-run hosts here so things are ok for the haproxy check
-  #
-  - hosts
 
 # After setting up the "basics" of the proxy hosts above, here below we break
 # out the proxy-specific configuration into a couple different sub-playbooks.
