@@ -6,14 +6,17 @@ sudoers: "{{ private }}/files/sudo/qavirt-sudoers"
 nrpe_procs_warn: 1400
 nrpe_procs_crit: 1600
 em3_ip: 10.5.124.152
+em3_nm: 255.255.255.0
 gw: 10.5.124.254
 
 # openQA tap worker hosts (like this one) do stuff with ifcfg that base
 # doesn't understand. terrible, terrible stuff. seriously - it doesn't
 # handle the openvswitch config well. so let's tell it to just configure
-# the actual connected interface (which on this system is eth0) for us
-# and leave everything else alone.
-ansible_ifcfg_whitelist: ['em3']
+# the regular interfaces (which on this system is em1-4) for us,
+# disabling all but the one we want to use (em3), and leave everything
+# else alone.
+ansible_ifcfg_whitelist: ['em1', 'em2', 'em3', 'em4']
+ansible_ifcfg_disabled: ['em1', 'em2', 'em4']
 
 # this is a powerful machine, can handle more openQA workers
 openqa_workers: 30
