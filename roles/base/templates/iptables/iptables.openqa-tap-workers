@@ -44,6 +44,8 @@
 {% for host in groups['staging']|sort %}
 {% if 'eth0_ip' in hostvars[host] %}# {{ host }}
 -A INPUT -s {{ hostvars[host]['eth0_ip'] }} -j REJECT --reject-with icmp-host-prohibited
+{% elif 'em3_ip' in hostvars[host] %}# {{ host }}
+-A INPUT -s {{ hostvars[host]['em3_ip'] }} -j REJECT --reject-with icmp-host-prohibited
 {% else %}# {{ host }} has no 'eth0_ip' listed
 {% endif %}
 {% endfor %}
@@ -78,6 +80,8 @@
 {% for host in groups['qa-isolated']|sort %}
 {% if 'eth0_ip' in hostvars[host] %}# {{ host }}
 -A INPUT -s {{ hostvars[host]['eth0_ip'] }} -j REJECT --reject-with icmp-host-prohibited
+{% elif 'em3_ip' in hostvars[host] %}# {{ host }}
+-A INPUT -s {{ hostvars[host]['em3_ip'] }} -j REJECT --reject-with icmp-host-prohibited
 {% else %}# {{ host }} has no 'eth0_ip' listed
 {% endif %}
 {% endfor %}
@@ -121,5 +125,6 @@ COMMIT
 # eth0 is the active interface on the x86_64 tap worker hosts,
 # eth2 is the active interface on the ppc64 tap worker host
 -A POSTROUTING -o eth0 -j MASQUERADE
+-A POSTROUTING -o em3 -j MASQUERADE
 -A POSTROUTING -o eth2 -j MASQUERADE
 COMMIT
