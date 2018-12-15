@@ -16,32 +16,6 @@
 - name: Enable ipv4_forward in sysctl
   sysctl: name=net.ipv4.ip_forward value=1 state=present sysctl_set=yes reload=yes
 
-# this is Fedora infra-only stuff to stop network.service choking on
-# dumb ifcfg stuff
-- name: Check if there's an annoying ifcfg-usb0 lurking
-  stat: path=/etc/sysconfig/network-scripts/ifcfg-usb0
-  register: ifcfgusb0
-  failed_when: "1 != 1"
-  changed_when: "1 != 1"
-  check_mode: no
-  when: deployment_type is defined
-
-- name: Check if there's an annoying ifcfg-eth1 lurking
-  stat: path=/etc/sysconfig/network-scripts/ifcfg-eth1
-  register: ifcfgeth1
-  failed_when: "1 != 1"
-  changed_when: "1 != 1"
-  check_mode: no
-  when: deployment_type is defined
-
-- name: Make sure usb0 doesn't get in our way
-  lineinfile: dest=/etc/sysconfig/network-scripts/ifcfg-usb0 regexp="^ONBOOT=" line="ONBOOT=no"
-  when: (ifcfgusb0.stat.exists is defined) and (ifcfgusb0.stat.exists == True) and (deployment_type is defined)
-
-- name: Make sure eth1 doesn't get in our way
-  lineinfile: dest=/etc/sysconfig/network-scripts/ifcfg-eth1 regexp="^ONBOOT=" line="ONBOOT=no"
-  when: (ifcfgeth1.stat.exists is defined) and (ifcfgeth1.stat.exists == True) and (deployment_type is defined)
-
 - name: Start openvswitch service
   service: name=openvswitch enabled=yes state=started
   with_sequence: "count={{ openqa_workers }}"
