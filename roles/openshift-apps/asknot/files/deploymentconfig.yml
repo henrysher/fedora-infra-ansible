@@ -1,0 +1,48 @@
+---
+apiVersion: v1
+kind: DeploymentConfig
+metadata:
+  name: asknot
+  labels:
+    app: asknot
+    service: asknot
+spec:
+  replicas: 1
+  selector:
+    app: asknot
+    service: asknot
+  template:
+    metadata:
+      labels:
+        app: asknot
+        service: asknot
+    spec:
+      containers:
+      - name: asknot
+        image: registry/asknot:latest
+        ports:
+        - containerPort: 8080
+        volumeMounts:
+        readinessProbe:
+          timeoutSeconds: 5
+          initialDelaySeconds: 30
+          httpGet:
+            path: /
+            port: 8080
+        livenessProbe:
+          timeoutSeconds: 5
+          initialDelaySeconds: 30
+          httpGet:
+            path: /
+            port: 8080
+        resources:
+      volumes:
+  triggers:
+  - type: ImageChange
+    imageChangeParams:
+      automatic: true
+      containerNames:
+      - "asknot"
+      from:
+        kind: ImageStreamTag
+        name: asknot:latest

@@ -1,0 +1,42 @@
+- name: make the app be real
+  hosts: os-masters-stg[0]
+  user: root
+  gather_facts: False
+
+  vars_files:
+    - /srv/web/infra/ansible/vars/global.yml
+    - "/srv/private/ansible/vars.yml"
+    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+ roles:
+  - role: openshift/project
+    app: asknot
+    description: What can I do for Fedora
+    appowners:
+    - cverna
+
+  - role: openshift/object
+    app: asknot
+    template: imagestream.yml
+    objectname: imagestream.yml
+
+  - role: openshift/object
+    app: asknot
+    file: service.yml
+    objectname: service.yml
+
+  - role: openshift/route
+    app: asknot
+    routename: asknot
+    host: "asknot{{ env_suffix }}.fedoraproject.org"
+    serviceport: 8080-tcp
+    servicename: asknot
+
+  - role: openshift/object
+    app: asknot
+    file: deploymentconfig.yml
+    objectname: deploymentconfig.yml
+
+  - role: openshift/rollout
+    app: asknot
+    dcname: asknot
