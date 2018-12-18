@@ -317,17 +317,27 @@ fedora_29_primary_arches = aarch64 armhfp x86_64
 smtp_server = bastion
 {% endif %}
 
-# The updates system itself.  This email address is used in fetching Bugzilla
-# information, as well as email notifications
+# The updates system itself. This e-mail address is used as the From address for e-mails that Bodhi
+# sends. It is also used as the username for Bugzilla if bugzilla_api_key is undefined and
+# bodhi_password is defined.
 # bodhi_email = updates@fedoraproject.org
-# This is the password used to access Bodhi's bugzilla account.
-# bodhi_password =
 {% if env == "staging" %}
 bodhi_email = updates@stg.fedoraproject.org
 {% else %}
 bodhi_email = updates@fedoraproject.org
 {% endif %}
+
+# An API key that Bodhi should use when accessing Bugzilla. If set, the bodhi_password setting is
+# ignored.
+{% if env == "production" %}
+bugzilla_api_key = {{ bodhi_bugzilla_api_key }}
+{% endif %}
+
+# This is the password used to access Bodhi's bugzilla account. Ignored if bugzilla_api_key is set.
+# bodhi_password =
+{% if env == "staging" %}
 bodhi_password = {{ bodhiBugzillaPassword }}
+{% endif %}
 
 # The address that gets the requests
 # release_team_address = bodhiadmin-members@fedoraproject.org
