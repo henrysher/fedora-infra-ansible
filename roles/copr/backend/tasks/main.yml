@@ -223,3 +223,9 @@
 - name: install our custom selinux module
   command: semodule -i /usr/local/share/copr/copr_rules.pp
   when: selinux_module is changed
+
+- name: disable swap so that OOM killer can do his job
+  command: "{{ item }}"
+  with_items:
+  - swapoff -a
+  - systemctl mask swap.target
