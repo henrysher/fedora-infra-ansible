@@ -44,8 +44,8 @@
   - name: enable and start dnf-automatic f26+
     command: systemctl enable dnf-automatic-install.timer
     when: ansible_distribution_major_version|int >= 26
-    args:
-      creates: /etc/systemd/system/multi-user.target.wants/dnf-automatic-install.timer
+    register: dnf-automatic-enable
+    changed_when: "'Created symlink ' in dnf-automatic-enable.stdout"
     tags:
     - config
 
