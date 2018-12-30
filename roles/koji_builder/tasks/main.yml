@@ -105,7 +105,19 @@
   notify:
   - restart kojid
 
-- name: Remove old python optimization caches
+- name: stat oz Guest.py file
+  stat: path=/usr/lib/python2.7/site-packages/oz/Guest.py
+  register: Guestpy
+
+- name: stat oz Guest.pyc file
+  stat: path=/usr/lib/python2.7/site-packages/oz/Guest.pyc
+  register: Guestpyc
+
+- name: stat oz Guest.pyo file
+  stat: path=/usr/lib/python2.7/site-packages/oz/Guest.pyo
+  register: Guestpyo
+
+- name: Remove old python optimization caches when Guest.py is newer
   file: path=/usr/lib/python2.7/site-packages/oz/Guest.{{item}} state=absent
   with_items:
   - pyc
@@ -114,6 +126,7 @@
   - koji_builder
   notify:
   - restart kojid
+  when: Guestpy.stat.mtime > Guestpyc.stat.mtime or Guestpyo.stat.mtime
 
 - name: enable virtlogd service
   service: name=virtlogd state=started enabled=yes
