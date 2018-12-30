@@ -105,28 +105,12 @@
   notify:
   - restart kojid
 
-- name: stat oz Guest.py file
-  stat: path=/usr/lib/python2.7/site-packages/oz/Guest.py
-  register: Guestpy
-
-- name: stat oz Guest.pyc file
-  stat: path=/usr/lib/python2.7/site-packages/oz/Guest.pyc
-  register: Guestpyc
-
-- name: stat oz Guest.pyo file
-  stat: path=/usr/lib/python2.7/site-packages/oz/Guest.pyo
-  register: Guestpyo
-
-- name: Remove old python optimization caches when Guest.py is newer
-  file: path=/usr/lib/python2.7/site-packages/oz/Guest.{{item}} state=absent
-  with_items:
-  - pyc
-  - pyo
+- name: Re byte compile Guest.py (if needed)
+  command: python2 -m compileall /usr/lib/python2.7/site-packages/oz/Guest.py
   tags:
   - koji_builder
   notify:
   - restart kojid
-  when: Guestpyc.stat.mtime is defined and Guestpyo.stat.mtime is defined and Guestpy.stat.mtime > Guestpyc.stat.mtime or Guestpy.stat.mtime > Guestpyo.stat.mtime
 
 - name: enable virtlogd service
   service: name=virtlogd state=started enabled=yes
