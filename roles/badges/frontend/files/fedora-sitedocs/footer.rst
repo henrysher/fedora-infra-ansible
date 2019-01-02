@@ -1,5 +1,5 @@
 You can submit new badge ideas on the `fedora-badges
-<https://fedorahosted.org/fedora-badges>`_ tracker.
+<https://pagure.io/Fedora-Badges>`_ tracker.
 
 Please report bugs and file issues with التحرير (Tahrir) on `the GitHub issues
 tracker <https://github.com/fedora-infra/tahrir/issues>`_.
