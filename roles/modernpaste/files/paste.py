@@ -50,12 +50,28 @@ def submit_paste():
             constants.api.PASTE_ATTACHMENT_TOO_LARGE_FAILURE_CODE,
         )
 
+    expire_hardcode = (datetime.datetime.now() + datetime.timedelta(weeks=1)).strftime('%s')
+    expiry_time_given = data.get('expiry_time')
+    if expiry_time_given:
+        if int(expiry_time_given) > int(expire_hardcode):
+            return (
+                flask.jsonify(
+                    { 'success': False,
+                      'message': 'Pastes can only have an expiry of one week.',
+                      'failure': 'paste_expiry_too_far_failure'
+                    }
+                ),
+                400
+            )
+        else:
+            expire_hardcode = expiry_time_given
+
     try:
         new_paste = database.paste.create_new_paste(
             contents=data.get('contents'),
             user_id=current_user.user_id if current_user.is_authenticated else None,
             #expiry_time=data.get('expiry_time'),
-            expiry_time=(datetime.datetime.now() + datetime.timedelta(weeks=1)).strftime('%s'),
+            expiry_time=expire_hardcode,
             title=data.get('title'),
             language=data.get('language'),
             password=data.get('password'),
