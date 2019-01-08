@@ -26,10 +26,14 @@ spec:
         namespace: openshift
         name: python:3.6
   triggers:
-{% if stg_fpdc_github_secret is defined %}
+{% if stg_fpdc_github_secret is defined and env == 'staging' %}
   - type: GitHub
     github:
       secret: "{{ stg_fpdc_github_secret }}"
+{% elif prod_fpdc_github_secret is defined and env == 'production' %}
+  - type: GitHub
+    github:
+      secret: "{{ prod_fpdc_github_secret }}"
 {% endif %}
   - type: ConfigChange
   - type: ImageChange
