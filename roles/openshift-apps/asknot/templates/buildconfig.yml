@@ -1,0 +1,33 @@
+apiVersion: v1
+kind: BuildConfig
+metadata:
+  name: asknot-build
+  labels:
+    environment: "asknot"
+spec:
+  source:
+    git:
+      uri: https://github.com/fedora-infra/asknot-ng.git
+{% if env == 'staging' %}
+      ref: "staging"
+{% else %}
+      ref: "production"
+{% endif %}
+  strategy:
+    type: Docker
+  triggers:
+{% if stg_asknot_github_secret is defined and env == 'staging' %}
+  - type: GitHub
+    github:
+      secret: "{{ stg_asknot_github_secret }}"
+{% elif asknot_github_secret is defined and env == 'production' %}
+  - type: GitHub
+    github:
+      secret: "{{ asknot_github_secret }}"
+{% endif %}
+  - type: ConfigChange
+  - type: ImageChange
+  output:
+    to:
+      kind: ImageStreamTag
+      name: asknot:latest
