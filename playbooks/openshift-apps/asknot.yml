@@ -1,5 +1,5 @@
 - name: make the app be real
-  hosts: os-masters-stg[0]
+  hosts: os-masters-stg[0]:os-masters[0]
   user: root
   gather_facts: False
 
@@ -42,6 +42,14 @@
     serviceport: 8080-tcp
     servicename: asknot
     when: env == "staging"
+
+  - role: openshift/route
+    app: asknot
+    routename: asknot
+    host: "whatcanidoforfedora.org"
+    serviceport: 8080-tcp
+    servicename: asknot
+    when: env == "production"
 
   - role: openshift/object
     app: asknot
