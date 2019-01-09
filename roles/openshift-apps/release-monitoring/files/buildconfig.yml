@@ -42,27 +42,27 @@ items:
             dnf autoremove -y && \
             dnf clean all -y
         RUN pip-3 install sqlalchemy_schemadisplay
-        RUN git clone https://github.com/release-monitoring/anitya.git && \
-                pushd anitya && \
+        RUN git clone https://github.com/release-monitoring/anitya.git
+        RUN pushd anitya
 {% if env == 'staging' %}
-                git checkout staging && \
+        RUN git checkout staging
 {% else %}
-                git checkout production && \
+        RUN git checkout production
 {% endif %}
-                python3 setup.py install && \
-                pushd docs && \
-                mkdir -p images && \
-                python3 generate_db_schema && \
-                sphinx-build-3 -b html . _build/html && \
-                mkdir -p ../anitya/static/docs/ && \
-                cp -r _build/html/* ../anitya/static/docs/ && \
-                popd && \
-                python3 setup.py install && \
-                rm -f /usr/local/bin/anitya_cron.py && \
-                cp files/anitya_cron.py /usr/local/bin/ && \
-                pip-3 install . && \
-                popd && \
-                rm -rf anitya
+        RUN python3 setup.py install
+        RUN pushd docs
+        RUN mkdir -p images
+        RUN python3 generate_db_schema
+        RUN sphinx-build-3 -b html . _build/html
+        RUN mkdir -p ../anitya/static/docs/
+        RUN cp -r _build/html/* ../anitya/static/docs/
+        RUN popd
+        RUN python3 setup.py install
+        RUN rm -f /usr/local/bin/anitya_cron.py
+        RUN cp files/anitya_cron.py /usr/local/bin/
+        RUN pip-3 install .
+        RUN popd
+        RUN rm -rf anitya
         RUN rm /etc/fedmsg.d/*py
         RUN mkdir /httpdir
         RUN chmod 777 /httpdir
