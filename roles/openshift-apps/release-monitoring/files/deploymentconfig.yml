@@ -15,6 +15,13 @@ items:
       activeDeadlineSeconds: 21600
       recreateParams:
         timeoutSeconds: 600
+        pre:
+          failurePolicy: Abort
+          execNewPod:
+            containerName: release-monitoring-web
+            command: [ /bin/sh, -i, -c, "alembic-3 -c /etc/anitya/alembic.ini upgrade head" ]
+            volumes:
+              - config-volume
       resources: {}
       rollingParams:
         intervalSeconds: 1
@@ -29,7 +36,7 @@ items:
             command: [ /bin/sh, -i, -c, "alembic-3 -c /etc/anitya/alembic.ini upgrade head" ]
             volumes:
             - config-volume
-      type: Rolling
+      type: Recreate
     template:
       metadata:
         creationTimestamp: null
