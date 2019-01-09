@@ -44,7 +44,11 @@ items:
         RUN pip-3 install sqlalchemy_schemadisplay
         RUN git clone https://github.com/release-monitoring/anitya.git && \
                 pushd anitya && \
-                git checkout 0.14.0 && \
+{% if env == 'staging' %}
+                git checkout staging && \
+{% else %}
+                git checkout production && \
+{% endif %}
                 python3 setup.py install && \
                 pushd docs && \
                 mkdir -p images && \
@@ -74,5 +78,15 @@ items:
       to:
         kind: ImageStreamTag
         name: release-monitoring-web:latest
+    triggers:
+{% if stg_anitya_github_secret is defined and env == 'staging' %}
+    - type: GitHub
+      github:
+        secret: "{{ stg_anitya_github_secret }}"
+{% if anitya_github_secret is defined and env == 'production' %}
+    - type: GitHub
+      github:
+        secret: "{{ anitya_github_secret }}"
+{% endif %}
 kind: List
 metadata: {}
