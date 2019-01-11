@@ -1,0 +1,54 @@
+---
+apiVersion: v1
+kind: DeploymentConfig
+metadata:
+  name: mdapi
+  labels:
+    app: mdapi
+    service: mdapi
+spec:
+  replicas: 1
+  selector:
+    app: mdapi
+    service: mdapi
+  template:
+    metadata:
+      labels:
+        app: mdapi
+        service: mdapi
+    spec:
+      containers:
+      - name: mdapi
+        image: registry/mdapi:latest
+        ports:
+        - containerPort: 8080
+        volumeMounts:
+          - name: config-volume
+            mountPath: /etc/mdapi/
+            readOnly: true
+        readinessProbe:
+          timeoutSeconds: 5
+          initialDelaySeconds: 60
+          httpGet:
+            path: /
+            port: 8080
+        livenessProbe:
+          timeoutSeconds: 5
+          initialDelaySeconds: 60
+          httpGet:
+            path: /
+            port: 8080
+        resources:
+      volumes:
+       - name: config-volume
+         configMap:
+           name: mdapi-configmap
+  triggers:
+  - type: ImageChange
+    imageChangeParams:
+      automatic: true
+      containerNames:
+      - "mdapi"
+      from:
+        kind: ImageStreamTag
+        name: mdapi:latest

@@ -1,0 +1,28 @@
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: mdapi
+spec:
+  concurrencyPolicy: Forbid
+  schedule: "20 * * * *"
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            parent: "cronjobmdapi"
+        spec:
+          containers:
+          - name: mdapi
+            image: registry/mdapi:latest
+            command: ["bash", "-c", "/code/mdapi/mdapi-get_repo_md /etc/mdapi/mdapi.cfg; echo failed"]
+            volumeMounts:
+            - mountPath: /etc/mdapi
+              name: config-volume
+              readOnly: true
+          restartPolicy: Never
+          volumes:
+          - configMap:
+              defaultMode: 420
+              name: mdapi-configmap
+            name: config-volume

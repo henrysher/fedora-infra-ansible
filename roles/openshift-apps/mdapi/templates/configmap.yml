@@ -1,0 +1,20 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mdapi-configmap
+  labels:
+    app: mdapi
+data:
+  mdapi.cfg: |-
+    HOST = '*'
+    PORT = '8080'
+    PREFIX = '/mdapi'
+    DL_VERIFY = False
+{% if env == 'staging' %}
+KOJI_REPO = 'https://koji.stg.fedoraproject.org/repos/'
+DL_SERVER = 'http://dl.phx2.fedoraproject.org'
+{% else %}
+KOJI_REPO = 'https://koji.fedoraproject.org/repos/'
+DL_SERVER = 'http://dl.phx2.fedoraproject.org'
+{% endif %}

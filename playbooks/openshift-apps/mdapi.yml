@@ -1,0 +1,63 @@
+- name: make the app be real
+  hosts: os-masters-stg[0]
+  user: root
+  gather_facts: False
+
+  vars_files:
+    - /srv/web/infra/ansible/vars/global.yml
+    - "/srv/private/ansible/vars.yml"
+    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  roles:
+  - role: openshift/project
+    app: mdapi
+    description: mdapi is a small API exposing the metadata contained in different RPM repositories.
+    appowners:
+    - cverna
+    - pingou
+
+  - role: openshift/object
+    app: mdapi
+    template: imagestream.yml
+    objectname: imagestream.yml
+
+  - role: openshift/object
+    app: mdapi
+    template: buildconfig.yml
+    objectname: buildconfig.yml
+
+  - role: openshift/object
+    app: mdapi
+    template: configmap.yml
+    objectname: configmap.yml
+
+  - role: openshift/object
+    app: mdapi
+    file: cron.yml
+    objectname: cron.yml
+
+  - role: openshift/start-build
+    app: mdapi
+    buildname: asknot-build
+    objectname: asknot-build
+
+  - role: openshift/object
+    app: mdapi
+    file: service.yml
+    objectname: service.yml
+
+  - role: openshift/route
+    app: mdapi
+    routename: mdapi
+    host: "mdapi.{{env_suffix}}.fedoraproject.org"
+    serviceport: 8080-tcp
+    servicename: asknot
+
+  - role: openshift/object
+    app: mdapi
+    file: deploymentconfig.yml
+    objectname: deploymentconfig.yml
+
+  - role: openshift/rollout
+    app: mdapi
+    dcname: mdapi
