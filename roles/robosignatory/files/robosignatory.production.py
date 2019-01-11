@@ -122,6 +122,12 @@ config = {
                     "key": "fedora-30",
                     "keyid": "cfc659b9"
                 },
+                {
+                    "from": "f30-ruby",
+                    "to": "f30-ruby",
+                    "key": "fedora-30",
+                    "keyid": "cfc659b9"
+                },
 
                 # Gated rawhide and branched
                 {
