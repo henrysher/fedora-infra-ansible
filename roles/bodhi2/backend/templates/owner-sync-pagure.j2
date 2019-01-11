@@ -65,6 +65,7 @@ if not PDC_URL.endswith('/'):
 PDC_TYPES = {
     'rpms': 'rpm',
     'modules': 'module',
+    'flatpaks': 'flatpak',
     'container': 'container',
 }
 
@@ -118,26 +119,29 @@ def get_options():
     return opts
 
 
-def get_namespace_and_version_from_tag(tag):
+def get_namespaces_and_version_from_tag(tag):
     if 'container' in tag:
-        namespace = 'container'
+        namespaces = ['container']
         version = tag.split('-')[0].split('f')[1]
     elif 'docker' in tag:
-        namespace = 'container'
+        namespaces = ['container']
         version = tag.split('-')[0].split('f')[1]
     elif 'modular' in tag:
-        namespace = 'modules'
+        namespaces = ['flatpaks', 'modules']
         try:
             version = tag.split('-')[0].split('f')[1]
         except IndexError:
             version = RAWHIDE
+    elif 'flatpak' in tag:
+        namespaces = ['flatpaks']
+        version = tag.split('-')[0].split('f')[1]
     elif tag == 'module-package-list':
         # See https://pagure.io/releng/issue/6663
         # and https://pagure.io/fm-orchestrator/issue/333
-        namespace = 'rpms'
+        namespaces = ['rpms']
         version = RAWHIDE
     else:
-        namespace = 'rpms'
+        namespaces = ['rpms']
         if tag.startswith('epel'):
             version = tag.split('epel')[1]
         elif tag.startswith('f'):
@@ -378,15 +382,15 @@ if __name__ == '__main__':
     unique_namespaces = set()
     tag_info = {}
     for tag in tags:
-        namespace, version = get_namespace_and_version_from_tag(tag)
+        namespaces, version = get_namespaces_and_version_from_tag(tag)
         branch, arches = get_branch_and_arches(tag, version)
         tag_info[tag] = {
-            'namespace': namespace,
+            'namespaces': namespaces,
             'version': version,
             'branch': branch,
             'arches': arches
         }
-        unique_namespaces.add(namespace)
+        unique_namespaces.update(namespaces)
 
     # Get all the project to branch mappings for every namespace
     namespace_to_projects = {}
@@ -401,24 +405,27 @@ if __name__ == '__main__':
         if verbose:
             print('Determining which projects have the namespace "{0}" and '
                   'branch "{1}"'.format(namespace, tag))
-        namespace = info['namespace']
+        namespaces = info['namespace']
         pkgs = []
-        for pkg, branches in namespace_to_projects[namespace].items():
-            if info['branch'] in branches or tag == ('f' + RAWHIDE):
-                # The tag and branch names are the same for "old-style" branches
-                pkgs.append(pkg)
-            elif namespace == 'modules':
-                # Add modules to f27-modular-updates even if their only branch is '2.4'
-                pkgs.append(pkg)
+        for namespace in namespaces:
+            for pkg, branches in namespace_to_projects[namespace].items():
+                if info['branch'] in branches or tag == ('f' + RAWHIDE):
+                    # The tag and branch names are the same for "old-style" branches
+                    pkgs.append(pkg)
+                elif namespace in ('modules', 'flatpaks'):
+                    # Add modules to f27-modular-updates even if their only branch is '2.4'
+                    # Similarly, flatpaks will be built into f29-flatpak-updates-candidate
+                    # if they use the f29 runtime, even from master or stream branches.
+                    pkgs.append(pkg)
 
-        # This is a special project, not in dist-git, but which needs to be in
-        # the package list.
-        if namespace == 'rpms':
-            pkgs.append('module-build-macros')
+            # This is a special project, not in dist-git, but which needs to be in
+            # the package list.
+            if namespace == 'rpms':
+                pkgs.append('module-build-macros')
 
         if verbose:
             print('Setting the Koji ownership and package list on packages in '
-                  'the tag "{0}" and namespace "{1}" and for arches "{2}"'
-                  .format(tag, namespace, ', '.join(info['arches'])))
+                  'the tag "{0}" and namespaces "{1}" and for arches "{2}"'
+                  .format(tag, namespaces, ', '.join(info['arches'])))
         set_koji_ownership(tag, pkgs, info['arches'], verbose=verbose)
 
