@@ -7,7 +7,6 @@
 set -e
 
 rm -f GeoLite2-Country-CSV.zip csvs/*
-rmdir csvs
 
 wget -q -T 5 -t 1 https://geolite.maxmind.com/download/geoip/database/GeoLite2-Country-CSV.zip
 unzip -j GeoLite2-Country-CSV.zip -d csvs/
