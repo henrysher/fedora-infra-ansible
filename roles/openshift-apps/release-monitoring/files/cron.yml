@@ -14,7 +14,7 @@ spec:
         spec:
           containers:
           - name: release-monitoring-web
-            image: docker-registry.default.svc:5000/release-monitoring/release-monitoring-web:latest
+            image: release-monitoring/release-monitoring-web:latest
             command: ["bash", "-c", "/usr/local/bin/anitya_cron.py"]
             env:
             - name: ANITYA_WEB_CONFIG
@@ -34,7 +34,16 @@ spec:
               readOnly: true
           restartPolicy: Never
           volumes:
-          - configMap:
+          - name: config-volume
+            configMap:
               defaultMode: 420
               name: release-monitoring-configmap
-            name: config-volume
+          - name: fedmsg-config-volume
+            configMap:
+              name: fedmsg-configmap
+          - name: fedmsg-key-volume
+            secret:
+              secretName: release-monitoring-fedmsg-key
+          - name: fedmsg-crt-volume
+            secret:
+              secretName: release-monitoring-fedmsg-cert
