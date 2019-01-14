@@ -15,13 +15,22 @@ spec:
           containers:
           - name: release-monitoring-web
             image: docker-registry.default.svc:5000/release-monitoring/release-monitoring-web:latest
-            command: ["bash", "-c", "/usr/local/bin/anitya_cron.py; echo failed"]
+            command: ["bash", "-c", "/usr/local/bin/anitya_cron.py"]
             env:
             - name: ANITYA_WEB_CONFIG
               value: /etc/anitya/anitya.toml
             volumeMounts:
             - mountPath: /etc/anitya
               name: config-volume
+              readOnly: true
+            - name: fedmsg-config-volume
+              mountPath: /etc/fedmsg.d/
+              readOnly: true
+            - name: fedmsg-key-volume
+              mountPath: /etc/pki/fedmsg/key
+              readOnly: true
+            - name: fedmsg-crt-volume
+              mountPath: /etc/pki/fedmsg/crt
               readOnly: true
           restartPolicy: Never
           volumes:
