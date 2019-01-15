@@ -144,7 +144,7 @@ class ProdConfiguration(BaseConfiguration):
 
 {% else %}
     KOJI_PROFILE = 'production'
-    KOJI_ARCHES = ['aarch64', 'armv7hl', 'i686', 'ppc64le', 'x86_64', 's390x']
+    ARCHES = ['aarch64', 'armv7hl', 'i686', 'ppc64le', 'x86_64', 's390x']
     BASE_MODULE_ARCHES = {
         # Fedora 28 includes 'ppc64'.  F29 and later drops it.
         # https://fedoraproject.org/wiki/Changes/DiscontinuePPC64
