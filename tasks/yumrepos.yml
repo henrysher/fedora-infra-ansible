@@ -81,7 +81,15 @@
 
 - name: add aarch64 server rpms repo
   copy: src="{{ files }}/common/rhel-7-aarch64-server-rpms.repo" dest="/etc/yum.repos.d/rhel-7-aarch64-server-rpms.repo"
-  when: (ansible_distribution == 'RedHat' or ansible_distribution == 'CentOS') and inventory_hostname.startswith('aarch64-c')
+  when: (ansible_distribution == 'RedHat' or ansible_distribution == 'CentOS') and inventory_hostname.startswith('aarch64-c') and ansible_distribution_major_version = 7
+  tags:
+  - config
+  - packages
+  - yumrepos
+
+- name: add aarch64 server rpms repo
+  copy: src="{{ files }}/common/rhel-8-aarch64-server-rpms.repo" dest="/etc/yum.repos.d/rhel-8-aarch64-server-rpms.repo"
+  when: (ansible_distribution == 'RedHat' or ansible_distribution == 'CentOS') and inventory_hostname.startswith('aarch64-c') and ansible_distribution_major_version = 8
   tags:
   - config
   - packages
