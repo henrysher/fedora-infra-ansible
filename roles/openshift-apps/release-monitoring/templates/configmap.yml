@@ -91,17 +91,17 @@ items:
       stream = "ext://sys.stdout"
 
       [anitya_log_config.loggers.anitya]
-      level = "INFO"
+      level = "DEBUG"
       propagate = false
       handlers = ["console"]
 
       [anitya_log_config.loggers.fedmsg]
-      level = "INFO"
+      level = "DEBUG"
       propagate = false
       handlers = ["console"]
 
       [anitya_log_config.root]
-      level = "ERROR"
+      level = "DEBUG"
       handlers = ["console"]
     alembic.ini: |-
       [alembic]
@@ -252,7 +252,7 @@ items:
       import socket
       config = {
           "zmq_enabled": True,
-          "active": False,
+          "active": True,
           "topic_prefix": "org.fedoraproject",
           "sign_messages": True,
           "validate_signatures": True,
@@ -264,8 +264,10 @@ items:
 {% if env == 'staging' %}
           "endpoints": {"anitya.stg": "tcp://busgateway01.stg.phx2.fedoraproject.org:9940"},
           "environment": "stg",
+          "relay_inbound": ["tcp://busgateway01.stg.phx2.fedoraproject.org:9941"],
 {% else %}
           "endpoints": {"anitya.prod": "tcp://busgateway01.phx2.fedoraproject.org:9940"},
           "environment": "prod",
+          "relay_inbound": ["tcp://busgateway01.phx2.fedoraproject.org:9941"],
 {% endif %}
       }

@@ -41,6 +41,8 @@ items:
           env:
             - name: USER
               value: anitya
+            - name: ANITYA_WEB_CONFIG
+              value: /etc/anitya/anitya.toml
           ports:
           - containerPort: 8080
           resources: {}
@@ -120,11 +122,12 @@ items:
         containers:
         - name: fedmsg-hub
           image: release-monitoring/release-monitoring-web:latest
-          command:
-            - fedmsg-hub
+          command: ["fedmsg-hub", "--config-filename", "/etc/fedmsg.d/anitya.py"]
           env:
             - name: USER
               value: fedmsg
+            - name: ANITYA_WEB_CONFIG
+              value: /etc/anitya/anitya.toml
           resources: {}
           volumeMounts:
           - name: config-volume
