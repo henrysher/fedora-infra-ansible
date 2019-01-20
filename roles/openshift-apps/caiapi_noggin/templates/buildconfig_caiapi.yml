@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: BuildConfig
+metadata:
+  labels:
+    build: caiapi-build
+  name: caiapi-build
+spec:
+  runPolicy: Serial
+  source:
+    git:
+      url: https://github.com/fedora-infra/noggin.git
+      ref: {{ env }}
+    contextDir: CAIAPI
+  strategy:
+    sourceStrategy:
+      from:
+        kind: ImageStreamTag
+        name: python-36-rhel7:latest
+  output:
+    to:
+      kind: ImageStreamTag
+      name: caiapi

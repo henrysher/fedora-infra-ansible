@@ -1,0 +1,49 @@
+- name: make the app be real
+  hosts: os-masters-stg[0]
+  user: root
+  gather_facts: False
+
+  vars_files:
+    - /srv/web/infra/ansible/vars/global.yml
+    - "/srv/private/ansible/vars.yml"
+    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  roles:
+  - role: openshift/project
+    app: caiapi_noggin
+    description: CAIAPI and Noggin
+    appowners:
+    - puiterwijk
+  - role: openshift/imagestream
+    app: caiapi_noggin
+    imagename: caiapi
+  - role: openshift/imagestream
+    app: caiapi_noggin
+    imagename: noggin
+  - role: openshift/object
+    app: caiapi_noggin
+    objectname: buildconfig_caiapi.yml
+    template: buildconfig_caiapi.yml
+  - role: openshift/start-build
+    app: caiapi_noggin
+    buildname: caiapi-build
+  - role: openshift/object
+    app: caiapi_noggin
+    template: configmap_caiapi.yml
+    objectname: configmap_caiapi.yml
+  - role: openshift/object
+    app: caiapi_noggin
+    file: service_caiapi.yml
+    objectname: service_caiapi.yml
+  - role: openshift/route
+    app: caiapi_noggin
+    routename: caiapi
+    host: "caiapi{{ env_suffix }}.fedoraproject.org"
+    servicename: caiapi
+  - role: openshift/object
+    app: caiapi_noggin
+    file: deploymentconfig_caiapi.yml
+    objectname: deploymentconfig_caiapi.yml
+  - role: openshift/rollout
+    app: caiapi_noggin
+    dcname: caiapi

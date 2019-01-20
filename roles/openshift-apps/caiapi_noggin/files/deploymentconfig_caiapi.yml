@@ -1,0 +1,53 @@
+apiVersion: v1
+kind: DeploymentConfig
+metadata:
+  labels:
+    app: caiapi_noggin
+    service: caiapi
+  name: caiapi
+spec:
+  replicas: 1
+  selector:
+    deploymentconfig: caiapi
+  strategy:
+    activeDeadlineSeconds: 21600
+    recreateParams:
+      timeoutSeconds: 600
+  resources: {}
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: caiapi_noggin
+        deploymentconfig: caiapi
+    spec:
+      containers:
+      - name: caiapi
+        image: caiapi_noggin/caiapi:latest
+        env:
+          - name: CAIAPI_SETTINGS
+            value: /etc/caiapi/caiapi.cfg
+        ports:
+        - containerPort: 8080
+        volumeMounts:
+        - name: config-volume
+          mountPath: /etc/caiapi
+          readOnly: true
+        readinessProbe:
+          timeoutSeconds: 1
+          initialDelaySeconds: 5
+          httpGet:
+            path: /
+            port: 8080
+        livenessProbe:
+          timeoutSeconds: 1
+          initialDelaySeconds: 30
+          httpGet:
+            path: /
+            port: 8080
+      volumes:
+      - name: config-volume
+        configMap:
+          name: caiapi-config
+  triggers:
+  - type: ConfigChange
