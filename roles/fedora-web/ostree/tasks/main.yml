@@ -18,9 +18,22 @@
   - fedora-web
   - ostree
 
-- name: make ostree variant dirs
+- name: make ostree "allofthem" dir
   file: state=directory
+        path=/srv/web/ostree_allofthem
+        owner=apache
+        group=sysadmin-releng
+        mode=2775
+        setype=httpd_sys_content_t
+        seuser=system_u
+  tags:
+  - fedora-web
+  - ostree
+
+- name: make ostree variant dir symlinks
+  file: state=link
         path=/srv/web/ostree/{{ item }}
+        dest=/srv/web/ostree_allofthem
         owner=apache
         group=sysadmin-releng
         mode=2775
@@ -35,24 +48,11 @@
   - fedora-web
   - ostree
 
-- name: Copy over the mirrorlist file
-  copy: src=mirrorlist dest=/srv/web/ostree/{{item}}/mirrorlist mode=0644
+- name: Copy over the static files
+  copy: src=item dest=/srv/web/ostree_allofthem/{{item}} mode=0644
   with_items:
-  - atomichost
-  - coreos
-  - silverblue
-  - iot
-  tags:
-  - fedora-web
-  - ostree
-
-- name: Copy over the config file
-  copy: src=config dest=/srv/web/ostree/{{item}}/config mode=0644
-  with_items:
-  - atomichost
-  - coreos
-  - silverblue
-  - iot
+  - config
+  - mirrorlist
   tags:
   - fedora-web
   - ostree
