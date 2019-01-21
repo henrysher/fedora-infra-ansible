@@ -18,11 +18,41 @@
   - fedora-web
   - ostree
 
-- name: Copy over the static files
-  copy: src={{item}} dest=/srv/web/ostree/{{item}} mode=0644
+- name: make ostree variant dirs
+  file: state=directory
+        path=/srv/web/ostree/{{ item }}
+        owner=apache
+        group=sysadmin-releng
+        mode=2775
+        setype=httpd_sys_content_t
+        seuser=system_u
   with_items:
-  - mirrorlist
-  - config
+  - atomichost
+  - coreos
+  - silverblue
+  - iot
+  tags:
+  - fedora-web
+  - ostree
+
+- name: Copy over the mirrorlist file
+  copy: src=mirrorlist dest=/srv/web/ostree/{{item}}/mirrorlist mode=0644
+  with_items:
+  - atomichost
+  - coreos
+  - silverblue
+  - iot
+  tags:
+  - fedora-web
+  - ostree
+
+- name: Copy over the config file
+  copy: src=config dest=/srv/web/ostree/{{item}}/config mode=0644
+  with_items:
+  - atomichost
+  - coreos
+  - silverblue
+  - iot
   tags:
   - fedora-web
   - ostree
