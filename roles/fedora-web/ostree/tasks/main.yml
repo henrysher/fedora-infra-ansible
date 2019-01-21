@@ -1,0 +1,26 @@
+- name: make ostree dir
+  file: state=directory
+        path=/srv/web/ostree
+        owner=apache
+        group=sysadmin-releng
+        mode=2775
+        setype=httpd_sys_content_t
+        seuser=system_u
+  tags:
+  - fedora-web
+  - ostree
+
+- name: Copy over the static files
+  copy: src={{item}} dest=/srv/web/ostree/{{item}} mode=0644
+  with_items:
+  - mirrorlist
+  - config
+  tags:
+  - fedora-web
+  - ostree
+
+- name: Copy in the sync-summary cron job
+  copy: src=cron-sync-ostree-summary dest=/etc/cron.d/sync-ostree-summary
+  tags:
+  - fedora-web
+  - ostree
