@@ -1,0 +1,52 @@
+- name: make the app be real
+  hosts: os-masters-stg[0]
+  user: root
+  gather_facts: False
+
+  vars_files:
+    - /srv/web/infra/ansible/vars/global.yml
+    - "/srv/private/ansible/vars.yml"
+    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  roles:
+  - role: openshift/project
+    app: nuancier
+    description: Fedora nuancier apps
+    appowners:
+    - cverna
+    - pingou
+  - role: openshift/object
+    app: nuancier
+    template: imagestream.yml
+    objectname: imagestream.yml
+  - role: openshift/object
+    app: nuancier
+    template: buildconfig.yml
+    objectname: buildconfig.yml
+
+  - role: openshift/object
+    app: nuancier
+    template: configmap.yml
+    objectname: configmap.yml
+
+  - role: openshift/start-build
+    app: nuancier
+    buildname: nuancier-build
+    objectname: nuancier-build
+
+  - role: openshift/object
+    app: nuancier
+    file: service.yml
+    objectname: service.yml
+
+  - role: openshift/route
+    app: nuancier
+    routename: nuancier
+    host: "wallpapers{{ env_suffix }}.fedoraproject.org"
+    serviceport: 8080-tcp
+    servicename: nuancier
+
+  - role: openshift/object
+    app: nuancier
+    file: deploymentconfig.yml
+    objectname: deploymentconfig.yml
