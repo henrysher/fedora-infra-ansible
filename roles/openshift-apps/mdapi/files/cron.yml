@@ -22,10 +22,18 @@ spec:
               readOnly: true
             - mountPath: /var/tmp
               name: data-volume
+            - mountPath: /etc/fedora-messaging/
+              name: fedora-messaging-config-volume
+              readOnly: true
           restartPolicy: Never
           volumes:
-          - configMap:
-              defaultMode: 420
-              name: mdapi-configmap
-            name: config-volume
+          - name: config-volume
+            configMap:
+                defaultMode: 420
+                name: mdapi-configmap
           - name: data-volume
+            persistentVolumeClaim:
+                claimName: mdapi-storage
+          - name: fedora-messaging-config-volume
+            configMap:
+              name: fedora-messaging-configmap

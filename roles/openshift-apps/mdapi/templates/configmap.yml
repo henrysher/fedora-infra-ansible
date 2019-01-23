@@ -17,3 +17,18 @@ data:
     KOJI_REPO = 'https://koji.fedoraproject.org/repos/'
     DL_SERVER = 'http://dl.phx2.fedoraproject.org'
 {% endif %}
+  config.toml: |-
+    amqp_url = "amqps://messaging-bridge{{ env_suffix }}.fedoraproject.org:@rabbitmq01{{ env_suffix }}.phx2.fedoraproject.org/%2Fpubsub"
+    publish_exchange = "amq.topic"
+
+    [tls]
+    ca_cert = "/etc/pki/rabbitmq/ca/rabbitmq-ca.crt"
+    keyfile = "/etc/pki/rabbitmq/key/rabbitmq-NAME_OF_CERT.key"
+    certfile = "/etc/pki/rabbitmq/crt/rabbitmq-NAME_OF_CERT.crt"
+
+    [client_properties]
+    app = "mdapi"
+
+    [qos]
+    prefetch_size = 0
+    prefetch_count = 25
