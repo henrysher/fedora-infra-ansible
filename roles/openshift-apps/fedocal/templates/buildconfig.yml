@@ -1,0 +1,30 @@
+apiVersion: v1
+kind: BuildConfig
+metadata:
+  name: fedocal-build
+  labels:
+    environment: "fedocal"
+spec:
+  output:
+    to:
+      kind: ImageStreamTag
+      name: fedocal:latest
+  source:
+    type: Git
+    git:
+      uri: https://pagure.io/fedocal.git
+{% if env == 'staging' %}
+      ref: "staging"
+{% else %}
+      ref: "production"
+{% endif %}
+  strategy:
+    type: Source
+    sourceStrategy:
+      from:
+        kind: ImageStreamTag
+        namespace: openshift
+        name: python:3.6
+  triggers:
+  - type: ConfigChange
+  - type: ImageChange

@@ -1,0 +1,52 @@
+- name: make the app be real
+  hosts: os-masters-stg[0]
+  user: root
+  gather_facts: False
+
+  vars_files:
+    - /srv/web/infra/ansible/vars/global.yml
+    - "/srv/private/ansible/vars.yml"
+    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  roles:
+  - role: openshift/project
+    app: fedocal
+    description: Fedora Elections apps
+    appowners:
+    - cverna
+    - pingou
+  - role: openshift/object
+    app: fedocal
+    template: imagestream.yml
+    objectname: imagestream.yml
+  - role: openshift/object
+    app: fedocal
+    template: buildconfig.yml
+    objectname: buildconfig.yml
+
+  - role: openshift/object
+    app: fedocal
+    template: configmap.yml
+    objectname: configmap.yml
+
+  - role: openshift/start-build
+    app: fedocal
+    buildname: fedocal-build
+    objectname: fedocal-build
+
+  - role: openshift/object
+    app: fedocal
+    file: service.yml
+    objectname: service.yml
+
+  - role: openshift/route
+    app: fedocal
+    routename: fedocal
+    host: "calendar{{ env_suffix }}.fedoraproject.org"
+    serviceport: 8080-tcp
+    servicename: fedocal
+
+  - role: openshift/object
+    app: fedocal
+    file: deploymentconfig.yml
+    objectname: deploymentconfig.yml
