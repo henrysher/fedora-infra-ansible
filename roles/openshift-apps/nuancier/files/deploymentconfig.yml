@@ -40,6 +40,8 @@ spec:
         - name: config-volume
           mountPath: /opt/app-root/config/
           readOnly: true
+        - name: data-volume
+          mountPath: /var/cache/nuancier/
         readinessProbe:
           timeoutSeconds: 1
           initialDelaySeconds: 5
@@ -56,6 +58,9 @@ spec:
       - name: config-volume
         configMap:
           name: nuancier-configmap
+      - name: data-volume
+        persistentVolumeClaim:
+            claimName: nuancier-storage
 
   triggers:
   - type: ConfigChange
