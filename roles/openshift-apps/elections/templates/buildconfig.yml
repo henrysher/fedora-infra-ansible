@@ -1,0 +1,30 @@
+apiVersion: v1
+kind: BuildConfig
+metadata:
+  name: elections-build
+  labels:
+    environment: "elections"
+spec:
+  output:
+    to:
+      kind: ImageStreamTag
+      name: elections:latest
+  source:
+    type: Git
+    git:
+      uri: https://pagure.io/elections.git
+{% if env == 'staging' %}
+      ref: "staging"
+{% else %}
+      ref: "production"
+{% endif %}
+  strategy:
+    type: Source
+    sourceStrategy:
+      from:
+        kind: ImageStreamTag
+        namespace: openshift
+        name: python:2.7
+  triggers:
+  - type: ConfigChange
+  - type: ImageChange

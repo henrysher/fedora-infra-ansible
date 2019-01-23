@@ -1,0 +1,52 @@
+- name: make the app be real
+  hosts: os-masters-stg[0]
+  user: root
+  gather_facts: False
+
+  vars_files:
+    - /srv/web/infra/ansible/vars/global.yml
+    - "/srv/private/ansible/vars.yml"
+    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  roles:
+  - role: openshift/project
+    app: elections
+    description: Fedora Elections apps
+    appowners:
+    - cverna
+    - pingou
+  - role: openshift/object
+    app: elections
+    template: imagestream.yml
+    objectname: imagestream.yml
+  - role: openshift/object
+    app: elections
+    template: buildconfig.yml
+    objectname: buildconfig.yml
+
+  - role: openshift/object
+    app: elections
+    template: configmap.yml
+    objectname: configmap.yml
+
+  - role: openshift/start-build
+    app: elections
+    buildname: elections-build
+    objectname: elections-build
+
+  - role: openshift/object
+    app: elections
+    file: service.yml
+    objectname: service.yml
+
+  - role: openshift/route
+    app: elections
+    routename: elections
+    host: "elections{{ env_suffix }}.fedoraproject.org"
+    serviceport: 8080-tcp
+    servicename: elections
+
+  - role: openshift/object
+    app: elections
+    file: deploymentconfig.yml
+    objectname: deploymentconfig.yml
