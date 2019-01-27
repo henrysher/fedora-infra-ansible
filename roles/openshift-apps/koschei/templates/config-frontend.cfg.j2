@@ -1,0 +1,105 @@
+# This is a config file for Koschei that can override values in default
+# configuration in /usr/share/koschei/config.cfg. It is a python file expecting
+# assignment to config dictionary which will be recursively merged with the
+# default one.
+config = {
+    "database_config": {
+        "host": "{{ koschei_pgsql_hostname }}",
+        "username": "koscheiuser",
+        "password": "{{ koscheiuser_db_password }}",
+        "database": "koschei"
+    },
+    "koji_config": {
+        "topurl": "https://{{ koschei_kojipkgs }}",
+        "weburl": "https://{{ koschei_koji_web }}/koji",
+    },
+    "flask": {
+        "SECRET_KEY": "{{ koschei_flask_secret_key }}",
+    },
+    "logging": {
+        "loggers": {
+            "": {
+                "level": "INFO",
+                # "handlers": ["stderr", "email"],
+                "handlers": ["stderr"],
+            },
+            "requests": {
+                "level": "WARN",
+            },
+        },
+        "handlers": {
+            "email": {
+                "class": "logging.handlers.SMTPHandler",
+                "level": "WARN",
+                "mailhost": "localhost",
+                "fromaddr": "koschei@fedoraproject.org",
+                "toaddrs": ['sysadmin-koschei-members@fedoraproject.org'],
+                "subject": "Koschei frontend {{ env }} warning",
+            },
+        },
+    },
+    {% if env == 'staging' %}
+    "plugins": ['hotfix_pagure_extras', 'copr'],
+    {% else %}
+    "plugins": ['hotfix_pagure_extras'],
+    {% endif %}
+    "caching": {
+        "pagure": {
+            "users": {
+                "backend": "dogpile.cache.memcached",
+                "expiration_time": 21600,  # 6 hours
+                "arguments": {
+                    "url": "memcached01:11211",
+                },
+            },
+        },
+        "hotfix_pagure_extras": {
+            "backend": "dogpile.cache.memcached",
+            "expiration_time": 3600,  # 1 hour
+            "arguments": {
+                "url": "memcached01:11211",
+            },
+        },
+    },
+    "pagure": {
+        "api_url": "https://src{{ env_suffix }}.fedoraproject.org/api/0",
+    },
+    "hotfix_pagure_extras": {
+        "owner_alias_url": "https://src{{ env_suffix }}.fedoraproject.org/extras/pagure_owner_alias.json",
+    },
+    "frontend": {
+        "builds_per_page": 8,
+        "auth": {
+            "user_re": "(.+)",
+            "user_env": "OIDC_CLAIM_nickname",
+        },
+        "fedora_assets_url": "/global",
+        "fedmenu_url": "/fedmenu",
+        "fedmenu_data_url": "/js/data.js",
+    },
+    "links": [
+        {"name": "Packages",
+         "url": "https://apps{{ env_suffix }}.fedoraproject.org/packages/{package.name}"},
+        {"name": "Bodhi",
+         "url": "https://bodhi{{ env_suffix }}.fedoraproject.org/updates?packages={package.name}"},
+        {"name": "Dist-git",
+         "url": "https://src{{ env_suffix }}.fedoraproject.org/rpms/{package.name}"},
+        {"name": "Bugzilla",
+         "url": "https://{{ koschei_bugzilla }}/buglist.cgi?product={package.collection.bugzilla_product}&component={package.name}"},
+        {"name": "Koji",
+         "url": "https://{{ koschei_koji_web }}/koji/packageinfo?packageID={package.name}"},
+    ],
+    "bugreport": {
+        "url": "https://{{ koschei_bugzilla }}/enter_bug.cgi?{query}",
+    },
+    "copr": {
+        "require_admin": True,
+        "copr_owner": "mizdebsk",
+        "default_schedule_count": 8,
+    },
+}
+
+# Local Variables:
+# mode: Python
+# End:
+# vi: ft=python
