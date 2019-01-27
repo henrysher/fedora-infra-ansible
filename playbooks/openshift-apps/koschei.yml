@@ -19,8 +19,18 @@
     template: config-frontend.cfg.j2
 
   - role: openshift/object
-    template: deploymentconfig.yml
-    objectname: deploymentconfig.yml
+    template: frontend-deployment.yml
+    objectname: frontend-deployment.yml
+
+  - role: openshift/object
+    template: frontend-service.yml
+    objectname: frontend-service.yml
+
+  - role: openshift/route
+    routename: frontend-route
+    host: "koschei{{ env_suffix }}.fedoraproject.org"
+    serviceport: web
+    servicename: frontend-service
 
   - role: openshift/rollout
     dcname: frontend-deployment
