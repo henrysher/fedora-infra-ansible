@@ -1,0 +1,20 @@
+<VirtualHost *>
+    RewriteEngine on
+    RewriteRule ^/documentation/?$ https://fedoraproject.org/wiki/Koschei [R=301,L]
+
+    OIDCRedirectURI "{{ koschei_topurl }}/login/redirect_uri"
+    OIDCProviderMetadataURL "https://{{ koschei_oidc_provider }}/openidc/wellknown_openid_configuration"
+    OIDCClientID "koschei"
+    OIDCClientSecret "{{ koschei_oidc_client_secret }}"
+    OIDCCryptoPassphrase "{{ koschei_oidc_crypto_secret }}"
+    OIDCSSLValidateServer On
+    OIDCResponseType "code"
+    OIDCSessionType client-cookie
+
+    OIDCScope "openid profile"
+
+    <Location /login>
+        AuthType openid-connect
+        Require valid-user
+    </Location>
+</VirtualHost>
