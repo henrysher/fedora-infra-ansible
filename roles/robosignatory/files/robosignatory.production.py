@@ -134,6 +134,12 @@ config = {
                     "key": "fedora-30",
                     "keyid": "cfc659b9"
                 },
+                {
+                    "from": "f30-rebuild",
+                    "to": "f30-rebuild",
+                    "key": "fedora-30",
+                    "keyid": "cfc659b9"
+                },
 
                 # Gated rawhide and branched
                 {
