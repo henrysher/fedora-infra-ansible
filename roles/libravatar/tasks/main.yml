@@ -22,10 +22,12 @@
   - "mod_ssl"
   - "letsencrypt"
 
-- lineinfile:
-  path: /etc/postfix/main.cf
-  state: absent
-  regexp: '^relayhost = bastion'
+- name: configure postfix for email encryption
+- command: "{{ item }}"
+  with_items:
+  - postconf -e 'smtpd_tls_cert_file = /etc/letsencrypt/live/{{ inventory_hostname }}/fullchain.pem'
+  - postconf -e 'smtpd_tls_key_file = /etc/letsencrypt/live/{{ inventory_hostname }}/privkey.pem'
+  - postconf -e 'smtp_use_tls = yes'
 
 - git:
     repo: https://git.linux-kernel.at/oliver/ivatar.git
