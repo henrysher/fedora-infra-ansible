@@ -1,23 +1,13 @@
 ---
-- name: ensure packages required for taskotron-trigger are installed (yum)
-  package: name={{ item }} state=present
-  with_items:
-    - fedmsg
-    - fedmsg-hub
-    - taskotron-trigger
-    # needed for cron script
-    - python-resultsdb_api
-  when: ansible_distribution_major_version|int < 22
-
-- name: ensure packages required for taskotron-trigger are installed (dnf)
+- name: ensure packages required for taskotron-trigger are installed
   dnf: name={{ item }} state=present
   with_items:
     - fedmsg
     - fedmsg-hub
     - taskotron-trigger
-    # needed for cron script
-    - python2-resultsdb_api
-  when: ansible_distribution_major_version|int > 21 and ansible_cmdline.ostree is not defined
+    - python2-resultsdb_api  # TODO: remove when transition to buildbot 1.7 is complete
+    - python3-resultsdb_api
+  when: ansible_cmdline.ostree is not defined
 
 - name: generate trigger configuration
   template: src={{ item }} dest=/etc/taskotron/trigger.cfg owner=root group=root mode=0744
@@ -25,7 +15,20 @@
     - trigger.cfg.j2.{{ deployment_type }}
     - trigger.cfg.j2
   notify:
-  - restart fedmsg-hub
+    - restart fedmsg-hub-3
+  when: deployment_type in ['dev']
+
+###########
+## TODO: remove when transition to buildbot 1.7 is complete
+- name: generate trigger configuration
+  template: src={{ item }} dest=/etc/taskotron/trigger.cfg owner=root group=root mode=0744
+  with_first_found:
+    - trigger.cfg.j2.{{ deployment_type }}
+    - trigger.cfg.j2
+  notify:
+    - restart fedmsg-hub
+  when: deployment_type in ['stg', 'prod']
+###########
 
 - name: generate trigger rules
   template: src={{ item }} dest=/etc/taskotron/trigger_rules.yml owner=root group=root mode=0744
@@ -33,12 +36,35 @@
     - trigger_rules.yml.j2.{{ deployment_type }}
     - trigger_rules.yml.j2
   notify:
-  - restart fedmsg-hub
+    - restart fedmsg-hub-3
+  when: deployment_type in ['dev']
+
+###########
+## TODO: remove when transition to buildbot 1.7 is complete
+- name: generate trigger rules
+  template: src={{ item }} dest=/etc/taskotron/trigger_rules.yml owner=root group=root mode=0744
+  with_first_found:
+    - trigger_rules.yml.j2.{{ deployment_type }}
+    - trigger_rules.yml.j2
+  notify:
+    - restart fedmsg-hub
+  when: deployment_type in ['stg', 'prod']
+#########
 
 - name: copy fedmsg logging configuration
   copy: src=logging.py dest=/etc/fedmsg.d/logging.py owner=root group=root mode=0744
   notify:
-  - restart fedmsg-hub
+    - restart fedmsg-hub-3
+  when: deployment_type in ['dev']
+
+###########
+## TODO: remove when transition to buildbot 1.7 is complete
+- name: copy fedmsg logging configuration
+  copy: src=logging.py dest=/etc/fedmsg.d/logging.py owner=root group=root mode=0744
+  notify:
+    - restart fedmsg-hub
+  when: deployment_type in ['stg', 'prod']
+###########
 
 - name: install fetch_activity
   copy: src=fetch_activity.py dest=/root/fetch_activity.py owner=root group=root mode=0644
@@ -54,5 +80,13 @@
 - name: copy tmpfiles.d for trigger distgit cache
   template: src=tmpfiles.d.trigger.conf.j2 dest=/etc/tmpfiles.d/trigger.conf owner=root group=root mode=0644
 
+- name: start and enable fedmsg-hub-3 service
+  service: name=fedmsg-hub-3 enabled=yes state=started
+  when: deployment_type in ['dev']
+
+###########
+## TODO: remove when transition to buildbot 1.7 is complete
 - name: start and enable fedmsg-hub service
   service: name=fedmsg-hub enabled=yes state=started
+  when: deployment_type in ['stg', 'prod']
+###########

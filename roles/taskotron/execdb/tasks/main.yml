@@ -2,15 +2,17 @@
 - name: start httpd (provided in the apache role)
   service: name=httpd state=started
 
-- name: ensure packages required for execdb are installed (yum)
-  package: name={{ item }} state=present
+- name: ensure packages required for execdb are installed (dnf)
+  dnf: name={{ item }} state=present
   with_items:
     - execdb
-    - mod_wsgi
-    - python-psycopg2
-    - libsemanage-python
-  when: ansible_distribution_major_version|int < 22
+    - python3-mod_wsgi
+    - python3-psycopg2
+    - python2-libsemanage
+  when: ansible_cmdline.ostree is not defined and deployment_type in ['dev']
 
+###########
+## TODO: remove when transition to buildbot 1.7 is complete
 - name: ensure packages required for execdb are installed (dnf)
   dnf: name={{ item }} state=present
   with_items:
@@ -18,7 +20,8 @@
     - mod_wsgi
     - python-psycopg2
     - libsemanage-python
-  when: ansible_distribution_major_version|int > 21 and ansible_cmdline.ostree is not defined
+  when: ansible_cmdline.ostree is not defined and deployment_type in ['stg', 'prod']
+###########
 
 - name: ensure database is created
   delegate_to: "{{ execdb_db_host_machine }}"

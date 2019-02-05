@@ -2,17 +2,20 @@
 - name: start httpd (provided in the apache role)
   service: name=httpd state=started
 
-- name: ensure packages required for buildmaster are installed (yum)
-  package: name={{ item }} state=present
+- name: ensure packages required for buildmaster are installed
+  dnf: name={{ item }} state=present
   with_items:
-    - buildbot
     - buildbot-master
-    - libsemanage-python
-    - python-psycopg2
+    - buildbot-www
+    - python2-libsemanage
+    - python3-psycopg2
     - policycoreutils-python-utils
-  when: ansible_distribution_major_version|int < 22
+    - python3-treq
+  when: ansible_cmdline.ostree is not defined and deployment_type in ['dev']
 
-- name: ensure packages required for buildmaster are installed (dnf)
+###########
+## TODO: remove when transition to buildbot 1.7 is complete
+- name: ensure packages required for buildmaster are installed
   dnf: name={{ item }} state=present
   with_items:
     - buildbot
@@ -20,17 +23,12 @@
     - libsemanage-python
     - python-psycopg2
     - policycoreutils-python-utils
-  when: ansible_distribution_major_version|int > 21 and ansible_cmdline.ostree is not defined
-
-- name: ensure additional packages required for CI buildmaster are installed
-  package: name={{ item }} state=present
-  when: ansible_distribution_major_version|int < 22 and (deployment_type == 'qa-prod' or deployment_type == 'qa-stg')
-  with_items:
-    - python-novaclient
+  when: ansible_cmdline.ostree is not defined and deployment_type in ['stg', 'prod']
+############
 
 - name: ensure additional packages required for CI buildmaster are installed
   dnf: name={{ item }} state=present
-  when: ansible_distribution_major_version|int > 21 and (deployment_type == 'qa-prod' or deployment_type == 'qa-stg')
+  when: deployment_type in ['qa-prod', 'qa-stg']
   with_items:
     - python-novaclient
 
@@ -50,7 +48,7 @@
   when: deployment_type in ['qa-stg']
 
 - name: ensure correct fcontext for buildmaster home (new)
-  file: path="{{ buildmaster_home }}(/. *)?" setype=var_lib_t owner=buildmaster group=buildmaster mode=0775 state=directory
+  file: path="{{ buildmaster_home }}" setype=var_lib_t owner=buildmaster group=buildmaster mode=0775 state=directory
   when: deployment_type in ['dev', 'stg', 'prod']
 
 #- name: make sure the selinux fcontext is restored
@@ -64,6 +62,12 @@
   template: src=buildmaster.conf.j2 dest=/etc/httpd/conf.d/buildmaster.conf owner=root group=root
   notify:
     - reload httpd
+
+- name: ensure postgresql service is running
+  systemd:
+    name: postgresql
+    state: started
+    enabled: true
 
 - name: ensure buildmaster database is created
   when: buildmaster_db_host != 'localhost'

@@ -1,9 +1,33 @@
 ---
-- name: ensure packages required for buildslave are installed (dnf)
+- name: ensure packages required for buildslave are installed
+  dnf: name={{ item }} state=present
+  with_items:
+    - buildbot-worker
+    - git
+    - policycoreutils-python-utils
+  when: ansible_cmdline.ostree is not defined and deployment_type in ['dev']
+
+###########
+## TODO: remove when transition to buildbot 1.7 is complete
+- name: ensure packages required for buildslave are installed
   dnf: name={{ item }} state=present
   with_items:
     - buildbot-slave
     - git
+    - policycoreutils-python-utils
+  when: ansible_cmdline.ostree is not defined and deployment_type in ['stg', 'prod']
+############
+
+- name: ensure packages required for CI buildslave are installed
+  dnf: name={{ item }} state=present
+  with_items:
+    - testcloud
+    - mash
+    - mock
+    - koji
+    - python-fedora
+    - python-doit
+    - python2-rpmfluff
     - rpmlint
     - koji
     - bodhi-client
@@ -14,20 +38,7 @@
     - pylint
     - python-pep8
     - moreutils
-    - policycoreutils-python-utils
-  when: ansible_distribution_major_version|int > 21 and ansible_cmdline.ostree is not defined
-
-- name: ensure packages required for CI buildslave are installed (dnf)
-  dnf: name={{ item }} state=present
-  with_items:
-    - testcloud
-    - mash
-    - mock
-    - koji
-    - python-fedora
-    - python-doit
-    - python2-rpmfluff
-  when: (deployment_type == 'qa-stg') and (ansible_distribution_major_version|int > 21) and (ansible_cmdline.ostree is not defined)
+  when: (deployment_type in ['qa-stg']) and (ansible_cmdline.ostree is not defined)
 
 - name: set the selinux fcontext type for the buildmaster_home to var_lib_t
   command: semanage fcontext -a -t var_lib_t "{{ slave_dir }}(/.*)?"
@@ -52,6 +63,13 @@
   group: name={{ slaves_group }}
   when: slaves_group is defined and (deployment_type in ['dev', 'stg', 'prod'])
 
+- name: create buildslaves home
+  file:
+    path: "{{ buildslaves_home }}"
+    state: directory
+    mode: 0755
+  when: slaves is defined and (deployment_type in ['dev', 'stg', 'prod'])
+
 - name: add buildslave users
   user: name={{ item.user }} group={{ slaves_group }} groups=testcloud,taskotron home={{ item.home }}
   with_items: "{{ slaves }}"
@@ -63,13 +81,13 @@
   when: slaves is defined and deployment_type in ['qa-prod', 'qa-stg']
 
 - name: make sure the selinux fcontext is restored
-  command: restorecon -R "{{ item.dir }}"
+  command: restorecon -R "{{ item.home }}"
   with_items: "{{ slaves }}"
   when: slaves is defined and deployment_type in ['dev', 'stg', 'prod', 'qa-prod', 'qa-stg']
 
 - name: disable ansible host key checking
   lineinfile:
     dest: /etc/ansible/ansible.cfg
-    regexp: '^#host_key_checking = False$'
+    regexp: '^#?host_key_checking = False$'
     line: 'host_key_checking = False'
   when: deployment_type in ['dev']

@@ -7,7 +7,10 @@
 - name: generate slave config
   become: true
   become_user: "{{ slave_user }}"
-  template: src=buildbot.tac.j2 dest={{ slave_dir }}/buildbot.tac mode=0600 owner={{ slave_user }} group={{ slave_user }}
+  template: src={{ item }} dest={{ slave_dir }}/buildbot.tac mode=0600 owner={{ slave_user }} group={{ slave_user }}
+  with_first_found:
+    - 'buildbot.tac.j2.{{ deployment_type }}'
+    - buildbot.tac.j2
   when: deployment_type in ['local', 'qa-stg']
 
 - name: generate slave info
@@ -37,7 +40,10 @@
   lineinfile: dest=/home/{{ slave_user }}/.ssh/known_hosts regexp='{{ buildmaster }}' line='{{ buildmaster }} {{ buildmaster_pubkey }}' create=yes owner={{ slave_user }} group={{ slave_user }}
 
 - name: generate buildslave service file
-  template: src=buildslave.service.j2 dest=/lib/systemd/system/buildslave.service owner=root group=root mode=0744
+  template: src={{ item }} dest=/lib/systemd/system/buildslave.service owner=root group=root mode=0744
+  with_first_found:
+    - 'buildslave.service.j2.{{ deployment_type }}'
+    - buildslave.service.j2
   when: deployment_type in ['local', 'qa-stg']
   register: buildslave_service
 
@@ -52,17 +58,35 @@
 - name: create slave
   become: true
   become_user: '{{ item.user }}'
+  command: creates={{ item.dir }} buildbot-worker create-worker {{ item.dir }} {{ buildmaster }} buildslave passwd
+  with_items:
+    - '{{ slaves }}'
+  when: deployment_type in ['dev']
+
+###########
+## TODO: remove when transition to buildbot 1.7 is complete
+- name: create slave
+  become: true
+  become_user: '{{ item.user }}'
   command: creates={{ item.dir }} buildslave create-slave {{ item.dir }} {{ buildmaster }} buildslave passwd
   with_items:
     - '{{ slaves|default([dict(user="", home="", dir="")]) }}'
-  when: deployment_type in ['dev', 'stg', 'prod']
+  when: deployment_type in ['stg', 'prod']
+############
+
+- name: figure out which buildbot.tac.j2 file to use
+  set_fact: buildbot_tac_j2_file={{ item | basename }}
+  # this unfortunately searches in files/
+  with_first_found:
+    - '../templates/buildbot.tac.j2.{{ deployment_type }}'
+    - '../templates/buildbot.tac.j2'
 
 - name: generate slave config
   become: true
   become_user: '{{ item.user }}'
-  template: src=buildbot.tac.j2 dest={{ item.dir }}/buildbot.tac mode=0600 owner={{ item.user }} group={{ slaves_group }}
+  template: src={{ buildbot_tac_j2_file }} dest={{ item.dir }}/buildbot.tac mode=0600 owner={{ item.user }} group={{ slaves_group }}
   with_items:
-    - '{{ slaves|default([dict(user="", home="", dir="")]) }}'
+    - '{{ slaves }}'
   when: deployment_type in ['dev', 'stg', 'prod']
 
 - name: generate slave admin info
@@ -70,7 +94,7 @@
   become_user: '{{ item.user }}'
   template: src=admin.j2 dest={{ item.dir }}/info/admin mode=0644 owner={{ item.user }} group={{ slaves_group }}
   with_items:
-    - '{{ slaves|default([dict(user="", home="", dir="")]) }}'
+    - '{{ slaves }}'
   when: deployment_type in ['dev', 'stg', 'prod']
 
 - name: generate slave host info
@@ -78,41 +102,44 @@
   become_user: '{{ item.user }}'
   template: src=host.j2 dest={{ item.dir }}/info/host mode=0644 owner={{ item.user }} group={{ slaves_group }}
   with_items:
-    - '{{ slaves|default([dict(user="", home="", dir="")]) }}'
+    - '{{ slaves }}'
   when: deployment_type in ['dev', 'stg', 'prod']
 
 - name: create slave ssh directory
   file: path={{ item.home }}/.ssh owner={{ item.user }} group={{ slaves_group }} mode=0700 state=directory
   with_items:
-    - '{{ slaves|default([dict(user="", home="", dir="")]) }}'
+    - '{{ slaves }}'
   when: buildslave_public_sshkey_file is defined and deployment_type in ['dev', 'stg', 'prod']
 
 - name: install slave ssh private key
   copy: src={{ private }}/files/taskotron/{{ buildslave_private_sshkey_file }} dest={{ item.home }}/.ssh/id_rsa owner={{ item.user }} group={{ slaves_group }} mode=0600
   with_items:
-    - '{{ slaves|default([dict(user="", home="", dir="")]) }}'
+    - '{{ slaves }}'
   when: buildslave_private_sshkey_file is defined and deployment_type in ['dev', 'stg', 'prod']
 
 - name: install slave ssh public key
   copy: src={{ private }}/files/taskotron/{{ buildslave_public_sshkey_file }} dest={{ item.home }}/.ssh/id_rsa.pub owner={{ item.user }} group={{ slaves_group }} mode=0644
   with_items:
-    - '{{ slaves|default([dict(user="", home="", dir="")]) }}'
+    - '{{ slaves }}'
   when: buildslave_public_sshkey_file is defined and deployment_type in ['dev', 'stg', 'prod']
 
 - name: make sure master is in known_hosts
   lineinfile: dest={{ item.home }}/.ssh/known_hosts regexp='{{ buildmaster }}' line='{{ buildmaster }} {{ buildmaster_pubkey }}' create=yes owner={{ item.user }} group={{ slaves_group }}
   with_items:
-    - '{{ slaves|default([dict(user="", home="", dir="")]) }}'
+    - '{{ slaves }}'
   when: buildslave_public_sshkey_file is defined and deployment_type in ['dev', 'stg', 'prod']
 
 - name: ensure correct fcontext for buildslave dir
   file: path={{ item.home }}/slave setype=var_lib_t owner={{ item.user }} group={{ slaves_group }} mode=0700 state=directory
   with_items:
-    - '{{ slaves|default([dict(user="", home="", dir="")]) }}'
+    - '{{ slaves }}'
   when: deployment_type in ['dev', 'stg', 'prod']
 
 - name: generate buildslave service file
-  template: src=buildslave@.service.j2 dest=/lib/systemd/system/buildslave@.service owner=root group=root mode=0644
+  template: src={{ item }} dest=/lib/systemd/system/buildslave@.service owner=root group=root mode=0644
+  with_first_found:
+    - 'buildslave@.service.j2.{{ deployment_type }}'
+    - buildslave@.service.j2
   when: deployment_type in ['dev', 'stg', 'prod']
   register: buildslave_service
 
@@ -123,5 +150,5 @@
 - name: start and enable buildslave services
   service: name=buildslave@{{ item.user }} enabled=yes state={{ (buildslave_service.changed) | ternary('restarted','started') }}
   with_items:
-    - '{{ slaves|default([dict(user="", home="", dir="")]) }}'
+    - '{{ slaves }}'
   when: deployment_type in ['dev', 'stg', 'prod']
