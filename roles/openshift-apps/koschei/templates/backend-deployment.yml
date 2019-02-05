@@ -1,0 +1,30 @@
+# https://docs.openshift.com/container-platform/3.11/rest_api/oapi/v1.DeploymentConfig.html#object-schema
+apiVersion: v1
+kind: DeploymentConfig
+metadata:
+  name: {{service}}-deployment
+  labels:
+    service: {{service}}-service
+spec:
+  replicas: 1
+  selector:
+    service: {{service}}-service
+  strategy:
+    type: Recreate
+  template:
+    spec:
+      containers:
+      - name: {{service}}
+        image: quay.io/koschei/koschei:latest
+        command: [/usr/bin/koschei-{{service}}]
+          volumeMounts:
+        - name: config-volume
+          mountPath: /etc/koschei
+          readOnly: true
+        resources:
+          limits:
+            memory: 256Mi
+      volumes:
+      - name: config-volume
+        secret:
+          secretName: backend-config

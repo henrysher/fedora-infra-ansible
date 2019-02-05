@@ -1,0 +1,123 @@
+# This is a config file for Koschei that can override values in default
+# configuration in /usr/share/koschei/config.cfg. It is a python file expecting
+# assignment to config dictionary which will be recursively merged with the
+# default one.
+
+config = {
+    "database_config": {
+        "host": "{{ koschei_pgsql_hostname }}",
+        "username": "koscheiuser",
+        "password": "{{ koscheiuser_db_password }}",
+        "database": "koschei"
+    },
+    "koji_config": {
+        "server": "https://{{ koschei_koji_hub }}/kojihub",
+        "weburl": "https://{{ koschei_koji_web }}/koji",
+        "topurl": "https://{{ koschei_kojipkgs }}",
+        "login_method": "gssapi_login",
+        {% if env == 'staging' %}
+        "max_builds": 16,
+        "build_arches": ['x86_64'],
+        "load_threshold": 1,
+        "task_priority": 30,
+        {% else %}
+        "max_builds": 60,
+        "build_arches": ['x86_64', 'aarch64', 'ppc64', 'ppc64le'],
+        "load_threshold": 0.75,
+        "task_priority": 30,
+        {% endif %}
+    },
+    "dependency": {
+        "build_group": "build",
+        "for_arch": "x86_64",
+        "repo_cache_items": 10,
+        "arches": ['x86_64', 'i386'],
+        "persist_chunk_size": 300,
+        "resolver_queue_size": 100,
+        "dependency_fetch_chunk_size": 150,
+        "dependency_cache_capacity": 50000,
+        "cache_l2_capacity": 100,
+        "ignore_weak_deps": True,
+    },
+    "services": {
+        "polling": {
+            {% if env == 'staging' %}
+            "interval": 1, # in seconds
+            {% else %}
+            "interval": 20*60, # in seconds
+            {% endif %}
+        },
+        "build_resolver": {
+            "memory_limit": 1024**2,  # kilobytes
+        },
+        "repo_resolver": {
+            "memory_limit": 1024**2,  # kilobytes
+        },
+        "watcher": {
+            "memory_limit": 256*1024,  # kilobytes
+        },
+    },
+    "priorities": {
+        "calculation_interval": 3600,  # seconds
+    },
+    "logging": {
+        "loggers": {
+            "": {
+                # "handlers": ["stderr", "email"],
+                "handlers": ["stderr"],
+            },
+            "fedmsg": {
+                "level": "ERROR",
+            },
+        },
+        "handlers": {
+            "email": {
+                "class": "logging.handlers.SMTPHandler",
+                "level": "WARN",
+                "mailhost": "localhost",
+                "fromaddr": "koschei@fedoraproject.org",
+                "toaddrs": ['sysadmin-koschei-members@fedoraproject.org'],
+                "subject": "Koschei backend {{ env }} warning",
+            },
+        },
+    },
+    {% if env == 'staging' %}
+    "plugins": ['fedmsg', 'copr'],
+    {% else %}
+    "plugins": ['fedmsg'],
+    {% endif %}
+    "fedmsg": {
+        {% if env == 'staging' %}
+        "topic": "org.fedoraproject.stg.buildsys",
+        {% else %}
+        "topic": "org.fedoraproject.prod.buildsys",
+        {% endif %}
+    },
+    "fedmsg-publisher": {
+        "enabled": True,
+        "modname": "koschei",
+    },
+    "caching": {
+        "rpm_requires": {
+            "backend": "dogpile.cache.memcached",
+            "expiration_time": None,
+            "arguments": {
+                "url": "memcached01",
+            },
+        },
+    },
+    "copr": {
+        "require_admin": True,
+        "copr_owner": "mizdebsk",
+        "config_path": "/etc/koschei/copr-config",
+        "chroot_name": "custom-1-x86_64",
+        "max_builds": 15,
+        "default_schedule_count": 8,
+        "fedmsg_topic": "org.fedoraproject.prod.copr.build.end",
+    },
+}
+
+# Local Variables:
+# mode: Python
+# End:
+# vi: ft=python
