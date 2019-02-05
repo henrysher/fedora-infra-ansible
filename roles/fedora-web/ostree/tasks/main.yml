@@ -27,6 +27,27 @@
   - fedora-web
   - ostree
 
+- name: make IoT ostree dir
+  file: state=directory
+        path=/srv/web/ostree/iot
+        owner=apache
+        group=sysadmin-releng
+        mode=2775
+        setype=httpd_sys_content_t
+        seuser=system_u
+  tags:
+  - fedora-web
+  - ostree
+
+- name: Copy over the static IoT files
+  copy: src=iot_{{item}} dest=/srv/web/ostree/iot/{{item}} mode=0644
+  with_items:
+  - config
+  - mirrorlist
+  tags:
+  - fedora-web
+  - ostree
+
 - name: Copy in the sync-summary cron job
   copy: src=cron-sync-ostree-summary dest=/etc/cron.d/sync-ostree-summary
   tags:
