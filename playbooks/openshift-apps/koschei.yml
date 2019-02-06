@@ -13,27 +13,11 @@
   roles:
   - openshift/project
 
-  - role: openshift/object
-    template: frontend-config.yml
-    objectname: frontend-config.yml
-
-  - role: openshift/object
-    template: backend-config.yml
-    objectname: backend-config.yml
-
   - role: openshift/keytab
     secret_name: keytab
     key: krb5.keytab
     service: koschei
     host: "koschei-backend01{{ env_suffix }}.phx2.fedoraproject.org"
-
-  - role: openshift/object
-    template: frontend-deployment.yml
-    objectname: frontend-deployment.yml
-
-  - role: openshift/object
-    template: frontend-service.yml
-    objectname: frontend-service.yml
 
   - role: openshift/route
     routename: frontend
@@ -41,12 +25,20 @@
     serviceport: web
     servicename: frontend
 
-  - role: openshift/rollout
-    dcname: frontend
-    when: False
-
   tasks:
-    - include_role: name=openshift/object
+    - name: Apply objects
+      include_role: name=openshift/object
+      vars:
+        template: "{{ item }}.yml"
+        objectname: "{{ item }}.yml"
+      with_items:
+        - frontend-config
+        - backend-config
+        - frontend-deployment
+        - frontend-service
+
+    - name: Apply DeploymentConfig
+      include_role: name=openshift/object
       vars:
         template: backend-deployment.yml
         objectname: "{{ item.name }}-deployment.yml"
