@@ -18,18 +18,18 @@ FEDORADEST = '/pub/fedora/linux/updates/'
 FEDORAMODDEST = '/pub/fedora/linux/modular/updates/'
 FEDORAALTDEST = '/pub/fedora-secondary/updates/'
 EPELDEST = '/pub/epel/'
-ATOMICSOURCE = '/mnt/koji/compose/atomic/repo/'
-ATOMICDEST = '/mnt/koji/atomic/repo/'
+OSTREESOURCE = '/mnt/koji/compose/ostree/repo/'
+OSTREEDEST = '/mnt/koji/ostree/repo/'
 RELEASES = {'f29': {'topic': 'fedora',
                     'version': '29',
                     'modules': ['fedora', 'fedora-secondary'],
                     'repos': {'updates': {
                         'from': 'f29-updates',
                         'ostrees': [{'ref': 'fedora/29/%(arch)s/updates/atomic-host',
-                                     'dest': ATOMICDEST,
+                                     'dest': OSTREEDEST,
                                      'arches': ['x86_64', 'ppc64le', 'aarch64']},
                                     {'ref': 'fedora/29/x86_64/updates/silverblue',
-                                     'dest': ATOMICDEST}],
+                                     'dest': OSTREEDEST}],
                         'to': [{'arches': ['x86_64', 'armhfp', 'aarch64', 'source'],
                                 'dest': os.path.join(FEDORADEST, '29', 'Everything')},
                                {'arches': ['i386', 'ppc64le', 's390x'],
@@ -38,10 +38,10 @@ RELEASES = {'f29': {'topic': 'fedora',
                               'updates-testing': {
                         'from': 'f29-updates-testing',
                         'ostrees': [{'ref': 'fedora/29/%(arch)s/testing/atomic-host',
-                                     'dest': ATOMICDEST,
+                                     'dest': OSTREEDEST,
                                      'arches': ['x86_64', 'ppc64le', 'aarch64']},
                                     {'ref': 'fedora/29/x86_64/testing/silverblue',
-                                     'dest': ATOMICDEST}],
+                                     'dest': OSTREEDEST}],
                         'to': [{'arches': ['x86_64', 'aarch64', 'armhfp', 'source'],
                                 'dest': os.path.join(FEDORADEST, 'testing', '29', 'Everything')},
                                {'arches': ['i386', 'ppc64le', 's390x'],
@@ -74,13 +74,13 @@ RELEASES = {'f29': {'topic': 'fedora',
                     'repos': {'updates': {
                         'from': 'f28-updates',
                         'ostrees': [{'ref': 'fedora/28/%(arch)s/updates/atomic-host',
-                                     'dest': ATOMICDEST,
+                                     'dest': OSTREEDEST,
                                      'arches': ['x86_64', 'ppc64le', 'aarch64']},
                                     {'ref': 'fedora/28/x86_64/updates/workstation',
-                                     'dest': ATOMICDEST},
+                                     'dest': OSTREEDEST},
                                     # Hack around for the fact that ostree on f25 doesn't know links
                                     {'ref': 'fedora/28/x86_64/workstation',
-                                     'dest': ATOMICDEST}],
+                                     'dest': OSTREEDEST}],
                         'to': [{'arches': ['x86_64', 'armhfp', 'aarch64', 'source'],
                                 'dest': os.path.join(FEDORADEST, '28', 'Everything')},
                                {'arches': ['i386', 'ppc64', 'ppc64le', 's390x'],
@@ -89,10 +89,10 @@ RELEASES = {'f29': {'topic': 'fedora',
                               'updates-testing': {
                         'from': 'f28-updates-testing',
                         'ostrees': [{'ref': 'fedora/28/%(arch)s/testing/atomic-host',
-                                     'dest': ATOMICDEST,
+                                     'dest': OSTREEDEST,
                                      'arches': ['x86_64', 'ppc64le', 'aarch64']},
                                     {'ref': 'fedora/28/x86_64/testing/workstation',
-                                     'dest': ATOMICDEST}],
+                                     'dest': OSTREEDEST}],
                         'to': [{'arches': ['x86_64', 'aarch64', 'armhfp', 'source'],
                                 'dest': os.path.join(FEDORADEST, 'testing', '28', 'Everything')},
                                {'arches': ['i386', 'ppc64', 'ppc64le', 's390x'],
@@ -170,7 +170,7 @@ def get_ostree_ref(repo, ref):
 
 
 def sync_ostree(dst, ref):
-    src_commit = get_ostree_ref(ATOMICSOURCE, ref)
+    src_commit = get_ostree_ref(OSTREESOURCE, ref)
     dst_commit = get_ostree_ref(dst, ref)
     if src_commit == dst_commit:
         logger.info('OSTree at %s, ref %s in sync', dst, ref)
@@ -180,7 +180,7 @@ def sync_ostree(dst, ref):
         logger.info('Syncing OSTree to %s, ref %s: %s -> %s',
                     dst, ref, src_commit, dst_commit)
         cmd = ['ostree', 'pull-local', '--verbose', '--repo',
-               dst, ATOMICSOURCE, ref]
+               dst, OSTREESOURCE, ref]
         out = run_command(cmd)
         cmd = ['ostree', 'summary', '--verbose', '--repo', dst, '--update']
         run_command(cmd)

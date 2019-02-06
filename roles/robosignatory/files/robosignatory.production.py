@@ -306,167 +306,167 @@ config = {
             'key': 'fedora-28'
         },
         'fedora/26/x86_64/testing/atomic-host': {
-            'directory': '/mnt/fedora_koji/koji/compose/atomic/repo/',
+            'directory': '/mnt/fedora_koji/koji/compose/ostree/repo/',
             'key': 'fedora-26'
         },
         'fedora/26/x86_64/updates/atomic-host': {
-            'directory': '/mnt/fedora_koji/koji/compose/atomic/repo/',
+            'directory': '/mnt/fedora_koji/koji/compose/ostree/repo/',
             'key': 'fedora-26'
         },
         'fedora/26/x86_64/atomic-host': {
-            'directory': '/mnt/fedora_koji/koji/compose/atomic/repo/',
+            'directory': '/mnt/fedora_koji/koji/compose/ostree/repo/',
             'key': 'fedora-26'
         },
         'fedora/26/x86_64/workstation': {
-            'directory': '/mnt/fedora_koji/koji/compose/atomic/repo/',
+            'directory': '/mnt/fedora_koji/koji/compose/ostree/repo/',
             'key': 'fedora-26'
         },
         'fedora/27/x86_64/updates/workstation': {
-            'directory': '/mnt/fedora_koji/koji/compose/atomic/repo/',
+            'directory': '/mnt/fedora_koji/koji/compose/ostree/repo/',
             'key': 'fedora-27'
         },
         'fedora/27/x86_64/testing/workstation': {
-            'directory': '/mnt/fedora_koji/koji/compose/atomic/repo/',
+            'directory': '/mnt/fedora_koji/koji/compose/ostree/repo/',
             'key': 'fedora-27'
         },
         'fedora/27/x86_64/updates/atomic-host': {
-            'directory': '/mnt/fedora_koji/koji/compose/atomic/repo/',
+            'directory': '/mnt/fedora_koji/koji/compose/ostree/repo/',
             'key': 'fedora-27'
         },
         'fedora/27/ppc64le/updates/atomic-host': {
-            'directory': '/mnt/fedora_koji/koji/compose/atomic/repo/',
+            'directory': '/mnt/fedora_koji/koji/compose/ostree/repo/',
             'key': 'fedora-27'
         },
         'fedora/27/aarch64/updates/atomic-host': {
-            'directory': '/mnt/fedora_koji/koji/compose/atomic/repo/',
+            'directory': '/mnt/fedora_koji/koji/compose/ostree/repo/',
             'key': 'fedora-27'
         },
         'fedora/27/x86_64/testing/atomic-host': {
-            'directory': '/mnt/fedora_koji/koji/compose/atomic/repo/',
+            'directory': '/mnt/fedora_koji/koji/compose/ostree/repo/',
             'key': 'fedora-27'
         },
         'fedora/27/ppc64le/testing/atomic-host': {
-            'directory': '/mnt/fedora_koji/koji/compose/atomic/repo/',
+            'directory': '/mnt/fedora_koji/koji/compose/ostree/repo/',
             'key': 'fedora-27'
         },
         'fedora/27/aarch64/testing/atomic-host': {
-            'directory': '/mnt/fedora_koji/koji/compose/atomic/repo/',
+            'directory': '/mnt/fedora_koji/koji/compose/ostree/repo/',
             'key': 'fedora-27'
         },
         'fedora/27/x86_64/workstation': {
-            'directory': '/mnt/fedora_koji/koji/compose/atomic/repo/',
+            'directory': '/mnt/fedora_koji/koji/compose/ostree/repo/',
             'key': 'fedora-27'
         },
         'fedora/28/x86_64/atomic-host': {
-            'directory': '/mnt/fedora_koji/koji/compose/atomic/repo/',
+            'directory': '/mnt/fedora_koji/koji/compose/ostree/repo/',
             'key': 'fedora-28'
         },
         'fedora/28/ppc64le/atomic-host': {
-            'directory': '/mnt/fedora_koji/koji/compose/atomic/repo/',
+            'directory': '/mnt/fedora_koji/koji/compose/ostree/repo/',
             'key': 'fedora-28'
         },
         'fedora/28/aarch64/atomic-host': {
-            'directory': '/mnt/fedora_koji/koji/compose/atomic/repo/',
+            'directory': '/mnt/fedora_koji/koji/compose/ostree/repo/',
             'key': 'fedora-28'
         },
         'fedora/28/x86_64/updates/atomic-host': {
-            'directory': '/mnt/fedora_koji/koji/compose/atomic/repo/',
+            'directory': '/mnt/fedora_koji/koji/compose/ostree/repo/',
             'key': 'fedora-28'
         },
         'fedora/28/ppc64le/updates/atomic-host': {
-            'directory': '/mnt/fedora_koji/koji/compose/atomic/repo/',
+            'directory': '/mnt/fedora_koji/koji/compose/ostree/repo/',
             'key': 'fedora-28'
         },
         'fedora/28/aarch64/updates/atomic-host': {
-            'directory': '/mnt/fedora_koji/koji/compose/atomic/repo/',
+            'directory': '/mnt/fedora_koji/koji/compose/ostree/repo/',
             'key': 'fedora-28'
         },
         'fedora/28/x86_64/testing/atomic-host': {
-            'directory': '/mnt/fedora_koji/koji/compose/atomic/repo/',
+            'directory': '/mnt/fedora_koji/koji/compose/ostree/repo/',
             'key': 'fedora-28'
         },
         'fedora/28/ppc64le/testing/atomic-host': {
-            'directory': '/mnt/fedora_koji/koji/compose/atomic/repo/',
+            'directory': '/mnt/fedora_koji/koji/compose/ostree/repo/',
             'key': 'fedora-28'
         },
         'fedora/28/aarch64/testing/atomic-host': {
-            'directory': '/mnt/fedora_koji/koji/compose/atomic/repo/',
+            'directory': '/mnt/fedora_koji/koji/compose/ostree/repo/',
             'key': 'fedora-28'
         },
         'fedora/28/x86_64/workstation': {
-            'directory': '/mnt/fedora_koji/koji/compose/atomic/repo/',
+            'directory': '/mnt/fedora_koji/koji/compose/ostree/repo/',
             'key': 'fedora-28'
         },
         'fedora/28/x86_64/updates/workstation': {
-            'directory': '/mnt/fedora_koji/koji/compose/atomic/repo/',
+            'directory': '/mnt/fedora_koji/koji/compose/ostree/repo/',
             'key': 'fedora-28'
         },
         'fedora/28/x86_64/testing/workstation': {
-            'directory': '/mnt/fedora_koji/koji/compose/atomic/repo/',
+            'directory': '/mnt/fedora_koji/koji/compose/ostree/repo/',
             'key': 'fedora-28'
         },
         'fedora/29/x86_64/atomic-host': {
-            'directory': '/mnt/fedora_koji/koji/compose/atomic/repo/',
+            'directory': '/mnt/fedora_koji/koji/compose/ostree/repo/',
             'key': 'fedora-29'
         },
         'fedora/29/ppc64le/atomic-host': {
-            'directory': '/mnt/fedora_koji/koji/compose/atomic/repo/',
+            'directory': '/mnt/fedora_koji/koji/compose/ostree/repo/',
             'key': 'fedora-29'
         },
         'fedora/29/aarch64/atomic-host': {
-            'directory': '/mnt/fedora_koji/koji/compose/atomic/repo/',
+            'directory': '/mnt/fedora_koji/koji/compose/ostree/repo/',
             'key': 'fedora-29'
         },
         'fedora/29/x86_64/updates/atomic-host': {
-            'directory': '/mnt/fedora_koji/koji/compose/atomic/repo/',
+            'directory': '/mnt/fedora_koji/koji/compose/ostree/repo/',
             'key': 'fedora-29'
         },
         'fedora/29/ppc64le/updates/atomic-host': {
-            'directory': '/mnt/fedora_koji/koji/compose/atomic/repo/',
+            'directory': '/mnt/fedora_koji/koji/compose/ostree/repo/',
             'key': 'fedora-29'
         },
         'fedora/29/aarch64/updates/atomic-host': {
-            'directory': '/mnt/fedora_koji/koji/compose/atomic/repo/',
+            'directory': '/mnt/fedora_koji/koji/compose/ostree/repo/',
             'key': 'fedora-29'
         },
         'fedora/29/x86_64/testing/atomic-host': {
-            'directory': '/mnt/fedora_koji/koji/compose/atomic/repo/',
+            'directory': '/mnt/fedora_koji/koji/compose/ostree/repo/',
             'key': 'fedora-29'
         },
         'fedora/29/ppc64le/testing/atomic-host': {
-            'directory': '/mnt/fedora_koji/koji/compose/atomic/repo/',
+            'directory': '/mnt/fedora_koji/koji/compose/ostree/repo/',
             'key': 'fedora-29'
         },
         'fedora/29/aarch64/testing/atomic-host': {
-            'directory': '/mnt/fedora_koji/koji/compose/atomic/repo/',
+            'directory': '/mnt/fedora_koji/koji/compose/ostree/repo/',
             'key': 'fedora-29'
         },
         'fedora/29/x86_64/silverblue': {
-            'directory': '/mnt/fedora_koji/koji/compose/atomic/repo/',
+            'directory': '/mnt/fedora_koji/koji/compose/ostree/repo/',
             'key': 'fedora-29'
         },
         'fedora/29/x86_64/updates/silverblue': {
-            'directory': '/mnt/fedora_koji/koji/compose/atomic/repo/',
+            'directory': '/mnt/fedora_koji/koji/compose/ostree/repo/',
             'key': 'fedora-29'
         },
         'fedora/29/x86_64/testing/silverblue': {
-            'directory': '/mnt/fedora_koji/koji/compose/atomic/repo/',
+            'directory': '/mnt/fedora_koji/koji/compose/ostree/repo/',
             'key': 'fedora-29'
         },
         'fedora/rawhide/x86_64/atomic-host': {
-            'directory': '/mnt/fedora_koji/koji/compose/atomic/repo/',
+            'directory': '/mnt/fedora_koji/koji/compose/ostree/repo/',
             'key': 'fedora-30'
         },
         'fedora/rawhide/ppc64le/atomic-host': {
-            'directory': '/mnt/fedora_koji/koji/compose/atomic/repo/',
+            'directory': '/mnt/fedora_koji/koji/compose/ostree/repo/',
             'key': 'fedora-30'
         },
         'fedora/rawhide/aarch64/atomic-host': {
-            'directory': '/mnt/fedora_koji/koji/compose/atomic/repo/',
+            'directory': '/mnt/fedora_koji/koji/compose/ostree/repo/',
             'key': 'fedora-30'
         },
         'fedora/rawhide/x86_64/silverblue': {
-            'directory': '/mnt/fedora_koji/koji/compose/atomic/repo/',
+            'directory': '/mnt/fedora_koji/koji/compose/ostree/repo/',
             'key': 'fedora-30'
         },
     }

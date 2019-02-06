@@ -141,7 +141,7 @@ ostree = {
                     "https://kojipkgs{{ env_suffix }}.fedoraproject.org/compose/[[ release.version_int ]]/latest-Fedora-[[ release.version_int ]]/compose/Everything/$basearch/os/"
                 [% endif %]
             ]
-            "ostree_repo": "/mnt/koji/compose/atomic/repo",
+            "ostree_repo": "/mnt/koji/compose/ostree/repo",
             [% if request.name == 'stable' %]
                 "ostree_ref": "fedora/[[ release.version_int ]]/${basearch}/updates/atomic-host",
             [% else %]
@@ -174,7 +174,7 @@ ostree = {
                     "https://kojipkgs{{ env_suffix }}.fedoraproject.org/compose/[[ release.version_int ]]/latest-Fedora-[[ release.version_int ]]/compose/Everything/$basearch/os/"
                 [% endif %]
             ]
-            "ostree_repo": "/mnt/koji/compose/atomic/repo",
+            "ostree_repo": "/mnt/koji/compose/ostree/repo",
             # For f29+ we are changing the ref to silverblue. For f28/f27 let the files
             # still specify the workstation ref.
             [% if release.version_int >= 29 %]
@@ -301,10 +301,11 @@ ostree_installer = [
             'add_template': ['ostree-based-installer/lorax-configure-repo.tmpl',
                              'ostree-based-installer/lorax-embed-repo.tmpl'],
             'add_template_var': [
-                'ostree_install_repo=https://kojipkgs.fedoraproject.org/compose/atomic/repo/',
-                'ostree_update_repo=https://dl.fedoraproject.org/atomic/repo/',
+                'ostree_install_repo=https://kojipkgs.fedoraproject.org/compose/ostree/repo/',
+                'ostree_update_repo=https://ostree.fedoraproject.org',
                 'ostree_osname=fedora-atomic',
                 'ostree_oskey=fedora-[[ release.version_int ]]-primary',
+                'ostree_contenturl=mirrorlist=https://ostree.fedoraproject.org/mirrorlist',
                 'ostree_install_ref=fedora/[[ release.version_int ]]/[[ arch ]]/[% if request.name == "testing" %]testing[% else %]updates[% endif %]/atomic-host',
                 'ostree_update_ref=fedora/[[ release.version_int ]]/[[ arch ]]/atomic-host',
             ],
