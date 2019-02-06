@@ -20,16 +20,17 @@ spec:
       - name: {{service}}
         image: quay.io/koschei/koschei:latest
         command: [/usr/bin/koschei-{{service}}]
+        env:
+          - name: KRB5_CONFIG
+            value: /etc/koschei/krb5.conf
+          - name: KRB5_CLIENT_KTNAME
+            value: /etc/koschei/krb5.keytab
         volumeMounts:
         - name: config-volume
           mountPath: /etc/koschei
           readOnly: true
-        - name: config-volume
-          mountPath: /etc/krb5.conf
-          subPath: krb5.conf
-          readOnly: true
         - name: keytab-volume
-          mountPath: /etc/krb5.keytab
+          mountPath: /etc/koschei/krb5.keytab
           subPath: krb5.keytab
           readOnly: true
         resources:
