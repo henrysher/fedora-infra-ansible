@@ -1,0 +1,24 @@
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: "cron-{{name}}"
+spec:
+  concurrencyPolicy: Forbid
+  schedule: "{{schedule}}"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: "cron-{{name}}"
+            image: quay.io/koschei/koschei:latest
+            command: ["/bin/bash", "-euxc", "{{command}}"]
+            volumeMounts:
+              - name: config
+                mountPath: /etc/koschei
+                readOnly: true
+          restartPolicy: Never
+          volumes:
+            - name: config
+              secret:
+                secretName: backend-config
