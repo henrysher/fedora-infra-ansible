@@ -8,6 +8,7 @@
     - vault
     - python3-mod_wsgi
     - python3-psycopg2
+    - python3-flask-oidc
     - python2-libsemanage
   when: ansible_cmdline.ostree is not defined and deployment_type in ['dev']
 
@@ -39,7 +40,7 @@
   seboolean: name=httpd_can_network_connect_db persistent=yes state=yes
 
 - name: register with iddev
-  command: python /usr/lib/python2.7/site-packages/flask_oidc/registration_util.py https://iddev.fedorainfracloud.org {{ vault_public_url }}
+  command: python3 /usr/lib/python3.7/site-packages/flask_oidc/registration_util.py https://iddev.fedorainfracloud.org {{ vault_public_url }}
   args:
       chdir: /etc/vault
       creates: /etc/vault/client_secrets.json
