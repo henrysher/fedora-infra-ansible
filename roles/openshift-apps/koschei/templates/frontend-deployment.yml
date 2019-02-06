@@ -2,19 +2,19 @@
 apiVersion: v1
 kind: DeploymentConfig
 metadata:
-  name: frontend-deployment
+  name: frontend
   labels:
-    service: frontend-service
+    service: frontend
 spec:
   replicas: 1
   selector:
-    service: frontend-service
+    service: frontend
   strategy:
     type: Rolling
   template:
     metadata:
       labels:
-        service: frontend-service
+        service: frontend
     spec:
       containers:
       - name: frontend
@@ -23,7 +23,7 @@ spec:
         ports:
         - containerPort: 8080
         volumeMounts:
-        - name: config-volume
+        - name: config
           mountPath: /etc/koschei
           readOnly: true
         readinessProbe:
@@ -42,6 +42,6 @@ spec:
           limits:
             memory: 256Mi
       volumes:
-      - name: config-volume
+      - name: config
         secret:
           secretName: frontend-config

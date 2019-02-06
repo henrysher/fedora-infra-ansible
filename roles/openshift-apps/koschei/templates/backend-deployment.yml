@@ -2,19 +2,19 @@
 apiVersion: v1
 kind: DeploymentConfig
 metadata:
-  name: {{service}}-deployment
+  name: {{service}}
   labels:
-    service: {{service}}-service
+    service: {{service}}
 spec:
   replicas: 1
   selector:
-    service: {{service}}-service
+    service: {{service}}
   strategy:
     type: Recreate
   template:
     metadata:
       labels:
-        service: {{service}}-service
+        service: {{service}}
     spec:
       containers:
       - name: {{service}}
@@ -26,10 +26,10 @@ spec:
           - name: KRB5_CLIENT_KTNAME
             value: /etc/krb5.keytab
         volumeMounts:
-        - name: config-volume
+        - name: config
           mountPath: /etc/koschei
           readOnly: true
-        - name: keytab-volume
+        - name: keytab
           mountPath: /etc/krb5.keytab
           subPath: krb5.keytab
           readOnly: true
@@ -37,9 +37,9 @@ spec:
           limits:
             memory: {{memory}}Mi
       volumes:
-      - name: config-volume
+      - name: config
         secret:
           secretName: backend-config
-      - name: keytab-volume
+      - name: keytab
         secret:
-          secretName: backend-keytab
+          secretName: keytab
