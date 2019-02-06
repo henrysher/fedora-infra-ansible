@@ -32,12 +32,6 @@
     objectname: frontend-deployment.yml
 
   - role: openshift/object
-    template: backend-deployment.yml
-    objectname: polling-deployment.yml
-    service: polling
-    memory: 512
-
-  - role: openshift/object
     template: frontend-service.yml
     objectname: frontend-service.yml
 
@@ -50,3 +44,18 @@
   - role: openshift/rollout
     dcname: frontend-deployment
     when: False
+
+  tasks:
+    - include_role: name=openshift/object
+      vars:
+        template: backend-deployment.yml
+        objectname: "{{ item.name }}-deployment.yml"
+        service: "{{ item.name }}"
+        memory: "{{ item.memory }}"
+      with_items:
+        - name: polling
+          memory: 512
+        - name: scheduler
+          memory: 256
+      loop_control:
+        label: "{{ item.name }}"
