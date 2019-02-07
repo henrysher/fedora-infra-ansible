@@ -31,8 +31,8 @@
   - base
 
 - name: Deploy sender_access file
-  copy: src="{{private}}/files/smtpd/sender_access" dest="/etc/postfix/sender_access"
-  when: postfix_group == "smtp-mm"
+  copy: src="{{private}}/files/smtpd/sender_access.{{postfix_group}}" dest="/etc/postfix/sender_access"
+  when: postfix_group == "smtp-mm" or postfix_group == "mailman"
   tags:
   - postfix
   - config
@@ -41,7 +41,7 @@
 - name: Create sender_access hash
   command: postmap hash:/etc/postfix/sender_access
   changed_when: false
-  when: postfix_group == "smtp-mm"
+  when: postfix_group == "smtp-mm" or postfix_group == "mailman"
   tags:
   - postfix
   - config
