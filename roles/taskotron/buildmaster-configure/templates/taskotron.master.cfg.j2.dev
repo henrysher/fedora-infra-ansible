@@ -423,6 +423,22 @@ c['www'] = {
         "{{ local_buildbot_user }}": "{{ local_buildbot_password }}",
 {% endif %}
     }),
+    'authz': util.Authz(
+        allowRules=[
+            util.AnyControlEndpointMatcher(role="admins"),
+        ],
+        roleMatchers=[
+{% if deployment_type == 'dev' %}
+            util.RolesFromUsername(roles=['admins'], usernames=["{{ dev_buildbot_user }}"]),
+{% elif deployment_type == 'stg' %}
+            util.RolesFromUsername(roles=['admins'], usernames=["{{ stg_buildbot_user }}"]),
+{% elif deployment_type == 'prod' %}
+            util.RolesFromUsername(roles=['admins'], usernames=["{{ prod_buildbot_user }}"]),
+{% elif deployment_type == 'local' %}
+            util.RolesFromUsername(roles=['admins'], usernames=["{{ local_buildbot_user }}"]),
+{% endif %}
+        ]
+    ),
 }
 
 
