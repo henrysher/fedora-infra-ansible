@@ -336,7 +336,12 @@ from buildbot.plugins import reporters
 email_template = u'''
 <h4>Build status: {{ summary }}</h4>
 <table cellspacing="10">
-<tr><td>Worker for this Build:</td><td><b>{{ workername }}</b></td></tr>
+<tr><td>Task:</td><td><b>{{ build['properties']['taskname'][0] }}</b></td></tr>
+<tr><td>Item:</td><td><b>{{ build['properties']['item'][0] }}</b></td></tr>
+<tr><td>Item type:</td><td><b>{{ build['properties']['item_type'][0] }}</b></td></tr>
+<tr><td>Arch:</td><td><b>{{ build['properties']['arch'][0] }}</b></td></tr>
+<tr><td>Worker:</td><td><b>{{ workername }}</b></td></tr>
+<tr><td>Artifacts:</td><td>{{ artifacts_url }}/{{ build['properties']['uuid'][0] }}</td></tr>
 <tr><td>Complete logs:</td><td><a href="{{ build_url }}">{{ build_url }}</a></td></tr>
 </table>
 {% for step in build['steps'] if statuses[step.results] in ["warnings", "failure", "exception"] %}
@@ -348,8 +353,8 @@ email_template = u'''
 {% for line in log['content']['content'].split('\n')[-40:] %}{{ line[1:] }}
 {% endfor %}
 </pre>
-{% endfor %}
 <hr/>
+{% endfor %}
 {% endfor %}
 '''
 {% endraw %}
@@ -360,13 +365,16 @@ html_message_formatter = reporters.MessageFormatter(
     wantProperties=True,
     wantSteps=True,
     wantLogs=True,
-    ctx=dict(statuses=util.Results),
+    ctx=dict(
+        statuses=util.Results,
+        artifacts_url="https://{{ external_hostname }}/artifacts/all",
+    ),
 )
 
 mn = reporters.MailNotifier(
     fromaddr='taskotron@fedoraproject.org',
     sendToInterestedUsers=False,
-    subject="XXX %(projectName)s %(result)s on {{ deployment_type }} %(builder)s",
+    subject="%(projectName)s %(result)s on {{ deployment_type }} %(builder)s",
     mode=('failing', 'exception', 'warnings'),
     extraRecipients=['qa-taskotron-admin-members@fedoraproject.org'],
     relayhost="bastion.phx2.fedoraproject.org",
