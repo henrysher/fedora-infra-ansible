@@ -26,4 +26,7 @@
   #copy: src={{ bigfiles }}/fonts dest=/var/www/html/static/ owner=apache group=apache mode=0644
 
 - name: generate landing page
-  template: src=landingpage.html.j2 dest=/var/www/html/index.html owner=apache group=apache mode=0644
+  template: src={{ item }} dest=/var/www/html/index.html owner=apache group=apache mode=0644
+  with_first_found:
+    - 'landingpage.html.j2.{{ deployment_type }}'
+    - 'landingpage.html.j2'
