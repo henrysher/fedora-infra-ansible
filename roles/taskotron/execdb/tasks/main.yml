@@ -3,13 +3,13 @@
   service: name=httpd state=started
 
 - name: ensure packages required for execdb are installed (dnf)
-  dnf: name={{ item }} state=present enablerepo=updates-testing
+  dnf: name={{ item }} state=present
   with_items:
     - execdb
     - python3-mod_wsgi
     - python3-psycopg2
     - python2-libsemanage
-  when: ansible_cmdline.ostree is not defined and deployment_type in ['dev']
+  when: ansible_cmdline.ostree is not defined and deployment_type in ['dev', 'stg']
 
 ###########
 ## TODO: remove when transition to buildbot 1.7 is complete
@@ -20,7 +20,7 @@
     - mod_wsgi
     - python-psycopg2
     - libsemanage-python
-  when: ansible_cmdline.ostree is not defined and deployment_type in ['stg', 'prod']
+  when: ansible_cmdline.ostree is not defined and deployment_type in ['prod']
 ###########
 
 - name: ensure database is created

@@ -1,0 +1,15 @@
+[Unit]
+Description=Buildslave for taskotron
+After=network.target
+
+[Service]
+Type=forking
+# disabled because of https://pagure.io/taskotron/issue/236
+#PIDFile=/home/%i/slave/twistd.pid
+ExecStart=/usr/bin/buildbot-worker start /srv/buildslaves/%i/slave/
+ExecStop=/usr/bin/buildbot-worker stop /srv/buildslaves/%i/slave/
+User=%i
+Group={{ slaves_group }}
+
+[Install]
+WantedBy=multi-user.target
