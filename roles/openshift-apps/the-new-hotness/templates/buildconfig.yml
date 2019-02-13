@@ -1,0 +1,72 @@
+      apiVersion: v1
+items:
+  - apiVersion: v1
+    kind: BuildConfig
+    metadata:
+      labels:
+        build: the-new-hotness-build
+      name: the-new-hotness-build
+    spec:
+      runPolicy: Serial
+      source:
+        dockerfile: |-
+          FROM fedora:29
+          LABEL \
+            name="the-new-hotness" \
+            vendor="Fedora Infrastructure" \
+            license="GPLv2+"
+          RUN dnf install -y \
+                  git \
+                  koji \
+                  rpm-python \
+                  python3-bugzilla \
+                  python3-dogpile-cache \
+                  python3-requests \
+                  fedora-messaging \
+                  python3-fedora-messaging \
+                  python3-pip \
+                  python3-setuptools && \
+              dnf autoremove -y && \
+              dnf clean all -y
+          RUN git clone https://github.com/fedora-infra/the-new-hotness.git && \
+                  pushd the-new-hotness && \
+  {% if env == 'staging' %}
+                  git checkout staging && \
+  {% else %}
+                  git checkout production && \
+  {% endif %}
+                  python3 setup.py install && \
+                  pip-3 install . && \
+                  pushd hotness_schema && \
+                  python3 setup.py install && \
+                  pip-3 install . && \
+                  rm -rf the-new-hotness
+          EXPOSE 9940
+type: Dockerfile
+git:
+  uri: https://github.com/fedora-infra/the-new-hotness.git
+  {% if env == 'staging' %}
+  ref: staging
+  {% else %}
+  ref: production
+  {% endif %}
+strategy:
+  type: Docker
+output:
+  to:
+    kind: ImageStreamTag
+    name: the-new-hotness:latest
+triggers:
+  {% if stg_anitya_github_secret is defined and env == 'staging' %}
+- type: GitHub
+  github:
+    secret: "{{ stg_hotness_github_secret }}"
+  {% elif anitya_github_secret is defined and env == 'production' %}
+- type: GitHub
+  github:
+    secret: "{{ hotness_github_secret }}"
+  {% endif %}
+- type: ConfigChange
+- type: ImageChange
+kind: List
+metadata: {}

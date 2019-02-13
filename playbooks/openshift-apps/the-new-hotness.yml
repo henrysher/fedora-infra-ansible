@@ -1,0 +1,69 @@
+- name: make the app be real
+  hosts: os-masters-stg[0]
+  user: root
+  gather_facts: False
+
+  vars_files:
+    - /srv/web/infra/ansible/vars/global.yml
+    - "/srv/private/ansible/vars.yml"
+    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  roles:
+  - role: openshift/project
+    app: the-new-hotness
+    description: Fedora-messaging consumer that listens to release-monitoring.org and files bugzilla bugs in response.
+    appowners:
+    - zlopez
+
+#  - role: openshift/secret-file
+#    app: release-monitoring
+#    secret_name: release-monitoring-fedmsg-key
+#    key: fedmsg-release-monitoring.key
+#    privatefile: fedmsg-certs/keys/release-monitoring-stg.release-monitoring.org.key
+#    when: env == "staging"
+#  - role: openshift/secret-file
+#    app: release-monitoring
+#    secret_name: release-monitoring-fedmsg-cert
+#    key: fedmsg-release-monitoring.crt
+#    privatefile: fedmsg-certs/keys/release-monitoring-stg.release-monitoring.org.crt
+#    when: env == "staging"
+#  - role: openshift/secret-file
+#    app: release-monitoring
+#    secret_name: release-monitoring-fedmsg-key
+#    key: fedmsg-release-monitoring.key
+#    privatefile: fedmsg-certs/keys/release-monitoring-release-monitoring.org.key
+#    when: env != "staging"
+#  - role: openshift/secret-file
+#    app: release-monitoring
+#    secret_name: release-monitoring-fedmsg-cert
+#    key: fedmsg-release-monitoring.crt
+#    privatefile: fedmsg-certs/keys/release-monitoring-release-monitoring.org.crt
+
+  - role: openshift/object
+    app: the-new-hotness
+    template: imagestream.yml
+    objectname: imagestream.yml
+
+  - role: openshift/object
+    app: the-new-hotness
+    template: buildconfig.yml
+    objectname: buildconfig.yml
+
+  - role: openshift/object
+    app: the-new-hotness
+    template: configmap.yml
+    objectname: configmap.yml
+
+  - role: openshift/start-build
+    app: the-new-hotness
+    buildname: the-new-hotness-build
+    objectname: the-new-hotness-build
+
+  - role: openshift/object
+    app: the-new-hotness
+    file: deploymentconfig.yml
+    objectname: deploymentconfig.yml
+
+  - role: openshift/rollout
+    app: the-new-hotness
+    dcname: the-new-hotness
