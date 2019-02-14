@@ -55,9 +55,8 @@ class JobScheduler(buildbot.schedulers.basic.BaseBasicScheduler):
     def getTimerNameForChange(self, changes):
         return "only"
 
-    def getChangeClassificationsForTimer(self, objectid, timer_name):
-        return self.master.db.schedulers.getChangeClassifications(
-                self.objectid)
+    def getChangeClassificationsForTimer(self, sched_id, timer_name):
+        return self.master.db.schedulers.getChangeClassifications(sched_id)
 
 
 c['schedulers'] = []
@@ -92,31 +91,26 @@ c['schedulers'].append(schedulers.ForceScheduler(
     properties=[
         util.StringParameter(
             name='taskname',
-            label='name of check to run',
-            default='',
+            default='rpmlint',
             size=256,
         ),
         util.StringParameter(
             name='item',
-            label='object to use',
             default='',
             size=256,
         ),
         util.StringParameter(
             name='item_type',
-            label='type of object to use',
-            default='',
+            default='koji_build',
             size=256,
         ),
         util.StringParameter(
             name='uuid',
-            label='UUID of the build in progress',
             default='',
             size=256,
         ),
         util.StringParameter(
             name='arch',
-            label='arch of rpm to test',
             default='x86_64',
             size=128,
         ),
@@ -162,7 +156,7 @@ factory.addStep(steps.ShellCommand(
 factory.addStep(steps.ShellCommand(
     command=util.Interpolate("rm -rf /var/tmp/taskotron/%(prop:workername)s/*"),
     name="rm_tmp",
-    description='Clean tmp',
+    descriptionDone='Clean tmp',
 ))
 {% endif %}
 
@@ -186,7 +180,7 @@ factory.addStep(steps.ShellCommand(
              '--uuid', util.Interpolate('%(prop:uuid)s'),
              '.',
              ],
-    description=[
+    descriptionDone=[
         util.Interpolate('%(prop:taskname)s on '),
         util.Interpolate('%(prop:item)s (%(prop:arch)s)')
     ],
@@ -209,13 +203,13 @@ factory.addStep(steps.ShellCommand(
 # make sure minion is removed
 factory.addStep(steps.ShellCommand(
     command=util.Interpolate('testcloud instance remove --force taskotron-%(prop:uuid)s; true'),
-    description='Remove minion',
+    descriptionDone='Remove minion',
 ))
 
 # create artifacts dir on master
 factory.addStep(steps.MasterShellCommand(
     command=["mkdir", '-m', '0755', util.Interpolate('{{ public_artifacts_dir }}/%(prop:uuid)s')],
-    descriptionDone='Create artifacs dir',
+    descriptionDone='Create artifacs dir on master',
 ))
 
 # copy artifacts to master
