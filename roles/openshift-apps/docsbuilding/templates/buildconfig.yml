@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: BuildConfig
+metadata:
+  labels:
+    build: builder-build
+  name: builder-build
+spec:
+  runPolicy: Serial
+  strategy:
+    type: Docker
+  source:
+    dockerfile: |-
+      FROM fedora:latest
+      RUN dnf -y module install nodejs:10 && dnf clean all
+      RUN npm i -g @antora/cli@2.0 @antora/site-generator-default@2.0
+  output:
+    to:
+      kind: ImageStreamTag
+      name: builder:latest

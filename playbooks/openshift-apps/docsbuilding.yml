@@ -1,0 +1,26 @@
+- name: make the app be real
+  hosts: os-masters-stg[0]
+  user: root
+  gather_facts: False
+
+  vars_files:
+    - /srv/web/infra/ansible/vars/global.yml
+    - "/srv/private/ansible/vars.yml"
+    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  roles:
+  - role: openshift/project
+    app: docsbuilding
+    description: Documentation building
+    appowners:
+    - asamalik
+  - role: openshift/imagestream
+    app: docsbuilding
+    imagename: builder
+  - role: openshift/object
+    app: docsbuilding
+    objectname: buildconfig.yml
+    template: buildconfig.yml
+  - role: openshift/start-build
+    app: docsbuilding
+    buildname: builder-build
