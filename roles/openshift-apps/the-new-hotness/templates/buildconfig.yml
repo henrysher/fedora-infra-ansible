@@ -1,4 +1,4 @@
-      apiVersion: v1
+apiVersion: v1
 items:
   - apiVersion: v1
     kind: BuildConfig
@@ -30,11 +30,11 @@ items:
               dnf clean all -y
           RUN git clone https://github.com/fedora-infra/the-new-hotness.git && \
                   pushd the-new-hotness && \
-  {% if env == 'staging' %}
+{% if env == 'staging' %}
                   git checkout staging && \
-  {% else %}
+{% else %}
                   git checkout production && \
-  {% endif %}
+{% endif %}
                   python3 setup.py install && \
                   pip-3 install . && \
                   pushd hotness_schema && \
@@ -42,31 +42,31 @@ items:
                   pip-3 install . && \
                   rm -rf the-new-hotness
           EXPOSE 9940
-type: Dockerfile
-git:
-  uri: https://github.com/fedora-infra/the-new-hotness.git
-  {% if env == 'staging' %}
-  ref: staging
-  {% else %}
-  ref: production
-  {% endif %}
-strategy:
-  type: Docker
-output:
-  to:
-    kind: ImageStreamTag
-    name: the-new-hotness:latest
-triggers:
-  {% if stg_anitya_github_secret is defined and env == 'staging' %}
-- type: GitHub
-  github:
-    secret: "{{ stg_hotness_github_secret }}"
-  {% elif anitya_github_secret is defined and env == 'production' %}
-- type: GitHub
-  github:
-    secret: "{{ hotness_github_secret }}"
-  {% endif %}
-- type: ConfigChange
-- type: ImageChange
+        type: Dockerfile
+        git:
+          uri: https://github.com/fedora-infra/the-new-hotness.git
+{% if env == 'staging' %}
+          ref: staging
+{% else %}
+          ref: production
+{% endif %}
+    strategy:
+      type: Docker
+    output:
+      to:
+        kind: ImageStreamTag
+        name: the-new-hotness:latest
+    triggers:
+{% if stg_anitya_github_secret is defined and env == 'staging' %}
+    - type: GitHub
+      github:
+        secret: "{{ stg_hotness_github_secret }}"
+{% elif anitya_github_secret is defined and env == 'production' %}
+    - type: GitHub
+      github:
+        secret: "{{ hotness_github_secret }}"
+{% endif %}
+    - type: ConfigChange
+    - type: ImageChange
 kind: List
 metadata: {}
