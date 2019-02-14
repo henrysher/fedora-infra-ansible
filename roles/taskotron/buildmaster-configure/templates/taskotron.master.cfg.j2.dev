@@ -160,9 +160,23 @@ factory.addStep(steps.ShellCommand(
 ))
 {% endif %}
 
+# prevent duplicated buildbot jobs
+# (see https://pagure.io/taskotron/issue/273 )
+factory.addStep(steps.ShellCommand(
+    command=util.Interpolate(
+        'mkdir /var/lib/taskotron/artifacts/%(prop:uuid)s/ || '
+        '( echo Multiple jobs with same UUID detected, aborting execution!; '
+        '  echo See https://pagure.io/taskotron/issue/273 ; '
+        '  exit 1 )'
+    ),
+    descriptionDone='Create artifacs dir on slave',
+    haltOnFailure=True,
+))
+
 # check out the source
 factory.addStep(steps.Git(
-    repourl=util.Property('git_repo', default=util.Interpolate('{{ grokmirror_user }}@{{ buildmaster }}:/var/lib/git/mirror/fedoraqa/%(prop:taskname)s/')),
+    repourl=util.Property('git_repo', default=util.Interpolate(
+        '{{ grokmirror_user }}@{{ buildmaster }}:/var/lib/git/mirror/fedoraqa/%(prop:taskname)s/')),
     branch=util.Property('git_branch', default='{{ grokmirror_default_branch }}'),
     mode='full',
     method='clobber',
@@ -207,9 +221,17 @@ factory.addStep(steps.ShellCommand(
 ))
 
 # create artifacts dir on master
+# and also prevent duplicated buildbot jobs
+# (see https://pagure.io/taskotron/issue/273 )
 factory.addStep(steps.MasterShellCommand(
-    command=["mkdir", '-m', '0755', util.Interpolate('{{ public_artifacts_dir }}/%(prop:uuid)s')],
+    command=util.Interpolate(
+        'mkdir -m 0755 {{ public_artifacts_dir }}/%(prop:uuid)s/ || '
+        '( echo Multiple jobs with same UUID detected, aborting execution!; '
+        '  echo See https://pagure.io/taskotron/issue/273 ; '
+        '  exit 1 )'
+    ),
     descriptionDone='Create artifacs dir on master',
+    haltOnFailure=True,
 ))
 
 # copy artifacts to master
