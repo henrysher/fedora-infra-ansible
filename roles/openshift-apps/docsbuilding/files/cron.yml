@@ -1,0 +1,25 @@
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: build
+spec:
+  concurrencyPolicy: Forbid
+  schedule: "0 * * * *"
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            parent: "cronjobbuild"
+        spec:
+          containers:
+          - name: build
+            image: docker-registry.default.svc:5000/docsbuilding/builder:latest
+            volumeMounts:
+            - name: build-output
+              mountPath: /antora/output
+              readOnly: false
+          restartPolicy: Never
+          volumes:
+          - name: build-output
+            emptyDir: {}
