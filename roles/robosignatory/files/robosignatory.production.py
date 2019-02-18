@@ -453,18 +453,6 @@ config = {
             'directory': '/mnt/fedora_koji/koji/compose/ostree/repo/',
             'key': 'fedora-29'
         },
-        'fedora/rawhide/x86_64/atomic-host': {
-            'directory': '/mnt/fedora_koji/koji/compose/ostree/repo/',
-            'key': 'fedora-30'
-        },
-        'fedora/rawhide/ppc64le/atomic-host': {
-            'directory': '/mnt/fedora_koji/koji/compose/ostree/repo/',
-            'key': 'fedora-30'
-        },
-        'fedora/rawhide/aarch64/atomic-host': {
-            'directory': '/mnt/fedora_koji/koji/compose/ostree/repo/',
-            'key': 'fedora-30'
-        },
         'fedora/rawhide/x86_64/silverblue': {
             'directory': '/mnt/fedora_koji/koji/compose/ostree/repo/',
             'key': 'fedora-30'
