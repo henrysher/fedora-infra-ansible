@@ -1,0 +1,29 @@
+WSGIPassAuthorization On
+WSGIDaemonProcess libravatar user=apache group=apache threads=25 display-name=libravatar maximum-requests=10000 graceful-timeout=20 python-home=/mnt/data/.virtualenv python-path=/srv/libravatar
+WSGIScriptAlias / /mnt/data/wsgi.py
+
+ScriptAlias "/cgi-bin/" "/mnt/data/cgi-bin/"
+
+Alias /robots.txt /srv/libravatar/static/robots.txt
+Alias /favicon.ico /srv/libravatar/static/favicon.ico
+
+Alias /media/ /srv/libravatar/media/
+Alias /static/ /srv/libravatar/static/
+
+<Directory /srv/libravatar/static>
+    Require all granted
+</Directory>
+
+<Directory /srv/libravatar/media>
+    Require all granted
+</Directory>
+
+<Location />
+    WSGIProcessGroup libravatar
+    Require all granted
+</Location>
+
+<Directory /srv/libravatar>
+    WSGIApplicationGroup %{GLOBAL}
+    Require all granted
+</Directory>
