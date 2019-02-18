@@ -34,6 +34,7 @@ config = {
         'url': 'https://partner-bugzilla.redhat.com',
         'explanation_url': 'https://stg.fedoraproject.org/wiki/Upstream_release_monitoring',
 {% else %}
+        'api_key': '{{ upstream_release_bugzilla_api_token }}',
         'url': 'https://bugzilla.redhat.com',
         'explanation_url': 'https://fedoraproject.org/wiki/Upstream_release_monitoring',
 {% endif %}
