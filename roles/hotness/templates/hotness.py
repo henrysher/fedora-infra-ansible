@@ -31,6 +31,7 @@ config = {
         'user': '{{ upstream_release_bugzilla_user }}',
         'password': '{{ upstream_release_bugzilla_password }}',
 {% if env == 'staging' %}
+        'api_key': '',
         'url': 'https://partner-bugzilla.redhat.com',
         'explanation_url': 'https://stg.fedoraproject.org/wiki/Upstream_release_monitoring',
 {% else %}
