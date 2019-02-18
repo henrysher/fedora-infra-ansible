@@ -38,32 +38,8 @@ config = {
             'tags': [
                 # Temporary tags
                 {
-                    "from": "f29-gnome",
-                    "to": "f29-gnome",
-                    "key": "fedora-29",
-                    "keyid": "429476b4"
-                },
-                {
                     "from": "f29-kde",
                     "to": "f29-kde",
-                    "key": "fedora-29",
-                    "keyid": "429476b4"
-                },
-                {
-                    "from": "f29-granite",
-                    "to": "f29-granite",
-                    "key": "fedora-29",
-                    "keyid": "429476b4"
-                },
-                {
-                    "from": "f29-boost",
-                    "to": "f29-boost",
-                    "key": "fedora-29",
-                    "keyid": "429476b4"
-                },
-                {
-                    "from": "f29-ghc",
-                    "to": "f29-ghc",
                     "key": "fedora-29",
                     "keyid": "429476b4"
                 },
@@ -111,26 +87,8 @@ config = {
                     "keyid": "47dd8ef9"
                 },
                 {
-                    "from": "f30-kde",
-                    "to": "f30-kde",
-                    "key": "fedora-30",
-                    "keyid": "cfc659b9"
-                },
-                {
                     "from": "f30-ghc",
                     "to": "f30-ghc",
-                    "key": "fedora-30",
-                    "keyid": "cfc659b9"
-                },
-                {
-                    "from": "f30-ruby",
-                    "to": "f30-ruby",
-                    "key": "fedora-30",
-                    "keyid": "cfc659b9"
-                },
-                {
-                    "from": "f30-boost",
-                    "to": "f30-boost",
                     "key": "fedora-30",
                     "keyid": "cfc659b9"
                 },
@@ -142,6 +100,26 @@ config = {
                 },
 
                 # Gated rawhide and branched
+                {
+                    "from": "f31-pending",
+                    "to": "f31",
+                    "key": "fedora-31",
+                    "keyid": "3c3359c4"
+                },
+                {
+                    "from": "f31-modular-signing-pending",
+                    "to": "f31-modular",
+                    "key": "fedora-31",
+                    "keyid": "3c3359c4",
+                    "type": "modular"
+                },
+                {
+                    "from": "f31-modular-updates-candidate",
+                    "to": "f31-modular",
+                    "key": "fedora-31",
+                    "keyid": "3c3359c4",
+                    "type": "modular"
+                },
                 {
                     "from": "f30-pending",
                     "to": "f30",
@@ -268,6 +246,18 @@ config = {
         'fedora/stable/armhfp/iot': {
             'directory': '/mnt/fedora_koji/koji/compose/iot/repo/',
             'key': 'fedora-iot-2019'
+        },
+        'fedora/31/x86_64/iot': {
+            'directory': '/mnt/fedora_koji/koji/compose/iot/repo/',
+            'key': 'fedora-31'
+        },
+        'fedora/31/aarch64/iot': {
+            'directory': '/mnt/fedora_koji/koji/compose/iot/repo/',
+            'key': 'fedora-31'
+        },
+        'fedora/31/armhfp/iot': {
+            'directory': '/mnt/fedora_koji/koji/compose/iot/repo/',
+            'key': 'fedora-31'
         },
         'fedora/30/x86_64/iot': {
             'directory': '/mnt/fedora_koji/koji/compose/iot/repo/',
@@ -453,9 +443,21 @@ config = {
             'directory': '/mnt/fedora_koji/koji/compose/ostree/repo/',
             'key': 'fedora-29'
         },
-        'fedora/rawhide/x86_64/silverblue': {
+        'fedora/30/x86_64/silverblue': {
             'directory': '/mnt/fedora_koji/koji/compose/ostree/repo/',
             'key': 'fedora-30'
+        },
+        'fedora/30/x86_64/updates/silverblue': {
+            'directory': '/mnt/fedora_koji/koji/compose/ostree/repo/',
+            'key': 'fedora-30'
+        },
+        'fedora/30/x86_64/testing/silverblue': {
+            'directory': '/mnt/fedora_koji/koji/compose/ostree/repo/',
+            'key': 'fedora-30'
+        },
+        'fedora/rawhide/x86_64/silverblue': {
+            'directory': '/mnt/fedora_koji/koji/compose/ostree/repo/',
+            'key': 'fedora-31'
         },
     }
 }
