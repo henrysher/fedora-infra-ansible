@@ -20,7 +20,55 @@ FEDORAALTDEST = '/pub/fedora-secondary/updates/'
 EPELDEST = '/pub/epel/'
 OSTREESOURCE = '/mnt/koji/compose/ostree/repo/'
 OSTREEDEST = '/mnt/koji/ostree/repo/'
-RELEASES = {'f29': {'topic': 'fedora',
+RELEASES = {'f30': {'topic': 'fedora',
+                    'version': '30',
+                    'modules': ['fedora', 'fedora-secondary'],
+                    'repos': {'updates': {
+                        'from': 'f30-updates',
+                        'ostrees': [{'ref': 'fedora/30/%(arch)s/updates/atomic-host',
+                                     'dest': OSTREEDEST,
+                                     'arches': ['x86_64', 'ppc64le', 'aarch64']},
+                                    {'ref': 'fedora/30/x86_64/updates/silverblue',
+                                     'dest': OSTREEDEST}],
+                        'to': [{'arches': ['x86_64', 'armhfp', 'aarch64', 'source'],
+                                'dest': os.path.join(FEDORADEST, '30', 'Everything')},
+                               {'arches': ['i386', 'ppc64le', 's390x'],
+                                'dest': os.path.join(FEDORAALTDEST, '30', 'Everything')}
+                              ]},
+                              'updates-testing': {
+                        'from': 'f30-updates-testing',
+                        'ostrees': [{'ref': 'fedora/30/%(arch)s/testing/atomic-host',
+                                     'dest': OSTREEDEST,
+                                     'arches': ['x86_64', 'ppc64le', 'aarch64']},
+                                    {'ref': 'fedora/30/x86_64/testing/silverblue',
+                                     'dest': OSTREEDEST}],
+                        'to': [{'arches': ['x86_64', 'aarch64', 'armhfp', 'source'],
+                                'dest': os.path.join(FEDORADEST, 'testing', '30', 'Everything')},
+                               {'arches': ['i386', 'ppc64le', 's390x'],
+                                'dest': os.path.join(FEDORAALTDEST, 'testing', '30', 'Everything')}
+                              ]}}
+                   },
+            'f30m': {'topic': 'fedora',
+                    'version': '30m',
+                    'modules': ['fedora', 'fedora-secondary'],
+                    'repos': {'updates': {
+                        'from': 'f30-modular-updates',
+                        'ostrees': [],
+                        'to': [{'arches': ['x86_64', 'aarch64', 'armhfp', 'source'],
+                                'dest': os.path.join(FEDORADEST, '30', 'Modular')},
+                               {'arches': ['i386', 'ppc64le', 's390x'],
+                                'dest': os.path.join(FEDORAALTDEST, '30', 'Modular')}
+                              ]},
+                              'updates-testing': {
+                        'from': 'f30-modular-updates-testing',
+                        'ostrees': [],
+                        'to': [{'arches': ['x86_64', 'aarch64', 'armhfp', 'source'],
+                                'dest': os.path.join(FEDORADEST, 'testing', '30', 'Modular')},
+                               {'arches': ['i386', 'ppc64le', 's390x'],
+                                'dest': os.path.join(FEDORAALTDEST, 'testing', '30', 'Modular')}
+                              ]}}
+                   },
+            'f29': {'topic': 'fedora',
                     'version': '29',
                     'modules': ['fedora', 'fedora-secondary'],
                     'repos': {'updates': {
