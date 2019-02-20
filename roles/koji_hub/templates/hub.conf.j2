@@ -127,3 +127,31 @@ build_from_srpm =
     all :: deny
 
 {% endif %}
+
+
+{% if env == 'staging' %}
+
+# Policy for manipulating package lists for tags.
+package_list =
+    # Removing packages is almost always a mistake, so deny it.
+    # Admins can still override this with --force, if necessary.
+    match action remove :: deny
+    # Admins can do pretty much everything.
+    has_perm admin :: allow
+    # People with pkglist permission can manage package lists in
+    # active f$N and epel$N tags.
+    has_perm pkglist :: {
+        # Rawhide and epel7: adding, unblocking and blocking is allowed.
+        tag f{{FedoraRawhideNumber}} epel7 && match action add unblock block :: allow
+        # In branched blocking is allowed only before final freeze.
+        tag f{{FedoraBranchedNumber}} && match action add unblock {{ 'block' if not Frozen or FedoraBranchedBodhi }} :: allow
+        # Stable releases: only adding and unblocking is allowed.
+        tag f{{FedoraCycleNumber}} f{{FedoraPreviousCycleNumber}} && match action add unblock :: allow
+    }
+    # Infra people can themselves add/block/unblock packages in their
+    # tags without bothering admins.
+    tag *infra* && has_perm infra && match action add unblock block :: allow
+    # Catch-all rule.
+    all :: deny
+
+{% endif %}
