@@ -1,5 +1,5 @@
 [Service]
-{% if fedmsg_hub_memory_limit_mb %}
+{% if fedmsg_hub_memory_limit_mb|int %}
 # Limit max RAM usage for fedmsg-hub.  Also don't let fedmsg-hub use
 # more that half of swap available in the system, so that we don't get
 # Nagios alerts about low swap.  We would rather have fedmsg-hub OOM
@@ -9,7 +9,7 @@ MemorySwapMax={{ (ansible_memory_mb.swap.total / 2) | int }}M
 MemoryMax={{fedmsg_hub_memory_limit_mb}}M
 {% else %}
 MemoryLimit={{fedmsg_hub_memory_limit_mb}}M
-LimitAS={{ (fedmsg_hub_memory_limit_mb + (ansible_memory_mb.swap.total / 2)) | int }}M
+LimitAS={{ (fedmsg_hub_memory_limit_mb|int + (ansible_memory_mb.swap.total / 2)) | int }}M
 {% endif %}
 {% endif %}
 
