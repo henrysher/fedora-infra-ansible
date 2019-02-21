@@ -109,6 +109,16 @@
   notify:
   - restart apache
 
+- name: Allow repoSpanner access to Pagure config
+  acl: path=/etc/pagure/pagure.cfg
+       etype=user
+       entity=repoSpanner
+       permission=r
+      state=present
+  tags:
+  - config
+  - pagure
+
 - name: pagure configuration for the hooks
   template: src={{ item.file }}
             dest={{ item.location }}/{{ item.file }}
