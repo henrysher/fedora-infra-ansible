@@ -1,0 +1,23 @@
+[Service]
+{% if fedmsg_hub_memory_limit %}
+{% if ansible_distribution_major_version|int > 7 %}
+# Don't let fedmsg-hub use more that half of swap available in the
+# system, so that we don't get Nagios alerts about low swap.  We would
+# rather have fedmsg-hub OOM and be auto-restarted.
+MemorySwapMax={{ ansible_memory_mb.swap.total / 2 }}M
+# Limit RAM usage too
+MemoryMax={{fedmsg_hub_memory_limit}}
+{% else %}
+# On RHEL 7 we can only control RAM usage.
+MemoryLimit={{fedmsg_hub_memory_limit}}
+{% endif %}
+{% endif %}
+
+{% if fedmsg_hub_auto_restart %}
+Restart=on-failure
+{% if env == 'staging' %}
+RestartSec=600
+{% else %}
+RestartSec=10
+{% endif %}
+{% endif %}

@@ -63,3 +63,26 @@
   - restart nrpe
   tags:
   - fedmsgmonitor
+
+- name: create systemd config directoryies
+  file: path="/etc/systemd/system/{{ item }}.service.d" state=directory
+  with_items:
+  - fedmsg-hub
+  - fedmsg-hub-3
+  notify:
+  - reload systemd
+  tags:
+  - fedmsg/hub
+
+- name: install systemd config file
+  template:
+    src: fedmsg-hub-systemd.conf.j2
+    dest: "/etc/systemd/system/{{ item }}.service.d/systemd.conf"
+  with_items:
+  - fedmsg-hub
+  - fedmsg-hub-3
+  notify:
+  - reload systemd
+  - restart fedmsg-hub
+  tags:
+  - fedmsg/hub
