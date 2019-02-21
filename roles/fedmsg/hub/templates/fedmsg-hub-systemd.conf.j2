@@ -1,16 +1,15 @@
 [Service]
 {% if fedmsg_hub_memory_limit_mb %}
+# Limit max RAM usage for fedmsg-hub.  Also don't let fedmsg-hub use
+# more that half of swap available in the system, so that we don't get
+# Nagios alerts about low swap.  We would rather have fedmsg-hub OOM
+# and be auto-restarted.
 {% if ansible_distribution_major_version|int > 7 %}
-# Don't let fedmsg-hub use more that half of swap available in the
-# system, so that we don't get Nagios alerts about low swap.  We would
-# rather have fedmsg-hub OOM and be auto-restarted.
-MemorySwapMax={{ ansible_memory_mb.swap.total / 2 }}M
-# Limit RAM usage too
+MemorySwapMax={{ (ansible_memory_mb.swap.total / 2) | int }}M
 MemoryMax={{fedmsg_hub_memory_limit_mb}}M
 {% else %}
-# On RHEL 7 we can only control RAM usage.
 MemoryLimit={{fedmsg_hub_memory_limit_mb}}M
-LimitAS={{ fedmsg_hub_memory_limit_mb + (ansible_memory_mb.swap.total / 2) }}M
+LimitAS={{ (fedmsg_hub_memory_limit_mb + (ansible_memory_mb.swap.total / 2)) | int }}M
 {% endif %}
 {% endif %}
 
