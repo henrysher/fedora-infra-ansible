@@ -107,7 +107,7 @@ config = {
                     "keyid": "3c3359c4"
                 },
                 {
-                    "from": "f31-modular-signing-pending",
+                    "from": "f31-modular-pending",
                     "to": "f31-modular",
                     "key": "fedora-31",
                     "keyid": "3c3359c4",
