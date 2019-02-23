@@ -43,6 +43,18 @@ config = {
                     "key": "fedora-29",
                     "keyid": "429476b4"
                 },
+                {
+                    "from": "f30-ghc",
+                    "to": "f30-ghc",
+                    "key": "fedora-30",
+                    "keyid": "cfc659b9"
+                },
+                {
+                    "from": "f30-gnome",
+                    "to": "f30-gnome",
+                    "key": "fedora-30",
+                    "keyid": "cfc659b9"
+                },
                 # Infra tags
                 {
                     "from": "epel6-infra-candidate",
@@ -85,18 +97,6 @@ config = {
                     "to": "f30-infra-stg",
                     "key": "fedora-infra",
                     "keyid": "47dd8ef9"
-                },
-                {
-                    "from": "f30-ghc",
-                    "to": "f30-ghc",
-                    "key": "fedora-30",
-                    "keyid": "cfc659b9"
-                },
-                {
-                    "from": "f30-rebuild",
-                    "to": "f30-rebuild",
-                    "key": "fedora-30",
-                    "keyid": "cfc659b9"
                 },
 
                 # Gated rawhide and branched
