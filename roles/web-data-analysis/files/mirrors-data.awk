@@ -82,13 +82,13 @@ BEGIN{
 	else if ($3 ~"epel5")  { epel5=epel5+1; epel=epel+1}
 	else if ($3 ~"epel6")  { epel6=epel6+1; epel=epel+1}
 	else if ($3 ~"epel7")  { epel7=epel7+1; epel=epel+1}
-	else if ($3 ~"modular_f27") { modular_f27=modular_f27+1; f27=f27+1; modular=modular+1; fedora=fedora+1 }
-	else if ($3 ~"modular_f28") { modular_f28=modular_f28+1; f28=f28+1; modular=modular+1; fedora=fedora+1 }
-	else if ($3 ~"modular_f29") { modular_f29=modular_f29+1; f29=f29+1; modular=modular+1; fedora=fedora+1 }
-	else if ($3 ~"modular_f30") { modular_f30=modular_f30+1; f30=f30+1; modular=modular+1; fedora=fedora+1 }
-	else if ($3 ~"modular_f31") { modular_f31=modular_f31+1; f31=f31+1; modular=modular+1; fedora=fedora+1 }
-	else if ($3 ~"modular_f32") { modular_f32=modular_f32+1; f32=f32+1; modular=modular+1; fedora=fedora+1 }
-	else if ($3 ~"modular_f33") { modular_f33=modular_f33+1; f33=f33+1; modular=modular+1; fedora=fedora+1 }
+	else if ($3 ~"modular_f27") { modular_f27=modular_f27+1; modular=modular+1; }
+	else if ($3 ~"modular_f28") { modular_f28=modular_f28+1; modular=modular+1; }
+	else if ($3 ~"modular_f29") { modular_f29=modular_f29+1; modular=modular+1; }
+	else if ($3 ~"modular_f30") { modular_f30=modular_f30+1; modular=modular+1; }
+	else if ($3 ~"modular_f31") { modular_f31=modular_f31+1; modular=modular+1; }
+	else if ($3 ~"modular_f32") { modular_f32=modular_f32+1; modular=modular+1; }
+	else if ($3 ~"modular_f33") { modular_f33=modular_f33+1; modular=modular+1; }
 	else if ($3 ~"f03")     { f03=f03+1; fedora=fedora+1}
 	else if ($3 ~"f04")     { f04=f04+1; fedora=fedora+1}
 	else if ($3 ~"f05")     { f05=f05+1; fedora=fedora+1}
