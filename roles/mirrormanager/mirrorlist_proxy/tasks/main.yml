@@ -22,6 +22,7 @@
   - /srv/mirrorlist/data
   - /srv/mirrorlist/data/mirrorlist1
   - /srv/mirrorlist/data/mirrorlist2
+  - /srv/mirrorlist/data/mirrorlist3
   - /var/log/mirrormanager
   tags:
   - mirrorlist_proxy
@@ -32,6 +33,7 @@
   - /srv/mirrorlist/data
   - /srv/mirrorlist/data/mirrorlist1
   - /srv/mirrorlist/data/mirrorlist2
+  - /srv/mirrorlist/data/mirrorlist3
   tags:
   - mirrorlist_proxy
 
@@ -70,6 +72,18 @@
   notify:
   - reload systemd
 
+# We deploy two service files. Both listen on a different port, so that we can switch
+# them out as part of the pkl deployment without having any local downtime.
+- name: Deploy service files
+  template: src=mirrorlist.service.j2 dest=/etc/systemd/system/mirrorlist{{ item }}.service
+  with_items:
+  - 3
+  tags:
+  - mirrorlist_proxy
+  notify:
+  - reload systemd
+  when: datacenter == 'phx2'
+
 # enable both of them to run on boot
 - name: Enable mirrorlist1
   service: name=mirrorlist1 enabled=yes
@@ -81,9 +95,15 @@
   tags:
   - mirrorlist_proxy
 
+- name: Enable mirrorlist3
+  service: name=mirrorlist3 enabled=yes
+  tags:
+  - mirrorlist_proxy
+  when: datacenter == 'phx2'
+
 # install our cron script to handle hourly new pkl changes. 
 - name: install script to restart mirrorlist containers on pkl changes
-  copy: src=restart-mirrorlist-containers dest=/usr/local/bin/restart-mirrorlist-containers mode=0755
+  template: src=restart-mirrorlist-containers.j2 dest=/usr/local/bin/restart-mirrorlist-containers mode=0755
   tags:
   - mirrorlist_proxy
 
