@@ -1,0 +1,51 @@
+---
+
+# Ensure a user, queue, and bindings for that queue exist in RabbitMQ.
+# This is intended to be something most applications can use, but if you need
+# more flexibility, just use the rabbitmq_* modules directly.
+#
+# Required parameters:
+#
+#   - username (str): the username to create in RabbitMQ, which should match the
+#                     CN of the certificate.
+#   - queue_name (str): The name of the queue to create. This must be prefixed
+#                       with your username. For example, with a username of
+#                       "bodhi", your queue could be named "bodhi_masher".
+#   - routing_keys (list): A list of strings to use as routing keys.
+
+- assert:
+    that:
+      - "queue_name.startswith(username)"
+    fail_msg: "Your queue name must be prefixed with your username"
+
+# See https://www.rabbitmq.com/access-control.html#permissions for details on
+# the RabbitMQ permissions configuration.
+- name: Create the user in RabbitMQ
+  delegate_to: "{{ rabbitmq_server }}"
+  rabbitmq_user:
+    user: "{{ username }}"
+    vhost: "{{ vhost }}"
+    read_priv: "^{{ username }}.*$"  # Read from queues prefixed with their name
+    write_priv: "amq.topic"  # Publish to the topic exchange
+    configure_priv: "^$"  # No configuration permissions
+    state: present
+
+- name: Create the queue in RabbitMQ
+  delegate_to: "{{ rabbitmq_server }}"
+  rabbitmq_queue:
+    name: "{{ queue_name }}"
+    vhost: "{{ vhost }}"
+    auto_delete: no
+    durable: yes
+    state: present
+
+- name: Bind the queue to the topic exchange
+  delegate_to: "{{ rabbitmq_server }}"
+  rabbitmq_binding:
+    name: "amq.topic"
+    destination: "{{ queue_name }}"
+    destination_type: queue
+    routing_key: "{{ item }}"
+    vhost: "{{ vhost }}"
+    state: present
+  loop: "{{ routing_keys }}"
