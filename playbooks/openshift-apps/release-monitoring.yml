@@ -13,31 +13,35 @@
     app: release-monitoring
     description: release-monitoring
     appowners:
-    - jcline
     - zlopez
   - role: openshift/secret-file
     app: release-monitoring
-    secret_name: release-monitoring-fedmsg-key
-    key: fedmsg-release-monitoring.key
-    privatefile: fedmsg-certs/keys/release-monitoring-stg.release-monitoring.org.key
+    secret_name: release-monitoring-fedora-messaging-ca
+    key: fedora-messaging-release-monitoring.ca
+    privatefile: {{private}}/files/rabbitmq/{{env}}/pki/ca.crt
+  - role: openshift/secret-file
+    app: release-monitoring
+    secret_name: release-monitoring-fedora-messaging-key
+    key: fedora-messaging-release-monitoring.key
+    privatefile: {{private}}/files/rabbitmq/{{env}}/pki/private/release-monitoring.stg.key
     when: env == "staging"
   - role: openshift/secret-file
     app: release-monitoring
-    secret_name: release-monitoring-fedmsg-cert
-    key: fedmsg-release-monitoring.crt
-    privatefile: fedmsg-certs/keys/release-monitoring-stg.release-monitoring.org.crt
+    secret_name: release-monitoring-fedora-messaging-cert
+    key: fedora-messaging-release-monitoring.crt
+    privatefile: {{private}}/files/rabbitmq/{{env}}/pki/private/release-monitoring.stg.crt
     when: env == "staging"
   - role: openshift/secret-file
     app: release-monitoring
-    secret_name: release-monitoring-fedmsg-key
-    key: fedmsg-release-monitoring.key
-    privatefile: fedmsg-certs/keys/release-monitoring-release-monitoring.org.key
+    secret_name: release-monitoring-fedora-messaging-key
+    key: fedora-messaging-release-monitoring.key
+    privatefile: {{private}}/files/rabbitmq/{{env}}/pki/private/release-monitoring.key
     when: env != "staging"
   - role: openshift/secret-file
     app: release-monitoring
-    secret_name: release-monitoring-fedmsg-cert
-    key: fedmsg-release-monitoring.crt
-    privatefile: fedmsg-certs/keys/release-monitoring-release-monitoring.org.crt
+    secret_name: release-monitoring-fedora-messaging-cert
+    key: fedora-messaging-release-monitoring.crt
+    privatefile: {{private}}/files/rabbitmq/{{env}}/pki/private/release-monitoring.crt
     when: env != "staging"
   - role: openshift/object
     app: release-monitoring

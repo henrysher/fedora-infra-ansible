@@ -224,40 +224,10 @@ items:
     config.toml: |-
       amqp_url = "amqps://messaging-bridge{{ env_suffix }}.fedoraproject.org:@rabbitmq01{{ env_suffix }}.phx2.fedoraproject.org/%2Fpubsub"
 
-      # Until we have certificates it is better to just comment this
-      #[tls]
-      #ca_cert = "/etc/pki/rabbitmq/ca/rabbitmq-ca.crt"
-      #keyfile = "/etc/pki/rabbitmq/key/rabbitmq-fedmsg-migration-tools.key"
-      #certfile = "/etc/pki/rabbitmq/crt/rabbitmq-fedmsg-migration-tools.crt"
-
-- apiVersion: v1
-  kind: ConfigMap
-  metadata:
-    name: fedmsg-configmap
-    labels:
-      app: release-monitoring
-  data:
-    anitya.py: |-
-      import socket
-      config = {
-          "zmq_enabled": True,
-          "active": True,
-          "topic_prefix": "org.release-monitoring",
-          "sign_messages": True,
-          "validate_signatures": True,
-          "crypto_backend": "x509",
-          "ssldir": "/etc/pki/fedmsg/",
-          "cert_prefix": "release-monitoring",
-          "certnames": {"anitya.{}".format(socket.gethostname()): "release-monitoring"},
-          "endpoints": {},
-{% if env == 'staging' %}
-          "environment": "stg",
-          "relay_inbound": ["tcp://busgateway01.stg.phx2.fedoraproject.org:9941"],
-{% else %}
-          "environment": "prod",
-          "relay_inbound": ["tcp://busgateway01.phx2.fedoraproject.org:9941"],
-{% endif %}
-      }
+      [tls]
+      ca_cert = "/etc/pki/rabbitmq/ca/ca.crt"
+      keyfile = "/etc/pki/rabbitmq/key/fedora-messaging-release-monitoring.key"
+      certfile = "/etc/pki/rabbitmq/crt/fedora-messaging-release-monitoring.crt"
 - apiVersion: v1
   kind: ConfigMap
   metadata:
