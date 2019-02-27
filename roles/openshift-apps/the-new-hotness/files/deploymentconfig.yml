@@ -35,22 +35,28 @@ items:
             - name: config-volume
               mountPath: /etc/fedora-messaging
               readOnly: true
-#           - name: fedmsg-key-volume
-#             mountPath: /etc/pki/fedmsg/key
-#             readOnly: true
-#           - name: fedmsg-crt-volume
-#             mountPath: /etc/pki/fedmsg/crt
-#             readOnly: true
+            - name: fedora-messaging-ca-volume
+              mountPath: /etc/pki/rabbitmq/ca
+              readOnly: true
+            - name: fedora-messaging-key-volume
+              mountPath: /etc/pki/rabbitmq/key
+              readOnly: true
+            - name: fedora-messaging-cert-volume
+              mountPath: /etc/pki/rabbitmq/cert
+              readOnly: true
         volumes:
         - name: config-volume
           configMap:
             name: the-new-hotness-configmap
-#       - name: fedmsg-key-volume
-#         secret:
-#           secretName: release-monitoring-fedmsg-key
-#       - name: fedmsg-crt-volume
-#         secret:
-#           secretName: release-monitoring-fedmsg-cert
+        - name: fedora-messaging-ca-volume
+          secret:
+            secretName: release-monitoring-fedora-messaging-ca
+        - name: fedora-messaging-key-volume
+          secret:
+            secretName: release-monitoring-fedora-messaging-key
+        - name: fedora-messaging-cert-volume
+          secret:
+            secretName: release-monitoring-fedora-messaging-cert
     triggers:
     - imageChangeParams:
         automatic: true

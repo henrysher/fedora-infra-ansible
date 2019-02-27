@@ -11,33 +11,43 @@
   roles:
   - role: openshift/project
     app: the-new-hotness
-    description: Fedora-messaging consumer that listens to release-monitoring.org and files bugzilla bugs in response.
+    description: Fedora-messaging consumer that listens to the-new-hotness.org and files bugzilla bugs in response.
     appowners:
     - zlopez
 
-#  - role: openshift/secret-file
-#    app: release-monitoring
-#    secret_name: release-monitoring-fedmsg-key
-#    key: fedmsg-release-monitoring.key
-#    privatefile: fedmsg-certs/keys/release-monitoring-stg.release-monitoring.org.key
-#    when: env == "staging"
-#  - role: openshift/secret-file
-#    app: release-monitoring
-#    secret_name: release-monitoring-fedmsg-cert
-#    key: fedmsg-release-monitoring.crt
-#    privatefile: fedmsg-certs/keys/release-monitoring-stg.release-monitoring.org.crt
-#    when: env == "staging"
-#  - role: openshift/secret-file
-#    app: release-monitoring
-#    secret_name: release-monitoring-fedmsg-key
-#    key: fedmsg-release-monitoring.key
-#    privatefile: fedmsg-certs/keys/release-monitoring-release-monitoring.org.key
-#    when: env != "staging"
-#  - role: openshift/secret-file
-#    app: release-monitoring
-#    secret_name: release-monitoring-fedmsg-cert
-#    key: fedmsg-release-monitoring.crt
-#    privatefile: fedmsg-certs/keys/release-monitoring-release-monitoring.org.crt
+  - role: openshift/secret-file
+    app: the-new-hotness
+    secret_name: the-new-hotness-fedora-messaging-ca
+    key: fedora-messaging-the-new-hotness.ca
+    privatefile: {{private}}/files/rabbitmq/{{env}}/pki/ca.crt
+
+  - role: openshift/secret-file
+    app: the-new-hotness
+    secret_name: the-new-hotness-fedora-messaging-key
+    key: fedora-messaging-the-new-hotness.key
+    privatefile: {{private}}/files/rabbitmq/{{env}}/pki/private/the-new-hotness.stg.key
+    when: env == "staging"
+
+  - role: openshift/secret-file
+    app: the-new-hotness
+    secret_name: the-new-hotness-fedora-messaging-cert
+    key: fedora-messaging-the-new-hotness.crt
+    privatefile: {{private}}/files/rabbitmq/{{env}}/pki/private/the-new-hotness.stg.crt
+    when: env == "staging"
+
+  - role: openshift/secret-file
+    app: the-new-hotness
+    secret_name: the-new-hotness-fedora-messaging-key
+    key: fedora-messaging-the-new-hotness.key
+    privatefile: {{private}}/files/rabbitmq/{{env}}/pki/private/the-new-hotness.key
+    when: env != "staging"
+
+  - role: openshift/secret-file
+    app: the-new-hotness
+    secret_name: the-new-hotness-fedora-messaging-cert
+    key: fedora-messaging-the-new-hotness.crt
+    privatefile: {{private}}/files/rabbitmq/{{env}}/pki/private/the-new-hotness.crt
+    when: env != "staging"
 
   - role: openshift/object
     app: the-new-hotness
