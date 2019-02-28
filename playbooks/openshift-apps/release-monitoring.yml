@@ -13,7 +13,7 @@
   tasks:
     - name: Create the RabbitMQ user
       rabbitmq_user:
-        user: "anitya"
+        user: "anitya{{ env_suffix }}"
         vhost: /pubsub
         read_priv: "^anitya.*$"
         write_priv: "amq.topic"
@@ -49,25 +49,11 @@
     secret_name: release-monitoring-fedora-messaging-key
     key: fedora-messaging-release-monitoring.key
     privatefile: "rabbitmq/{{env}}/pki/private/anitya{{env_suffix}}.key"
-    when: env == "staging"
   - role: openshift/secret-file
     app: release-monitoring
     secret_name: release-monitoring-fedora-messaging-cert
     key: fedora-messaging-release-monitoring.crt
     privatefile: "rabbitmq/{{env}}/pki/issued/anitya{{env_suffix}}.crt"
-    when: env == "staging"
-  - role: openshift/secret-file
-    app: release-monitoring
-    secret_name: release-monitoring-fedora-messaging-key
-    key: fedora-messaging-release-monitoring.key
-    privatefile: "rabbitmq/{{env}}/pki/private/anitya.key"
-    when: env != "staging"
-  - role: openshift/secret-file
-    app: release-monitoring
-    secret_name: release-monitoring-fedora-messaging-cert
-    key: fedora-messaging-release-monitoring.crt
-    privatefile: "rabbitmq/{{env}}/pki/issued/anitya.crt"
-    when: env != "staging"
   - role: openshift/object
     app: release-monitoring
     file: imagestream.yml

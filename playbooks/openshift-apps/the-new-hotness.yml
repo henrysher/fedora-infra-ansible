@@ -10,7 +10,7 @@
 
   roles:
   - role: rabbit/queue
-    username: the-new-hotness
+    username: the-new-hotness{{ env_suffix }}
     queue_name: the-new-hotness
     routing_keys:
       - "#"
@@ -32,28 +32,12 @@
     secret_name: the-new-hotness-fedora-messaging-key
     key: fedora-messaging-the-new-hotness.key
     privatefile: "rabbitmq/{{env}}/pki/private/the-new-hotness{{env_suffix}}.key"
-    when: env == "staging"
 
   - role: openshift/secret-file
     app: the-new-hotness
     secret_name: the-new-hotness-fedora-messaging-cert
     key: fedora-messaging-the-new-hotness.crt
     privatefile: "rabbitmq/{{env}}/pki/issued/the-new-hotness{{env_suffix}}.crt"
-    when: env == "staging"
-
-  - role: openshift/secret-file
-    app: the-new-hotness
-    secret_name: the-new-hotness-fedora-messaging-key
-    key: fedora-messaging-the-new-hotness.key
-    privatefile: "rabbitmq/{{env}}/pki/private/the-new-hotness.key"
-    when: env != "staging"
-
-  - role: openshift/secret-file
-    app: the-new-hotness
-    secret_name: the-new-hotness-fedora-messaging-cert
-    key: fedora-messaging-the-new-hotness.crt
-    privatefile: "rabbitmq/{{env}}/pki/issued/the-new-hotness.crt"
-    when: env != "staging"
 
   - role: openshift/object
     app: the-new-hotness
