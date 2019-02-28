@@ -166,3 +166,14 @@
   tags:
   - rabbitmq_cluster
   - config
+
+- name: Dump the admin password in a file for administrative operations
+  copy:
+    dest: /root/.rabbitmqpass
+    content: "{{ (env == 'production')|ternary(rabbitmq_admin_password_production, rabbitmq_admin_password_staging) }}"
+    mode: 0600
+    owner: root
+    group: root
+  tags:
+  - rabbitmq_cluster
+  - config
