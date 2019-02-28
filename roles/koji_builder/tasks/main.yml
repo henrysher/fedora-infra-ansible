@@ -98,12 +98,11 @@
   tags:
   - koji_builder
 
-- name: Hotfix Oz for aarch64 console
-  copy: src=Guest.py dest=/usr/lib/python2.7/site-packages/oz/Guest.py mode=0644
+- name: Install arm UEFI firmware package (aarch64 only)
+  dnf: name=edk2-arm state=present
   tags:
   - koji_builder
-  notify:
-  - restart kojid
+  when: "ansible_architecture is defined and ansible_architecture == 'aarch64'"
 
 - name: Re byte compile Guest.py (if needed)
   command: python2 -m compileall /usr/lib/python2.7/site-packages/oz/Guest.py
