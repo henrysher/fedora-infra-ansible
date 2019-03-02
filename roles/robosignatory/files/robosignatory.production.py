@@ -38,10 +38,22 @@ config = {
             'tags': [
                 # Temporary tags
                 {
+                    "from": "f31-kde",
+                    "to": "f31-kde",
+                    "key": "fedora-31",
+                    "keyid": "3c3359c4"
+                },
+                {
                     "from": "f29-kde",
                     "to": "f29-kde",
                     "key": "fedora-29",
                     "keyid": "429476b4"
+                },
+                {
+                    "from": "f30-kde",
+                    "to": "f30-kde",
+                    "key": "fedora-30",
+                    "keyid": "cfc659b9"
                 },
                 {
                     "from": "f30-ghc",
