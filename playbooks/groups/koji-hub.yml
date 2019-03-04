@@ -110,3 +110,30 @@
 
   handlers:
   - import_tasks: "{{ handlers_path }}/restart_services.yml"
+
+
+# Setup the rabbitmq user so fedora-messaging can send messages
+- name: setup RabbitMQ
+  hosts: rabbitmq-stg[0]
+  #hosts: rabbitmq[0]:rabbitmq-stg[0]
+  user: root
+  gather_facts: False
+
+  vars_files:
+    - /srv/web/infra/ansible/vars/global.yml
+    - "/srv/private/ansible/vars.yml"
+    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  tasks:
+    - name: Create the RabbitMQ user
+      when: env == 'staging'
+      rabbitmq_user:
+        user: "koji{{ env_suffix }}"
+        vhost: /pubsub
+        read_priv: "^$"
+        write_priv: "amq\\.topic"
+        configure_priv: "^$"
+        state: present
+      tags:
+        - config
+        - fedora-messaging

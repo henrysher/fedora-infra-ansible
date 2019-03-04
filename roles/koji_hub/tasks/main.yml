@@ -81,11 +81,84 @@
 
 - name: koji fedmsg plugin
   template: src=fedmsg-koji-plugin.py dest=/usr/lib/koji-hub-plugins/fedmsg-koji-plugin.py
+  when: env != 'staging'
   notify:
   - reload httpd
   tags:
   - config
   - koji_hub
+
+- name: install fedora-messaging as a dependency for the plugin
+  package: name={{ item }} state=present
+  when: env == 'staging'
+  with_items:
+  - python2-fedora-messaging
+  tags:
+  - packages
+  - koji_hub
+  - fedora-messaging
+
+- name: create the config folder for fedora-messaging
+  when: env == 'staging'
+  file: path=/etc/fedora-messaging/ owner=root group=root mode=0755 state=directory
+  tags:
+  - koji_hub
+  - fedora-messaging
+
+- name: install the configuration file for fedora-messaging
+  template:
+      src=fedora-messaging.toml
+      dest=/etc/fedora-messaging/config.toml
+  when: env == 'staging'
+  tags:
+  - config
+  - koji_hub
+  - fedora-messaging
+
+- name: create folder where we'll place the certs
+  when: env == 'staging'
+  file: path=/etc/pki/rabbitmq/kojicert/ owner=root group=root mode=0755 state=directory
+  tags:
+  - config
+  - koji_hub
+  - fedora-messaging
+
+- name: deploy koji/rabbitmq certificate
+  copy: src={{ item.src }}
+        dest=/etc/pki/rabbitmq/kojicert/{{ item.dest }}
+        owner={{ item.owner }} group=root mode={{ item.mode }}
+  when: env == 'staging'
+  with_items:
+    - src: "{{private}}/files/rabbitmq/{{env}}/pki/issued/koji{{ env_suffix }}.crt"
+      dest: koji.crt
+      owner: root
+      mode: 0644
+    - src: "{{private}}/files/rabbitmq/{{env}}/pki/private/koji{{ env_suffix }}.key"
+      dest: koji.key
+      owner: root
+      mode: "600"
+    - src: "{{private}}/files/rabbitmq/{{env}}/pki/ca.crt"
+      dest: koji.ca
+      owner: root
+      mode: 0644
+  tags:
+  - config
+  - koji_hub
+  - fedora-messaging
+
+- name: koji fedora-messaging plugin - installed as fedmsg-koji-plugin
+  get_url:
+      url: https://pagure.io/koji-fedmsg-plugin/raw/master/f/fedmsg-koji-plugin.py
+      dest: /usr/lib/koji-hub-plugins/fedmsg-koji-plugin.py
+      mode: 0644
+      checksum: sha256:48cd361366544d435fc529197bb4dc4e72d01263c8f4066dccef9404ce0a70a6
+  when: env == 'staging'
+  notify:
+  - reload httpd
+  tags:
+  - config
+  - koji_hub
+  - fedora-messaging
 
 #
 # install keytabs
