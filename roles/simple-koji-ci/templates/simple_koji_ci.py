@@ -25,11 +25,9 @@ config = {
         'priority': 30,
         'target_tags': {
             'master': 'rawhide',
+            'f30': 'f30',
             'f29': 'f29',
             'f28': 'f28',
-            'f27': 'f27',
-            'f26': 'f26',
-            'f25': 'f25',
             'epel7': 'epel7',
             'el6': 'el6',
         }
