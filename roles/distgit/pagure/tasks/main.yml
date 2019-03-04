@@ -383,21 +383,24 @@
 - name: deploy pagure/rabbitmq certificate
   copy: src={{ item.src }}
         dest=/etc/pki/rabbitmq/pagurecert/{{ item.dest }}
-        owner={{ item.owner }} group=root mode={{ item.mode }}
+        owner={{ item.owner }} group={{ item.group}} mode={{ item.mode }}
   when: env == 'staging'
   with_items:
     - src: "{{private}}/files/rabbitmq/{{env}}/pki/issued/pagure{{ env_suffix }}.crt"
       dest: src.fp.o.crt
       owner: pagure
-      mode: 0644
+      group: repoSpanner
+      mode: 0444
     - src: "{{private}}/files/rabbitmq/{{env}}/pki/private/pagure{{ env_suffix }}.key"
       dest: src.fp.o.key
       owner: pagure
-      mode: "600"
+      group: repoSpanner
+      mode: "440"
     - src: "{{private}}/files/rabbitmq/{{env}}/pki/ca.crt"
       dest: src.fp.o.ca
       owner: pagure
-      mode: 0644
+      group: repoSpanner
+      mode: 0444
   tags:
   - pagure
   - fedora-messaging
