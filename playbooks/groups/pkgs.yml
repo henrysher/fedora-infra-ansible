@@ -67,15 +67,28 @@
   - import_tasks: "{{ handlers_path }}/restart_services.yml"
 
 # Set up for fedora-messaging
-- name: Create the user in RabbitMQ
-  delegate_to: "rabbitmq01{{ env_suffix }}.phx2.fedoraproject.org"
-  rabbitmq_user:
-    user: "pagure{{ env_suffix }}"
-    vhost: "/pubsub"
-    read_priv: "^$"  # Not sending any messages, no need for read
-    write_priv: "^amq\\.topic$"  # Write to queues prefixed with their name and publish to the topic exchange
-    configure_priv: "^$"  # No configuration permissions
-    state: present
+- name: setup RabbitMQ
+  hosts: rabbitmq[0]:rabbitmq-stg[0]
+  user: root
+  gather_facts: False
+
+  vars_files:
+    - /srv/web/infra/ansible/vars/global.yml
+    - "/srv/private/ansible/vars.yml"
+    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  tasks:
+    - name: Create the RabbitMQ user
+      rabbitmq_user:
+        user: "pagure{{ env_suffix }}"
+        vhost: /pubsub
+        read_priv: "^$"
+        write_priv: "amq\\.topic"
+        configure_priv: "^$"
+        state: present
+      tags:
+        - config
+        - fedora-messaging
 
 - name: setup fedmsg on pkgs
   hosts: pkgs-stg:pkgs02.phx2.fedoraproject.org
