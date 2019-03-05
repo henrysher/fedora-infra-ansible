@@ -158,7 +158,10 @@ class ProdConfiguration(BaseConfiguration):
     PDC_URL = 'https://pdc.fedoraproject.org/rest_api/v1'
     SCMURLS = ['git+https://src.fedoraproject.org/modules/',
                'https://src.fedoraproject.org/modules/',
-               'https://src.fedoraproject.org/git/modules/']
+               'https://src.fedoraproject.org/git/modules/',
+               'git+https://src.fedoraproject.org/flatpaks/',
+               'https://src.fedoraproject.org/flatpaks/',
+               'https://src.fedoraproject.org/git/flatpaks/']
 {% endif %}
 
     RESOLVER = "db"
