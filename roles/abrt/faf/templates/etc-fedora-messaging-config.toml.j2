@@ -1,0 +1,17 @@
+#{{ ansible_managed }}
+
+# A sample configuration for fedora-messaging. This file is in the TOML format.
+# For complete details on all configuration options, see the documentation.
+
+amqp_url = "amqps://faf:@rabbitmq01{{ env_suffix }}.phx2.fedoraproject.org/%2Fpubsub"
+
+# The topic_prefix configuration value will add a prefix to the topics of every sent message.
+# This is used for migrating from fedmsg, and should not be used afterwards.
+{% if env == "staging" %}
+      topic_prefix = "org.fedoraproject.stg"
+{% else %}
+      topic_prefix = "org.fedoraproject.prod"
+{% endif %}
+
+[client_properties]
+app = "FAF"
