@@ -19,20 +19,21 @@ spec:
             env:
             - name: ANITYA_WEB_CONFIG
               value: /etc/anitya/anitya.toml
-            - name: USER
-              value: anitya
             volumeMounts:
             - mountPath: /etc/anitya
               name: config-volume
               readOnly: true
-            - name: fedmsg-config-volume
-              mountPath: /etc/fedmsg.d/
+            - name: fedora-messaging-config-volume
+              mountPath: /etc/fedora-messaging
               readOnly: true
-            - name: fedmsg-key-volume
-              mountPath: /etc/pki/fedmsg/key
+            - name: fedora-messaging-ca-volume
+              mountPath: /etc/pki/rabbitmq/ca
               readOnly: true
-            - name: fedmsg-crt-volume
-              mountPath: /etc/pki/fedmsg/crt
+            - name: fedora-messaging-key-volume
+              mountPath: /etc/pki/rabbitmq/key
+              readOnly: true
+            - name: fedora-messaging-cert-volume
+              mountPath: /etc/pki/rabbitmq/cert
               readOnly: true
           restartPolicy: Never
           volumes:
@@ -40,12 +41,16 @@ spec:
             configMap:
               defaultMode: 420
               name: release-monitoring-configmap
-          - name: fedmsg-config-volume
+          - name: fedora-messaging-config-volume
             configMap:
-              name: fedmsg-configmap
-          - name: fedmsg-key-volume
+              name: fedora-messaging-configmap
+          - name: fedora-messaging-ca-volume
             secret:
-              secretName: release-monitoring-fedmsg-key
-          - name: fedmsg-crt-volume
+              secretName: release-monitoring-fedora-messaging-ca
+          - name: fedora-messaging-key-volume
             secret:
-              secretName: release-monitoring-fedmsg-cert
+              secretName: release-monitoring-fedora-messaging-key
+          - name: fedora-messaging-cert-volume
+            secret:
+              secretName: release-monitoring-fedora-messaging-cert
+
