@@ -140,7 +140,10 @@ class ProdConfiguration(BaseConfiguration):
     PDC_URL = 'https://pdc.stg.fedoraproject.org/rest_api/v1'
     SCMURLS = ['git+https://src.stg.fedoraproject.org/modules/',
                'https://src.stg.fedoraproject.org/modules/',
-               'https://src.stg.fedoraproject.org/git/modules/']
+               'https://src.stg.fedoraproject.org/git/modules/',
+               'git+https://src.stg.fedoraproject.org/flatpaks/',
+               'https://src.stg.fedoraproject.org/flatpaks/',
+               'https://src.stg.fedoraproject.org/git/flatpaks/']
 
 {% else %}
     KOJI_PROFILE = 'production'
