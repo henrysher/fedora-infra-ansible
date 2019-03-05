@@ -50,6 +50,9 @@
   - role: distgit
     tags: distgit
   - { role: hosts, when: env == "staging" }
+  # Set up for fedora-messaging
+  - role: rabbit/user
+    username: "pagure{{ env_suffix }}"
 
   tasks:
   - name: Copy keytab
@@ -66,29 +69,6 @@
   handlers:
   - import_tasks: "{{ handlers_path }}/restart_services.yml"
 
-# Set up for fedora-messaging
-- name: setup RabbitMQ
-  hosts: rabbitmq[0]:rabbitmq-stg[0]
-  user: root
-  gather_facts: False
-
-  vars_files:
-    - /srv/web/infra/ansible/vars/global.yml
-    - "/srv/private/ansible/vars.yml"
-    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
-
-  tasks:
-    - name: Create the RabbitMQ user
-      rabbitmq_user:
-        user: "pagure{{ env_suffix }}"
-        vhost: /pubsub
-        read_priv: "^$"
-        write_priv: "amq\\.topic"
-        configure_priv: "^$"
-        state: present
-      tags:
-        - config
-        - fedora-messaging
 
 - name: setup fedmsg on pkgs
   hosts: pkgs-stg:pkgs02.phx2.fedoraproject.org
