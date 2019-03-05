@@ -11,54 +11,59 @@
   gather_facts: True
 
   vars_files:
-   - /srv/web/infra/ansible/vars/global.yml
-   - "/srv/private/ansible/vars.yml"
-   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+    - /srv/web/infra/ansible/vars/global.yml
+    - "/srv/private/ansible/vars.yml"
+    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
 
   pre_tasks:
-  - import_tasks: "{{ tasks_path }}/yumrepos.yml"
+    - import_tasks: "{{ tasks_path }}/yumrepos.yml"
 
   roles:
-  - base
-  - hosts
-  - { role: nfs/client, mnt_dir: '/mnt/fedora_koji',  nfs_src_dir: "{{ koji_hub_nfs }}", when: "env == 'staging' or createrepo" }
-  - { role: fas_client, when: not inventory_hostname.startswith('bkernel') }
-  - { role: sudo, when: not inventory_hostname.startswith('bkernel') }
-  - koji_builder
-  - role: keytab/service
-    kt_location: /etc/kojid/kojid.keytab
-    service: compile
-  - role: keytab/service
-    owner_user: root
-    owner_group: root
-    service: osbs
-    host: "osbs.fedoraproject.org"
-    when: env == "production"
-  - role: keytab/service
-    owner_user: root
-    owner_group: root
-    service: osbs
-    host: "osbs.stg.fedoraproject.org"
-    when: env == "staging"
-  - role: keytab/service
-    owner_user: root
-    owner_group: root
-    service: innercompose
-    host: "odcs{{ env_suffix }}.fedoraproject.org"
-    kt_location: /etc/kojid/secrets/odcs_inner.keytab
-    when: env == "staging"
+    - base
+    - hosts
+    - {
+        role: nfs/client,
+        mnt_dir: "/mnt/fedora_koji",
+        nfs_src_dir: "{{ koji_hub_nfs }}",
+        when: "env == 'staging' or createrepo",
+      }
+    - { role: fas_client, when: not inventory_hostname.startswith('bkernel') }
+    - { role: sudo, when: not inventory_hostname.startswith('bkernel') }
+    - koji_builder
+    - role: keytab/service
+      kt_location: /etc/kojid/kojid.keytab
+      service: compile
+    - role: keytab/service
+      owner_user: root
+      owner_group: root
+      service: osbs
+      host: "osbs.fedoraproject.org"
+      when: env == "production"
+    - role: keytab/service
+      owner_user: root
+      owner_group: root
+      service: osbs
+      host: "osbs.stg.fedoraproject.org"
+      when: env == "staging"
+    - role: keytab/service
+      owner_user: root
+      owner_group: root
+      service: innercompose
+      host: "odcs{{ env_suffix }}.fedoraproject.org"
+      kt_location: /etc/kojid/secrets/odcs_inner.keytab
+      when: env == "staging"
 
   tasks:
-  - import_tasks: "{{ tasks_path }}/2fa_client.yml"
-    when: not inventory_hostname.startswith('bkernel')
-  - import_tasks: "{{ tasks_path }}/motd.yml"
-    when: not inventory_hostname.startswith('bkernel')
+    - import_tasks: "{{ tasks_path }}/2fa_client.yml"
+      when: not inventory_hostname.startswith('bkernel')
+    - import_tasks: "{{ tasks_path }}/motd.yml"
+      when: not inventory_hostname.startswith('bkernel')
 
-  - name: make sure kojid is running
-    service: name=kojid state=started enabled=yes
+    - name: make sure kojid is running
+      service: name=kojid state=started enabled=yes
 
   handlers:
-  - import_tasks: "{{ handlers_path }}/restart_services.yml"
+    - import_tasks: "{{ handlers_path }}/restart_services.yml"
 
 - name: configure osbs on koji builders
   hosts: buildvm:buildvm-stg
@@ -68,96 +73,97 @@
   gather_facts: True
 
   vars_files:
-   - /srv/web/infra/ansible/vars/global.yml
-   - "/srv/private/ansible/vars.yml"
-   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+    - /srv/web/infra/ansible/vars/global.yml
+    - "/srv/private/ansible/vars.yml"
+    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
 
   pre_tasks:
-  - import_tasks: "{{ tasks_path }}/osbs_certs.yml"
-  - import_tasks: "{{ tasks_path }}/osbs_koji_token.yml"
+    - import_tasks: "{{ tasks_path }}/osbs_certs.yml"
+    - import_tasks: "{{ tasks_path }}/osbs_koji_token.yml"
 
   roles:
-  - {
-      role: osbs-client,
+    - {
+        role: osbs-client,
         when: env == 'staging' and ansible_architecture == 'x86_64',
-        general: {
-          verbose: 0,
-          build_json_dir: '/usr/share/osbs/',
-          openshift_required_version: 1.1.0,
-        },
-        default: {
-          username: "{{ osbs_koji_stg_username }}",
-          password: "{{ osbs_koji_stg_password }}",
-          koji_use_kerberos: True,
-          koji_kerberos_keytab: "FILE:/etc/krb5.osbs_{{osbs_url}}.keytab",
-          koji_kerberos_principal: "osbs/{{osbs_url}}@{{ipa_realm}}",
-          openshift_url: 'https://{{ osbs_url }}/',
-          build_host: '{{ osbs_url }}',
-          koji_root: 'http://{{ koji_root }}',
-          koji_hub: 'https://koji.stg.fedoraproject.org/kojihub',
-          sources_command: 'fedpkg sources',
-          build_type: 'prod',
-          verify_ssl: true,
-          use_auth: true,
-          builder_use_auth: true,
-          registry_api_versions: 'v2',
-          builder_openshift_url: 'https://{{osbs_url}}',
-          client_config_secret: 'client-config-secret',
-          reactor_config_secret: 'reactor-config-secret',
-          token_secrets: 'x86-64-osbs:/var/run/secrets/atomic-reactor/x86-64-orchestrator',
-          token_file: '/etc/osbs/x86-64-osbs-koji',
-          namespace: 'osbs-fedora',
-          can_orchestrate: true,
-          builder_odcs_url: "https://odcs{{ env_suffix }}.fedoraproject.org",
-          builder_odcs_openidc_secret: "odcs-oidc-secret",
-          builder_pdc_url: "https://pdc.stg.fedoraproject.org/api/1",
-          flatpak_base_image: "registry.stg.fedoraproject.org/fedora:28",
-          reactor_config_map: "reactor-config-map",
-          reactor_config_map_scratch: "reactor-config-map-scratch",
-          build_from: "image:buildroot:latest"
-        }
-    }
-  - {
-      role: osbs-client,
+        general:
+          {
+            verbose: 0,
+            build_json_dir: "/usr/share/osbs/",
+            openshift_required_version: 1.1.0,
+          },
+        default:
+          {
+            username: "{{ osbs_koji_stg_username }}",
+            password: "{{ osbs_koji_stg_password }}",
+            koji_use_kerberos: True,
+            koji_kerberos_keytab: "FILE:/etc/krb5.osbs_{{osbs_url}}.keytab",
+            koji_kerberos_principal: "osbs/{{osbs_url}}@{{ipa_realm}}",
+            openshift_url: "https://{{ osbs_url }}/",
+            build_host: "{{ osbs_url }}",
+            koji_root: "http://{{ koji_root }}",
+            koji_hub: "https://koji.stg.fedoraproject.org/kojihub",
+            sources_command: "fedpkg sources",
+            build_type: "prod",
+            verify_ssl: true,
+            use_auth: true,
+            builder_use_auth: true,
+            registry_api_versions: "v2",
+            builder_openshift_url: "https://{{osbs_url}}",
+            client_config_secret: "client-config-secret",
+            reactor_config_secret: "reactor-config-secret",
+            token_secrets: "x86-64-osbs:/var/run/secrets/atomic-reactor/x86-64-orchestrator",
+            token_file: "/etc/osbs/x86-64-osbs-koji",
+            namespace: "osbs-fedora",
+            can_orchestrate: true,
+            builder_odcs_url: "https://odcs{{ env_suffix }}.fedoraproject.org",
+            builder_odcs_openidc_secret: "odcs-oidc-secret",
+            builder_pdc_url: "https://pdc.stg.fedoraproject.org/api/1",
+            reactor_config_map: "reactor-config-map",
+            reactor_config_map_scratch: "reactor-config-map-scratch",
+            build_from: "image:buildroot:latest",
+          },
+      }
+    - {
+        role: osbs-client,
         when: env == 'production' and ansible_architecture == 'x86_64',
-        general: {
-          verbose: 0,
-          build_json_dir: '/usr/share/osbs/',
-          openshift_required_version: 1.1.0,
-        },
-        default: {
-          username: "{{ osbs_koji_prod_username }}",
-          password: "{{ osbs_koji_prod_password }}",
-          koji_use_kerberos: True,
-          koji_kerberos_keytab: "FILE:/etc/krb5.osbs_{{osbs_url}}.keytab",
-          koji_kerberos_principal: "osbs/{{osbs_url}}@{{ipa_realm}}",
-          openshift_url: 'https://{{ osbs_url }}/',
-          build_host: '{{ osbs_url }}',
-          koji_root: 'http://{{ koji_root }}',
-          koji_hub: 'https://koji.fedoraproject.org/kojihub',
-          sources_command: 'fedpkg sources',
-          build_type: 'prod',
-          verify_ssl: true,
-          use_auth: true,
-          builder_use_auth: true,
-          registry_api_versions: 'v2',
-          builder_openshift_url: 'https://{{osbs_url}}',
-          token_secrets: 'x86-64-osbs:/var/run/secrets/atomic-reactor/x86-64-orchestrator',
-          token_file: '/etc/osbs/x86-64-osbs-koji',
-          namespace: 'osbs-fedora',
-          can_orchestrate: true,
-          builder_odcs_url: "https://odcs{{ env_suffix }}.fedoraproject.org",
-          builder_odcs_openidc_secret: "odcs-oidc-secret",
-          builder_pdc_url: "https://pdc.fedoraproject.org/api/1",
-          flatpak_base_image: "registry.fedoraproject.org/fedora:latest",
-          reactor_config_map: "reactor-config-map",
-          reactor_config_map_scratch: "reactor-config-map-scratch",
-          build_from: "image:buildroot:latest"
-        }
-    }
+        general:
+          {
+            verbose: 0,
+            build_json_dir: "/usr/share/osbs/",
+            openshift_required_version: 1.1.0,
+          },
+        default:
+          {
+            username: "{{ osbs_koji_prod_username }}",
+            password: "{{ osbs_koji_prod_password }}",
+            koji_use_kerberos: True,
+            koji_kerberos_keytab: "FILE:/etc/krb5.osbs_{{osbs_url}}.keytab",
+            koji_kerberos_principal: "osbs/{{osbs_url}}@{{ipa_realm}}",
+            openshift_url: "https://{{ osbs_url }}/",
+            build_host: "{{ osbs_url }}",
+            koji_root: "http://{{ koji_root }}",
+            koji_hub: "https://koji.fedoraproject.org/kojihub",
+            sources_command: "fedpkg sources",
+            build_type: "prod",
+            verify_ssl: true,
+            use_auth: true,
+            builder_use_auth: true,
+            registry_api_versions: "v2",
+            builder_openshift_url: "https://{{osbs_url}}",
+            token_secrets: "x86-64-osbs:/var/run/secrets/atomic-reactor/x86-64-orchestrator",
+            token_file: "/etc/osbs/x86-64-osbs-koji",
+            namespace: "osbs-fedora",
+            can_orchestrate: true,
+            builder_odcs_url: "https://odcs{{ env_suffix }}.fedoraproject.org",
+            builder_odcs_openidc_secret: "odcs-oidc-secret",
+            builder_pdc_url: "https://pdc.fedoraproject.org/api/1",
+            reactor_config_map: "reactor-config-map",
+            reactor_config_map_scratch: "reactor-config-map-scratch",
+            build_from: "image:buildroot:latest",
+          },
+      }
   handlers:
-  - import_tasks: "{{ handlers_path }}/restart_services.yml"
-
+    - import_tasks: "{{ handlers_path }}/restart_services.yml"
 
 - name: configure varnish cache
   hosts: buildvm-s390x-07.s390.fedoraproject.org:buildvm-s390x-01.stg.s390.fedoraproject.org
@@ -167,15 +173,15 @@
   gather_facts: True
 
   vars_files:
-   - /srv/web/infra/ansible/vars/global.yml
-   - "/srv/private/ansible/vars.yml"
-   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+    - /srv/web/infra/ansible/vars/global.yml
+    - "/srv/private/ansible/vars.yml"
+    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
 
   roles:
-  - varnish
+    - varnish
 
   handlers:
-  - import_tasks: "{{ handlers_path }}/restart_services.yml"
+    - import_tasks: "{{ handlers_path }}/restart_services.yml"
 
 - name: configure sshfs on buildvm-s390x-01
   hosts: buildvm-s390x-01.s390.fedoraproject.org:buildvm-s390x-01.stg.s390.fedoraproject.org
@@ -185,32 +191,33 @@
   gather_facts: True
 
   vars_files:
-   - /srv/web/infra/ansible/vars/global.yml
-   - "/srv/private/ansible/vars.yml"
-   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+    - /srv/web/infra/ansible/vars/global.yml
+    - "/srv/private/ansible/vars.yml"
+    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
 
   tasks:
-  - name: Put sshfs key in place
-    copy: src="{{ private }}/files/releng/sshkeys/primary-s390x-sshfs{{ '-staging' if env == 'staging' else '' }}"
-          dest="/etc/primary-s390x-sshfs"
-          owner=root group=root mode=0600
-    tags:
-    - sshfs
+    - name: Put sshfs key in place
+      copy:
+        src="{{ private }}/files/releng/sshkeys/primary-s390x-sshfs{{ '-staging' if env == 'staging' else '' }}"
+        dest="/etc/primary-s390x-sshfs"
+        owner=root group=root mode=0600
+      tags:
+        - sshfs
 
-  - name: Install sshfs
-    package: name=sshfs
-             state=present
-    tags:
-    - sshfs
+    - name: Install sshfs
+      package: name=sshfs
+        state=present
+      tags:
+        - sshfs
 
-  - name: Add /mnt/fedora_koji sshfs
-    mount: path="/mnt/fedora_koji"
-           state=present
-           fstype=fuse.sshfs
-           src="root@koji01{{ env_suffix }}.phx2.fedoraproject.org:/mnt/fedora_koji"
-           opts="noauto,_netdev,ServerAliveInterval=20,IdentityFile=/etc/primary-s390x-sshfs"
-    tags:
-    - sshfs
+    - name: Add /mnt/fedora_koji sshfs
+      mount: path="/mnt/fedora_koji"
+        state=present
+        fstype=fuse.sshfs
+        src="root@koji01{{ env_suffix }}.phx2.fedoraproject.org:/mnt/fedora_koji"
+        opts="noauto,_netdev,ServerAliveInterval=20,IdentityFile=/etc/primary-s390x-sshfs"
+      tags:
+        - sshfs
 
   handlers:
-  - import_tasks: "{{ handlers_path }}/restart_services.yml"
+    - import_tasks: "{{ handlers_path }}/restart_services.yml"
