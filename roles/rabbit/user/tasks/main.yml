@@ -1,0 +1,25 @@
+---
+
+# Ensure a user exists in RabbitMQ with permissions to only publish.
+# This is intended to be something most applications can use, but if you need
+# more flexibility, just use the rabbitmq_user module directly.
+#
+# Required parameters:
+#
+#   - username (str): the username to create in RabbitMQ, which should match the
+#                     CN of the certificate.
+
+# See https://www.rabbitmq.com/access-control.html#permissions for details on
+# the RabbitMQ permissions configuration.
+- name: Create the user in RabbitMQ
+  delegate_to: "{{ rabbitmq_server }}"
+  rabbitmq_user:
+    user: "{{ username }}"
+    vhost: "{{ vhost }}"
+    read_priv: "^$"  # Publish only, no reading
+    write_priv: "amq\\.topic"
+    configure_priv: "^$"  # No configuration permissions
+    state: present
+  tags:
+    - config
+    - fedora-messaging

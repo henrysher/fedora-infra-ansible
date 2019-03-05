@@ -1,26 +1,3 @@
-# Create the RabbitMQ users
-
-- name: setup RabbitMQ
-  hosts: rabbitmq[0]:rabbitmq-stg[0]
-  user: root
-  gather_facts: False
-
-  vars_files:
-    - /srv/web/infra/ansible/vars/global.yml
-    - "/srv/private/ansible/vars.yml"
-    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
-
-  tasks:
-    - name: Create the RabbitMQ user
-      rabbitmq_user:
-        user: "anitya{{ env_suffix }}"
-        vhost: /pubsub
-        read_priv: "^anitya.*$"
-        write_priv: "amq.topic"
-        configure_priv: "^$"
-      tags:
-        - config
-
 # Deploy the app
 
 - name: make the app be real
@@ -34,6 +11,8 @@
     - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
 
   roles:
+  - role: rabbit/user
+    username: "anitya{{ env_suffix }}"
   - role: openshift/project
     app: release-monitoring
     description: release-monitoring
