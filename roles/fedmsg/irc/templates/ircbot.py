@@ -135,7 +135,7 @@ config = dict(
             channel='fedora-commops',
             filters=dict(
                 topic=[
-                    '^((?!(pagure)).)*$',
+                    '^((?!(pagure.pull-request.new|pagure.issue.new)).)*$',
                 ],
                 body=['^((?!fedora-commops).)*$'],
             ),
