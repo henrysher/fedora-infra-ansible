@@ -48,6 +48,56 @@
   notify:
     - reload httpd
 
+- name: create directory for fedora-messaging
+  file:
+    path: "{{ item }}"
+    owner: root
+    group: root
+    mode: 0755
+    state: directory
+  with_items:
+    - "/etc/pki/rabbitmq/"
+    - "/etc/fedora-messaging"
+  when: env == "staging"
+  tags:
+    - fedora-messaging
+
+- name: copy fedora-messaging certificates
+  vars_files:
+    - /srv/private/ansible/vars.yml
+  copy:
+    src: "{{ item.src }}"
+    dest: "/etc/pki/rabbitmq/{{ item.dest }}"
+    owner: "{{ item.owner }}"
+    group: "{{ item.group }}"
+    mode: "{{ item.mode }}"
+  with_items:
+    - src: "{{private}}/files/rabbitmq/{{env}}/pki/issued/resultsdb.crt"
+      dest: resultsdb.crt
+      owner: root
+      group: apache
+      mode: 0644
+    - src: "{{private}}/files/rabbitmq/{{env}}/pki/issued/resultsdb.key"
+      dest: resultsdb.key
+      owner: root
+      group: apache
+      mode: 0640
+    - src: "{{private}}/files/rabbitmq/{{env}}/pki/ca.crt"
+      dest: resultsdb.ca
+      owner: root
+      group: apache
+      mode: 0644
+  when: env == "staging"
+  tags:
+    - fedora-messaging
+
+- name: generate fedora-messaging config
+  template: src=config.toml.j2 dest=/etc/fedora-messaging/config.toml owner=root group=root mode=0644
+  notify:
+    - reload httpd
+  when: env == "staging"
+  tags:
+    - fedora-messaging
 # this command will clear the exising database and it's now being run every time, regardless of whether
 # /etc/resultsdb-is-init exists or not. We've already lost a lot of data, so commenting this command out
 # while we figure out how to handle the problem
