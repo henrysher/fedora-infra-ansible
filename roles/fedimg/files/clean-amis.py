@@ -116,7 +116,7 @@ def get_page(page, delta, topic, start=None, end=None):
     return resp.json()
 
 
-def _get_two_week_atomic_released_compose_id(delta, start=None, end=None):
+def _get_two_week_released_atomic_compose_id(delta, start=None, end=None):
     """ Returns the release compose ids for last n days """
 
     topic = "org.fedoraproject.prod.releng.atomic.twoweek.complete"
@@ -136,7 +136,7 @@ def _get_two_week_atomic_released_compose_id(delta, start=None, end=None):
     for msg in messages:
         # This is to support the older-format fedmsg messages
         if "atomic_raw" in msg:
-            released_atomic_compose_ids.append(["atomic_raw"]["compose_id"])
+            released_atomic_compose_ids.append(msg["atomic_raw"]["compose_id"])
         # We are just trying here multiple archs to get the compose id
         elif "aarch64" in msg:
             released_atomic_compose_ids.append(
@@ -186,7 +186,7 @@ def _get_nightly_amis_nd(delta, start=None, end=None):
 
         # Sometimes the compose label is None
         # and they can be blindly put in for deletion
-        if compose_label is None:
+        if not compose_label:
             amis.append((compose_id, ami_id, region))
 
         if compose_id in released_atomic_compose_ids:
@@ -209,7 +209,7 @@ def _get_nightly_amis_nd(delta, start=None, end=None):
 def delete_amis_nd(deletetimestamp, dry_run=False):
     """ Delete the give list of nightly AMIs
 
-    :args deletetimestamp: the timestamp for the delete 
+    :args deletetimestamp: the timestamp for the delete
     :args dry_run: dry run the flow
     """
     log.info("Deleting AMIs")
