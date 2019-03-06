@@ -9,7 +9,6 @@ MACHINES='signal.gnome.org
           webapps2.gnome.org
           palette.gnome.org 
           webapps.gnome.org
-          cloud.gnome.org
           bastion.gnome.org
           spinner.gnome.org
           master.gnome.org
