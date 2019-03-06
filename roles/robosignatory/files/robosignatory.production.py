@@ -133,21 +133,14 @@ config = {
                     "type": "modular"
                 },
                 {
-                    "from": "f30-pending",
-                    "to": "f30",
+                    "from": "f30-signing-pending",
+                    "to": "f30-updates-testing-pending",
                     "key": "fedora-30",
                     "keyid": "cfc659b9"
                 },
                 {
                     "from": "f30-modular-signing-pending",
-                    "to": "f30-modular",
-                    "key": "fedora-30",
-                    "keyid": "cfc659b9",
-                    "type": "modular"
-                },
-                {
-                    "from": "f30-modular-updates-candidate",
-                    "to": "f30-modular",
+                    "to": "f30-modular-updates-testing-pending",
                     "key": "fedora-30",
                     "keyid": "cfc659b9",
                     "type": "modular"
