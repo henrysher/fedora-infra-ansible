@@ -6,8 +6,7 @@ POLICIES_DIR = '/etc/greenwave/'
 {% if env == 'staging' %}
 DIST_GIT_BASE_URL = 'https://src.stg.fedoraproject.org'
 DIST_GIT_URL_TEMPLATE = '{DIST_GIT_BASE_URL}/{pkg_namespace}/{pkg_name}/raw/{rev}/f/gating.yaml'
-# We are using prod koji in staging since resultsdb results comes from the production environment.
-KOJI_BASE_URL = 'https://koji.fedoraproject.org/kojihub'
+KOJI_BASE_URL = 'https://koji.stg.fedoraproject.org/kojihub'
 BODHI_URL = 'https://bodhi.stg.fedoraproject.org/'
 
 SECRET_KEY = '{{stg_greenwave_secret_key}}'
