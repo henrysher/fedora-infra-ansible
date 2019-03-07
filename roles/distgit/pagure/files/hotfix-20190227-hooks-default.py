@@ -329,7 +329,7 @@ class DefaultRunner(BaseRunner):
 
         # Refresh of all opened PRs
         parent = project.parent or project
-        pagure.lib.tasks.refresh_pr_cache(
+        pagure.lib.tasks.refresh_pr_cache.delay(
             parent.name,
             parent.namespace,
             parent.user.user if parent.is_fork else None,
