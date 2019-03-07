@@ -27,4 +27,3 @@ os.environ['TEMP'] = '/srv/tmp/'
 from pagure.flask_app import create_app
 
 application = create_app()
-application.debug = True
