@@ -21,6 +21,7 @@
   - postfix
   - mod_ssl
   - letsencrypt
+  - cronie
 
 - name: configure postfix for email encryption and not relaying to bastion
   command: "{{ item }}"
@@ -118,7 +119,11 @@
   tags:
   - config
 
-- name: ensure httpd state
+- name: cron.daily job
+  copy: src="cron.daily/libravatar" dest="/etc/cron.daily/libravatar"
+
+- name: ensure service states
   service: state=started enabled=yes name={{ item }}
   with_items:
   - httpd
+  - crond
