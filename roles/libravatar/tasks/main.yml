@@ -26,8 +26,8 @@
 - name: configure postfix for email encryption and not relaying to bastion
   command: "{{ item }}"
   with_items:
-  - postconf -e 'smtpd_tls_cert_file = /etc/letsencrypt/live/{{ server_name }}/fullchain.pem'
-  - postconf -e 'smtpd_tls_key_file = /etc/letsencrypt/live/{{ server_name }}/privkey.pem'
+  - postconf -e 'smtpd_tls_cert_file = /etc/letsencrypt/live/{{ server_cert_name }}/fullchain.pem'
+  - postconf -e 'smtpd_tls_key_file = /etc/letsencrypt/live/{{ server_cert_name }}/privkey.pem'
   - postconf -e 'smtp_use_tls = yes'
   - postconf -e 'relayhost ='
 
@@ -119,11 +119,28 @@
   tags:
   - config
 
-- name: cron.daily job
-  copy: src="cron.daily/libravatar" dest="/etc/cron.daily/libravatar" mode=755
+- name: cron.daily jobs
+  copy: src="cron.daily/{{ item }}" dest="/etc/cron.daily/{{ item }}" mode=755
+  with_items:
+  - "backup"
+  - "certbot-renew"
 
 - name: ensure service states
   service: state=started enabled=yes name={{ item }}
   with_items:
   - httpd
   - crond
+  - postfix
+  - postgresql
+
+############## backup related ##############
+
+- name: copy root's ssh keys
+  shell: cp /mnt/data/root-ssh/* /root/.ssh/
+  when: env == "production"
+
+- name: put pubkey from prod to stg
+  lineinfile:
+    path: "/root/.ssh/authorized_keys"
+    line: "{{ prod_pubkey }}"
+  when: env == "staging"
