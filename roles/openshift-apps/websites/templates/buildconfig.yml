@@ -18,6 +18,15 @@ spec:
   triggers:
   - type: ConfigChange
   - type: ImageChange
+{% if stg_websites_deploy_secret is defined and env == 'staging' %}
+  - type: Generic
+    generic:
+      secret: "{{ stg_websites_deploy_secret }}"
+{% elif websites_deploy_secret is defined and env == 'production' %}
+  - type: Generic
+    generic:
+      secret: "{{ websites_deploy_secret }}"
+{% endif %}
   output:
     to:
       kind: ImageStreamTag
