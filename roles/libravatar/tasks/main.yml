@@ -119,11 +119,12 @@
   tags:
   - config
 
-- name: cron.daily jobs
-  copy: src="cron.daily/{{ item }}" dest="/etc/cron.daily/{{ item }}" mode=755
-  with_items:
-  - "backup"
-  - "certbot-renew"
+- name: cron.daily certbot renew job
+  copy: src="cron.daily/certbot-renew" dest="/etc/cron.daily/certbot-renew" mode=755
+
+- name: cron.daily backup job
+  copy: src="cron.daily/backup" dest="/etc/cron.daily/backup" mode=755
+  when: env == "production"
 
 - name: ensure service states
   service: state=started enabled=yes name={{ item }}
