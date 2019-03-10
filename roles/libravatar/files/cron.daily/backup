@@ -8,11 +8,11 @@ ssh "$stgcred" "mkdir -p /prod-backup"
 
 runuser -u postgres pg_dump libravatar | gzip | gpg2 -c --batch --passphrase-file /mnt/data/.backup-passphrase -o "$dumpfile" -
 scp "$dumpfile" "$stgcred":/prod-backup/"$(basename $dumpfile)"
-ssh "$stgcred" "ls -r /prod-backup/libravatar-db-* | tail -n +11 | xargs rm"
+ssh "$stgcred" "ls -r /prod-backup/libravatar-db-* | tail -n +11 | xargs rm -f"
 
 tar -C /mnt/data/ -czf "$data_tmpfile" cgi-bin/ letsencrypt/ root-ssh run-in-venv wsgi.py .backup-passphrase
 gpg2 -c --batch --passphrase-file /mnt/data/.backup-passphrase -o "$datafile" "$data_tmpfile"
 scp "$datafile" "$stgcred":/prod-backup/"$(basename $datafile)"
-ssh "$stgcred" "ls -r /prod-backup/libravatar-data-* | tail -n +11 | xargs rm"
+ssh "$stgcred" "ls -r /prod-backup/libravatar-data-* | tail -n +11 | xargs rm -f"
 
 rm "$dumpfile" "$datafile" "$data_tmpfile"
