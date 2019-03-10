@@ -8,8 +8,11 @@
   command: "restorecon -vvRF /var/lib/pgsql"
   when: pgsql_ls.stdout is defined and 'postgresql_db_t' not in  pgsql_ls.stdout
 
-- name: install custom copr-frontend-crontab to make update_graphs silent
-  copy: src=copr-frontend dest=/etc/cron.daily/
+- name: install daily custom copr-frontend-crontab
+  copy: src=cron.daily/copr-frontend dest=/etc/cron.daily/
+
+- name: install hourly custom copr-frontend-crontab
+  copy: src=cron.hourly/copr-frontend dest=/etc/cron.hourly/
 
 - name: install copr-frontend and copr-selinux
   dnf: state=latest name={{ item }}
