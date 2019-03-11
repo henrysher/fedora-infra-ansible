@@ -149,6 +149,7 @@ refuse options = checksum
        gid = 263
        hosts allow = {% for host in vars['dl_tier1'] %}{{host}},{% endfor %}
 
+{% if datacenter == 'phx2' %}
 [fedora-compose0]
        comment = Fedora composes
        path = /mnt/koji/compose
@@ -156,7 +157,16 @@ refuse options = checksum
        uid = nobody
        gid = nobody
        hosts allow = 10.0.0.0/8, 209.132.0.0/16
+{% endif %}
 
+{% if inventory_hostname == 'download-cc-rdu01.fedoraproject.org' %}
+[centos]
+       comment = CentOS
+       path = /srv/pub/centos
+       list = no
+       uid = nobody
+       gid = nobody
+{% endif %}
 
 # For distributing applications
 [log]
