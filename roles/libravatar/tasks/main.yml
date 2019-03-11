@@ -134,6 +134,16 @@
   - postfix
   - postgresql
 
+- name: send cron emails to desired address
+  lineinfile:
+    path: {{ item }}
+    regexp: "^MAILTO="
+    line: "MAILTO={{ mail_to }}"
+  with_items:
+  - /etc/anacrontab
+  - /etc/cron.d/0hourly
+  - /etc/crontab
+
 ############## backup related ##############
 
 - name: copy root's ssh keys
