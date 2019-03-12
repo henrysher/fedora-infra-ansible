@@ -27,7 +27,6 @@ MACHINES='signal.gnome.org
           gesture.gnome.org
           scale.gnome.org
           sdkbuilder.gnome.org
-          webapps3.gnome.org
           gitlab.gnome.org
           oscp-master01.gnome.org
           staff-mail.gnome.org'
