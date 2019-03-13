@@ -101,7 +101,10 @@
 
 - name: Enable the HTTP management console and SSL authentication plugins
   rabbitmq_plugin:
-    names: rabbitmq_management,rabbitmq_auth_mechanism_ssl
+    names: "rabbitmq_management,\
+            rabbitmq_auth_mechanism_ssl,\
+            rabbitmq_federation,\
+            rabbitmq_federation_management"
   tags:
   - rabbitmq_cluster
   - config
@@ -177,3 +180,83 @@
   tags:
   - rabbitmq_cluster
   - config
+
+# This is the publicly accessible virtual host
+- name: Configure the publicly accessible vhost
+  rabbitmq_vhost:
+    name: /public_pubsub
+    state: present
+  tags:
+  - rabbitmq_cluster
+  - config
+
+- name: Configure a policy to ensure the public vhost stays swept up and tidy
+  rabbitmq_policy:
+    apply_to: queues
+    name: sweeper
+    state: present
+    pattern: ".*"
+    tags:
+      # Unused queues are killed after 1000 * 60 * 60 (1 hour in milliseconds)
+      expires: 3600000
+      # Queues can use at most 1024 * 1024 * 50 (50MB) to store messages
+      max-length-bytes: 52428800
+    vhost: /public_pubsub
+  tags:
+  - rabbitmq_cluster
+  - config
+
+# Create a user with:
+#   * permission to configure and write to any uuidish-named objects
+#   * permission to read anything since users need to read exchanges for bindings
+#     read queues for consuming
+- name: Create a user for public access
+  rabbitmq_user:
+    user: fedora
+    permissions:
+      - vhost: /public_pubsub
+        # Matches, for example, de23804a-304a-4228-b239-35099c98bd1e
+        # Regex is Erlang flavored: http://erlang.org/doc/man/re.html
+        configure_priv: "^(\w{8}(-\w{4}){3}-\w{12})$"
+        write_priv: "^(\w{8}(-\w{4}){3}-\w{12})$"
+        read_priv: .*
+    state: present
+  tags:
+  - rabbitmq_cluster
+  - config
+
+# User with permissions to shovel messages out of pubsub into the public vhost.
+# This user needs permissions to create a new exchange, bind an exchange to an
+# exchange, create a queue, and bind a queue to an exchange.
+- name: Create a user for federation
+  rabbitmq_user:
+    user: pubsub_federation
+    permissions:
+      - vhost: /pubsub
+        configure_priv: "^federation.*"
+        write_priv: "^federation.*"
+        read_priv: .*
+    state: present
+  tags:
+  - rabbitmq_cluster
+  - config
+
+# This is the connection from our public vhost to the private pubsub vhost.
+# Note that at present they live on the same cluster, but they don't need to.
+- name: Configure federation upstream from pubsub to the public_pubsub vhost
+  rabbitmq_parameter:
+    component: federation-upstream
+    name: pubsub-to-public_pubsub
+    value: '{"uri":"amqps:%2F%2Fpubsub_federation:@rabbitmq01{{ env_suffix }}.phx2.fedoraproject.org%2F%2Fpubsub?cacertfile=%2Fetc%2Fpki%2Frabbitmq%2Fca%2Frabbitmq-ca.crt&certfile=%2Fetc%2Fpki%2Frabbitmq%2Fcrt%2Frabbitmq-pubsub_federation.crt&keyfile=%2Fetc%2Fpki%2Frabbitmq%2Fkey%2Frabbitmq-pubsub_federation.key&verify=verify_peer&fail_if_no_peer_cert=true&auth_mechanism=external","ack-mode":"on-confirm"}'
+    state: present
+    vhost: /public_pubsub
+
+- name: Configure a policy to federate the pubsub topic exchange to public_pubsub
+  rabbitmq_policy:
+    apply_to: exchanges
+    name: pubsub-to-public_pubsub
+    state: present
+    pattern: "^amq\\.topic$"
+    tags:
+      federation-upstream: "pubsub-to-public_pubsub"
+    vhost: /public_pubsub
