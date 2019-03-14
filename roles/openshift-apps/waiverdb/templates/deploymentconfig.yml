@@ -37,18 +37,33 @@ spec:
         - name: config-volume
           mountPath: /etc/waiverdb
           readOnly: true
-        - name: fedmsg-config-volume
-          mountPath: /etc/fedmsg-waiverdb.d
-          readOnly: true
         - name: secret-volume
           mountPath: /etc/secret
           readOnly: true
+{% if env == 'staging' %}
+        - name: fedora-messaging-ca-volume
+          mountPath: /etc/pki/rabbitmq/ca
+          readOnly: true
+        - name: fedora-messaging-key-volume
+          mountPath: /etc/pki/rabbitmq/key
+          readOnly: true
+        - name: fedora-messaging-crt-volume
+          mountPath: /etc/pki/rabbitmq/crt
+          readOnly: true
+        - name: fedora-messaging-config-volume
+          mountPath: /etc/fedora-messaging
+          readOnly: true
+{% else %}
         - name: fedmsg-key-volume
           mountPath: /etc/pki/fedmsg/key
           readOnly: true
         - name: fedmsg-crt-volume
           mountPath: /etc/pki/fedmsg/crt
           readOnly: true
+        - name: fedmsg-config-volume
+          mountPath: /etc/fedmsg-waiverdb.d
+          readOnly: true
+{% endif %}
         env:
         - name: DATABASE_PASSWORD
           valueFrom:
@@ -79,18 +94,33 @@ spec:
       - name: config-volume
         configMap:
           name: waiverdb-configmap
-      - name: fedmsg-config-volume
-        configMap:
-          name: waiverdb-fedmsg-configmap
       - name: secret-volume
         secret:
           secretName: waiverdb-secret
+{% if env == 'staging' %}
+      - name: fedora-messaging-certs-volume
+        configMap:
+          name: fedora-messaging-configmap
+      - name: fedora-messaging-ca-volume
+        secret:
+          secretName: waiverdb-fedora-messaging-ca
+      - name: fedora-messaging-cert-volume
+        secret:
+          secretName: waiverdb-fedora-messaging-crt
+      - name: fedora-messaging-key-volume
+        secret:
+          secretName: waiverdb-fedora-messaging-key
+{% else %}
+      - name: fedmsg-config-volume
+        configMap:
+          name: waiverdb-fedmsg-configmap
       - name: fedmsg-key-volume
         secret:
           secretName: waiverdb-fedmsg-key
       - name: fedmsg-crt-volume
         secret:
           secretName: waiverdb-fedmsg-crt
+{% endif %}
   triggers:
   - type: ImageChange
     imageChangeParams:

@@ -48,3 +48,16 @@ data:
       relay_inbound=["tcp://busgateway01.phx2.fedoraproject.org:9941"],
 {% endif %}
     )
+{% if env == 'staging' %}
+---
+- apiVersion: v1
+  kind: ConfigMap
+  metadata:
+    name: fedora-messaging-configmap
+    labels:
+      app: waiverdb
+{% macro load_file(filename) %}{% include filename %}{%- endmacro -%}
+  data:
+    config.toml: |-
+      {{ load_file('config.toml') | indent }}
+{% endif %}
