@@ -80,3 +80,11 @@
   - role: openshift/rollout
     app: greenwave
     dcname: greenwave-web
+
+- name: Change the route haproxy default timeout
+  shell: "oc -n greenwave annotate route {{ item }} --overwrite haproxy.router.openshift.io/timeout=330s"
+  with_items:
+    - greenwave-web
+    - pretty-web
+  tags:
+    - route-timeout
