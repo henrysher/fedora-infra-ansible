@@ -118,3 +118,17 @@
 - name: setup nested virt on virthosts with nested=true variable
   copy: src=kvm_intel.conf dest=/etc/modprobe.d/kvm_intel.conf
   when: nested == true
+
+#
+# On some hosts in the fedorainfracloud network we want to add some users to be able to manage
+# their own vms. 
+- name: add copr user to some virthosts that will run copr builders
+  user: name=copr password_lock=true group=libvirt
+  when: copr_build_virthost
+
+#
+# Add the copr ssh key to the copr account
+#
+- name: Add the copr ssh key to the copr account
+  authorized_key: key="ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCeTO0ddXuhDZYM9HyM0a47aeV2yIVWhTpddrQ7/RAIs99XyrsicQLABzmdMBfiZnP0FnHBF/e+2xEkT8hHJpX6bX81jjvs2bb8KP18Nh8vaXI3QospWrRygpu1tjzqZT0Llh4ZVFscum8TrMw4VWXclzdDw6x7csCBjSttqq8F3iTJtQ9XM9/5tCAAOzGBKJrsGKV1CNIrfUo5CSzY+IUVIr8XJ93IB2ZQVASK34T/49egmrWlNB32fqAbDMC+XNmobgn6gO33Yq5Ly7Dk4kqTUx2TEaqDkZfhsVu0YcwV81bmqsltRvpj6bIXrEoMeav7nbuqKcPLTxWEY/2icePF" user=copr
+  when: copr_build_virthost
