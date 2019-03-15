@@ -82,6 +82,15 @@
     dcname: greenwave-web
 
 - name: Change the route haproxy default timeout
+  hosts: os-masters[0]:os-masters-stg[0]
+  user: root
+  gather_facts: False
+
+  vars_files:
+    - /srv/web/infra/ansible/vars/global.yml
+    - "/srv/private/ansible/vars.yml"
+    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
   tasks:
     - name: Set the timeout to the openshift route
       command: "oc -n greenwave annotate route {{ item }} --overwrite haproxy.router.openshift.io/timeout=330s"
