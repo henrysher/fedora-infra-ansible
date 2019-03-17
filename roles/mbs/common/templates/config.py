@@ -180,7 +180,7 @@ class ProdConfiguration(BaseConfiguration):
     DEFAULT_DIST_TAG_PREFIX = 'module_'
 
     # New name
-    NUM_CONCURRENT_BUILDS = 20
+    NUM_CONCURRENT_BUILDS = 100
 
     # Delete module-* targets one hour after build
     KOJI_TARGET_DELETE_TIME = 3600
