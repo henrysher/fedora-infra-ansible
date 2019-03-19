@@ -467,8 +467,14 @@ config = dict(
             nickname='fm-diversity',
             {% endif %}
             channel='#fedora-diversity',
-            # If the word diversity appears in any message, forward it.
+            # If the word diversity appears in a new Pagure issue, pull
+            # request, or comment, forward it.
             filters=dict(
+                topic=['^((?!('
+                       'pagure.pull-request.new|'
+                       'pagure.issue.new|'
+                       'pagure.issue.comment.added)).)*$',
+                       ],
                 body=['^((?!(diversity|Diversity)).)*$'],
             ),
         ),
