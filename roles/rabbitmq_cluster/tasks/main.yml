@@ -183,6 +183,8 @@
 
 # This is the publicly accessible virtual host
 - name: Configure the publicly accessible vhost
+  run_once: true
+  delegate_to: "rabbitmq01{{ env_suffix }}.phx2.fedoraproject.org"
   rabbitmq_vhost:
     name: /public_pubsub
     state: present
@@ -191,6 +193,8 @@
   - config
 
 - name: Configure a policy to ensure the public vhost stays swept up and tidy
+  run_once: true
+  delegate_to: "rabbitmq01{{ env_suffix }}.phx2.fedoraproject.org"
   rabbitmq_policy:
     apply_to: queues
     name: sweeper
@@ -211,6 +215,8 @@
 #   * permission to read anything since users need to read exchanges for bindings
 #     read queues for consuming
 - name: Create a user for public access
+  run_once: true
+  delegate_to: "rabbitmq01{{ env_suffix }}.phx2.fedoraproject.org"
   rabbitmq_user:
     user: fedora
     permissions:
@@ -229,6 +235,8 @@
 # This user needs permissions to create a new exchange, bind an exchange to an
 # exchange, create a queue, and bind a queue to an exchange.
 - name: Create a user for federation
+  run_once: true
+  delegate_to: "rabbitmq01{{ env_suffix }}.phx2.fedoraproject.org"
   rabbitmq_user:
     user: pubsub_federation
     permissions:
@@ -244,6 +252,8 @@
 # This is the connection from our public vhost to the private pubsub vhost.
 # Note that at present they live on the same cluster, but they don't need to.
 - name: Configure federation upstream from pubsub to the public_pubsub vhost
+  run_once: true
+  delegate_to: "rabbitmq01{{ env_suffix }}.phx2.fedoraproject.org"
   rabbitmq_parameter:
     component: federation-upstream
     name: pubsub-to-public_pubsub
@@ -252,6 +262,8 @@
     vhost: /public_pubsub
 
 - name: Configure a policy to federate the pubsub topic exchange to public_pubsub
+  run_once: true
+  delegate_to: "rabbitmq01{{ env_suffix }}.phx2.fedoraproject.org"
   rabbitmq_policy:
     apply_to: exchanges
     name: pubsub-to-public_pubsub
