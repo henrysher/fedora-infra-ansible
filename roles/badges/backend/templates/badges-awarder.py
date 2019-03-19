@@ -2,9 +2,7 @@ config = {
     # We need to tell the fedmsg-hub that it should load our consumer on start.
     "fedmsg.consumers.badges.enabled": True,
 
-    # fedbadges only needs 1 thread.  It is fast enough as is and the multiple
-    # threads tend to get themselves into database deadlocks.
-    "moksha.workers_per_consumer": 1,
+    "moksha.workers_per_consumer": 3,
     "moksha.threadpool_size": 4,
 
     # This tells the consumer where to look for its BadgeRule definitions.  It
