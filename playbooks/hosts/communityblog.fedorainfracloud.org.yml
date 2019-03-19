@@ -44,6 +44,7 @@
     - unzip
     - postfix
     - wordpress
+    - git
 
   - name: enable httpd service
     service: name=httpd enabled=yes state=started
@@ -53,6 +54,12 @@
 
   - name: enable local postfix service
     service: name=postfix enabled=yes state=started
+
+  - name: clone (or update) community blog theme
+    git: repo=https://pagure.io/communityblog-theme.git dest=/usr/share/wordpress/wp-content/themes/community-theme-git
+
+  - name: ensure symlink exists for theme
+    file: src=/usr/share/wordpress/wp-content/themes/community-theme-git/community-theme dest=/usr/share/wordpress/wp-content/themes/communityblog-theme-0.02 state=link
 
   roles:
   - basessh
