@@ -251,13 +251,29 @@
 
 # This is the connection from our public vhost to the private pubsub vhost.
 # Note that at present they live on the same cluster, but they don't need to.
+#
+# Note that the reason there are two tasks here is that if you use a variable in
+# the "value" json string, it causes Ansible to produce invalid JSON which will
+# choke up rabbitmq_parameters.
 - name: Configure federation upstream from pubsub to the public_pubsub vhost
   run_once: true
   delegate_to: "rabbitmq01{{ env_suffix }}.phx2.fedoraproject.org"
+  when: "env == 'staging'"
   rabbitmq_parameter:
     component: "federation-upstream"
     name: "pubsub-to-public_pubsub"
-    value: '{"uri": "amqps://pubsub_federation:@rabbitmq01{{ env_suffix }}.phx2.fedoraproject.org/%2Fpubsub?cacertfile=%2Fetc%2Fpki%2Frabbitmq%2Fca%2Frabbitmq-ca.crt&certfile=%2Fetc%2Fpki%2Frabbitmq%2Fcrt%2Frabbitmq-pubsub_federation.crt&keyfile=%2Fetc%2Fpki%2Frabbitmq%2Fkey%2Frabbitmq-pubsub_federation.key&verify=verify_peer&fail_if_no_peer_cert=true&auth_mechanism=external", "ack-mode": "on-confirm"}'
+    value: '{"uri": "amqps://pubsub_federation:@rabbitmq01.stg.phx2.fedoraproject.org/%2Fpubsub?cacertfile=%2Fetc%2Fpki%2Frabbitmq%2Fca%2Frabbitmq-ca.crt&certfile=%2Fetc%2Fpki%2Frabbitmq%2Fcrt%2Frabbitmq-pubsub_federation.crt&keyfile=%2Fetc%2Fpki%2Frabbitmq%2Fkey%2Frabbitmq-pubsub_federation.key&verify=verify_peer&fail_if_no_peer_cert=true&auth_mechanism=external", "ack-mode": "on-confirm"}'
+    state: present
+    vhost: /public_pubsub
+
+- name: Configure federation upstream from pubsub to the public_pubsub vhost
+  run_once: true
+  delegate_to: "rabbitmq01{{ env_suffix }}.phx2.fedoraproject.org"
+  when: "env == 'production'"
+  rabbitmq_parameter:
+    component: "federation-upstream"
+    name: "pubsub-to-public_pubsub"
+    value: '{"uri": "amqps://pubsub_federation:@rabbitmq01.phx2.fedoraproject.org/%2Fpubsub?cacertfile=%2Fetc%2Fpki%2Frabbitmq%2Fca%2Frabbitmq-ca.crt&certfile=%2Fetc%2Fpki%2Frabbitmq%2Fcrt%2Frabbitmq-pubsub_federation.crt&keyfile=%2Fetc%2Fpki%2Frabbitmq%2Fkey%2Frabbitmq-pubsub_federation.key&verify=verify_peer&fail_if_no_peer_cert=true&auth_mechanism=external", "ack-mode": "on-confirm"}'
     state: present
     vhost: /public_pubsub
 
