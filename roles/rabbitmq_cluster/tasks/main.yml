@@ -249,6 +249,28 @@
   - rabbitmq_cluster
   - config
 
+- name: create pubsub_federation cert directory
+  file: path=/etc/rabbitmq/pubsub_federation/ owner=root group=root mode=0755 state=directory
+  tags:
+  - rabbitmq_cluster
+  - config
+
+- name: deploy pubsub_federation certificate
+  copy: src="{{private}}/files/rabbitmq/{{env}}/pki/issued/pubsub_federation.crt"
+        dest=/etc/rabbitmq/pubsub_federation/client_cert.pem
+        owner=root group=root mode=0644
+  tags:
+  - rabbitmq_cluster
+  - config
+
+- name: deploy node private key
+  copy: src="{{private}}/files/rabbitmq/{{env}}/pki/private/pubsub_federation.key"
+        dest=/etc/rabbitmq/pubsub_federation/client_key.pem
+        owner=rabbitmq group=rabbitmq mode=0600
+  tags:
+  - rabbitmq_cluster
+  - config
+
 # This is the connection from our public vhost to the private pubsub vhost.
 # Note that at present they live on the same cluster, but they don't need to.
 #
@@ -262,7 +284,7 @@
   rabbitmq_parameter:
     component: "federation-upstream"
     name: "pubsub-to-public_pubsub"
-    value: '{"uri": "amqps://pubsub_federation:@rabbitmq01.stg.phx2.fedoraproject.org/%2Fpubsub?cacertfile=%2Fetc%2Fpki%2Frabbitmq%2Fca%2Frabbitmq-ca.crt&certfile=%2Fetc%2Fpki%2Frabbitmq%2Fcrt%2Frabbitmq-pubsub_federation.crt&keyfile=%2Fetc%2Fpki%2Frabbitmq%2Fkey%2Frabbitmq-pubsub_federation.key&verify=verify_peer&fail_if_no_peer_cert=true&auth_mechanism=external", "ack-mode": "on-confirm"}'
+    value: '{"uri": "amqps://pubsub_federation:@rabbitmq01.stg.phx2.fedoraproject.org/%2Fpubsub?cacertfile=%2Fetc%2Frabbitmq%2Fca.crt&certfile=%2Fetc%2Frabbitmq%2Fpubsub_federation%2Fclient_cert.pem&keyfile=%2Fetc%2Frabbitmq%2Fpubsub_federation%2Fclient_key.pem&verify=verify_peer&fail_if_no_peer_cert=true&auth_mechanism=external", "ack-mode": "on-confirm"}'
     state: present
     vhost: /public_pubsub
 
@@ -273,7 +295,7 @@
   rabbitmq_parameter:
     component: "federation-upstream"
     name: "pubsub-to-public_pubsub"
-    value: '{"uri": "amqps://pubsub_federation:@rabbitmq01.phx2.fedoraproject.org/%2Fpubsub?cacertfile=%2Fetc%2Fpki%2Frabbitmq%2Fca%2Frabbitmq-ca.crt&certfile=%2Fetc%2Fpki%2Frabbitmq%2Fcrt%2Frabbitmq-pubsub_federation.crt&keyfile=%2Fetc%2Fpki%2Frabbitmq%2Fkey%2Frabbitmq-pubsub_federation.key&verify=verify_peer&fail_if_no_peer_cert=true&auth_mechanism=external", "ack-mode": "on-confirm"}'
+    value: '{"uri": "amqps://pubsub_federation:@rabbitmq01.phx2.fedoraproject.org/%2Fpubsub?cacertfile=%2Fetc%2Frabbitmq%2Fca.crt&certfile=%2Fetc%2Frabbitmq%2Fpubsub_federation%2Fclient_cert.pem&keyfile=%2Fetc%2Frabbitmq%2Fpubsub_federation%2Fclient_key.pem&verify=verify_peer&fail_if_no_peer_cert=true&auth_mechanism=external", "ack-mode": "on-confirm"}'
     state: present
     vhost: /public_pubsub
 
