@@ -1,9 +1,7 @@
 # This is a basic playbook
 
-- import_playbook: "/srv/web/infra/ansible/playbooks/include/virt-create.yml myhosts=ipv6-test"
-
-- name: make the boxen be real for real
-  hosts: ipv6-test
+- name: dole out the basic configuration
+  hosts: nfs-servers
   user: root
   gather_facts: True
 
@@ -11,6 +9,9 @@
    - /srv/web/infra/ansible/vars/global.yml
    - "/srv/private/ansible/vars.yml"
    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  pre_tasks:
+  - import_tasks: "{{ tasks_path }}/yumrepos.yml"
 
   roles:
   - base
@@ -21,12 +22,17 @@
   - collectd/base
   - sudo
 
-  pre_tasks:
-  - import_tasks: "{{ tasks_path }}/yumrepos.yml"
-
   tasks:
   - import_tasks: "{{ tasks_path }}/2fa_client.yml"
   - import_tasks: "{{ tasks_path }}/motd.yml"
 
   handlers:
   - import_tasks: "{{ handlers_path }}/restart_services.yml"
+
+- name: dole out the NFS configuration
+  hosts: nfs-servers
+  user: root
+  gather_facts: True
+
+  role:
+  - nfs/server
