@@ -146,10 +146,15 @@
   rabbitmq_user:
     user: admin
     password: "{{ rabbitmq_admin_password_staging }}"
-    vhost: /pubsub
-    configure_priv: .*
-    read_priv: .*
-    write_priv: .*
+    permissions:
+      - vhost: /pubsub
+        configure_priv: .*
+        read_priv: .*
+        write_priv: .*
+      - vhost: /public_pubsub
+        configure_priv: .*
+        read_priv: .*
+        write_priv: .*
     tags: management
   when: env == "staging" and inventory_hostname.startswith('rabbitmq01')
   tags:
@@ -200,6 +205,9 @@
     vhost: "/public_pubsub"
     login_user: admin
     login_password: "{{ (env == 'production')|ternary(rabbitmq_admin_password_production, rabbitmq_admin_password_staging) }}"
+  tags:
+  - rabbitmq_cluster
+  - config
 
 # We keep them separated in /pubsub so we can bridge messages back to zmq
 - name: Forward all zmq.topic to amq.topic in the public_pubsub vhost
@@ -213,6 +221,9 @@
     vhost: "/public_pubsub"
     login_user: admin
     login_password: "{{ (env == 'production')|ternary(rabbitmq_admin_password_production, rabbitmq_admin_password_staging) }}"
+  tags:
+  - rabbitmq_cluster
+  - config
   
 - name: Configure a policy to ensure the public vhost stays swept up and tidy
   run_once: true
