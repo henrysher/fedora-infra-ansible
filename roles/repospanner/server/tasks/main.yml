@@ -41,7 +41,7 @@
 
 - name: Deploy configuration
   template: src=repoSpanner.yml
-            dest=/etc/repospanner/config.yml
+            dest=/etc/repospanner/{{region}}-config.yml
             owner=repoSpanner group=repoSpanner mode=0600
   register: repospanner_refresh
   tags:
@@ -56,9 +56,9 @@
   - src: ca.crt
     dest: ca.crt
   - src: "{{node}}.{{region}}.crt"
-    dest: node.crt
+    dest: node-{{region}}.crt
   - src: "{{node}}.{{region}}.key"
-    dest: node.key
+    dest: node-{{region}}.key
   register: repospanner_refresh
   tags:
   - repospanner/server
