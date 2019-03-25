@@ -9,6 +9,18 @@
   - repospanner/server
   - packages
 
+- name: ensure needed directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: root
+    group: root
+    mode: 0755
+ with_items:
+    - /etc/repospanner/
+    - /etc/pki/repospanner/
+    - /var/lib/repospanner/
+
 - name: Create group
   group:
     name: repoSpanner
@@ -27,23 +39,11 @@
   - repospanner/server
   - config
 
-- name: Create directory
-  file:
-    path: /var/lib/repospanner
-    state: directory
-    owner: repoSpanner
-    group: repoSpanner
-    mode: 0755
-  tags:
-  - repospanner/server
-  - config
-
 - name: Deploy configuration
   template: src=repoSpanner.yml
             dest=/etc/repospanner/config.yml
             owner=repoSpanner group=repoSpanner mode=0600
-  notify:
-  - restart repoSpanner
+  register: repospanner_refresh
   tags:
   - repospanner/server
   - config
@@ -59,17 +59,15 @@
     dest: node.crt
   - src: "{{node}}.{{region}}.key"
     dest: node.key
-  notify:
-  - restart repoSpanner
+  register: repospanner_refresh
   tags:
   - repospanner/server
   - config
 
 - name: Deploy unit file
   template: src=repoSpanner.service
-            dest=/etc/systemd/system/repoSpanner@.service
-  notify:
-  - restart repoSpanner
+            dest=/etc/systemd/system/repoSpanner@{{ region }}.service
+  register: repospanner_systemd
   tags:
   - repospanner/server
   - config
@@ -86,7 +84,7 @@
   - config
 
 - name: Join node
-  command: repospanner --config /etc/repospanner/config.yml serve --joinnode https://{{ join_repospanner_node }}:8444
+  command: repospanner --config /etc/repospanner/config.yml serve --joinnode https://{{ join_repospanner_node }}:{{ rpc_port }}
   args:
     creates: /var/lib/repospanner/state/state.json
   become: yes
@@ -97,7 +95,19 @@
   - config
 
 - name: Start and enable
-  service: name=repoSpanner@config state=started enabled=yes
+  service: name=repoSpanner@{{ region }} state=started enabled=yes
   tags:
   - repospanner/server
   - config
+
+- name: Reload systemd when needed
+  shell: /usr/bin/systemctl daemon-reload
+  when: repospanner_systemd is changed
+  tags:
+    - systemd
+
+- name: Restart service when needed
+  service:
+    name: "repospanner@{{ region }}"
+    state: restarted
+  when: repospanner_refresh is changed
