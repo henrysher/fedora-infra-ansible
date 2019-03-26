@@ -20,6 +20,8 @@
     - /etc/repospanner/
     - /etc/pki/repospanner/
     - /var/lib/repospanner/
+  tags:
+  - repospanner/server
 
 - name: Create group
   group:
@@ -38,6 +40,16 @@
   tags:
   - repospanner/server
   - config
+
+- name: Create instance directory
+  file:
+    path: /var/lib/repospanner/{{region}}
+    state: directory
+    owner: repoSpanner
+    group: repoSpanner
+    mode: 0755
+  tags:
+  - repospanner/server
 
 - name: Deploy configuration
   template: src=repoSpanner.yml
@@ -75,7 +87,7 @@
 - name: Spawn node
   command: repospanner --config /etc/repospanner/{{region}}-config.yml serve --spawn
   args:
-    creates: /var/lib/repospanner/state/state.json
+    creates: /var/lib/repospanner/{{region}}state/state.json
   become: yes
   become_user: repoSpanner
   when: "spawn_repospanner_node is defined and spawn_repospanner_node == true"
@@ -86,7 +98,7 @@
 - name: Join node
   command: repospanner --config /etc/repospanner/{{region}}-config.yml serve --joinnode https://{{ join_repospanner_node }}:{{ rpc_port }}
   args:
-    creates: /var/lib/repospanner/state/state.json
+    creates: /var/lib/repospanner/{{region}}state/state.json
   become: yes
   become_user: repoSpanner
   when: "spawn_repospanner_node is not defined or spawn_repospanner_node == false"
