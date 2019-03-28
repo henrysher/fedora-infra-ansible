@@ -1,8 +1,14 @@
 [fedora]
 name=Fedora $releasever - $basearch
 failovermethod=priority
+
+{% if ansible_distribution_major_version|int < ( FedoraBranchedNumber if FedoraBranched is defined else FedoraRawhideNumber )  %}
 baseurl=https://infrastructure.fedoraproject.org/pub/fedora-secondary/releases/$releasever/Everything/$basearch/os/
 #metalink=https://mirrors.fedoraproject.org/metalink?repo=fedora-$releasever&arch=$basearch
+{% else %}
+baseurl=https://infrastructure.fedoraproject.org/pub/fedora-secondary/development/$releasever/Everything/$basearch/os/
+{% endif %}
+
 enabled=1
 metadata_expire=7d
 gpgcheck=1
@@ -11,8 +17,12 @@ gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-$releasever-$basearch
 [fedora-debuginfo]
 name=Fedora $releasever - $basearch - Debug
 failovermethod=priority
+{% if ansible_distribution_major_version|int < ( FedoraBranchedNumber if FedoraBranched is defined else FedoraRawhideNumber )  %}
 baseurl=http://infrastructure.fedoraproject.org/pub/fedora-secondary/releases/$releasever/Everything/$basearch/debug/tree/
 #metalink=https://mirrors.fedoraproject.org/metalink?repo=fedora-debug-$releasever&arch=$basearch
+{% else %}
+baseurl=https://infrastructure.fedoraproject.org/pub/fedora-secondary/development/$releasever/Everything/$basearch/debug/tree/
+{% endif %}
 enabled=0
 metadata_expire=7d
 gpgcheck=1
@@ -21,7 +31,12 @@ gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-$releasever-$basearch
 [fedora-source]
 name=Fedora $releasever - Source
 failovermethod=priority
+{% if ansible_distribution_major_version|int < ( FedoraBranchedNumber if FedoraBranched is defined else FedoraRawhideNumber )  %}
 baseurl=http://infrastructure.fedoraproject.org/pub/fedora-secondary/releases/$releasever/Everything/source/tree/
+#metalink=https://mirrors.fedoraproject.org/metalink?repo=fedora-debug-$releasever&arch=$basearch
+{% else %}
+baseurl=https://infrastructure.fedoraproject.org/pub/fedora-secondary/development/$releasever/Everything/source/tree/
+{% endif %}
 #metalink=https://mirrors.fedoraproject.org/metalink?repo=fedora-source-$releasever&arch=$basearch
 enabled=0
 metadata_expire=7d
