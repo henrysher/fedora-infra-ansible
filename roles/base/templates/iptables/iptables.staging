@@ -65,6 +65,19 @@ COMMIT
 -A INPUT -p udp -m udp --dport {{ port }} -j ACCEPT
 {% endfor %}
 
+# if there are any proxy-only tcp_ports - allow them
+{% if proxy_tcp_ports is defined %}
+{% for port in proxy_tcp_ports %}
+{% for proxy in (groups['proxies'] + groups['proxies-internal']) %}
+{% if hostvars[proxy]['vpn'] %}
+-A INPUT -p tcp -m tcp --dport {{ port }} --src {{ hostvars[proxy]['ansible_facts']['ansible_tun0']['ipv4']['address'] }} -j ACCEPT
+{% else %}
+-A INPUT -p tcp -m tcp --dport {{ port }} --src {{ hostvars[proxy]['ansible_facts']['ansible_eth0']['ipv4']['address'] }} -j ACCEPT
+{% endif %}
+{% endfor %}
+{% endfor %}
+{% endif %}
+
 # if there are custom rules - put them in as-is
 {% for rule in custom_rules %}
 {{ rule }}
