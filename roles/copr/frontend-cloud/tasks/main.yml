@@ -15,22 +15,24 @@
   copy: src=cron.hourly/copr-frontend dest=/etc/cron.hourly/
 
 - name: install copr-frontend and copr-selinux
-  dnf: state=latest name={{ item }}
-  with_items:
-  - copr-frontend
-  - copr-selinux
+  dnf:
+    state: latest
+    name:
+      - copr-frontend
+      - copr-selinux
   tags:
   - packages
 
   # we install python-alembic because https://bugzilla.redhat.com/show_bug.cgi?id=1536058
 - name: install additional pkgs for copr-frontend
-  dnf: state=present pkg={{ item }}
-  with_items:
-  - "bash-completion"
-  - "mod_ssl"
-  - redis
-  - pxz
-  - python3-alembic
+  dnf:
+    state: present
+    pkg:
+      - "bash-completion"
+      - "mod_ssl"
+      - redis
+      - pxz
+      - python3-alembic
   tags:
   - packages
 
