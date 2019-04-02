@@ -9,6 +9,8 @@
     - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
 
   roles:
+    - role: rabbit/user
+      username: "greenwave{{ env_suffix }}"
   # The openshift/project role breaks if the project already exists:
   # https://pagure.io/fedora-infrastructure/issue/6404
   - role: openshift/project
@@ -24,15 +26,21 @@
       - apply-appowners
   - role: openshift/secret-file
     app: greenwave
-    secret_name: greenwave-fedmsg-key
-    key: fedmsg-greenwave.key
-    privatefile: fedmsg-certs/keys/greenwave-greenwave-web-greenwave.app.os.stg.fedoraproject.org.key
+    secret_name: greenwave-fedora-messaging-key
+    key: greenwave.key
+    privatefile: "rabbitmq/{{env}}/pki/private/greenwave{{env_suffix}}.key"
     when: env == "staging"
   - role: openshift/secret-file
     app: greenwave
-    secret_name: greenwave-fedmsg-crt
-    key: fedmsg-greenwave.crt
-    privatefile: fedmsg-certs/keys/greenwave-greenwave-web-greenwave.app.os.stg.fedoraproject.org.crt
+    secret_name: greenwave-fedora-messaging-crt
+    key: greenwave.crt
+    privatefile: "rabbitmq/{{env}}/pki/issued/greenwave{{env_suffix}}.crt"
+    when: env == "staging"
+  - role: openshift/secret-file
+    app: greenwave
+    secret_name: greenwave-fedora-messaging-ca
+    key: greenwave.ca
+    privatefile: "rabbitmq/{{env}}/pki/ca.crt"
     when: env == "staging"
   - role: openshift/secret-file
     app: greenwave

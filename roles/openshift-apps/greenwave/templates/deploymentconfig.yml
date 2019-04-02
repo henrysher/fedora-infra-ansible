@@ -55,6 +55,82 @@ spec:
         kind: ImageStreamTag
         name: greenwave:latest
   - type: ConfigChange
+{% if env == 'staging' %}
+---
+# For fedmsg consumers
+apiVersion: v1
+kind: DeploymentConfig
+metadata:
+  name: greenwave-fedmsg-consumers
+  labels:
+    app: greenwave
+    service: fedmsg-consumers
+spec:
+  replicas: 1
+  selector:
+    service: fedmsg-consumers
+  template:
+    metadata:
+      labels:
+        app: greenwave
+        service: fedmsg-consumers
+    spec:
+      containers:
+      - name: fedmsg-consumers
+        image: registry/greenwave:latest
+        ports:
+        - containerPort: 8081
+        command:
+        - fedora-messaging consume"
+        volumeMounts:
+        - name: config-volume
+          mountPath: /etc/greenwave
+          readOnly: true
+        - name: fedora-messaging-config-volume
+          mountPath: /etc/fedora-messaging
+          readOnly: true
+        - name: fedora-messaging-ca-volume
+          mountPath: /etc/pki/rabbitmq/ca
+          readOnly: true
+        - name: fedora-messaging-key-volume
+          mountPath: /etc/pki/rabbitmq/key
+          readOnly: true
+        - name: fedora-messaging-crt-volume
+          mountPath: /etc/pki/rabbitmq/crt
+          readOnly: true
+        resources:
+          limits:
+            memory: 384Mi
+      volumes:
+      # Give the fedmsg-consumer container access to the general config
+      - name: config-volume
+        configMap:
+          name: greenwave-configmap
+      # But *also* access to the fedmsg-specific config
+      - name: fedora-messaging-config-volume
+        configMap:
+          name: fedora-messaging-configmap
+      # And... this secret volume gets set up in the playbook
+      - name: fedora-messaging-ca-volume
+        secret:
+          secretName: greenwave-fedora-messaging-ca
+      - name: fedora-messaging-key-volume
+        secret:
+          secretName: greenwave-fedora-messaging-key
+      - name: fedora-messaging-crt-volume
+        secret:
+          secretName: greenwave-fedora-messaging-crt
+  triggers:
+  - type: ImageChange
+    imageChangeParams:
+      automatic: true
+      containerNames:
+      - fedmsg-consumers
+      from:
+        kind: ImageStreamTag
+        name: greenwave:latest
+  - type: ConfigChange
+{% else %}
 ---
 # For fedmsg consumers
 apiVersion: v1
@@ -123,6 +199,7 @@ spec:
         kind: ImageStreamTag
         name: greenwave:latest
   - type: ConfigChange
+{% endif %}
 ---
 # For memcached
 apiVersion: v1

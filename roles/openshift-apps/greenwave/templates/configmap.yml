@@ -258,3 +258,16 @@ data:
       greenwave_api_url='https://greenwave-web-greenwave.app.os.fedoraproject.org/api/v1.0'
 {% endif %}
     )
+{% if env == 'staging' %}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: fedora-messaging-configmap
+  labels:
+    app: greenwave
+{% macro load_file(filename) %}{% include filename %}{%- endmacro -%}
+data:
+  config.toml: |-
+    {{ load_file('config.toml') | indent }}
+{% endif %}
