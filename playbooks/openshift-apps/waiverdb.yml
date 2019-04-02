@@ -9,6 +9,9 @@
     - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
 
   roles:
+    - role: rabbit/user
+      username: "waiverdb{{ env_suffix }}"
+
     # The openshift/project role breaks if the project already exists:
     # https://pagure.io/fedora-infrastructure/issue/6404
     - role: openshift/project
@@ -26,72 +29,86 @@
       app: waiverdb
       template: secret.yml
       objectname: secret.yml
+
     - role: openshift/secret-file
       app: waiverdb
       secret_name: waiverdb-stg-secret
       key: client_secrets.json
       template: client_secrets.json
+
     - role: openshift/secret-file
       app: waiverdb
       secret_name: waiverdb-fedora-messaging-key
       key: waiverdb.key
       privatefile: "rabbitmq/{{env}}/pki/private/waiverdb{{env_suffix}}.key"
       when: env == "staging"
+
     - role: openshift/secret-file
       app: waiverdb
       secret_name: waiverdb-fedora-messaging-crt
       key: waiverdb.crt
       privatefile: "rabbitmq/{{env}}/pki/issued/waiverdb{{env_suffix}}.crt"
       when: env == "staging"
+
     - role: openshift/secret-file
       app: waiverdb
       secret_name: waiverdb-fedora-messaging-ca
       key: waiverdb.ca
       privatefile: "rabbitmq/{{env}}/pki/ca.crt"
       when: env == "staging"
+
     - role: openshift/secret-file
       app: waiverdb
       secret_name: waiverdb-fedmsg-key
       key: fedmsg-waiverdb.key
       privatefile: fedmsg-certs/keys/waiverdb-waiverdb-web-waiverdb.app.os.fedoraproject.org.key
       when: env != "staging"
+
     - role: openshift/secret-file
       app: waiverdb
       secret_name: waiverdb-fedmsg-crt
       key: fedmsg-waiverdb.crt
       privatefile: fedmsg-certs/keys/waiverdb-waiverdb-web-waiverdb.app.os.fedoraproject.org.crt
       when: env != "staging"
+
     - role: openshift/object
       app: waiverdb
       template: imagestream.yml
       objectname: imagestream.yml
+
     - role: openshift/object
       app: waiverdb
       template: buildconfig.yml
       objectname: buildconfig.yml
+
     - role: openshift/object
       app: waiverdb
       template: configmap.yml
       objectname: configmap.yml
+
     - role: openshift/object
       app: waiverdb
       file: service.yml
       objectname: service.yml
+
     - role: openshift/route
       app: waiverdb
       routename: web-pretty
       host: "waiverdb{{ env_suffix }}.fedoraproject.org"
       serviceport: web
       servicename: waiverdb-web
+
     # TODO -- someday retire this old route in favor of the pretty one above.
     - role: openshift/object
       app: waiverdb
       file: route.yml
       objectname: route.yml
+
     - role: openshift/object
       app: waiverdb
       template: deploymentconfig.yml
       objectname: deploymentconfig.yml
+
     - role: openshift/rollout
       app: waiverdb
       dcname: waiverdb-web
