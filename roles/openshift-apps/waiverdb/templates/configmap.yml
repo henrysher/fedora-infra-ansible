@@ -26,7 +26,9 @@ data:
 apiVersion: v1
 kind: ConfigMap
 metadata:
-    name: waiverdb-fedmsg-configmap
+  name: waiverdb-fedmsg-configmap
+  labels:
+    app: waiverdb
 data:
   waiverdb.py: |-
     import socket
@@ -50,12 +52,12 @@ data:
     )
 {% if env == 'staging' %}
 ---
-  apiVersion: v1
-  kind: ConfigMap
-  metadata:
-    name: fedora-messaging-configmap
-    labels:
-      app: waiverdb
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: fedora-messaging-configmap
+  labels:
+    app: waiverdb
 {% macro load_file(filename) %}{% include filename %}{%- endmacro -%}
   data:
     config.toml: |-
