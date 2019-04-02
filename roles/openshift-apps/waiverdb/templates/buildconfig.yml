@@ -8,6 +8,10 @@ spec:
   runPolicy: Serial
   source:
     dockerfile: |-
+{% if env == 'staging' %}
+      # See imagestream.yml for the definition
+      FROM waiverdb-upstream:latest
+{% else %}
       # See imagestream.yml for the definition
       FROM waiverdb-upstream:latest
 
@@ -30,6 +34,7 @@ spec:
 
       # Become non-root again
       USER 1001
+{% endif %}
   strategy:
     type: Docker
     dockerStrategy:
