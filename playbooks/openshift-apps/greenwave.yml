@@ -8,9 +8,21 @@
     - "/srv/private/ansible/vars.yml"
     - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
 
+  tasks:
+  - name: Create the user in RabbitMQ
+    delegate_to: "rabbitmq01{{ env_suffix }}.phx2.fedoraproject.org"
+    rabbitmq_user:
+      user: "greenwave{{ env_suffix }}"
+      vhost: "/pubsub"
+      read_priv: "amq\\.topic"  # Publish only, no reading
+      write_priv: "amq\\.topic"
+      configure_priv: "^$"  # No configuration permissions
+      state: present
+    tags:
+      - config
+      - fedora-messaging
+
   roles:
-  - role: rabbit/user
-    username: "greenwave{{ env_suffix }}"
   # The openshift/project role breaks if the project already exists:
   # https://pagure.io/fedora-infrastructure/issue/6404
   - role: openshift/project
