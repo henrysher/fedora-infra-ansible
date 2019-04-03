@@ -61,18 +61,6 @@
   command: creates={{ item.dir }} buildbot-worker create-worker {{ item.dir }} {{ buildmaster }} buildslave passwd
   with_items:
     - '{{ slaves }}'
-  when: deployment_type in ['dev', 'stg']
-
-###########
-## TODO: remove when transition to buildbot 1.7 is complete
-- name: create slave
-  become: true
-  become_user: '{{ item.user }}'
-  command: creates={{ item.dir }} buildslave create-slave {{ item.dir }} {{ buildmaster }} buildslave passwd
-  with_items:
-    - '{{ slaves|default([dict(user="", home="", dir="")]) }}'
-  when: deployment_type in ['prod']
-############
 
 - name: figure out which buildbot.tac.j2 file to use
   set_fact: buildbot_tac_j2_file={{ item | basename }}

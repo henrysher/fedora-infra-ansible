@@ -10,19 +10,7 @@
     - python3-psycopg2
     - python3-flask-oidc
     - python2-libsemanage
-  when: ansible_cmdline.ostree is not defined and deployment_type in ['dev', stg']
-
-###########
-## TODO: remove when transition to buildbot 1.7 is complete
-- name: ensure packages required for vault are installed (dnf)
-  dnf: name={{ item }} state=present
-  with_items:
-    - vault
-    - mod_wsgi
-    - python-psycopg2
-    - libsemanage-python
-  when: ansible_cmdline.ostree is not defined and deployment_type in ['prod']
-###########
+  when: ansible_cmdline.ostree is not defined
 
 - name: ensure database is created
   delegate_to: "{{ vault_db_host_machine }}"

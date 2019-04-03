@@ -9,19 +9,7 @@
     - python3-mod_wsgi
     - python3-psycopg2
     - python2-libsemanage
-  when: ansible_cmdline.ostree is not defined and deployment_type in ['dev', 'stg']
-
-###########
-## TODO: remove when transition to buildbot 1.7 is complete
-- name: ensure packages required for resultsdb are installed (dnf)
-  dnf: name={{ item }} state=present
-  with_items:
-    - resultsdb
-    - mod_wsgi
-    - python-psycopg2
-    - libsemanage-python
-  when: ansible_cmdline.ostree is not defined and deployment_type in ['prod']
-###########
+  when: ansible_cmdline.ostree is not defined
 
 - name: ensure database is created
   delegate_to: "{{ resultsdb_db_host_machine }}"

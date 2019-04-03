@@ -7,17 +7,7 @@
   with_items:
     - resultsdb_frontend
     - python3-mod_wsgi
-  when: ansible_cmdline.ostree is not defined and deployment_type in ['dev', 'stg']
-
-###########
-## TODO: remove when transition to buildbot 1.7 is complete
-- name: ensure packages required for resultsdb_frontend are installed (dnf)
-  dnf: name={{ item }} state=present
-  with_items:
-    - resultsdb_frontend
-    - mod_wsgi
-  when: ansible_cmdline.ostree is not defined and deployment_type in ['prod']
-###########
+  when: ansible_cmdline.ostree is not defined
 
 - name: ensure selinux lets httpd talk to the network
   seboolean: name=httpd_can_network_connect persistent=yes state=yes

@@ -5,7 +5,6 @@
     - fedmsg
     - fedmsg-hub
     - taskotron-trigger
-    - python2-resultsdb_api  # TODO: remove when transition to buildbot 1.7 is complete
     - python3-resultsdb_api
   when: ansible_cmdline.ostree is not defined
 
@@ -16,19 +15,6 @@
     - trigger.cfg.j2
   notify:
     - restart fedmsg-hub-3
-  when: deployment_type in ['dev', 'stg']
-
-###########
-## TODO: remove when transition to buildbot 1.7 is complete
-- name: generate trigger configuration
-  template: src={{ item }} dest=/etc/taskotron/trigger.cfg owner=root group=root mode=0744
-  with_first_found:
-    - trigger.cfg.j2.{{ deployment_type }}
-    - trigger.cfg.j2
-  notify:
-    - restart fedmsg-hub
-  when: deployment_type in ['prod']
-###########
 
 - name: generate trigger rules
   template: src={{ item }} dest=/etc/taskotron/trigger_rules.yml owner=root group=root mode=0744
@@ -37,34 +23,11 @@
     - trigger_rules.yml.j2
   notify:
     - restart fedmsg-hub-3
-  when: deployment_type in ['dev', 'stg']
-
-###########
-## TODO: remove when transition to buildbot 1.7 is complete
-- name: generate trigger rules
-  template: src={{ item }} dest=/etc/taskotron/trigger_rules.yml owner=root group=root mode=0744
-  with_first_found:
-    - trigger_rules.yml.j2.{{ deployment_type }}
-    - trigger_rules.yml.j2
-  notify:
-    - restart fedmsg-hub
-  when: deployment_type in ['prod']
-#########
 
 - name: copy fedmsg logging configuration
   copy: src=logging.py dest=/etc/fedmsg.d/logging.py owner=root group=root mode=0744
   notify:
     - restart fedmsg-hub-3
-  when: deployment_type in ['dev', 'stg']
-
-###########
-## TODO: remove when transition to buildbot 1.7 is complete
-- name: copy fedmsg logging configuration
-  copy: src=logging.py dest=/etc/fedmsg.d/logging.py owner=root group=root mode=0744
-  notify:
-    - restart fedmsg-hub
-  when: deployment_type in ['prod']
-###########
 
 - name: install fetch_activity
   copy: src=fetch_activity.py dest=/root/fetch_activity.py owner=root group=root mode=0644
@@ -82,11 +45,3 @@
 
 - name: start and enable fedmsg-hub-3 service
   service: name=fedmsg-hub-3 enabled=yes state=started
-  when: deployment_type in ['dev', 'stg']
-
-###########
-## TODO: remove when transition to buildbot 1.7 is complete
-- name: start and enable fedmsg-hub service
-  service: name=fedmsg-hub enabled=yes state=started
-  when: deployment_type in ['prod']
-###########
