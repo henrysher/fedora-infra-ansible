@@ -56,7 +56,16 @@
   roles:
   - pagure/frontend
   - pagure/fedmsg
-  - { role: repospanner/server, when: inventory_hostname.startswith('pagure01'), node: pagure01, region: ansible, spawn_repospanner_node: false, join_repospanner_node: repospanner01.ansible.fedoraproject.org }
+  - { role: repospanner/server,
+      node: pagure01,
+      region: ansible,
+      spawn_repospanner_node: false,
+      join_repospanner_node: repospanner01.ansible.fedoraproject.org
+      rpc_port: 8442,
+      http_port: 8443,
+      when: inventory_hostname == 'pagure01.fedoraproject.org'
+    }
+
 
   handlers:
   - import_tasks: "{{ handlers_path }}/restart_services.yml"
