@@ -47,6 +47,7 @@ aws_groups = {
     'aws-fedoramirror': 'arn:aws:iam::125523088429:role/aws-fedoramirror',
     'aws-s3': 'arn:aws:iam::125523088429:role/aws-s3',
     'aws-cloud-poc': 'arn:aws:iam::125523088429:role/aws-cloud-poc',
+    'aws-infra': 'arn:aws:iam::125523088429:role/aws-infra',
 }
 
 
