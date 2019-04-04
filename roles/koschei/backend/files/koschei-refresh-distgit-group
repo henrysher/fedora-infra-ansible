@@ -4,4 +4,6 @@ if [ "$#" -ne 2 ]; then
     exit 1
 fi
 set -e
-curl -s "https://src.fedoraproject.org/api/0/group/${2}?projects=1" | jq -r '.projects[]|select(.namespace=="rpms").name' | koschei-admin edit-group "${1}" --content-from-file - --append
+group_name="${1}"; shift
+distgit_group_name="${1}"; shift
+curl -s "https://src.fedoraproject.org/api/0/group/${distgit_group_name}?projects=1" | jq -r '.projects[]|select(.namespace=="rpms").name' | koschei-admin edit-group "${group_name}" --content-from-file - "${@}"
