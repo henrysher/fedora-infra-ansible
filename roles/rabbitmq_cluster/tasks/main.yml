@@ -128,6 +128,17 @@
   - rabbitmq_cluster
   - config
 
+# This is the publicly accessible virtual host
+- name: Configure the publicly accessible vhost
+  run_once: true
+  delegate_to: "rabbitmq01{{ env_suffix }}.phx2.fedoraproject.org"
+  rabbitmq_vhost:
+    name: /public_pubsub
+    state: present
+  tags:
+  - rabbitmq_cluster
+  - config
+
 - name: Configure the HA policy for queues on the pubsub virtual
   rabbitmq_policy:
     name: HA
@@ -187,17 +198,6 @@
     mode: 0600
     owner: root
     group: root
-  tags:
-  - rabbitmq_cluster
-  - config
-
-# This is the publicly accessible virtual host
-- name: Configure the publicly accessible vhost
-  run_once: true
-  delegate_to: "rabbitmq01{{ env_suffix }}.phx2.fedoraproject.org"
-  rabbitmq_vhost:
-    name: /public_pubsub
-    state: present
   tags:
   - rabbitmq_cluster
   - config
