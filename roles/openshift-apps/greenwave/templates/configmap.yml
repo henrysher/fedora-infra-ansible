@@ -1,3 +1,4 @@
+{% macro load_file(filename) %}{% include filename %}{%- endmacro -%}
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -7,194 +8,10 @@ metadata:
     app: greenwave
 data:
   settings.py: |-
-    HOST= '0.0.0.0'
-    PORT = 8080
-    DEBUG = False
-    POLICIES_DIR = '/etc/greenwave/'
-{% if env == 'staging' %}
-    DIST_GIT_BASE_URL = 'https://src.stg.fedoraproject.org'
-    DIST_GIT_URL_TEMPLATE = '{DIST_GIT_BASE_URL}/{pkg_namespace}/{pkg_name}/raw/{rev}/f/gating.yaml'
-    KOJI_BASE_URL = 'https://koji.stg.fedoraproject.org/kojihub'
-    BODHI_URL = 'https://bodhi.stg.fedoraproject.org/'
-
-    SECRET_KEY = '{{stg_greenwave_secret_key}}'
-    WAIVERDB_API_URL = 'https://waiverdb-web-waiverdb.app.os.stg.fedoraproject.org/api/v1.0'
-    RESULTSDB_API_URL = 'https://taskotron.stg.fedoraproject.org/resultsdb_api/api/v2.0'
-    CORS_URL = '*'
-{% else %}
-    DIST_GIT_BASE_URL = 'https://src.fedoraproject.org'
-    DIST_GIT_URL_TEMPLATE = '{DIST_GIT_BASE_URL}/{pkg_namespace}/{pkg_name}/raw/{rev}/f/gating.yaml'
-    KOJI_BASE_URL = 'https://koji.fedoraproject.org/kojihub'
-    BODHI_URL = 'https://bodhi.fedoraproject.org/'
-
-    SECRET_KEY = '{{prod_greenwave_secret_key}}'
-    WAIVERDB_API_URL = 'https://waiverdb-web-waiverdb.app.os.fedoraproject.org/api/v1.0'
-    RESULTSDB_API_URL = 'https://taskotron.fedoraproject.org/resultsdb_api/api/v2.0'
-    CORS_URL = 'https://bodhi.fedoraproject.org'
-{% endif %}
-    CACHE = {
-        'backend': 'dogpile.cache.memcached',
-        'expiration_time': 3600, # 3600 is 1 hour
-        'arguments': {
-            'url': 'greenwave-memcached:11211',
-            'distributed_lock': True
-        }
-    }
+    {{ load_file('settings.py') | indent }}
   fedora.yaml: |-
-    --- !Policy
-    id: "openqa_important_stuff_for_rawhide"
-    product_versions:
-      - fedora-rawhide
-    decision_context: rawhide_compose_sync_to_mirrors
-    subject_type: compose
-    blacklist: []
-    rules:
-      - !PassingTestCaseRule {test_case_name: compose.cloud.all}
-      - !PassingTestCaseRule {test_case_name: compose.base_system_logging, scenario: "fedora.KDE-live-iso.x86_64.64bit"}
-      - !PassingTestCaseRule {test_case_name: compose.base_system_logging, scenario: "fedora.Server-dvd-iso.x86_64.64bit"}
-      - !PassingTestCaseRule {test_case_name: compose.base_system_logging, scenario: "fedora.Workstation-live-iso.x86_64.64bit"}
-      - !PassingTestCaseRule {test_case_name: compose.base_update_cli, scenario: "fedora.KDE-live-iso.x86_64.64bit"}
-      - !PassingTestCaseRule {test_case_name: compose.base_update_cli, scenario: "fedora.Server-dvd-iso.x86_64.64bit"}
-      - !PassingTestCaseRule {test_case_name: compose.base_update_cli, scenario: "fedora.Workstation-live-iso.x86_64.64bit"}
-      - !PassingTestCaseRule {test_case_name: compose.desktop_browser, scenario: "fedora.KDE-live-iso.x86_64.64bit"}
-      - !PassingTestCaseRule {test_case_name: compose.desktop_browser, scenario: "fedora.Workstation-live-iso.x86_64.64bit"}
-      - !PassingTestCaseRule {test_case_name: compose.desktop_terminal, scenario: "fedora.KDE-live-iso.x86_64.64bit"}
-      - !PassingTestCaseRule {test_case_name: compose.desktop_terminal, scenario: "fedora.Workstation-live-iso.x86_64.64bit"}
-      - !PassingTestCaseRule {test_case_name: compose.install_anaconda_text, scenario: "fedora.universal.x86_64.64bit"}
-      - !PassingTestCaseRule {test_case_name: compose.install_default, scenario: "fedora.Everything-boot-iso.x86_64.64bit"}
-      - !PassingTestCaseRule {test_case_name: compose.install_default, scenario: "fedora.Everything-boot-iso.x86_64.uefi"}
-      - !PassingTestCaseRule {test_case_name: compose.install_default, scenario: "fedora.KDE-live-iso.x86_64.uefi"}
-      - !PassingTestCaseRule {test_case_name: compose.install_default, scenario: "fedora.Server-boot-iso.x86_64.64bit"}
-      - !PassingTestCaseRule {test_case_name: compose.install_default, scenario: "fedora.Server-boot-iso.x86_64.uefi"}
-      - !PassingTestCaseRule {test_case_name: compose.install_default, scenario: "fedora.Server-dvd-iso.x86_64.uefi"}
-      - !PassingTestCaseRule {test_case_name: compose.install_default, scenario: "fedora.Workstation-boot-iso.x86_64.64bit"}
-      - !PassingTestCaseRule {test_case_name: compose.install_default, scenario: "fedora.Workstation-boot-iso.x86_64.uefi"}
-      - !PassingTestCaseRule {test_case_name: compose.install_default, scenario: "fedora.Workstation-live-iso.x86_64.uefi"}
-      - !PassingTestCaseRule {test_case_name: compose.install_default_upload, scenario: "fedora.KDE-live-iso.x86_64.64bit"}
-      - !PassingTestCaseRule {test_case_name: compose.install_default_upload, scenario: "fedora.Server-dvd-iso.x86_64.64bit"}
-      - !PassingTestCaseRule {test_case_name: compose.install_default_upload, scenario: "fedora.Workstation-live-iso.x86_64.64bit"}
-      - !PassingTestCaseRule {test_case_name: compose.install_delete_pata, scenario: "fedora.universal.x86_64.64bit"}
-      - !PassingTestCaseRule {test_case_name: compose.install_delete_pata, scenario: "fedora.universal.x86_64.uefi"}
-      - !PassingTestCaseRule {test_case_name: compose.install_kickstart_firewall_configured, scenario: "fedora.universal.x86_64.64bit"}
-      - !PassingTestCaseRule {test_case_name: compose.install_kickstart_firewall_disabled, scenario: "fedora.universal.x86_64.64bit"}
-      - !PassingTestCaseRule {test_case_name: compose.install_kickstart_user_creation, scenario: "fedora.universal.x86_64.64bit"}
-      - !PassingTestCaseRule {test_case_name: compose.install_mirrorlist_graphical, scenario: "fedora.universal.x86_64.64bit"}
-      - !PassingTestCaseRule {test_case_name: compose.install_multi, scenario: "fedora.universal.x86_64.64bit"}
-      - !PassingTestCaseRule {test_case_name: compose.install_multi, scenario: "fedora.universal.x86_64.uefi"}
-      - !PassingTestCaseRule {test_case_name: compose.install_no_user, scenario: "fedora.KDE-live-iso.x86_64.64bit"}
-      - !PassingTestCaseRule {test_case_name: compose.install_repository_http_graphical, scenario: "fedora.universal.i386.64bit"}
-      - !PassingTestCaseRule {test_case_name: compose.install_repository_http_graphical, scenario: "fedora.universal.x86_64.64bit"}
-      - !PassingTestCaseRule {test_case_name: compose.install_repository_http_variation, scenario: "fedora.universal.x86_64.64bit"}
-      - !PassingTestCaseRule {test_case_name: compose.install_sata, scenario: "fedora.universal.x86_64.64bit"}
-      - !PassingTestCaseRule {test_case_name: compose.install_sata, scenario: "fedora.universal.x86_64.uefi"}
-      - !PassingTestCaseRule {test_case_name: compose.install_scsi_updates_img, scenario: "fedora.universal.i386.64bit"}
-      - !PassingTestCaseRule {test_case_name: compose.install_scsi_updates_img, scenario: "fedora.universal.x86_64.64bit"}
-      - !PassingTestCaseRule {test_case_name: compose.realmd_join_sssd, scenario: "fedora.Server-dvd-iso.x86_64.64bit"}
-      - !PassingTestCaseRule {test_case_name: compose.server_cockpit_default, scenario: "fedora.Server-dvd-iso.x86_64.64bit"}
-      - !PassingTestCaseRule {test_case_name: compose.server_database_client, scenario: "fedora.Server-dvd-iso.x86_64.64bit"}
-      - !PassingTestCaseRule {test_case_name: compose.server_firewall_default, scenario: "fedora.Server-dvd-iso.x86_64.64bit"}
-      - !PassingTestCaseRule {test_case_name: compose.server_realmd_join_kickstart, scenario: "fedora.Server-dvd-iso.x86_64.64bit"}
-      - !PassingTestCaseRule {test_case_name: compose.server_role_deploy_database_server, scenario: "fedora.Server-dvd-iso.x86_64.64bit"}
-      - !PassingTestCaseRule {test_case_name: compose.server_role_deploy_domain_controller, scenario: "fedora.Server-dvd-iso.x86_64.64bit"}
+    {{ load_file('fedora.yaml') | indent }}
 
-    --- !Policy
-    id: "taskotron_release_critical_tasks_for_testing"
-    product_versions:
-      - fedora-31
-      - fedora-30
-      - fedora-29
-      - fedora-28
-    decision_context: bodhi_update_push_testing
-    blacklist: []
-    subject_type: koji_build
-{% if env == 'staging' %}
-    rules:
-      - !PassingTestCaseRule {test_case_name: dist.rpmdeplint}
-      - !RemoteRule {}
-{% else %}
-    rules:
-      - !RemoteRule {}
-{% endif %}
-    --- !Policy
-    id: "taskotron_release_critical_tasks_for_stable"
-    product_versions:
-      - fedora-30
-      - fedora-29
-      - fedora-28
-      - fedora-27
-      - fedora-26
-    decision_context: bodhi_update_push_stable
-    blacklist: []
-    subject_type: koji_build
-{% if env == 'staging' %}
-    rules:
-      - !PassingTestCaseRule {test_case_name: dist.rpmdeplint}
-      - !RemoteRule {}
-{% else %}
-    rules:
-      - !RemoteRule {}
-{% endif %}
-    --- !Policy
-    id: "no_requirements_testing"
-    product_versions:
-      - fedora-30-modular
-      - fedora-30-containers
-      - fedora-30-flatpaks
-      - fedora-29-modular
-      - fedora-29-containers
-      - fedora-29-flatpaks
-      - fedora-28-modular
-      - fedora-28-containers
-      - fedora-epel-7
-      - fedora-epel-6
-    decision_context: bodhi_update_push_testing
-    blacklist: []
-    subject_type: koji_build
-    rules: []
-    --- !Policy
-    id: "no_requirements_for_stable"
-    product_versions:
-      - fedora-30-modular
-      - fedora-30-containers
-      - fedora-30-flatpaks
-      - fedora-29-modular
-      - fedora-29-containers
-      - fedora-29-flatpaks
-      - fedora-28-modular
-      - fedora-28-containers
-      - fedora-epel-7
-      - fedora-epel-6
-    decision_context: bodhi_update_push_stable
-    blacklist: []
-    subject_type: koji_build
-    rules: []
-    --- !Policy
-    # openQA policies
-    id: "openqa_release_critical_tasks_for_testing"
-    product_versions:
-      - fedora-30
-      - fedora-29
-      - fedora-28
-      - fedora-27
-      - fedora-26
-    decision_context: bodhi_update_push_testing
-    blacklist: []
-    subject_type: bodhi_update
-    rules:
-      - !RemoteRule {}
-    --- !Policy
-    id: "openqa_release_critical_tasks_for_stable"
-    product_versions:
-      - fedora-30
-      - fedora-29
-      - fedora-28
-      - fedora-27
-      - fedora-26
-    decision_context: bodhi_update_push_stable
-    blacklist: []
-    subject_type: bodhi_update
-    rules:
-      - !RemoteRule {}
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -202,61 +19,8 @@ metadata:
   name: greenwave-fedmsg-configmap
 data:
   greenwave.py: |-
-    import socket
-    config = dict(
-      sign_messages=True,
-      active=True,
+    {{ load_file('greenwave.py') | indent }}
 
-      cert_prefix="greenwave",
-      certnames={
-          "greenwave." + socket.gethostname(): "greenwave",
-      },
-
-      logging={
-          "loggers": {
-              "greenwave": {
-                  "handlers": ["console"], "propagate": False, "level": "DEBUG"},
-              "fedmsg": {
-                  "handlers": ["console"], "propagate": False, "level": "DEBUG"},
-              "moksha": {
-                  "handlers": ["console"], "propagate": False, "level": "DEBUG"},
-              "requests": {
-                  "handlers": ["console"], "propagate": False, "level": "DEBUG"},
-          },
-          "handlers": {
-              "console": {
-                  "formatter": "bare",
-                  "class": "logging.StreamHandler",
-                  "stream": "ext://sys.stdout",
-                  "level": "DEBUG"
-              }
-          },
-      },
-      greenwave_cache={
-          'backend': 'dogpile.cache.memcached',
-          'expiration_time': 3600, # 3600 is 1 hour
-          'arguments': {
-              'url': 'greenwave-memcached:11211',
-              'distributed_lock': True
-          }
-      },
-      resultsdb_topic_suffix="resultsdb.result.new",
-{% if env == 'staging' %}
-      environment='stg',
-      relay_inbound=["tcp://busgateway01.stg.phx2.fedoraproject.org:9941"],
-      greenwave_api_url='https://greenwave-web-greenwave.app.os.stg.fedoraproject.org/api/v1.0',
-      # STG greenwave should listen to the STG bus.
-      endpoints=dict(
-        staging_gateway=[
-            'tcp://stg.fedoraproject.org:9940',
-        ],
-      ),
-{% else %}
-      environment='prod',
-      relay_inbound=["tcp://busgateway01.phx2.fedoraproject.org:9941"],
-      greenwave_api_url='https://greenwave-web-greenwave.app.os.fedoraproject.org/api/v1.0'
-{% endif %}
-    )
 {% if env == 'staging' %}
 ---
 apiVersion: v1
@@ -265,7 +29,6 @@ metadata:
   name: fedora-messaging-configmap
   labels:
     app: greenwave
-{% macro load_file(filename) %}{% include filename %}{%- endmacro -%}
 data:
   config.toml: |-
     {{ load_file('config.toml') | indent }}
