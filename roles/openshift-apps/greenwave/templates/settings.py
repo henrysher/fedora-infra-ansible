@@ -12,6 +12,7 @@ BODHI_URL = 'https://bodhi.stg.fedoraproject.org/'
 SECRET_KEY = '{{stg_greenwave_secret_key}}'
 WAIVERDB_API_URL = 'https://waiverdb-web-waiverdb.app.os.stg.fedoraproject.org/api/v1.0'
 RESULTSDB_API_URL = 'https://taskotron.stg.fedoraproject.org/resultsdb_api/api/v2.0'
+GREENWAVE_API_URL = 'https://greenwave-web-greenwave.app.os.stg.fedoraproject.org/api/v1.0'
 CORS_URL = '*'
 {% else %}
 DIST_GIT_BASE_URL = 'https://src.fedoraproject.org'
