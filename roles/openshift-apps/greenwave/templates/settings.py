@@ -14,6 +14,7 @@ WAIVERDB_API_URL = 'https://waiverdb-web-waiverdb.app.os.stg.fedoraproject.org/a
 RESULTSDB_API_URL = 'https://taskotron.stg.fedoraproject.org/resultsdb_api/api/v2.0'
 GREENWAVE_API_URL = 'https://greenwave.stg.fedoraproject.org/api/v1.0'
 CORS_URL = '*'
+MESSAGING = "fedora-messaging"
 {% else %}
 DIST_GIT_BASE_URL = 'https://src.fedoraproject.org'
 DIST_GIT_URL_TEMPLATE = '{DIST_GIT_BASE_URL}/{pkg_namespace}/{pkg_name}/raw/{rev}/f/gating.yaml'
