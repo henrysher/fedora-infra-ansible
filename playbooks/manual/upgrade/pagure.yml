@@ -46,20 +46,35 @@
     environment:
         PAGURE_CONFIG: /etc/pagure/pagure.cfg
 
-  - name: call createdb
-    command: /usr/bin/python2 /usr/share/pagure/pagure_createdb.py
-    environment:
-        PAGURE_CONFIG: /etc/pagure/pagure.cfg
-
   post_tasks:
-  - service: name="httpd" state=restarted
-  - service: name="pagure_ev" state=restarted
-  - service: name="pagure_ci" state=restarted
-  - service: name="pagure_webhook" state=restarted
-  - service: name="pagure_milter" state=restarted
-  - service: name="pagure_worker" state=restarted
-  - service: name="pagure_logcom" state=restarted
-  - service: name="pagure_loadjson" state=restarted
+
+  - name: restart_pagure_workers on all hosts
+    service:
+      name: "{{ item }}"
+      state: restarted
+    with_items:
+      - httpd
+      - pagure_ev
+      - pagure_gitolite_worker
+      - pagure_logcom
+      - pagure_milter
+      - pagure_webhook
+      - pagure_worker
+
+  - name: restart_pagure_workers on pagure servers
+    service:
+      name: "{{ item }}"
+      state: restarted
+    with_items:
+      - pagure_ci
+      - pagure_fast_worker
+      - pagure_loadjson
+      - pagure_logcom
+      - pagure_medium_worker
+      - pagure_mirror
+      - pagure_slow_worker
+    when: inventory_hostname.startswith('pagure')
+
   - name: tell nagios to unshush w.r.t. the frontend
     nagios:
         action=unsilence
