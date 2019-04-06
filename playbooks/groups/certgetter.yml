@@ -18,6 +18,7 @@
   - fas_client
   - rsyncd
   - sudo
+  - apache
   - { role: openvpn/client,
       when: env != "staging" }
 
@@ -27,6 +28,9 @@
   tasks:
   - import_tasks: "{{ tasks_path }}/2fa_client.yml"
   - import_tasks: "{{ tasks_path }}/motd.yml"
+
+  - name: make sure certbot is installed
+    package: name=certbot state=installed
 
   handlers:
   - import_tasks: "{{ handlers_path }}/restart_services.yml"
