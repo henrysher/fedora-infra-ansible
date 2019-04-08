@@ -29,6 +29,10 @@
     delegate_to: noc01.phx2.fedoraproject.org
     ignore_errors: true
 
+##
+## To do here. Call a play which can set status to say pagure is down.
+##
+
   tasks:
   - name: yum update pagure packages from main repo
     yum: name="pagure*"
@@ -44,8 +48,32 @@
     when: testing
 
   # This is needed so the alembic will work.
-  - name: stop httpd so we can update the database
-    service: name="httpd" state=stopped
+  - name: stop the general pagure workers
+    service:
+      name: "{{ item }}"
+      state: stopped
+    with_items:
+      - httpd
+      - pagure_ev
+      - pagure_gitolite_worker
+      - pagure_logcom
+      - pagure_milter
+      - pagure_webhook
+      - pagure_worker
+
+  - name: stop the specific workers on pagure.io
+    service:
+      name: "{{ item }}"
+      state: stopped
+    with_items:
+      - pagure_ci
+      - pagure_fast_worker
+      - pagure_loadjson
+      - pagure_logcom
+      - pagure_medium_worker
+      - pagure_mirror
+      - pagure_slow_worker
+    when: inventory_hostname.startswith('pagure')
 
   - name: Upgrade the database
     command: /usr/bin/alembic -c /etc/pagure/alembic.ini upgrade head
@@ -56,10 +84,10 @@
 
   post_tasks:
 
-  - name: restart_pagure_workers on all hosts
+  - name: start the general pagure workers
     service:
       name: "{{ item }}"
-      state: restarted
+      state: started
     with_items:
       - httpd
       - pagure_ev
@@ -69,10 +97,10 @@
       - pagure_webhook
       - pagure_worker
 
-  - name: restart_pagure_workers on pagure servers
+  - name: start_pagure_workers on pagure servers
     service:
       name: "{{ item }}"
-      state: restarted
+      state: started
     with_items:
       - pagure_ci
       - pagure_fast_worker
@@ -82,6 +110,11 @@
       - pagure_mirror
       - pagure_slow_worker
     when: inventory_hostname.startswith('pagure')
+
+##
+## ToDo: Put in an include to pull in setting status back
+## 
+
 
   - name: tell nagios to unshush w.r.t. the frontend
     nagios:
