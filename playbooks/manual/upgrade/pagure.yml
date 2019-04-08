@@ -28,7 +28,6 @@
         host={{ inventory_hostname_short }}{{ env_suffix }}
     delegate_to: noc01.phx2.fedoraproject.org
     ignore_errors: true
-  - service: name="httpd" state=stopped
 
   tasks:
   - name: yum update pagure packages from main repo
@@ -43,6 +42,10 @@
          enablerepo=infrastructure-tags-stg
          update_cache=yes
     when: testing
+
+  # This is needed so the alembic will work.
+  - name: stop httpd so we can update the database
+    service: name="httpd" state=stopped
 
   - name: Upgrade the database
     command: /usr/bin/alembic -c /etc/pagure/alembic.ini upgrade head
