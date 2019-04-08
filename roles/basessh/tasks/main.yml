@@ -72,15 +72,7 @@
   - base
 
 - name: sshd_config
-  copy: src={{ item }} dest=/etc/ssh/sshd_config mode=0600
-  with_first_found:
-    - "{{ sshd_config }}"
-    - ssh/sshd_config.{{ inventory_hostname }}
-    - ssh/sshd_config.{{ host_group }}
-    - ssh/sshd_config.{{ dist_tag }}
-    - ssh/sshd_config.{{ ansible_distribution }}
-    - ssh/sshd_config.{{ ansible_distribution_version }}
-    - ssh/sshd_config.default
+  template: src=sshd_config dest=/etc/ssh/sshd_config mode=0600
   notify:
   - restart sshd
   tags:

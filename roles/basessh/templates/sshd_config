@@ -1,0 +1,46 @@
+Protocol 2
+
+Port {{ sshd_port }}
+
+{% if ansible_distribution_version == 6 %}
+KexAlgorithms diffie-hellman-group-exchange-sha256
+MACs hmac-sha2-512,hmac-sha2-256
+Ciphers aes256-ctr,aes192-ctr,aes128-ctr
+{% else %}
+KexAlgorithms curve25519-sha256@libssh.org,ecdh-sha2-nistp521,ecdh-sha2-nistp384,ecdh-sha2-nistp256,diffie-hellman-group-exchange-sha256
+Ciphers chacha20-poly1305@openssh.com,aes256-gcm@openssh.com,aes128-gcm@openssh.com,aes256-ctr,aes192-ctr,aes128-ctr
+MACs hmac-sha2-512-etm@openssh.com,hmac-sha2-256-etm@openssh.com,umac-128-etm@openssh.com,hmac-sha2-512,hmac-sha2-256,umac-128@openssh.com
+{% endif %}
+
+HostKey /etc/ssh/ssh_host_rsa_key
+HostCertificate /etc/ssh/ssh_host_rsa_key-cert.pub
+
+SyslogFacility AUTHPRIV
+LogLevel VERBOSE
+
+PermitRootLogin without-password
+StrictModes yes
+AuthorizedKeysFile      .ssh/authorized_keys
+
+PasswordAuthentication no
+ChallengeResponseAuthentication no
+GSSAPIAuthentication no
+UsePAM yes
+
+AllowAgentForwarding no
+X11Forwarding no
+PermitTunnel no
+
+UsePrivilegeSeparation sandbox
+
+# Accept locale-related environment
+AcceptEnv LANG LC_CTYPE LC_NUMERIC LC_TIME LC_COLLATE LC_MONETARY LC_MESSAGES
+AcceptEnv LC_PAPER LC_NAME LC_ADDRESS LC_TELEPHONE LC_MEASUREMENT
+AcceptEnv LC_IDENTIFICATION LC_ALL LANGUAGE
+AcceptEnv XMODIFIERS
+
+{% if sshd_config == "pagure" %}
+# For repospanner/git
+AuthorizedKeysCommandUser git
+AuthorizedKeysCommand /usr/libexec/pagure/keyhelper.py "%u" "%h" "%t" "%f"
+{% endif %}
