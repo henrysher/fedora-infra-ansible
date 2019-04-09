@@ -42,21 +42,13 @@
   user: root
 
   tasks:
-  - name: expire-caches
-    command: yum clean expire-cache
-    when: ansible_distribution_major_version|int < 22
-
-  - name: yum -y {{ yumcommand }}
-    command: yum -y {{ yumcommand }}
+  - name: Apply updates
+    package:
+        state: latest
+        name: "*"
+        update_cache: true
     async: 7200
     poll: 30
-    when: ansible_distribution_major_version|int < 22
-
-  - name: dnf -y {{ yumcommand }} --refresh
-    command: dnf -y {{ yumcommand }} --refresh
-    async: 7200
-    poll: 30
-    when: ansible_distribution_major_version|int > 21 and ansible_cmdline.ostree is not defined
 
 - name: run rkhunter if installed
   hosts:  "{{ target }}:myvms_new"
