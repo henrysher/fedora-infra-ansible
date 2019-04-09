@@ -418,45 +418,58 @@
     # Talk directly to the app server, not haproxy
     proxyurl: http://log01
 
-  ### Four entries for taskotron for production
+  ### Six entries for taskotron for production
   - role: httpd/reverseproxy
     website: taskotron.fedoraproject.org
     destname: taskotron
-    # Talk directly to the app server, not haproxy
-    proxyurl: http://taskotron01.vpn.fedoraproject.org
+    balancer_name: taskotron
+    balancer_members: ['taskotron01.qa.fedoraproject.org:80']
+    http_not_https_yes_this_is_insecure_and_i_feel_bad: true
+
+  - role: httpd/reverseproxy
+    website: taskotron.fedoraproject.org
+    destname: taskotron-websockets
+    localpath: /taskmaster/ws
+    remotepath: /taskmaster/ws
+    balancer_name: taskotron
+    balancer_members: ['taskotron01.qa.fedoraproject.org:80']
+    http_not_https_yes_this_is_insecure_and_i_feel_bad: true
 
   - role: httpd/reverseproxy
     website: taskotron.fedoraproject.org
     destname: taskotron-resultsdb
     localpath: /resultsdb
     remotepath: /resultsdb
-    # Talk directly to the app server, not haproxy
-    proxyurl: http://resultsdb01.vpn.fedoraproject.org
+    balancer_name: resultsdb
+    balancer_members: ['resultsdb01.qa.fedoraproject.org:80']
+    http_not_https_yes_this_is_insecure_and_i_feel_bad: true
 
   - role: httpd/reverseproxy
     website: taskotron.fedoraproject.org
     destname: taskotron-resultsdbapi
     localpath: /resultsdb_api
     remotepath: /resultsdb_api
-    # Talk directly to the app server, not haproxy
-    proxyurl: http://resultsdb01.vpn.fedoraproject.org
+    balancer_name: resultsdb
+    balancer_members: ['resultsdb01.qa.fedoraproject.org:80']
+    http_not_https_yes_this_is_insecure_and_i_feel_bad: true
 
   - role: httpd/reverseproxy
     website: taskotron.fedoraproject.org
     destname: taskotron-execdb
     localpath: /execdb
     remotepath: /execdb
-    # Talk directly to the app server, not haproxy
-    proxyurl: http://resultsdb01.vpn.fedoraproject.org
+    balancer_name: resultsdb
+    balancer_members: ['resultsdb01.qa.fedoraproject.org:80']
+    http_not_https_yes_this_is_insecure_and_i_feel_bad: true
 
   - role: httpd/reverseproxy
     website: taskotron.fedoraproject.org
     destname: taskotron-vault
     localpath: /vault
     remotepath: /vault
-    # Talk directly to the app server, not haproxy
-    proxyurl: http://resultsdb01.vpn.fedoraproject.org
-
+    balancer_name: resultsdb
+    balancer_members: ['resultsdb01.qa.fedoraproject.org:80']
+    http_not_https_yes_this_is_insecure_and_i_feel_bad: true
 
   ### And four entries for taskotron for staging
   - role: httpd/reverseproxy
