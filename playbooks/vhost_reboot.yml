@@ -82,13 +82,10 @@
     when: nonagios is not defined or not nonagios
 
   - name: reboot the virthost
-    command: /sbin/shutdown -r 1
-
-  - name: wait for virthost to come back - up to 15 minutes
-    local_action: wait_for host={{ target }} port=22 delay=120 timeout=900 search_regex=OpenSSH
+    reboot:
 
   - name: wait for libvirtd to come back on the virthost
-    wait_for: path=/var/run/libvirtd.pid state=present delay=10
+    wait_for: path=/var/run/libvirtd.pid state=present
 
   - name: look up vmlist
     virt: command=list_vms
