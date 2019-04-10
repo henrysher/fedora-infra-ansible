@@ -44,9 +44,20 @@
   serial: 1
 
   tasks:
-  - name: figure out which node to delegate os drain to
+  - name: figure out which node to delegate os uncordon to
     set_fact:
-      os_delegate_via: "os-master0{{ '2' if inventory_hostname == 'os-master01.phx2.fedoraproject.org' else '1' }}"
+      os_delegate_via: os-master01
+    when: hostvars[inventory_hostname].vmhost != hostvars['os-master01.phx2.fedoraproject.org'].vmhost
+
+  - name: figure out which node to delegate os uncordon to
+    set_fact:
+      os_delegate_via: os-master02
+    when: hostvars[inventory_hostname].vmhost != hostvars['os-master02.phx2.fedoraproject.org'].vmhost
+
+  - name: figure out which node to delegate os uncordon to
+    set_fact:
+      os_delegate_via: os-master03
+    when: hostvars[inventory_hostname].vmhost != hostvars['os-master03.phx2.fedoraproject.org'].vmhost
 
   - name: drain OS node if necessary
     command: oc adm drain {{inventory_hostname }} --ignore-daemonsets --delete-local-data
@@ -117,7 +128,18 @@
   tasks:
   - name: figure out which node to delegate os uncordon to
     set_fact:
-      os_delegate_via: "os-master0{{ '2' if inventory_hostname == 'os-master01.phx2.fedoraproject.org' else '1' }}"
+      os_delegate_via: os-master01
+    when: hostvars[inventory_hostname].vmhost != hostvars['os-master01.phx2.fedoraproject.org'].vmhost
+
+  - name: figure out which node to delegate os uncordon to
+    set_fact:
+      os_delegate_via: os-master02
+    when: hostvars[inventory_hostname].vmhost != hostvars['os-master02.phx2.fedoraproject.org'].vmhost
+
+  - name: figure out which node to delegate os uncordon to
+    set_fact:
+      os_delegate_via: os-master03
+    when: hostvars[inventory_hostname].vmhost != hostvars['os-master03.phx2.fedoraproject.org'].vmhost
 
   - name: Add back to openshift
     command: oc adm uncordon {{inventory_hostname}}
