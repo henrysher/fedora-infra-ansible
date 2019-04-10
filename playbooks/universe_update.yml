@@ -1,43 +1,24 @@
-# This playboook updates a virthost and all it's guests.
 #
-# requires --extra-vars="target=somevhostname yumcommand=update"
-# Might add nodns=true or nonagios=true at extra-vars
+# This playboook updates every host in inventory
 #
-
-- name: find instances
-  hosts: "{{ target }}"
-  gather_facts: False
-  user: root
-
-  tasks:
-  - name: get list of guests
-    virt: command=list_vms
-    register: vmlist
-
-  - name: add them to myvms_new group
-    local_action: add_host hostname={{ item }} groupname=myvms_new
-    with_items: '{{vmlist.list_vms}}'
-
-# Call out to another playbook.  Disable any proxies that may live here
-#- include_playbook: update-proxy-dns.yml status=disable proxies=myvms_new:&proxies
 
 - name: set downtime
-  hosts: "{{ target }}:myvms_new"
+  hosts: all
   gather_facts: False
   user: root
   serial: 1
 
   tasks:
 
-  - name: schedule regular host downtime
-    nagios: action=downtime minutes=30 service=host host={{ inventory_hostname_short }}{{ env_suffix }}
+  - name: silence nagios completely
+    nagios: action=silence
     delegate_to: noc01.phx2.fedoraproject.org
     ignore_errors: true
     failed_when: no
     when: nonagios is not defined or not "true" in nonagios
 
-- name: update the system
-  hosts: "{{ target }}:myvms_new"
+- name: update the world
+  hosts: all
   gather_facts: True
   user: root
 
@@ -70,7 +51,7 @@
     when: package_excludes is defined
 
 - name: run rkhunter if installed
-  hosts:  "{{ target }}:myvms_new"
+  hosts:  all
   user: root
 
   tasks:
