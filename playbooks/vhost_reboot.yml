@@ -44,9 +44,13 @@
   serial: 1
 
   tasks:
+  - name: figure out which node to delegate os drain to
+    set_fact:
+      os_delegate_via: "os-master0{{ '2' if inventory_hostname == 'os-master01.phx2.fedoraproject.org' else '1' }}"
+
   - name: drain OS node if necessary
     command: oc adm drain {{inventory_hostname }} --ignore-daemonsets --delete-local-data
-    delegate_to: os-master01{{env_suffix}}.phx2.fedoraproject.org
+    delegate_to: "{{os_delegate_via}}{{env_suffix}}.phx2.fedoraproject.org"
     when: inventory_hostname.startswith(('os-node', 'os-master'))
 
   - name: schedule regular host downtime
@@ -111,9 +115,13 @@
   serial: 1
 
   tasks:
+  - name: figure out which node to delegate os uncordon to
+    set_fact:
+      os_delegate_via: "os-master0{{ '2' if inventory_hostname == 'os-master01.phx2.fedoraproject.org' else '1' }}"
+
   - name: Add back to openshift
     command: oc adm uncordon {{inventory_hostname}}
-    delegate_to: os-master01{{env_suffix}}.phx2.fedoraproject.org
+    delegate_to: "{{os_delegate_via}}{{env_suffix}}.phx2.fedoraproject.org"
     when: inventory_hostname.startswith(('os-node', 'os-master'))
 
 # Call out to that dns playbook.  Put proxies back in now that they're back
