@@ -77,9 +77,8 @@ DisableNotifications = True
 #Plugins = darkserver-plugin
 Plugins = fedmsg-koji-plugin runroot_hub hub_containerbuild
 
-{% if inventory_hostname.startswith('koji') %}
-[policy]
 
+[policy]
 
 tag =
     user mbs/mbs.fedoraproject.org && tag module-* && package kernel shim grub2 fedora-release fedora-repos pesign :: allow
@@ -123,16 +122,11 @@ channel =
     all :: use default
 
 
-
 build_from_srpm =
     has_perm admin :: allow
     tag *-infra-candidate && has_perm infra :: allow
     all :: deny
 
-{% endif %}
-
-
-{% if env == 'staging' %}
 
 # Policy for manipulating package lists for tags.
 package_list =
@@ -158,5 +152,3 @@ package_list =
     tag f{{FedoraRawhideNumber}}-coreos-continuous f{{FedoraBranchedNumber}}-coreos-continuous f{{FedoraCycleNumber}}-coreos-continuous f{{FedoraPreviousCycleNumber}}-coreos-continuous && has_perm coreos-continuous && match action add unblock block :: allow
     # Catch-all rule.
     all :: deny
-
-{% endif %}
