@@ -2,7 +2,7 @@ import re
 import datetime
 import socket
 from optparse import OptionParser
-from urlparse import urljoin
+from urllib.parse import urljoin
 
 import resultsdb_api
 
@@ -106,4 +106,4 @@ if __name__ == "__main__":
             time_span = opts.time + "," + time_now.isoformat()
 
     output = main(opts.resultsdb_url, opts.frontend_url, time_span)
-    print output,
+    print(output, end=' ')
