@@ -1,6 +1,10 @@
 Header set AppTime "%D"
 PassEnv HOSTNAME
+{% if 'proxy' in inventory_hostname %}
+Header set ProxyServer "{{ inventory_hostname }}"
+{% else %}
 Header set AppServer "{{ inventory_hostname }}"
+{% endif %}
 {% if inventory_hostname in groups['proxies'] and ansible_distribution == 'Fedora' %}
 
 ErrorDocument 421 "You have hit an incorrect proxy for a Fedora Project website due to a bug in Firefox. Please refresh"
