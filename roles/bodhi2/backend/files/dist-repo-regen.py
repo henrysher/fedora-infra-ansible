@@ -74,6 +74,7 @@ for koji_env in config['tag2distrepo.tags'].keys():
 
     koji_session.multicall = True
     for [tag_info] in tag_infos:
+        keys = koji_config['tags'][tag_info['name']]
         opts = {
             'arch': (tag_info['arches'] or '').split(),
             'comp': None,
@@ -84,10 +85,9 @@ for koji_env in config['tag2distrepo.tags'].keys():
             'multilib': False,
             'split_debuginfo': False,
             'skip_missing_signatures': False,
-            'allow_missing_signatures': False
+            'allow_missing_signatures': not keys,
         }
 
-        keys = koji_config['tags'][tag_info['name']]
         koji_session.distRepo(tag_info['name'], keys, **opts)
     task_ids = koji_session.multiCall(strict=True)
         
