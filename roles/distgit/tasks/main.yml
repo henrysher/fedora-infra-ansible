@@ -45,7 +45,6 @@
     group=packager
     mode=0755
   with_items:
-  - cgit
   - gitolite
   - upload
   tags:
@@ -350,40 +349,6 @@
   tags:
   - distgit
   - config
-
-# -- CGit ------------------------------------------------
-# This is the pretty web view of the repositories, using CGit.
-- name: install the prod cgitrc file
-  copy: src=cgitrc dest=/etc/cgitrc
-  tags:
-  - distgit
-  - cgit
-  notify:
-  - reload httpd
-
-- name: install our custom header for cgit
-  template: src=cgit-header.html dest=/usr/share/cgit/cgit-header-fedora.html
-  tags:
-  - distgit
-  - cgit
-  notify:
-  - reload httpd
-
-- name: Remove the old cgit related redirect config
-  file: path=/etc/httpd/conf.d/dist-git/redirect.conf state=absent
-  tags:
-  - distgit
-  - cgit
-  notify:
-  - reload httpd
-
-- name: install the CGit-related httpd main config
-  copy: src=cgit.conf dest=/etc/httpd/conf.d/cgit.conf
-  tags:
-  - distgit
-  - cgit
-  notify:
-  - reload httpd
 
 # -- Lookaside Cache -------------------------------------
 # This is the annex to Dist Git, where we host source tarballs.
