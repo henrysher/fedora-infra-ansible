@@ -78,7 +78,15 @@
   - restart libvirtd
   tags:
   - config
-  when: ansible_distribution == 'RedHat' and ansible_distribution_major_version|int == 7
+  when: ansible_distribution == 'RedHat' and ansible_distribution_major_version|int == 7 and not inventory_hostname.startswith('virthost-aarch64-os')
+
+- name: install libvirtd.conf
+  copy: src="{{ files }}/virthost/libvirtd.conf.os" dest=/etc/libvirt/libvirtd.conf
+  notify:
+  - restart libvirtd
+  tags:
+  - config
+  when: ansible_distribution == 'RedHat' and ansible_distribution_major_version|int == 7 and inventory_hostname.startswith('virthost-aarch64-os')
 
 - name: enable libvirtd
   service: name=libvirtd state=started enabled=yes
