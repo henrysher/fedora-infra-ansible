@@ -66,7 +66,6 @@
   dnf: state=present pkg={{ item }}
   with_items:
     - koji-builder
-    - koji-builder-plugins
     - python2-koji
     - koji-containerbuild-builder
     - strace
@@ -97,6 +96,14 @@
     - yum
   tags:
   - koji_builder
+
+- name: add pkgs on new builders
+  dnf: state=present pkg={{ item }}
+  with_items:
+    - koji-builder-plugins
+  tags:
+  - koji_builder
+  when: ansible_distribution_major_version|int >= 28
 
 - name: Install arm UEFI firmware package (aarch64 only)
   dnf: name=edk2-arm state=present
