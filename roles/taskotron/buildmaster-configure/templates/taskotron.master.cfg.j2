@@ -241,6 +241,15 @@ factory.addStep(steps.DirectoryUpload(
     descriptionDone='Copy artifacts',
 ))
 
+{% if deployment_type in ['local'] %}
+# copy taskotron log to master
+factory.addStep(steps.FileUpload(
+    workersrc='/var/log/taskotron/taskotron.log',
+    masterdest=util.Interpolate('{{ public_artifacts_dir }}/%(prop:uuid)s/taskotron.log'),
+    mode=0644,
+))
+{% endif %}
+
 # save stdio from runtask step
 # FIXME: worked with buildbot 0.8, later buildbots changed URLs
 # factory.addStep(steps.MasterShellCommand(
@@ -263,15 +272,6 @@ factory.addStep(steps.MasterShellCommand(
     descriptionDone='Compress artifacs',
 ))
 
-{% if deployment_type in ['local'] %}
-# copy taskotron log to master
-factory.addStep(steps.FileUpload(
-    workersrc='/var/log/taskotron/taskotron.log',
-    masterdest=util.Interpolate('{{ public_artifacts_dir }}/%(prop:uuid)s/taskotron.log'),
-    mode=0644,
-))
-{% endif %}
-
 # render current time when needed
 import datetime
 from buildbot.process.properties import renderer
@@ -279,6 +279,19 @@ from buildbot.process.properties import renderer
 @renderer
 def today(props):
     return datetime.datetime.now().strftime("%Y%m%d")
+
+# prevent duplicated buildbot jobs
+# (see https://pagure.io/taskotron/issue/273 )
+factory.addStep(steps.MasterShellCommand(
+    command=util.Interpolate(
+        'test -d {{ public_artifacts_dir }}/%(kw:today)s/%(prop:uuid)s/ || '
+        '( echo Multiple jobs with same UUID detected, aborting execution!; '
+        '  echo See https://pagure.io/taskotron/issue/273 ; '
+        '  exit 1 )'
+    ),
+    descriptionDone='Check duplicate jobs',
+    haltOnFailure=True,
+))
 
 # move the artifacts to the correct dir on the master
 factory.addStep(steps.MasterShellCommand(
