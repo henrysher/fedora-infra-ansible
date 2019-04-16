@@ -135,13 +135,15 @@
   - selinux
   - mirrorlist_proxy
 
+- name: check for mirrorlist files
+  stat: path=/srv/mirrorlist/data/mirrorlist1/mirrorlist_cache.pkl
+  register: mirrorlist_cache_status
+
 - name: Deploy mirrorlist data files (if this is a initial install)
   command: "rsync -az --delete-delay --delay-updates --delete /var/lib/mirrormanager/mirrorlist_cache.pkl /var/lib/mirrormanager/global_netblocks.txt /var/lib/mirrormanager/i2_netblocks.txt {{ inventory_hostname }}:/srv/mirrorlist/data/mirrorlist1/"
-  args:
-    creates: /srv/mirrorlist/data/mirrorlist1/mirrorlist_cache.pkl
   become: yes
   become_user: mirrormanager
   delegate_to: "mm-backend01.phx2.fedoraproject.org"
-  when: env == "production"
+  when: env == "production" and not mirrorlist_cache_status.stat.exists
   tags:
   - mirrorlist_proxy
