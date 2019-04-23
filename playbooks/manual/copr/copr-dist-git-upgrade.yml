@@ -1,0 +1,23 @@
+---
+- name: upgrade copr distgit
+  hosts: copr-dist-git-dev:copr-dist-git-stg:copr-dist-git
+  user: root
+  gather_facts: True
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  tasks:
+  - name: Upgrade copr-distgit packages
+    dnf:
+      state: latest
+      name:
+      - dist-git
+      - dist-git-selinux
+      - copr-dist-git
+      - copr-selinux
+
+  handlers:
+  - import_tasks: "{{ handlers_path }}/restart_services.yml"

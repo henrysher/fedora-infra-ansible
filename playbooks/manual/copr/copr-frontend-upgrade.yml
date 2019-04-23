@@ -1,0 +1,28 @@
+---
+- name: upgrade copr frontend
+  hosts: copr-front-dev:copr-front
+  user: root
+  gather_facts: True
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  tasks:
+  - name: Upgrade copr-frontend packages
+    dnf:
+      state: latest
+      name:
+      - copr-frontend
+      - copr-selinux
+
+  - name: upgrade db to head
+    command: alembic-3 upgrade head
+    become: yes
+    become_user: copr-fe
+    args:
+      chdir: /usr/share/copr/coprs_frontend/
+
+  handlers:
+  - import_tasks: "{{ handlers_path }}/restart_services.yml"

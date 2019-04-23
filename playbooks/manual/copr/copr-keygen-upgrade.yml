@@ -1,6 +1,6 @@
 ---
-- name: upgrade copr frontend
-  hosts: copr-front-stg
+- name: upgrade copr keygen
+  hosts: copr-keygen-dev:copr-keygen-stg:copr-keygen
   user: root
   gather_facts: True
 
@@ -9,12 +9,15 @@
    - "/srv/private/ansible/vars.yml"
    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
 
-  roles:
-  - copr/frontend
-
   tasks:
-  - name: Upgrade copr-frontend package
-    dnf: state=latest pkg=copr-frontend
+  - name: Upgrade copr-keygen packages
+    dnf:
+      state: latest
+      name:
+      - copr-keygen
+      - copr-selinux
+    notify:
+    - restart haveged
 
   handlers:
   - import_tasks: "{{ handlers_path }}/restart_services.yml"

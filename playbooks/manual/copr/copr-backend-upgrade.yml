@@ -1,0 +1,21 @@
+---
+- name: upgrade copr backend
+  hosts: copr-back-dev:copr-back-stg:copr-back
+  user: root
+  gather_facts: True
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  tasks:
+  - name: Upgrade copr-backend packages
+    dnf:
+      state: latest
+      name:
+      - copr-backend
+      - copr-selinux
+
+  handlers:
+  - import_tasks: "{{ handlers_path }}/restart_services.yml"
