@@ -78,29 +78,6 @@ config = dict(
             ),
         ),
 
-        # For fedora-hubs (not fedora-apps)
-        dict(
-            network='chat.freenode.net',
-            port=6667,
-            make_pretty=True,
-            make_terse=True,
-
-            {% if env == 'staging' %}
-            nickname='fn-stg-hubs',
-            {% else %}
-            nickname='fm-hubs',
-            {% endif %}
-            channel='fedora-hubs',
-            filters=dict(
-                topic=[
-                    '^((?!(github\.create|github\.issue\.|github\.pull_request\.|github\.commit_comment|github\.star|pagure)).)*$',
-                ],
-                body=[
-                    "^((?!(fedora-hubs)).)*$",
-                ],
-            ),
-        ),
-
         # For that commops crew!
         dict(
             network='chat.freenode.net',
