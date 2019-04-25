@@ -1,3 +1,22 @@
+- name: delete the old cronjob
+  hosts: os-masters-stg[0]
+  user: root
+  gather_facts: False
+
+  vars_files:
+    - /srv/web/infra/ansible/vars/global.yml
+    - "/srv/private/ansible/vars.yml"
+    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  tasks:
+    - name: first delete the job
+      command: "oc -n mdapi delete job mdapi-1548256800"
+
+    - name: then delete the cronjob
+      command: "oc -n mdapi delete cronjob mdapi"
+  tags:
+    - delete-cron
+
 - name: make the app be real
   hosts: os-masters-stg[0]
   user: root
