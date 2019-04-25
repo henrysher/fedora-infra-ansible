@@ -9,6 +9,9 @@
     - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
 
   roles:
+  - role: rabbit/user
+    username: "mdapi{{ env_suffix }}"
+
   - role: openshift/project
     app: mdapi
     description: mdapi is a small API exposing the metadata contained in different RPM repositories.
@@ -35,6 +38,24 @@
     app: mdapi
     template: configmap.yml
     objectname: configmap.yml
+
+  - role: openshift/secret-file
+    app: mdapi
+    secret_name: mdapi-fedora-messaging-key
+    key: mdapi.key
+    privatefile: "rabbitmq/{{env}}/pki/private/mdapi{{env_suffix}}.key"
+
+  - role: openshift/secret-file
+    app: mdapi
+    secret_name: mdapi-fedora-messaging-crt
+    key: mdapi.crt
+    privatefile: "rabbitmq/{{env}}/pki/issued/mdapi{{env_suffix}}.crt"
+
+  - role: openshift/secret-file
+    app: mdapi
+    secret_name: mdapi-fedora-messaging-ca
+    key: mdapi.ca
+    privatefile: "rabbitmq/{{env}}/pki/ca.crt"
 
   - role: openshift/object
     app: mdapi

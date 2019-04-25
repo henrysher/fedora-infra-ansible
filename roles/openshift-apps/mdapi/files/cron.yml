@@ -17,13 +17,22 @@ spec:
             image: docker-registry.default.svc:5000/mdapi/mdapi:latest
             command: ["bash", "-c", "/code/mdapi/mdapi-get_repo_md /etc/mdapi/mdapi.cfg; echo failed"]
             volumeMounts:
-            - mountPath: /etc/mdapi
-              name: config-volume
+            - name: config-volume
+              mountPath: /etc/mdapi
               readOnly: true
-            - mountPath: /var/tmp
-              name: data-volume
-            - mountPath: /etc/fedora-messaging/
-              name: fedora-messaging-config-volume
+            - name: data-volume
+              mountPath: /var/tmp
+            - name: fedora-messaging-config-volume
+              mountPath: /etc/fedora-messaging/
+              readOnly: true
+            - name: fedora-messaging-ca-volume
+              mountPath: /etc/pki/rabbitmq/ca
+              readOnly: true
+            - name: fedora-messaging-key-volume
+              mountPath: /etc/pki/rabbitmq/key
+              readOnly: true
+            - name: fedora-messaging-crt-volume
+              mountPath: /etc/pki/rabbitmq/crt
               readOnly: true
           restartPolicy: Never
           volumes:
@@ -37,3 +46,12 @@ spec:
           - name: fedora-messaging-config-volume
             configMap:
               name: fedora-messaging-configmap
+          - name: fedora-messaging-ca-volume
+            secret:
+                secretName: mdapi-fedora-messaging-ca
+          - name: fedora-messaging-key-volume
+            secret:
+                secretName: mdapi-fedora-messaging-key
+          - name: fedora-messaging-crt-volume
+            secret:
+                secretName: mdapi-fedora-messaging-crt

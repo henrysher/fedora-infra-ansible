@@ -1,3 +1,4 @@
+{% macro load_file(filename) %}{% include filename %}{%- endmacro -%}
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -7,28 +8,14 @@ metadata:
     app: mdapi
 data:
   mdapi.cfg: |-
-    HOST = '*'
-    PORT = '8080'
-    DL_VERIFY = False
-{% if env == 'staging' %}
-    KOJI_REPO = 'https://koji.stg.fedoraproject.org/repos/'
-    DL_SERVER = 'http://dl.phx2.fedoraproject.org'
-{% else %}
-    KOJI_REPO = 'https://koji.fedoraproject.org/repos/'
-    DL_SERVER = 'http://dl.phx2.fedoraproject.org'
-{% endif %}
+    {{ load_file('mdapi.cfg') | indent }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: fedora-messaging-configmap
+  labels:
+    app: mdapi
+data:
   config.toml: |-
-    amqp_url = "amqps://messaging-bridge{{ env_suffix }}.fedoraproject.org:@rabbitmq01{{ env_suffix }}.phx2.fedoraproject.org/%2Fpubsub"
-    publish_exchange = "amq.topic"
-
-    [tls]
-    ca_cert = "/etc/pki/rabbitmq/ca/rabbitmq-ca.crt"
-    keyfile = "/etc/pki/rabbitmq/key/rabbitmq-NAME_OF_CERT.key"
-    certfile = "/etc/pki/rabbitmq/crt/rabbitmq-NAME_OF_CERT.crt"
-
-    [client_properties]
-    app = "mdapi"
-
-    [qos]
-    prefetch_size = 0
-    prefetch_count = 25
+    {{ load_file('config.toml') | indent }}

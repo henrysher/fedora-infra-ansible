@@ -1,0 +1,22 @@
+amqp_url = "amqps://mdapi{{ env_suffix }}.fedoraproject.org:@rabbitmq{{ env_suffix }}.fedoraproject.org/%2Fpubsub"
+
+{% if env == "staging" %}
+topic_prefix = "org.fedoraproject.stg"
+{% else %}
+topic_prefix = "org.fedoraproject.prod"
+{% endif %}
+
+publish_exchange = "amq.topic"
+passive_declares = true
+
+[tls]
+ca_cert = "/etc/pki/rabbitmq/ca/mdapi.ca"
+keyfile = "/etc/pki/rabbitmq/key/mdapi.key"
+certfile = "/etc/pki/rabbitmq/crt/mdapi.crt"
+
+[client_properties]
+app = "mdapi"
+
+[qos]
+prefetch_size = 0
+prefetch_count = 25
