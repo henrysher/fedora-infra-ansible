@@ -15,14 +15,34 @@
     appowners:
     - cverna
     - pingou
+
   - role: openshift/object
     app: elections
     template: imagestream.yml
     objectname: imagestream.yml
+
   - role: openshift/object
     app: elections
     template: buildconfig.yml
     objectname: buildconfig.yml
+
+  - role: openshift/secret-file
+    app: elections
+    secret_name: elections-fedora-messaging-key
+    key: elections.key
+    privatefile: "rabbitmq/{{env}}/pki/private/elections{{env_suffix}}.key"
+
+  - role: openshift/secret-file
+    app: elections
+    secret_name: elections-fedora-messaging-crt
+    key: elections.crt
+    privatefile: "rabbitmq/{{env}}/pki/issued/elections{{env_suffix}}.crt"
+
+  - role: openshift/secret-file
+    app: elections
+    secret_name: elections-fedora-messaging-ca
+    key: elections.ca
+    privatefile: "rabbitmq/{{env}}/pki/ca.crt"
 
   - role: openshift/object
     app: elections
