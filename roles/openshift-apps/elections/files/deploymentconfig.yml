@@ -24,6 +24,7 @@ spec:
             value: /opt/app-root/src
           volumes:
             - config-volume
+            - secret-volume
   template:
     metadata:
       labels:
@@ -39,6 +40,9 @@ spec:
         volumeMounts:
         - name: config-volume
           mountPath: /opt/app-root/config/
+          readOnly: true
+        - name: secret-volume:
+          mountPath: /opt/app-root/secret/
           readOnly: true
         - name: fedora-messaging-ca-volume
           mountPath: /etc/pki/rabbitmq/ca
@@ -65,6 +69,9 @@ spec:
       - name: config-volume
         configMap:
           name: elections-configmap
+      - name: secret-volume:
+        secret:
+            secretName: elections-secret
       - name: fedora-messaging-ca-volume
         secret:
           secretName: elections-fedora-messaging-ca
