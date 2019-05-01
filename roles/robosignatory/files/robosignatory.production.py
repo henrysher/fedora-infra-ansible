@@ -44,6 +44,12 @@ config = {
                     "keyid": "3c3359c4"
                 },
                 {
+                    "from": "f31-python",
+                    "to": "f31-python",
+                    "key": "fedora-31",
+                    "keyid": "3c3359c4"
+                },
+                {
                     "from": "f29-kde",
                     "to": "f29-kde",
                     "key": "fedora-29",
