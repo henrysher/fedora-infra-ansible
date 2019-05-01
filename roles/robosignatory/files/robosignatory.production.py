@@ -117,6 +117,14 @@ config = {
                     "keyid": "47dd8ef9"
                 },
 
+                # Gated coreos-pool tag
+                {
+                    "from": "f30-coreos-signing-pending",
+                    "to": "coreos-pool",
+                    "key": "fedora-30",
+                    "keyid": "cfc659b9"
+                },
+
                 # Gated rawhide and branched
                 {
                     "from": "f31-pending",
