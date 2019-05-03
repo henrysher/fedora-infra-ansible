@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: BuildConfig
+metadata:
+  labels:
+    build: ipsilon
+  name: ipsilon
+spec:
+  runPolicy: Serial
+  source:
+    dockerfile: |-
+      FROM fedora:29
+      RUN curl -o /etc/yum.repos.d/infra-tags.repo https://infrastructure.fedoraproject.org/cgit/ansible.git/plain/files/common/fedora-infra-tags.repo
+{% if env == "staging" %}
+      RUN curl -o /etc/yum.repos.d/infra-tags-stg.repo https://infrastructure.fedoraproject.org/cgit/ansible.git/plain/files/common/fedora-infra-tags-stg.repo
+{% endif %}
+      RUN dnf install -y ipsilon ipsilon-authfas ipsilon-openid ipsilon-saml2 ipsilon-persona ipsilon-infofas ipsilon-authgssapi ipsilon-openidc mod_auth_openidc python-psycopg2 httpd mod_wsgi
+      EXPOSE 8080
+      ENTRYPOINT bash /etc/ipsilon/start.sh
+    type: Dockerfile
+  strategy:
+    type: Docker
+    dockerStrategy:
+      noCache: false
+  output:
+    to:
+      kind: ImageStreamTag
+      name: ipsilon:latest

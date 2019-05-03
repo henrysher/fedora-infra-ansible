@@ -1,0 +1,75 @@
+apiVersion: v1
+kind: DeploymentConfig
+metadata:
+  labels:
+    app: ipsilon
+    service: ipsilon
+  name: ipsilon
+spec:
+  selector:
+    deploymentconfig: ipsilon
+  strategy:
+    activeDeadlineSeconds: 21600
+    recreateParams:
+      timeoutSeconds: 600
+    resources: {}
+    rollingParams:
+      intervalSeconds: 1
+      maxSurge: 25%
+      maxUnavailable: 25%
+      timeoutSeconds: 600
+      updatePeriodSeconds: 1
+    type: Rolling
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: ipsilon
+        deploymentconfig: ipsilon
+    spec:
+      containers:
+      - name: ipsilon
+        image: ipsilon:latest
+        ports:
+        - containerPort: 8080
+        volumeMounts:
+        - name: config-volume
+          mountPath: /etc/ipsilon
+          readOnly: true
+        - name: keytab-volume
+          mountPath: /etc/keytabs
+          readOnly: true
+        - name: httpdir-volume
+          mountPath: /httpdir
+        readinessProbe:
+          timeoutSeconds: 10
+          initialDelaySeconds: 5
+          httpGet:
+            path: /
+            port: 8080
+        livenessProbe:
+          timeoutSeconds: 10
+          initialDelaySeconds: 30
+          httpGet:
+            path: /
+            port: 8080
+      volumes:
+      - name: config-volume
+        configMap:
+          name: ipsilon-configmap
+      - name: keytab-volume
+        secret:
+          secretName: ipsilon-keytab
+      - name: httpdir-volume
+        emptyDir: {}
+  triggers:
+  - imageChangeParams:
+      automatic: true
+      containerNames:
+      - ipsilon
+      from:
+        kind: ImageStreamTag
+        name: ipsilon:latest
+        namespace: ipsilon
+    type: ImageChange
+  - type: ConfigChange

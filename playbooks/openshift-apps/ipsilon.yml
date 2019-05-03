@@ -1,0 +1,58 @@
+- name: make the app be real
+  hosts: os-masters-stg[0]
+  user: root
+  gather_facts: False
+
+  vars_files:
+    - /srv/web/infra/ansible/vars/global.yml
+    - "/srv/private/ansible/vars.yml"
+    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  pre_tasks:
+  - include_vars: dir=/srv/web/infra/ansible/vars/all/ ignore_files=README
+
+  roles:
+  - role: openshift/project
+    app: ipsilon
+    description: ipsilon
+    appowners:
+    - puiterwijk
+  - role: openshift/keytab
+    app: ipsilon
+    key: ipsilon-keytab
+    secret_name: ipsilon-keytab
+    service: HTTP
+    host: "id{{ env_suffix }}.fedoraproject.org"
+  - role: openshift/imagestream
+    app: ipsilon
+    imagename: ipsilon
+  - role: openshift/object
+    app: ipsilon
+    template: buildconfig.yml
+    objectname: buildconfig.yml
+  - role: openshift/start-build
+    app: ipsilon
+    buildname: ipsilon
+
+  - role: openshift/object
+    app: ipsilon
+    template_fullpath: "{{roles_path}}/bodhi2/base/templates/configmap.yml"
+    objectname: configmap.yml
+
+  - role: openshift/object
+    app: ipsilon
+    file: service.yml
+    objectname: service.yml
+  - role: openshift/route
+    app: ipsilon
+    routename: ipsilon
+    host: "id{{ env_suffix }}.fedoraproject.org"
+    serviceport: web
+    servicename: ipsilon
+  - role: openshift/object
+    app: ipsilon
+    template: deploymentconfig.yml
+    objectname: deploymentconfig.yml
+  - role: openshift/rollout
+    app: ipsilon
+    dcname: ipsilon
