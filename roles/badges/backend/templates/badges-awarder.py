@@ -2,7 +2,7 @@ config = {
     # We need to tell the fedmsg-hub that it should load our consumer on start.
     "fedmsg.consumers.badges.enabled": True,
 
-    "moksha.workers_per_consumer": 2,
+    "moksha.workers_per_consumer": 3,
     "moksha.threadpool_size": 4,
 
     # This tells the consumer where to look for its BadgeRule definitions.  It
