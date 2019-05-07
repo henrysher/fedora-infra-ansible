@@ -9,20 +9,48 @@
     - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
 
   roles:
+  - role: rabbit/user
+    username: "fedocal{{ env_suffix }}"
+
   - role: openshift/project
     app: fedocal
     description: Fedora calendar apps
     appowners:
     - cverna
     - pingou
+
   - role: openshift/object
     app: fedocal
     template: imagestream.yml
     objectname: imagestream.yml
+
   - role: openshift/object
     app: fedocal
     template: buildconfig.yml
     objectname: buildconfig.yml
+
+  - role: openshift/secret-file
+    app: fedocal
+    secret_name: fedocal-fedora-messaging-key
+    key: fedocal.key
+    privatefile: "rabbitmq/{{env}}/pki/private/fedocal{{env_suffix}}.key"
+
+  - role: openshift/secret-file
+    app: fedocal
+    secret_name: fedocal-fedora-messaging-crt
+    key: fedocal.crt
+    privatefile: "rabbitmq/{{env}}/pki/issued/fedocal{{env_suffix}}.crt"
+
+  - role: openshift/secret-file
+    app: fedocal
+    secret_name: fedocal-fedora-messaging-ca
+    key: fedocal.ca
+    privatefile: "rabbitmq/{{env}}/pki/ca.crt"
+
+  - role: openshift/object
+    app: fedocal
+    template: secret.yml
+    objectname: secret.yml
 
   - role: openshift/object
     app: fedocal

@@ -1,0 +1,23 @@
+# A sample configuration for fedora-messaging. This file is in the TOML format.
+# For complete details on all configuration options, see the documentation.
+# https://fedora-messaging.readthedocs.io/en/stable/configuration.html
+
+# Broker address
+amqp_url = "amqps://fedocal{{ env_suffix }}:@rabbitmq{{ env_suffix }}.fedoraproject.org/%2Fpubsub"
+
+# The topic_prefix configuration value will add a prefix to the topics of every sent message.
+# This is used for migrating from fedmsg, and should not be used afterwards.
+{% if env == "staging" %}
+topic_prefix = "org.fedoraproject.stg"
+{% else %}
+topic_prefix = "org.fedoraproject.prod"
+{% endif %}
+
+[tls]
+ca_cert = "/etc/pki/rabbitmq/ca/fedocal.ca"
+keyfile = "/etc/pki/rabbitmq/key/fedocal.key"
+certfile = "/etc/pki/rabbitmq/cert/fedocal.crt"
+
+[client_properties]
+app = "fedocal"
+
