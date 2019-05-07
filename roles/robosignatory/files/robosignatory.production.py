@@ -474,6 +474,14 @@ config = {
             'directory': '/mnt/fedora_koji/koji/compose/ostree/repo/',
             'key': 'fedora-30'
         },
+        'fedora/rawhide/aarch64/silverblue': {
+            'directory': '/mnt/fedora_koji/koji/compose/ostree/repo/',
+            'key': 'fedora-31'
+        },
+        'fedora/rawhide/ppc64le/silverblue': {
+            'directory': '/mnt/fedora_koji/koji/compose/ostree/repo/',
+            'key': 'fedora-31'
+        },
         'fedora/rawhide/x86_64/silverblue': {
             'directory': '/mnt/fedora_koji/koji/compose/ostree/repo/',
             'key': 'fedora-31'
