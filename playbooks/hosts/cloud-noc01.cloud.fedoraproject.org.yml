@@ -28,6 +28,24 @@
   - import_tasks: "{{ tasks_path }}/2fa_client.yml"
   - import_tasks: "{{ tasks_path }}/motd.yml"
 
+  - name: check if ntpd port is already known by selinux
+    shell: semanage port -l | grep ntp
+    register: ntp_selinux_port
+    check_mode: no
+    changed_when: false
+    failed_when: false
+    tags:
+    - config
+    - selinux
+
+  - name: allow alternate ntpd port
+    command: semanage port -a -t ntp_port_t -p tcp 124
+    when: "124" not in ntp_selinux_port
+    failed_when: false
+    tags:
+    - config
+    - selinux
+
   handlers:
   - import_tasks: "{{ handlers_path }}/restart_services.yml"
 
