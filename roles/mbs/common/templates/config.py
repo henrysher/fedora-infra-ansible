@@ -198,8 +198,8 @@ class ProdConfiguration(BaseConfiguration):
     # Don't let people submit yaml directly.  it has to come from dist-git
     YAML_SUBMIT_ALLOWED = False
 
-    # Set the priority to 4 to have higher priority than F27 mass rebuild.
-    KOJI_BUILD_PRIORITY = 4
+    # Relative Koji task priority (0 means default priority of 20).
+    KOJI_BUILD_PRIORITY = 0
 
     # Check branch EOL before building.  Block EOL modules from building.
     # https://pagure.io/fm-orchestrator/issue/960
