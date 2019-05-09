@@ -2,8 +2,16 @@ Alias /ui /usr/share/ipsilon/ui
 Alias /.well-known /etc/ipsilon/wellknown
 WSGIScriptAlias / /usr/libexec/ipsilon
 WSGIPassAuthorization On
+{% if inventory_hostname.startswith('os-') %}
+WSGIDaemonProcess ipsilon home=/var/lib/ipsilon processes=2 threads=2 maximum-requests=1000
+WSGIApplicationGroup %{GLOBAL}
+WSGISocketPrefix /httpdir/run/wsgi
+WSGIRestrictStdout Off
+WSGIRestrictSignal Off
+{% else %}
 WSGIDaemonProcess ipsilon user=ipsilon group=ipsilon home=/var/lib/ipsilon processes=2 threads=2 maximum-requests=1000
 WSGIImportScript /usr/libexec/ipsilon process-group=ipsilon application-group=ipsilon
+{% endif %}
 
 
 <Location />
