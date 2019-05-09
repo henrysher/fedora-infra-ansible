@@ -1,5 +1,12 @@
 define service {
   hostgroup_name        proxies
+  service_description   http-ipsilon
+  check_command         check_website!id.fedoraproject.org!/!Federated Open Authentication
+  use                   websitetemplate
+}
+
+define service {
+  hostgroup_name        proxies
   service_description   http-fedoraproject.org
   check_command         check_website!fedoraproject.org!/!https://fedoraproject.org/
   use                   websitetemplate
@@ -216,15 +223,6 @@ define service {
   check_command		check_website!localhost!/github2fedmsg/!stuff
   max_check_attempts	8
   use			internalwebsitetemplate
-  event_handler         restart_httpd
-}
-
-define service {
-  hostgroup_name        ipsilon
-  service_description   http-ipsilon-internal
-  check_command         check_website!localhost!/!Federated Open Authentication
-  max_check_attempts    8
-  use                   internalwebsitetemplate
   event_handler         restart_httpd
 }
 
