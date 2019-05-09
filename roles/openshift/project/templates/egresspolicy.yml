@@ -6,14 +6,15 @@ metadata:
 spec:
   egress:
 {% if not allow_fas_db or env != "production" %}
+{% if env == "staging" %}
+  - type: Deny
+    to:
+      cidrSelector: "10.5.128.96/32"
+{% else %}
   - type: Deny
     to:
       cidrSelector: "10.5.126.99/32"
 {% endif %}
-{% if not allow_fas_db or env != "staging" %}
-  - type: Deny
-    to:
-      cidrSelector: "10.5.128.96/32"
 {% endif %}
   - type: Allow
     to:
