@@ -1,3 +1,4 @@
+{%- macro load_file(filename) %}    {% include filename %}{%- endmacro -%}
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -105,9 +106,26 @@ data:
     WSGIRestrictSignal Off
     WSGIPythonOptimize 1
     WSGIScriptAlias / /usr/share/bodhi/bodhi.wsgi
+  logging.yaml: |-
+    {{ load_file('logging.yaml') | indent }}
   production.ini: |-
-    {%- macro production_ini() %}    {% include "production.ini.j2" %}{%- endmacro -%}
-    {{ production_ini() | indent() }}
+    {{ load_file('production.ini.j2') | indent }}
+# We can remove this if statement once we deploy Bodhi 4.0.0 to production.
+{% if env == "staging" %}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: fedora-messaging-configmap
+  labels:
+    app: bodhi
+data:
+  fedora-messaging.toml: |-
+  config.toml: |-
+    {{ load_file('fedora-messaging.toml.j2') | indent }}
+{% endif %}
+# We can drop the next ConfigMap once Bodhi 4.0.0 is deployed to production.
+{% if env == "production" %}
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -136,3 +154,4 @@ data:
         'environment': 'prod',
 {% endif %}
     }
+{% endif %}

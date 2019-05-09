@@ -49,6 +49,8 @@ items:
             readOnly: true
           - name: httpdir-volume
             mountPath: /httpdir
+# We can remove this if/else once we deploy Bodhi 4.0.0 to production.
+{% if env == "production" %}
           - name: fedmsg-config-volume
             mountPath: /etc/bodhi-fedmsg.d
             readOnly: true
@@ -58,6 +60,20 @@ items:
           - name: fedmsg-crt-volume
             mountPath: /etc/pki/fedmsg/crt
             readOnly: true
+{% else %}
+          - name: fedora-messaging-config-volume
+            mountPath: /etc/fedora-messaging
+            readOnly: true
+          - name: fedora-messaging-ca-volume
+            mountPath: /etc/fedora-messaging/cacert.pem
+            readOnly: true
+          - name: fedora-messaging-crt-volume
+            mountPath: /etc/fedora-messaging/bodhi-cert.pem
+            readOnly: true
+          - name: fedora-messaging-key-volume
+            mountPath: /etc/fedora-messaging/bodhi-key.pem
+            readOnly: true
+{% endif %}
           readinessProbe:
             timeoutSeconds: 10
             initialDelaySeconds: 5
@@ -79,6 +95,21 @@ items:
             secretName: bodhi-keytab
         - name: httpdir-volume
           emptyDir: {}
+# We can remove this if/else once we deploy Bodhi 4.0.0 to production.
+{% if env == "staging" %}
+        - name: fedora-messaging-config-volume
+          configMap:
+            name: fedora-messaging-configmap
+        - name: fedora-messaging-ca-volume
+          secret:
+            secretName: bodhi-fedora-messaging-ca
+        - name: fedora-messaging-crt-volume
+          secret:
+            secretName: bodhi-fedora-messaging-crt
+        - name: fedora-messaging-key-volume
+          secret:
+            secretName: bodhi-fedora-messaging-key
+{% else %}
         - name: fedmsg-config-volume
           configMap:
             name: fedmsg-configmap
@@ -88,6 +119,7 @@ items:
         - name: fedmsg-crt-volume
           secret:
             secretName: bodhi-fedmsg-crt
+{% endif %}
     triggers:
     - imageChangeParams:
         automatic: true

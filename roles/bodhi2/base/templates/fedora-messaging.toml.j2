@@ -1,0 +1,107 @@
+amqp_url = "amqps://bodhi{{ env_suffix }}:@rabbitmq{{ env_suffix }}.fedoraproject.org/%2Fpubsub"
+
+{% if env == "staging" %}
+topic_prefix = "org.fedoraproject.stg"
+{% else %}
+topic_prefix = "org.fedoraproject.prod"
+{% endif %}
+
+publish_exchange = "amq.topic"
+passive_declares = false
+
+callback = "bodhi.server.consumers:messaging_callback"
+
+
+[tls]
+ca_cert = "/etc/fedora-messaging/cacert.pem"
+keyfile = "/etc/fedora-messaging/bodhi-key.pem"
+certfile = "/etc/fedora-messaging/bodhi-cert.pem"
+
+
+[client_properties]
+app = "bodhi"
+
+
+[queues."bodhi{{ env_suffix }}"]
+durable = true
+auto_delete = false
+exclusive = false
+arguments = {}
+
+
+[[bindings]]
+queue = "bodhi{{ env_suffix }}"
+exchange = "amq.topic"
+routing_keys = [
+    "org.fedoraproject.*.bodhi.composer.start",
+    "org.fedoraproject.*.bodhi.update.request.testing",
+    "org.fedoraproject.*.buildsys.tag",
+]
+
+
+[log_config]
+version = 1
+disable_existing_loggers = true
+
+
+[log_config.filters.rate_limit]
+() = bodhi.server.logging.RateLimiter
+rate = 3600
+
+
+[log_config.formatters.simple]
+format = "[%(levelname)s %(name)s] %(message)s"
+
+
+[log_config.handlers.console]
+class = "logging.StreamHandler"
+formatter = "simple"
+stream = "ext://sys.stdout"
+
+
+[log_config.handlers.email]
+class = "logging.handlers.SMTPHandler"
+formatter = "simple"
+level = "ERROR"
+filters = ["rate_limit"]
+mailhost = "bastion"
+{% if env == "staging" %}
+fromaddr = "updates@stg.fedoraproject.org"
+{% else %}
+fromaddr = "updates@fedoraproject.org"
+{% endif %}
+toaddrs = ["bodhiadmin-members@fedoraproject.org"]
+subject = "Bodhi error"
+
+
+[log_config.loggers.bodhi]
+level = "INFO"
+propagate = false
+handlers = ["console", "email"]
+
+
+[log_config.loggers.fedora_messaging]
+level = "INFO"
+propagate = false
+handlers = ["console", "email"]
+
+
+# Twisted is the asynchronous framework that manages the TCP/TLS connection, as well
+# as the consumer event loop. When debugging you may want to lower this log level.
+[log_config.loggers.twisted]
+level = "INFO"
+propagate = false
+handlers = ["console", "email"]
+
+
+# Pika is the underlying AMQP client library. When debugging you may want to
+# lower this log level.
+[log_config.loggers.pika]
+level = "WARNING"
+propagate = false
+handlers = ["console", "email"]
+
+
+[log_config.root]
+level = "ERROR"
+handlers = ["console", "email"]

@@ -1,0 +1,40 @@
+---
+version: 1
+
+formatters:
+  generic:
+    format: '%(asctime)s %(levelname)-5.5s [%(name)s][%(threadName)s] %(message)s'
+filters:
+  rate_limit:
+    (): bodhi.server.logging.RateLimiter
+    rate: 3600
+handlers:
+  console:
+    class: StreamHandler
+    level: NOTSET
+    formatter: generic
+  smtp:
+    class: logging.handlers.SMTPHandler
+    level: ERROR
+    formatter: generic
+    filters: [rate_limit]
+    mailhost: "bastion"
+{% if env == "production" %}
+    fromaddr: "updates@fedoraproject.org"
+{% else %}
+    fromaddr: "updates@stg.fedoraproject.org"
+{% endif %}
+    toaddrs:
+        - "bodhiadmin-members@fedoraproject.org"
+    subject: "Bodhi error"
+loggers:
+  bodhi:
+    level: INFO
+    handlers: [console, smtp]
+    propagate: 0
+  root:
+    level: INFO
+    handlers: [console, smtp]
+root:
+  level: NOTSET
+  handlers: []

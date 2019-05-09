@@ -1,6 +1,6 @@
 ---
-# tasklist for setting up bodhi/masher (requires bodhi/base)
-# This is the base set of files needed for bodhi/masher
+# tasklist for setting up bodhi/composer (requires bodhi/base)
+# This is the base set of files needed for bodhi/composer
 
 - name: add ftpsync group
   group: name=ftpsync gid=263 system=yes state=present
@@ -185,6 +185,7 @@
   - bodhi
   - cron
 
+# This task can be dropped once Bodhi 4.0.0 is deployed to production.
 - name: Install bodhi-dequeue-stable cron job that moves updates from batched to stable
   cron:
     name: "bodhi-dequeue-stable"
@@ -193,7 +194,7 @@
     weekday: "*"
     job: "/usr/bin/bodhi-dequeue-stable && touch /var/lib/bodhi/dequeue-stable"
     user: "apache"
-  when: inventory_hostname.startswith('bodhi-backend01.phx2')
+  when: inventory_hostname.startswith('bodhi-backend01.phx2') and env == "production"
   tags:
   - bodhi
   - cron
@@ -324,7 +325,21 @@
   - bodhi
   - cron
 
-- name: setup basic /etc/bodhi/ contents
+- name: Install logging.yaml
+  template: >
+    src="{{  roles_path  }}/bodhi2/base/templates/logging.yaml"
+    dest="/etc/bodhi/logging.yaml"
+    owner=apache
+    group=apache
+    mode=0600
+  when: inventory_hostname.startswith('bodhi-backend')
+  notify:
+  - reload bodhi httpd
+  tags:
+  - config
+  - bodhi
+
+- name: Install production.ini
   template: >
     src="{{  roles_path  }}/bodhi2/base/templates/production.ini.j2"
     dest="/etc/bodhi/production.ini"
@@ -334,6 +349,19 @@
   when: inventory_hostname.startswith('bodhi-backend')
   notify:
   - reload bodhi httpd
+  tags:
+  - config
+  - bodhi
+
+# Remove the env == "staging" condition when we deploy Bodhi 4.0.0 to production.
+- name: Install fedora-messaging config
+  template: >
+    src="{{  roles_path  }}/bodhi2/base/templates/fedora-messaging.toml.j2"
+    dest="/etc/fedora-messaging/config.toml"
+    owner=apache
+    group=apache
+    mode=0600
+  when: inventory_hostname.startswith('bodhi-backend') and env == "staging"
   tags:
   - config
   - bodhi
