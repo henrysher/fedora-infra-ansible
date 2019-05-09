@@ -1,0 +1,95 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ipsilon-configmap
+  labels:
+    app: ipsilon
+data:
+  krb5.conf: |-
+    [logging]
+     default = FILE:/var/log/krb5libs.log
+     kdc = FILE:/var/log/krb5kdc.log
+     admin_server = FILE:/var/log/kadmind.log
+    [libdefaults]
+     default_realm = {{ ipa_realm }}
+     rdns = false
+     dns_canonicalize_hostname = false
+     dns_lookup_realm = false
+     dns_lookup_kdc = false
+     ticket_lifetime = 24h
+     renew_lifetime = 7d
+     forwardable = true
+    [realms]
+     {{ ipa_realm }} = {
+      kdc = https://id{{ env_suffix }}.fedoraproject.org/KdcProxy
+     }
+    [domain_realm]
+     .fedoraproject.org = FEDORAPROJECT.ORG
+     fedoraproject.org = FEDORAPROJECT.ORG
+    {% if env == "staging" %}
+     .stg.phx2.fedoraproject.org = STG.FEDORAPROJECT.ORG
+    {% endif %}
+     .stg.fedoraproject.org = STG.FEDORAPROJECT.ORG
+     stg.fedoraproject.org = STG.FEDORAPROJECT.ORG
+  start.sh: |-
+    mkdir /httpdir/run
+    ln -s /etc/httpd/modules /httpdir/modules
+    truncate --size=0 /httpdir/accesslog /httpdir/errorlog
+    tail -qf /httpdir/accesslog /httpdir/errorlog &
+    exec httpd -f /etc/ipsilon/httpd.conf -DFOREGROUND -DNO_DETACH
+  httpd.conf: |-
+    Listen 0.0.0.0:8080
+    ServerRoot "/httpdir"
+    PidFile "/httpdir/httpd.pid"
+    LoadModule authn_file_module modules/mod_authn_file.so
+    LoadModule authn_anon_module modules/mod_authn_anon.so
+    LoadModule authz_user_module modules/mod_authz_user.so
+    LoadModule authz_host_module modules/mod_authz_host.so
+    LoadModule include_module modules/mod_include.so
+    LoadModule log_config_module modules/mod_log_config.so
+    LoadModule env_module modules/mod_env.so
+    LoadModule ext_filter_module modules/mod_ext_filter.so
+    LoadModule expires_module modules/mod_expires.so
+    LoadModule headers_module modules/mod_headers.so
+    LoadModule mime_module modules/mod_mime.so
+    LoadModule status_module modules/mod_status.so
+    LoadModule negotiation_module modules/mod_negotiation.so
+    LoadModule dir_module modules/mod_dir.so
+    LoadModule alias_module modules/mod_alias.so
+    LoadModule rewrite_module modules/mod_rewrite.so
+    LoadModule version_module modules/mod_version.so
+    LoadModule wsgi_module modules/mod_wsgi_python3.so
+    LoadModule authn_core_module modules/mod_authn_core.so
+    LoadModule authz_core_module modules/mod_authz_core.so
+    LoadModule unixd_module modules/mod_unixd.so
+    LoadModule mpm_event_module modules/mod_mpm_event.so
+    StartServers  20
+    ServerLimit   100
+    MaxRequestsPerChild 2000
+    MaxRequestWorkers 100
+    LogFormat "%h %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-Agent}i\"" combined
+    CustomLog /httpdir/accesslog combined
+    ErrorLog /httpdir/errorlog
+    LogLevel info
+    TypesConfig /etc/mime.types
+    AddDefaultCharset UTF-8
+    CoreDumpDirectory /tmp
+
+    # Ipsilon stuff
+    {%- macro import_config(filename) %}    {% include filename %}{%- endmacro -%}
+    {{ import_config("ipsilon-httpd.conf.j2") | indent() }}
+  ipsilon.conf: |-
+    {%- macro import_config(filename) %}    {% include filename %}{%- endmacro -%}
+    {{ import_config("ipsilon.conf") | indent() }}
+  configuration.conf: |-
+    {%- macro import_config(filename) %}    {% include filename %}{%- endmacro -%}
+    {{ import_config("configuration.conf") | indent() }}
+  openidc.static.cfg: |-
+    # TODO
+  openidc.key: |-
+    # TODO
+  saml2_idp.key: |-
+    # TODO
+  saml2_idp.crt: |-
+    # TODO
