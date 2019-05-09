@@ -1,6 +1,20 @@
 RewriteEngine on
 RewriteRule /.well-known/openid-configuration /openidc/.well-known/openid-configuration [PT]
 
+# This is for mapping $username.id.fp.o -> id.fp.o/id/$username
+RewriteEngine on
+RewriteMap lowercase int:tolower
+{% if env == "staging" %}
+RewriteCond ${lowercase:%{SERVER_NAME}} ^[a-z0-9-]+\.id\.stg\.fedoraproject\.org$
+RewriteRule ^(.+) ${lowercase:%{SERVER_NAME}}$1 [C]
+RewriteRule ^([a-z0-9-]+)\.id\.stg\.fedoraproject\.org/.* /openid/id/$1/ [PT]
+{% else %}
+RewriteCond ${lowercase:%{SERVER_NAME}} ^[a-z0-9-]+\.id\.fedoraproject\.org$
+RewriteRule ^(.+) ${lowercase:%{SERVER_NAME}}$1 [C]
+RewriteRule ^([a-z0-9-]+)\.id\.fedoraproject\.org/.* /openid/id/$1/ [PT]
+{% endif %}
+
+
 Alias /ui /usr/share/ipsilon/ui
 WSGIScriptAlias / /usr/libexec/ipsilon
 WSGIPassAuthorization On
