@@ -29,12 +29,11 @@ spec:
           mod_wsgi
 
       # Fedora specific stuff - Terrible hacky way to install, but works for testing purposes
-      RUN curl https://infrastructure.fedoraproject.org/cgit/ansible.git/plain/roles/ipsilon/files/api.py -o /usr/lib/python2.7/site-packages/ipsilon/providers/openid/extensions/api.py
-      RUN curl https://infrastructure.fedoraproject.org/cgit/ansible.git/plain/roles/ipsilon/files/infofas.py -o /usr/lib/python2.7/site-packages/ipsilon/info/infofas.py
-
+      RUN curl https://infrastructure.fedoraproject.org/cgit/ansible.git/plain/roles/ipsilon/files/api.py -o /usr/lib/python2.7/site-packages/ipsilon/providers/openid/extensions/api.py && \
 {% for scope_file in oidc_scope_filenames %}
-      RUN curl https://infrastructure.fedoraproject.org/cgit/ansible.git/plain/roles/ipsilon/files/oidc_scopes/{{ scope_file }}.py -o /usr/lib/python2.7/site-packages/ipsilon/providers/openidc/plugins/{{scope_file}}.py
+          curl https://infrastructure.fedoraproject.org/cgit/ansible.git/plain/roles/ipsilon/files/oidc_scopes/{{ scope_file }}.py -o /usr/lib/python2.7/site-packages/ipsilon/providers/openidc/plugins/{{scope_file}}.py && \
 {% endfor %}
+          curl https://infrastructure.fedoraproject.org/cgit/ansible.git/plain/roles/ipsilon/files/infofas.py -o /usr/lib/python2.7/site-packages/ipsilon/info/infofas.py
 
       RUN ln -s /etc/ipsilon/ipsilon.conf /var/lib/ipsilon/ipsilon.conf
 
