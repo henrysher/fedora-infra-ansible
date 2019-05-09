@@ -158,78 +158,41 @@
     localpath: /accounts
     proxyurl: http://localhost:10004
 
-  # Ipsilon is odd here -- it has an entry for both stg and prod.
   - role: httpd/reverseproxy
-    website: id.stg.fedoraproject.org
-    destname: os-id
-    balancer_name: app-os
-    targettype: openshift
-    keephost: true
-    tags:
-    - id.fedoraproject.org
-    when: env == "staging"
-
-  - role: httpd/reverseproxy
-    website: username.id.stg.fedoraproject.org
-    destname: os-usernameid
-    balancer_name: app-os
-    targettype: openshift
-    keephost: true
-    tags:
-    - id.fedoraproject.org
-    when: env == "staging"
-
-  - role: httpd/reverseproxy
-    website: id.stg.fedoraproject.org
-    destname: 00-kdcproxy
-    remotepath: /KdcProxy
-    localpath: /KdcProxy
-    proxyurl: http://localhost:10053
-    tags:
-    - id.fedoraproject.org
-    when: env == "staging"
-
-  - role: httpd/reverseproxy
-    website: id.stg.fedoraproject.org
-    destname: 00-ipa
-    remotepath: /ipa
-    localpath: /ipa
-    proxyurl: http://localhost:10061
-    tags:
-    - id.fedoraproject.org
-    when: env == "staging"
-
-  - role: httpd/reverseproxy
-    website: id.fedoraproject.org
+    website: "id{{ env_suffix }}.fedoraproject.org"
     destname: id
-    proxyurl: http://localhost:10020
+    balancer_name: app-os
+    targettype: openshift
+    keephost: true
     tags:
     - id.fedoraproject.org
-    when: env != "staging"
 
   - role: httpd/reverseproxy
-    website: username.id.fedoraproject.org
+    website: "username.id{{ env_suffix }}.fedoraproject.org"
     destname: usernameid
-    proxyurl: http://localhost:10020
+    balancer_name: app-os
+    targettype: openshift
+    keephost: true
     tags:
     - id.fedoraproject.org
-    when: env != "staging"
 
   - role: httpd/reverseproxy
-    website: id.fedoraproject.org
+    website: "id{{ env_suffix }}.fedoraproject.org"
     destname: 00-kdcproxy
     remotepath: /KdcProxy
     localpath: /KdcProxy
     proxyurl: http://localhost:10053
-    when: env != "staging"
+    tags:
+    - id.fedoraproject.org
 
   - role: httpd/reverseproxy
-    website: id.fedoraproject.org
+    website: "id{{ env_suffix }}.fedoraproject.org"
     destname: 00-ipa
     remotepath: /ipa
     localpath: /ipa
     proxyurl: http://localhost:10061
-    when: env != "staging"
+    tags:
+    - id.fedoraproject.org
 
   - role: httpd/reverseproxy
     website: apps.fedoraproject.org
