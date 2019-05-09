@@ -439,8 +439,51 @@
   tags:
   - bodhi
 
+# The when staging should be dropped when we deploy Bodhi 4.0.0 to production.
+- name: Deploy the fedora-messaging CA
+  copy:
+    src: "{{ private }}/files/rabbitmq/{{env}}/pki/ca.crt"
+    dest: /etc/fedora-messaging/cacert.pem
+    mode: 0644
+    owner: apache
+    group: apache
+  when: env == "staging"
+  tags:
+  - bodhi
+  
+# The when staging should be dropped when we deploy Bodhi 4.0.0 to production.
+- name: Deploy the fedora-messaging cert
+  copy:
+    src: "{{ private }}/files/rabbitmq/{{env}}/pki/issued/bodhi.crt"
+    dest: /etc/fedora-messaging/bodhi-cert.pem
+    mode: 0644
+    owner: apache
+    group: apache
+  tags:
+  - bodhi
+  
+# The when staging should be dropped when we deploy Bodhi 4.0.0 to production.
+- name: Deploy the fedora-messaging key
+  copy:
+    src: "{{ private }}/files/rabbitmq/{{env}}/pki/private/bodhi.key"
+    dest: /etc/fedora-messaging/bodhi-key.pem
+    mode: 0600
+    owner: apache
+    group: apache
+  tags:
+  - bodhi
+  
+# When we deploy Bodhi 4.0.0 to production, we can drop the when statement.
+- name: ensure fedora-messaging is enabled and started on the backend
+  service: name=fm-consumer@config.service enabled=yes state=started
+  when: env == "staging"
+  tags:
+  - bodhi
+
+# When we deploy Bodhi 4.0.0 to production, we can drop this block.
 - name: ensure fedmsg-hub-3 is enabled and started on the backend
   service: name=fedmsg-hub-3 enabled=yes state=started
+  when: env == "production"
   tags:
   - bodhi
 
