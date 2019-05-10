@@ -1,0 +1,76 @@
+apiVersion: v1
+kind: DeploymentConfig
+metadata:
+  labels:
+    app: fas
+    service: fas
+  name: fas
+spec:
+  replicas: 3
+  selector:
+    deploymentconfig: fas
+  strategy:
+    activeDeadlineSeconds: 21600
+    recreateParams:
+      timeoutSeconds: 600
+    resources: {}
+    rollingParams:
+      intervalSeconds: 1
+      maxSurge: 25%
+      maxUnavailable: 25%
+      timeoutSeconds: 600
+      updatePeriodSeconds: 1
+    type: Rolling
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: fas
+        deploymentconfig: fas
+    spec:
+      containers:
+      - name: fas
+        image: fas:latest
+        ports:
+        - containerPort: 8080
+        volumeMounts:
+        - name: config-volume
+          mountPath: /etc/fas
+          readOnly: true
+        - name: keytab-volume
+          mountPath: /etc/keytabs
+          readOnly: true
+        - name: httpdir-volume
+          mountPath: /httpdir
+        readinessProbe:
+          timeoutSeconds: 5
+          initialDelaySeconds: 1
+          httpGet:
+            path: /
+            port: 8080
+        livenessProbe:
+          timeoutSeconds: 5
+          initialDelaySeconds: 1
+          httpGet:
+            path: /
+            port: 8080
+      volumes:
+      - name: config-volume
+        configMap:
+          name: fas
+      - name: keytab-volume
+        secret:
+          secretName: fas-keytab
+      - name: httpdir-volume
+        emptyDir: {}
+  triggers:
+  - imageChangeParams:
+      automatic: true
+      containerNames:
+      - fas
+      from:
+        kind: ImageStreamTag
+        name: fas:latest
+        namespace: fas
+    type: ImageChange
+  - type: ConfigChange

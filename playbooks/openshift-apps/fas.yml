@@ -1,0 +1,55 @@
+- name: make the app be real
+  hosts: os-masters-stg[0]
+  user: root
+  gather_facts: False
+
+  vars_files:
+    - /srv/web/infra/ansible/vars/global.yml
+    - "/srv/private/ansible/vars.yml"
+    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  vars:
+    fas_db_host: "db-fas01{{ env_suffix }}.phx2.fedoraproject.org"
+
+  pre_tasks:
+  - include_vars: dir=/srv/web/infra/ansible/vars/all/ ignore_files=README
+
+  roles:
+  - role: openshift/project
+    app: fas
+    description: FAS
+    appowners:
+    - puiterwijk
+    allow_fas_db: true
+  - role: openshift/imagestream
+    app: fas
+    imagename: fas
+  - role: openshift/imagestream
+    app: fas
+    imagename: totpcgi
+  - role: openshift/object
+    app: fas
+    template: buildconfig-fas.yml
+    objectname: buildconfig-fas.yml
+  - role: openshift/object
+    app: fas
+    template_fullpath: "{{roles_path}}/fas_server/templates/configmap.yml"
+    objectname: configmap.yml
+  - role: openshift/object
+    app: fas
+    file: service.yml
+    objectname: service.yml
+  - role: openshift/route
+    app: fas
+    routename: fas
+    host: "admin{{ env_suffix }}.fedoraproject.org"
+    path: "/accounts"
+    serviceport: web
+    servicename: fas
+  - role: openshift/object
+    app: fas
+    template: deploymentconfig-fas.yml
+    objectname: deploymentconfig-fas.yml
+  - role: openshift/rollout
+    app: fas
+    dcname: fas

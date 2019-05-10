@@ -1,0 +1,39 @@
+apiVersion: v1
+kind: BuildConfig
+metadata:
+  labels:
+    build: fas
+  name: fas
+spec:
+  runPolicy: Serial
+  source:
+    dockerfile: |-
+      FROM registry.access.redhat.com/rhel6
+      RUN curl -o /etc/yum.repos.d/rhel6.repo https://infrastructure.fedoraproject.org/cgit/ansible.git/plain/files/common/rhel6.repo
+      RUN curl -o /etc/yum.repos.d/infra-tags.repo https://infrastructure.fedoraproject.org/cgit/ansible.git/plain/files/common/rherl-infra-tags.repo
+{% if env == "staging" %}
+      RUN curl -o /etc/yum.repos.d/infra-tags-stg.repo https://infrastructure.fedoraproject.org/cgit/ansible.git/plain/files/common/rhel-infra-tags-stg.repo
+{% endif %}
+      RUN dnf install -y \
+          fas \
+          fas-plugin-yubikey \
+          python-turbojson \
+          python-tgcaptcha \
+          python-bunch \
+          python-requests-kerberos \
+          krb5-workstation \
+          httpd \
+          mod_wsgi
+
+      # Set up krb5
+      RUN rm -f /etc/krb5.conf && ln -sf /etc/fas/krb5.conf /etc/krb5.conf
+
+      EXPOSE 8080
+      ENTRYPOINT bash /etc/fas/start.sh
+    type: Dockerfile
+  strategy:
+    type: Docker
+  output:
+    to:
+      kind: ImageStreamTag
+      name: fas:latest
