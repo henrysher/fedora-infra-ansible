@@ -37,6 +37,12 @@ spec:
         - name: config-volume
           mountPath: /etc/fas
           readOnly: true
+        - name: secret-sync-keytab
+          mountPath: /etc/fas_sync_keytab
+          readOnly: true
+        - name: secret-pubring
+          mountPath: /etc/fas-gpg/pubring.gpg
+          readOnly: true
         - name: httpdir-volume
           mountPath: /httpdir
         readinessProbe:
@@ -55,6 +61,12 @@ spec:
       - name: config-volume
         configMap:
           name: fas
+      - name: secret-sync-keytab
+        secret:
+          secretName: fas_sync_keytab
+      - name: secret-pubring
+        secret:
+          secretName: fas_gpg_pubring
       - name: httpdir-volume
         emptyDir: {}
   triggers:
