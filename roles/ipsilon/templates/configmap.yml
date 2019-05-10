@@ -33,7 +33,20 @@ data:
     {% endif %}
      .stg.fedoraproject.org = STG.FEDORAPROJECT.ORG
      stg.fedoraproject.org = STG.FEDORAPROJECT.ORG
+  prepare_saml2.py: |-
+    from ipsilon.providers.saml2idp import IdpMetadataGenerator, Certificate
+    from datetime import timedelta
+    cert = Certificate()
+    cert.import_cert('/etc/ipsilon/saml2_idp.crt', '/etc/ipsilon/saml2_idp.key')
+    meta = IdpMetadataGenerator('https://id.stg.fedoraproject.org', cert, timedelta(3600))
+    meta.output('/httpdir/metadata.xml')
   start.sh: |-
+    set -xe
+    # Clean up previous runs
+    rm -rf /httpdir/*
+    # Generate SAML2 metadata - must happen before start or init will fail
+    python /etc/ipsilon/prepare_saml2.py
+    # Prepare and start httpd
     mkdir /httpdir/run
     ln -s /etc/httpd/modules /httpdir/modules
     truncate --size=0 /httpdir/accesslog /httpdir/errorlog
