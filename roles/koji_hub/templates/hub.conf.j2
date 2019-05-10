@@ -86,6 +86,11 @@ tag =
     user bodhi && tag *-override && package kernel shim grub2 fedora-release fedora-repos pesign :: allow
     has_perm autosign && fromtag *-pending && package kernel shim grub2 fedora-release fedora-repos pesign :: allow
     has_perm secure-boot && package kernel shim grub2 fedora-release fedora-repos pesign :: allow
+    # CoreOS continuous builds, https://pagure.io/releng/issue/8165
+    tag f{{FedoraRawhideNumber}}-coreos-continuous f{{FedoraBranchedNumber}}-coreos-continuous f{{FedoraCycleNumber}}-coreos-continuous f{{FedoraPreviousCycleNumber}}-coreos-continuous && has_perm coreos-continuous :: allow
+    # CoreOS coreos-pool and coreos-release tags, https://pagure.io/releng/issue/8294
+    tag coreos-pool coreos-release && has_perm coreos-continuous :: allow
+    # deny tagging secureboot packages that are not related to coreos-continuous
     package kernel shim grub2 fedora-release fedora-repos pesign :: deny
 # Allow people to tag stuff into infra-candidate if they're infra
     tag *-infra-candidate && has_perm infra :: allow
@@ -95,10 +100,6 @@ tag =
 # These two rules makes sure people can't build srpms in infra tags and tag them into distribution tags
     tag *infra* && fromtag *infra* && has_perm infra :: allow
     fromtag *infra* :: deny
-    # CoreOS continuous builds, https://pagure.io/releng/issue/8165
-    tag f{{FedoraRawhideNumber}}-coreos-continuous f{{FedoraBranchedNumber}}-coreos-continuous f{{FedoraCycleNumber}}-coreos-continuous f{{FedoraPreviousCycleNumber}}-coreos-continuous && has_perm coreos-continuous :: allow
-    # CoreOS coreos-pool and coreos-release tags, https://pagure.io/releng/issue/8294
-    tag coreos-pool coreos-release && has_perm coreos-continuous :: allow
     all :: allow
 
 channel =
