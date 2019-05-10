@@ -80,6 +80,20 @@ data:
     </Directory>
   app_start.sh: |-
     set -xe
+    python /etc/fas/app_gunicorn.py --bind :8000 --chdir /app app
+  app_gunicorn.py: |-
+    # We need a custom gunicorn script because we need to inject various requires
+    import __main__
+    __main__.__requires__ = []
+    __main__.__requires__.append('SQLAlchemy >= 0.5, <= 0.6')
+    __main__.__requires__.append('TurboGears[future]')
+    __main__.__requires__.append('gunicorn==18.0')
+    import sys
+    from pkg_resources import load_entry_point
+    if __name__ == '__main__':
+        sys.exit(
+            load_entry_point('gunicorn==18.0', 'console_scripts', 'gunicorn')()
+        )
   fas_sync_cert.pem: |-
     {{ lookup('file', '{{ roles_path }}/fas_server/files/ipa.{{env}}.pem') | indent() }}
   fas-log.cfg: |-
