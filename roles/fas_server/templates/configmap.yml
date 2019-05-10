@@ -33,13 +33,15 @@ data:
     {% endif %}
      .stg.fedoraproject.org = STG.FEDORAPROJECT.ORG
      stg.fedoraproject.org = STG.FEDORAPROJECT.ORG
-  start.sh: |-
+  static_start.sh: |-
+    set -xe
+    rm -rf /httpdir/*
     mkdir /httpdir/run
     ln -s /etc/httpd/modules /httpdir/modules
     truncate --size=0 /httpdir/accesslog /httpdir/errorlog
     tail -qf /httpdir/accesslog /httpdir/errorlog &
     exec /usr/sbin/httpd.worker -f /etc/fas/httpd.conf -DFOREGROUND -DNO_DETACH
-  httpd.conf: |-
+  static_httpd.conf: |-
     Listen 0.0.0.0:8080
     ServerRoot "/httpdir"
     PidFile "/httpdir/httpd.pid"
@@ -54,13 +56,9 @@ data:
     LoadModule expires_module modules/mod_expires.so
     LoadModule headers_module modules/mod_headers.so
     LoadModule mime_module modules/mod_mime.so
-    LoadModule status_module modules/mod_status.so
-    LoadModule negotiation_module modules/mod_negotiation.so
     LoadModule dir_module modules/mod_dir.so
     LoadModule alias_module modules/mod_alias.so
-    LoadModule rewrite_module modules/mod_rewrite.so
     LoadModule version_module modules/mod_version.so
-    LoadModule wsgi_module modules/mod_wsgi.so
     StartServers         4
     MaxClients         300
     MinSpareThreads     25
@@ -75,8 +73,13 @@ data:
     AddDefaultCharset UTF-8
     CoreDumpDirectory /tmp
 
-    # FAS stuff
-    {{ load_file('fas-app.conf.j2') | indent() }}
+    Alias /accounts/static /usr/share/fas/static
+    <Directory /usr/share/fas/static>
+      Order deny,allow
+      Allow from all
+    </Directory>
+  app_start.sh: |-
+    set -xe
   fas_sync_cert.pem: |-
     {{ lookup('file', '{{ roles_path }}/fas_server/files/ipa.{{env}}.pem') | indent() }}
   fas-log.cfg: |-

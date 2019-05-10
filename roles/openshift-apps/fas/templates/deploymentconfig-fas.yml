@@ -31,8 +31,10 @@ spec:
       containers:
       - name: fas
         image: fas:latest
+        command:
+        - /etc/fas/app_start.sh
         ports:
-        - containerPort: 8080
+        - containerPort: 8000
         volumeMounts:
         - name: config-volume
           mountPath: /etc/fas
@@ -43,19 +45,38 @@ spec:
         - name: secret-pubring
           mountPath: /etc/fas-gpg/pubring.gpg
           readOnly: true
+        readinessProbe:
+          timeoutSeconds: 5
+          initialDelaySeconds: 1
+          httpGet:
+            path: /accounts/
+            port: 8000
+        livenessProbe:
+          timeoutSeconds: 5
+          initialDelaySeconds: 1
+          httpGet:
+            path: /accounts/
+            port: 8000
+      - name: static
+        image: fas:latest
+        command:
+        - /etc/fas/static_start.sh
+        ports:
+        - containerPort: 8080
+        volumeMounts:
         - name: httpdir-volume
           mountPath: /httpdir
         readinessProbe:
           timeoutSeconds: 5
           initialDelaySeconds: 1
           httpGet:
-            path: /
+            path: /accounts/static/robots.txt
             port: 8080
         livenessProbe:
           timeoutSeconds: 5
           initialDelaySeconds: 1
           httpGet:
-            path: /
+            path: /accounts/static/robots.txt
             port: 8080
       volumes:
       - name: config-volume
