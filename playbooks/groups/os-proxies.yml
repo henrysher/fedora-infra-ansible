@@ -1,0 +1,29 @@
+# create a new proxy server
+
+- import_playbook: "/srv/web/infra/ansible/playbooks/include/virt-create.yml myhosts=os-proxies"
+
+- name: make the box be real
+  hosts: os-proxies
+  user: root
+  gather_facts: True
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  pre_tasks:
+  - include_vars: dir=/srv/web/infra/ansible/vars/all/ ignore_files=README
+  - import_tasks: "{{ tasks_path }}/yumrepos.yml"
+
+  roles:
+  - base
+  - fas_client
+  - rkhunter
+  - nagios_client
+  - collectd/base
+  - sudo
+
+  tasks:
+  - import_tasks: "{{ tasks_path }}/2fa_client.yml"
+  - import_tasks: "{{ tasks_path }}/motd.yml"
