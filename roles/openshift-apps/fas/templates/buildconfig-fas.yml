@@ -38,6 +38,11 @@ spec:
         mkdir -p /app && \
         ln -sf /usr/sbin/fas.wsgi /app/app.py
 
+      RUN yum install -y patch && \
+        curl https://infrastructure.fedoraproject.org/cgit/ansible.git/plain/roles/fas_server/files/0001-bugfix.patch | patch /usr/lib/python2.6/site-packages/CherryPy-2.3.0-py2.6.egg/cherrypy/_cphttptools.py && \
+        rm -f /usr/lib/python2.6/site-packages/CherryPy-2.3.0-py2.6.egg/cherrypy/_cphttptools.py{c,o}
+
+
       EXPOSE 8080
       EXPOSE 8000
       ENTRYPOINT bash
