@@ -157,6 +157,19 @@
     remotepath: /accounts
     localpath: /accounts
     proxyurl: http://localhost:10004
+    when: env == "production"
+
+  - role: httpd/reverseproxy
+    website: admin.fedoraproject.org
+    destname: fas
+    remotepath: /accounts
+    localpath: /accounts
+    balancer_name: app-os
+    targettype: openshift
+    keephost: true
+    when: env == "staging"
+    tags:
+    - fas
 
   - role: httpd/reverseproxy
     website: "id{{ env_suffix }}.fedoraproject.org"
