@@ -29,3 +29,28 @@ vrrp_instance VI_1 {
      {{ keepalived_ipaddress }}
   }
 }
+
+{% if keepalived2_ipaddress %}
+vrrp_instance VI_1 {
+  # initial state
+  state MASTER
+  interface {{ keepalived2_interface }}
+  # arbitary unique number 0..255
+  # used to differentiate multiple instances of vrrpd
+  virtual_router_id {{ keepalived2_routerid }}
+  # for electing MASTER, highest priority wins.
+  # to be MASTER, make 50 more than other machines.
+  priority {{ keepalived2_priority }}
+  #
+  # On master/backup changes, add/remove cron jobs and kojira
+  #
+  notify /usr/local/bin/keepalived2-notify.sh
+  #
+  # On stop/shutdown, do the same things as moving to MASTER
+  #
+  notify_stop "/usr/local/bin/keepalived2-notify.sh type VI_1 MASTER PRI"
+  virtual_ipaddress {
+     {{ keepalived2_ipaddress }}
+  }
+}
+{% endif %}
