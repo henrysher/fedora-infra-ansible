@@ -221,7 +221,11 @@ mail.transport = 'smtp'
 mail.manager = 'demand'
 
 # Enable yubikeys
+{% if inventory_hostname.startswith('os-') %}
+yubi_server_prefix='http://yubikey/yk-val/verify?id='
+{% else %}
 yubi_server_prefix='http://localhost/yk-val/verify?id='
+{% endif %}
 {% if env == "staging" %}
 ykksm_db="postgres://ykksmimporter:{{ ykksmimporterPassword }}@db-fas01.stg/ykksm"
 ykval_db="postgres://ykval_verifier:{{ ykval_verifierPassword }}@db-fas01.stg/ykval"
