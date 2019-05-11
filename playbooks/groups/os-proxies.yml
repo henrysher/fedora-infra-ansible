@@ -27,3 +27,16 @@
   tasks:
   - import_tasks: "{{ tasks_path }}/2fa_client.yml"
   - import_tasks: "{{ tasks_path }}/motd.yml"
+
+  - name: install haproxy
+    package: name=haproxy state=present
+
+  - name: install haproxy config
+    copy: src="{{ files }}/communishift/haproxy.cfg" dest=/etc/haproxy/haproxy.cfg
+
+  - name: Turn on certain selinux booleans so haproxy can bind to ports
+    seboolean: name=haproxy_connect_any state=true persistent=true
+
+  handlers:
+  - import_tasks: "{{ handlers_path }}/restart_services.yml"
+
