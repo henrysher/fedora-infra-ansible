@@ -1,0 +1,56 @@
+{% macro load_file(filename) %}{% include filename %}{%- endmacro -%}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: yubikey
+  labels:
+    app: fas
+data:
+  start.sh: |-
+    set -xe
+    rm -rf /httpdir/*
+    mkdir /httpdir/run
+    ln -s /etc/httpd/modules /httpdir/modules
+    truncate --size=0 /httpdir/accesslog /httpdir/errorlog
+    tail -qf /httpdir/accesslog /httpdir/errorlog &
+    exec /usr/sbin/httpd.worker -f /etc/yubikey/httpd.conf -DFOREGROUND -DNO_DETACH
+  httpd.conf: |-
+    Listen 0.0.0.0:8080
+    ServerRoot "/httpdir"
+    PidFile "/httpdir/httpd.pid"
+    LoadModule authn_file_module modules/mod_authn_file.so
+    LoadModule authn_anon_module modules/mod_authn_anon.so
+    LoadModule authz_user_module modules/mod_authz_user.so
+    LoadModule authz_host_module modules/mod_authz_host.so
+    LoadModule include_module modules/mod_include.so
+    LoadModule log_config_module modules/mod_log_config.so
+    LoadModule env_module modules/mod_env.so
+    LoadModule ext_filter_module modules/mod_ext_filter.so
+    LoadModule expires_module modules/mod_expires.so
+    LoadModule headers_module modules/mod_headers.so
+    LoadModule mime_module modules/mod_mime.so
+    LoadModule dir_module modules/mod_dir.so
+    LoadModule alias_module modules/mod_alias.so
+    LoadModule version_module modules/mod_version.so
+    StartServers         4
+    MaxClients         300
+    MinSpareThreads     25
+    MaxSpareThreads     75
+    ThreadsPerChild     25
+    MaxRequestsPerChild  0
+    LogFormat "%h %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-Agent}i\"" combined
+    CustomLog /httpdir/accesslog combined
+    ErrorLog /httpdir/errorlog
+    LogLevel info
+    TypesConfig /etc/mime.types
+    AddDefaultCharset UTF-8
+    CoreDumpDirectory /tmp
+
+    Alias /yk-ksm /usr/share/ykksm/ykksm-decrypt.php
+    Alias /yk-val/verify /usr/share/ykval/ykval-verify.php
+    Alias /yk-val/sync /usr/share/ykval/ykval-sync.php
+  ykksm-config.php: |-
+    {{ load_file('ykksm-config.php') | indent() }}
+  ykval-config.php: |-
+    {{ load_file('ykval-config.php') | indent() }}
