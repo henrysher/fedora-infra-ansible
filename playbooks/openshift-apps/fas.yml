@@ -75,6 +75,10 @@
     app: fas
     file: service-yubikey.yml
     objectname: service-yubikey.yml
+  - role: openshift/object
+    app: fas
+    file: service-totpcgi.yml
+    objectname: service-totpcgi.yml
   - role: openshift/route
     app: fas
     routename: fas
@@ -96,6 +100,21 @@
     path: "/totpcgiprovision"
     serviceport: provision
     servicename: totpcgi
+  - role: openshift/route
+    app: fas
+    routename: totpcgi
+    host: "fas-all{{ env_suffix }}.phx2.fedoraproject.org"
+    serviceport: totp
+    servicename: totpcgi
+    termination_passthrough: true
+  - role: openshift/route
+    app: fas
+    routename: totpcgi-vpn
+    host: "fas-all.vpn.phx2.fedoraproject.org"
+    serviceport: totp
+    servicename: totpcgi
+    termination_passthrough: true
+    when: env == "production"
   - role: openshift/object
     app: fas
     template: deploymentconfig-fas.yml
