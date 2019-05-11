@@ -1,0 +1,69 @@
+apiVersion: v1
+kind: DeploymentConfig
+metadata:
+  labels:
+    app: fas
+    service: yubikey
+  name: yubikey
+spec:
+  replicas: 1
+  selector:
+    deploymentconfig: yubikey
+  strategy:
+    activeDeadlineSeconds: 21600
+    recreateParams:
+      timeoutSeconds: 600
+    resources: {}
+    rollingParams:
+      intervalSeconds: 1
+      maxSurge: 25%
+      maxUnavailable: 25%
+      timeoutSeconds: 600
+      updatePeriodSeconds: 1
+    type: Rolling
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: fas
+        deploymentconfig: yubikey
+    spec:
+      containers:
+      - name: yubikey
+        image: yubikey:latest
+        ports:
+        - containerPort: 8080
+        volumeMounts:
+        - name: config-volume
+          mountPath: /etc/yubikey
+          readOnly: true
+        - name: httpdir-volume
+          mountPath: /httpdir
+        readinessProbe:
+          timeoutSeconds: 5
+          initialDelaySeconds: 1
+          httpGet:
+            path: /
+            port: 8080
+        livenessProbe:
+          timeoutSeconds: 5
+          initialDelaySeconds: 1
+          httpGet:
+            path: /
+            port: 8080
+      volumes:
+      - name: config-volume
+        configMap:
+          name: yubikey
+        emptyDir: {}
+  triggers:
+  - imageChangeParams:
+      automatic: true
+      containerNames:
+      - yubikey
+      from:
+        kind: ImageStreamTag
+        name: yubikey:latest
+        namespace: fas
+    type: ImageChange
+  - type: ConfigChange

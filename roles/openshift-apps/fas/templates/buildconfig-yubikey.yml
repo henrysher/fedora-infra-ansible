@@ -1,0 +1,39 @@
+apiVersion: v1
+kind: BuildConfig
+metadata:
+  labels:
+    build: yubikey
+  name: yubikey
+spec:
+  runPolicy: Serial
+  source:
+    dockerfile: |-
+      FROM registry.access.redhat.com/rhel6
+      RUN curl -o /etc/yum.repos.d/rhel6.repo https://infrastructure.fedoraproject.org/cgit/ansible.git/plain/files/common/rhel6.repo && \
+          curl -o /etc/yum.repos.d/epel6.repo https://infrastructure.fedoraproject.org/cgit/ansible.git/plain/files/common/epel6.repo && \
+{% if env == "staging" %}
+          curl -o /etc/yum.repos.d/infra-tags-stg.repo https://infrastructure.fedoraproject.org/cgit/ansible.git/plain/files/common/rhel-infra-tags-stg.repo && \
+{% endif %}
+          curl -o /etc/yum.repos.d/infra-tags.repo https://infrastructure.fedoraproject.org/cgit/ansible.git/plain/files/common/rhel-infra-tags.repo
+
+      RUN yum install -y \
+          httpd \
+          yubikey-ksm \
+          yubikey-val \
+          php-pgsql
+
+      # Set up config symlinks
+      RUN rm -f /usr/share/ykval/ykval-config.php && \
+        rm -f /usr/share/ykksm/ykksm-config.php && \
+        ln -sf /etc/ykksm/ykksm-config.php /usr/share/ykksm/ykksm-config.php && \
+        ln -sf /etc/ykval/ykval-config.php /usr/share/ykval/ykval-config.php
+
+      EXPOSE 8080
+      ENTRYPOINT bash /etc/yubikey/start.sh
+    type: Dockerfile
+  strategy:
+    type: Docker
+  output:
+    to:
+      kind: ImageStreamTag
+      name: yubikey:latest
