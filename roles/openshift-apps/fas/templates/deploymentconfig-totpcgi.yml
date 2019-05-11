@@ -40,12 +40,28 @@ spec:
           readOnly: true
         - name: httpdir-volume
           mountPath: /httpdir
+        - name: secret-tls-primary
+          mountPath: /etc/pki/totp_primary
+          readOnly: true
+{% if env == "production" %}
+        - name: secret-tls-vpn
+          mountPath: /etc/pki/totp_vpn
+          readOnly: true
+{% endif %}
       volumes:
       - name: config-volume
         configMap:
           name: totpcgi
       - name: httpdir-volume
         emptyDir: {}
+      - name: secret-tls-primary
+        secret:
+          secretName: tls-cert-primary
+{% if env == "production" %}
+      - name: secret-tls-vpn
+        secret:
+          secretName: tls-cert-vpn
+{% endif %}
   triggers:
   - imageChangeParams:
       automatic: true
