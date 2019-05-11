@@ -1,0 +1,19 @@
+- name: Copy private tlscert {{privatefile}}
+  copy: src={{private}}/files/{{ private_cert }} dest=/etc/openshift_apps/{{app}}/{{key}}.crt
+  register: secret_privatecert
+
+- name: Copy private tlskey {{privatefile}}
+  copy: src={{private}}/files/{{ private_key }} dest=/etc/openshift_apps/{{app}}/{{key}}.key
+  register: secret_privatekey
+
+- name: Delete existing secrets
+  shell: oc -n {{app}} delete secret/{{secret_name}}
+  register: delete_out
+  changed_when: "'NotFound' in delete_out.stderr"
+  failed_when: "('NotFound' not in delete_out.stderr) and (delete_out.rc != 0)"
+  when: secret_privatecert.changed or secret_privatekey.changed
+
+- name: Call `oc secrets new` on the copied file
+  shell: oc -n {{app}} create secret tls {{secret_name}} --cert=/etc/openshift_apps/{{app}}/{{key}}.crt --key=/etc/openshift_apps/{{app}}/{{key}}.key
+  register: create_out
+  when: secret_privatecert.changed or secret_privatekey.changed
