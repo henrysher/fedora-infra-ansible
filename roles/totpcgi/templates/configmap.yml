@@ -7,6 +7,8 @@ metadata:
   labels:
     app: fas
 data:
+  totpcgi-ca.pem: |-
+    {{ lookup('file', '{{ private }}/files/2fa-certs/keys/ca.crt') }}
   start.sh: |-
     set -xe
     rm -rf /httpdir/*
@@ -89,9 +91,9 @@ data:
         ServerName fas-all.phx2.fedoraproject.org:8443
 {% endif %}
         SSLEngine on
-        SSLCertificateFile /etc/pki/totpcgi/totpcgi-server.crt
-        SSLCertificateKeyFile /etc/pki/totpcgi/totpcgi-server.key
-        SSLCACertificateFile /etc/pki/totpcgi/totpcgi-ca.crt
+        SSLCertificateFile /etc/pki/totp_primary/tls.crt
+        SSLCertificateKeyFile /etc/pki/totp_primary/tls.key
+        SSLCACertificateFile /etc/totpcgi/totpcgi-ca.crt
         SSLHonorCipherOrder On
         SSLCipherSuite {{ ssl_ciphers }}
         SSLProtocol {{ ssl_protocols }}
