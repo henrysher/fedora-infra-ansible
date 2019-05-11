@@ -1,0 +1,29 @@
+From 73d349a219733f7517f35b67e20f4f9364c0175e Mon Sep 17 00:00:00 2001
+From: Patrick Uiterwijk <patrick@puiterwijk.org>
+Date: Sat, 11 May 2019 02:37:25 +0200
+Subject: [PATCH] Backport bugfix
+
+Backport of https://github.com/cherrypy/cherrypy/commit/8bb5e280e639eb4c44050bfcf3d31cf29ed74712
+
+Signed-off-by: Patrick Uiterwijk <patrick@puiterwijk.org>
+---
+ cherrypy/_cphttptools.py | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/cherrypy/_cphttptools.py b/cherrypy/_cphttptools.py
+index 1f75c1c5..9cc81c8e 100644
+--- a/cherrypy/_cphttptools.py
++++ b/cherrypy/_cphttptools.py
+@@ -431,6 +431,9 @@ class Response(object):
+         cookie = self.simple_cookie.output()
+         if cookie:
+             for line in cookie.split("\n"):
++                if line.endswith("\r"):
++                    # Python 2.4 emits cookies joined by LF but 2.5+ by CRLF.
++                    line = line[:-1]
+                 name, value = line.split(": ", 1)
+                 self.header_list.append((name, value))
+     
+-- 
+2.21.0
+
