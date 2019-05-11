@@ -1,0 +1,108 @@
+{% macro load_file(filename) %}{% include filename %}{%- endmacro -%}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: totpcgi
+  labels:
+    app: fas
+data:
+  start.sh: |-
+    set -xe
+    rm -rf /httpdir/*
+    mkdir /httpdir/run
+    ln -s /etc/httpd/modules /httpdir/modules
+    truncate --size=0 /httpdir/accesslog /httpdir/errorlog
+    tail -qf /httpdir/accesslog /httpdir/errorlog &
+    exec /usr/sbin/httpd.worker -f /etc/totpcgi/httpd.conf -DFOREGROUND -DNO_DETACH
+  httpd.conf: |-
+    ServerRoot "/httpdir"
+    PidFile "/httpdir/httpd.pid"
+    LoadModule authn_file_module modules/mod_authn_file.so
+    LoadModule authn_anon_module modules/mod_authn_anon.so
+    LoadModule authz_user_module modules/mod_authz_user.so
+    LoadModule authz_host_module modules/mod_authz_host.so
+    LoadModule include_module modules/mod_include.so
+    LoadModule log_config_module modules/mod_log_config.so
+    LoadModule env_module modules/mod_env.so
+    LoadModule ext_filter_module modules/mod_ext_filter.so
+    LoadModule expires_module modules/mod_expires.so
+    LoadModule headers_module modules/mod_headers.so
+    LoadModule mime_module modules/mod_mime.so
+    LoadModule dir_module modules/mod_dir.so
+    LoadModule alias_module modules/mod_alias.so
+    LoadModule version_module modules/mod_version.so
+    LoadModule ssl_module modules/mod_ssl.so
+
+    Listen 0.0.0.0:8080
+    Listen 0.0.0.0:8443 https
+
+    StartServers         4
+    MaxClients         300
+    MinSpareThreads     25
+    MaxSpareThreads     75
+    ThreadsPerChild     25
+    MaxRequestsPerChild  0
+    LogFormat "%h %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-Agent}i\"" combined
+    CustomLog /httpdir/accesslog combined
+    ErrorLog /httpdir/errorlog
+    LogLevel info
+    TypesConfig /etc/mime.types
+    AddDefaultCharset UTF-8
+    CoreDumpDirectory /tmp
+
+    AddHandler cgi-script .cgi
+    DirectoryIndex index.cgi
+
+    <VirtualHost *:8080>
+        Header set Cache-Control no-cache
+        Header set Expires 0
+        DocumentRoot /var/www/totpcgi-provisioning
+
+        <Directory "/var/www/totpcgi-provisioning">
+            Options ExecCGI
+        </Directory>
+
+        <Location />
+            AuthType Basic
+            AuthName "Fedora totpcgi"
+
+            Auth_PG_host db-fas
+            Auth_PG_port 5432
+            Auth_PG_user fasreadonly
+            Auth_PG_pwd {{ fasReadOnlyPassword }}
+            Auth_PG_database fas2
+            Auth_PG_pwd_table people
+            Auth_PG_uid_field username
+            Auth_PG_pwd_field password
+            Auth_PG_pwd_whereclause " and status='active'"
+
+            Require valid-user
+        </Location>
+    </VirtualHost>
+
+    <VirtualHost *:8443>
+{% if env == "staging" %}
+        ServerName fas-all.stg.phx2.fedoraproject.org:8443
+{% else %}
+        ServerName fas-all.phx2.fedoraproject.org:8443
+{% endif %}
+        SSLEngine on
+        SSLCertificateFile /etc/pki/totpcgi/totpcgi-server.crt
+        SSLCertificateKeyFile /etc/pki/totpcgi/totpcgi-server.key
+        SSLCACertificateFile /etc/pki/totpcgi/totpcgi-ca.crt
+        SSLHonorCipherOrder On
+        SSLCipherSuite {{ ssl_ciphers }}
+        SSLProtocol {{ ssl_protocols }}
+
+        SSLVerifyClient require
+        SSLVerifyDepth 10
+
+         <Directory "/var/www/totpcgi">
+                Options ExecCGI
+        </Directory>
+    </VirtualHost>
+
+{% if env == "production" %}
+    # TODO: VPN config
+{% endif %}
