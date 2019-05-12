@@ -11,15 +11,14 @@
   roles:
   - role: openshift/project
     app: websites
-    description: Fedora websites
+    description: Fedora websites building
     appowners:
     - codeblock
     - ryanlerch
 
-  - role: openshift/object
+  - role: openshift/imagestream
     app: websites
-    template: imagestream.yml
-    objectname: imagestream.yml
+    imagename: builder
 
   - role: openshift/object
     app: websites
@@ -30,33 +29,3 @@
     app: websites
     buildname: websites-build
     objectname: websites-build
-
-  - role: openshift/object
-    app: websites
-    file: service.yml
-    objectname: service.yml
-
-  - role: openshift/route
-    app: websites
-    routename: websites
-    host: "stg.getfedora.org"
-    serviceport: 8080-tcp
-    servicename: websites
-    when: env == "staging"
-
-  - role: openshift/route
-    app: websites
-    routename: websites
-    host: "getfedora.org"
-    serviceport: 8080-tcp
-    servicename: websites
-    when: env == "production"
-
-  - role: openshift/object
-    app: websites
-    file: deploymentconfig.yml
-    objectname: deploymentconfig.yml
-
-  - role: openshift/rollout
-    app: websites
-    dcname: websites

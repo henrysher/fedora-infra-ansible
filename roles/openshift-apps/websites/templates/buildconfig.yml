@@ -6,27 +6,29 @@ metadata:
     environment: "websites"
 spec:
   source:
-    git:
-      uri: https://pagure.io/fedora-web/websites.git
-{% if env == 'staging' %}
-      ref: "staging"
-{% else %}
-      ref: "production"
-{% endif %}
+    dockerfile: |-
+      FROM fedora:latest
+      RUN dnf -y install \
+        python-flask \
+        python-frozen-flask \
+        python-flask-assets \
+        python-rjsmin \
+        python-cssmin \
+        python-flask-babel \
+        python-flask-htmlmin \
+        python-cssutils \
+        rubygem-sass \
+        babel \
+        python3-jinja2 \
+        python-pyyaml \
+        python-zanata-client && \
+          dnf clean all
+      CMD /etc/websites/build.sh
   strategy:
     type: Docker
   triggers:
   - type: ConfigChange
   - type: ImageChange
-{% if stg_websites_deploy_secret is defined and env == 'staging' %}
-  - type: Generic
-    generic:
-      secret: "{{ stg_websites_deploy_secret }}"
-{% elif websites_deploy_secret is defined and env == 'production' %}
-  - type: Generic
-    generic:
-      secret: "{{ websites_deploy_secret }}"
-{% endif %}
   output:
     to:
       kind: ImageStreamTag
