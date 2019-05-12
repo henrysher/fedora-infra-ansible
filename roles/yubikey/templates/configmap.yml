@@ -14,7 +14,7 @@ data:
     ln -s /etc/httpd/modules /httpdir/modules
     truncate --size=0 /httpdir/accesslog /httpdir/errorlog
     tail -qf /httpdir/accesslog /httpdir/errorlog &
-    exec /usr/sbin/httpd.worker -f /etc/yubikey/httpd.conf -DFOREGROUND -DNO_DETACH
+    exec /usr/sbin/httpd -f /etc/yubikey/httpd.conf -DFOREGROUND -DNO_DETACH
   httpd.conf: |-
     Listen 0.0.0.0:8080
     ServerRoot "/httpdir"
@@ -33,18 +33,17 @@ data:
     LoadModule dir_module modules/mod_dir.so
     LoadModule alias_module modules/mod_alias.so
     LoadModule version_module modules/mod_version.so
-    LoadModule php5_module modules/libphp5-zts.so
+    LoadModule php5_module modules/libphp5.so
 
     AddHandler php5-script .php
     AddType text/html .php
     DirectoryIndex index.php
 
-    StartServers         4
-    MaxClients         300
-    MinSpareThreads     25
-    MaxSpareThreads     75
-    ThreadsPerChild     25
-    MaxRequestsPerChild  0
+    StartServers  20        
+    ServerLimit   100       
+    MaxRequestsPerChild 2000
+    MaxRequestWorkers 100   
+
     LogFormat "%h %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-Agent}i\"" combined
     CustomLog /httpdir/accesslog combined
     ErrorLog /httpdir/errorlog
