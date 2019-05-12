@@ -1,0 +1,35 @@
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: build
+spec:
+  concurrencyPolicy: Forbid
+  schedule: "0 * * * *"
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            parent: "cronjobbuild"
+        spec:
+          containers:
+          - name: build
+            image: docker-registry.default.svc:5000/websites/builder:latest
+            env:
+            - name: BUILD_ENV
+              value: "{{ env_short }}"
+            volumeMounts:
+            - name: config
+              mountPath: /etc/websites
+              readOnly: true
+            - name: build-output
+              mountPath: /output
+              readOnly: false
+          restartPolicy: Never
+          volumes:
+          - name: config-volume
+            configMap:
+              name: websites-configmap
+          - name: build-output
+            persistentVolumeClaim:
+              claimName: websites-storage
