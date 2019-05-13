@@ -50,7 +50,7 @@ cd /srv/web/fedora-websites
 /usr/bin/git pull -q --ff-only || exit 1
 build labs.fedoraproject.org
 build arm.fedoraproject.org
-build getfedora.org
+#build getfedora.org
 build alt.fedoraproject.org
 
 pushd mirrors.fedoraproject.org > /dev/null
