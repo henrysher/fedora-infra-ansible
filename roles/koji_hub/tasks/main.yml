@@ -250,24 +250,6 @@
   - config
   - koji_hub
 
-- name: updatecrl script
-  copy: src=updatecrl.sh dest=/usr/local/bin/updatecrl.sh owner=root mode=755
-  tags:
-  - config
-  - koji_hub
-  - cron
-
-- name: updatecrl cronjob
-  copy: src=updatecrl.cron dest=/etc/cron.d/updatecrl owner=root mode=644
-  tags:
-  - config
-  - cron
-  - koji_hub
-
-- name: Run updatecrl now that it's installed
-  command: /usr/local/bin/updatecrl.sh creates=/etc/pki/tls/crl.pem
-  ignore_errors: True
-
 - name: koji web common config files
   copy: src={{ item }} dest=/etc/httpd/conf.d/{{ item }} owner=root group=root
   with_items:

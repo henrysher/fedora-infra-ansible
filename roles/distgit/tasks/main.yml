@@ -432,25 +432,6 @@
   tags:
   - distgit
 
-- name: install the updatecrl.sh script
-  copy: src=updatecrl.sh dest=/usr/local/bin/updatecrl.sh owner=root mode=755
-  tags:
-  - distgit
-
-- name: run the updatecrl script
-  command: /usr/local/bin/updatecrl.sh creates=/etc/pki/tls/crl.pem
-  tags:
-  - distgit
-
-- name: schedule cron job to run the updatectl script
-  cron: >
-    name="updatecrl" cron_file="ansible-updatecrl"
-    minute=0
-    user=root
-    job="/usr/local/bin/updatecrl.sh"
-  tags:
-  - distgit
-
 # Three tasks for handling our selinux policy for upload.cgi
 - name: ensure a directory exists for our SELinux policy
   file: dest=/usr/local/share/selinux/ state=directory
