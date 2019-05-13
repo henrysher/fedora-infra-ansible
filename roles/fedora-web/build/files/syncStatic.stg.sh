@@ -51,7 +51,7 @@ cd /srv/web/fedora-websites
 build labs.fedoraproject.org
 build spins.fedoraproject.org
 build arm.fedoraproject.org
-build getfedora.org
+#build getfedora.org
 build alt.fedoraproject.org
 
 pushd mirrors.fedoraproject.org > /dev/null
