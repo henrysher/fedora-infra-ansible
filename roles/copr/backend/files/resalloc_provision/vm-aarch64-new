@@ -1,0 +1,278 @@
+#! /usr/bin/python2
+
+import os
+import sys
+import logging
+import subprocess
+import tempfile
+import shutil
+import json
+import time
+import uuid
+import pipes
+import argparse
+
+
+# configuration
+disk_pool = 'default'
+img_volume = 'copr-builder'
+
+
+def get_parser():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--swap-vol-size', metavar='GB', type=int, default=20)
+    parser.add_argument('--root-vol-size', metavar='GB', type=int)
+    parser.add_argument('--cpu-count', default=2)
+    parser.add_argument('--ram-size', metavar='MB', default=4096)
+    return parser
+
+# global variables
+workdir = None
+connection = None
+
+def setup_connection(pool_id):
+    global connection
+    if 'aarch64_01' in pool_id:
+        connection = 'qemu+ssh://copr@virthost-aarch64-os01.fedorainfracloud.org/system'
+    elif 'aarch64_02' in pool_id:
+        connection = 'qemu+ssh://copr@virthost-aarch64-os02.fedorainfracloud.org/system'
+    else:
+        raise Exception("wrong pool_id")
+
+
+logging.basicConfig(level=logging.DEBUG)
+log = logging.getLogger()
+script_path = os.path.dirname(os.path.realpath(__file__))
+
+
+def call(cmd, *args, **kwargs):
+    log.debug("cmd: " + ' '.join([pipes.quote(str(x)) for x in cmd]))
+    start = time.time()
+    status = subprocess.call(cmd, *args, **kwargs)
+    log.debug(" -> exit_status={0}, time={1}s".format(
+            status, round(time.time() - start, 3)))
+    return status
+
+
+def wait_for_ssh(ip):
+    script = os.path.join(script_path, 'wait-for-ssh', 'wait-for-ssh')
+    if call([script, '--timeout', '180', ip, '--log', 'debug']):
+        raise Exception("waiting not successful")
+
+
+def execute_spinup_playbook(ip):
+    playbook = '/home/resalloc/provision/_provision_aarch64.yml'
+    cmd = ['timeout', '600', 'ansible-playbook', playbook, '-i', ip + ","]
+    if call(cmd, stdout=sys.stderr):
+        raise Exception("can't spinup")
+
+
+def generate_config_iso(name, ip):
+    script_content = """#! /bin/bash
+growpart /dev/vda 2
+resize2fs /dev/vda2
+mount -o remount /
+nmcli con add con-name "{con_name}" ifname {device} type ethernet ip4 {ip}/23 gw4 38.145.49.254
+nmcli con mod "{con_name}" ipv4.dns "8.8.8.8,1.1.1.1"
+nmcli con up "{con_name}" iface {device}
+""".format(
+    ip=ip,
+    con_name="copr-static",
+    device='eth0',
+)
+
+    config_dir = os.path.join(workdir, "config")
+    os.makedirs(config_dir)
+
+    with open(os.path.join(config_dir, 'pre-network-script.sh'), 'w') as f:
+        f.write(script_content)
+
+    image = os.path.join(workdir, 'config.iso')
+    rc = call(['mkisofs', '-o', image, '-V', 'copr_config', '-r', '-J', '--quiet', config_dir])
+    if rc != 0:
+        raise Exception("mkisofs failed")
+
+    return image
+
+
+def virsh_silent(args):
+    return call(['virsh', '-c', connection] + args, stdout=sys.stderr)
+
+
+def mac_and_ip_address(pool_id, vm_id):
+    if pool_id == 'aarch64_01_prod':
+        ip_shift = 0 # 1, 2, 3, 4
+    elif pool_id == 'aarch64_01_dev':
+        ip_shift = 4 # 5, 6
+    elif pool_id == 'aarch64_02_prod':
+        ip_shift = 6 # 7, 8, 9, 10
+    elif pool_id == 'aarch64_02_dev':
+        ip_shift = 10 # 11, 12
+    else:
+        raise Exception("unknown pool_id {0}".format(pool_id))
+
+    if pool_id.endswith('prod'):
+        max_id=4
+    else:
+        max_id=1
+
+    vm_id = int(vm_id)
+
+    if vm_id < 0:
+        raise Exception("wrong RESALLOC_ID_IN_POOL={0}".format(vm_id))
+    elif vm_id > max_id:
+        raise Exception("too high RESALLOC_ID_IN_POOL={0}".format(vm_id))
+
+
+    last_part = 101 + ip_shift + vm_id
+    mac_last_part = hex(last_part)[2:]
+    if len(mac_last_part) == 1:
+        mac_last_part = '0' + mac_last_part
+
+    mac = '52:54:00:14:07:' + mac_last_part
+    ip  = "38.145.48.{0}".format(last_part)
+    return mac, ip
+
+
+cleanup_actions = {} # id: [function, args ...]
+
+
+def cleanup():
+    log.info("doing cleanup")
+    for action in sorted(cleanup_actions):
+        log.debug("cleanup {0}".format(action))
+        command = cleanup_actions[action]
+        counter = 0
+        while True:
+            counter += 1
+            rc = command[0](command[1:])
+            if rc == 0:
+                break
+            if counter >= 3:
+                # give up :-(
+                break
+            log.debug("retry cleanup action ...")
+            time.sleep(15)
+
+
+def alloc_disk(name, size, pool=disk_pool):
+    if type(size) == int:
+        size = "{0}G".format(size)
+
+    if virsh_silent(['vol-create-as', pool, name, str(size)]) != 0:
+        raise Exception("can't create '{0}' disk".format(name))
+
+    cleanup_actions['80_delete_disk_{0}'.format(name)] = [virsh_silent,
+            'vol-delete', name, '--pool', pool]
+
+
+def create_volume_from_iso(name, prealloc_size, iso, pool=disk_pool):
+    alloc_disk(name, prealloc_size, pool)
+
+    if virsh_silent(['vol-upload', name, iso, '--pool', pool]):
+        raise Exception("can not vol-upload the config disk")
+
+def create_volume_from_volume(name, volume, pool=disk_pool, size=None):
+    if virsh_silent(['vol-clone', volume, name, '--pool', pool]):
+        raise Exception("vol-clone failed")
+    cleanup_actions['80_delete_disk_{0}'.format(name)] = [virsh_silent,
+            'vol-delete', name, '--pool', pool]
+
+    if size:
+        if virsh_silent(['vol-resize', '--vol', name, '--capacity',
+                size, '--pool', pool]):
+            raise Exception(['cant resize ' + name])
+
+
+def boot_machine(name, volumes, vcpus):
+    cmd = [
+        'virt-install',
+        '--connect', connection,
+        '--ram', '4096',
+        '--os-type', 'generic',
+        '--vcpus', str(vcpus),
+        '--vnc',
+        '--features', 'acpi=off',
+        '--noautoconsole',
+        '--import',
+        '-n', name,
+        '--network', 'bridge=br0,model=virtio',
+        '--channel', "unix,target_type=virtio,name='org.qemu.guest_agent.0'",
+        '--rng', '/dev/random',
+        # '--boot', 'kernel_args="ds=nocloud-net"'
+    ]
+    for vol in volumes:
+        cmd += ['--disk', 'vol={0},device={1},bus=virtio'.format(*vol)]
+
+    if call(cmd, stdout=sys.stderr):
+        raise Exception("can not boot the machine")
+
+    cleanup_actions['50_shut_down'.format(name)] = [
+            virsh_silent, 'destroy', name]
+    cleanup_actions['51_shut_down'.format(name)] = [
+            virsh_silent, 'undefine', name, '--nvram']
+
+
+def main():
+    fail = False
+    for required_var in ['RESALLOC_NAME', 'RESALLOC_POOL_ID', 'RESALLOC_ID_IN_POOL']:
+        if required_var not in os.environ:
+            fail = True
+            log.error("missing variable {0}".format(required_var))
+    if fail:
+        sys.exit(1)
+
+    parser = get_parser()
+    args = parser.parse_args()
+
+    vm_name = os.environ['RESALLOC_NAME']
+    _, ip = mac_and_ip_address(os.environ['RESALLOC_POOL_ID'],
+            os.environ['RESALLOC_ID_IN_POOL'])
+
+    setup_connection(os.environ['RESALLOC_POOL_ID'])
+
+    try:
+        global workdir
+        workdir = tempfile.mkdtemp()
+        log.debug("workdir is '{0}'".format(workdir))
+
+        # cloud-init config volume
+        image_file = generate_config_iso(vm_name, ip)
+        log.debug("config image {0}".format(image_file))
+        create_volume_from_iso(vm_name + '_config', '1M', image_file, pool='images')
+
+        # the / volume
+        create_volume_from_volume(vm_name + '_root', img_volume, pool='images',
+                size=args.root_vol_size)
+
+        # swap volume
+        alloc_disk(vm_name + '_swap', args.swap_vol_size)
+
+        # start the VM
+        volumes = [
+            ('images/'  + vm_name + '_root',   'disk',  'virtio'),
+            ('images/'  + vm_name + '_config', 'cdrom', 'virtio'),
+            ('default/' + vm_name + '_swap',   'disk',  'virtio'),
+        ]
+
+        boot_machine(vm_name, volumes, args.cpu_count)
+
+        wait_for_ssh(ip)
+
+        execute_spinup_playbook(ip)
+
+        sys.stdout.write("{0}\n".format(ip))
+        sys.stdout.flush()
+
+    except (Exception, KeyboardInterrupt) as e:
+        log.exception(e)
+        cleanup()
+        sys.exit(1)
+
+    finally:
+        log.debug("cleaning up workdir")
+        shutil.rmtree(workdir)
+
+
+if __name__ == "__main__":
+    main()

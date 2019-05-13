@@ -1,0 +1,19 @@
+#! /bin/bash
+
+ticket=
+
+cleanup()
+{
+    test -n "$ticket" && resalloc ticket-close "$ticket"
+}
+
+trap cleanup EXIT
+
+ticket=$(resalloc ticket --tag aarch64)
+ip=$(resalloc ticket-wait "$ticket")
+test -z "$ip" && exit 1
+
+trap '' EXIT
+
+echo "vm_name=$ticket"
+echo "IP=$ip"

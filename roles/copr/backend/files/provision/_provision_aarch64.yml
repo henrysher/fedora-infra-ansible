@@ -1,0 +1,16 @@
+# This playbook is executed from resalloc's home directory, by vm-aarch64-new
+# script, it's just a thin wrapper around provision_builder_tasks.yml.
+# IOW: never execute this as 'copr' user..
+
+- name: provision builder
+  hosts: all
+  gather_facts: False
+  remote_user: root
+
+  vars_files:
+    - nova_cloud_vars.yml
+  vars:
+    prepare_base_image: False
+
+  tasks:
+  - include: "provision_builder_tasks.yml"

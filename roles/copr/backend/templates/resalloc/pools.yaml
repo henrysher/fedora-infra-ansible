@@ -1,0 +1,50 @@
+# TODO: s/devel/not devel/
+{% if devel %}
+# Production configuration.  On each aarch64 host we have
+# 2 guests VMs of
+# - 10 VCPUs
+# - 80 GB SWAP
+# - 24 GB RAM
+# -  8 GB root partition (it's sparse qcow2, so thin-provisioning)
+aarch64_01_prod:
+    max: 4
+    max_starting: 2
+    max_prealloc: 4
+    cmd_new: "/var/lib/resallocserver/resalloc_provision/vm-aarch64-new --swap-vol-size 80 --cpu-count 10 --ram-size 20480"
+    cmd_delete: "/var/lib/resallocserver/resalloc_provision/vm-aarch64-delete"
+    tags:
+    - aarch64
+
+aarch64_02_prod:
+    max: 4
+    max_starting: 2
+    max_prealloc: 4
+    cmd_new: "/var/lib/resallocserver/resalloc_provision/vm-aarch64-new --swap-vol-size 80 --cpu-count 10 --ram-size 20480"
+    cmd_delete: "/var/lib/resallocserver/resalloc_provision/vm-aarch64-delete"
+    tags:
+    - aarch64
+{% else %}
+# Development configuration.  On each aarch64 host we have
+# 2 guests vms of
+# -  2 VCPUs   (default)
+# - 20 GB SWAP (default)
+# -  4 GB RAM  (default)
+# -  8 GB root partition (it's sparse qcow2, so thin-provisioning)
+aarch64_01_dev:
+    max: 2
+    max_starting: 2
+    max_prealloc: 2
+    cmd_new: "/var/lib/resallocserver/resalloc_provision/vm-aarch64-new"
+    cmd_delete: "/var/lib/resallocserver/resalloc_provision/vm-aarch64-delete"
+    tags:
+    - aarch64
+
+aarch64_02_dev:
+    max: 2
+    max_starting: 2
+    max_prealloc: 2
+    cmd_new: "/var/lib/resallocserver/resalloc_provision/vm-aarch64-new"
+    cmd_delete: "/var/lib/resallocserver/resalloc_provision/vm-aarch64-delete"
+    tags:
+    - aarch64
+{% endif %}

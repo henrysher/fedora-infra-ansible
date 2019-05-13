@@ -1,0 +1,31 @@
+#! /bin/sh -x
+
+die(){ echo >&2 "!! $*"; exit 1; }
+
+test -z "$RESALLOC_NAME" && die "no vm specified, empty \$RESALLOC_NAME variable"
+
+case "$RESALLOC_POOL_ID" in
+*aarch64_01*)
+    conn=qemu+ssh://copr@virthost-aarch64-os01.fedorainfracloud.org/system
+    ;;
+*aarch64_02*)
+    conn=qemu+ssh://copr@virthost-aarch64-os02.fedorainfracloud.org/system
+    ;;
+*) die "unknown RESALLOC_POOL_ID=$RESALLOC_POOL_ID" ;;
+esac
+
+repeat()
+{
+    counter=0
+    while :; do
+        counter=$(echo "1 + $counter" | bc)
+        "$@"
+        test $? -eq 0 && break
+        # give up?
+        test "$counter" -ge 3 && break
+        sleep 15
+    done
+}
+
+repeat virsh -c "$conn" destroy  "$RESALLOC_NAME"
+repeat virsh -c "$conn" undefine "$RESALLOC_NAME" --remove-all-storage --nvram

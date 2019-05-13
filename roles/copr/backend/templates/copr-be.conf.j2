@@ -26,7 +26,12 @@ frontend_auth={{ copr_backend_password }}
 #   vm_max_check_fails=2 - when machine is consequently X times marked as failed then it is terminated
 #   vm_terminating_timeout=600 - when machine was terminated and terminate PB did not finish within this number of second, we will run the PB once again.
 
+{% if devel %}
+# TODO: swap to 3 also on production
+build_groups=3
+{% else %}
 build_groups=2
+{% endif %}
 
 group0_name=PC
 group0_archs=i386,x86_64,i586
@@ -59,6 +64,25 @@ group1_max_spawn_processes=2
 group1_max_vm_per_user=5
 group1_max_vm_total=8
 group1_max_spawn_processes=2
+{% endif %}
+
+group2_name=AARCH64
+group2_archs=aarch64
+group2_spawn_playbook=/home/copr/provision/builderpb_libvirt_aarch64.yml
+group2_terminate_playbook=/home/copr/provision/terminatepb_libvirt_aarch64.yml
+group2_vm_health_check_period=30
+group2_vm_health_check_max_time=120
+
+# TODO: switch devel/production
+{% if devel %}
+group2_max_vm_per_user=4
+group2_max_vm_total=8
+# we can not over-load hypervisors, there's max-spawn limit in resalloc config
+group2_max_spawn_processes=8
+{% else %}
+group2_max_vm_per_user=2
+group2_max_vm_total=4
+group2_max_spawn_processes=4
 {% endif %}
 
 # directory where results are stored

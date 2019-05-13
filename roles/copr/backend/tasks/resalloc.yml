@@ -1,0 +1,55 @@
+- name: install packages needed by resalloc server
+  dnf:
+    state: present
+    name: ['resalloc-server', 'resalloc', 'sqlite']
+
+- name: resalloc: sync copr provisioning files
+  synchronize: src="provision/" dest="/var/lib/resallocserver/provision/"
+  tags:
+  - provision_config
+
+- name: resalloc: sync resalloc provisioning files
+  synchronize: src="resalloc_provision/" dest="/var/lib/resallocserver/resalloc_provision/"
+  tags:
+  - provision_config
+
+- name: resalloc: ssh directory
+  file:
+    path: /var/lib/resallocserver/.ssh
+    state: directory
+    mode: 0700
+    owner: resalloc
+    group: resalloc
+
+- name: resalloc: copy backend ssh identity
+  copy:
+    src: "{{ private }}/files/copr/buildsys.priv"
+    dest: /var/lib/resallocserver/.ssh/id_rsa
+    owner: resalloc
+    group: resalloc
+    mode: 0600
+
+- name: resalloc: ssh config file
+  copy:
+    src: "ssh_config"
+    dest: /var/lib/resallocserver/.ssh/config
+    owner: resalloc
+    group: resalloc
+    mode: 0600
+
+- name: resalloc: server config
+  template:
+    src: "resalloc/{{ item }}"
+    dest: "/etc/resallocserver/{{ item }}"
+    mode: 0600
+    owner: resalloc
+    group: resalloc
+  with_items:
+  - server.yaml
+  - pools.yaml
+
+- name: start/enable resalloc server
+- service:
+    name: resalloc
+    state: started
+    enabled: yes
