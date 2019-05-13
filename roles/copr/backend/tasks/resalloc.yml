@@ -3,17 +3,17 @@
     state: present
     name: ['resalloc-server', 'resalloc', 'sqlite']
 
-- name: resalloc: sync copr provisioning files
+- name: resalloc, sync copr provisioning files
   synchronize: src="provision/" dest="/var/lib/resallocserver/provision/"
   tags:
   - provision_config
 
-- name: resalloc: sync resalloc provisioning files
+- name: resalloc, sync resalloc provisioning files
   synchronize: src="resalloc_provision/" dest="/var/lib/resallocserver/resalloc_provision/"
   tags:
   - provision_config
 
-- name: resalloc: ssh directory
+- name: resalloc, ssh directory
   file:
     path: /var/lib/resallocserver/.ssh
     state: directory
@@ -21,7 +21,7 @@
     owner: resalloc
     group: resalloc
 
-- name: resalloc: copy backend ssh identity
+- name: resalloc, copy backend ssh identity
   copy:
     src: "{{ private }}/files/copr/buildsys.priv"
     dest: /var/lib/resallocserver/.ssh/id_rsa
@@ -29,7 +29,7 @@
     group: resalloc
     mode: 0600
 
-- name: resalloc: ssh config file
+- name: resalloc, ssh config file
   copy:
     src: "ssh_config"
     dest: /var/lib/resallocserver/.ssh/config
@@ -37,7 +37,7 @@
     group: resalloc
     mode: 0600
 
-- name: resalloc: server config
+- name: resalloc, server config
   template:
     src: "resalloc/{{ item }}"
     dest: "/etc/resallocserver/{{ item }}"
