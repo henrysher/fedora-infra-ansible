@@ -101,6 +101,13 @@
   - bodhi2/backend
 
   tasks:
+  # The when condition on this block can be dropped once we deploy bodhi 4.0.0 to production.
+  - name: Stop the fedora-messaging backend
+    service:
+        name: fm-consumer@config.service
+        state: stopped
+    when: env == "staging"
+  # This block can be dropped once we deploy bodhi 4.0.0 to production.
   - name: Stop the fedmsg-hub-3 backend
     service: name="fedmsg-hub-3" state=stopped
 
@@ -110,8 +117,16 @@
       chdir: /usr/share/bodhi/
     when: inventory_hostname.startswith(('bodhi-backend01.phx2', 'bodhi-backend01.stg.phx2'))
 
+  # The when condition on this block can be dropped once we deploy bodhi 4.0.0 to production.
+  - name: Start the fedora-messaging backend
+    service:
+        name: fm-consumer@config.service
+        state: started
+    when: env == "staging"
+  # This block can be dropped once we deploy bodhi 4.0.0 to production.
   - name: And... start the backend again
     service: name="fedmsg-hub-3" state=started
+    when: env == "production"
 
   post_tasks:
   - name: tell nagios to unshush w.r.t. the backend
