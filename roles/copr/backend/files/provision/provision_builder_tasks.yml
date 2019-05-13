@@ -4,7 +4,7 @@
 - name: put infra stg repos into yum.repos.d if staging
   copy: src=files/dnf/infra-tags-stg.repo dest=/etc/yum.repos.d
   when:
-    - network_name == "coprdev-net"
+    - devel
     - not prepare_base_image
 
 - name: disable updates-testing
@@ -36,6 +36,7 @@
     - scl-utils-build
     - ethtool
     - expect
+  when: not devel
 
 - name: enable copr and copr-dev repos in staging
   command: dnf copr -y enable {{ item }}
@@ -43,7 +44,7 @@
     - "@copr/copr"
     - "@copr/copr-dev"
   when:
-    - network_name == "coprdev-net"
+    - devel
     - not prepare_base_image
 
 - name: clean dnf cache
@@ -63,6 +64,18 @@
     - nosync
     - distribution-gpg-keys
     - python-srpm-macros
+  when: not devel
+
+- name: remove yum on F30+
+  dnf: state=absent pkg=yum
+  when: devel
+
+- name: install copr-builder
+  dnf: state=latest pkg=copr-builder
+  when: devel
+
+- name: run /bin/copr-update-builder from copr-builder package
+  shell: /usr/bin/copr-update-builder
 
 - name: put updated mock configs into /etc/mock
   copy: src=files/mock/ dest=/etc/mock
