@@ -9,6 +9,12 @@ topic_prefix = "org.fedoraproject.prod"
 publish_exchange = "amq.topic"
 passive_declares = false
 
+{# If bodhi_message_routing_keys is defined, this must be a consumer so let's also set up the consumer
+   config. #}
+{% if bodhi_message_routing_keys is defined %}
+callback = "bodhi.server.consumers:messaging_callback"
+{# End consumer config if statement #}
+{% endif %}
 
 
 [tls]
@@ -21,8 +27,8 @@ certfile = "/etc/fedora-messaging/bodhi-cert.pem"
 app = "bodhi"
 
 
-## If bodhi_message_routing_keys is defined, this must be a consumer so let's also set up the consumer
-## config.
+{# If bodhi_message_routing_keys is defined, this must be a consumer so let's also set up the consumer
+   config. #}
 {% if bodhi_message_routing_keys is defined %}
 [queues."bodhi{{ env_suffix }}"]
 durable = true
@@ -39,8 +45,6 @@ routing_keys = [
     "{{ key }}",
 {% endfor %}
 ]
-
-callback = "bodhi.server.consumers:messaging_callback"
 
 
 [log_config]
@@ -109,6 +113,5 @@ handlers = ["console", "email"]
 [log_config.root]
 level = "ERROR"
 handlers = ["console", "email"]
-
-## End consumer config if statement
+{# End consumer config if statement #}
 {% endif %}
