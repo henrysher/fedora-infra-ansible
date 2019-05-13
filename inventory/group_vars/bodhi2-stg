@@ -13,11 +13,7 @@ num_cpus: 2
 # Use the infra-testing repo
 testing: True
 
-# Definining these vars has a number of effects
-# 1) mod_wsgi is configured to use the vars for its own setup
-# 2) iptables opens enough ports for all threads for fedmsg
-# 3) roles/fedmsg/base/ declares enough fedmsg endpoints for all threads
-wsgi_fedmsg_service: bodhi
+# configure mod_wsgi to use the vars for its own setup
 wsgi_procs: 2
 wsgi_threads: 2
 
@@ -38,50 +34,10 @@ host_group: bodhi2
 nfs_mount_opts: "ro,hard,bg,intr,noatime,nodev,nosuid"
 datacenter: staging
 
-# These set a config value in /etc/fedmsg.d/, see roles/bodhi2/base/
-# frontend nodes won't run either of these
-bodhi_masher_enabled: False
-bodhi_updates_handler_enabled: False
-bodhi_signed_handler_enabled: False
-
-# These are consumed by a task in roles/fedmsg/base/main.yml
-fedmsg_certs:
-- service: shell
-  owner: root
-  group: sysadmin
-  can_send:
-  - logger.log
-- service: bodhi
-  owner: root
-  group: bodhi
-  can_send:
-  - bodhi.buildroot_override.tag
-  - bodhi.buildroot_override.untag
-  - bodhi.stack.delete
-  - bodhi.stack.save
-  - bodhi.update.comment
-  - bodhi.update.complete.testing
-  - bodhi.update.edit
-  - bodhi.update.karma.threshold
-  - bodhi.update.request.obsolete
-  - bodhi.update.request.revoke
-  - bodhi.update.request.stable
-  - bodhi.update.request.testing
-  - bodhi.update.request.unpush
-  - bodhi.update.requirements_met.stable
-
-  # Things that only the mash does - not the web UI
-  #- bodhi.mashtask.complete
-  #- bodhi.mashtask.mashing
-  #- bodhi.mashtask.start
-  #- bodhi.mashtask.sync.done
-  #- bodhi.mashtask.sync.wait
-  #- bodhi.errata.publish
-  #- bodhi.update.eject
-
-  # Rsync messages that get run from somewhere else entirely.
-  #- bodhi.updates.epel.sync
-  #- bodhi.updates.fedora.sync
+bodhi_message_routing_keys:
+  - "org.fedoraproject.*.bodhi.composer.start",
+  - "org.fedoraproject.*.bodhi.update.request.testing",
+  - "org.fedoraproject.*.buildsys.tag",
 
 
 # For the MOTD
