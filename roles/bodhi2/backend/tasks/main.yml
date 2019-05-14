@@ -439,11 +439,22 @@
   tags:
   - bodhi
 
+# The when statement should be dropped when we deploy Bodhi 4.0.0 to production.
+- name: Create /etc/pki/fedora-messaging
+  file:
+    dest: /etc/pki/fedora-messaging
+    mode: 0775
+    owner: root
+    group: root
+    state: directory
+  tags:
+  - bodhi
+
 # The when staging should be dropped when we deploy Bodhi 4.0.0 to production.
 - name: Deploy the fedora-messaging CA
   copy:
     src: "{{ private }}/files/rabbitmq/{{env}}/pki/ca.crt"
-    dest: /etc/fedora-messaging/cacert.pem
+    dest: /etc/pki/fedora-messaging/cacert.pem
     mode: 0644
     owner: apache
     group: apache
@@ -455,7 +466,7 @@
 - name: Deploy the fedora-messaging cert
   copy:
     src: "{{ private }}/files/rabbitmq/{{env}}/pki/issued/bodhi{{env_suffix}}.crt"
-    dest: /etc/fedora-messaging/bodhi-cert.pem
+    dest: /etc/pki/fedora-messaging/bodhi-cert.pem
     mode: 0644
     owner: apache
     group: apache
@@ -467,7 +478,7 @@
 - name: Deploy the fedora-messaging key
   copy:
     src: "{{ private }}/files/rabbitmq/{{env}}/pki/private/bodhi{{env_suffix}}.key"
-    dest: /etc/fedora-messaging/bodhi-key.pem
+    dest: /etc/pki/fedora-messaging/bodhi-key.pem
     mode: 0600
     owner: apache
     group: apache
