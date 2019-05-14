@@ -33,11 +33,19 @@ handlers:
     subject: "Bodhi error"
 loggers:
   bodhi:
+{% if env == "production" %}
     level: INFO
+{% else %}
+    level: DEBUG
+{% endif %}
     handlers: [console, smtp]
     propagate: 0
   root:
-    level: INFO
+{% if env == "production" %}
+    level: ERROR
+{% else %}
+    level: DEBUG
+{% endif %}
     handlers: [console, smtp]
   twisted:
 {% if env == "production" %}
@@ -46,6 +54,3 @@ loggers:
     level: DEBUG
 {% endif %}
     handlers: [console, smtp]
-root:
-  level: NOTSET
-  handlers: []
