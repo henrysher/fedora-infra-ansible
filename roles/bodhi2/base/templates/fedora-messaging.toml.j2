@@ -42,7 +42,10 @@ queue = "bodhi{{ env_suffix }}"
 exchange = "amq.topic"
 routing_keys = [
 {% for key in bodhi_message_routing_keys %}
+    {# Only bodhi-backend01 should get the composer start messages #}
+    {% if 'bodhi.composer.start' not in key or inventory_hostname.startswith('bodhi-backend01') %}
     "{{ key }}",
+    {% endif %}
 {% endfor %}
 ]
 
