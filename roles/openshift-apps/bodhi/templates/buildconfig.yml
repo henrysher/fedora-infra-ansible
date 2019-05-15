@@ -4,15 +4,15 @@ items:
   kind: BuildConfig
   metadata:
     labels:
-      build: bodhi-web
-    name: bodhi-web
+      build: bodhi-base
+    name: bodhi-base
   spec:
     runPolicy: Serial
     source:
       dockerfile: |-
         FROM fedora:29
         LABEL \
-          name="bodhi-web" \
+          name="bodhi-base" \
           vendor="Fedora Infrastructure" \
           license="MIT"
         RUN curl -o /etc/yum.repos.d/infra-tags.repo https://infrastructure.fedoraproject.org/cgit/ansible.git/plain/files/common/fedora-infra-tags.repo
@@ -21,7 +21,7 @@ items:
 {% endif %}
         # While dnf has a --nodocs, it doesen't have a --docs...
         RUN sed -i '/nodocs/d' /etc/dnf/dnf.conf
-        RUN dnf install -y bodhi-server-{{bodhi_version}} bodhi-docs-{{bodhi_version}} python3-pyramid_sawing
+        RUN dnf install -y bodhi-server-{{bodhi_version}}
         # We can drop this block once Bodhi 4.0.0 is deployed to production.
 {% if env == "production" %}
         # Put the fedmsg config in place
@@ -37,8 +37,39 @@ items:
         RUN rm -f /etc/krb5.conf && \
             ln -sf /etc/bodhi/krb5.conf /etc/krb5.conf && \
             ln -sf /etc/keytabs/koji-keytab /etc/krb5.bodhi_bodhi{{ env_suffix }}.fedoraproject.org.keytab
-        EXPOSE 8080
         ENV USER=openshift
+      type: Dockerfile
+    strategy:
+      type: Docker
+      dockerStrategy:
+        noCache: false
+    output:
+      to:
+        kind: ImageStreamTag
+        name: bodhi-base:latest
+kind: List
+metadata: {}
+---
+apiVersion: v1
+items:
+- apiVersion: v1
+  kind: BuildConfig
+  metadata:
+    labels:
+      build: bodhi-web
+    name: bodhi-web
+  spec:
+    runPolicy: Serial
+    source:
+      dockerfile: |-
+        FROM bodhi-base
+        LABEL \
+          name="bodhi-web" \
+          vendor="Fedora Infrastructure" \
+          license="MIT"
+        RUN dnf install -y bodhi-docs-{{bodhi_version}} python3-pyramid_sawing
+        # We can drop this block once Bodhi 4.0.0 is deployed to production.
+        EXPOSE 8080
         ENTRYPOINT bash /etc/bodhi/start.sh
       type: Dockerfile
     strategy:
@@ -66,23 +97,14 @@ items:
     runPolicy: Serial
     source:
       dockerfile: |-
-        FROM fedora:29
+        FROM bodhi-base
         LABEL \
           name="bodhi-consumer" \
           vendor="Fedora Infrastructure" \
           license="MIT"
-        RUN curl -o /etc/yum.repos.d/infra-tags.repo https://infrastructure.fedoraproject.org/cgit/ansible.git/plain/files/common/fedora-infra-tags.repo
-{% if env == "staging" %}
-        RUN curl -o /etc/yum.repos.d/infra-tags-stg.repo https://infrastructure.fedoraproject.org/cgit/ansible.git/plain/files/common/fedora-infra-tags-stg.repo
-{% endif %}
-        # While dnf has a --nodocs, it doesen't have a --docs...
-        RUN sed -i '/nodocs/d' /etc/dnf/dnf.conf
-        RUN dnf install -y bodhi-composer-{{bodhi_version}} bodhi-server-{{bodhi_version}}
-        # Set up krb5
-        RUN rm -f /etc/krb5.conf && \
-            ln -sf /etc/bodhi/krb5.conf /etc/krb5.conf && \
-            ln -sf /etc/keytabs/koji-keytab /etc/krb5.bodhi_bodhi{{ env_suffix }}.fedoraproject.org.keytab
-        ENV USER=openshift
+        # We only need the composer here because the consumer does not conditionally import the
+        # composer code. This should be fixed in a future Bodhi release.
+        RUN dnf install -y bodhi-composer-{{bodhi_version}}
         ENTRYPOINT /usr/bin/fedora-messaging consume
       type: Dockerfile
     strategy:
