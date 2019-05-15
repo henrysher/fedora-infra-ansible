@@ -15,6 +15,18 @@
     group: lighttpd
     mode: g+s
 
+- name: certbot, correct fcontext mapping the web root
+  sefcontext:
+    target: '/var/certbot/public_html/.well-known(/.*)'
+    setype: httpd_sys_content_t
+    state: present
+
+- name: certbot, restorecon the web root
+  file:
+    path: /var/certbot/public_html/.well-know
+    state: directory
+    setype: httpd_sys_content_t
+
 - name: Check that cert file exists
   stat:
     path: "/etc/letsencrypt/live/copr-be-dev.cloud.fedoraproject.org/cert.pem"
