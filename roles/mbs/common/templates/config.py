@@ -180,6 +180,8 @@ class ProdConfiguration(BaseConfiguration):
         'module',
         # Our very first manually bootstrapped tag has this name.
         'f26-modularity',
+        # Scratch module builds have this prefix
+        'scrmod',
     ]
 
     # If this is too long, we could change it to 'fm_' some day.
