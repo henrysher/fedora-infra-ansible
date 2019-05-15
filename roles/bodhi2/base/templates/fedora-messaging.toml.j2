@@ -30,7 +30,7 @@ app = "bodhi"
 {# If bodhi_message_routing_keys is defined, this must be a consumer so let's also set up the consumer
    config. #}
 {% if bodhi_message_routing_keys is defined %}
-[queues."bodhi{{ env_suffix }}"]
+[queues."{{ bodhi_message_queue_name }}"]
 durable = true
 auto_delete = false
 exclusive = false
@@ -38,14 +38,11 @@ arguments = {}
 
 
 [[bindings]]
-queue = "bodhi{{ env_suffix }}"
+queue = "{{ bodhi_message_queue_name }}"
 exchange = "amq.topic"
 routing_keys = [
 {% for key in bodhi_message_routing_keys %}
-    {# Only bodhi-backend01 should get the composer start messages #}
-    {% if 'bodhi.composer.start' not in key or inventory_hostname.startswith('bodhi-backend01') %}
     "{{ key }}",
-    {% endif %}
 {% endfor %}
 ]
 

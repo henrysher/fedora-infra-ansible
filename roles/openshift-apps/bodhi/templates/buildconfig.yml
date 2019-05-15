@@ -51,3 +51,49 @@ items:
         name: bodhi-web:latest
 kind: List
 metadata: {}
+{# We can drop the if statement here once we deploy 4.0.0 to production #}
+{% if env == "staging" %}
+---
+apiVersion: v1
+items:
+- apiVersion: v1
+  kind: BuildConfig
+  metadata:
+    labels:
+      build: bodhi-consumer
+    name: bodhi-consumer
+  spec:
+    runPolicy: Serial
+    source:
+      dockerfile: |-
+        FROM fedora:29
+        LABEL \
+          name="bodhi-consumer" \
+          vendor="Fedora Infrastructure" \
+          license="MIT"
+        RUN curl -o /etc/yum.repos.d/infra-tags.repo https://infrastructure.fedoraproject.org/cgit/ansible.git/plain/files/common/fedora-infra-tags.repo
+{% if env == "staging" %}
+        RUN curl -o /etc/yum.repos.d/infra-tags-stg.repo https://infrastructure.fedoraproject.org/cgit/ansible.git/plain/files/common/fedora-infra-tags-stg.repo
+{% endif %}
+        # While dnf has a --nodocs, it doesen't have a --docs...
+        RUN sed -i '/nodocs/d' /etc/dnf/dnf.conf
+        RUN dnf install -y bodhi-server-{{bodhi_version}}
+        # Set up krb5
+        RUN rm -f /etc/krb5.conf && \
+            ln -sf /etc/bodhi/krb5.conf /etc/krb5.conf && \
+            ln -sf /etc/keytabs/koji-keytab /etc/krb5.bodhi_bodhi{{ env_suffix }}.fedoraproject.org.keytab
+        ENV USER=openshift
+        ENTRYPOINT /usr/bin/fedora-messaging consume
+      type: Dockerfile
+    strategy:
+      type: Docker
+      dockerStrategy:
+        noCache: false
+    output:
+      to:
+        kind: ImageStreamTag
+        name: bodhi-consumer:latest
+kind: List
+metadata: {}
+{# We can drop this once we deploy 4.0.0 to production #}
+{% endif %}
