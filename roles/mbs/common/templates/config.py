@@ -213,3 +213,5 @@ class ProdConfiguration(BaseConfiguration):
 
     # Koji Content Generator "-devel" modules aren't used in Fedora, so we can just disable them
     KOJI_CG_DEVEL_MODULE = False
+
+    MODULES_ALLOW_SCRATCH = True
