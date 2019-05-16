@@ -26,35 +26,6 @@ data:
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: waiverdb-fedmsg-configmap
-  labels:
-    app: waiverdb
-data:
-  waiverdb.py: |-
-    import socket
-    config = dict(
-      sign_messages=True,
-      active=True,
-      endpoints={},
-
-      cert_prefix="waiverdb",
-      certnames={
-          "waiverdb." + socket.gethostname(): "waiverdb",
-      },
-
-{% if env == 'staging' %}
-      environment='stg',
-      relay_inbound=["tcp://busgateway01.stg.phx2.fedoraproject.org:9941"],
-{% else %}
-      environment='prod',
-      relay_inbound=["tcp://busgateway01.phx2.fedoraproject.org:9941"],
-{% endif %}
-    )
-{% if env == 'staging' %}
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
   name: fedora-messaging-configmap
   labels:
     app: waiverdb
@@ -62,4 +33,3 @@ metadata:
 data:
   config.toml: |-
     {{ load_file('config.toml') | indent }}
-{% endif %}
