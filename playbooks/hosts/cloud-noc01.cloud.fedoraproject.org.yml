@@ -46,6 +46,14 @@
     - config
     - selinux
 
+  - name: allow alternate ntpd port
+    command: semanage port -a -t ntp_port_t -p udp 124
+    when: '"124" not in ntp_selinux_port'
+    failed_when: false
+    tags:
+    - config
+    - selinux
+
   handlers:
   - import_tasks: "{{ handlers_path }}/restart_services.yml"
 
