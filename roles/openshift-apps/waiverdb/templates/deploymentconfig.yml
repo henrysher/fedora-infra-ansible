@@ -40,7 +40,6 @@ spec:
         - name: secret-volume
           mountPath: /etc/secret
           readOnly: true
-{% if env == 'staging' %}
         - name: fedora-messaging-ca-volume
           mountPath: /etc/pki/rabbitmq/ca
           readOnly: true
@@ -53,17 +52,6 @@ spec:
         - name: fedora-messaging-config-volume
           mountPath: /etc/fedora-messaging
           readOnly: true
-{% else %}
-        - name: fedmsg-key-volume
-          mountPath: /etc/pki/fedmsg/key
-          readOnly: true
-        - name: fedmsg-crt-volume
-          mountPath: /etc/pki/fedmsg/crt
-          readOnly: true
-        - name: fedmsg-config-volume
-          mountPath: /etc/fedmsg-waiverdb.d
-          readOnly: true
-{% endif %}
         env:
         - name: DATABASE_PASSWORD
           valueFrom:
@@ -97,7 +85,6 @@ spec:
       - name: secret-volume
         secret:
           secretName: waiverdb-secret
-{% if env == 'staging' %}
       - name: fedora-messaging-config-volume
         configMap:
           name: fedora-messaging-configmap
@@ -110,17 +97,6 @@ spec:
       - name: fedora-messaging-key-volume
         secret:
           secretName: waiverdb-fedora-messaging-key
-{% else %}
-      - name: fedmsg-config-volume
-        configMap:
-          name: waiverdb-fedmsg-configmap
-      - name: fedmsg-key-volume
-        secret:
-          secretName: waiverdb-fedmsg-key
-      - name: fedmsg-crt-volume
-        secret:
-          secretName: waiverdb-fedmsg-crt
-{% endif %}
   triggers:
   - type: ImageChange
     imageChangeParams:

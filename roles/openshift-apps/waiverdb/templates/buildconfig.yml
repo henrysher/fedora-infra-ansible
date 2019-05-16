@@ -8,33 +8,8 @@ spec:
   runPolicy: Serial
   source:
     dockerfile: |-
-{% if env == 'staging' %}
       # See imagestream.yml for the definition
       FROM waiverdb-upstream:latest
-{% else %}
-      # See imagestream.yml for the definition
-      FROM waiverdb-upstream:latest
-
-      # fedmsg needs a username.
-      ENV USER=waiverdb
-
-      # Become root during build to chmod
-      USER 0
-
-      # create a symlink for configuring fedmsg.
-      RUN ln -sfn /etc/fedmsg-waiverdb.d/waiverdb.py /etc/fedmsg.d/zz_waiverdb.py
-
-      # And another two for putting the certs in place.
-      RUN mkdir -p /etc/pki/fedmsg/
-      RUN ln -sf /etc/pki/fedmsg/key/fedmsg-waiverdb.key /etc/pki/fedmsg/waiverdb.key
-      RUN ln -sf /etc/pki/fedmsg/crt/fedmsg-waiverdb.crt /etc/pki/fedmsg/waiverdb.crt
-
-      # Make sure fedmsg can write its CRL.
-      RUN chmod 777 /var/run/fedmsg/
-
-      # Become non-root again
-      USER 1001
-{% endif %}
   strategy:
     type: Docker
     dockerStrategy:
