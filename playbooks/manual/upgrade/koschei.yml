@@ -1,5 +1,5 @@
 - name: apply koschei/frontend role
-  hosts: "{{ koschei_web_hosts | default('koschei-web:koschei-web-stg') }}"
+  hosts: "{{ koschei_web_hosts | default('koschei_web:koschei_web_stg') }}"
   vars_files:
   - /srv/web/infra/ansible/vars/global.yml
   - /srv/private/ansible/vars.yml
@@ -8,7 +8,7 @@
   - koschei/frontend
 
 - name: apply koschei/backend role
-  hosts: "{{ koschei_backend_hosts | default('koschei-backend:koschei-backend-stg') }}"
+  hosts: "{{ koschei_backend_hosts | default('koschei_backend:koschei_backend_stg') }}"
   vars_files:
   - /srv/web/infra/ansible/vars/global.yml
   - /srv/private/ansible/vars.yml
@@ -17,7 +17,7 @@
   - koschei/backend
 
 - name: upgrade packages
-  hosts: "{{ koschei_web_hosts | default('koschei-web:koschei-web-stg') }}:{{ koschei_backend_hosts | default('koschei-backend:koschei-backend-stg') }}"
+  hosts: "{{ koschei_web_hosts | default('koschei_web:koschei_web_stg') }}:{{ koschei_backend_hosts | default('koschei_backend:koschei_backend_stg') }}"
   vars:
     fedora_repos:
     - updates
@@ -42,20 +42,20 @@
     with_items: "{{ koschei_packages.results }}"
 
 - name: stop backend services
-  hosts: "{{ koschei_backend_hosts | default('koschei-backend:koschei-backend-stg') }}"
+  hosts: "{{ koschei_backend_hosts | default('koschei_backend:koschei_backend_stg') }}"
   tasks:
   - name: stop services
     service: name="{{ item }}" state=stopped
     with_items: "{{ koschei_backend_services }}"
 
 - name: stop httpd
-  hosts: "{{ koschei_web_hosts | default('koschei-web:koschei-web-stg') }}"
+  hosts: "{{ koschei_web_hosts | default('koschei_web:koschei_web_stg') }}"
   tasks:
   - name: stop httpd
     service: name="httpd" state=stopped
 
 - name: run DB migration
-  hosts: "{{ koschei_backend_hosts | default('koschei-backend:koschei-backend-stg') }}"
+  hosts: "{{ koschei_backend_hosts | default('koschei_backend:koschei_backend_stg') }}"
   tasks:
   - name: run db migration
     become: yes
@@ -63,7 +63,7 @@
     command: koschei-admin alembic upgrade head
 
 - name: restart httpd
-  hosts: "{{ koschei_web_hosts | default('koschei-web:koschei-web-stg') }}"
+  hosts: "{{ koschei_web_hosts | default('koschei_web:koschei_web_stg') }}"
   vars_files:
   - /srv/web/infra/ansible/vars/global.yml
   - /srv/private/ansible/vars.yml
@@ -73,7 +73,7 @@
     service: name="httpd" state=started
 
 - name: restart backend services
-  hosts: "{{ koschei_backend_hosts | default('koschei-backend:koschei-backend-stg') }}"
+  hosts: "{{ koschei_backend_hosts | default('koschei_backend:koschei_backend_stg') }}"
   vars_files:
   - /srv/web/infra/ansible/vars/global.yml
   - /srv/private/ansible/vars.yml
@@ -84,7 +84,7 @@
     with_items: "{{ koschei_backend_services }}"
 
 - name: Check whether backend update
-  hosts: "{{ koschei_web_hosts | default('koschei-web:koschei-web-stg') }}:{{ koschei_backend_hosts | default('koschei-backend:koschei-backend-stg') }}"
+  hosts: "{{ koschei_web_hosts | default('koschei_web:koschei_web_stg') }}:{{ koschei_backend_hosts | default('koschei_backend:koschei_backend_stg') }}"
   tasks:
   - assert:
       that: koschei_upgrade.changed
