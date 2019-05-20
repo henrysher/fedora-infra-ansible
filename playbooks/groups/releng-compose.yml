@@ -46,9 +46,18 @@
   - role: loopabull/target
     loopabull_role: ociimage
     when: inventory_hostname == 'composer.stg.phx2.fedoraproject.org'
-  _ { role: nfs/client, when: "'releng_stg' not in group_names",  mnt_dir: '/mnt/fedora_koji',  nfs_src_dir: "{{ koji_hub_nfs }}" }
-  _ { role: nfs/client, when: "'releng_compose' in group_names", mnt_dir: '/pub',  nfs_src_dir: 'fedora_ftp/fedora.redhat.com/pub' }
-  _ { role: nfs/client, when: "'releng_stg' in group_names", mnt_dir: '/mnt/fedora_koji_prod',  nfs_src_dir: "{{ koji_hub_nfs }}" }
+  - role: nfs/client
+    mnt_dir: '/mnt/fedora_koji'
+    nfs_src_dir: "{{ koji_hub_nfs }}"
+    when: "'releng_stg' not in group_names"
+  - role: nfs/client
+    mnt_dir: '/pub'
+    nfs_src_dir: 'fedora_ftp/fedora.redhat.com/pub'
+    when: "'releng_compose' in group_names"
+  - role: nfs/client
+    mnt_dir: '/mnt/fedora_koji_prod'
+    nfs_src_dir: "{{ koji_hub_nfs }}"
+    when: "'releng_stg' in group_names"
   - fedmsg/base
   - role: releng
     tags:
