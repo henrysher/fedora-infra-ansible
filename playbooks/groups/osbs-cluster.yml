@@ -7,7 +7,7 @@
 - import_playbook:  "/srv/web/infra/ansible/playbooks/include/virt-create.yml myhosts=osbs-aarch64-masters"
 
 - name: make the box be real
-  hosts: osbs-control:osbs-masters:osbs-nodes:osbs-control-stg:osbs-masters-stg:osbs-nodes-stg:osbs-aarch64-masters-stg:osbs-aarch64-masters
+  hosts: osbs_control:osbs_masters:osbs_nodes:osbs_control_stg:osbs_masters_stg:osbs_nodes_stg:osbs_aarch64_masters_stg:osbs_aarch64_masters
   user: root
   gather_facts: True
 
@@ -37,7 +37,7 @@
   - import_tasks: "{{ handlers_path }}/restart_services.yml"
 
 - name: OSBS control hosts pre-req setup
-  hosts: osbs-control:osbs-control-stg
+  hosts: osbs_control:osbs_control_stg
   tags:
     - osbs-cluster-prereq
   user: root
@@ -64,7 +64,7 @@
         value: "True"
 
 - name: Setup cluster masters pre-reqs
-  hosts: osbs-masters-stg:osbs-masters:osbs-aarch64-masters-stg:osbs-aarch64-masters
+  hosts: osbs_masters_stg:osbs_masters:osbs_aarch64_masters_stg:osbs_aarch64_masters
   tags:
     - osbs-cluster-prereq
   user: root
@@ -103,7 +103,7 @@
 
 
 - name: Setup cluster hosts pre-reqs
-  hosts: osbs-masters-stg:osbs-nodes-stg:osbs-masters:osbs-nodes:osbs-aarch64-masters-stg:osbs-aarch64-masters
+  hosts: osbs_masters_stg:osbs_nodes_stg:osbs_masters:osbs_nodes:osbs_aarch64_masters_stg:osbs_aarch64_masters
   tags:
     - osbs-cluster-prereq
   user: root
@@ -164,7 +164,7 @@
         dest:  "/etc/sysconfig/docker-storage-setup"
 
 - name: Deploy kerberose keytab to cluster hosts
-  hosts: osbs-masters-stg:osbs-nodes-stg:osbs-masters:osbs-nodes:osbs-aarch64-masters-stg:osbs-aarch64-masters
+  hosts: osbs_masters_stg:osbs_nodes_stg:osbs_masters:osbs_nodes:osbs_aarch64_masters_stg:osbs_aarch64_masters
   tags:
     - osbs-cluster-prereq
   user: root
@@ -190,7 +190,7 @@
     when: env == "staging"
 
 - name: Deploy OpenShift Cluster x86_64
-  hosts: osbs-control:osbs-control-stg
+  hosts: osbs_control:osbs_control_stg
   tags:
     - osbs-deploy-openshift
     - osbs-x86-deploy-openshift
@@ -230,7 +230,7 @@
       tags: ['openshift-cluster-x86','ansible-ansible-openshift-ansible']
 
 - name: Deploy OpenShift Cluster aarch64
-  hosts: osbs-control:osbs-control-stg
+  hosts: osbs_control:osbs_control_stg
   tags:
     - osbs-deploy-openshift
     - osbs-aarch-deploy-openshift
@@ -270,7 +270,7 @@
       tags: ['openshift-cluster-aarch','ansible-ansible-openshift-ansible']
 
 - name: Setup OSBS requirements for OpenShift cluster hosts
-  hosts: osbs-masters-stg:osbs-nodes-stg:osbs-masters:osbs-nodes
+  hosts: osbs_masters_stg:osbs_nodes_stg:osbs_masters:osbs_nodes
   tags:
     - osbs-cluster-req
   user: root
@@ -290,7 +290,7 @@
         dest: "/etc/dnsmasq.d/fedora-dns.conf"
 
 - name: Create worker namespace
-  hosts: osbs-masters-stg[0]:osbs-masters[0]:osbs-aarch64-masters-stg[0]:osbs-aarch64-masters[0]
+  hosts: osbs_masters_stg[0]:osbs_masters[0]:osbs_aarch64_masters_stg[0]:osbs_aarch64_masters[0]
   tags:
     - osbs-worker-namespace
   user: root
@@ -312,7 +312,7 @@
       osbs_sources_command: "{{ osbs_conf_sources_command }}"
 
 - name: setup ODCS secret in worker namespace
-  hosts: osbs-masters-stg[0]:osbs-masters[0]:osbs-aarch64-masters-stg[0]:osbs-aarch64-masters[0]
+  hosts: osbs_masters_stg[0]:osbs_masters[0]:osbs_aarch64_masters_stg[0]:osbs_aarch64_masters[0]
   vars_files:
     - /srv/web/infra/ansible/vars/global.yml
     - "/srv/private/ansible/vars.yml"
@@ -328,7 +328,7 @@
     - osbs-worker-namespace
 
 - name: Create orchestrator namespace
-  hosts: osbs-masters-stg[0]:osbs-masters[0]
+  hosts: osbs_masters_stg[0]:osbs_masters[0]
   roles:
   - role: osbs-namespace
     osbs_orchestrator: true
@@ -346,7 +346,7 @@
 
 
 - name: Add the orchestrator labels to the nodes
-  hosts: osbs-masters-stg[0]:osbs-masters[0]
+  hosts: osbs_masters_stg[0]:osbs_masters[0]
   tags:
     - osbs-labels-nodes
   tasks:
@@ -361,7 +361,7 @@
       when: env == "production"
 
 - name: Add the worker labels to the nodes x86_64
-  hosts: osbs-masters-stg[0]:osbs-masters[0]
+  hosts: osbs_masters_stg[0]:osbs_masters[0]
   tags:
     - osbs-labels-nodes
   tasks:
@@ -375,7 +375,7 @@
       when: env == "production"
 
 - name: Add the worker labels to the nodes aarch64
-  hosts: osbs-aarch64-masters-stg[0]:osbs-aarch64-masters[0]
+  hosts: osbs_aarch64_masters_stg[0]:osbs_aarch64_masters[0]
   tags:
     - osbs-labels-nodes
   tasks:
@@ -389,7 +389,7 @@
       when: env == "production"
 
 - name: setup reactor config secret in orchestrator namespace
-  hosts: osbs-masters-stg[0]:osbs-masters[0]
+  hosts: osbs_masters_stg[0]:osbs_masters[0]
   roles:
   - role: osbs-secret
     osbs_secret_name: reactor-config-secret
@@ -400,7 +400,7 @@
     - osbs-orchestrator-namespace
 
 - name: setup ODCS secret in orchestrator namespace
-  hosts: osbs-masters-stg[0]:osbs-masters[0]
+  hosts: osbs_masters_stg[0]:osbs_masters[0]
   vars_files:
     - /srv/web/infra/ansible/vars/global.yml
     - "/srv/private/ansible/vars.yml"
@@ -416,7 +416,7 @@
 
 
 - name: setup client config secret in orchestrator namespace
-  hosts: osbs-masters-stg[0]:osbs-masters[0]
+  hosts: osbs_masters_stg[0]:osbs_masters[0]
   roles:
   - role: osbs-secret
     osbs_secret_name: client-config-secret
@@ -427,7 +427,7 @@
     - osbs-orchestrator-namespace
 
 - name: Save orchestrator token x86_64
-  hosts: osbs-masters-stg[0]:osbs-masters[0]
+  hosts: osbs_masters_stg[0]:osbs_masters[0]
   tasks:
     - name: get orchestrator service account token
       command: "oc -n {{ osbs_worker_namespace }} sa get-token orchestrator"
@@ -442,7 +442,7 @@
     - osbs-orchestrator-namespace
 
 - name: setup orchestrator token for x86_64-osbs
-  hosts: osbs-masters-stg[0]:osbs-masters[0]
+  hosts: osbs_masters_stg[0]:osbs_masters[0]
   vars_files:
     - /srv/web/infra/ansible/vars/global.yml
     - "/srv/private/ansible/vars.yml"
@@ -464,7 +464,7 @@
     - osbs-orchestrator-namespace
 
 - name: Save orchestrator token aarch64
-  hosts: osbs-aarch64-masters-stg[0]:osbs-aarch64-masters[0]
+  hosts: osbs_aarch64_masters_stg[0]:osbs_aarch64_masters[0]
   tasks:
     - name: get orchestrator service account token
       command: "oc -n {{ osbs_worker_namespace }} sa get-token orchestrator"
@@ -479,7 +479,7 @@
     - osbs-orchestrator-namespace
 
 - name: setup orchestrator token for aarch64-osbs
-  hosts: osbs-masters-stg[0]:osbs-masters[0]
+  hosts: osbs_masters_stg[0]:osbs_masters[0]
   vars_files:
     - /srv/web/infra/ansible/vars/global.yml
     - "/srv/private/ansible/vars.yml"
@@ -502,7 +502,7 @@
     - osbs-orchestrator-namespace
 
 - name: Add dockercfg secret to allow registry push orchestrator
-  hosts: osbs-masters-stg[0]:osbs-masters[0]
+  hosts: osbs_masters_stg[0]:osbs_masters[0]
   tags:
     - osbs-dockercfg-secret
   user: root
@@ -541,7 +541,7 @@
         path="/tmp/.dockercfg"
 
 - name: Add dockercfg secret to allow registry push worker
-  hosts: osbs-masters-stg[0]:osbs-masters[0]:osbs-aarch64-masters-stg[0]:osbs-aarch64-masters[0]
+  hosts: osbs_masters_stg[0]:osbs_masters[0]:osbs_aarch64_masters_stg[0]:osbs_aarch64_masters[0]
   tags:
     - osbs-dockercfg-secret
   user: root
@@ -581,7 +581,7 @@
         path="/tmp/.dockercfg"
 
 - name: post-install master host osbs tasks
-  hosts: osbs-masters-stg:osbs-masters:osbs-aarch64-masters-stg[0]:osbs-aarch64-masters[0]
+  hosts: osbs_masters_stg:osbs_masters:osbs_aarch64_masters_stg[0]:osbs_aarch64_masters[0]
   tags:
     - osbs-post-install
   vars_files:
@@ -606,7 +606,7 @@
         dest: "/etc/cron.d/cleanup-old-osbs-builds"
 
 - name: post-install osbs control tasks
-  hosts: osbs-control
+  hosts: osbs_control
   tags: osbs-post-install
   vars_files:
     - /srv/web/infra/ansible/vars/global.yml
@@ -621,7 +621,7 @@
 
 
 - name: post-install osbs tasks
-  hosts: osbs-nodes-stg:osbs-nodes:osbs-aarch64-nodes-stg:osbs-aarch64-nodes
+  hosts: osbs_nodes_stg:osbs_nodes:osbs_aarch64_nodes_stg:osbs_aarch64_nodes
   tags:
     - osbs-post-install
   vars_files:

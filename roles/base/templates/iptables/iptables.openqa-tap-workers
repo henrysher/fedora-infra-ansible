@@ -33,7 +33,7 @@
 -A INPUT -p tcp -m tcp --dport 5666 -s 10.5.126.41 -j ACCEPT
 -A INPUT -p tcp -m tcp --dport 5666 -s 10.5.126.241 -j ACCEPT
 
-{% if env != 'staging' and datacenter == 'phx2' and inventory_hostname not in groups['staging-friendly'] %}
+{% if env != 'staging' and datacenter == 'phx2' and inventory_hostname not in groups['staging_friendly'] %}
 #
 # In the phx2 datacenter, both production and staging hosts are in the same 
 # subnet/vlan. We want production hosts to reject connectons from staging group hosts
@@ -51,7 +51,7 @@
 {% endfor %}
 {% endif %}
 
-{% if ansible_domain == 'qa.fedoraproject.org' and inventory_hostname not in groups['qa-isolated'] %}
+{% if ansible_domain == 'qa.fedoraproject.org' and inventory_hostname not in groups['qa_isolated'] %}
 #
 # In the qa.fedoraproject.org network, we want machines not in the qa-isolated group 
 # to block all access from that group. This is to protect them from any possible attack 
@@ -77,7 +77,7 @@
 -A INPUT -s 10.5.131.47 -j REJECT --reject-with icmp-host-prohibited
 -A INPUT -s 10.5.131.48 -j REJECT --reject-with icmp-host-prohibited
 -A INPUT -s 10.5.131.49 -j REJECT --reject-with icmp-host-prohibited
-{% for host in groups['qa-isolated']|sort %}
+{% for host in groups['qa_isolated']|sort %}
 {% if 'eth0_ip' in hostvars[host] %}# {{ host }}
 -A INPUT -s {{ hostvars[host]['eth0_ip'] }} -j REJECT --reject-with icmp-host-prohibited
 {% elif 'em3_ip' in hostvars[host] %}# {{ host }}

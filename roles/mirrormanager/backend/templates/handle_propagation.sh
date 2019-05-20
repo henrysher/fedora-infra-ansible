@@ -5,7 +5,7 @@ PROPAGATION="/usr/bin/mm2_propagation"
 SOURCE="mm-crawler01.phx2.fedoraproject.org::propagation"
 LOGBASE="/var/log/mirrormanager/propagation"
 
-FRONTENDS="{% for host in groups['mm-frontend'] %} {{ host }} {% endfor %}"
+FRONTENDS="{% for host in groups['mm_frontend'] %} {{ host }} {% endfor %}"
 
 OUTPUT=`mktemp -d`
 ACTIVE=`mktemp`

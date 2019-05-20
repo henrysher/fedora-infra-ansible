@@ -1,7 +1,7 @@
 - import_playbook: "/srv/web/infra/ansible/playbooks/include/virt-create.yml myhosts=odcs:odcs-stg"
 
 - name: make the box be real
-  hosts: odcs:odcs-stg
+  hosts: odcs:odcs_stg
   user: root
   gather_facts: True
 
@@ -31,7 +31,7 @@
   - import_tasks: "{{ handlers_path }}/restart_services.yml"
 
 - name: openvpn on the prod frontend nodes
-  hosts: odcs-frontend
+  hosts: odcs_frontend
   user: root
   gather_facts: True
 
@@ -47,7 +47,7 @@
   - import_tasks: "{{ handlers_path }}/restart_services.yml"
 
 - name: Set up a gluster share on the backend for the frontend
-  hosts: odcs:odcs-stg
+  hosts: odcs:odcs_stg
   user: root
   gather_facts: True
 
@@ -73,7 +73,7 @@
     when: env != 'staging'
 
 - name: Set up odcs frontend service
-  hosts: odcs-frontend:odcs-frontend-stg
+  hosts: odcs_frontend:odcs_frontend_stg
   user: root
   gather_facts: True
 
@@ -99,7 +99,7 @@
   - import_tasks: "{{ handlers_path }}/restart_services.yml"
 
 - name: Set up odcs backend service
-  hosts: odcs-backend:odcs-backend-stg
+  hosts: odcs_backend:odcs_backend_stg
   user: root
   gather_facts: True
 
@@ -122,7 +122,7 @@
   - import_tasks: "{{ handlers_path }}/restart_services.yml"
 
 - name: Set up /mnt/koji on both the frontend and backend
-  hosts: odcs:odcs-stg
+  hosts: odcs:odcs_stg
   user: root
   gather_facts: True
 

@@ -5,31 +5,31 @@
   package: name=fedmsg-hub state=present
   tags:
   - packages
-  when: "'python34-fedmsg' not in group_names and ansible_distribution_major_version|int < 22"
+  when: "'python34_fedmsg' not in group_names and ansible_distribution_major_version|int < 22"
 
 - name: install needed packages
   dnf: pkg=fedmsg-hub state=present
   tags:
   - packages
-  when: "'python34-fedmsg' not in group_names and ansible_distribution_major_version|int > 21"
+  when: "'python34_fedmsg' not in group_names and ansible_distribution_major_version|int > 21"
 
 - name: install the python34 fedmsg package (yum)
   package: name=python34-fedmsg-core state=present
-  when: "'python34-fedmsg' in group_names and ansible_distribution_major_version|int < 22"
+  when: "'python34_fedmsg' in group_names and ansible_distribution_major_version|int < 22"
   tags: fedmsg/base
 
 - name: install the python3 fedmsg package (dnf)
   dnf: pkg=python3-fedmsg state=present
-  when: "'python34-fedmsg' in group_names and ansible_distribution_major_version|int > 21"
+  when: "'python34_fedmsg' in group_names and ansible_distribution_major_version|int > 21"
   tags: fedmsg/base
 
 - name: fedmsg-hub service
   service: name=fedmsg-hub state=started enabled=yes
-  when: "'python34-fedmsg' not in group_names"
+  when: "'python34_fedmsg' not in group_names"
 
 - name: fedmsg-hub-3 service
   service: name=fedmsg-hub-3 state=started enabled=yes
-  when: "'python34-fedmsg' in group_names"
+  when: "'python34_fedmsg' in group_names"
 
 - name: enable the websocket server if we should
   copy: src=websockets.py dest=/etc/fedmsg.d/websockets.py

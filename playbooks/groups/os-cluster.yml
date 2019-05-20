@@ -2,7 +2,7 @@
 - import_playbook:  "/srv/web/infra/ansible/playbooks/include/virt-create.yml myhosts=os-control-stg:os-control:os-nodes-stg:os-masters-stg:os-nodes:os-masters"
 
 - name: make the box be real
-  hosts: os-control:os-control-stg:os-masters-stg:os-nodes-stg:os-masters:os-nodes
+  hosts: os_control:os_control_stg:os_masters_stg:os_nodes_stg:os_masters:os_nodes
   user: root
   gather_facts: True
 
@@ -21,7 +21,7 @@
     - rsyncd
     - sudo
     - { role: openvpn/client,
-        when: env != "staging" and 'os-control' not in group_names }
+        when: env != "staging" and 'os_control' not in group_names }
 
   tasks:
     - name: put openshift repo on os- systems
@@ -54,7 +54,7 @@
   - import_tasks: "{{ handlers_path }}/restart_services.yml"
 
 - name: OSBS control hosts pre-req setup
-  hosts: os-control:os-control-stg
+  hosts: os_control:os_control_stg
   tags:
     - os-cluster-prereq
   user: root
@@ -97,7 +97,7 @@
       package: name=python-passlib state=present
 
 - name: Pre tasks for master/nodes
-  hosts: os-masters-stg:os-masters
+  hosts: os_masters_stg:os_masters
   tags:
     - os-cluster-deploy
   user: root
@@ -117,7 +117,7 @@
       file: state=link src=/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem dest=/etc/origin/master/fedoraidp_openid_ca.crt
 
 - name: Deploy OpenShift cluster
-  hosts: os-control:os-control-stg
+  hosts: os_control:os_control_stg
   tags:
     - os-cluster-deploy
   user: root
@@ -189,7 +189,7 @@
     }
 
 - name: Post-Install setup
-  hosts: os-stg:os
+  hosts: os_stg:os
   tags:
     - os-post-install
   vars_files:
@@ -204,7 +204,7 @@
       - iptables
 
 - name: Post-Install master setup
-  hosts: os-masters-stg:os-masters
+  hosts: os_masters_stg:os_masters
   tags:
     - os-post-install
   vars_files:

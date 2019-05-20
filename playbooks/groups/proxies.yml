@@ -3,7 +3,7 @@
 - import_playbook: "/srv/web/infra/ansible/playbooks/include/virt-create.yml myhosts=proxies:proxies-stg:!proxy05.fedoraproject.org"
 
 - name: make the box be real
-  hosts: proxies-stg:proxies
+  hosts: proxies_stg:proxies
   user: root
   gather_facts: True
 
@@ -25,7 +25,7 @@
   - sudo
   - rsyncd
   - { role: mirrormanager/mirrorlist_proxy,
-      when: env == "staging" or "'mirrorlist-proxy' in group_names" }
+      when: env == "staging" or "'mirrorlist_proxy' in group_names" }
   - { role: openvpn/client,
       when: env != "staging" }
   - apache
@@ -63,7 +63,7 @@
 
 
 - name: Set up the proxy basics
-  hosts: proxies-stg:proxies
+  hosts: proxies_stg:proxies
   strategy: free
   user: root
   gather_facts: False
@@ -104,7 +104,7 @@
 - import_playbook: /srv/web/infra/ansible/playbooks/include/proxies-miscellaneous.yml
 
 - name: Make sure we are deployed fully
-  hosts: proxies-stg:proxies
+  hosts: proxies_stg:proxies
   strategy: free
   user: root
   gather_facts: False

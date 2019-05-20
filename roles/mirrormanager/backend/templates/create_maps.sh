@@ -2,7 +2,7 @@
 
 WORLDMAP="/usr/bin/mm2_generate-worldmap"
 
-FRONTENDS="{% for host in groups['mm-frontend'] %} {{ host }} {% endfor %}"
+FRONTENDS="{% for host in groups['mm_frontend'] %} {{ host }} {% endfor %}"
 
 OUTPUT=`mktemp -d`
 

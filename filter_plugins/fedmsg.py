@@ -11,7 +11,7 @@ def invert_fedmsg_policy(groups, vars, env):
     if env == 'staging':
         hosts = groups['all'] + groups['staging'] + groups['fedmsg-qa-network-stg'] + groups['openshift-pseudohosts-stg']
     else:
-        hosts = [h for h in groups['all'] if h not in groups['staging'] + groups['openshift-pseudohosts-stg']]
+        hosts = [h for h in groups['all'] if h not in groups['staging'] + groups['openshift_pseudohosts_stg']]
 
     inverted = {}
     for host in hosts:

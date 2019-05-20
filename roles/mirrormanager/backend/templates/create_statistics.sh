@@ -1,7 +1,7 @@
 #!/bin/sh
 
-MIRRORLIST_PROXIES="{% for host in groups['mirrorlist-proxies'] %} {{ host }} {% endfor %}"
-FRONTENDS="{% for host in groups['mm-frontend'] %} {{ host }} {% endfor %}"
+MIRRORLIST_PROXIES="{% for host in groups['mirrorlist_proxies'] %} {{ host }} {% endfor %}"
+FRONTENDS="{% for host in groups['mm_frontend'] %} {{ host }} {% endfor %}"
 
 INPUT="/var/log/mirrormanager/mirrorlist.log"
 CONTAINER1="/var/log/mirrormanager/mirrorlist1.service.log"
