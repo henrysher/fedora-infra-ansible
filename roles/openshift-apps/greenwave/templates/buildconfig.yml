@@ -8,6 +8,13 @@ spec:
   runPolicy: Serial
   source:
     dockerfile: |-
+{% if env == 'staging' %}
+      # See imagestream.yml for the definition
+      FROM greenwave-upstream:latest
+      USER 0
+      RUN dnf -y install fedora-messaging && dnf clean all
+      USER 1001
+{% else %}
       # See imagestream.yml for the definition
       FROM greenwave-upstream:latest
 
@@ -16,8 +23,6 @@ spec:
 
       # Become root during build to chmod
       USER 0
-
-      RUN dnf -y install fedora-messaging && dnf clean all
 
       # create a symlink for configuring the fedmsg consumers.
       RUN ln -sfn /etc/fedmsg-greenwave.d/greenwave.py /etc/fedmsg.d/zz_greenwave.py
@@ -32,6 +37,7 @@ spec:
 
       # Become non-root again
       USER 1001
+{% endif %}
   strategy:
     type: Docker
     dockerStrategy:
