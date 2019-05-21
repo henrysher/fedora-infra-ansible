@@ -146,6 +146,14 @@
     delegate_to: "{{os_delegate_via}}{{env_suffix}}.phx2.fedoraproject.org"
     when: inventory_hostname.startswith(('os-node', 'os-master'))
 
+  - name: restart gssproxy if we rebooted a ipa server
+    service: name=gssproxy state=restarted
+    when: inventory_hostname.startswith('ipa')
+
+  - name: restart rabbitmq if we rebooted a rabbit server
+    service: name=rabbitmq-server state=restarted
+    when: inventory_hostname.startswith('rabbitmq')
+
 # Call out to that dns playbook.  Put proxies back in now that they're back
 - import_playbook: update-proxy-dns.yml status=enable proxies=myvms_new:&proxies
   when: nodns is not defined or not nodns
