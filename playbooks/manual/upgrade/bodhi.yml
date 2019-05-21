@@ -1,5 +1,5 @@
 - name: check to see if a mash is going on before we do anything...
-  hosts: bodhi-backend:bodhi-backend-stg
+  hosts: bodhi_backend:bodhi_backend_stg
   user: root
   vars_files: 
    - /srv/web/infra/ansible/vars/global.yml
@@ -19,7 +19,7 @@
     when: "composes.stdout != '{\"composes\": []}' and env != 'staging'"
 
 - name: push packages out
-  hosts: bodhi-backend:bodhi-backend-stg
+  hosts: bodhi_backend:bodhi_backend_stg
   user: root
   vars_files: 
    - /srv/web/infra/ansible/vars/global.yml
@@ -45,7 +45,7 @@
     when: testing
 
 - name: find out if there are migrations to run
-  hosts: bodhi-backend:bodhi-backend-stg
+  hosts: bodhi_backend:bodhi_backend_stg
   user: root
   vars_files: 
    - /srv/web/infra/ansible/vars/global.yml
@@ -58,7 +58,7 @@
     register: current_migration_version
 
 - name: Stop the front end if there are migrations to run
-  hosts: os-masters[0]:os-masters-stg[0]
+  hosts: os_masters[0]:os_masters_stg[0]
   user: root
   vars_files: 
    - /srv/web/infra/ansible/vars/global.yml
@@ -82,7 +82,7 @@
     when: migrations
 
 - name: verify the backends, stop them, and then upgrade the db
-  hosts: bodhi-backend:bodhi-backend-stg
+  hosts: bodhi_backend:bodhi_backend_stg
   user: root
   vars_files: 
    - /srv/web/infra/ansible/vars/global.yml
@@ -135,7 +135,7 @@
     ignore_errors: true
 
 - name: restart the frontend
-  hosts: os-masters[0]:os-masters-stg[0]
+  hosts: os_masters[0]:os_masters_stg[0]
   user: root
   vars_files: 
    - /srv/web/infra/ansible/vars/global.yml
