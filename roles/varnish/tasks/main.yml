@@ -32,14 +32,8 @@
   - varnish
   when: ansible_distribution_major_version|int >= 25 and ansible_distribution_major_version|int < 29
 
-- name: make varnish override file dir
-  file: name=/etc/systemd/system/varnish.service.d/ state=directory mode=0755 owner=root group=root
-  tags:
-  - varnish
-  when: ansible_distribution_major_version|int >= 29
-
 - name: install varnish /etc/systemd/system/varnish.service file (fedora 29+)
-  template: src=varnish.f29.j2 dest=/etc/systemd/system/varnish.service.d/infra.conf owner=root group=root
+  template: src=varnish.f29.j2 dest=/etc/systemd/system/varnish.service owner=root group=root
   notify:
   - reload systemd
   - restart varnish
