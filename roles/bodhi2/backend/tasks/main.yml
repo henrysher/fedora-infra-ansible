@@ -372,12 +372,15 @@
   tags:
   - bodhi
 
+# We can drop this once we deploy Bodhi 4.0.0 to production
 - name: create the /usr/lib/systemd/system/fedmsg-hub-3.service.d drop-in directory
   file: path=/usr/lib/systemd/system/fedmsg-hub-3.service.d state=directory mode=0755
+  when: env == "production"
   tags:
   - config
   - bodhi
 
+# We can drop this once we deploy Bodhi 4.0.0 to production
 - name: install a femdsg-hub-3.service drop-in to run it as the apache
   copy: >
     src="fedmsg-hub.conf"
@@ -385,6 +388,7 @@
     owner=root
     group=root
     mode=0644
+  when: env == "production"
   notify:
   - reload systemd
   - restart fedmsg-hub-3
@@ -402,17 +406,19 @@
   - config
   - bodhi
 
+# We can drop this block when we upgrade production to bodhi 4.0.0
 - name: have the apache own /var/cache/fedmsg because of course..
   file: >
     path="/var/cache/fedmsg"
     owner=apache
     group=apache
     state=directory
-  when: inventory_hostname.startswith('bodhi-backend')
+  when: inventory_hostname.startswith('bodhi-backend') and env == "production"
   tags:
   - config
   - bodhi
 
+# We can drop this block when we upgrade production to bodhi 4.0.0
 - name: ensure that nrpe has rights to monitor us (dir), including setgid bit.
   file: >
     dest=/var/run/fedmsg
@@ -420,10 +426,12 @@
     owner=apache
     group=nrpe
     state=directory
+  when: env == "production"
   tags:
   - fedmsgmonitor
   - bodhi
 
+# We can drop this block when we upgrade production to bodhi 4.0.0
 - name: ensure that nrpe has rights to monitor us (file)
   file: >
     dest=/var/run/fedmsg/monitoring-fedmsg-hub-3.socket
@@ -431,6 +439,7 @@
     owner=apache
     group=nrpe
     state=file
+  when: env == "production"
   tags:
   - fedmsgmonitor
   - bodhi
