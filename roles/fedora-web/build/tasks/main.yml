@@ -44,13 +44,21 @@
   - arm.fedoraproject.org
   - iot.fedoraproject.org
   - labs.fedoraproject.org
+  - atomic-htaccess-generator
   tags:
   - fedora-web
+  - atomic-htaccess-generator
 
 - name: make fmw dir
   file: state=directory path=/srv/web/fmw owner=apache group=sysadmin-releng mode=2775 setype=httpd_sys_content_t seuser=system_u
   tags:
   - fedora-web
+
+- name: Copy atomic-htaccess-generator.py
+  template: src=atomic-htaccess-generator.py dest=/usr/local/bin/atomic-htaccess-generator.py owner=root group=root mode=0755
+  tags:
+  - fedora-web
+  - atomic-htaccess-generator
 
 - name: Copy syncStatic script (stg)
   when: env == "staging"
