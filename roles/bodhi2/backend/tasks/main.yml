@@ -350,6 +350,7 @@
   when: inventory_hostname.startswith('bodhi-backend')
   notify:
   - reload bodhi httpd
+  - restart fedora-messaging
   tags:
   - config
   - bodhi
@@ -363,6 +364,8 @@
     group=apache
     mode=0600
   when: inventory_hostname.startswith('bodhi-backend') and env == "staging"
+  notify:
+  - restart fedora-messaging
   tags:
   - config
   - bodhi
@@ -392,6 +395,22 @@
   notify:
   - reload systemd
   - restart fedmsg-hub-3
+  tags:
+  - bodhi
+  - config
+
+# We can drop the when condition when we deploy Bodhi 4.0.0 to production
+- name: Configure fm-consumer@.service to run as apache
+  copy:
+    src: fm-consumer@.service
+    dest: /etc/systemd/system/fm-consumer@.service
+    owner: root
+    group: root
+    mode: 0644
+  when: env == "staging"
+  notify:
+  - reload systemd
+  - restart fedora-messaging
   tags:
   - bodhi
   - config
@@ -469,6 +488,8 @@
     owner: apache
     group: apache
   when: env == "staging"
+  notify:
+  - restart fedora-messaging
   tags:
   - bodhi
   
@@ -481,6 +502,8 @@
     owner: apache
     group: apache
   when: env == "staging"
+  notify:
+  - restart fedora-messaging
   tags:
   - bodhi
   
@@ -493,6 +516,8 @@
     owner: apache
     group: apache
   when: env == "staging"
+  notify:
+  - restart fedora-messaging
   tags:
   - bodhi
   
