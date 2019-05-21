@@ -1,0 +1,69 @@
+- name: make the app be real
+  hosts: os-masters-stg[0]
+  user: root
+  gather_facts: False
+
+  vars_files:
+    - /srv/web/infra/ansible/vars/global.yml
+    - "/srv/private/ansible/vars.yml"
+    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  roles:
+  - role: rabbit/queue
+    username: joystick{{ env_suffix }}
+    queue_name: joystick{{ env_suffix }}
+    routing_keys:
+      - "org.fedoraproject.*.pungi.compose.status.change"
+
+  - role: openshift/project
+    app: joystick
+    description: joystick
+    appowners:
+    - sayanchowdhury
+
+  - role: openshift/secret-file
+    app: joystick
+    secret_name: joystick-fedora-messaging-ca
+    key: fedora-messaging-joystick-ca.crt
+    privatefile: "rabbitmq/{{env}}/pki/ca.crt"
+
+  - role: openshift/secret-file
+    app: joystick
+    secret_name: joystick-fedora-messaging-key
+    key: fedora-messaging-joystick.key
+    privatefile: "rabbitmq/{{env}}/pki/private/joystick{{env_suffix}}.key"
+
+  - role: openshift/secret-file
+    app: joystick
+    secret_name: joystick-fedora-messaging-cert
+    key: fedora-messaging-joystick.crt
+    privatefile: "rabbitmq/{{env}}/pki/issued/joystick{{env_suffix}}.crt"
+
+  - role: openshift/object
+    app: joystick
+    file: imagestream.yml
+    objectname: imagestream.yml
+
+  - role: openshift/object
+    app: joystick
+    template: buildconfig.yml
+    objectname: buildconfig.yml
+
+  - role: openshift/object
+    app: joystick
+    template: configmap.yml
+    objectname: configmap.yml
+
+  - role: openshift/start-build
+    app: joystick
+    buildname: joystick-build
+    objectname: joystick-build
+
+  - role: openshift/object
+    app: joystick
+    file: deploymentconfig.yml
+    objectname: deploymentconfig.yml
+
+  - role: openshift/rollout
+    app: joystick
+    dcname: joystick

@@ -1,0 +1,66 @@
+---
+apiVersion: v1
+kind: DeploymentConfig
+metadata:
+  labels:
+    app: joystick
+    service: joystick
+  name: joystick
+spec:
+  replicas: 1
+  selector:
+    app: joystick
+    deploymentconfig: joystick
+  strategy:
+    type: Recreate
+    recreateParams:
+      timeoutSeconds: 600
+  template:
+    metadata:
+      labels:
+        app: joystick
+        deploymentconfig: joystick
+    spec:
+      containers:
+      - name: joystick
+        image: joystick/joystick:latest
+        command: ["fedora-messaging", "consume"]
+        volumeMounts:
+          - name: config-volume
+            mountPath: /etc/fedora-messaging
+            readOnly: true
+          - name: fedora-messaging-ca-volume
+            mountPath: /etc/pki/rabbitmq/ca
+            readOnly: true
+          - name: fedora-messaging-key-volume
+            mountPath: /etc/pki/rabbitmq/key
+            readOnly: true
+          - name: fedora-messaging-cert-volume
+            mountPath: /etc/pki/rabbitmq/cert
+            readOnly: true
+      volumes:
+      - name: config-volume
+        configMap:
+          name: joystick-configmap
+      - name: fedora-messaging-ca-volume
+        secret:
+          secretName: joystick-fedora-messaging-ca
+      - name: fedora-messaging-key-volume
+        secret:
+          secretName: joystick-fedora-messaging-key
+      - name: fedora-messaging-cert-volume
+        secret:
+          secretName: joystick-fedora-messaging-cert
+  triggers:
+  - imageChangeParams:
+      automatic: true
+      containerNames:
+        - joystick
+      from:
+        kind: ImageStreamTag
+        name: joystick:latest
+        namespace: joystick
+    type: ImageChange
+  - type: ConfigChange
+kind: List
+metadata: {}

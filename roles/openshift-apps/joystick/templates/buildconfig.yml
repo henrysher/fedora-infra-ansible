@@ -1,0 +1,48 @@
+apiVersion: v1
+items:
+- apiVersion: v1
+  kind: BuildConfig
+  metadata:
+    labels:
+      build: joystick-build
+    name: joystick-build
+  spec:
+    runPolicy: Serial
+    source:
+      dockerfile: |-
+        FROM fedora:29
+        LABEL maintainer "Sayan Chowdhury <gmail@yudocaa.in>"
+
+        RUN curl -o /etc/yum.repos.d/infra-tags.repo https://infrastructure.fedoraproject.org/cgit/ansible.git/plain/files/common/fedora-infra-tags.repo
+{% if env == "staging" %}
+        RUN curl -o /etc/yum.repos.d/infra-tags-stg.repo https://infrastructure.fedoraproject.org/cgit/ansible.git/plain/files/common/fedora-infra-tags-stg.repo
+{% endif %}
+        WORKDIR /src
+        RUN dnf -y install \
+              git \
+              python3-setuptools \
+              python3-pip \
+              mantle \
+              fedora-messaging \
+              python3-fedfind && \
+            dnf autoremve -y \
+            dnf clean all -y \
+      type: Dockerfile
+      git:
+        uri: https://pagure.io/joystick.git
+{% if env == 'staging' %}
+        ref: staging
+{% else %}
+        ref: production
+{% endif %}
+    strategy:
+      type: Docker
+    output:
+      to:
+        kind: ImageStreamTag
+        name: joystick:latest
+    triggers:
+    - type: ConfigChange
+    - type: ImageChange
+kind: List
+metadata: {}
