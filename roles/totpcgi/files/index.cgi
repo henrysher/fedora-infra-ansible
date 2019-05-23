@@ -1,4 +1,4 @@
-#!/usr/bin/python -tt
+#!/usr/bin/python -tt -W ignore::DeprecationWarning
 ##
 # Copyright (C) 2012 by Konstantin Ryabitsev and contributors
 #
@@ -23,9 +23,6 @@ import sys
 import cgi
 import logging
 import urllib2
-
-import cgitb
-cgitb.enable()
 
 import totpcgi
 import totpcgi.backends
