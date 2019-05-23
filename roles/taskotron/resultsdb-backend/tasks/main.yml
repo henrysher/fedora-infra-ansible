@@ -2,6 +2,15 @@
 - name: start httpd (provided in the apache role)
   service: name=httpd state=started
 
+- name: ensure packages required for resultsdb are installed (yum - required for testdays)
+  package: name={{ item }} state=present
+  with_items:
+    - resultsdb
+    - mod_wsgi
+    - python-psycopg2
+    - libsemanage-python
+  when: ansible_distribution_major_version|int < 22
+
 - name: ensure packages required for resultsdb are installed (dnf)
   dnf: name={{ item }} state=present
   with_items:
@@ -9,7 +18,7 @@
     - python3-mod_wsgi
     - python3-psycopg2
     - python2-libsemanage
-  when: ansible_cmdline.ostree is not defined
+  when: ansible_distribution_major_version|int > 21 and ansible_cmdline.ostree is not defined
 
 - name: ensure database is created
   delegate_to: "{{ resultsdb_db_host_machine }}"
