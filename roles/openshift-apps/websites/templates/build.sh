@@ -7,4 +7,4 @@ bash ./build-prod.sh /output
 curl -O https://codeblock.fedorapeople.org/atomic-htaccess.py
 mkdir -p out build
 python atomic-htaccess.py
-cp -r out/. /output/
+cp -r out/. /output/getfedora.org/
