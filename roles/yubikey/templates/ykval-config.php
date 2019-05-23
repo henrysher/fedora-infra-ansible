@@ -2,11 +2,7 @@
 
 # For the validation interface.
 $baseParams = array ();
-{% if env == "staging" %}
-$baseParams['__YKVAL_DB_DSN__'] = "pgsql:dbname=ykval;host=db-fas01.stg";
-{% else %}
-$baseParams['__YKVAL_DB_DSN__'] = "pgsql:dbname=ykval;host=db-ykval";
-{% endif %}
+$baseParams['__YKVAL_DB_DSN__'] = "pgsql:dbname=ykval;host=db-fas01{{ env_suffix }}.phx2.fedoraproject.org";
 $baseParams['__YKVAL_DB_USER__'] = 'ykval_verifier';
 $baseParams['__YKVAL_DB_PW__'] = '{{ ykvalDBPassword }}';
 $baseParams['__YKVAL_DB_OPTIONS__'] = array();
@@ -47,7 +43,7 @@ function otp2ksmurls ($otp, $client) {
   }
 
   return array(
-	       "http://localhost/yk-ksm?otp=$otp",
+	       "http://localhost:8080/yk-ksm?otp=$otp",
 	       );
 }
 
