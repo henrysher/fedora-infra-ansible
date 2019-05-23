@@ -21,7 +21,6 @@ import os
 import re
 import sys
 import cgi
-import syslog
 import logging
 import urllib2
 
@@ -30,6 +29,8 @@ cgitb.enable()
 
 import totpcgi
 import totpcgi.backends
+
+logging.basicConfig(level=logging.info)
 
 if len(sys.argv) > 1:
     # blindly assume it's the config file
@@ -52,7 +53,7 @@ fas_url = config.get('main', 'fas_url')
 try:
     fas = FasProxyClient(fas_url)
 except Exception, e:
-    syslog.syslog(syslog.LOG_CRIT, 'Problem connecting to fas %s' % e)
+    logging.exception("Problem connecting to FAS")
     sys.exit(1)
 
 backends = totpcgi.backends.Backends()
@@ -60,11 +61,8 @@ backends = totpcgi.backends.Backends()
 try:
     backends.load_from_config(config)
 except totpcgi.backends.BackendNotSupported, ex:
-    syslog.syslog(syslog.LOG_CRIT,
-            'Backend engine not supported: %s' % ex)
+    logging.exception("Backend engine not supported")
     sys.exit(1)
-
-syslog.openlog('totp.cgi', syslog.LOG_PID, syslog.LOG_AUTH)
 
 ### Begin custom Fedora Functions
 
@@ -95,7 +93,7 @@ class YubikeyAuthenticator(object):
         password, otp = parse_token(token)
 
         # Verify token against yubikey server
-        server_prefix = 'http://localhost/yk-val/verify?id='
+        server_prefix = 'http://yubikey:8080/yk-val/verify?id='
         server_url = server_prefix + client_id + "&otp=" + otp
 
         fh = urllib2.urlopen(server_url)
@@ -169,14 +167,20 @@ def cgimain():
     try:
         status = ga.verify_user_token(user, token)
     except Exception, ex:
-        syslog.syslog(syslog.LOG_NOTICE,
-            'Failure: user=%s, mode=%s, host=%s, message=%s' % (user, mode,
-                remote_host, str(ex)))
+        logging.warning(
+            "TOKEN FAILURE! user=%s, mode=%s, host=%s, message=%s",
+            user,
+            mode,
+            remote_host,
+            str(ex))
         bad_request(str(ex))
 
-    syslog.syslog(syslog.LOG_NOTICE,
-        'Success: user=%s, mode=%s, host=%s, message=%s' % (user, mode,
-            remote_host, status))
+    logging.info(
+        "Token success! user=%s, mode=%s, host=%s, message=%s",
+        user,
+        mode,
+        remote_host,
+        status)
 
     sys.stdout.write('Status: 200 OK\n')
     sys.stdout.write('Content-type: text/plain\n')
