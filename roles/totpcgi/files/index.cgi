@@ -22,12 +22,11 @@ import re
 import sys
 import cgi
 import logging
+logging.basicConfig(level=logging.INFO)
 import urllib2
 
 import totpcgi
 import totpcgi.backends
-
-logging.basicConfig(level=logging.info)
 
 if len(sys.argv) > 1:
     # blindly assume it's the config file
