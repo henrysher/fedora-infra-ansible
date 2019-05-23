@@ -5,6 +5,6 @@ cd websites
 git rev-parse HEAD
 bash ./build-prod.sh /output
 curl -O https://codeblock.fedorapeople.org/atomic-htaccess.py
-python atomic-htaccess.py
 mkdir -p out build
+python atomic-htaccess.py
 cp -r out/. /output/
