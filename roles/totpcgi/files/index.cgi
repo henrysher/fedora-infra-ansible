@@ -1,4 +1,4 @@
-#!/usr/bin/python -tt -W ignore::DeprecationWarning
+#!/usr/bin/python -ttW ignore::DeprecationWarning
 ##
 # Copyright (C) 2012 by Konstantin Ryabitsev and contributors
 #
