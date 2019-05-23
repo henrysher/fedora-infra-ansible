@@ -46,7 +46,6 @@ syncHttpLogs proxy110.phx2.fedoraproject.org
 syncHttpLogs proxy01.stg.phx2.fedoraproject.org
 syncHttpLogs fas01.phx2.fedoraproject.org
 syncHttpLogs fas02.phx2.fedoraproject.org
-syncHttpLogs fas03.phx2.fedoraproject.org
 syncHttpLogs fas01.stg.phx2.fedoraproject.org
 syncHttpLogs fedocal01.phx2.fedoraproject.org
 syncHttpLogs fedocal02.phx2.fedoraproject.org

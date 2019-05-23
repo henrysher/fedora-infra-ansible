@@ -49,23 +49,10 @@ backend fas02 {
     }
 }
 
-backend fas03 {
-    .host = "fas03";
-    .port = "http";
-    .probe = {
-        .url = "/accounts/";
-        .interval = 5s;
-        .timeout = 5s;
-        .window = 5;
-        .threshold = 5;
-    }
-}
-
 sub vcl_init {
   new fas = directors.round_robin();
   fas.add_backend(fas01);
   fas.add_backend(fas02);
-  fas.add_backend(fas03);
 }
 
 backend nuancier {
