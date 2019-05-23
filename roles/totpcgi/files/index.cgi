@@ -190,4 +190,15 @@ def cgimain():
     sys.stdout.write(success_string)
 
 if __name__ == '__main__':
-    cgimain()
+    try:
+        cgimain()
+    except Exception:
+        logging.exception("Server error during processing")
+        output = 'ERR\nInternal server error\n'
+        sys.stdout.write('Status: 500 SERVER ERROR\n')
+        sys.stdout.write('Content-type: text/plain\n')
+        sys.stdout.write('Content-Length: %s\n' % len(output))
+        sys.stdout.write('\n')
+
+        sys.stdout.write(output)
+        sys.exit(0)
