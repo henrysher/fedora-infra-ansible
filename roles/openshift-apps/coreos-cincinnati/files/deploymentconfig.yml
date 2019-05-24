@@ -1,0 +1,56 @@
+---
+# TODO(lucab): template refs from ansible var
+apiVersion: v1
+kind: DeploymentConfig
+metadata:
+  name: coreos-cincinnati-stub
+  labels:
+    app: coreos-cincinnati
+spec:
+  replicas: 1
+  selector:
+    app: coreos-cincinnati
+  strategy:
+    activeDeadlineSeconds: 21600
+    recreateParams:
+      timeoutSeconds: 600
+    resources: {}
+    rollingParams:
+      intervalSeconds: 1
+      maxSurge: 25%
+      maxUnavailable: 25%
+      timeoutSeconds: 600
+      updatePeriodSeconds: 1
+    type: Rolling
+  template:
+    metadata:
+      labels:
+        app: coreos-cincinnati
+    spec:
+      containers:
+        - name: "dumnati"
+          image: "fedora-coreos-cincinnati:dumnati-124d9475717eae13cf2e76a8a455f0ee542a75cb"
+          args: [
+            "/usr/local/bin/dumnati",
+            "-p", "9876",
+            "/etc/cincinnati/config.json",
+          ]
+          ports:
+            - containerPort: 9876
+          volumeMounts:
+            - name: "config"
+              mountPath: "/etc/cincinnati/"
+              readOnly: true
+      volumes:
+        - name: "config"
+          configMap:
+            name: "coreos-cincinnati-config-stub"
+  triggers:
+    - imageChangeParams:
+        automatic: true
+        containerNames:
+          - "dumnati"
+        from:
+          kind: ImageStreamTag
+          name: "fedora-coreos-cincinnati:dumnati-124d9475717eae13cf2e76a8a455f0ee542a75cb"
+      type: ImageChange

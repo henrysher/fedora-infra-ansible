@@ -1,0 +1,60 @@
+- name: provision CoreOS Cincinnati backend
+  hosts: os_masters_stg[0]
+  user: root
+  gather_facts: False
+
+  vars_files:
+    - /srv/web/infra/ansible/vars/global.yml
+    - "/srv/private/ansible/vars.yml"
+    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  pre_tasks:
+  - include_vars: dir=/srv/web/infra/ansible/vars/all/ ignore_files=README
+
+  roles:
+  - role: openshift/project
+    app: coreos-cincinnati
+    description: Fedora CoreOS Cincinnati backend
+    appowners:
+    - jlebon
+    - lucab
+    - sanja
+
+  - role: openshift/imagestream
+    app: coreos-cincinnati
+    imagename: fedora-coreos-cincinnati
+
+  - role: openshift/object
+    app: coreos-cincinnati
+    file: buildconfig-stub.yml
+    objectname: buildconfig-stub.yml
+
+  - role: openshift/start-build
+    app: coreos-cincinnati
+    buildname: coreos-cincinnati-stub
+
+  - role: openshift/object
+    app: coreos-cincinnati
+    file: config-stub.yml
+    objectname: config-stub.yml
+
+  - role: openshift/object
+    app: coreos-cincinnati
+    file: deploymentconfig.yml
+    objectname: deploymentconfig.yml
+
+  - role: openshift/object
+    app: coreos-cincinnati
+    file: service.yml
+    objectname: service.yml
+
+  - role: openshift/route
+    app: coreos-cincinnati
+    routename: coreos-updates
+    host: "updates{{ env_suffix }}.coreos.fedoraproject.org"
+    serviceport: 443-tcp
+    servicename: coreos-cincinnati
+
+  - role: openshift/rollout
+    app: coreos-cincinnati
+    dcname: coreos-cincinnatii-stub
