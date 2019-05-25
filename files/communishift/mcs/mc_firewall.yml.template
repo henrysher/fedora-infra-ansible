@@ -1,0 +1,32 @@
+apiVersion: machineconfiguration.openshift.io/v1
+kind: MachineConfig
+metadata:
+  generation: 1
+  name: 40-firewall-DOBOTH
+  labels:
+    machineconfiguration.openshift.io/role: DOBOTH
+spec:
+  config:
+    ignition:
+      version: "2.2.0"
+    storage:
+      files:
+      - path: /etc/fedora_firewall.sh
+        mode: 0755
+        filesystem: root
+        contents:
+          source: "FILL_IN_HERE"
+    systemd:
+      units:
+      - name: "fedora_firewall.service"
+        enabled: true
+        contents: |-
+          [Unit]
+          Descrption=Block firewall ports for Fedora
+
+          [Service]
+          Type=oneshot
+          ExecStart=bash /etc/fedora_firewall.sh
+
+          [Install]
+          WantedBy=multi-user.target
