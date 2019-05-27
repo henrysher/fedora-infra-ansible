@@ -23,23 +23,6 @@
 - name: set bigger timeout for dnf
   ini_file: dest=/etc/dnf/dnf.conf section=main option=timeout value=1000
 
-- name: install pkgs
-  dnf: state=present pkg={{ item }}
-  with_items:
-    - dnf
-    - dnf-plugins-core
-    - mock
-    - pyliblzma
-    - rsync
-    - openssh-clients
-    - libselinux-python
-    - libsemanage-python
-    - yum
-    - scl-utils-build
-    - ethtool
-    - expect
-  when: not devel
-
 - name: enable copr and copr-dev repos in staging
   command: dnf copr -y enable {{ item }}
   with_items:
@@ -52,33 +35,11 @@
 - name: clean dnf cache
   shell: dnf clean all
 
-- name: make sure newest rpm
-  dnf: state=latest pkg={{ item }}
-  with_items:
-    - rpm
-    - glib2
-    - ca-certificates
-    - mock
-    - mock-core-configs
-    - dnf
-    - copr-rpmbuild
-    - rpkg
-    - nosync
-    - distribution-gpg-keys
-    - python-srpm-macros
-  when: not devel
-
-- name: remove yum on F30+
-  dnf: state=absent pkg=yum
-  when: devel
-
 - name: install copr-builder
   dnf: state=latest pkg=copr-builder
-  when: devel
 
 - name: run /bin/copr-update-builder from copr-builder package
   shell: /usr/bin/copr-update-builder
-  when: devel
 
 - name: put updated mock configs into /etc/mock
   copy: src=files/mock/ dest=/etc/mock
