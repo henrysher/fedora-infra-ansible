@@ -22,17 +22,6 @@ items:
         # While dnf has a --nodocs, it doesen't have a --docs...
         RUN sed -i '/nodocs/d' /etc/dnf/dnf.conf
         RUN dnf install -y bodhi-server-{{bodhi_version}}
-        # We can drop this block once Bodhi 4.0.0 is deployed to production.
-{% if env == "production" %}
-        # Put the fedmsg config in place
-        RUN rm -f /etc/fedmsg.d/bodhi.py && \
-        # Let's name it starting with zz so it sorts last.
-            ln -sf /etc/bodhi-fedmsg.d/bodhi-openshift-web.py /etc/fedmsg.d/zzbodhi.py && \
-        # Put the fedmsg cert and key in place
-            mkdir -p /etc/pki/fedmsg/ && \
-            ln -sf /etc/pki/fedmsg/key/fedmsg-bodhi.key /etc/pki/fedmsg/bodhi.key && \
-            ln -sf /etc/pki/fedmsg/crt/fedmsg-bodhi.crt /etc/pki/fedmsg/bodhi.crt
-{% endif %}
         # Set up krb5
         RUN rm -f /etc/krb5.conf && \
             ln -sf /etc/bodhi/krb5.conf /etc/krb5.conf && \
@@ -68,7 +57,6 @@ items:
           vendor="Fedora Infrastructure" \
           license="MIT"
         RUN dnf install -y bodhi-docs-{{bodhi_version}} python3-pyramid_sawing
-        # We can drop this block once Bodhi 4.0.0 is deployed to production.
         EXPOSE 8080
         ENTRYPOINT bash /etc/bodhi/start.sh
       type: Dockerfile
@@ -88,8 +76,6 @@ items:
         name: bodhi-web:latest
 kind: List
 metadata: {}
-{# We can drop the if statement here once we deploy 4.0.0 to production #}
-{% if env == "staging" %}
 ---
 apiVersion: v1
 items:
@@ -126,5 +112,3 @@ items:
         name: bodhi-consumer:latest
 kind: List
 metadata: {}
-{# We can drop this once we deploy 4.0.0 to production #}
-{% endif %}

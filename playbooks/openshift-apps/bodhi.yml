@@ -19,16 +19,12 @@
   - include_vars: dir=/srv/web/infra/ansible/vars/all/ ignore_files=README
 
   roles:
-  # We can remove the when statement when Bodhi 4.0.0 is deployed to production.
   - role: rabbit/user
     username: "bodhi{{ env_suffix }}"
-    when: env == "staging"
-  # We can remove the when statement when Bodhi 4.0.0 is deployed to production.
   - role: rabbit/queue
     username: "bodhi{{ env_suffix }}"
     queue_name: "{{ bodhi_message_queue_name }}"
     routing_keys: "{{ bodhi_message_routing_keys }}"
-    when: env == "staging"
   - role: openshift/project
     app: bodhi
     description: bodhi
@@ -44,39 +40,21 @@
     secret_name: bodhi-keytab
     service: bodhi
     host: "bodhi{{ env_suffix }}.fedoraproject.org"
-  # When we deploy Bodhi 4.0.0 to production, we can drop the env staging statements on the
-  # fedora-messaging items below.
   - role: openshift/secret-file
     app: bodhi
     secret_name: bodhi-fedora-messaging-ca
     key: cacert.pem
     privatefile: "rabbitmq/{{env}}/pki/ca.crt"
-    when: env == "staging"
   - role: openshift/secret-file
     app: bodhi
     secret_name: bodhi-fedora-messaging-crt
     key: bodhi-cert.pem
     privatefile: "rabbitmq/{{env}}/pki/issued/bodhi{{env_suffix}}.crt"
-    when: env == "staging"
   - role: openshift/secret-file
     app: bodhi
     secret_name: bodhi-fedora-messaging-key
     key: bodhi-key.pem
     privatefile: "rabbitmq/{{env}}/pki/private/bodhi{{env_suffix}}.key"
-    when: env == "staging"
-  # When we deploy Bodhi 4.0.0 to production, we can drop these fedmsg secrets.
-  - role: openshift/secret-file
-    app: bodhi
-    secret_name: bodhi-fedmsg-key
-    key: fedmsg-bodhi.key
-    privatefile: fedmsg-certs/keys/bodhi-bodhi-web-temp-bodhi.app.os.fedoraproject.org.key
-    when: env != "staging"
-  - role: openshift/secret-file
-    app: bodhi
-    secret_name: bodhi-fedmsg-crt
-    key: fedmsg-bodhi.crt
-    privatefile: fedmsg-certs/keys/bodhi-bodhi-web-temp-bodhi.app.os.fedoraproject.org.crt
-    when: env != "staging"
   - role: openshift/imagestream
     app: bodhi
     imagename: bodhi-base
@@ -96,7 +74,7 @@
     app: bodhi
     template: buildconfig.yml
     objectname: buildconfig.yml
-    bodhi_version: 3.14.0-1.fc29.infra
+    bodhi_version: 4.0.0-1.fc29.infra
     when: env == "production"
   - role: openshift/start-build
     app: bodhi
@@ -128,9 +106,11 @@
 
   post_tasks:
   - name: Scale up pods
+    command: oc -n bodhi scale dc/bodhi-consumer --replicas={{ hostvars[groups['bodhi2'][0]]['openshift_pods'] }}
+    when: env == "production"
+  - name: Scale up pods
     command: oc -n bodhi scale dc/bodhi-web --replicas={{ hostvars[groups['bodhi2'][0]]['openshift_pods'] }}
     when: env == "production"
-  # Add one of these for production when we deploy 4.0.0
   - name: Scale up pods
     command: oc -n bodhi scale dc/bodhi-consumer --replicas={{ hostvars[groups['bodhi2_stg'][0]]['openshift_pods'] }}
     when: env == "staging"

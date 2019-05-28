@@ -49,18 +49,6 @@ items:
             readOnly: true
           - name: httpdir-volume
             mountPath: /httpdir
-# We can remove this if/else once we deploy Bodhi 4.0.0 to production.
-{% if env == "production" %}
-          - name: fedmsg-config-volume
-            mountPath: /etc/bodhi-fedmsg.d
-            readOnly: true
-          - name: fedmsg-key-volume
-            mountPath: /etc/pki/fedmsg/key
-            readOnly: true
-          - name: fedmsg-crt-volume
-            mountPath: /etc/pki/fedmsg/crt
-            readOnly: true
-{% else %}
           - name: fedora-messaging-config-volume
             mountPath: /etc/fedora-messaging
             readOnly: true
@@ -76,7 +64,6 @@ items:
             mountPath: /etc/pki/fedora-messaging/bodhi-key.pem
             subPath: bodhi-key.pem
             readOnly: true
-{% endif %}
           readinessProbe:
             timeoutSeconds: 10
             initialDelaySeconds: 5
@@ -98,8 +85,6 @@ items:
             secretName: bodhi-keytab
         - name: httpdir-volume
           emptyDir: {}
-# We can remove this if/else once we deploy Bodhi 4.0.0 to production.
-{% if env == "staging" %}
         - name: fedora-messaging-config-volume
           configMap:
             name: fedora-messaging-configmap
@@ -112,17 +97,6 @@ items:
         - name: fedora-messaging-key-volume
           secret:
             secretName: bodhi-fedora-messaging-key
-{% else %}
-        - name: fedmsg-config-volume
-          configMap:
-            name: fedmsg-configmap
-        - name: fedmsg-key-volume
-          secret:
-            secretName: bodhi-fedmsg-key
-        - name: fedmsg-crt-volume
-          secret:
-            secretName: bodhi-fedmsg-crt
-{% endif %}
     triggers:
     - imageChangeParams:
         automatic: true
@@ -136,8 +110,6 @@ items:
     - type: ConfigChange
 kind: List
 metadata: {}
-# We can remove this if once we deploy Bodhi 4.0.0 to production.
-{% if env == "staging" %}
 ---
 apiVersion: v1
 items:
@@ -233,5 +205,3 @@ items:
     - type: ConfigChange
 kind: List
 metadata: {}
-{# End of the if staging block for this consumer pod #}
-{% endif %}

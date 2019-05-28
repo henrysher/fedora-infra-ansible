@@ -41,13 +41,6 @@ filter-with = proxy-prefix
 # libravatar.libravatar_url()'s https setting. Defaults to True.
 # libravatar_prefer_tls =
 
-# We can remove this block once Bodhi 4.0.0 is deployed to production.
-{% if env != "staging" %}
-# Set this to True in order to send fedmsg messages.
-# fedmsg_enabled = False
-fedmsg_enabled = True
-{% endif %}
-
 
 ##
 ### Legal
@@ -145,13 +138,7 @@ message_id_email_domain = admin{{env_suffix}}.fedoraproject.org
 ##
 ## Masher settings
 ##
-# We can remove this block once Bodhi 4.0.0 is deployed to production.
-{% if env != "staging" %}
-releng_fedmsg_certname = shell-bodhi-backend01{{env_suffix}}.phx2.fedoraproject.org
-{% endif %}
 
-# We can remove this if/else once Bodhi 4.0.0 is deployed to production.
-{% if env == "staging" %}
 # Where to initially mash repositories. You can use %(here)s to reference the location of this file.
 # compose_dir =
 {% if inventory_hostname.startswith('bodhi-backend') %}
@@ -160,33 +147,14 @@ compose_dir = /mnt/koji/compose/updates/
 # do not use on frontends as bodhi will check the mount and refuse to run without it.
 # compose_dir = /mnt/koji/compose/updates/
 {% endif %}
-{% else %}
-# Where to initially mash repositories. You can use %(here)s to reference the location of this file.
-# mash_dir =
-{% if inventory_hostname.startswith('bodhi-backend') %}
-mash_dir = /mnt/koji/compose/updates/
-{% else %}
-# do not use on frontends as bodhi will check the mount and refuse to run without it.
-#mash_dir = /mnt/koji/compose/updates/
-{% endif %}
-{% endif %}
 
-# We can remove this if/else once Bodhi 4.0.0 is deployed to production.
-{% if env == "staging" %}
 # The max number of composer threads running at the same time
 # max_concurrent_composes = 2
 max_concurrent_composes = 3
-{% else %}
-# The max number of mash threads running at the same time
-# max_concurrent_mashes = 2
-max_concurrent_mashes = 3
-{% endif %}
 
 # Whether to clean old composes at the end of each run.
 clean_old_composes = false
 
-# We can remove this if/else once Bodhi 4.0.0 is deployed to production.
-{% if env == "staging" %}
 # Where to symlink the latest repos by their tag name. You can use %(here)s to reference the
 # location of this file.
 # compose_stage_dir =
@@ -195,17 +163,6 @@ compose_stage_dir = /mnt/koji/compose/updates/
 {% else %}
 # do not use on frontends as bodhi will check the mount and refuse to run without it.
 # compose_stage_dir = /mnt/koji/compose/updates/
-{% endif %}
-{% else %}
-# Where to symlink the latest repos by their tag name. You can use %(here)s to reference the
-# location of this file.
-# mash_stage_dir =
-{% if inventory_hostname.startswith('bodhi-backend') %}
-mash_stage_dir = /mnt/koji/compose/updates/
-{% else %}
-# do not use on frontends as bodhi will check the mount and refuse to run without it.
-#mash_stage_dir = /mnt/koji/compose/updates/
-{% endif %}
 {% endif %}
 
 # The following jinja2 template variables are available for use to customize the Pungi configs and
@@ -720,12 +677,9 @@ pyramid.debug_notfound = false
 pyramid.debug_routematch = false
 pyramid.default_locale_name = en
 
-# We should drop this if statement once we deploy Bodhi 4.0.0 to production.
-{% if env == "staging" %}
 pyramid.includes =
     pyramid_sawing
 pyramid_sawing.file = /etc/bodhi/logging.yaml
-{% endif %}
 
 debugtoolbar.hosts = 127.0.0.1 ::1
 
@@ -797,46 +751,3 @@ port = 6543
 [pshell]
 m = bodhi.server.models
 #db = bodhi.server.util.pshell_db
-
-# We should remove the logging here once Bodhi 4.0.0 is deployed to production - it is configured in
-# /etc/bodhi/logging.yaml instead.
-{% if env == "production" %}
-# Begin logging configuration
-
-[loggers]
-keys = root, bodhi, sqlalchemy
-
-[handlers]
-keys = console
-
-[formatters]
-keys = generic
-
-[logger_root]
-level = INFO
-handlers = console
-
-[logger_bodhi]
-level = DEBUG
-handlers =
-qualname = bodhi
-
-[logger_sqlalchemy]
-level = WARN
-handlers =
-qualname = sqlalchemy.engine
-# "level = INFO" logs SQL queries.
-# "level = DEBUG" logs SQL queries and results.
-# "level = WARN" logs neither.  (Recommended for production systems.)
-
-[handler_console]
-class = StreamHandler
-args = (sys.stderr,)
-level = NOTSET
-formatter = generic
-
-[formatter_generic]
-format = %(asctime)s %(levelname)-5.5s [%(name)s][%(threadName)s] %(message)s
-
-# End logging configuration
-{% endif %}

@@ -28,28 +28,6 @@
   - config
   - bodhi
 
-# When Bodhi 4.0.0 is deployed to production, we should drop this.
-- name: Copy some fedmsg configuration of our own for fedmsg-hub-3
-  template: >
-      src={{item}}
-      dest=/etc/fedmsg.d/{{item}}
-      owner=root
-      group=root
-      mode=0644
-  with_items:
-  - bodhi-logging.py
-  - bodhi-threading.py
-  - bodhi.py
-  - masher.py
-  - updates_handler.py
-  - signed_handler.py
-  when: env == 'production'
-  notify:
-  - restart fedmsg-hub-3
-  tags:
-  - config
-  - bodhi
-
 - name: setup /etc/pki/bodhi directory
   file: path=/etc/pki/bodhi owner=root group=root mode=0755 state=directory
   tags:

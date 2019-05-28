@@ -48,9 +48,6 @@
     nfs_src_dir: 'fedora_ftp/fedora.redhat.com/pub/'
 
   - bodhi2/backend
-  # We can eliminate this block once we deploy bodhi 4.0.0 to production
-  - role: fedmsg/base
-    when: env == "production"
   - role: collectd/fedmsg-service
     process: fedmsg-hub
     user: masher
@@ -74,16 +71,12 @@
     cert_src: "{{private}}/files/docker-registry/{{env}}/pki/issued/containerstable.crt"
     key_src: "{{private}}/files/docker-registry/{{env}}/pki/private/containerstable.key"
     certs_group: apache
-  # We can remove the when statement when Bodhi 4.0.0 is deployed to production.
   - role: rabbit/user
     username: "bodhi{{ env_suffix }}"
-    when: env == "staging"
-  # We can remove the when statement when Bodhi 4.0.0 is deployed to production.
   - role: rabbit/queue
     username: "bodhi{{ env_suffix }}"
     queue_name: "{{ bodhi_message_queue_name }}"
     routing_keys: "{{ bodhi_message_routing_keys }}"
-    when: env == "staging"
 
 
   tasks:
