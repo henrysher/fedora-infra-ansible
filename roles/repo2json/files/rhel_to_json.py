@@ -55,21 +55,25 @@ class Package(BASE):
 
 # Here below we tell the script where to look for the repodata, we could
 # point it to the top level, but then we would miss the differences between
-# el5, 6 and 7.
+# el5, 6, 7, and 8.
 # I tried to create some rhel5 and rhel6 folders in which I sym-linked the
 # respective el5/6 folder from the level above. The problem was that
 # os.path.walk() doesn't follow links, so it would not find any repodata.
 
 PATHS = {
-    'el8b': [
-        '/mnt/fedora/app/fi-repo/rhel/rhel8-beta/x86_64/rhel-8-for-x86_64-baseos-beta-rpms',
-        '/mnt/fedora/app/fi-repo/rhel/rhel8-beta/x86_64/codeready-builder-beta-for-rhel-8-x86_64-rpms',
-        '/mnt/fedora/app/fi-repo/rhel/rhel8-beta/aarch64/rhel-8-for-x86_64-baseos-beta-rpms',
-        '/mnt/fedora/app/fi-repo/rhel/rhel8-beta/aarch64/codeready-builder-beta-for-rhel-8-x86_64-rpms',
-        '/mnt/fedora/app/fi-repo/rhel/rhel8-beta/ppc64le/rhel-8-for-x86_64-baseos-beta-rpms',
-        '/mnt/fedora/app/fi-repo/rhel/rhel8-beta/ppc64le/codeready-builder-beta-for-rhel-8-x86_64-rpms',
-        '/mnt/fedora/app/fi-repo/rhel/rhel8-beta/s390x/rhel-8-for-x86_64-baseos-beta-rpms',
-        '/mnt/fedora/app/fi-repo/rhel/rhel8-beta/s390x/codeready-builder-beta-for-rhel-8-x86_64-rpms',
+    'el8': [
+        '/mnt/fedora/app/fi-repo/rhel/rhel8/x86_64/codeready-builder-for-rhel-8-x86_64-rpms/',
+        '/mnt/fedora/app/fi-repo/rhel/rhel8/x86_64/rhel-8-for-x86_64-appstream-rpms/',
+        '/mnt/fedora/app/fi-repo/rhel/rhel8/x86_64/rhel-8-for-x86_64-baseos-rpms/',
+        '/mnt/fedora/app/fi-repo/rhel/rhel8/aarch64/codeready-builder-for-rhel-8-aarch64-rpms/',
+        '/mnt/fedora/app/fi-repo/rhel/rhel8/aarch64/rhel-8-for-aarch64-appstream-rpms/',
+        '/mnt/fedora/app/fi-repo/rhel/rhel8/aarch64/rhel-8-for-aarch64-baseos-rpms/',
+        '/mnt/fedora/app/fi-repo/rhel/rhel8/ppc64le/codeready-builder-for-rhel-8-ppc64le-rpms/',
+        '/mnt/fedora/app/fi-repo/rhel/rhel8/ppc64le/rhel-8-for-ppc64le-appstream-rpms/',
+        '/mnt/fedora/app/fi-repo/rhel/rhel8/ppc64le/rhel-8-for-ppc64le-baseos-rpms/',
+        '/mnt/fedora/app/fi-repo/rhel/rhel8/s390x/codeready-builder-for-rhel-8-s390x-rpms/',
+        '/mnt/fedora/app/fi-repo/rhel/rhel8/s390x/rhel-8-for-s390x-appstream-rpms/',
+        '/mnt/fedora/app/fi-repo/rhel/rhel8/s390x/rhel-8-for-s390x-baseos-rpms/',
     ],
     'el7': [
         '/mnt/fedora/app/fi-repo/rhel/rhel7/x86_64/rhel-7-server-extras-rpms',
