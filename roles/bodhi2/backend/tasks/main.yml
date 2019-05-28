@@ -42,21 +42,18 @@
 
 - name: install python3-ccolutils on fedora bodhi backends
   package: name=python3-cccolutils state=present
-  when: inventory_hostname.startswith('bodhi-backend01')
   tags:
   - packages
   - bodhi
 
 - name: install bodhi-composer
   package: name=bodhi-composer state=present
-  when: inventory_hostname.startswith('bodhi-backend01')
   tags:
   - packages
   - bodhi
 
 - name: install ostree
   package: name=ostree state=present
-  when: inventory_hostname.startswith('bodhi-backend01')
   tags:
   - packages
   - bodhi
@@ -90,7 +87,6 @@
     owner=apache
     group=apache
     mode=0400
-  when: inventory_hostname.startswith('bodhi-backend')
   tags:
   - config
   - bodhi
@@ -170,7 +166,7 @@
   cron: name="owner-sync" minute="15" hour="4" user="root"
       job="/usr/local/bin/lock-wrapper owner-sync '/usr/local/bin/owner-sync-pagure f31 f31-container f31-modular f30 f30-container f30-modular f29 f29-container f29-flatpak f29-modular epel7 dist-6E-epel module-package-list modular'"
       cron_file=update-koji-owner
-  when: inventory_hostname.startswith('bodhi-backend01') and env == "production"
+  when: env == "production"
   tags:
   - bodhi
   - cron
@@ -182,7 +178,6 @@
     mode: 0755
     owner: apache
     group: apache
-  when: inventory_hostname.startswith('bodhi-backend01')
   tags:
   - bodhi
   - cron
@@ -192,7 +187,7 @@
       src: koji-sync-listener.py
       dest: /usr/local/bin/koji-sync-listener.py
       mode: 0755
-  when: inventory_hostname.startswith('bodhi-backend01') and env == "production"
+  when: env == "production"
   notify:
   - restart koji-sync-listener
   tags:
@@ -204,7 +199,7 @@
       src: koji-sync-listener.service
       dest: /usr/lib/systemd/system/koji-sync-listener.service
       mode: 0755
-  when: inventory_hostname.startswith('bodhi-backend01') and env == "production"
+  when: env == "production"
   notify:
   - reload systemd
   - restart koji-sync-listener
@@ -214,7 +209,7 @@
 
 - name: start the koji sync listener
   service: name=koji-sync-listener enabled=yes state=started
-  when: inventory_hostname.startswith('bodhi-backend01') and env == "production"
+  when: env == "production"
   tags:
   - bodhi
   - koji-sync
@@ -225,7 +220,7 @@
 
 - name: put new-updates-sync in place
   copy: src=new-updates-sync dest=/usr/local/bin/new-updates-sync mode=0755
-  when: inventory_hostname.startswith('bodhi-backend01') and env == "production"
+  when: env == "production"
   tags:
   - config
   - bodhi
@@ -233,7 +228,7 @@
 
 - name: put bodhi-automated-pushes.py in place
   copy: src=bodhi-automated-pushes.py dest=/usr/local/bin/bodhi-automated-pushes.py mode=0755
-  when: inventory_hostname.startswith('bodhi-backend01') and env == "production"
+  when: env == "production"
   tags:
   - config
   - bodhi
@@ -241,7 +236,7 @@
 
 - name: put update-fullfiletimelist in place
   copy: src="{{ files }}/scripts/update-fullfiletimelist" dest=/usr/local/bin/update-fullfiletimelist mode=0755
-  when: inventory_hostname.startswith('bodhi-backend01') and env == "production"
+  when: env == "production"
   tags:
   - config
   - bodhi
@@ -249,7 +244,7 @@
 
 - name: add create-filelist script from quick-fedora-mirror
   copy: src="{{ files }}/scripts/create-filelist" dest=/usr/local/bin/create-filelist mode=0755
-  when: inventory_hostname.startswith('bodhi-backend01') and env == "production"
+  when: env == "production"
   tags:
   - config
   - bodhi
@@ -257,7 +252,7 @@
 
 - name: Set the updates sync cron job
   copy: src=new-updates-sync.cron dest=/etc/cron.d/updates-sync
-  when: inventory_hostname.startswith('bodhi-backend01') and env == "production"
+  when: env == "production"
   tags:
   - config
   - bodhi
@@ -265,7 +260,7 @@
 
 - name: Set the bodhi-automated-pushes cron job
   template: src=bodhi-automated-pushes.cron.j2 dest=/etc/cron.d/bodhi-automated-pushes
-  when: inventory_hostname.startswith('bodhi-backend01') and env == "production"
+  when: env == "production"
   tags:
   - config
   - bodhi
@@ -275,7 +270,7 @@
   cron: name="directory-sizes-update" minute="30" hour="19" user="ftpsync"
         job="/usr/bin/find /pub/alt/ /pub/archive/ /pub/fedora-secondary/ /pub/fedora/ /pub/epel/ -type d  ! -path '/pub/alt/screenshots/f21/source' | grep -v snapshot | /usr/bin/xargs -n 1 /usr/bin/du --exclude=.snapshot -sh > /tmp/DIRECTORY_SIZES.txt 2> /dev/null; cp /tmp/DIRECTORY_SIZES.txt /pub/"
         cron_file=directory-sizes-update
-  when: inventory_hostname.startswith('bodhi-backend01') and env == "production"
+  when: env == "production"
   tags:
   - config
   - bodhi
@@ -287,7 +282,6 @@
   cron: name="bodhi-approve-testing" hour="*/6" minute=0 user="apache"
         job="/usr/bin/bodhi-approve-testing /etc/bodhi/production.ini > /dev/null"
         cron_file=bodhi-approve-testing-job
-  when: (inventory_hostname.startswith('bodhi-backend01') and env == "staging")
   tags:
   - config
   - bodhi
@@ -297,7 +291,6 @@
   cron: name="bodhi-check-policies" hour="*/1" minute=0 user="apache"
         job="/usr/bin/bodhi-check-policies >& /dev/null"
         cron_file=bodhi-check-policies-job
-  when: (inventory_hostname.startswith('bodhi-backend01') and env == "staging")
   tags:
   - config
   - bodhi
@@ -307,7 +300,6 @@
   cron: name="bodhi-expire-overrides" hour="*" minute=0 user="apache"
         job="/usr/bin/bodhi-expire-overrides /etc/bodhi/production.ini 2>&1 | logger -t bodhi-expire-overrides"
         cron_file=bodhi-expire-overrides-job
-  when: inventory_hostname.startswith('bodhi-backend02') and env == "production"
   tags:
   - config
   - bodhi
@@ -320,7 +312,6 @@
     owner=apache
     group=apache
     mode=0600
-  when: inventory_hostname.startswith('bodhi-backend')
   notify:
   - reload bodhi httpd
   tags:
@@ -334,7 +325,6 @@
     owner=apache
     group=apache
     mode=0600
-  when: inventory_hostname.startswith('bodhi-backend')
   notify:
   - reload bodhi httpd
   tags:
@@ -348,7 +338,6 @@
     owner=apache
     group=apache
     mode=0600
-  when: inventory_hostname.startswith('bodhi-backend')
   tags:
   - config
   - bodhi
@@ -376,7 +365,6 @@
     path="/var/cache/bodhi"
     owner=apache
     group=apache
-  when: inventory_hostname.startswith('bodhi-backend')
   tags:
   - config
   - bodhi
