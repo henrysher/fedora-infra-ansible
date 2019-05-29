@@ -3,7 +3,11 @@ kind: DeploymentConfig
 metadata:
   labels:
     app: fas
+{% if objectname == "deploymentconfig-totpcgi-vpn.yml" %}
+    service: totpcgi-vpn
+{% else %}
     service: totpcgi
+{% endif %}
   name: totpcgi
 spec:
   replicas: 3
@@ -26,7 +30,11 @@ spec:
       creationTimestamp: null
       labels:
         app: fas
+{% if objectname == "deploymentconfig-totpcgi-vpn.yml" %}
+        deploymentconfig: totpcgi-vpn
+{% else %}
         deploymentconfig: totpcgi
+{% endif %}
     spec:
       containers:
       - name: totpcgi
@@ -43,27 +51,21 @@ spec:
           readOnly: true
         - name: httpdir-volume
           mountPath: /httpdir
-        - name: secret-tls-primary
-          mountPath: /etc/pki/totp_primary
+        - name: secret-tls
+          mountPath: /etc/pki/totp
           readOnly: true
-{% if env == "production" %}
-        - name: secret-tls-vpn
-          mountPath: /etc/pki/totp_vpn
-          readOnly: true
-{% endif %}
       volumes:
       - name: config-volume
         configMap:
           name: totpcgi
       - name: httpdir-volume
         emptyDir: {}
-      - name: secret-tls-primary
+      - name: secret-tls
         secret:
-          secretName: tls-cert-primary
-{% if env == "production" %}
-      - name: secret-tls-vpn
-        secret:
+{% if objectname == "deploymentconfig-totpcgi-vpn.yml" %}
           secretName: tls-cert-vpn
+{% else %}
+          secretName: tls-cert-primary
 {% endif %}
   triggers:
   - imageChangeParams:
