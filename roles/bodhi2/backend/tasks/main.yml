@@ -32,14 +32,6 @@
   - packages
   - bodhi
 
-- name: install tag2distrepo on fedora bodhi backends
-  package: name=python3-tag2distrepo state=present
-  when: inventory_hostname.startswith('bodhi-backend01.stg')
-  tags:
-  - packages
-  - bodhi
-  - tag2distrepo
-
 - name: install python3-ccolutils on fedora bodhi backends
   package: name=python3-cccolutils state=present
   tags:
@@ -423,16 +415,6 @@
   template: src=kojiprofile.conf dest=/etc/koji.conf.d/bodhi.conf
   tags:
   - bodhi
-
-- name: Put in tag2distrepo config
-  template: >
-    src=tag2distrepo.py.j2
-    dest=/etc/fedmsg.d/tag2distrepo.py
-  when: inventory_hostname.startswith('bodhi-backend01.stg')
-  tags:
-  - config
-  - bodhi
-  - tag2distrepo
 
 - name: Install dist-repo-regen.py
   copy:
