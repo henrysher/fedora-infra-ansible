@@ -1,0 +1,12 @@
+### ImageFactory server jobs
+
+{% for release in imagefactory_build_releases %}
+# Build new Fedora {{ release }} taskotron_cloud image in ImageFactory
+@daily root /var/lib/fedoraqa/base_images/trigger_build/trigger_build.py build --config /etc/taskotron_base_images/config_server.ini --release {{ release }} --arch x86_64 --flavor="taskotron_cloud" --disksize="30G" > /dev/null
+{% endfor %}
+
+# Report failed builds in ImageFactory
+@daily root /var/lib/fedoraqa/base_images/report_failures/report_failures.py email --config /etc/taskotron_base_images/config_server.ini > /dev/null
+
+# Prune old builds in ImageFactory
+/var/lib/fedoraqa/base_images/prune_images/prune_images.py imgfac-old --config /etc/taskotron_base_images/config_server.ini --keep 3  > /dev/null

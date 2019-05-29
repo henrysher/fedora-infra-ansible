@@ -77,25 +77,10 @@
     - config_server.ini.j2.{{ deployment_type }}
     - config_server.ini.j2
 
-- name: Create cronjob to build new Fedora {{ item }} images
-  cron:
-    name: "Build new Fedora {{ item }} taskotron_cloud images in ImageFactory"
-    special_time: daily
-    job: '/var/lib/fedoraqa/base_images/trigger_build/trigger_build.py build --config /etc/taskotron_base_images/config_server.ini --release {{ item }} --arch x86_64 --flavor="taskotron_cloud" --disksize="30G" > /dev/null'
-  with_items:
-    - 28
-    - 29
-    - 30
-    - rawhide
-
-- name: Create cronjob to report failed builds
-  cron:
-    name: "Report failed build in ImageFactory"
-    special_time: daily
-    job: '/var/lib/fedoraqa/base_images/report_failures/report_failures.py email --config /etc/taskotron_base_images/config_server.ini > /dev/null'
-
-- name: Create cronjob to prune old builds in ImageFactory
-  cron:
-    name: "Prune old builds in ImageFactory"
-    special_time: daily
-    job: '/var/lib/fedoraqa/base_images/prune_images/prune_images.py imgfac-old --config /etc/taskotron_base_images/config_server.ini --keep 3  > /dev/null'
+- name: Install cron job to build new images (and other tasks) in ImageFactory
+  template:
+    src: imagefactory-server.cron.j2
+    dest: /etc/cron.d/imagefactory-server.cron
+    owner: root
+    group: root
+    mode: 0644
