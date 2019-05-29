@@ -46,10 +46,42 @@
   tags:
   - s3-mirror
 
-- name: s3sync cron
-  cron: name="s3sync" minute="0" hour="0,11" user="s3-mirror"
-        job='/usr/local/bin/lock-wrapper s3sync /usr/local/bin/s3.sh 2>&1 | /usr/local/bin/nag-once s3.sh 1d 2>&1'
+- name: s3sync cron main that takes forever
+  cron: name="s3sync-main" minute="0" hour="0" user="s3-mirror"
+        job='/usr/local/bin/lock-wrapper s3sync-main /usr/local/bin/s3.sh 2>&1 | /usr/local/bin/nag-once s3.sh 1d 2>&1'
         cron_file=s3.sh
+  when: env != 'staging' and inventory_hostname.startswith('mm-backend01.')
+  tags:
+  - s3-mirror
+
+- name: s3sync cron - updates for current
+  cron: name="s3sync-updates-current" minute="0" hour="0,3,6,9,12,15,18,21" user="s3-mirror"
+        job='/usr/local/bin/lock-wrapper s3sync-updates-current "/usr/local/bin/s3-sync-path.sh /pub/fedora/linux/updates/{{ FedoraCycleNumber|int }}/" 2>&1 | /usr/local/bin/nag-once s3-updates-current.sh 1d 2>&1'
+        cron_file=s3-updates-current.sh
+  when: env != 'staging' and inventory_hostname.startswith('mm-backend01.')
+  tags:
+  - s3-mirror
+
+- name: s3sync cron - updates for current-1
+  cron: name="s3sync-updates-previous" minute="30" hour="0,3,6,9,12,15,18,21" user="s3-mirror"
+        job='/usr/local/bin/lock-wrapper s3sync-updates-previous "/usr/local/bin/s3-sync-path.sh /pub/fedora/linux/updates/{{ FedoraCycleNumber|int - 1 }}/" 2>&1 | /usr/local/bin/nag-once s3-updates-previous.sh 1d 2>&1'
+        cron_file=s3-updates-previous.sh
+  when: env != 'staging' and inventory_hostname.startswith('mm-backend01.')
+  tags:
+  - s3-mirror
+
+- name: s3sync cron - epel 7 x86_64
+  cron: name="s3sync-epel7-x86_64" minute="10" hour="2,5,8,11,14,17,20,23" user="s3-mirror"
+        job='/usr/local/bin/lock-wrapper s3sync-epel7-x86_64 "/usr/local/bin/s3-sync-path.sh /pub/epel/7/x86_64/" 2>&1 | /usr/local/bin/nag-once s3-epel7-x86_64.sh 1d 2>&1'
+        cron_file=s3-epel7-x86_64.sh
+  when: env != 'staging' and inventory_hostname.startswith('mm-backend01.')
+  tags:
+  - s3-mirror
+
+- name: s3sync cron - epel 7 aarch64
+  cron: name="s3sync-epel7-aarch64" minute="20" hour="4,7,10,13,16,19,22" user="s3-mirror"
+        job='/usr/local/bin/lock-wrapper s3sync-epel7-aarch64 "/usr/local/bin/s3-sync-path.sh /pub/epel/7/aarch64/" 2>&1 | /usr/local/bin/nag-once s3-epel7-aarch64.sh 1d 2>&1'
+        cron_file=s3-epel7-aarch64.sh
   when: env != 'staging' and inventory_hostname.startswith('mm-backend01.')
   tags:
   - s3-mirror
