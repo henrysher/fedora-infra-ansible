@@ -118,5 +118,23 @@ data:
     </VirtualHost>
 
 {% if env == "production" %}
-    # TODO: VPN config
+    <VirtualHost *:8443>
+        ServerName fas-all.vpn.fedoraproject.org:8443
+        SSLEngine on
+        SSLCertificateFile /etc/pki/totp_vpn/tls.crt
+        SSLCertificateKeyFile /etc/pki/totp_vpn/tls.key
+        SSLCACertificateFile /etc/totpcgi/totpcgi-ca.crt
+        SSLHonorCipherOrder On
+        SSLCipherSuite {{ ssl_ciphers }}
+        SSLProtocol {{ ssl_protocols }}
+        AddHandler cgi-script .cgi
+
+        SSLVerifyClient require
+        SSLVerifyDepth 10
+
+         DocumentRoot /var/www/totpcgi
+         <Directory "/var/www/totpcgi">
+                Options ExecCGI
+        </Directory>
+    </VirtualHost>
 {% endif %}
