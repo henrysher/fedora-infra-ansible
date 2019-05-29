@@ -11,24 +11,24 @@ fi
 
 CMD="aws s3 sync                   \
   --delete                         \
-  --exclude */.snapshot/*          \
-  --exclude */source/*             \
-  --exclude */SRPMS/*              \
-  --exclude */debug/*              \
-  --exclude */beta/*               \
-  --exclude */ppc/*                \
-  --exclude */ppc64/*              \
-  --exclude */repoview/*           \
-  --exclude */Fedora/*             \
-  --exclude */Live/*               \
-  --exclude */isolinux/*           \
-  --exclude */images/*             \
-  --exclude */EFI/*                \
-  --exclude */core/*               \
-  --exclude */extras/*             \
-  --exclude */LiveOS/*             \
-  --exclude */development/*        \
-  --exclude */releases/test/*      \
+  --exclude *.snapshot/*          \
+  --exclude *source/*             \
+  --exclude *SRPMS/*              \
+  --exclude *debug/*              \
+  --exclude *beta/*               \
+  --exclude *ppc/*                \
+  --exclude *ppc64/*              \
+  --exclude *repoview/*           \
+  --exclude *Fedora/*             \
+  --exclude *Live/*               \
+  --exclude *isolinux/*           \
+  --exclude *images/*             \
+  --exclude *EFI/*                \
+  --exclude *core/*               \
+  --exclude *extras/*             \
+  --exclude *LiveOS/*             \
+  --exclude *development/*        \
+  --exclude *releases/test/*      \
   --no-follow-symlinks             \
   "
   #--dryrun                         \
