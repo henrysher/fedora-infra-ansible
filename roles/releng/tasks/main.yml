@@ -90,12 +90,20 @@
     - python2-koji-cli-plugins
     - python3-koji-cli-plugins
     - python2-koji
-    - python3-fedfind
+    - python3-fedfind # needed by clean-amis.py script
+    - python3-boto # needed by clean-amis.py script
+    - python3-requests # needed by clean-amis.py script
     - make
     - nosync
     - pygobject3
   tags:
   - releng
+
+- name: add pkgs from testing repo
+  dnf: state=present pkg={{ item }} enablerepo=infrastructure-tags-stg
+  with_items:
+    - python3-libpagure
+  when: testing
 
 - name: add pkgs
   dnf: state=present pkg={{ item }}
@@ -145,6 +153,11 @@
 # put cron job in for docker nightly compose
 - name: docker compose cron
   copy: src="container-updates" dest=/etc/cron.d/container-updates
+  when: inventory_hostname.startswith('compose-x86-01')
+
+# put cron job in for regular ami deletion
+- name: clean-amis cron
+  template: src=clean-amis.j2 dest=/etc/cron.d/clean-amis
   when: inventory_hostname.startswith('compose-x86-01')
 
 - name: install compose /etc/httpd/conf.d/compose.conf file
