@@ -34,13 +34,10 @@
 - name: Download/update images
   command: '/var/lib/fedoraqa/base_images/process_for_taskotron.py --taskotrondir {{imagesdir}}'
 
-- name: Create cronjob to download new images
-  cron:
-    name: "Download new images from ImageFactory"
-    special_time: hourly
-    job: '/var/lib/fedoraqa/base_images/process_for_taskotron.py --taskotrondir {{imagesdir}} > /dev/null'
-- name: Create cronjob to prune old images
-  cron:
-    name: "Clean up images downloaded from ImageFactory"
-    special_time: daily
-    job: '/var/lib/fedoraqa/base_images/prune_images/prune_images.py directory --keep 3 {{imagesdir}} > /dev/null'
+- name: Install cron job to download new ImageFactory images and clean up old ones
+  template:
+    src: imagefactory-client.cron.j2
+    dest: /etc/cron.d/imagefactory-client.cron
+    owner: root
+    group: root
+    mode: 0644
