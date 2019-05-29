@@ -3,7 +3,11 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
+{% if objectname == "configmap-totpcgi-vpn.yml" %}
+  name: totpcgi-vpn
+{% else %}
   name: totpcgi
+{% endif %}
   labels:
     app: fas
 data:
@@ -96,33 +100,19 @@ data:
     <VirtualHost *:8443>
 {% if env == "staging" %}
         ServerName fas-all.stg.phx2.fedoraproject.org:8443
+{% elif objectname == "configmap-totpcgi-vpn.yml" %}
+        ServerName fas-all.vpn.fedoraproject.org:8443
 {% else %}
         ServerName fas-all.phx2.fedoraproject.org:8443
 {% endif %}
         SSLEngine on
-        SSLCertificateFile /etc/pki/totp_primary/tls.crt
-        SSLCertificateKeyFile /etc/pki/totp_primary/tls.key
-        SSLCACertificateFile /etc/totpcgi/totpcgi-ca.crt
-        SSLHonorCipherOrder On
-        SSLCipherSuite {{ ssl_ciphers }}
-        SSLProtocol {{ ssl_protocols }}
-        AddHandler cgi-script .cgi
-
-        SSLVerifyClient require
-        SSLVerifyDepth 10
-
-         DocumentRoot /var/www/totpcgi
-         <Directory "/var/www/totpcgi">
-                Options ExecCGI
-        </Directory>
-    </VirtualHost>
-
-{% if env == "production" %}
-    <VirtualHost *:8443>
-        ServerName fas-all.vpn.fedoraproject.org:8443
-        SSLEngine on
+{% if objectname == "configmap-totpcgi-vpn.yml" %}
         SSLCertificateFile /etc/pki/totp_vpn/tls.crt
         SSLCertificateKeyFile /etc/pki/totp_vpn/tls.key
+{% else %}
+        SSLCertificateFile /etc/pki/totp_primary/tls.crt
+        SSLCertificateKeyFile /etc/pki/totp_primary/tls.key
+{% endif %}
         SSLCACertificateFile /etc/totpcgi/totpcgi-ca.crt
         SSLHonorCipherOrder On
         SSLCipherSuite {{ ssl_ciphers }}
