@@ -32,7 +32,9 @@
 
 - name: Deploy sender_access file
   copy: src="{{private}}/files/smtpd/sender_access.{{postfix_group}}" dest="/etc/postfix/sender_access"
-  when: postfix_group == "smtp-mm" or postfix_group == "mailman"
+  when: postfix_group == "smtp-mm" or postfix_group == "mailman" or postfix_group == "gateway"
+  notify:
+  - restart postfix
   tags:
   - postfix
   - config
@@ -54,22 +56,6 @@
   - postfix
   - base
   - config
-
-- name: install /etc/postfix/header_checks file
-  copy: src={{ item }} dest=/etc/postfix/header_checks
-  with_first_found:
-    - "postfix/header_checks.{{ inventory_hostname }}"
-    - "postfix/header_checks.{{ host_group }}"
-    - "postfix/header_checks.{{ postfix_group }}"
-    - "postfix/header_checks.{{ datacenter }}"
-    - "postfix/header_checks"
-  notify:
-  - rebuild postfix header_checks
-  - restart postfix
-  tags:
-  - postfix
-  - config
-  - base
 
 - name: create /etc/postfix/tls_policy
   copy: src="postfix/tls_policy" dest=/etc/postfix/tls_policy
