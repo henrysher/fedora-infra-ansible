@@ -47,19 +47,9 @@
   template: src=repos.conf.j2 dest=/etc/grokmirror/repos.conf owner={{ grokmirror_user }} group={{ grokmirror_user }} mode=0644
 
 - name: install cron jobs to update repos
-  cron:
-    name="pull repo for {{ item.name }}"
-    user={{ grokmirror_user }}
-    special_time=hourly
-    job="cd {{ grokmirror_basedir }}/{{ item.name }} && git fetch origin {{ grokmirror_default_branch }}:{{ grokmirror_default_branch }}"
-  with_items: "{{ grokmirror_repos }}"
-  when: deployment_type in ['stg', 'prod']
-
-- name: install cron jobs to update repos
   template:
     src: grokmirror-update-repos.cron.j2
     dest: /etc/cron.d/grokmirror-update-repos.cron
     owner: root
     group: root
     mode: 0644
-  when: deployment_type in ['dev']
