@@ -2,6 +2,8 @@
 """ NRPE check for datanommer/fedmsg health.
 Given a category like 'bodhi', 'buildsys', or 'git', return an error if
 datanommer hasn't seen a message of that type in such and such time.
+You can alternatively provide a 'topic' which might look like
+org.fedoraproject.prod.bodhi.update.comment.
 
 Requires:  python-dateutil
 
@@ -19,19 +21,24 @@ import sys
 import json
 
 
-def query_timesince(category):
-    cmd = 'datanommer-latest --category %s --timesince' % category
+def query_timesince(identifier):
+    # If it has a '.', then assume it is a topic.
+    if '.' in identifier:
+        cmd = 'datanommer-latest --topic %s --timesince' % identifier
+    else:
+        cmd = 'datanommer-latest --category %s --timesince' % identifier
     sys.stderr.write("Running %r\n" % cmd)
     process = subprocess.Popen(cmd.split(), shell=False,
                                stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout, stderr = process.communicate()
+    prefix, stdout = stdout.split("INFO] ", 1)
     data = json.loads(stdout)
     return float(data[0])
 
 
 def main():
-    category, warning_threshold, critical_threshold = sys.argv[-3:]
-    timesince = query_timesince(category)
+    identifier, warning_threshold, critical_threshold = sys.argv[-3:]
+    timesince = query_timesince(identifier)
     warning_threshold = int(warning_threshold)
     critical_threshold = int(critical_threshold)
 
@@ -43,7 +50,7 @@ def main():
             time_strings.append("%d %s" % (value, denomination))
 
     string = ", ".join(time_strings)
-    reason = "datanommer has not seen a %r message in %s" % (category, string)
+    reason = "datanommer has not seen a %r message in %s" % (identifier, string)
 
     if timesince > critical_threshold:
         print "CRIT: ", reason
