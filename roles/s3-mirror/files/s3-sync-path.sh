@@ -29,7 +29,8 @@ CMD="aws s3 sync                   \
   --exclude *LiveOS/*             \
   --exclude *development/*        \
   --exclude *releases/test/*      \
-  --no-follow-symlinks             \
+  --no-follow-symlinks            \
+  --only-show-errors              \
   "
   #--dryrun                         \
 
