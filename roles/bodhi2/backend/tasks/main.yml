@@ -2,85 +2,37 @@
 # tasklist for setting up bodhi/composer (requires bodhi/base)
 # This is the base set of files needed for bodhi/composer
 
+# The ftpsync group and user are needed to sync the files to the master mirror
 - name: add ftpsync group
   group: name=ftpsync gid=263 system=yes state=present
   tags:
   - bodhi
-
 - name: add ftpsync user
   user: name=ftpsync uid=263 group=ftpsync createhome=yes system=yes state=present
   tags:
   - bodhi
 
 - name: install needed packages
-  package: name={{ item }} state=present
-  with_items:
-  - bodhi-composer
-  - python3-pyramid_sawing
-  - sigul
-  - fedora-repo-zdicts
-  # Are these still needed?
-  - compose-utils
-  - pungi-utils
-  - python-scandir
-  - python2-fedfind
-  - python2-fedmsg-meta-fedora-infrastructure
-  - python2-koji-cli-plugins
-  - python2-pdc-client
-  - python2-productmd
+  package:
+    name:
+      - bodhi-composer
+      - python3-pyramid_sawing
+      - sigul
+      # This is used to generate zchunk data more efficiently
+      - fedora-repo-zdicts
+      # The new-updates-sync script uses this
+      - ostree
+      - pungi-utils
+      # Needed for runroot
+      - python2-koji-cli-plugins
+    state: present
   tags:
   - packages
-  - bodhi
-
-- name: install python3-ccolutils on fedora bodhi backends
-  package: name=python3-cccolutils state=present
-  tags:
-  - packages
-  - bodhi
-
-- name: install bodhi-composer
-  package: name=bodhi-composer state=present
-  tags:
-  - packages
-  - bodhi
-
-- name: install ostree
-  package: name=ostree state=present
-  tags:
-  - packages
-  - bodhi
-
-- name: add masher group
-  group: name=masher gid=751 system=yes state=present
-  tags:
-  - bodhi
-
-# masher user 751
-- name: add masher user as 751 - and group
-  user: name=masher uid=751 group=masher home=/home/masher groups=mock,ftpsync,bodhi
-  tags:
   - bodhi
 
 - name: add apache user to the masher group so it can talk to the monitoring socket
   user: name=apache groups=mock,ftpsync,masher append=yes
   tags:
-  - bodhi
-
-- name: add nrpe to the apache group so it can talk to the monitoring socket
-  user: name=nrpe groups=apache append=yes
-  tags:
-  - fedmsgmonitor
-  - nagios_client
-
-- name: install bodhi.pem file
-  copy: >
-    src="{{ private }}/files/bodhi_key_and_cert.pem"
-    dest="/etc/pki/bodhi/bodhi.pem"
-    owner=apache
-    group=apache
-    mode=0400
-  tags:
-  - config
   - bodhi
 
 - name: Put pungi configurations in place
@@ -95,29 +47,6 @@
   - bodhi/pungi
   - config
 
-- name: setup /etc/bodhi/mash.conf file...
-  template: >
-    src=mash.conf
-    dest=/etc/bodhi/mash.conf
-    owner=apache
-    group=apache
-    mode=0640
-  tags:
-  - config
-  - bodhi
-  when: env == "production"
-
-# tasks for setting up epelmasher
-
-- name: install needed packages
-  package: name={{ item }} state=present
-  with_items:
-  - repoview
-  tags:
-  - packages
-  - bodhi
-  when: env == "production"
-
 #
 # koji ssl cert for owner sync jobs below
 #
@@ -131,26 +60,6 @@
   - bodhi
   - cron
 
-- name: remove all old koji-sync cronjobs
-  file:
-    path: /etc/cron.d/{{item}}
-    state: absent
-  with_items:
-    - update-koji-owner-EL-6
-    - update-koji-owner-EL-6
-    - update-koji-owner-epel7
-    - update-koji-owner-fedora
-    - update-koji-owner-fedora-container
-    - update-koji-owner-modules
-  tags:
-  - bodhi
-  - cron
-
-- name: have fedmsg own /usr/share/fedmsg, so it can write the CRL there.
-  file: path=/usr/share/fedmsg state=directory owner=fedmsg group=fedmsg
-  tags:
-  - bodhi
-
 - name: sync packages from pagure-on-dist-git to koji (all branches)
   # XXX If you modify this taglist.  Please also modify the other copy in
   # bodhi2/backend/files/koji-sync-listener.py
@@ -159,17 +68,6 @@
       job="/usr/local/bin/lock-wrapper owner-sync '/usr/local/bin/owner-sync-pagure f31 f31-container f31-modular f30 f30-container f30-modular f29 f29-container f29-flatpak f29-modular epel7 dist-6E-epel module-package-list modular'"
       cron_file=update-koji-owner
   when: env == "production"
-  tags:
-  - bodhi
-  - cron
-
-- name: Ensure that /var/lib/bodhi exists
-  file:
-    path: /var/lib/bodhi
-    state: directory
-    mode: 0755
-    owner: apache
-    group: apache
   tags:
   - bodhi
   - cron
@@ -226,6 +124,7 @@
   - bodhi
   - cron
 
+# These next two are used by quick-fedora-mirror
 - name: put update-fullfiletimelist in place
   copy: src="{{ files }}/scripts/update-fullfiletimelist" dest=/usr/local/bin/update-fullfiletimelist mode=0755
   when: env == "production"
@@ -233,7 +132,6 @@
   - config
   - bodhi
   - cron
-
 - name: add create-filelist script from quick-fedora-mirror
   copy: src="{{ files }}/scripts/create-filelist" dest=/usr/local/bin/create-filelist mode=0755
   when: env == "production"
@@ -258,6 +156,7 @@
   - bodhi
   - cron
 
+# This generates https://dl.fedoraproject.org/pub/DIRECTORY_SIZES.txt
 - name: directory sizes update cron job.
   cron: name="directory-sizes-update" minute="30" hour="19" user="ftpsync"
         job="/usr/bin/find /pub/alt/ /pub/archive/ /pub/fedora-secondary/ /pub/fedora/ /pub/epel/ -type d  ! -path '/pub/alt/screenshots/f21/source' | grep -v snapshot | /usr/bin/xargs -n 1 /usr/bin/du --exclude=.snapshot -sh > /tmp/DIRECTORY_SIZES.txt 2> /dev/null; cp /tmp/DIRECTORY_SIZES.txt /pub/"
@@ -352,15 +251,6 @@
   - bodhi
   - config
 
-- name: have the apache own /var/cache/bodhi because of course..
-  file: >
-    path="/var/cache/bodhi"
-    owner=apache
-    group=apache
-  tags:
-  - config
-  - bodhi
-
 - name: ensure apache is disabled on the backend
   service: name=httpd enabled=no state=stopped
   tags:
@@ -415,41 +305,3 @@
   template: src=kojiprofile.conf dest=/etc/koji.conf.d/bodhi.conf
   tags:
   - bodhi
-
-- name: Install dist-repo-regen.py
-  copy:
-    src: dist-repo-regen.py
-    dest: /usr/local/bin/dist-repo-regen.py
-    mode: 0755
-    owner: apache
-    group: apache
-  when: inventory_hostname.startswith('bodhi-backend01.stg')
-  tags:
-  - bodhi
-  - tag2distrepo
-
-- name: Install cron job to regenerate dist repos regularly
-  cron:
-    cron_file: dist-repo-regen
-    name: dist-repo-regen
-    job: /usr/local/bin/dist-repo-regen.py
-    user: apache
-    minute: 42
-  when: inventory_hostname.startswith('bodhi-backend01.stg')
-  tags:
-  - bodhi
-  - cron
-  - tag2distrepo
-
-- name: Redirect debugging output from dist-repo-regen cron to mizdebsk
-  cron:
-    cron_file: dist-repo-regen
-    name: MAILTO
-    value: mizdebsk
-    env: yes
-    user: apache
-  when: inventory_hostname.startswith('bodhi-backend01.stg')
-  tags:
-  - bodhi
-  - cron
-  - tag2distrepo

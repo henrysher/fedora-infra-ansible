@@ -1,4 +1,4 @@
-- name: check to see if a mash is going on before we do anything...
+- name: check to see if a compose is going on before we do anything...
   hosts: bodhi_backend:bodhi_backend_stg
   user: root
   vars_files: 
@@ -8,11 +8,11 @@
 
   tasks:
   - include_vars: dir=/srv/web/infra/ansible/vars/all/ ignore_files=README
-  - name: Check for the existance of a mashing lock.
+  - name: Check for running composes
     shell: "curl https://bodhi{{env_suffix}}.fedoraproject.org/composes/"
     register: composes
 
-  - name: Fail if we found that a mash was in progress
+  - name: Fail if we found that a compose was in progress
     fail:
       msg: "There are composes in progress."
     any_errors_fatal: true
@@ -29,18 +29,13 @@
   - import_tasks: "{{ handlers_path }}/restart_services.yml"
 
   tasks:
-  - name: clean all metadata {%if testing%}(with infrastructure-testing on){%endif%}
-    command: dnf clean all {%if testing%} --enablerepo=infrastructure-tags-stg {%endif%}
-    check_mode: no
   - name: dnf update bodhi-server packages from main repo
-    dnf: name="{{ item }}" state=latest
+    dnf: name="{{ item }}" state=latest update_cache=true
     with_items:
-     - bodhi-docs
      - bodhi-server
   - name: dnf update bodhi-server packages from testing repo
-    dnf: name="{{ item }}" state=latest enablerepo=infrastructure-tags-stg
+    dnf: name="{{ item }}" state=latest enablerepo=infrastructure-tags-stg update_cache=true
     with_items:
-     - bodhi-docs
      - bodhi-server
     when: testing
 
@@ -110,7 +105,6 @@
     command: /usr/bin/alembic-3 -c /etc/bodhi/alembic.ini upgrade head
     args:
       chdir: /usr/share/bodhi/
-    when: inventory_hostname.startswith(('bodhi-backend01.phx2', 'bodhi-backend01.stg.phx2'))
 
   - name: Start the fedora-messaging backend
     service:
