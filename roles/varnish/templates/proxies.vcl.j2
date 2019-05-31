@@ -47,12 +47,6 @@ backend nuancier {
     .port = "10035";
 }
 
-backend voting {
-    .host = "localhost";
-    .port = "10007";
-    .first_byte_timeout = 160s;
-}
-
 backend mirrormanager {
     .host = "localhost";
     .port = "10008";
@@ -179,14 +173,6 @@ sub vcl_recv {
     if (req.url ~ "^/accounts/") {
         set req.backend_hint = fas.backend();
         if (req.url ~ "^/accounts/static/") {
-            unset req.http.cookie;
-            set req.http.clear-cookies = "yes";
-            set req.url = regsub(req.url, "\?.*", "");
-        }
-    }
-    if (req.url ~ "^/voting/") {
-        set req.backend_hint = voting;
-        if (req.url ~ "^/voting/static/") {
             unset req.http.cookie;
             set req.http.clear-cookies = "yes";
             set req.url = regsub(req.url, "\?.*", "");
