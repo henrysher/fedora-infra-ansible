@@ -42,13 +42,13 @@ echo "Ending $1 sync at $(date)" >> /var/log/s3-mirror/timestamps
 # Always do the invalidations because they are quick and prevent issues
 # depending on which path is synced.
 for file in $(echo /srv/pub/epel/6/*/repodata/repomd.xml | sed 's#/srv##g'); do
-  aws cloudfront create-invalidation --distribution-id E2KJMDC0QAJDMU --paths "$file"
+  aws cloudfront create-invalidation --distribution-id E2KJMDC0QAJDMU --paths "$file" > /dev/null
 done
 
 for file in $(echo /srv/pub/epel/7/*/repodata/repomd.xml | sed 's#/srv##g'); do
-  aws cloudfront create-invalidation --distribution-id E2KJMDC0QAJDMU --paths "$file"
+  aws cloudfront create-invalidation --distribution-id E2KJMDC0QAJDMU --paths "$file" > /dev/null
 done
 
 for file in $(echo /srv/pub/fedora/linux/updates/*/*/*/repodata/repomd.xml | sed 's#/srv##g'); do
-  aws cloudfront create-invalidation --distribution-id E2KJMDC0QAJDMU --paths "$file"
+  aws cloudfront create-invalidation --distribution-id E2KJMDC0QAJDMU --paths "$file" > /dev/null
 done
