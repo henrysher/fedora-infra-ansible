@@ -1,18 +1,22 @@
 #!/bin/bash
-HOMEDIR=/mnt/fedora/app/fi-repo/rhel/rhel8/
+HOMEDIR=/mnt/fedora/app/fi-repo/rhel/rhel8
 BINDIR=/usr/local/bin
 
 ARCHES="aarch64 ppc64le s390x x86_64"
 DATE=$(date -Ih | sed 's/+.*//')
 
-if [ -d ${HOMEDIR}/${DATE} ]; then
+DATEDIR=${HOMEDIR}/koji/${DATE}
+
+if [ -d ${DATEDIR} ]; then
     echo "Directory already exists. Please remove or fix"
     exit
+else
+mkdir -vp ${DATEDIR}
 fi
 
 for ARCH in ${ARCHES}; do
     # The archdir is where we daily download updates for rhel8
-    ARCHDIR=${HOMEDIR}/${ARCHES}
+    ARCHDIR=${HOMEDIR}/${ARCH}
     if [ ! -d ${ARCHDIR} ]; then
 	echo "Unable to find ${ARCHDIR}"
 	exit
@@ -21,7 +25,7 @@ for ARCH in ${ARCHES}; do
     # We consolidate all of the default repositories and remerge them
     # in a daily tree. This allows us to point koji at a particular
     # day if we have specific build concerns.
-    OUTDIR=${HOMEDIR}/koji/${DATE}/${ARCH}
+    OUTDIR=${DATEDIR}/${ARCH}
     mkdir -vp ${OUTDIR}
     if [ ! -d ${OUTDIR} ]; then
 	echo "Unable to find ${ARCHDIR}"
@@ -32,8 +36,20 @@ for ARCH in ${ARCHES}; do
 
     # Begin splitting the various packages into their subtrees
     ${BINDIR}/splitter.py --action hardlink --target RHEL-8-001 --create-repos ${ARCHDIR}/rhel-8-for-${ARCH}-baseos-rpms/ --only-defaults
+    if [ $? -ne 0 ]; then
+	echo "splitter ${ARCH} baseos failed"
+	exit
+    fi
     ${BINDIR}/splitter.py --action hardlink --target RHEL-8-002 --create-repos ${ARCHDIR}/rhel-8-for-${ARCH}-appstream-rpms/ --only-defaults
+    if [ $? -ne 0 ]; then
+	echo "splitter ${ARCH} appstream failed"
+	exit
+    fi
     ${BINDIR}/splitter.py --action hardlink --target RHEL-8-003 --create-repos ${ARCHDIR}/codeready-builder-for-rhel-8-${ARCH}-rpms/
+    if [ $? -ne 0 ]; then
+	echo "splitter ${ARCH} codeready failed"
+	exit
+    fi
 
     # Copy the various module trees into RHEL-8-001 where we want them
     # to work.
@@ -64,5 +80,5 @@ for ARCH in ${ARCHES}; do
 done
 
 ## Set up the builds so they are pointing to the last working version
-rm -f ${HOMEDIR}/latest
-ln -s ${HOMEDIR}/${DATE} ${HOMEDIR}/latest
+rm -f ${HOMEDIR}/koji/latest
+ln -s ${DATEDIR} ${HOMEDIR}/koji/latest
