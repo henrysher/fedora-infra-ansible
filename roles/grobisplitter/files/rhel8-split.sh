@@ -38,8 +38,8 @@ for ARCH in ${ARCHES}; do
     # Copy the various module trees into RHEL-8-001 where we want them
     # to work.
     echo "Moving data to ${ARCH}/RHEL-8-001"
-    cp -avlr RHEL-8-002/* RHEL-8-001
-    cp -avlr RHEL-8-003/* RHEL-8-001
+    cp -alr RHEL-8-002/* RHEL-8-001
+    cp -alr RHEL-8-003/* RHEL-8-001
     # Go into the main tree
     pushd RHEL-8-001
     # Go into its non_modular subtree and update its repo as its data
