@@ -80,5 +80,17 @@ for ARCH in ${ARCHES}; do
 done
 
 ## Set up the builds so they are pointing to the last working version
-rm -f ${HOMEDIR}/koji/latest
-ln -s ${DATEDIR} ${HOMEDIR}/koji/latest
+cd ${HOMEDIR}/koji/
+if [[ -e latest ]]; then
+    if [[ -h latest ]]; then
+	rm -f latest
+    else
+	echo "Unable to remove latest. it is not a symbolic link"
+	exit
+    fi
+else
+    echo "No latest link found"
+fi
+
+echo "Linking ${DATE} to latest"
+ln -s ${DATE} ${HOMEDIR}/koji/latest
