@@ -28,7 +28,7 @@ try:
     import krbV
 except ImportError:
     krbV = None
-import urlparse      #for parse_qs
+import koji
 from .context import context
 from six.moves import range
 from six.moves import urllib
@@ -83,8 +83,8 @@ class Session(object):
             if not args:
                 self.message = 'no session args'
                 return
-            args = urlparse.parse_qs(args, strict_parsing=True)
             args = urllib.parse.parse_qs(args, strict_parsing=True)
+        hostip = self.get_remote_ip(override=hostip)
         try:
             id = int(args['session-id'][0])
             key = args['session-key'][0]
