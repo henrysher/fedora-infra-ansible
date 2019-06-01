@@ -10,7 +10,7 @@ if [ -d ${HOMEDIR}/${DATE} ]; then
     exit
 fi
 
-for ARCH in ARCHES; do
+for ARCH in ${ARCHES}; do
     # The archdir is where we daily download updates for rhel8
     ARCHDIR=${HOMEDIR}/${ARCHES}
     if [ ! -d ${ARCHDIR} ]; then
@@ -37,6 +37,7 @@ for ARCH in ARCHES; do
 
     # Copy the various module trees into RHEL-8-001 where we want them
     # to work.
+    echo "Moving data to ${ARCH}/RHEL-8-001"
     cp -avlr RHEL-8-002/* RHEL-8-001
     cp -avlr RHEL-8-003/* RHEL-8-001
     # Go into the main tree
@@ -49,6 +50,7 @@ for ARCH in ARCHES; do
 
     # Build out the repos we have and merge them together with
     # mergerepo -k
+    echo "Merge all the repos"
     repos=""
     for i in $( ls -1 ); do
 	repos+="-r $i "
@@ -60,3 +62,7 @@ for ARCH in ARCHES; do
     rm -rf RHEL-8-002 RHEL-8-003
 #loop to the next
 done
+
+## Set up the builds so they are pointing to the last working version
+rm -f ${HOMEDIR}/latest
+ln -s ${HOMEDIR}/${DATE} ${HOMEDIR}/latest
