@@ -104,35 +104,11 @@
   tags:
   - config
 
-- name: letsencrypt cert
-  include_role: name=certbot
+- name: install letsencrypt ssl certificates for dev
+  import_tasks: "letsencrypt.yml"
   when: devel
   tags:
   - config
-
-- name: Check that cert file exists
-  stat:
-    path: "/etc/letsencrypt/live/{{ copr_frontend_public_hostname }}/cert.pem"
-  register: stat_cert
-
-- name: Should admin run certbot?
-  fail:
-    msg: Please see roles/certbot/README step (2) and manually run certbot
-  when:
-    - stat_cert.stat.exists == False
-    - devel
-
-- name: install copr-frontend ssl vhost
-  template: src="httpd/coprs_ssl.conf.j2" dest="/etc/httpd/conf.d/coprs_ssl.conf"
-  tags:
-  - config
-
-- name: Set SELinux context for certs generation
-  sefcontext:
-    target: "/srv/web/acme-challenge/.well-known"
-    setype: httpd_sys_content_t
-    state: present
-  when: devel
 
 - name: enable services
   service: state=started enabled=yes name={{ item }}
