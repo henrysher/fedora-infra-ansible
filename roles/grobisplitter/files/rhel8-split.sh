@@ -21,9 +21,9 @@ for ARCH in ${ARCHES}; do
     # We consolidate all of the default repositories and remerge them
     # in a daily tree. This allows us to point koji at a particular
     # day if we have specific build concerns.
-    OUTDIR=${HOMEDIR}/koji/${DATE}/${ARCHES}
+    OUTDIR=${HOMEDIR}/koji/${DATE}/${ARCH}
     mkdir -vp ${OUTDIR}
-    if [ ! -d ${ARCHDIR} ]; then
+    if [ ! -d ${OUTDIR} ]; then
 	echo "Unable to find ${ARCHDIR}"
 	exit
     else
