@@ -22,6 +22,9 @@
   - fas_client
   - collectd/base
   - sudo
+  - { role: nfs/client, mnt_dir: '/srv/web/pub',  nfs_src_dir: 'fedora_ftp/fedora.redhat.com/pub' }
+  - { role: nfs/client, mnt_dir: '/mnt/fedora/app',  nfs_src_dir: 'fedora_app/app' }
+  - grobisplitter
 
   tasks:
   - import_tasks: "{{ tasks_path }}/2fa_client.yml"
@@ -29,27 +32,3 @@
 
   handlers:
   - import_tasks: "{{ handlers_path }}/restart_services.yml"
-
-- name: set up packages
-  hosts: grobisplitter
-  user: root
-  gather_facts: True
-  vars_files:
-   - /srv/web/infra/ansible/vars/global.yml
-   - "/srv/private/ansible/vars.yml"
-   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
-  handlers:
-  - import_tasks: "{{ handlers_path }}/restart_services.yml"
-
-
-  tasks:
-   - name: install needed packages
-     package: name={{ item }} state=present
-     with_items:
-       - rsync
-       - net-tools
-       - libmodulemd
-       - librepo
-       - python3-librepo
-       - python3-repomd
-       - createrepo_c

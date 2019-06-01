@@ -1,0 +1,27 @@
+---
+- name: install python packages
+  package: name={{ item }} state=present
+  with_items:
+    - createrepo_c
+    - libmodulemd
+    - librepo
+    - python3-hawkey
+    - python3-librepo
+    - python3-repomd
+  tags:
+    - grobi
+
+- name: make sure that /usr/local/bin exists
+  file: path=/usr/local/bin state=directory
+  tags:
+    - grobi
+
+- name: copy local/bin files
+  copy: src={{item}} dest=/usr/local/bin/ mode=0755
+  with_items: 
+    - splitter.py
+    - rhel8-split.sh
+  tags:
+    - grobi
+
+## Cron job goes here.
