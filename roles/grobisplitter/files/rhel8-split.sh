@@ -35,17 +35,17 @@ for ARCH in ${ARCHES}; do
     fi
 
     # Begin splitting the various packages into their subtrees
-    ${BINDIR}/splitter.py --action hardlink --target RHEL-8-001 --create-repos ${ARCHDIR}/rhel-8-for-${ARCH}-baseos-rpms/ --only-defaults
+    ${BINDIR}/splitter.py --action hardlink --target RHEL-8-001 --create-repos ${ARCHDIR}/rhel-8-for-${ARCH}-baseos-rpms/ --only-defaults &> /dev/null
     if [ $? -ne 0 ]; then
 	echo "splitter ${ARCH} baseos failed"
 	exit
     fi
-    ${BINDIR}/splitter.py --action hardlink --target RHEL-8-002 --create-repos ${ARCHDIR}/rhel-8-for-${ARCH}-appstream-rpms/ --only-defaults
+    ${BINDIR}/splitter.py --action hardlink --target RHEL-8-002 --create-repos ${ARCHDIR}/rhel-8-for-${ARCH}-appstream-rpms/ --only-defaults &> /dev/null
     if [ $? -ne 0 ]; then
 	echo "splitter ${ARCH} appstream failed"
 	exit
     fi
-    ${BINDIR}/splitter.py --action hardlink --target RHEL-8-003 --create-repos ${ARCHDIR}/codeready-builder-for-rhel-8-${ARCH}-rpms/
+    ${BINDIR}/splitter.py --action hardlink --target RHEL-8-003 --create-repos ${ARCHDIR}/codeready-builder-for-rhel-8-${ARCH}-rpms/ &> /dev/null
     if [ $? -ne 0 ]; then
 	echo "splitter ${ARCH} codeready failed"
 	exit
@@ -66,12 +66,12 @@ for ARCH in ${ARCHES}; do
 
     # Build out the repos we have and merge them together with
     # mergerepo -k
-    echo "Merge all the repos"
+    echo "Merging all the repos"
     repos=""
     for i in $( ls -1 ); do
 	repos+="-r $i "
     done
-    mergerepo_c -v -k ${repos}
+    mergerepo_c -k ${repos}
     popd
 
     # Cleanup the trash 
