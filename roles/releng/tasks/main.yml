@@ -24,6 +24,26 @@
 - name: add the ftpsync update-fullfiletimelist script
   copy: src="{{ files }}/scripts/update-fullfiletimelist" dest=/usr/local/bin/update-fullfiletimelist mode=0755
 
+# ftbfs user = 264
+- name: add ftbfs group
+  group: name=ftbfs gid=264 system=yes state=present
+  when: inventory_hostname.startswith('compose-x86-01')
+
+- name: add ftbfs user
+  user: name=ftbfs uid=264 group=ftbfs createhome=yes system=yes state=present
+  when: inventory_hostname.startswith('compose-x86-01')
+
+- name: add ftbfs script config file
+  template: src=ftbfs.cfg def=/etc/
+  when: inventory_hostname.startswith('compose-x86-01')
+
+- name: add ftbfs cache dir
+  file: state=directory path=/home/ftbfs/.cache mode=2775 owner=ftbfs group=ftbfs
+  when: inventory_hostname.startswith('compose-x86-01')
+
+- name: add ftbfs weekly cron job
+  copy: src="ftbfs.cron" dest=/etc/cron.weekly/ mode=755
+
 - name: add masher group
   group: name=masher gid=751 system=yes state=present
 # masher user 751
