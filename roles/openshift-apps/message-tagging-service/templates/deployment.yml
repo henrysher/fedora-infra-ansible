@@ -1,0 +1,50 @@
+# https://docs.openshift.com/container-platform/3.11/rest_api/oapi/v1.DeploymentConfig.html#object-schema
+apiVersion: v1
+kind: DeploymentConfig
+metadata:
+  name: mts
+  labels:
+    service: mts
+spec:
+  replicas: 2
+  selector:
+    service: mts
+  strategy:
+    type: Rolling
+  template:
+    metadata:
+      labels:
+        service: mts
+    spec:
+      containers:
+      - name: message-tagging-service
+        image: quay.io/factory2/message-tagging-service:{{quay_tag}}
+        ports:
+        - containerPort: 8080
+#        volumeMounts:
+#        - name: config
+#          mountPath: /etc/mts
+#          readOnly: true
+        resources:
+          requests:
+            cpu: 500m
+            memory: 128Mi
+          limits:
+            cpu: 2000m
+            memory: 512Mi
+        readinessProbe:
+          timeoutSeconds: 1
+          initialDelaySeconds: 5
+          httpGet:
+            path: /
+            port: 8080
+        livenessProbe:
+          timeoutSeconds: 1
+          initialDelaySeconds: 30
+          httpGet:
+            path: /
+            port: 8080
+#      volumes:
+#      - name: config
+#        secret:
+#          secretName: mts-config

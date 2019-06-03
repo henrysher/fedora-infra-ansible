@@ -8,7 +8,16 @@
     - /srv/private/ansible/vars.yml
     - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
     - /srv/web/infra/ansible/roles/openshift-apps/message-tagging-service/vars/main.yml
-#    - /srv/web/infra/ansible/roles/openshift-apps/message-tagging-service/vars/{{ env }}.yml
+    - /srv/web/infra/ansible/roles/openshift-apps/message-tagging-service/vars/{{ env }}.yml
 
   roles:
   - openshift/project
+
+  tasks:
+    - name: Apply objects
+      include_role: name=openshift/object
+      vars:
+        template: "{{ item }}.yml"
+        objectname: "{{ item }}.yml"
+      with_items:
+        - deployment
