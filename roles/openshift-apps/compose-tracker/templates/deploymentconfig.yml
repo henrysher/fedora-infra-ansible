@@ -20,6 +20,15 @@ spec:
       - envFrom:
         - secretRef:
             name: compose-tracker-pagure-token
+        env:
+        - name: PAGURE_REPO
+          value: "releng/failed-composes"
+        - name: PAGURE_DOMAIN
+{% if env == "staging" %}
+          value: "https://stg.pagure.io/"
+{% else %}
+          value: "https://pagure.io/"
+{% endif %}
         image: ""
         imagePullPolicy: IfNotPresent
         name: compose-tracker
