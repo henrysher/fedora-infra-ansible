@@ -62,7 +62,10 @@
   include_role:
     name: openshift/object
   vars:
-    objectname: egresspolicy.yml
+    objectname: {{ item }}
     template_fullpath: "{{roles_path}}/openshift/project/templates/egresspolicy.yml"
+  with_first_found:
+  - "egresspolicy_{{egress_policy_custom}}.yml"
+  - egresspolicy.yml
   tags:
   - openshift/egressnetworkpolicy
