@@ -190,6 +190,7 @@ def get_default_modules(directory):
     # better way to do this that would be a lot better. However after
     # a long long day.. this is what I have.
 
+
     # First we oo through the default streams and create a set of
     # provides that we can check against later.
     for modname in idx.get_default_streams():
@@ -204,7 +205,8 @@ def get_default_modules(directory):
 
 
     # Now go through our list and build up a content lists which will
-    # have only modules which both 
+    # have only modules which have their dependencies met
+    tempdict = {}
     for modname in idx.get_default_streams():
         mod = idx.get_module(modname)
         # Get the default streams and loop through them.
@@ -213,22 +215,33 @@ def get_default_modules(directory):
         for stream in stream_set:
             isprovided = True # a variable to say this can be added.
             ourname = stream.get_NSVCA()
-
+            on_list = ourname.split(":")
+            tmp_name = "%s:%s" % (on_list[0],on_list[1])
             # Get dependencies is a list of items. All of the modules
             # seem to only have 1 item in them, but we should loop
             # over the list anyway.
             for deps in stream.get_dependencies():
                 for mod in deps.get_runtime_modules():
+                    tempstr=""
                     # It does not seem easy to figure out what the
                     # platform is so just assume we will meet it.
                     if mod != 'platform':
                         for stm in deps.get_runtime_streams(mod):
                             tempstr = "%s:%s" %(mod,stm)
                             if tempstr not in provides:
-                                print( "%s : %s not found." % (ourname,tempstr))
                                 isprovided = False
                     if isprovided:
-                        contents.add(ourname)
+                        if tmp_name in tempdict:
+                            print("We found %s" % tmp_name)
+                            ts1=ourname.split(":")[2]
+                            ts2=tempdict[tmp_name].split(":")[2]
+                            if ( int(ts1) > int(ts2) ):
+                                tempdict[tmp_name] = ourname
+                        else:
+                            tempdict[tmp_name] = ourname
+    for indx in tempdict:
+        contents.add(tempdict[indx])
+
     return contents
 
 
