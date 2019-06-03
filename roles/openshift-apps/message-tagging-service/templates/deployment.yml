@@ -21,10 +21,14 @@ spec:
         image: quay.io/factory2/message-tagging-service:{{quay_tag}}
         ports:
         - containerPort: 8080
-#        volumeMounts:
+        volumeMounts:
 #        - name: config
 #          mountPath: /etc/mts
 #          readOnly: true
+        - name: keytab
+          mountPath: /etc/krb5.keytab
+          subPath: krb5.keytab
+          readOnly: true
         resources:
           requests:
             cpu: 500m
@@ -44,7 +48,10 @@ spec:
           httpGet:
             path: /
             port: 8080
-#      volumes:
+      volumes:
 #      - name: config
 #        secret:
 #          secretName: mts-config
+      - name: keytab
+        secret:
+          secretName: keytab
