@@ -34,7 +34,7 @@
   when: inventory_hostname.startswith('compose-x86-01')
 
 - name: add ftbfs script config file
-  template: src=ftbfs.cfg def=/etc/
+  template: src=ftbfs.cfg.j2 def=/etc/
   when: inventory_hostname.startswith('compose-x86-01')
 
 - name: add ftbfs cache dir
@@ -44,9 +44,10 @@
 - name: add ftbfs weekly cron job
   copy: src="ftbfs.cron" dest=/etc/cron.weekly/ mode=755
 
+# masher user 751
 - name: add masher group
   group: name=masher gid=751 system=yes state=present
-# masher user 751
+
 - name: add masher user as 751 - and group
   user: name=masher uid=751 group=masher home=/home/masher groups=mock,ftpsync,fedmsg
 # masher ssh keys and config
