@@ -1,0 +1,47 @@
+- name: make the app be real
+  hosts: os_masters_stg[0]
+  user: root
+  gather_facts: False
+
+  vars_files:
+    - /srv/web/infra/ansible/vars/global.yml
+    - "/srv/private/ansible/vars.yml"
+    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  roles:
+  - role: openshift/project
+    app: compose-tracker
+    description: Opens issues for failed Pungi Composes against https://pagure.io/releng/failed-composes/
+    appowners:
+    - dustymabe
+    - mizdebsk
+    - mohanboddu
+
+  - role: openshift/object
+    app: compose-tracker
+    template: secret.yml
+    objectname: secret.yml
+
+  - role: openshift/object
+    app: compose-tracker
+    template: imagestream.yml
+    objectname: imagestream.yml
+
+  - role: openshift/object
+    app: compose-tracker
+    template: buildconfig.yml
+    objectname: buildconfig.yml
+
+  - role: openshift/start-build
+    app: compose-tracker
+    buildname: compose-tracker-build
+    objectname: compose-tracker-build
+
+  - role: openshift/object
+    app: compose-tracker
+    file: deploymentconfig.yml
+    objectname: deploymentconfig.yml
+
+  - role: openshift/rollout
+    app: compose-tracker
+    dcname: compose-tracker

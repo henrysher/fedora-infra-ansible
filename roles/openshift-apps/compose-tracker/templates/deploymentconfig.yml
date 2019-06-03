@@ -1,0 +1,38 @@
+apiVersion: apps.openshift.io/v1
+kind: DeploymentConfig
+metadata:
+  labels:
+    app: compose-tracker
+  name: compose-tracker
+spec:
+  replicas: 1
+  selector:
+    app: compose-tracker
+  strategy:
+    resources: {}
+  template:
+    metadata:
+      labels:
+        app: compose-tracker
+      name: compose-tracker
+    spec:
+      containers:
+      - envFrom:
+        - secretRef:
+            name: compose-tracker-pagure-token
+        image: ""
+        imagePullPolicy: IfNotPresent
+        name: compose-tracker
+        resources: {}
+      restartPolicy: Always
+  test: false
+  triggers:
+  - type: ConfigChange
+  - type: ImageChange
+    imageChangeParams:
+      automatic: true
+      containerNames:
+      - compose-tracker
+      from:
+        kind: ImageStreamTag
+        name: compose-tracker-img:latest

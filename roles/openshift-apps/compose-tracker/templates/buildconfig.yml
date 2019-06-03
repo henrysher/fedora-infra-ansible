@@ -1,0 +1,24 @@
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  name: compose-tracker-build
+  labels:
+    build: compose-tracker
+spec:
+  source:
+    git:
+      ref: master 
+      uri: https://pagure.io/releng/compose-tracker.git
+    type: Git
+  strategy:
+    type: Docker
+    dockerStrategy:
+      from:
+        kind: ImageStreamTag
+        name: fedora:30
+  output:
+    to:
+      kind: ImageStreamTag
+      name: compose-tracker-img:latest
+  triggers:
+  - type: ConfigChange
