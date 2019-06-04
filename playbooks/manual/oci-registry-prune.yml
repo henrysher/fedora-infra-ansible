@@ -36,6 +36,9 @@
       password: "{{candidate_registry_osbs_stg_password}}"
     delegate_to: compose-x86-01.phx2.fedoraproject.org
     when: env == "staging"
+    register: output
+
+  - debug: var=output.stdout_lines
 
   - name: Run registry garbage collection to reclaim disk space (stg)
     command: "registry garbage-collect /etc/docker-distribution/registry/config.yml"
