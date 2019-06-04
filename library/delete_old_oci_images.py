@@ -63,7 +63,7 @@ def main():
         ),
         days=dict(type="int", required=True),
         username=dict(type="str", required=True),
-        password=dict(type="str", required=True),
+        password=dict(type="str", required=True, no_log=True),
     )
 
     module = AnsibleModule(argument_spec=module_args, supports_check_mode=True)
