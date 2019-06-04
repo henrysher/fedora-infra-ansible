@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 #
 # delete_old_oci_images.py - Ansible module that returns old images from a container registry
