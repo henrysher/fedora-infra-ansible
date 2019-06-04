@@ -17,10 +17,11 @@
   tasks:
 
   - name: Find and Delete 30 days old OCI images
-    delete_old_oci_images:
-      days: 30
-      username: "{{candidate_registry_osbs_prod_username}}"
-      password: "{{candidate_registry_osbs_prod_password}}"
+    local_action: >
+      delete_old_oci_images
+        days=30
+        username="{{candidate_registry_osbs_prod_username}}"
+        password="{{candidate_registry_osbs_prod_password}}"
 
   - name: Run registry garbage collection to reclaim disk space
     command: "registry garbage-collect /etc/docker-distribution/registry/config.yml"
