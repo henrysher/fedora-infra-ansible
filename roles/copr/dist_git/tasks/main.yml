@@ -71,6 +71,18 @@
   notify:
   - reload httpd
 
+- name: certbot, correct fcontext mapping the web root
+  sefcontext:
+    target: '/srv/web/acme-challenge/.well-known(/.*)'
+    setype: httpd_sys_content_t
+    state: present
+
+- name: certbot, restorecon the web root
+  file:
+    path: /srv/web/acme-challenge/.well-known
+    state: directory
+    setype: httpd_sys_content_t
+
 - name: temporary logrotation fix until copr-dist-git 0.26 is released & deployed
   copy: src="logrotate.d/copr-dist-git" dest="/etc/logrotate.d/copr-dist-git"
 
