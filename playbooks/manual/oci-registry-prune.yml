@@ -4,7 +4,7 @@
 # registry hosts.
 
 - name: Prune 30 days old OCI images from candidate-registry
-  hosts: oci-candidate-registry01.phx2.fedoraproject.org
+  hosts: oci-candidate-registry01.phx2.fedoraproject.org:oci-candidate-registry01.stg.phx2.fedoraproject.org
   gather_facts: false
   user: root
 
@@ -22,7 +22,21 @@
       username: "{{candidate_registry_osbs_prod_username}}"
       password: "{{candidate_registry_osbs_prod_password}}"
     delegate_to: compose-x86-01.phx2.fedoraproject.org
+    when: env == "production"
 
   - name: Run registry garbage collection to reclaim disk space
     command: "registry garbage-collect /etc/docker-distribution/registry/config.yml"
+    when: env == "production"
 
+  - name: Find and Delete 30 days old OCI images (stg)
+    delete_old_oci_images:
+      registry: "https://candidate-registry.stg.fedoraproject.org"
+      days: 30
+      username: "{{candidate_registry_osbs_stg_username}}"
+      password: "{{candidate_registry_osbs_stg_password}}"
+    delegate_to: compose-x86-01.phx2.fedoraproject.org
+    when: env == "staging"
+
+  - name: Run registry garbage collection to reclaim disk space (stg)
+    command: "registry garbage-collect /etc/docker-distribution/registry/config.yml"
+    when: env == "staging"
