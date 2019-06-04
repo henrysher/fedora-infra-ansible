@@ -100,9 +100,10 @@ def main():
     # Get the list of repositories in the registry (Assume we have less than 500)
     resp = s.get("{}/v2/_catalog?n=500".format(registry))
     if not resp.ok:
-        result["stdout_lines"].append("Failed to get the list of images on the {}".format(registry))
-        result["failed"] = True
-        module.fail_json(**result)
+        module.fail_json(
+          msg="Failed to get the list of images on the {}".format(registry)",
+          failed=True
+        )
 
     repositories = resp.json().get("repositories")
 
