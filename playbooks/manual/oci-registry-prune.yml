@@ -1,0 +1,24 @@
+# This playbook search for old OCI images on the candidate registries
+# and deletes them.
+# Once the images tags are deleted the garbage collection is run on the
+# registry hosts.
+
+- name: Prune 30 days old OCI images from candidate-registry
+  hosts: oci-candidate-registry01.phx2.fedoraproject.org
+  gather_facts: false
+  user: root
+
+  vars_files:
+    - "/srv/private/ansible/vars.yml"
+
+  tasks:
+
+  - name: Find and Delete 30 days old OCI images
+    delete_old_oci_images:
+      days: 30
+      username: "{{candidate_registry_osbs_prod_username}}"
+      password: "{{candidate_registry_osbs_prod_password}}"
+
+  - name: Run registry garbage collection to reclaim disk space
+    command: "registry garbage-collect /etc/docker-distribution/registry/config.yml"
+
