@@ -72,7 +72,10 @@ def main():
         import requests
 
         headers = {
-            "Accept": "application/vnd.docker.distribution.manifest.v2+json, application/vnd.oci.image.index.v1+json, application/vnd.oci.image.manifest.v1+json"
+            "Accept": "application/vnd.docker.distribution.manifest.v2+json,"\
+                      "application/vnd.oci.image.index.v1+json,"\
+                      "application/vnd.oci.image.manifest.v1+json,"\
+                      "application/vnd.docker.distribution.manifest.list.v2+json"\
         }
     except ImportError:
         module.fail_json(msg="the requests python module not found on the target system")
