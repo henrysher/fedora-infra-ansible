@@ -101,8 +101,7 @@ def main():
     resp = s.get("{}/v2/_catalog?n=500".format(registry))
     if not resp.ok:
         module.fail_json(
-          msg="Failed to get the list of images on the {}".format(registry)",
-          failed=True
+            msg="Failed to get the list of images on the {}".format(registry), failed=True
         )
 
     repositories = resp.json().get("repositories")
@@ -113,12 +112,11 @@ def main():
         if not resp.ok:
             result["stdout_lines"].append("Failed to get the list of tags for {}".format(repo))
 
-
         image = resp.json()
         # Log the repositories that don't have any tags
         if image["tags"] is None:
-          result["stdout_lines"].append("{repo} does not have any tags".format(repo))
-          continue
+            result["stdout_lines"].append("{repo} does not have any tags".format(repo))
+            continue
         # For each tag get the maninfest
         for tag in image["tags"]:
             resp = s.get("{}/v2/{}/manifests/{}".format(registry, repo, tag))
