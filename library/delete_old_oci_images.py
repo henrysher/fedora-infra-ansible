@@ -50,7 +50,6 @@ EXAMPLES = """
 
 from ansible.module_utils.basic import *
 from datetime import datetime, timedelta
-from pathlib import Path
 
 
 def main():
@@ -99,9 +98,9 @@ def main():
     s.auth = (username, password)
 
     # Get the list of repositories in the registry (Assume we have less than 500)
-    resp = s.get(f"{registry}/v2/_catalog?n=500")
+    resp = s.get("{}/v2/_catalog?n=500".format(registry))
     if not resp.ok:
-        result["stdout_lines"].append(f"Failed to get the list of images on the {registry}")
+        result["stdout_lines"].append("Failed to get the list of images on the {}".format(registry))
         result["failed"] = True
         module.fail_json(**result)
 
@@ -109,24 +108,28 @@ def main():
 
     # For each repository found get all the tags
     for repo in repositories:
-        resp = s.get(f"{registry}/v2/{repo}/tags/list")
+        resp = s.get("{}/v2/{}/tags/list".format(registry, repo))
         if not resp.ok:
-            result["stdout_lines"].append(f"Failed to get the list of tags for {repo}")
+            result["stdout_lines"].append("Failed to get the list of tags for {}".format(repo))
 
         # For each tag get the maninfest
         image = resp.json()
         for tag in image["tags"]:
-            resp = s.get(f"{registry}/v2/{repo}/manifests/{tag}")
+            resp = s.get("{}/v2/{}/manifests/{}".format(registry, repo, tag))
             if not resp.ok:
-                result["stdout_lines"].append(f"Failed to get the manifest for {repo}:{tag}")
+                result["stdout_lines"].append(
+                    "Failed to get the manifest for {}:{}".format(repo, tag)
+                )
 
             # For each tag get the blobs
             config = resp.json().get("config")
             if config is not None:
                 digest = config.get("digest")
-                resp = s.get(f"{registry}/v2/{repo}/blobs/{digest}")
+                resp = s.get("{}/v2/{}/blobs/{}".format(registry, repo, digest))
                 if not resp.ok:
-                    result["stdout_lines"].append(f"Failed to get the blob for {repo}:{digest}")
+                    result["stdout_lines"].append(
+                        "Failed to get the blob for {}:{}".format(repo, digest)
+                    )
 
                 # Find when a blob was created
                 age = resp.json().get("created")
@@ -134,18 +137,20 @@ def main():
                 if datetime.strptime(age[:10], "%Y-%m-%d") <= datetime.now() - timedelta(days=days):
                     if not check_mode:
                         # Delete the tag
-                        resp = s.get(f"{registry}/v2/{repo}/manifests/{tag}")
+                        resp = s.get("{}/v2/{}/manifests/{}".format(registry, repo, tag))
                         digest = resp.headers["Docker-Content-Digest"]
-                        resp = s.delete(f"{registry}/v2/{repo}/manifests/{digest}")
+                        resp = s.delete("{}/v2/{}/manifests/{}".format(registry, repo, digest))
                         if resp.ok:
                             result["changed"] = True
                         else:
                             module.fail_json(
-                                msg=f"Failed to delete {repo}:{tag} with the error : {resp.text}",
+                                msg="Failed to delete {}:{} with the error : {}".format(
+                                    repo, tag, resp.text
+                                ),
                                 failed=True,
                             )
                     else:
-                        result["stdout_lines"].append(f"would delete {repo}:{tag} ")
+                        result["stdout_lines"].append("would delete {}:{}".format(repo, tag))
                         result["changed"] = True
 
     module.exit_json(**result)
