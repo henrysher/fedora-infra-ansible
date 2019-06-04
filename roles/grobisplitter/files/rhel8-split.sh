@@ -72,6 +72,8 @@ for ARCH in ${ARCHES}; do
 	repos+="-r $i "
     done
     mergerepo_c -k ${repos}
+    mv merged_repo/repodata/ . 
+    rmdir merged_repo/
     popd
 
     # Cleanup the trash 
