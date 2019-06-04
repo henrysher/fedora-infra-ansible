@@ -115,7 +115,7 @@ def main():
         image = resp.json()
         # Log the repositories that don't have any tags
         if image["tags"] is None:
-            result["stdout_lines"].append("{repo} does not have any tags".format(repo))
+            result["stdout_lines"].append("{} does not have any tags".format(repo))
             continue
         # For each tag get the maninfest
         for tag in image["tags"]:
