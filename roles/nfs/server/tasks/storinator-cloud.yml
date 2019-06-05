@@ -1,6 +1,15 @@
 ---
-- name: create physical volume for storage
-  lvol:
-    pv=pv_nfs
-    size=100%FREE
-    shrink=no
+- name: create copr storage
+  lvol: vg=VG_nfs lv=copr-dist-git size=10t shrink=no
+
+- name: create 5 GB communishift volumes
+  lvol: vg=VG_nfs lv=openshift-5G-{{item}} size=5g shrink=no
+  with_items: 0 1 2 3 4 5 6 7 8 9
+
+- name: create 10 GB communishift volumes
+  lvol: vg=VG_nfs lv=openshift-10G-{{item}} size=10g shrink=no
+  with_items: 0 1 2 3 4 5 6 7 8 9
+
+- name: create 25 GB communishift volumes
+  lvol: vg=VG_nfs lv=openshift-25G-{{item}} size=25g shrink=no
+  with_items: 0 1 2 3 4 5 6 7 8 9
