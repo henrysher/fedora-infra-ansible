@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: ImageStream
+metadata:
+  name: "{{ app_name }}"
+  labels:
+    app: "{{ app_name }}"
+spec:
+  tags:
+  - name: latest
+    from:
+      kind: DockerImage
+{% if env == 'staging' %}
+      name: "quay.io/factory2/{{ app_name }}:stage"
+{% else %}
+      name: "quay.io/factory2/{{ app_name }}:prod"
+{% endif %}
+    importPolicy:
+      scheduled: true
