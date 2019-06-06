@@ -9,6 +9,10 @@
   tags:
   - nfs/server
 
+- name: If we are on storinator01 make its disks
+  include_playbook: storinator.yml
+  when: inventory_hostname == 'storinator01.fedorainfracloud.org'
+
 - name: setup /etc/exports
   copy: src={{ inventory_hostname }}-exports dest=/etc/exports
   register: exports
@@ -33,10 +37,6 @@
   when: ansible_distribution == 'RedHat'
   tags:
   - nfs/server
-
-- name: If we are on storinator01 include its jobs
-  include_playbook: storinator.yml
-  when: inventory_hostname == 'storinator01.fedorainfracloud.org'
 
 - name: Kick exportfs if /etc/exports changed
   command: /usr/sbin/exportfs -ra
