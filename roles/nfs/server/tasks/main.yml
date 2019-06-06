@@ -34,10 +34,13 @@
   tags:
   - nfs/server
 
+- name: If we are on storinator01 include its jobs
+  include_playbook: storinator.yml
+  when: inventory_hostname == 'storinator01.fedorainfracloud.org'
+
 - name: Kick exportfs if /etc/exports changed
   command: /usr/sbin/exportfs -ra
   when: exports.changed
   tags:
   - nfs/server
 
--
