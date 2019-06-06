@@ -1,7 +1,35 @@
 - name: install packages needed by resalloc server
   dnf:
     state: present
-    name: ['resalloc-server', 'resalloc', 'sqlite', 'genisoimage', 'virt-install', 'libvirt-client']
+    name:
+    - genisoimage
+    - libvirt-client
+    - postgresql-server
+    - python3-psycopg2
+    - resalloc
+    - resalloc-server
+    - virt-install
+
+- name: See if postgreSQL is initialized
+  stat: path=/var/lib/pgsql/data/PG_VERSION
+  register: postgres_initialized
+
+- name: init postgresql
+  shell: "postgresql-setup initdb"
+  when: not postgres_initialized.stat.exists
+
+- name: enable PostgreSQL service
+  service: state=started enabled=yes name=postgresql
+
+- name: Create PG user
+  postgresql_user: name="resalloc"
+  become: yes
+  become_user: postgres
+
+- name: Create db
+  postgresql_db: name="resalloc" encoding='UTF-8' owner=resalloc
+  become: yes
+  become_user: postgres
 
 - name: resalloc, sync copr provisioning files
   synchronize: src="provision/" dest="/var/lib/resallocserver/provision/"
