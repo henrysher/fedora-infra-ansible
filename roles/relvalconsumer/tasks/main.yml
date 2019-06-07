@@ -3,10 +3,9 @@
 # relvalconsumer_prod set to True, or else we'll stop getting events.
 #
 # Required vars
-# - wikitcms_user
-##       string - FAS username for creating wiki pages
-# - wikitcms_password
-##       string - password for wikitcms_user
+# - wikitcms_token
+##      string - a token file to install for unattended reporting to
+#                a wiki using openidc auth
 #
 # Required vars with defaults
 # - relvalconsumer_prod
@@ -44,17 +43,10 @@
 - name: Create /etc/fedora (credentials files location)
   file: path=/etc/fedora state=directory owner=root group=fedmsg mode=0750
 
-# We actually want to handle the case where wikitcms_user isn't defined
+# We actually want to handle the case where wikitcms_token isn't defined
 # even though it makes this role essentially do nothing, as we don't
 # really want openqa-stg creating stuff in the staging wiki all the
-# time. So in that case install the role but don't set up a credentials
-# file and leave the role disabled
-- name: Write wikitcms credentials file
-  template: src=credentials.j2 dest=/etc/fedora/credentials owner=root group=fedmsg mode=0640
-  when: "wikitcms_user is defined and wikitcms_password is defined"
-  tags:
-  - config
-
+# time. So in that case install the role but leave it disabled
 - name: Create /root/.openidc (token file location for manual runs as root)
   file: path=/root/.openidc state=directory owner=root group=root mode=0700
 
@@ -89,7 +81,7 @@
 
 - name: Enable fedmsg consumer
   template: src=relvalconsumer.py.j2 dest=/etc/fedmsg.d/relvalconsumer.py owner=root group=root mode=0644
-  when: "wikitcms_user is defined and (wikitcms_password is defined or wikitcms_token is defined)"
+  when: "wikitcms_token is defined"
   notify:
   - restart fedmsg-hub
   tags:
