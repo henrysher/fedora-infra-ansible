@@ -29,6 +29,104 @@
   handlers:
   - import_tasks: "{{ handlers_path }}/restart_services.yml"
 
+## This should be in a different playbook. 
+- name: Create top-level tree directory
+  file: path=/srv/nfs state=directory owner=root group=root
+  tags:
+  - drives
+
+- name: create copr storage
+  lvol: vg=VG_nfs lv=copr-dist-git size=10t shrink=no
+  tags:
+  - drives
+
+- name: Create FS for copr
+  filesystem: fstype=xfs dev=/dev/VG_nfs/copr-dist-git
+  tags:
+  - drives
+
+- name: Create copr tree directory
+  file: path=/srv/nfs/copr-dist-git state=directory owner=root group=root
+  tags:
+  - drives
+
+- name: Mount copr tree directory
+  mount: name=/srv/nfs/copr-dist-git src='LABEL=copr-dist-git' fstype=xfs state=mounted
+  tags:
+  - drives
+
+- name: create 5 GB communishift logical volumes
+  lvol: vg=VG_nfs lv=openshift-05gb-{{item}} size=5g shrink=no
+  with_items: ["00","01","02","03","04","05","06","07","08","09"]
+  tags:
+  - drives
+
+- name: Create FS for 5 GB communishift logical volules
+  filesystem: fstype=xfs dev=/dev/VG_nfs/openshift-05gb-{{item}}
+  with_items: ["00","01","02","03","04","05","06","07","08","09"]
+  tags:
+  - drives
+
+- name: Create openshift 5GB tree directories
+  file: path=/srv/nfs/openshift-05gb-{{item}} state=directory owner=root group=root
+  with_items: ["00","01","02","03","04","05","06","07","08","09"]
+  tags:
+  - drives
+
+- name: Mount openshift 5GB tree directories
+  mount: name=/srv/nfs/openshift-05gb-{{item}} src='LABEL=openshift-05gb-{{item}}' fstype=xfs state=mounted
+  with_items: ["00","01","02","03","04","05","06","07","08","09"]
+  tags:
+  - drives
+
+- name: create 10 GB communishift logical volumes
+  lvol: vg=VG_nfs lv=openshift-10gb-{{item}} size=10g shrink=no
+  with_items: ["00","01","02","03","04","05","06","07","08","09"]
+  tags:
+  - drives
+
+- name: Create FS for 10 GB communishift logical volules
+  filesystem: fstype=xfs dev=/dev/VG_nfs/openshift-10gb-{{item}}
+  with_items: ["00","01","02","03","04","05","06","07","08","09"]
+  tags:
+  - drives
+
+- name: Create openshift 10GB tree directories
+  file: path=/srv/nfs/openshift-10gb-{{item}} state=directory owner=root group=root
+  with_items: ["00","01","02","03","04","05","06","07","08","09"]
+  tags:
+  - drives
+
+- name: Mount openshift 10GB tree directories
+  mount: name=/srv/nfs/openshift-10gb-{{item}} src='LABEL=openshift-10gb-{{item}}' fstype=xfs state=mounted
+  with_items: ["00","01","02","03","04","05","06","07","08","09"]
+  tags:
+  - drives
+
+- name: create 25 GB communishift logical volumes
+  lvol: vg=VG_nfs lv=openshift-25gb-{{item}} size=25g shrink=no
+  with_items: ["00","01","02","03","04","05","06","07","08","09"]
+  tags:
+  - drives
+
+- name: Create FS for 25 GB communishift logical volules
+  filesystem: fstype=xfs dev=/dev/VG_nfs/openshift-25gb-{{item}}
+  with_items: ["00","01","02","03","04","05","06","07","08","09"]
+  tags:
+  - drives
+
+- name: Create openshift 25GB tree directories
+  file: path=/srv/nfs/openshift-25gb-{{item}} state=directory owner=root group=root
+  with_items: ["00","01","02","03","04","05","06","07","08","09"]
+  tags:
+  - drives
+
+- name: Mount openshift 25GB tree directories
+  mount: name=/srv/nfs/openshift-25gb-{{item}} src='LABEL=openshift-25gb-{{item}}' fstype=xfs state=mounted
+  with_items: ["00","01","02","03","04","05","06","07","08","09"]
+  tags:
+  - drives
+
 - name: dole out the NFS configuration
   hosts: nfs_servers
   user: root
