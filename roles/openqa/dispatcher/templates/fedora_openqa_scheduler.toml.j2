@@ -11,9 +11,15 @@ amqp_url = "amqps://fedora:@rabbitmq.fedoraproject.org/%2Fpublic_pubsub"
 callback = "fedora_openqa.consumer:OpenQAScheduler"
 
 [tls]
+{% if deployment_type is defined and deployment_type == 'stg' %}
+ca_cert = "/etc/fedora-messaging/stg-cacert.pem"
+keyfile = "/etc/fedora-messaging/fedora.stg-key.pem"
+certfile = "/etc/fedora-messaging/fedora.stg-cert.pem"
+{% else %}
 ca_cert = "/etc/fedora-messaging/cacert.pem"
 keyfile = "/etc/fedora-messaging/fedora-key.pem"
 certfile = "/etc/fedora-messaging/fedora-cert.pem"
+{% endif %}
 
 [client_properties]
 app = "Fedora openQA"
