@@ -1,40 +1,53 @@
 # Required vars with defaults
 # - openqa_hostname
-##      string - hostname of openQA server to run jobs for
+##      string - hostname of openQA server to run jobs for and query
+##               job results from
 ##      default - localhost
 # - openqa_consumer
 ##      bool - whether to enable the fedmsg consumer and run whenever
 ##             a compose completes
 ##      default - true
 # - external_hostname
-##       string - The public hostname of the openQA server (used in ResultsDB links)
-##       default - ansible_nodename
+##      string - The public hostname of the openQA server (used in
+##               links back from ResultsDB and wiki results)
+##      default - ansible_nodename
 # - openqa_extraarches
 ##      bool - when this is set, this instance will be configured to
 ##             create jobs for 'extra' arches beyond x86_64 (currently
 ##             ppc64 and aarch64). Only set it if this instance will
 ##             have worker hosts for those arches
 ##      default - false
+# - openqa_fedoramessaging
+##      bool - if true, configure and deploy the fedora-messaging
+##             consumers; if false, configure and deploy the fedmsg
+##             consumers
+##      default - false
 #
 # Optional vars
 # - wikitcms_token
 ##      string - a token file to install for unattended reporting to
-#                a wiki using openidc auth
+#                a wiki using openidc auth. If set, wiki reporting
+#                will be enabled, if unset, it will not. Note you must
+##               also set openqa_wiki_reporter_uuid (no
+##               deployment_type), openqa_wiki_reporter_stg_uuid
+##               (staging), or openqa_wiki_reporter_prod_uuid
+##               (production) if both this and openqa_fedoramessaging
+##               are set. You should probably NOT set this unless you
+##               are maintaining the Fedora infrastructure deployment
+# - openqa_resultsdb_url
+##      string - a ResultsDB API URL to report results to. If set,
+##               ResultsDB reporting will be enabled. Note you must
+##               also set openqa_resultsdb_reporter_uuid (no
+##               deployment_type), openqa_resultsdb_reporter_stg_uuid
+##               (staging), or openqa_resultsdb_reporter_prod_uuid
+##               (production) if both this and openqa_fedoramessaging
+##               are set. You should probably NOT set this unless you
+##               are maintaining the Fedora infrastructure deployment
 # - deployment_type
 ##      string - Fedora Infrastructure thing; for this role, the
 ##               fedora_openqa config file will be set appropriately
 ##               for infra deployments if this is set, so don't set
 ##               it for private deployments
-#
-# When all of the above are set, a wikitcms 'token' file will be
-# installed and result submission to the wiki will be enabled. If
-# deployment_type is set to 'prod', results will be submitted to the
-# production wiki in response to openQA production 'job complete'
-# fedmsgs; if set to 'stg', results will be submitted to the staging
-# wiki in response to openQA staging 'job complete' fedmsgs. Result
-# reporting to ResultsDB will also be enabled for the production
-# deployment. You probably should NOT set these unless you're
-# maintaining the Fedora infrastructure deployments.
 #
 # NOTE: There are still currently a couple of assumptions that the
 # openQA server boxes will always act as their own dispatchers, but
@@ -53,10 +66,26 @@
 
 - name: Install required packages
   dnf:
-    name: ['python3-fedfind', 'python3-wikitcms', 'python3-fedmsg',
-           'python3-openqa_client', 'python3-requests', 'python3-resultsdb_api',
-           'python3-resultsdb_conventions-fedora', 'python3-setuptools', 'python3-six']
+    name: ['python3-fedfind', 'python3-wikitcms', 'python3-openqa_client', 'python3-requests',
+           'python3-resultsdb_api', 'python3-resultsdb_conventions-fedora', 'python3-setuptools',
+           'python3-six']
     state: present
+  tags:
+  - packages
+
+- name: Install required packages (fedmsg)
+  dnf:
+    name: python3-fedmsg
+    state: present
+  when: "not openqa_fedoramessaging"
+  tags:
+  - packages
+
+- name: Install required packages (fedora-messaging)
+  dnf:
+    name: fedora-messaging
+    state: present
+  when: "openqa_fedoramessaging"
   tags:
   - packages
 
@@ -152,12 +181,44 @@
 #  tags:
 #  - config
 
-- name: Enable fedmsg consumer
+# We do this even if fedora-messaging is true, because in that case,
+# we write this file empty to ensure no fedmsg consumers are enabled
+- name: Configure fedmsg consumers
   template: src=openqa_consumer.py.j2 dest=/etc/fedmsg.d/openqa_consumer.py owner=root group=root mode=0644
   notify:
   - restart fedmsg-hub
   tags:
   - config
+
+- name: Configure fedora-messaging scheduler
+  template: src=fedora_openqa_scheduler.toml.j2 dest=/etc/fedora-messaging/fedora_openqa_scheduler.toml owner=root group=root mode=0640
+  when: "openqa_fedoramessaging"
+  tags:
+  - config
+
+- name: Configure fedora-messaging wiki reporter
+  template: src=fedora_openqa_wiki_reporter.toml.j2 dest=/etc/fedora-messaging/fedora_openqa_wiki_reporter.toml owner=root group=root mode=0640
+  when: "wikitcms_token is defined and openqa_fedoramessaging"
+  tags:
+  - config
+
+  - name: Configure fedora-messaging ResultsDB reporter
+  template: src=fedora_openqa_resultsdb_reporter.toml.j2 dest=/etc/fedora-messaging/fedora_openqa_resultsdb_reporter.toml owner=root group=root mode=0640
+  when: "openqa_resultsdb_url is defined and openqa_fedoramessaging"
+  tags:
+  - config
+
+- name: Enable and start fedora-messaging scheduler service
+  service: name=fm-consumer@fedora_openqa_scheduler enabled=yes state=started
+  when: "openqa_fedoramessaging"
+
+- name: Enable and start fedora-messaging wiki reporter service
+  service: name=fm-consumer@fedora_openqa_wiki_reporter enabled=yes state=started
+  when: "wikitcms_token is defined and openqa_fedoramessaging"
+
+- name: Enable and start fedora-messaging ResultsDB reporter service
+  service: name=fm-consumer@fedora_openqa_resultsdb_reporter enabled=yes state=started
+  when: "openqa_resultsdb_url is defined and openqa_fedoramessaging"
 
 - name: Set up cron job to schedule live-respins jobs
   copy: src=schedule-live-respins.cron dest=/etc/cron.hourly/schedule-live-respins owner=root group=root mode=0755
