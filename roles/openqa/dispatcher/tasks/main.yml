@@ -80,7 +80,7 @@
   dnf:
     name: python3-fedmsg
     state: present
-  when: "not openqa_fedoramessaging"
+  when: "not openqa_fedoramessaging|bool"
   tags:
   - packages
 
@@ -88,7 +88,7 @@
   dnf:
     name: fedora-messaging
     state: present
-  when: "openqa_fedoramessaging"
+  when: "openqa_fedoramessaging|bool"
   tags:
   - packages
 
@@ -201,13 +201,13 @@
 
 - name: Configure fedora-messaging wiki reporter
   template: src=fedora_openqa_wiki_reporter.toml.j2 dest=/etc/fedora-messaging/fedora_openqa_wiki_reporter.toml owner=root group=root mode=0640
-  when: "wikitcms_token is defined and openqa_fedoramessaging"
+  when: "wikitcms_token is defined and openqa_fedoramessaging|bool"
   tags:
   - config
 
   - name: Configure fedora-messaging ResultsDB reporter
   template: src=fedora_openqa_resultsdb_reporter.toml.j2 dest=/etc/fedora-messaging/fedora_openqa_resultsdb_reporter.toml owner=root group=root mode=0640
-  when: "openqa_resultsdb_url is defined and openqa_fedoramessaging"
+  when: "openqa_resultsdb_url is defined and openqa_fedoramessaging|bool"
   tags:
   - config
 
@@ -217,11 +217,11 @@
 
 - name: Enable and start fedora-messaging wiki reporter service
   service: name=fm-consumer@fedora_openqa_wiki_reporter enabled=yes state=started
-  when: "wikitcms_token is defined and openqa_fedoramessaging"
+  when: "wikitcms_token is defined and openqa_fedoramessaging|bool"
 
 - name: Enable and start fedora-messaging ResultsDB reporter service
   service: name=fm-consumer@fedora_openqa_resultsdb_reporter enabled=yes state=started
-  when: "openqa_resultsdb_url is defined and openqa_fedoramessaging"
+  when: "openqa_resultsdb_url is defined and openqa_fedoramessaging|bool"
 
 - name: Set up cron job to schedule live-respins jobs
   copy: src=schedule-live-respins.cron dest=/etc/cron.hourly/schedule-live-respins owner=root group=root mode=0755
