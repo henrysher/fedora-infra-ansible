@@ -195,25 +195,25 @@
 
 - name: Install fedora-messaging staging CA cert (because it's not in the package)
   copy: src=stg-cacert.pem dest=/etc/fedora-messaging/stg-cacert.pem owner=root group=root mode=0644
-  when: "openqa_fedoramessaging"
+  when: "openqa_fedoramessaging|bool"
   tags:
   - config
 
 - name: Install fedora-messaging staging broker cert (because it's not in the package)
   copy: src=fedora.stg-cert.pem dest=/etc/fedora-messaging/fedora.stg-cert.pem owner=root group=root mode=0644
-  when: "openqa_fedoramessaging"
+  when: "openqa_fedoramessaging|bool"
   tags:
   - config
 
 - name: Install fedora-messaging staging broker key (because it's not in the package)
   copy: src=fedora.stg-key.pem dest=/etc/fedora-messaging/fedora.stg-key.pem owner=root group=root mode=0644
-  when: "openqa_fedoramessaging"
+  when: "openqa_fedoramessaging|bool"
   tags:
   - config
 
 - name: Configure fedora-messaging scheduler
   template: src=fedora_openqa_scheduler.toml.j2 dest=/etc/fedora-messaging/fedora_openqa_scheduler.toml owner=root group=root mode=0640
-  when: "openqa_fedoramessaging"
+  when: "openqa_fedoramessaging|bool"
   tags:
   - config
 
@@ -231,7 +231,7 @@
 
 - name: Enable and start fedora-messaging scheduler service
   service: name=fm-consumer@fedora_openqa_scheduler enabled=yes state=started
-  when: "openqa_fedoramessaging"
+  when: "openqa_fedoramessaging|bool"
 
 - name: Enable and start fedora-messaging wiki reporter service
   service: name=fm-consumer@fedora_openqa_wiki_reporter enabled=yes state=started
