@@ -1,25 +1,15 @@
 ---
 # install apache(httpd)
-- name: install apache (yum)
-  package: name={{ item }} state=present
-  with_items:
-  - httpd
-  - httpd-tools
+- name: install apache (package)
+  package:
+    state: present
+    name:
+    - httpd
+    - httpd-tools
   tags:
   - packages
   - apache
-  when: ansible_distribution_major_version|int < 22
-
-# install apache(httpd)
-- name: install apache (dnf)
-  dnf: name={{ item }} state=present
-  with_items:
-  - httpd
-  - httpd-tools
-  tags:
-  - packages
-  - apache
-  when: ansible_distribution_major_version|int > 21 and ansible_cmdline.ostree is not defined
+  when: ansible_cmdline.ostree is not defined
 
 - name: set apache running/enabled
   service: name=httpd enabled=yes
