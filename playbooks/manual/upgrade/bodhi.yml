@@ -29,14 +29,19 @@
   - import_tasks: "{{ handlers_path }}/restart_services.yml"
 
   tasks:
-  - name: dnf update bodhi-server packages from main repo
-    dnf: name="{{ item }}" state=latest update_cache=true
-    with_items:
-     - bodhi-server
-  - name: dnf update bodhi-server packages from testing repo
-    dnf: name="{{ item }}" state=latest enablerepo=infrastructure-tags-stg update_cache=true
-    with_items:
-     - bodhi-server
+  - name: update bodhi-server packages from main repo
+    dnf:
+      name:
+      - bodhi-server
+      state: latest
+      update_cache: true
+  - name: update bodhi-server packages from testing repo
+    dnf:
+      name:
+      - bodhi-server
+      state: latest
+      enablerepo: infrastructure-tags-stg
+      update_cache: true
     when: testing
 
 - name: find out if there are migrations to run
