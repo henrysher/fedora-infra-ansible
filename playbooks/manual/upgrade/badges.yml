@@ -14,18 +14,21 @@
   - name: clean all metadata {%if testing%}(with infrastructure-testing on){%endif%}
     command: yum clean all {%if testing%} --enablerepo=infrastructure-tags-stg {%endif%}
     check_mode: no
-  - name: yum update tahrir/badges packages from main repo
-    yum: name={{item}} state=latest
+  - name: update tahrir/badges packages from main repo
+    package:
+      name:
+      - python-tahrir
+      - python-tahrir-api
+      state: latest
     when: not testing
-    with_items:
-    - python-tahrir
-    - python-tahrir-api
-  - name: yum update tahrir/badges packages from testing repo
-    yum: name={{item}} state=latest enablerepo=infrastructure-tags-stg
+  - name: update tahrir/badges packages from testing repo
+    yum:
+      name:
+      - python-tahrir
+      - python-tahrir-api
+      state: latest
+      enablerepo: infrastructure-tags-stg
     when: testing
-    with_items:
-    - python-tahrir
-    - python-tahrir-api
 
 - name: push packages out to backend
   hosts: badges_backend:badges_backend_stg
@@ -43,18 +46,21 @@
   - name: clean all metadata {%if testing%}(with infrastructure-testing on){%endif%}
     command: yum clean all {%if testing%} --enablerepo=infrastructure-tags-stg {%endif%}
     check_mode: no
-  - name: yum update tahrir/badges packages from main repo
-    yum: name={{item}} state=latest
+  - name: update tahrir/badges packages from main repo
+    package:
+      name:
+      - python-fedbadges
+      - python-tahrir-api
+      state: latest
     when: not testing
-    with_items:
-    - python-fedbadges
-    - python-tahrir-api
-  - name: yum update tahrir/badges packages from testing repo
-    yum: name={{item}} state=latest enablerepo=infrastructure-tags-stg
+  - name: update tahrir/badges packages from testing repo
+    yum:
+      name:
+      - python-fedbadges
+      - python-tahrir-api
+      state: latest
+      enablerepo: infrastructure-tags-stg
     when: testing
-    with_items:
-    - python-fedbadges
-    - python-tahrir-api
 
 - name: verify the frontend and stop it
   hosts: badges_web:badges_web_stg
