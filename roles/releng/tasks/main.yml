@@ -95,8 +95,9 @@
     - /var/spool/rsyslog
 
 - name: add pkgs
-  dnf: state=present pkg={{ item }}
-  with_items:
+  package:
+    state: present
+    name:
     - koji
     - strace
     - mock
@@ -131,13 +132,12 @@
   - releng
 
 - name: add pkgs from infrastructure testing repo
-  dnf: state=present pkg={{ item }} enablerepo=infrastructure-tags-stg
-  with_items:
-    - python3-libpagure
+  package: state=present pkg=python3-libpagure enablerepo=infrastructure-tags-stg
 
 - name: add pkgs
-  dnf: state=present pkg={{ item }}
-  with_items:
+  package:
+    state: present
+    name:
     - pungi-utils
   when: "'releng_compose' in group_names"
 
@@ -153,15 +153,17 @@
   when: "'releng_compose' in group_names or 'releng_stg' in group_names"
 
 - name: add pkgs for nightly compose
-  package:  state=present pkg={{ item }}
-  with_items:
+  package:
+    state: present
+    name:
     - packagedb-cli
   when: "'releng_compose' in group_names"
 
 # Add skopeo for OCI Image management, only in stage first for testing
 - name: add pkgs for OCI Image management
-  package:  state=present pkg={{ item }}
-  with_items:
+  package:
+    state: present
+    name:
     - skopeo
   when: env == "staging"
 
