@@ -14,20 +14,23 @@
   - name: clean all metadata {%if testing%}(with infrastructure-testing on){%endif%}
     command: yum clean all {%if testing%} --enablerepo=infrastructure-tags-stg {%endif%}
     check_mode: no
-  - name: yum update mbs packages from main repo
-    yum: name={{item}} state=latest
+  - name: update mbs packages from main repo
+    package:
+      name:
+      - module-build-service
+      - libmodulemd1
+      - python2-solv
+      state: latest
     when: not testing
-    with_items:
-    - module-build-service
-    - libmodulemd1
-    - python2-solv
-  - name: yum update mbs packages from testing repo
-    yum: name={{item}} state=latest enablerepo=infrastructure-tags-stg
+  - name: update mbs packages from testing repo
+    yum:
+      name:
+      - module-build-service
+      - libmodulemd1
+      - python2-solv
+      state: latest
+      enablerepo: infrastructure-tags-stg
     when: testing
-    with_items:
-    - module-build-service
-    - libmodulemd1
-    - python2-solv
 
 - name: push packages out to backend
   hosts: mbs_backend:mbs_backend_stg
@@ -45,20 +48,23 @@
   - name: clean all metadata {%if testing%}(with infrastructure-testing on){%endif%}
     command: yum clean all {%if testing%} --enablerepo=infrastructure-tags-stg {%endif%}
     check_mode: no
-  - name: yum update mbs packages from main repo
-    yum: name={{item}} state=latest
+  - name: update mbs packages from main repo
+    package:
+      name:
+      - module-build-service
+      - libmodulemd1
+      - python2-solv
+      state: latest
     when: not testing
-    with_items:
-    - module-build-service
-    - libmodulemd1
-    - python2-solv
-  - name: yum update mbs packages from testing repo
-    yum: name={{item}} state=latest enablerepo=infrastructure-tags-stg
+  - name: update mbs packages from testing repo
+    yum:
+      name:
+      - module-build-service
+      - libmodulemd1
+      - python2-solv
+      state: latest
+      enablerepo: infrastructure-tags-stg
     when: testing
-    with_items:
-    - module-build-service
-    - libmodulemd1
-    - python2-solv
 
 - name: verify the frontend and stop it
   hosts: mbs_frontend:mbs_frontend_stg
