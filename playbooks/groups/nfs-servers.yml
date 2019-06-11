@@ -55,6 +55,26 @@
   tags:
   - drives
 
+- name: create copr storage
+  lvol: vg=VG_nfs lv=copr-dist-git-dev size=10t shrink=no
+  tags:
+  - drives
+
+- name: Create FS for copr
+  filesystem: fstype=xfs dev=/dev/VG_nfs/copr-dist-git-dev
+  tags:
+  - drives
+
+- name: Create copr tree directory
+  file: path=/srv/nfs/copr-dist-git-dev state=directory owner=root group=root
+  tags:
+  - drives
+
+- name: Mount copr tree directory
+  mount: name=/srv/nfs/copr-dist-git-dev src='LABEL=copr-dist-git-dev' fstype=xfs state=mounted
+  tags:
+  - drives
+
 - name: create 5 GB communishift logical volumes
   lvol: vg=VG_nfs lv=openshift-05gb-{{item}} size=5g shrink=no
   with_items: ["00","01","02","03","04","05","06","07","08","09"]
