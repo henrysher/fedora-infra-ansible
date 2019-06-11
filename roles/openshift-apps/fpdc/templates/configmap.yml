@@ -1,3 +1,4 @@
+{% macro load_file(filename) %}{% include filename %}{%- endmacro -%}
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -7,24 +8,4 @@ metadata:
     app: fpdc
 data:
   config.json: |-
-    {
-    "COREAPI_URL": "https://fpdc{{ env_suffix }}.fedoraproject.org",
-    "OIDC_OP_JWKS_ENDPOINT": "https://id{{ env_suffix }}.fedoraproject.org/openidc/Jwks",
-    "OIDC_OP_AUTHORIZATION_ENDPOINT": "https://id{{ env_suffix }}.fedoraproject.org/openidc/Authorization",
-    "OIDC_OP_TOKEN_ENDPOINT": "https://id{{ env_suffix }}.fedoraproject.org/openidc/Token",
-    "OIDC_OP_USER_ENDPOINT": "https://id{{ env_suffix }}.fedoraproject.org/openidc/UserInfo",
-    "DIST_GIT_URL": "https://src{{ env_suffix }}.fedoraproject.org/{namespace}/{name}",
-{% if env == 'staging' %}
-    "SECRET_KEY": "{{ stg_fpdc_secret_key }}",
-    "DB_PASSWORD": "{{ fpdc_stg_db_pass }}",
-    "DB_HOST": "{{ fpdc_stg_db_server }}",
-    "OIDC_RP_CLIENT_ID": "{{ fpdc_stg_client_id }}",
-    "OIDC_RP_CLIENT_SECRET": "{{ fpdc_stg_client_secret }}"
-{% else %}
-    "SECRET_KEY": "{{ fpdc_secret_key }}",
-    "DB_PASSWORD": "{{ fpdc_db_pass }}",
-    "DB_HOST": "{{ fpdc_db_server }}",
-    "OIDC_RP_CLIENT_ID": "{{ fpdc_client_id }}",
-    "OIDC_RP_CLIENT_SECRET": "{{ fpdc_client_secret }}"
-{% endif %}
-    }
+    {{ load_file('config.json') | indent }}
