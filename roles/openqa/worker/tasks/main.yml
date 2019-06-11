@@ -16,7 +16,7 @@
 ##               installed and rngd.service enabled/started
 
 - name: Install required packages (testing)
-  dnf:
+  package:
     name: ['openqa-worker']
     state: present
     enablerepo: "updates-testing"
@@ -24,32 +24,32 @@
   - packages
 
 - name: Install packages
-  dnf:
+  package:
     name: ['libselinux-python', 'git']
     state: present
   tags:
   - packages
 
 - name: Install UEFI firmware package (x86_64 only)
-  dnf: name=edk2-ovmf state=present
+  package: name=edk2-ovmf state=present
   tags:
   - packages
   when: "ansible_architecture is defined and ansible_architecture == 'x86_64'"
 
 - name: Install UEFI firmware package (aarch64 only)
-  dnf: name=edk2-aarch64 state=present
+  package: name=edk2-aarch64 state=present
   tags:
   - packages
   when: "ansible_architecture is defined and ansible_architecture == 'aarch64'"
 
 - name: Install arm UEFI firmware package (aarch64 only)
-  dnf: name=edk2-arm state=present
+  package: name=edk2-arm state=present
   tags:
   - packages
   when: "ansible_architecture is defined and ansible_architecture == 'aarch64'"
 
 - name: Install rng-tools (if specified by openqa_rngd var)
-  dnf: name=rng-tools state=present
+  package: name=rng-tools state=present
   tags:
   - packages
   when: "openqa_rngd is defined and openqa_rngd"
