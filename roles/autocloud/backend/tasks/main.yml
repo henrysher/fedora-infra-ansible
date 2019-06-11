@@ -2,17 +2,18 @@
 # Configuration for the Fedora Notifications webapp
 
 - name: install needed packages
-  dnf: pkg={{ item }} state=present
-  with_items:
-  - autocloud-common
-  - autocloud-backend
-  - tunir
-  - fedfind
-  - python2-fedfind
-  - python-sqlalchemy
-  - python-sqlalchemy-utils
-  - libsemanage-python
-  - libselinux-python
+  package:
+    state: present
+    name:
+    - autocloud-common
+    - autocloud-backend
+    - tunir
+    - fedfind
+    - python2-fedfind
+    - python-sqlalchemy
+    - python-sqlalchemy-utils
+    - libsemanage-python
+    - libselinux-python
   notify:
   - restart fedmsg-hub
   - restart autocloud
@@ -57,10 +58,11 @@
   - autocloud/backend
 
 - name: install libvirt and vagrant-libvirt for the libvirt host
-  dnf: pkg={{ item }} state=present
-  with_items:
-  - libvirt
-  - vagrant-libvirt
+  package:
+    state: present
+    name:
+    - libvirt
+    - vagrant-libvirt
   when: autocloud_specialization == 'libvirt'
   notify:
   - restart fedmsg-hub
@@ -70,9 +72,10 @@
   - autocloud/backend
 
 - name: install libvirt for the aarch64 host
-  dnf: pkg={{ item }} state=present
-  with_items:
-  - libvirt
+  package:
+    state: present
+    name:
+    - libvirt
   when: autocloud_specialization == 'aarch64'
   notify:
   - restart fedmsg-hub
@@ -90,12 +93,13 @@
   - autocloud/backend
 
 - name: install virtualbox basics where needed
-  dnf: pkg={{ item }} state=present
-  with_items:
-  - VirtualBox-4.3
-  - kernel-devel
-  - gcc
-  - vagrant
+    package:
+    state: present
+    name:
+    - VirtualBox-4.3
+    - kernel-devel
+    - gcc
+    - vagrant
   register: virtualbox_installed
   check_mode: no
   when: autocloud_specialization == 'virtualbox' and inventory_hostname == 'autocloud-libvirt-vbox.phx2.fedoraproject.org'
@@ -107,12 +111,13 @@
   - autocloud/backend
 
 - name: install virtualbox basics where needed
-  dnf: pkg={{ item }} state=present
-  with_items:
-  - VirtualBox-5.1
-  - kernel-devel
-  - gcc
-  - vagrant
+  package:
+    state: present
+    name:
+    - VirtualBox-5.1
+    - kernel-devel
+    - gcc
+    - vagrant
   register: virtualbox_installed
   check_mode: no
   when: autocloud_specialization == 'virtualbox' and inventory_hostname == 'autocloud-libvirt-vbox2.phx2.fedoraproject.org'
