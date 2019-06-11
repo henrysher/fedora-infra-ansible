@@ -1,3 +1,4 @@
+{% macro load_file(filename) %}{% include filename %}{%- endmacro -%}
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -7,15 +8,4 @@ metadata:
     app: accountsystem
 data:
     caiapi.cfg: |-
-      OIDC_CLIENT_SECRETS = '/etc/caiapi_oidc.json'
-      KRB5_REALM = '{{ ipa_realm }}'
-      KRB5_PRINCIPAL = 'CAIAPI/caiapi{{ env_suffix }}.fedoraproject.org'
-      KRB5_KEYTAB = '/etc'
-      LDAP_SERVER = 'ldaps://ipa01{{ env_suffix }}.fedoraproject.org'
-      LDAP_CACERT = '/etc'
-{% if env == "staging" %}
-      LDAP_BASE = 'dc=stg,dc=fedoraproject,dc=org'
-{% else %}
-      LDAP_BASE = 'dc=fedoraproject,dc=org'
-{% endif %}
-      # TODO: Include file for CLIENTS
+      {{ load_file('caiapi.cfg') | indent }}
