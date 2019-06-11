@@ -12,23 +12,18 @@
   - name: clean all metadata {%if testing%}(with infrastructure-testing on){%endif%}
     command: yum clean all {%if testing%} --enablerepo=infrastructure-tags-stg {%endif%}
     check_mode: no
-  - name: yum update fedimg packages from main repo
-    yum: name="{{ item }}" state=latest
-    with_items:
-     - python2-fedimg
-     - python2-libcloud
-     - python2-fedfind
-     - python2-toml
-     - python-vcrpy
+
+  - name: update fedimg packages from main repo
+    package:
+        name=["python2-fedimg", "python2-libcloud", "python2-fedfind", "python2-toml", "python-vcrpy"]
+        state=latest
     when: not testing
-  - name: yum update fedimg packages from testing repo
-    yum: name="{{ item }}" state=latest enablerepo=infrastructure-tags-stg
-    with_items:
-     - python2-fedimg
-     - python2-libcloud
-     - python2-fedfind
-     - python2-toml
-     - python-vcrpy
+
+  - name: update fedimg packages from testing repo
+    yum:
+        name=["python2-fedimg", "python2-libcloud", "python2-fedfind", "python2-toml", "python-vcrpy"]
+        state=latest
+        enablerepo=infrastructure-tags-stg
     when: testing
 
 - name: verify the backend and restart it
