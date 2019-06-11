@@ -1,0 +1,52 @@
+[zmq_to_amqp]
+# The AMQP exchange to publish to.
+exchange = "zmq.topic"
+# A list of topics to filter the incoming ZMQ messages on; by default all
+# messages are forwarded to AMQP.
+topics = [""]
+# A list of strings in the ZeroMQ socket format (e.g. "tcp://host:socket")
+zmq_endpoints = [
+{% if env == 'staging' %}
+    "tcp://stg.fedoraproject.org:9940",
+{% else %}
+    "tcp://fedoraproject.org:9940",
+{% endif %}
+    #"tcp://release-monitoring.org:9940",
+]
+
+[log_config]
+version = 1
+disable_existing_loggers = true
+[log_config.filters.ratelimit]
+"()" = "fedmsg_migration_tools.filters.RateLimiter"
+rate = 120
+[log_config.formatters.simple]
+format = "%(asctime)s [%(name)s %(levelname)s] %(message)s"
+datefmt = "%Y-%m-%d %H:%M:%S"
+[log_config.handlers.console]
+class = "logging.StreamHandler"
+formatter = "simple"
+stream = "ext://sys.stdout"
+[log_config.handlers.email]
+class = "logging.handlers.SMTPHandler"
+filters = ["ratelimit"]
+formatter = "simple"
+mailhost = "bastion"
+fromaddr = "fedmsg-migration-tools@fedoraproject.org"
+toaddrs = ["jcline@fedoraproject.org", "abompard@fedoraproject.org"]
+subject = "ERROR: fedmsg-migration-tools zmq-to-amqp bridge"
+[log_config.loggers.fedora_messaging]
+level = "INFO"
+propagate = false
+handlers = ["console"]
+[log_config.loggers.fedmsg_migration_tools]
+level = "INFO"
+propagate = false
+handlers = ["console"]
+[log_config.loggers.fedmsg]
+level = "INFO"
+propagate = false
+handlers = ["console"]
+[log_config.root]
+level = "WARNING"
+handlers = ["console", "email"]
