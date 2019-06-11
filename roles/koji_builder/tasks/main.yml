@@ -63,8 +63,9 @@
   - koji_builder
 
 - name: add pkgs
-  package: state=present pkg={{ item }}
-  with_items:
+  package:
+    state: present
+    name:
     - koji-builder
     - koji-builder-plugins
     - python2-koji
@@ -100,7 +101,7 @@
   - koji_builder
 
 - name: Install arm UEFI firmware package (aarch64 only)
-  dnf: name=edk2-arm state=present
+  package: name=edk2-arm state=present
   tags:
   - koji_builder
   when: "ansible_architecture is defined and ansible_architecture == 'aarch64'"
@@ -222,18 +223,20 @@
 # x86_64 builders run both x86_64 and i686 builds, that requires multilib
 # version of nosync installed to fully take advantage of nosync
 - name: special pkgs for the x86_64 builders
-  package: state=present pkg={{ item }}
-  with_items:
-  - nosync.i686
+  package:
+    state: present
+    name:
+    - nosync.i686
   when: ansible_architecture == 'x86_64'
   tags:
   - koji_builder
 
 # non-bkernel x86_64 builders run container_build, which needs osbs
 - name: special pkgs for the x86_64 builders
-  package: state=present pkg={{ item }}
-  with_items:
-  - python3-osbs-client.noarch
+  package:
+    state: present
+    name:
+    - python3-osbs-client.noarch
   when: "ansible_architecture == 'x86_64' and not inventory_hostname.startswith('bkernel')"
   tags:
   - koji_builder
@@ -287,7 +290,7 @@
 
 # https://pagure.io/fedora-infrastructure/issue/6636
 - name: install libkcapi to get increased sockets on armv7
-  dnf: name=libkcapi enablerepo=updates-testing state=present
+  package: name=libkcapi enablerepo=updates-testing state=present
   tags:
   - koji_builder
   when: ansible_architecture == 'armv7l'
