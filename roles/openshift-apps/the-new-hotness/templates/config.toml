@@ -1,0 +1,158 @@
+# This file is in the TOML format.
+# For complete details on all configuration options, see the documentation
+# https://fedora-messaging.readthedocs.io/en/latest/configuration.html.
+
+amqp_url = "amqps://the-new-hotness:@rabbitmq{{ env_suffix }}.fedoraproject.org/%2Fpubsub"
+
+publish_exchange = "amq.topic"
+{% if env == "staging" %}
+topic_prefix = "org.fedoraproject.stg"
+{% else %}
+topic_prefix = "org.fedoraproject.prod"
+{% endif %}
+passive_declares = true
+
+callback = "hotness.consumers:BugzillaTicketFiler"
+
+# Note the double brackets below.
+# To add another binding, add another [[bindings]] section.
+[[bindings]]
+queue = "the-new-hotness{{ env_suffix }}"
+exchange = "amq.topic"
+routing_keys = [
+  "org.release-monitoring.*.anitya.project.version.update",
+  "org.release-monitoring.*.anitya.project.map.new",
+  "org.fedoraproject.*.buildsys.task.state.change",
+]
+
+[exchanges]
+
+[tls]
+ca_cert = "/etc/pki/rabbitmq/ca/fedora-messaging-the-new-hotness-ca.crt"
+keyfile = "/etc/pki/rabbitmq/key/fedora-messaging-the-new-hotness.key"
+certfile = "/etc/pki/rabbitmq/cert/fedora-messaging-the-new-hotness.crt"
+
+[client_properties]
+app = "the-new-hotness"
+
+[queues."the-new-hotness{{env_suffix}}"]
+durable = true
+auto_delete = false
+exclusive = false
+arguments = {}
+
+[qos]
+prefetch_size = 0
+prefetch_count = 25
+
+[log_config]
+version = 1
+disable_existing_loggers = true
+
+[log_config.formatters.simple]
+format = "[%(name)s %(levelname)s] %(message)s"
+
+[log_config.handlers.console]
+class = "logging.StreamHandler"
+formatter = "simple"
+stream = "ext://sys.stdout"
+
+[log_config.loggers.fedora_messaging]
+level = "INFO"
+propagate = false
+handlers = ["console"]
+
+[log_config.root]
+level = "INFO"
+handlers = ["console"]
+
+# the-new-hotness consumer configuration
+[consumer_config]
+repo_url = "https://pagure.io/releng/fedora-scm-requests"
+{% if env == "staging" %}
+mdapi_url = "https://apps.stg.fedoraproject.org/mdapi"
+pdc_url = "https://pdc.stg.fedoraproject.org"
+dist_git_url = "https://src.stg.fedoraproject.org"
+{% else %}
+mdapi_url = "https://apps.fedoraproject.org/mdapi"
+pdc_url = "https://pdc.fedoraproject.org"
+dist_git_url = "https://src.fedoraproject.org"
+{% endif %}
+# The time in seconds the-new-hotness should wait for a socket to connect
+# before giving up.
+connect_timeout = 15
+# The time in seconds the-new-hotness should wait for a read from a socket
+# before giving up.
+read_timeout = 15
+# The number of times the-new-hotness should retry a network request that
+# that failed for any reason (e.g. read timeout, DNS error, etc)
+requests_retries = 3
+# If true, publish fedmsg messages instead of fedora-messaging messages
+legacy_messaging = false
+
+[consumer_config.bugzilla]
+enabled = true
+{% if env == "staging" %}
+user = "{{ upstream_release_bugzilla_user }}"
+password = "{{ upstream_release_bugzilla_password }}"
+api_key = ""
+url = "https://partner-bugzilla.redhat.com"
+explanation_url = "https://stg.fedoraproject.org/wiki/Upstream_release_monitoring"
+{% else %}
+user = ""
+password = ""
+api_key = "{{ upstream_release_bugzilla_api_token }}"
+url = "https://bugzilla.redhat.com"
+explanation_url = "https://fedoraproject.org/wiki/Upstream_release_monitoring"
+{% endif %}
+product = "Fedora"
+version = "rawhide"
+keywords = "FutureFeature,Triaged"
+bug_status = "NEW"
+short_desc_template = "%(name)s-%(latest_upstream)s is available"
+description_template = """
+Latest upstream release: %(latest_upstream)s
+Current version/release in %(repo_name)s: %(repo_version)s-%(repo_release)s
+URL: %(url)s
+
+Please consult the package updates policy before you issue an update to a stable branch: https://fedoraproject.org/wiki/Updates_Policy\n
+
+More information about the service that created this bug can be found at: %(explanation_url)s\n
+
+Please keep in mind that with any upstream change, there may also be packaging changes that need to be made. Specifically, please remember that it is your responsibility to review the new version to ensure that the licensing is still correct and that no non-free or legally problematic items have been added upstream.\n
+
+Based on the information from anitya: https://release-monitoring.org/project/%(projectid)s/\n
+"""
+
+[consumer_config.koji]
+{% if env == "staging" %}
+server = "https://koji.stg.fedoraproject.org/kojihub"
+weburl = "https://koji.stg.fedoraproject.org/koji"
+krb_principal = "the-new-hotness/stg.release-monitoring.org@{{ipa_realm}}"
+{% else %}
+server = "https://koji.fedoraproject.org/kojihub"
+weburl = "https://koji.fedoraproject.org/koji"
+krb_principal = "the-new-hotness/release-monitoring.org@{{ipa_realm}}"
+{% endif %}
+krb_keytab = "/etc/krb5.hotness_hotness{{env_suffix}}.fedoraproject.org.keytab"
+krb_ccache = ""
+krb_proxyuser = ""
+krb_sessionopts = {timeout = 3600, krb_rdns = false}
+git_url = "https://src.fedoraproject.org/rpms/{package}.git"
+user_email = [
+  "Fedora Release Monitoring",
+  "<release-monitoring@fedoraproject.org>",
+]
+opts = {scratch = true}
+priority = 30
+target_tag = "rawhide"
+
+[consumer_config.anitya]
+url = "https://release-monitoring.org"
+username = "{{ fedoraDummyUser }}"
+password = "{{ fedoraDummyUserPassword }}"
+
+[consumer_config.cache]
+backend = "dogpile.cache.dbm"
+expiration_time = 300
+arguments = {filename = "/var/tmp/the-new-hotness-cache.dbm"}
