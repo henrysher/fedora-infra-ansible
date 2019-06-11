@@ -1,3 +1,4 @@
+{% macro load_file(filename) %}{% include filename %}{%- endmacro -%}
 ---
 apiVersion: v1
 kind: List
@@ -11,209 +12,15 @@ items:
       app: release-monitoring
   data:
     anitya.toml: |-
-      # This is a TOML-format file. For the spec, see https://github.com/toml-lang/toml#spec
-
-      # Secret key used to generate the CSRF token in the forms.
-{% if env == 'staging' %}
-      secret_key = '{{ stg_anitya_secrect_key }}'
-{% else %}
-      secret_key = '{{ anitya_secret_key }}'
-{% endif %}
-
-      # The lifetime of the session, in seconds.
-      permanent_session_lifetime = 3600
-
-{% if env == 'staging' %}
-      db_url = "postgresql://{{ anitya_stg_db_user }}:{{ anitya_stg_db_pass }}@{{ anitya_stg_db_host }}/{{ anitya_stg_db_name }}"
-{% else %}
-      db_url = "postgresql://{{ anitya_db_user }}:{{ anitya_db_pass }}@{{ anitya_db_host }}/{{ anitya_db_name }}"
-{% endif %}
-
-      # List of admins
-      anitya_web_admins = [
-{% if env == 'staging' %}
-          "c22eb09f-4407-4582-b14b-0375153d293d", # zlopez stg
-{% else %}
-          "5dd1b1f2-fee1-44f0-abeb-29df5bf151c7", # zlopez
-          "5a11f015-54ee-4319-9092-39c427873575", # tibbs
-          "42abdf74-b50e-49b4-a674-7cf01868d609", # kevin
-{% endif %}
-      ]
-
-      # The email to use in the 'From' header when sending emails.
-      admin_email = "admin@fedoraproject.org"
-
-      # The SMTP server to send mail through
-      smtp_server = "smtp.example.com"
-
-      # Whether or not to send emails to MAIL_ADMIN via SMTP_SERVER when HTTP 500
-      # errors occur.
-      email_errors = false
-
-      # List of users that are not allowed to sign in
-      blacklisted_users = []
-
-      librariesio_platform_whitelist = [
-          'pypi',
-          'rubygems',
-      ]
-
-      social_auth_authentication_backends = [
-          'social_core.backends.fedora.FedoraOpenId',
-          'social_core.backends.yahoo.YahooOpenId',
-          'social_core.backends.open_id.OpenIdAuth',
-      ]
-
-      # Default regular expression used for backend
-      default_regex = """\
-                      %(name)s(?:[-_]?(?:minsrc|src|source))?[-_]([^-/_\\s]+?)(?i)(?:[-_]\
-                      (?:minsrc|src|source|asc|release))?\\.(?:tar|t[bglx]z|tbz2|zip)\
-                      """
-
-      # Github access token
-{% if env == 'staging' %}
-      github_access_token = "{{ github_stg_release_monitoring }}"
-{% else %}
-      github_access_token = "{{ github_prod_release_monitoring }}"
-{% endif %}
-
-      # The logging configuration, in dictConfig format.
-      [anitya_log_config]
-      version = 1
-      disable_existing_loggers = false
-
-      [anitya_log_config.formatters.simple]
-      format = "[%(name)s %(levelname)s] %(message)s"
-
-      [anitya_log_config.handlers.console]
-      class = "logging.StreamHandler"
-      formatter = "simple"
-      stream = "ext://sys.stdout"
-
-      [anitya_log_config.loggers.anitya]
-      level = "INFO"
-      propagate = false
-      handlers = ["console"]
-
-      [anitya_log_config.loggers.fedmsg]
-      level = "INFO"
-      propagate = false
-      handlers = ["console"]
-
-      [anitya_log_config.root]
-      level = "INFO"
-      handlers = ["console"]
+      {{ load_file('anitya.toml') | indent }}
     alembic.ini: |-
-      [alembic]
-      script_location = anitya:db/migrations
-      sourceless = false
-{% if env == 'staging' %}
-      sqlalchemy.url = postgresql://{{ anitya_stg_db_admin_user }}:{{ anitya_stg_db_admin_pass }}@{{ anitya_stg_db_host }}/{{ anitya_stg_db_name }}
-{% else %}
-      sqlalchemy.url = postgresql://{{ anitya_db_admin_user }}:{{ anitya_db_admin_pass }}@{{ anitya_db_host }}/{{ anitya_db_name }}
-{% endif %}
-      [loggers]
-      keys = root,sqlalchemy,alembic
-      [handlers]
-      keys = console
-      [formatters]
-      keys = generic
-      [logger_root]
-      level = WARN
-      handlers = console
-      qualname =
-      [logger_sqlalchemy]
-      level = WARN
-      handlers =
-      qualname = sqlalchemy.engine
-      [logger_alembic]
-      level = INFO
-      handlers =
-      qualname = alembic
-      [handler_console]
-      class = StreamHandler
-      args = (sys.stderr,)
-      level = NOTSET
-      formatter = generic
-      [formatter_generic]
-      format = %(levelname)-5.5s [%(name)s] %(message)s
-      datefmt = %H:%M:%S
+      {{ load_file('alembic.ini') | indent }}
     start.sh: |-
-      mkdir -p /httpdir/run
-      ln -s /etc/httpd/modules /httpdir/modules
-      truncate --size=0 /httpdir/accesslog /httpdir/errorlog
-      tail -qf /httpdir/accesslog /httpdir/errorlog &
-      exec httpd -f /etc/anitya/httpd.conf -DFOREGROUND -DNO_DETACH
+      {{ load_file('start.sh') | indent }}
     httpd.conf: |-
-      Listen 0.0.0.0:8080
-      ServerRoot "/httpdir"
-      PidFile "/httpdir/httpd.pid"
-      LoadModule authn_file_module modules/mod_authn_file.so
-      LoadModule authn_anon_module modules/mod_authn_anon.so
-      LoadModule authz_user_module modules/mod_authz_user.so
-      LoadModule authz_host_module modules/mod_authz_host.so
-      LoadModule include_module modules/mod_include.so
-      LoadModule log_config_module modules/mod_log_config.so
-      LoadModule env_module modules/mod_env.so
-      LoadModule ext_filter_module modules/mod_ext_filter.so
-      LoadModule expires_module modules/mod_expires.so
-      LoadModule headers_module modules/mod_headers.so
-      LoadModule mime_module modules/mod_mime.so
-      LoadModule status_module modules/mod_status.so
-      LoadModule negotiation_module modules/mod_negotiation.so
-      LoadModule dir_module modules/mod_dir.so
-      LoadModule alias_module modules/mod_alias.so
-      LoadModule rewrite_module modules/mod_rewrite.so
-      LoadModule version_module modules/mod_version.so
-      LoadModule wsgi_module modules/mod_wsgi_python3.so
-      LoadModule authn_core_module modules/mod_authn_core.so
-      LoadModule authz_core_module modules/mod_authz_core.so
-      LoadModule unixd_module modules/mod_unixd.so
-      LoadModule mpm_event_module modules/mod_mpm_event.so
-      StartServers  20
-      ServerLimit   100
-      MaxRequestsPerChild 2000
-      MaxRequestWorkers 100
-      <Directory "/usr/local/lib/python3.7/anitya/static/docs/html/">
-          AllowOverride None
-          Require all granted
-      </Directory>
-      <Directory "/usr/local/lib/python3.7/site-packages/anitya/static/">
-          AllowOverride None
-          Require all granted
-      </Directory>
-      <Location />
-          Require all granted
-      </Location>
-      <Location /docs/>
-          Header set Cache-Control public
-          ExpiresDefault "access plus 1 month"
-          Header unset ETag
-      </Location>
-      <Location /static/>
-          Header set Cache-Control public
-          ExpiresDefault "access plus 1 month"
-          Header unset ETag
-      </Location>
-      LogFormat "%h %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-Agent}i\"" combined
-      CustomLog /httpdir/accesslog combined
-      ErrorLog /httpdir/errorlog
-      LogLevel info
-      TypesConfig /etc/mime.types
-      AddDefaultCharset UTF-8
-      CoreDumpDirectory /tmp
-      Alias /docs /usr/local/lib/python3.7/anitya/static/docs/html/
-      Alias /static /usr/local/lib/python3.7/site-packages/anitya/static/
-      WSGIDaemonProcess anitya display-name=anitya processes=2 threads=2 maximum-requests=1000 home=/httpdir
-      WSGIApplicationGroup %{GLOBAL}
-      WSGISocketPrefix run/wsgi
-      WSGIRestrictStdout Off
-      WSGIRestrictSignal Off
-      WSGIPythonOptimize 1
-      WSGIScriptAlias / /etc/anitya/anitya.wsgi
-      WSGIPassAuthorization On
+      {{ load_file('httpd.conf') | indent }}
     anitya.wsgi: |-
-      from anitya.wsgi import application
+      {{ load_file('anitya.wsgi') | indent }}
 - apiVersion: v1
   kind: ConfigMap
   metadata:
@@ -222,15 +29,4 @@ items:
       app: release-monitoring
   data:
     config.toml: |-
-      amqp_url = "amqps://anitya:@rabbitmq{{ env_suffix }}.fedoraproject.org/%2Fpubsub"
-
-{% if env == "staging" %}
-      topic_prefix = "org.release-monitoring.stg"
-{% else %}
-      topic_prefix = "org.release-monitoring.prod"
-{% endif %}
-
-      [tls]
-      ca_cert = "/etc/pki/rabbitmq/ca/fedora-messaging-release-monitoring-ca.crt"
-      keyfile = "/etc/pki/rabbitmq/key/fedora-messaging-release-monitoring.key"
-      certfile = "/etc/pki/rabbitmq/cert/fedora-messaging-release-monitoring.crt"
+      {{ load_file('config.toml') | indent }}
