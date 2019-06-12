@@ -4,14 +4,13 @@
   - "postgresql-server"
   - "postgresql-contrib"
 
-
-- name: See if postgreSQL is installed
-  stat: path=/var/lib/pgsql/initdb.log
-  register: pgsql_installed
+- name: See if PostgreSQL is initialized
+  stat: path=/var/lib/pgsql/data/PG_VERSION
+  register: postgres_initialized
 
 - name: init postgresql
   shell: "postgresql-setup initdb"
-  when: not pgsql_installed.stat.exists
+  when: not postgres_initialized.stat.exists
 
 - name: copy pg_hba.conf
   copy: src="pg/pg_hba.conf" dest=/var/lib/pgsql/data/pg_hba.conf owner=postgres group=postgres mode=0600
