@@ -4,7 +4,7 @@
 #
 # This file is in the TOML format.
 {% if deployment_type is defined %}
-amqp_url = "amqps://openqa{{ env_suffix }}:@rabbitmq{{ env_suffix }}.fedoraproject.org/%2Fpublic_pubsub"
+amqp_url = "amqps://openqa{{ openqa_env_suffix }}:@rabbitmq{{ openqa_env_suffix }}.fedoraproject.org/%2Fpublic_pubsub"
 {% else %}
 amqp_url = "amqps://fedora:@rabbitmq.fedoraproject.org/%2Fpublic_pubsub"
 {% endif %}
@@ -12,9 +12,9 @@ callback = "fedora_openqa.consumer:OpenQAResultsDBReporter"
 
 [tls]
 {% if deployment_type is defined %}
-ca_cert = "/etc/fedora-messaging/cacert{{ env_suffix }}.pem"
-keyfile = "/etc/pki/fedora-messaging/openqa{{ env_suffix }}-key.pem"
-certfile = "/etc/pki/fedora-messaging/openqa{{ env_suffix }}-cert.pem"
+ca_cert = "/etc/fedora-messaging/cacert{{ openqa_env_suffix }}.pem"
+keyfile = "/etc/pki/fedora-messaging/openqa{{ openqa_env_suffix }}-key.pem"
+certfile = "/etc/pki/fedora-messaging/openqa{{ openqa_env_suffix }}-cert.pem"
 {% else %}
 ca_cert = "/etc/fedora-messaging/cacert.pem"
 keyfile = "/etc/fedora-messaging/fedora-key.pem"
@@ -32,7 +32,7 @@ arguments = {}
 
 {% if deployment_type is defined %}
 # Private queue name.
-[queues.openqa{{ env_suffix }}_resultsdb_reporter]
+[queues.openqa{{ openqa_env_suffix }}_resultsdb_reporter]
 {% else %}
 # Queue names *must* be in the normal UUID format: run "uuidgen" and use the
 # output as your queue name. If your queue is not exclusive, anyone can connect
@@ -51,7 +51,7 @@ arguments = {}
 
 [[bindings]]
 {% if deployment_type is defined %}
-queue = "openqa{{ env_suffix }}_resultsdb_reporter"
+queue = "openqa{{ openqa_env_suffix }}_resultsdb_reporter"
 {% else %}
 queue = "{{ openqa_resultsdb_reporter_uuid }}"
 {% endif %}
