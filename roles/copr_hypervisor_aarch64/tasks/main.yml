@@ -1,0 +1,49 @@
+## Note that this is mostly for documentation purposes;  nobody executed
+## this playbook so far (all was setup manually, and I wouldn't probably
+## have rights to do execute this)
+
+- name: assure that copr-be can ssh there as copr@...
+  authorized_key: user=copr key="{{ item }}"
+  with_file:
+  - "provision/files/buildsys.pub"
+
+# todo: generate it's own key
+- name: make sure hostA can ssh to hostB
+  copy:
+    src: "{{ private }}/files/copr/buildsys.priv"
+    dest: /home/copr/.ssh/id_rsa
+    owner: copr
+    group: copr
+    mode: 0600
+
+- name: "check that 'images' pool exists"
+  shell: virsh --connect=qemu:///system pool-list
+  register: images_pool_check
+  changed_when:
+  - images_pool_check.rc == 0
+  - '" images " not in images_pool_check.stdout'
+  failed_when:
+  - images_pool_check.rc != 0
+
+- name: "create 'images' pool"
+  shell: \
+      virsh --connect=qemu:///system pool-define-as --name images --target /var/lib/libvirt/images --type dir --help
+      virsh --connect=qemu:///system pool-autostart images
+      virsh --connect=qemu:///system pool-start images
+  when: images_pool_check.changed
+
+- name: create directory image management
+  file:
+    path=/home/copr/vm-manage
+    owner=copr
+    group=copr
+    state=directory
+
+- name: copy the helper scripts
+  copy:
+      src={{ item }}
+      dest=/home/copr/vm-manage/{{ item }}
+  with_items:
+  - builder-repositories.repo
+  - prepare-disk
+  - upload-disk

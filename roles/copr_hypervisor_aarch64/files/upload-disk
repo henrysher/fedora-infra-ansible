@@ -1,0 +1,24 @@
+#! /bin/sh -x
+
+die() { echo >&2 "$*" ; exit 1 ; }
+image=$1
+
+volume=copr-builder
+pool=images
+backup_volume=copr-builder-$(date +"%Y%m%d_%H%M%S")
+
+connections='
+    qemu:///system
+    qemu+ssh://copr@virthost-aarch64-os02.fedorainfracloud.org/system
+'
+
+export VIRSH_DEFAULT_CONNECT_URI=
+
+test -n "$image" || die "first argument (image) required"
+test -f "$image" || die "image $image not found"
+
+for connection in $connections; do
+    export VIRSH_DEFAULT_CONNECT_URI=$connection
+    virsh vol-clone "$volume" "$backup_volume" --pool "$pool"
+    virsh vol-upload "$volume" --sparse --pool "$pool" "$image"
+done

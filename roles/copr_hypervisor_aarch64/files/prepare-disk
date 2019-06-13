@@ -1,0 +1,40 @@
+#! /bin/sh -x
+
+set -e
+
+sourcedir=$(dirname "$(readlink -f "$0")")
+
+src_img=$1
+dst_img=/tmp/newdisk.qcow2
+
+cp "$src_img" "$dst_img"
+
+# We could be using 'virt-resize --expand /dev/sda2' instead, but we are
+# running too old hypervisor to handle Fedora images:
+# e2fsck: Get a newer version of e2fsck!
+
+guestfish -a "$dst_img" <<EOF
+run
+mount /dev/sda2 /
+write        /etc/rc.d/rc.local "#! /bin/sh\n"
+write-append /etc/rc.d/rc.local "set -e\n"
+write-append /etc/rc.d/rc.local "mkdir -p /config\n"
+write-append /etc/rc.d/rc.local "mount /dev/disk/by-label/copr_config /config\n"
+write-append /etc/rc.d/rc.local "sh -x /config/pre-network-script.sh\n"
+write-append /etc/rc.d/rc.local "mkswap /dev/vdc && swapon /dev/vdc\n"
+chmod 0755   /etc/rc.d/rc.local
+EOF
+
+install_packages=copr-builder
+install() { install_packages="$install_packages,$1" ; }
+
+install cloud-utils-growpart    # growpart called in pre-network-script.sh
+install qemu-guest-agent        # allow VM inspect from the outside
+
+virt-customize -a "$dst_img" \
+    --copy-in "$sourcedir/builder-repositories.repo":/etc/yum.repos.d \
+    --update \
+    --install "$install_packages" \
+    --uninstall cloud-init \
+    --ssh-inject root:string:"ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCeTO0ddXuhDZYM9HyM0a47aeV2yIVWhTpddrQ7/RAIs99XyrsicQLABzmdMBfiZnP0FnHBF/e+2xEkT8hHJpX6bX81jjvs2bb8KP18Nh8vaXI3QospWrRygpu1tjzqZT0Llh4ZVFscum8TrMw4VWXclzdDw6x7csCBjSttqq8F3iTJtQ9XM9/5tCAAOzGBKJrsGKV1CNIrfUo5CSzY+IUVIr8XJ93IB2ZQVASK34T/49egmrWlNB32fqAbDMC+XNmobgn6gO33Yq5Ly7Dk4kqTUx2TEaqDkZfhsVu0YcwV81bmqsltRvpj6bIXrEoMeav7nbuqKcPLTxWEY/2icePF copr-backend" \
+    --selinux-relabel
