@@ -71,7 +71,7 @@
   - role: rabbit/user
     username: "openqa{{ env_suffix }}"
     tags: ['rabbit']
-    when: env == "staging"
+    when: deployment_type == "stg"
   - role: rabbit/queue
     username: "openqa{{ env_suffix }}"
     queue_name: "openqa{{ env_suffix }}_scheduler"
@@ -80,21 +80,21 @@
         - "org.fedoraproject.prod.bodhi.update.request.testing"
         - "org.fedoraproject.prod.bodhi.update.edit"
     tags: ['rabbit']
-    when: env == "staging"
+    when: deployment_type == "stg"
   - role: rabbit/queue
     username: "openqa{{ env_suffix }}"
     queue_name: "openqa{{ env_suffix }}_resultsdb_reporter"
     routing_keys:
         - "org.fedoraproject.{{ deployment_type }}.openqa.job.done"
     tags: ['rabbit']
-    when: env == "staging"
+    when: deployment_type == "stg"
   - role: rabbit/queue
     username: "openqa{{ env_suffix }}"
     queue_name: "openqa{{ env_suffix }}_wiki_reporter"
     routing_keys:
         - "org.fedoraproject.{{ deployment_type }}.openqa.job.done"
     tags: ['rabbit']
-    when: env == "staging"
+    when: deployment_type == "stg"
   # nfs client setup
   - role: nfs/client
     mnt_dir: '/var/lib/openqa/testresults'
