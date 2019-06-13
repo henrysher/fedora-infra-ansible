@@ -42,8 +42,32 @@
    - "/srv/private/ansible/vars.yml"
    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
 
-# fedora-messaging user/queue setup
+# relvalconsumer and autocloudreporter aren't particularly related
+# to openQA in any way, we just put those role on these boxes. There's
+# nowhere more obviously correct for rvc and acr should be on an
+# Autocloud box but I don't know if they're authed for RDB.
   roles:
+   - { role: openqa/server, tags: ['openqa_server'] }
+   - { role: openqa/dispatcher, tags: ['openqa_dispatcher'] }
+   - { role: check-compose, tags: ['check-compose'] }
+   - { role: fedmsg/base, tags: ['fedmsg_base', 'fedmsg'] }
+   - { role: fedmsg/hub, tags: ['fedmsg_hub', 'fedmsg'] }
+   - { role: relvalconsumer, tags: ['relvalconsumer'] }
+   - { role: autocloudreporter, tags: ['autocloudreporter'] }
+
+  handlers:
+   - import_tasks: "{{ handlers_path }}/restart_services.yml"
+
+- name: set up openQA server data NFS mounts (staging)
+  hosts: openqa_stg
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  roles:
+  # fedora-messaging queue/user setup
   - role: rabbit/user
     username: "openqa{{ env_suffix }}"
     tags: ['rabbit']
@@ -71,32 +95,7 @@
         - "org.fedoraproject.{{ deployment_type }}.openqa.job.done"
     tags: ['rabbit']
     when: env == "staging"
-
-# relvalconsumer and autocloudreporter aren't particularly related
-# to openQA in any way, we just put those role on these boxes. There's
-# nowhere more obviously correct for rvc and acr should be on an
-# Autocloud box but I don't know if they're authed for RDB.
-  roles:
-   - { role: openqa/server, tags: ['openqa_server'] }
-   - { role: openqa/dispatcher, tags: ['openqa_dispatcher'] }
-   - { role: check-compose, tags: ['check-compose'] }
-   - { role: fedmsg/base, tags: ['fedmsg_base', 'fedmsg'] }
-   - { role: fedmsg/hub, tags: ['fedmsg_hub', 'fedmsg'] }
-   - { role: relvalconsumer, tags: ['relvalconsumer'] }
-   - { role: autocloudreporter, tags: ['autocloudreporter'] }
-
-  handlers:
-   - import_tasks: "{{ handlers_path }}/restart_services.yml"
-
-- name: set up openQA server data NFS mounts (staging)
-  hosts: openqa_stg
-
-  vars_files:
-   - /srv/web/infra/ansible/vars/global.yml
-   - "/srv/private/ansible/vars.yml"
-   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
-
-  roles:
+  # nfs client setup
   - role: nfs/client
     mnt_dir: '/var/lib/openqa/testresults'
     nfs_src_dir: 'fedora_openqa_stg/testresults'
