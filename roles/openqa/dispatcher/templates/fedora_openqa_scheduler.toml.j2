@@ -7,16 +7,25 @@
 # we listen to the prod broker here even for staging as we need to use
 # prod messages to schedule jobs in openQA staging, composes and
 # updates just don't show up on the staging broker.
+{% if deployment_type is defined %}
+amqp_url = "amqps://openqa:@rabbitmq.fedoraproject.org/%2Fpublic_pubsub"
+{% else %}
 amqp_url = "amqps://fedora:@rabbitmq.fedoraproject.org/%2Fpublic_pubsub"
+{% endif %}
 callback = "fedora_openqa.consumer:OpenQAScheduler"
 
 [tls]
 ca_cert = "/etc/fedora-messaging/cacert.pem"
+{% if deployment_type is defined %}
+keyfile = "/etc/pki/fedora-messaging/openqa-key.pem"
+certfile = "/etc/pki/fedora-messaging/openqa-cert.pem"
+{% else %}
 keyfile = "/etc/fedora-messaging/fedora-key.pem"
 certfile = "/etc/fedora-messaging/fedora-cert.pem"
+{% endif %}
 
 [client_properties]
-app = "Fedora openQA"
+app = "Fedora openQA scheduler"
 
 [exchanges."amq.topic"]
 type = "topic"
@@ -24,6 +33,10 @@ durable = true
 auto_delete = false
 arguments = {}
 
+{% if deployment_type is defined %}
+# Private queue name.
+[queues.openqa{{ env_suffix }}_scheduler]
+{% else %}
 # Queue names *must* be in the normal UUID format: run "uuidgen" and use the
 # output as your queue name. If your queue is not exclusive, anyone can connect
 # and consume from it, causing you to miss messages, so do not share your queue
@@ -32,11 +45,6 @@ arguments = {}
 #
 # If you require a stronger guarantee about delivery, please talk to Fedora's
 # Infrastructure team.
-{% if deployment_type is defined and deployment_type == 'prod' %}
-[queues.{{ openqa_scheduler_prod_uuid }}]
-{% elif deployment_type is defined and deployment_type == 'stg' %}
-[queues.{{ openqa_scheduler_stg_uuid }}]
-{% else %}
 [queues.{{ openqa_scheduler_uuid }}]
 {% endif %}
 durable = false
@@ -45,10 +53,8 @@ exclusive = true
 arguments = {}
 
 [[bindings]]
-{% if deployment_type is defined and deployment_type == 'prod' %}
-queue = "{{ openqa_scheduler_prod_uuid }}"
-{% elif deployment_type is defined and deployment_type == 'stg' %}
-queue = "{{ openqa_scheduler_stg_uuid }}"
+{% if deployment_type is defined %}
+queue = "openqa{{ env_suffix }}_scheduler"
 {% else %}
 queue = "{{ openqa_scheduler_uuid }}"
 {% endif %}

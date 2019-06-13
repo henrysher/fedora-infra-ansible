@@ -42,6 +42,32 @@
    - "/srv/private/ansible/vars.yml"
    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
 
+# fedora-messaging user/queue setup
+  roles:
+  - role: rabbit/user
+    username: "openqa{{ env_suffix }}"
+    when: env == "staging"
+  - role: rabbit/queue
+    username: "openqa{{ env_suffix }}"
+    queue_name: "openqa{{ env_suffix }}_scheduler"
+    routing_keys:
+        - "org.fedoraproject.prod.pungi.compose.status.change"
+        - "org.fedoraproject.prod.bodhi.update.request.testing"
+        - "org.fedoraproject.prod.bodhi.update.edit"
+    when: env == "staging"
+  - role: rabbit/queue
+    username: "openqa{{ env_suffix }}"
+    queue_name: "openqa{{ env_suffix }}_resultsdb_reporter"
+    routing_keys:
+        - "org.fedoraproject.{{ deployment_type }}.openqa.job.done"
+    when: env == "staging"
+  - role: rabbit/queue
+    username: "openqa{{ env_suffix }}"
+    queue_name: "openqa{{ env_suffix }}_wiki_reporter"
+    routing_keys:
+        - "org.fedoraproject.{{ deployment_type }}.openqa.job.done"
+    when: env == "staging"
+
 # relvalconsumer and autocloudreporter aren't particularly related
 # to openQA in any way, we just put those role on these boxes. There's
 # nowhere more obviously correct for rvc and acr should be on an

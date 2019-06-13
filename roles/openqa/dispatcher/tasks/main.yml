@@ -21,9 +21,7 @@
 ##      bool - if true, configure and deploy the fedora-messaging
 ##             consumers; if false, configure and deploy the fedmsg
 ##             consumers. Note you must also set openqa_scheduler_uuid
-##             (no deployment type), openqa_scheduler_stg_uuid
-##             (staging) or openqa_scheduler_prod_uuid (production) if
-##             this is set
+##             for non-Fedora-infra deployments, if this is set
 ##      default - false
 #
 # Optional vars
@@ -48,9 +46,9 @@
 ##               are maintaining the Fedora infrastructure deployment
 # - deployment_type
 ##      string - Fedora Infrastructure thing; for this role, the
-##               fedora_openqa config file will be set appropriately
-##               for infra deployments if this is set, so don't set
-##               it for private deployments
+##               fedora_openqa config file and fedora-messaging config
+##               will be set appropriately for infra deployments if
+##               this is set, so don't set it for private deployments
 #
 # NOTE: There are still currently a couple of assumptions that the
 # openQA server boxes will always act as their own dispatchers, but
@@ -193,21 +191,76 @@
   tags:
   - config
 
-- name: Install fedora-messaging staging CA cert (because it's not in the package)
-  copy: src=stg-cacert.pem dest=/etc/fedora-messaging/stg-cacert.pem owner=root group=root mode=0644
+- name: Install fedora-messaging anon staging CA cert (because it's not in the package)
+  copy: src=stg-cacert.pem dest=/etc/fedora-messaging/cacert.stg.pem owner=root group=root mode=0644
   when: "openqa_fedoramessaging|bool"
   tags:
   - config
 
-- name: Install fedora-messaging staging broker cert (because it's not in the package)
+- name: Install fedora-messaging anon staging broker cert (because it's not in the package)
   copy: src=fedora.stg-cert.pem dest=/etc/fedora-messaging/fedora.stg-cert.pem owner=root group=root mode=0644
-  when: "openqa_fedoramessaging|bool"
+  when: "openqa_fedoramessaging|bool and deployment_type is not defined"
   tags:
   - config
 
-- name: Install fedora-messaging staging broker key (because it's not in the package)
+- name: Install fedora-messaging anon staging broker key (because it's not in the package)
   copy: src=fedora.stg-key.pem dest=/etc/fedora-messaging/fedora.stg-key.pem owner=root group=root mode=0644
-  when: "openqa_fedoramessaging|bool"
+  when: "openqa_fedoramessaging|bool and deployment_type is not defined"
+  tags:
+  - config
+
+- name: Create /etc/pki/fedora-messaging
+  file:
+    dest: /etc/pki/fedora-messaging
+    mode: 0775
+    owner: root
+    group: root
+    state: directory
+  when: "openqa_fedoramessaging|bool and deployment_type is defined"
+  tags:
+  - config
+
+- name: Deploy the Fedora infra fedora-messaging cert
+  copy:
+    src: "{{ private }}/files/rabbitmq/{{env}}/pki/issued/openqa{{env_suffix}}.crt"
+    dest: /etc/pki/fedora-messaging/openqa{{env_suffix}}-cert.pem
+    mode: 0644
+    owner: root
+    group: root
+  when: "openqa_fedoramessaging|bool and deployment_type is defined"
+  tags:
+  - config
+
+- name: Deploy the Fedora infra fedora-messaging key
+  copy:
+    src: "{{ private }}/files/rabbitmq/{{env}}/pki/private/openqa{{env_suffix}}.key"
+    dest: /etc/pki/fedora-messaging/openqa{{env_suffix}}-key.pem
+    mode: 0600
+    owner: root
+    group: root
+  when: "openqa_fedoramessaging|bool and deployment_type is defined"
+  tags:
+  - config
+
+- name: Deploy the Fedora infra fedora-messaging prod cert on stg (for scheduler)
+  copy:
+    src: "{{ private }}/files/rabbitmq/production/pki/issued/openqa.crt"
+    dest: /etc/pki/fedora-messaging/openqa-cert.pem
+    mode: 0644
+    owner: root
+    group: root
+  when: "openqa_fedoramessaging|bool and deployment_type is defined and deployment_type == 'stg'"
+  tags:
+  - config
+  
+- name: Deploy the Fedora infra fedora-messaging prod key on stg (for scheduler)
+  copy:
+    src: "{{ private }}/files/rabbitmq/production/pki/private/openqa.key"
+    dest: /etc/pki/fedora-messaging/openqa-key.pem
+    mode: 0600
+    owner: root
+    group: root
+  when: "openqa_fedoramessaging|bool and deployment_type is defined and deployment_type == 'stg'"
   tags:
   - config
 

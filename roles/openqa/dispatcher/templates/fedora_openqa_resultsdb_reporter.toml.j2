@@ -3,18 +3,18 @@
 # something unique before using this.
 #
 # This file is in the TOML format.
-{% if deployment_type is defined and deployment_type == 'stg' %}
-amqp_url = "amqps://fedora.stg:@rabbitmq.stg.fedoraproject.org/%2Fpublic_pubsub"
+{% if deployment_type is defined %}
+amqp_url = "amqps://openqa{{ env_suffix }}:@rabbitmq{{ env_suffix }}.fedoraproject.org/%2Fpublic_pubsub"
 {% else %}
 amqp_url = "amqps://fedora:@rabbitmq.fedoraproject.org/%2Fpublic_pubsub"
 {% endif %}
 callback = "fedora_openqa.consumer:OpenQAResultsDBReporter"
 
 [tls]
-{% if deployment_type is defined and deployment_type == 'stg' %}
-ca_cert = "/etc/fedora-messaging/stg-cacert.pem"
-keyfile = "/etc/fedora-messaging/fedora.stg-key.pem"
-certfile = "/etc/fedora-messaging/fedora.stg-cert.pem"
+{% if deployment_type is defined %}
+ca_cert = "/etc/fedora-messaging/cacert{{ env_suffix }}.pem"
+keyfile = "/etc/pki/fedora-messaging/openqa{{ env_suffix }}-key.pem"
+certfile = "/etc/pki/fedora-messaging/openqa{{ env_suffix }}-cert.pem"
 {% else %}
 ca_cert = "/etc/fedora-messaging/cacert.pem"
 keyfile = "/etc/fedora-messaging/fedora-key.pem"
@@ -30,6 +30,10 @@ durable = true
 auto_delete = false
 arguments = {}
 
+{% if deployment_type is defined %}
+# Private queue name.
+[queues.openqa{{ env_suffix }}_resultsdb_reporter]
+{% else %}
 # Queue names *must* be in the normal UUID format: run "uuidgen" and use the
 # output as your queue name. If your queue is not exclusive, anyone can connect
 # and consume from it, causing you to miss messages, so do not share your queue
@@ -38,11 +42,6 @@ arguments = {}
 #
 # If you require a stronger guarantee about delivery, please talk to Fedora's
 # Infrastructure team.
-{% if deployment_type is defined and deployment_type == 'prod' %}
-[queues.{{ openqa_resultsdb_reporter_prod_uuid }}]
-{% elif deployment_type is defined and deployment_type == 'stg' %}
-[queues.{{ openqa_resultsdb_reporter_stg_uuid }}]
-{% else %}
 [queues.{{ openqa_resultsdb_reporter_uuid }}]
 {% endif %}
 durable = false
@@ -51,16 +50,14 @@ exclusive = true
 arguments = {}
 
 [[bindings]]
-{% if deployment_type is defined and deployment_type == 'prod' %}
-queue = "{{ openqa_resultsdb_reporter_prod_uuid }}"
-{% elif deployment_type is defined and deployment_type == 'stg' %}
-queue = "{{ openqa_resultsdb_reporter_stg_uuid }}"
+{% if deployment_type is defined %}
+queue = "openqa{{ env_suffix }}_resultsdb_reporter"
 {% else %}
 queue = "{{ openqa_resultsdb_reporter_uuid }}"
 {% endif %}
 exchange = "amq.topic"
-{% if deployment_type is defined and deployment_type == 'stg' %}
-routing_keys = ["org.fedoraproject.stg.openqa.job.done"]
+{% if deployment_type is defined %}
+routing_keys = ["org.fedoraproject.{{ deployment_type }}.openqa.job.done"]
 {% else %}
 routing_keys = ["org.fedoraproject.prod.openqa.job.done"]
 {% endif %}
