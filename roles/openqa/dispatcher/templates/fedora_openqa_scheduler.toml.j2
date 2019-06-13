@@ -7,7 +7,7 @@
 # we listen to the prod broker here even for staging as we need to use
 # prod messages to schedule jobs in openQA staging, composes and
 # updates just don't show up on the staging broker.
-{% if deployment_type is defined %}
+{% if deployment_type is defined and 1 == 0 %}
 amqp_url = "amqps://openqa:@rabbitmq.fedoraproject.org/%2Fpubsub"
 {% else %}
 amqp_url = "amqps://fedora:@rabbitmq.fedoraproject.org/%2Fpublic_pubsub"
@@ -16,7 +16,7 @@ callback = "fedora_openqa.consumer:OpenQAScheduler"
 
 [tls]
 ca_cert = "/etc/fedora-messaging/cacert.pem"
-{% if deployment_type is defined %}
+{% if deployment_type is defined and 1 == 0 %}
 keyfile = "/etc/pki/fedora-messaging/openqa-key.pem"
 certfile = "/etc/pki/fedora-messaging/openqa-cert.pem"
 {% else %}
@@ -33,7 +33,7 @@ durable = true
 auto_delete = false
 arguments = {}
 
-{% if deployment_type is defined %}
+{% if deployment_type is defined and 1 == 0 %}
 # Private queue name.
 [queues."openqa{{ openqa_env_suffix }}_scheduler"]
 {% else %}
@@ -53,7 +53,7 @@ exclusive = true
 arguments = {}
 
 [[bindings]]
-{% if deployment_type is defined %}
+{% if deployment_type is defined and 1 == 0 %}
 queue = "openqa{{ openqa_env_suffix }}_scheduler"
 {% else %}
 queue = "{{ openqa_scheduler_uuid }}"

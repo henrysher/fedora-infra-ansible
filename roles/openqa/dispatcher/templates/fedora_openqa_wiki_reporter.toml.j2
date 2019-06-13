@@ -3,7 +3,7 @@
 # something unique before using this.
 #
 # This file is in the TOML format.
-{% if deployment_type is defined %}
+{% if deployment_type is defined and 1 == 0 %}
 amqp_url = "amqps://openqa{{ openqa_env_suffix }}:@rabbitmq{{ openqa_env_suffix }}.fedoraproject.org/%2Fpubsub"
 {% else %}
 amqp_url = "amqps://fedora:@rabbitmq.fedoraproject.org/%2Fpublic_pubsub"
@@ -11,7 +11,7 @@ amqp_url = "amqps://fedora:@rabbitmq.fedoraproject.org/%2Fpublic_pubsub"
 callback = "fedora_openqa.consumer:OpenQAWikiReporter"
 
 [tls]
-{% if deployment_type is defined %}
+{% if deployment_type is defined and 1 == 0 %}
 ca_cert = "/etc/fedora-messaging/cacert{{ openqa_env_suffix }}.pem"
 keyfile = "/etc/pki/fedora-messaging/openqa{{ openqa_env_suffix }}-key.pem"
 certfile = "/etc/pki/fedora-messaging/openqa{{ openqa_env_suffix }}-cert.pem"
@@ -30,7 +30,7 @@ durable = true
 auto_delete = false
 arguments = {}
 
-{% if deployment_type is defined %}
+{% if deployment_type is defined and 1 == 0 %}
 # Private queue name.
 [queues."openqa{{ openqa_env_suffix }}_wiki_reporter"]
 {% else %}
@@ -50,13 +50,13 @@ exclusive = true
 arguments = {}
 
 [[bindings]]
-{% if deployment_type is defined %}
+{% if deployment_type is defined and 1 == 0 %}
 queue = "openqa{{ openqa_env_suffix }}_wiki_reporter"
 {% else %}
 queue = "{{ openqa_wiki_reporter_uuid }}"
 {% endif %}
 exchange = "amq.topic"
-{% if deployment_type is defined %}
+{% if deployment_type is defined and 1 == 0 %}
 routing_keys = ["org.fedoraproject.{{ deployment_type }}.openqa.job.done"]
 {% else %}
 routing_keys = ["org.fedoraproject.prod.openqa.job.done"]
@@ -65,7 +65,7 @@ routing_keys = ["org.fedoraproject.prod.openqa.job.done"]
 [consumer_config]
 openqa_hostname = "{{ openqa_hostname }}"
 openqa_baseurl = "https://{{ external_hostname|default(ansible_nodename) }}"
-{% if deployment_type is defined and deployment_type == 'stg' %}
+{% if deployment_type is defined and 1 == 0 and deployment_type == 'stg' %}
 wiki_hostname = "stg.fedoraproject.org"
 {% else %}
 wiki_hostname = "fedoraproject.org"
