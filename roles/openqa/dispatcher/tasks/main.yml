@@ -384,15 +384,15 @@
   when: "openqa_amqp_resultsdb_reporter_queue is defined and openqa_fedoramessaging|bool"
 
 - name: Restart fedora-messaging scheduler service
-  service: name=fm-consumer@fedora_openqa_scheduler state=restarted
+  command: /usr/local/bin/conditional-restart.sh fm-consumer@fedora_openqa_scheduler
   when: "fmscheduler is changed"
 
 - name: Restart fedora-messaging wiki reporter service
-  service: name=fm-consumer@fedora_openqa_wiki_reporter state=restarted
+  command: /usr/local/bin/conditional-restart.sh fm-consumer@fedora_openqa_wiki_reporter
   when: "fmwiki is changed"
 
 - name: Restart fedora-messaging ResultsDB reporter service
-  service: name=fm-consumer@fedora_openqa_resultsdb_reporter state=restarted
+  command: /usr/local/bin/conditional-restart.sh fm-consumer@fedora_openqa_resultsdb_reporter
   when: "fmresultsdb is changed"
 
 - name: Set up cron job to schedule live-respins jobs
