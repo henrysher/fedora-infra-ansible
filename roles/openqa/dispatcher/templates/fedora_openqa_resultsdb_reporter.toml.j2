@@ -62,6 +62,19 @@ routing_keys = ["org.fedoraproject.{{ deployment_type }}.openqa.job.done"]
 {% else %}
 routing_keys = ["org.fedoraproject.prod.openqa.job.done"]
 {% endif %}
+# need this to receive messages from ZMQ->AMQP bridge
+[[bindings]]
+{% if deployment_type is defined %}
+queue = "openqa{{ openqa_env_suffix }}_resultsdb_reporter"
+{% else %}
+queue = "{{ openqa_resultsdb_reporter_uuid }}"
+{% endif %}
+exchange = "zmq.topic"
+{% if deployment_type is defined %}
+routing_keys = ["org.fedoraproject.{{ deployment_type }}.openqa.job.done"]
+{% else %}
+routing_keys = ["org.fedoraproject.prod.openqa.job.done"]
+{% endif %}
 
 [consumer_config]
 openqa_hostname = "{{ openqa_hostname }}"

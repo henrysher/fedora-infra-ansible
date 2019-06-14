@@ -63,6 +63,18 @@ exchange = "amq.topic"
 routing_keys = ["org.fedoraproject.prod.pungi.compose.status.change",
                 "org.fedoraproject.prod.bodhi.update.request.testing",
                 "org.fedoraproject.prod.bodhi.update.edit"]
+# need this to receive messages from ZMQ->AMQP bridge
+[[bindings]]
+{% if deployment_type is defined %}
+queue = "openqa{{ openqa_env_suffix }}_scheduler"
+{% else %}
+queue = "{{ openqa_scheduler_uuid }}"
+{% endif %}
+exchange = "zmq.topic"
+routing_keys = ["org.fedoraproject.prod.pungi.compose.status.change",
+                "org.fedoraproject.prod.bodhi.update.request.testing",
+                "org.fedoraproject.prod.bodhi.update.edit"]
+
 
 [consumer_config]
 openqa_hostname = "{{ openqa_hostname }}"
