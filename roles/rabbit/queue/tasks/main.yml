@@ -20,7 +20,7 @@
 
 # See https://www.rabbitmq.com/access-control.html#permissions for details on
 # the RabbitMQ permissions configuration.
-- name: Create the user in RabbitMQ
+- name: Create the {{ username }} user in RabbitMQ
   delegate_to: "{{ rabbitmq_server }}"
   rabbitmq_user:
     user: "{{ username }}"
@@ -30,7 +30,7 @@
     configure_priv: "^$"  # No configuration permissions
     state: present
 
-- name: Create the queue in RabbitMQ
+- name: Create the {{ queue_name }} queue in RabbitMQ
   delegate_to: "{{ rabbitmq_server }}"
   rabbitmq_queue:
     name: "{{ queue_name }}"
@@ -41,7 +41,7 @@
     login_user: admin
     login_password: "{{ (env == 'production')|ternary(rabbitmq_admin_password_production, rabbitmq_admin_password_staging) }}"
 
-- name: Bind the queue to the topic exchange
+- name: Bind the {{ queue_name }} queue to the topic exchange
   delegate_to: "{{ rabbitmq_server }}"
   rabbitmq_binding:
     name: "amq.topic"
