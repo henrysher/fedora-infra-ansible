@@ -79,6 +79,7 @@
       # yes, even the staging scheduler listens to production, it
       # has to or else it wouldn't schedule any jobs
       rabbitmq_server: "rabbitmq01.phx2.fedoraproject.org"
+      env: "production"
     tags: ['rabbit']
     when: deployment_type == "stg"
   - role: rabbit/queue
@@ -87,7 +88,8 @@
     routing_keys:
         - "org.fedoraproject.{{ deployment_type }}.openqa.job.done"
     vars:
-      rabbitmq_server: "rabbitmq01.stg.phx2.fedoraproject.org"
+      rabbitmq_server: "rabbitmq01{{ openqa_env_suffix }}.phx2.fedoraproject.org"
+      env: "{{ openqa_env }}"
     tags: ['rabbit']
     when: deployment_type == "stg"
   - role: rabbit/queue
@@ -96,7 +98,8 @@
     routing_keys:
         - "org.fedoraproject.{{ deployment_type }}.openqa.job.done"
     vars:
-      rabbitmq_server: "rabbitmq01.stg.phx2.fedoraproject.org"
+      rabbitmq_server: "rabbitmq01{{ openqa_env_suffix }}.phx2.fedoraproject.org"
+      env: "{{ openqa_env }}"
     tags: ['rabbit']
     when: deployment_type == "stg"
   # nfs client setup
