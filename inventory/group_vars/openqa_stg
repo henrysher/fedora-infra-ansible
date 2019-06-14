@@ -17,22 +17,12 @@ ansible_python_interpreter: /usr/bin/python3
 
 external_hostname: openqa.stg.fedoraproject.org
 
-openqa_static_uid: 601
-
-openqa_hostname: localhost
-openqa_email: adamwill@fedoraproject.org
-openqa_nickname: adamwill
-openqa_fullname: Adam Williamson
-openqa_userid: http://adamwill.id.fedoraproject.org/
-
 openqa_dbname: openqa-stg
 openqa_dbhost: db-qa03.qa.fedoraproject.org
 openqa_dbuser: openqastg
 openqa_dbpassword: "{{ stg_openqa_dbpassword }}"
-openqa_assetsize: 500
 openqa_assetsize_ppc: 150
 openqa_assetsize_aarch64: 150
-openqa_assetsize_updates: 100
 
 openqa_key: "{{ stg_openqa_apikey }}"
 openqa_secret: "{{ stg_openqa_apisecret }}"
@@ -61,48 +51,6 @@ checkcompose_greenwaveurl: https://greenwave-web-greenwave.app.os.stg.fedoraproj
 
 deployment_type: stg
 freezes: false
-
-# http and NFS
-tcp_ports: [80, 2049]
-
-# These people get told when something goes wrong.
-fedmsg_error_recipients:
-- adamwill@fedoraproject.org
-- lruzicka@fedoraproject.org
-
-# These are consumed by a task in roles/fedmsg/base/main.yml
-fedmsg_certs:
-- service: shell
-  owner: root
-  group: sysadmin
-  can_send:
-  - logger.log
-- service: openqa
-  owner: root
-  group: geekotest
-  can_send:
-  - openqa.comment.create
-  - openqa.comment.update
-  - openqa.comment.delete
-  - openqa.job.create
-  - openqa.job.delete
-  - openqa.job.cancel
-  - openqa.job.duplicate
-  - openqa.job.restart
-  - openqa.jobs.restart
-  - openqa.job.update.result
-  - openqa.job.done
-- service: ci
-  owner: root
-  group: geekotest
-  can_send:
-  - ci.productmd-compose.test.queued
-  - ci.productmd-compose.test.running
-  - ci.productmd-compose.test.complete
-  - ci.productmd-compose.test.error
-
-# we need this to log with fedmsg-logger
-fedmsg_active: True
 
 # makes sure it sends stg not prod fedmsgs
 fedmsg_env: stg
