@@ -352,18 +352,21 @@
 
 - name: Configure fedora-messaging scheduler
   template: src=fedora_openqa_scheduler.toml.j2 dest=/etc/fedora-messaging/fedora_openqa_scheduler.toml owner=root group=root mode=0640
+  register: fmscheduler
   when: "openqa_amqp_scheduler_queue is defined and openqa_fedoramessaging|bool"
   tags:
   - config
 
 - name: Configure fedora-messaging wiki reporter
   template: src=fedora_openqa_wiki_reporter.toml.j2 dest=/etc/fedora-messaging/fedora_openqa_wiki_reporter.toml owner=root group=root mode=0640
+  register: fmwiki
   when: "openqa_amqp_wiki_reporter_queue is defined and openqa_fedoramessaging|bool"
   tags:
   - config
 
 - name: Configure fedora-messaging ResultsDB reporter
   template: src=fedora_openqa_resultsdb_reporter.toml.j2 dest=/etc/fedora-messaging/fedora_openqa_resultsdb_reporter.toml owner=root group=root mode=0640
+  register: fmresultsdb
   when: "openqa_amqp_resultsdb_reporter_queue is defined and openqa_fedoramessaging|bool"
   tags:
   - config
@@ -379,6 +382,18 @@
 - name: Enable and start fedora-messaging ResultsDB reporter service
   service: name=fm-consumer@fedora_openqa_resultsdb_reporter enabled=yes state=started
   when: "openqa_amqp_resultsdb_reporter_queue is defined and openqa_fedoramessaging|bool"
+
+- name: Restart fedora-messaging scheduler service
+  service: name=fm-consumer@fedora_openqa_scheduler state=restarted
+  when: "fmscheduler is changed"
+
+- name: Restart fedora-messaging wiki reporter service
+  service: name=fm-consumer@fedora_openqa_wiki_reporter state=restarted
+  when: "fmwiki is changed"
+
+- name: Restart fedora-messaging ResultsDB reporter service
+  service: name=fm-consumer@fedora_openqa_resultsdb_reporter state=restarted
+  when: "fmresultsdb is changed"
 
 - name: Set up cron job to schedule live-respins jobs
   copy: src=schedule-live-respins.cron dest=/etc/cron.hourly/schedule-live-respins owner=root group=root mode=0755
