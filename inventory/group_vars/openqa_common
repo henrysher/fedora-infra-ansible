@@ -14,6 +14,36 @@ openqa_userid: http://adamwill.id.fedoraproject.org/
 openqa_assetsize: 500
 openqa_assetsize_updates: 100
 
+# we need this for all our fedora-messaging consumers as they are not
+# allowed to create queues on the infra AMQP broker, by broker config
+openqa_amqp_passive: true
+
+# fedora-messaging job scheduler settings: most of these are the same
+# for prod and stg as they both must listen for prod messages. Only
+# the queue names differs
+openqa_amqp_scheduler_url: "amqps://openqa:@rabbitmq.fedoraproject.org/%2Fpubsub"
+openqa_amqp_scheduler_cacert: /etc/fedora-messaging/cacert.pem
+openqa_amqp_scheduler_key: /etc/pki/fedora-messaging/openqa-key.pem
+openqa_amqp_scheduler_cert: /etc/pki/fedora-messaging/openqa-cert.pem
+openqa_amqp_scheduler_queue: "openqa{{ openqa_env_suffix }}_scheduler"
+openqa_amqp_scheduler_routing_keys: ["org.fedoraproject.prod.pungi.compose.status.change",
+                                     "org.fedoraproject.prod.bodhi.update.request.testing",
+                                     "org.fedoraproject.prod.bodhi.update.edit"]
+
+# fedora-messaging reporter settings
+openqa_amqp_reporter_url: "amqps://openqa:@rabbitmq.fedoraproject.org/%2Fpubsub"
+openqa_amqp_reporter_cacert: /etc/fedora-messaging/cacert.pem
+openqa_amqp_reporter_key: /etc/pki/fedora-messaging/openqa-key.pem
+openqa_amqp_reporter_cert: /etc/pki/fedora-messaging/openqa-cert.pem
+
+# fedora-messaging resultsdb reporter settings
+openqa_amqp_resultsdb_reporter_queue: "openqa{{ openqa_env_suffix }}_resultsdb_reporter"
+openqa_amqp_resultsdb_reporter_routing_keys: ["org.fedoraproject.{{ deployment_type }}.openqa.job.done"]
+
+# fedora-messaging wiki reporter settings
+openqa_amqp_wiki_reporter_queue: "openqa{{ openqa_env_suffix }}_wiki_reporter"
+openqa_amqp_wiki_reporter_routing_keys: ["org.fedoraproject.{{ deployment_type }}.openqa.job.done"]
+
 # http and NFS
 tcp_ports: [80, 2049]
 

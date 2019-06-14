@@ -3,27 +3,20 @@
 # something unique before using this.
 #
 # This file is in the TOML format.
-{% if deployment_type is defined %}
-amqp_url = "amqps://openqa{{ openqa_env_suffix }}:@rabbitmq{{ openqa_env_suffix }}.fedoraproject.org/%2Fpubsub"
+
+amqp_url = "amqps://{{ openqa_amqp_reporter_url }}"
+{% if openqa_amqp_passive|bool %}
 passive_declares = true
-{% else %}
-amqp_url = "amqps://fedora:@rabbitmq.fedoraproject.org/%2Fpublic_pubsub"
 {% endif %}
 callback = "fedora_openqa.consumer:OpenQAResultsDBReporter"
 
 [tls]
-{% if deployment_type is defined %}
-ca_cert = "/etc/fedora-messaging/cacert{{ openqa_env_suffix }}.pem"
-keyfile = "/etc/pki/fedora-messaging/openqa{{ openqa_env_suffix }}-key.pem"
-certfile = "/etc/pki/fedora-messaging/openqa{{ openqa_env_suffix }}-cert.pem"
-{% else %}
-ca_cert = "/etc/fedora-messaging/cacert.pem"
-keyfile = "/etc/fedora-messaging/fedora-key.pem"
-certfile = "/etc/fedora-messaging/fedora-cert.pem"
-{% endif %}
+ca_cert = "{{ openqa_amqp_reporter_cacert }}"
+keyfile = "{{ openqa_amqp_reporter_key }}"
+certfile = "{{ openqa_amqp_reporter_cert }}"
 
 [client_properties]
-app = "Fedora openQA"
+app = "Fedora openQA ResultsDB reporter"
 
 [exchanges."amq.topic"]
 type = "topic"
@@ -31,50 +24,21 @@ durable = true
 auto_delete = false
 arguments = {}
 
-{% if deployment_type is defined %}
-# Private queue name.
-[queues."openqa{{ openqa_env_suffix }}_resultsdb_reporter"]
-{% else %}
-# Queue names *must* be in the normal UUID format: run "uuidgen" and use the
-# output as your queue name. If your queue is not exclusive, anyone can connect
-# and consume from it, causing you to miss messages, so do not share your queue
-# name. Any queues that are not auto-deleted on disconnect are garbage-collected
-# after approximately one hour.
-#
-# If you require a stronger guarantee about delivery, please talk to Fedora's
-# Infrastructure team.
-[queues.{{ openqa_resultsdb_reporter_uuid }}]
-{% endif %}
+[queues."{{ openqa_amqp_resultsdb_reporter_queue }}"]
 durable = false
 auto_delete = true
 exclusive = true
 arguments = {}
 
 [[bindings]]
-{% if deployment_type is defined %}
-queue = "openqa{{ openqa_env_suffix }}_resultsdb_reporter"
-{% else %}
-queue = "{{ openqa_resultsdb_reporter_uuid }}"
-{% endif %}
+queue = "{{ openqa_amqp_resultsdb_reporter_queue }}"
 exchange = "amq.topic"
-{% if deployment_type is defined %}
-routing_keys = ["org.fedoraproject.{{ deployment_type }}.openqa.job.done"]
-{% else %}
-routing_keys = ["org.fedoraproject.prod.openqa.job.done"]
-{% endif %}
+routing_keys = [{% for key in openqa_amqp_resultsdb_reporter_routing_keys %}"{{ key }}",{% endfor %}]
 # need this to receive messages from ZMQ->AMQP bridge
 [[bindings]]
-{% if deployment_type is defined %}
-queue = "openqa{{ openqa_env_suffix }}_resultsdb_reporter"
-{% else %}
-queue = "{{ openqa_resultsdb_reporter_uuid }}"
-{% endif %}
+queue = "{{ openqa_amqp_resultsdb_reporter_queue }}"
 exchange = "zmq.topic"
-{% if deployment_type is defined %}
-routing_keys = ["org.fedoraproject.{{ deployment_type }}.openqa.job.done"]
-{% else %}
-routing_keys = ["org.fedoraproject.prod.openqa.job.done"]
-{% endif %}
+routing_keys = [{% for key in openqa_amqp_resultsdb_reporter_routing_keys %}"{{ key }}",{% endfor %}]
 
 [consumer_config]
 openqa_hostname = "{{ openqa_hostname }}"

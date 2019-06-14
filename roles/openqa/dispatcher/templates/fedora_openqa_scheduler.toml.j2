@@ -1,29 +1,19 @@
-# fedora-messaging consumer configuration file for the production
-# openQA scheduler. Note you must change the UUID here to something
-# unique before using this.
+# fedora-messaging consumer configuration file for the openQA job
+# scheduler. See the openqa/dispatcher main.yml comments for details
+# on the variables that must be set here.
 #
 # This file is in the TOML format.
 
-# we listen to the prod broker here even for staging as we need to use
-# prod messages to schedule jobs in openQA staging, composes and
-# updates just don't show up on the staging broker.
-{% if deployment_type is defined %}
-amqp_url = "amqps://openqa:@rabbitmq.fedoraproject.org/%2Fpubsub"
+amqp_url = "amqps://{{ openqa_amqp_scheduler_url }}"
+{% if openqa_amqp_passive|bool %}
 passive_declares = true
-{% else %}
-amqp_url = "amqps://fedora:@rabbitmq.fedoraproject.org/%2Fpublic_pubsub"
 {% endif %}
 callback = "fedora_openqa.consumer:OpenQAScheduler"
 
 [tls]
-ca_cert = "/etc/fedora-messaging/cacert.pem"
-{% if deployment_type is defined %}
-keyfile = "/etc/pki/fedora-messaging/openqa-key.pem"
-certfile = "/etc/pki/fedora-messaging/openqa-cert.pem"
-{% else %}
-keyfile = "/etc/fedora-messaging/fedora-key.pem"
-certfile = "/etc/fedora-messaging/fedora-cert.pem"
-{% endif %}
+ca_cert = "{{ openqa_amqp_scheduler_cacert }}"
+keyfile = "{{ openqa_amqp_scheduler_key }}"
+certfile = "{{ openqa_amqp_scheduler_cert }}"
 
 [client_properties]
 app = "Fedora openQA scheduler"
@@ -34,47 +24,21 @@ durable = true
 auto_delete = false
 arguments = {}
 
-{% if deployment_type is defined %}
-# Private queue name.
-[queues."openqa{{ openqa_env_suffix }}_scheduler"]
-{% else %}
-# Queue names *must* be in the normal UUID format: run "uuidgen" and use the
-# output as your queue name. If your queue is not exclusive, anyone can connect
-# and consume from it, causing you to miss messages, so do not share your queue
-# name. Any queues that are not auto-deleted on disconnect are garbage-collected
-# after approximately one hour.
-#
-# If you require a stronger guarantee about delivery, please talk to Fedora's
-# Infrastructure team.
-[queues.{{ openqa_scheduler_uuid }}]
-{% endif %}
+[queues."{{ openqa_amqp_scheduler_queue }}"]
 durable = false
 auto_delete = true
 exclusive = true
 arguments = {}
 
 [[bindings]]
-{% if deployment_type is defined %}
-queue = "openqa{{ openqa_env_suffix }}_scheduler"
-{% else %}
-queue = "{{ openqa_scheduler_uuid }}"
-{% endif %}
+queue = "{{ openqa_amqp_scheduler_queue }}"
 exchange = "amq.topic"
-routing_keys = ["org.fedoraproject.prod.pungi.compose.status.change",
-                "org.fedoraproject.prod.bodhi.update.request.testing",
-                "org.fedoraproject.prod.bodhi.update.edit"]
+routing_keys = [{% for key in openqa_amqp_scheduler_routing_keys %}"{{ key }}",{% endfor %}]
 # need this to receive messages from ZMQ->AMQP bridge
 [[bindings]]
-{% if deployment_type is defined %}
-queue = "openqa{{ openqa_env_suffix }}_scheduler"
-{% else %}
-queue = "{{ openqa_scheduler_uuid }}"
-{% endif %}
+queue = "{{ openqa_amqp_scheduler_queue }}"
 exchange = "zmq.topic"
-routing_keys = ["org.fedoraproject.prod.pungi.compose.status.change",
-                "org.fedoraproject.prod.bodhi.update.request.testing",
-                "org.fedoraproject.prod.bodhi.update.edit"]
-
+routing_keys = [{% for key in openqa_amqp_scheduler_routing_keys %}"{{ key }}",{% endfor %}]
 
 [consumer_config]
 openqa_hostname = "{{ openqa_hostname }}"
