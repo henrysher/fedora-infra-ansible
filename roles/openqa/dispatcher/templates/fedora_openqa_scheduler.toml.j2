@@ -61,20 +61,44 @@ class = "logging.StreamHandler"
 formatter = "simple"
 stream = "ext://sys.stdout"
 
+{% if openqa_amqp_mailto is defined %}
+[log_config.handlers.email]
+class = "logging.handlers.SMTPHandler"
+formatter = "simple"
+level = "ERROR"
+filters = ["rate_limit"]
+mailhost = "{{ openqa_amqp_smtp }}"
+fromaddr = "{{ openqa_amqp_mailfrom }}"
+toaddrs = [{% for key in openqa_amqp_mailto %}"{{ key }}",{% endfor %}]
+subject = "openQA scheduler error"
+{% endif %}
+
 [log_config.loggers.OpenQAScheduler]
 level = "INFO"
 propagate = false
+{% if openqa_amqp_mailto is defined %}
+handlers = ["console", "email"]
+{% else %}
 handlers = ["console"]
+{% endif %}
 
 [log_config.loggers.fedora_messaging]
 level = "INFO"
 propagate = false
+{% if openqa_amqp_mailto is defined %}
+handlers = ["console", "email"]
+{% else %}
 handlers = ["console"]
+{% endif %}
 
 [log_config.loggers.twisted]
 level = "INFO"
 propagate = false
+{% if openqa_amqp_mailto is defined %}
+handlers = ["console", "email"]
+{% else %}
 handlers = ["console"]
+{% endif %}
 
 [log_config.loggers.pika]
 level = "WARNING"
@@ -83,4 +107,8 @@ handlers = ["console"]
 
 [log_config.root]
 level = "ERROR"
+{% if openqa_amqp_mailto is defined %}
+handlers = ["console", "email"]
+{% else %}
 handlers = ["console"]
+{% endif %}
