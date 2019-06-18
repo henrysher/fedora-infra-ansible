@@ -29,24 +29,16 @@
     app: coreos-cincinnati
     template: buildconfig-stub.yml
     objectname: buildconfig-stub.yml
-    register: coreos_cincinnati_stub_build
-
-  - role: openshift/start-build
-    app: coreos-cincinnati
-    buildname: coreos-cincinnati-stub
-    when: coreos_cincinnati_stub_build.changed
 
   - role: openshift/object
     app: coreos-cincinnati
     file: config-stub.yml
     objectname: config-stub.yml
-    register: coreos_cincinnati_stub_config
 
   - role: openshift/object
     app: coreos-cincinnati
     template: deploymentconfig.yml
     objectname: deploymentconfig.yml
-    register: coreos_cincinnati_deployment
 
   - role: openshift/object
     app: coreos-cincinnati
@@ -63,4 +55,3 @@
   - role: openshift/rollout
     app: coreos-cincinnati
     dcname: coreos-cincinnati-stub
-    when: coreos_cincinnati_stub_config.changed or coreos_cincinnati_deployment.changed
