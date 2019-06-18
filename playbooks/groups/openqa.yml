@@ -106,6 +106,19 @@
       env_suffix: "{{ openqa_env_suffix }}"
     tags: ['rabbit']
     when: deployment_type == "stg"
+    # relvalconsumer queue, we still use openqa auth for this as it's
+    # easy that way
+  - role: rabbit/queue
+    username: "openqa"
+    queue_name: "relvalconsumer{{ relvalconsumer_env_suffix }}_scheduler"
+    routing_keys:
+        - "org.fedoraproject.prod.pungi.compose.status.change"
+    vars:
+      # yes, even the staging scheduler listens to production, it
+      # has to or else it wouldn't schedule any jobs
+      env: "production"
+      env_suffix: ""
+    tags: ['rabbit']
   # nfs client setup
   - role: nfs/client
     mnt_dir: '/var/lib/openqa/testresults'

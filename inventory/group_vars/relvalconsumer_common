@@ -1,0 +1,19 @@
+# we need this for our fedora-messaging consumer as it is not allowed
+# to create queues on the infra AMQP broker, by broker config
+relvalconsumer_amqp_passive: true
+
+# fedora-messaging job scheduler settings: most of these are the same
+# for prod and stg as they both must listen for prod messages. Only
+# the queue names differs
+relvalconsumer_amqp_url: "amqps://openqa:@rabbitmq.fedoraproject.org/%2Fpubsub"
+relvalconsumer_amqp_cacert: /etc/fedora-messaging/cacert.pem
+relvalconsumer_amqp_key: /etc/pki/fedora-messaging/openqa-key.pem
+relvalconsumer_amqp_cert: /etc/pki/fedora-messaging/openqa-cert.pem
+relvalconsumer_amqp_queue: "relvalconsumer{{ relvalconsumer_env_suffix }}"
+relvalconsumer_amqp_routing_keys: ["org.fedoraproject.prod.pungi.compose.status.change",
+                                     "org.fedoraproject.prod.bodhi.update.request.testing",
+                                     "org.fedoraproject.prod.bodhi.update.edit"]
+
+# fedora-messaging email error reporting settings
+relvalconsumer_amqp_mailto: ["adamwill@fedoraproject.org", "lruzicka@fedoraproject.org"]
+relvalconsumer_amqp_smtp: bastion
