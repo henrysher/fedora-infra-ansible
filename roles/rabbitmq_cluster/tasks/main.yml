@@ -180,6 +180,24 @@
   - rabbitmq_cluster
   - config
 
+- name: Add a policy to limit queues to 1GB and remove after a month of no use
+  run_once: true
+  delegate_to: "rabbitmq01{{ env_suffix }}.phx2.fedoraproject.org"
+  rabbitmq_policy:
+    apply_to: queues
+    name: pubsub_sweeper
+    state: present
+    pattern: ".*"
+    tags:
+      # Unused queues are killed after 1000 * 60 * 60 * 31 milliseconds (~a month)
+      expires: 111600000
+      # Queues can use at most 1GB of storage
+      max-length-bytes: 1073741824
+    vhost: /pubsub
+  tags:
+  - rabbitmq_cluster
+  - config
+
 - name: Create the admin user for the pubsub vhost
   rabbitmq_user:
     user: admin
