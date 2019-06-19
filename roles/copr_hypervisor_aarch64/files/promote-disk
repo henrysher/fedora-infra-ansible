@@ -1,8 +1,8 @@
 #! /bin/sh -x
 
 die() { echo >&2 "$*" ; exit 1 ; }
-image=$1
 
+volume_promoted=$1
 volume=copr-builder
 
 # the only pool where we can work with qcow2 images (which is effective,
@@ -16,14 +16,11 @@ connections='
     qemu+ssh://copr@virthost-aarch64-os02.fedorainfracloud.org/system
 '
 
-export VIRSH_DEFAULT_CONNECT_URI=
-
-test -n "$image" || die "first argument (image) required"
-test -f "$image" || die "image $image not found"
+test -n "$volume" || die "first argument (volume) required"
 
 for connection in $connections; do
-    virsh --connect="$connection" vol-create-as --pool "$pool" "$new_volume" 1M
-    virsh --connect="$connection" vol-upload    --pool "$pool" "$new_volume" --sparse "$image"
+    virsh --connect="$connection"  vol-delete "$volume" --pool "$pool"
+    virsh --connect="$connection"  vol-clone "$volume_promoted" "$volume" --pool "$pool"
 done
 
-echo "uploaded images $new_volume"
+echo "copr-builder == $volume_promoted now"
