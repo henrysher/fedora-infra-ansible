@@ -1,0 +1,113 @@
+# fedora-messaging consumer configuration file for relvalconsumer
+# (release validation event creator). See relvalconsumer main.yml
+# comments for details on the variables that must be set here.
+#
+# This file is in the TOML format.
+
+amqp_url = "{{ checkcompose_amqp_url }}"
+{% if checkcompose_amqp_passive|bool %}
+passive_declares = true
+{% endif %}
+callback = "check-compose:CheckComposeConsumer"
+
+[tls]
+ca_cert = "{{ checkcompose_amqp_cacert }}"
+keyfile = "{{ checkcompose_amqp_key }}"
+certfile = "{{ checkcompose_amqp_cert }}"
+
+[client_properties]
+app = "Fedora compose check report sender"
+app_url = "https://pagure.io/fedora-qa/check-compose"
+app_contacts_email = ["adamwill@fedoraproject.org", "lruzicka@redhat.com", "qa-devel@lists.fedoraproject.org"]
+
+[exchanges."amq.topic"]
+type = "topic"
+durable = true
+auto_delete = false
+arguments = {}
+
+[queues."{{ checkcompose_amqp_queue }}"]
+durable = false
+auto_delete = true
+exclusive = true
+arguments = {}
+
+[[bindings]]
+queue = "{{ checkcompose_amqp_queue }}"
+exchange = "amq.topic"
+routing_keys = [{% for key in checkcompose_amqp_routing_keys %}"{{ key }}",{% endfor %}]
+# need this to receive messages from ZMQ->AMQP bridge
+[[bindings]]
+queue = "{{ checkcompose_amqp_queue }}"
+exchange = "zmq.topic"
+routing_keys = [{% for key in checkcompose_amqp_routing_keys %}"{{ key }}",{% endfor %}]
+
+[consumer_config]
+relval_prod = {{ checkcompose_prod|lower }}
+
+[qos]
+prefetch_size = 0
+prefetch_count = 25
+
+[log_config]
+version = 1
+disable_existing_loggers = true
+
+[log_config.formatters.simple]
+format = "[%(levelname)s %(name)s] %(message)s"
+
+[log_config.handlers.console]
+class = "logging.StreamHandler"
+formatter = "simple"
+stream = "ext://sys.stdout"
+
+{% if checkcompose_amqp_mailto is defined %}
+[log_config.handlers.email]
+class = "logging.handlers.SMTPHandler"
+formatter = "simple"
+level = "ERROR"
+mailhost = "{{ checkcompose_amqp_smtp }}"
+fromaddr = "{{ checkcompose_amqp_mailfrom }}"
+toaddrs = [{% for key in checkcompose_amqp_mailto %}"{{ key }}",{% endfor %}]
+subject = "check-compose consumer error"
+{% endif %}
+
+[log_config.loggers.CheckComposeConsumer]
+level = "INFO"
+propagate = false
+{% if checkcompose_amqp_mailto is defined %}
+handlers = ["console", "email"]
+{% else %}
+handlers = ["console"]
+{% endif %}
+
+[log_config.loggers.fedora_messaging]
+level = "INFO"
+propagate = false
+{% if checkcompose_amqp_mailto is defined %}
+handlers = ["console", "email"]
+{% else %}
+handlers = ["console"]
+{% endif %}
+
+[log_config.loggers.twisted]
+level = "INFO"
+propagate = false
+{% if checkcompose_amqp_mailto is defined %}
+handlers = ["console", "email"]
+{% else %}
+handlers = ["console"]
+{% endif %}
+
+[log_config.loggers.pika]
+level = "WARNING"
+propagate = false
+handlers = ["console"]
+
+[log_config.root]
+level = "ERROR"
+{% if checkcompose_amqp_mailto is defined %}
+handlers = ["console", "email"]
+{% else %}
+handlers = ["console"]
+{% endif %}

@@ -91,6 +91,19 @@
       env: "production"
       env_suffix: ""
     tags: ['rabbit']
+    # check-compose queue, we still use openqa auth for this as it's
+    # easy that way
+  - role: rabbit/queue
+    username: "openqa{{ openqa_env_suffix }}"
+    queue_name: "openqa_checkcomp{{ checkcompose_env_suffix }}"
+    routing_keys:
+        - "org.fedoraproject.{{ deployment_type }}.openqa.job.done"
+    vars:
+      # for this role to work correctly we do need to look like a
+      # staging server
+      env: "{{ checkcompose_env }}"
+      env_suffix: "{{ checkcompose_env_suffix }}"
+    tags: ['rabbit']
 
 - name: set up openQA server data NFS mounts (staging)
   hosts: openqa_stg

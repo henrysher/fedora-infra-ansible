@@ -1,0 +1,17 @@
+# we need this for our fedora-messaging consumer as it is not allowed
+# to create queues on the infra AMQP broker, by broker config
+checkcompose_amqp_passive: true
+
+# fedora-messaging job scheduler settings: most of these are the same
+# for prod and stg as they both must listen for prod messages. Only
+# the queue names differs
+checkcompose_amqp_url: "amqps://openqa:@rabbitmq.fedoraproject.org/%2Fpubsub"
+checkcompose_amqp_cacert: /etc/fedora-messaging/cacert.pem
+checkcompose_amqp_key: /etc/pki/fedora-messaging/openqa-key.pem
+checkcompose_amqp_cert: /etc/pki/fedora-messaging/openqa-cert.pem
+checkcompose_amqp_queue: "openqa_checkcomp{{ checkcompose_env_suffix }}"
+checkcompose_amqp_routing_keys: ["org.fedoraproject.{{ deployment_type }}.openqa.job.done"]
+
+# fedora-messaging email error reporting settings
+checkcompose_amqp_mailto: ["adamwill@fedoraproject.org", "lruzicka@fedoraproject.org"]
+checkcompose_amqp_smtp: bastion
