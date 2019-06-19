@@ -245,6 +245,17 @@
     site_name: releases.stg.pagure.org
   when: env == 'pagure-staging'
 
+- name: Letsencrypt for stg.pagure.org
+  include_role: name=letsencrypt
+  vars:
+    site_name: stg.pagure.org
+  when: env == 'pagure-staging'
+
+- name: Letsencrypt for pagure.org
+  include_role: name=letsencrypt
+  vars:
+    site_name: pagure.org
+
 - name: Install the SSL cert so that we can use https
   copy: >
       src={{ private}}/files/httpd/{{ item }} dest=/etc/pki/tls/certs/{{ item }}
