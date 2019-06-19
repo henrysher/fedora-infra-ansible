@@ -9,19 +9,6 @@
 #error_reporting(1);
 #session_start();
 
-# If you customize your file layout, set $IP to the directory that contains
-# the other MediaWiki files. It will be used as a base to locate files.
-if( defined( 'MW_INSTALL_PATH' ) ) {
-	$IP = MW_INSTALL_PATH;
-} else {
-	$IP = dirname( __FILE__ );
-}
-
-
-#$IP = '/usr/share/mediawiki';
-$path = array( $IP, "$IP/includes", "$IP/languages" );
-set_include_path( implode( PATH_SEPARATOR, $path ) . PATH_SEPARATOR . get_include_path() );
-
 # Added for timeout testing
 require_once( "includes/DefaultSettings.php" );
 #$wgDebugLogFile         = '/tmp/out.log';
@@ -152,7 +139,7 @@ $wgDBprefix         = "en_";
 $wgDBTableOptions   = "TYPE=InnoDB";
 
 # Schemas for Postgres
-$wgDBmwschema       = "mediawiki";
+#$wgDBmwschema       = "mediawiki";
 $wgDBts2schema      = "public";
 
 # Experimental charset support for MySQL 4.1/5.0.
@@ -317,29 +304,20 @@ $wgNamespacesToBeSearchedDefault = array(
         NS_TEST_RESULTS         => true,
         NS_TEST_RESULTS_TALK    => false
 );
-
-#require_once "$IP/extensions/OpenID/OpenID.setup.php";
+require_once "$IP/extensions/OpenID/OpenID.setup.php";
 #require 'extensions/StubManager/StubManager.php';
 #require 'extensions/HNP/HNP.php';
-require_once "$IP/extensions/ParserFunctions/ParserFunctions.php";
-require_once "$IP/extensions/Interwiki/Interwiki.php";
-require_once "$IP/extensions/Cite/Cite.php";
+#require_once "$IP/extensions/ParserFunctions/ParserFunctions.php";
+#require_once "$IP/extensions/Interwiki/Interwiki.php";
+#require_once "$IP/extensions/Cite/Cite.php";
 require_once "$IP/extensions/fedmsg-emit.php";
 require_once "$IP/extensions/HTTP302Found/HTTP302Found.php";
 require_once "$IP/extensions/RSS/RSS.php";
-require_once "$IP/extensions/BassetSubmitter.php";
+#require_once "$IP/extensions/BassetSubmitter.php";
 require_once "$IP/extensions/FedoraDocsRedirect/FedoraDocsRedirect.php";
-
-{% if env == "staging" %}
-$basset_url = 'http://basset01.stg.phx2.fedoraproject.org/basset';
-$basset_username = '{{ basset_stg_frontend_user }}';
-$basset_password = '{{ basset_stg_frontend_pass }}';
-{% else %}
-$basset_url = 'http://basset01.phx2.fedoraproject.org/basset';
-$basset_username = '{{ basset_prod_frontend_user }}';
-$basset_password = '{{ basset_prod_frontend_pass }}';
-{% endif %}
-
+wfLoadExtension( 'ParserFunctions' );
+wfLoadExtension( 'Interwiki' );
+wfLoadExtension( 'Cite' );
 
 $wgShowExceptionDetails = true;
 
