@@ -1,6 +1,6 @@
 - import_playbook: "/srv/web/infra/ansible/playbooks/include/virt-create.yml myhosts=openqa:openqa_stg"
 
-- name: setup base openqa host
+- name: setup base openQA host
   hosts: openqa:openqa_stg
   user: root
   gather_facts: True
@@ -32,7 +32,7 @@
   handlers:
    - import_tasks: "{{ handlers_path }}/restart_services.yml"
 
-- name: configure openQA
+- name: configure fedora-messaging queues on openQA servers
   hosts: openqa:openqa_stg
   user: root
   gather_facts: True
@@ -42,32 +42,7 @@
    - "/srv/private/ansible/vars.yml"
    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
 
-# relvalconsumer and autocloudreporter aren't particularly related
-# to openQA in any way, we just put those role on these boxes. There's
-# nowhere more obviously correct for rvc and acr should be on an
-# Autocloud box but I don't know if they're authed for RDB.
   roles:
-   - { role: openqa/server, tags: ['openqa_server'] }
-   - { role: openqa/dispatcher, tags: ['openqa_dispatcher'] }
-   - { role: check-compose, tags: ['check-compose'] }
-   - { role: fedmsg/base, tags: ['fedmsg_base', 'fedmsg'] }
-   - { role: fedmsg/hub, tags: ['fedmsg_hub', 'fedmsg'] }
-   - { role: relvalconsumer, tags: ['relvalconsumer'] }
-   - { role: autocloudreporter, tags: ['autocloudreporter'] }
-
-  handlers:
-   - import_tasks: "{{ handlers_path }}/restart_services.yml"
-
-- name: set up openQA server data NFS mounts (staging)
-  hosts: openqa_stg
-
-  vars_files:
-   - /srv/web/infra/ansible/vars/global.yml
-   - "/srv/private/ansible/vars.yml"
-   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
-
-  roles:
-  # fedora-messaging queue/user setup
   - role: rabbit/queue
     username: "openqa"
     queue_name: "openqa{{ openqa_env_suffix }}_scheduler"
@@ -81,7 +56,6 @@
       env: "production"
       env_suffix: ""
     tags: ['rabbit']
-    when: deployment_type == "stg"
   - role: rabbit/queue
     username: "openqa{{ openqa_env_suffix }}"
     queue_name: "openqa{{ openqa_env_suffix }}_resultsdb_reporter"
@@ -93,7 +67,6 @@
       env: "{{ openqa_env }}"
       env_suffix: "{{ openqa_env_suffix }}"
     tags: ['rabbit']
-    when: deployment_type == "stg"
   - role: rabbit/queue
     username: "openqa{{ openqa_env_suffix }}"
     queue_name: "openqa{{ openqa_env_suffix }}_wiki_reporter"
@@ -105,7 +78,6 @@
       env: "{{ openqa_env }}"
       env_suffix: "{{ openqa_env_suffix }}"
     tags: ['rabbit']
-    when: deployment_type == "stg"
     # relvalconsumer queue, we still use openqa auth for this as it's
     # easy that way
   - role: rabbit/queue
@@ -119,7 +91,16 @@
       env: "production"
       env_suffix: ""
     tags: ['rabbit']
-  # nfs client setup
+
+- name: set up openQA server data NFS mounts (staging)
+  hosts: openqa_stg
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  roles:
   - role: nfs/client
     mnt_dir: '/var/lib/openqa/testresults'
     nfs_src_dir: 'fedora_openqa_stg/testresults'
@@ -153,6 +134,32 @@
     nfs_src_dir: 'fedora_openqa/images'
     nfs_mount_opts: 'rw,bg,nfsvers=3'
     tags: ['nfs_client']
+
+  handlers:
+   - import_tasks: "{{ handlers_path }}/restart_services.yml"
+
+- name: configure openQA
+  hosts: openqa:openqa_stg
+  user: root
+  gather_facts: True
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+# relvalconsumer and autocloudreporter aren't particularly related
+# to openQA in any way, we just put those role on these boxes. There's
+# nowhere more obviously correct for rvc and acr should be on an
+# Autocloud box but I don't know if they're authed for RDB.
+  roles:
+   - { role: openqa/server, tags: ['openqa_server'] }
+   - { role: openqa/dispatcher, tags: ['openqa_dispatcher'] }
+   - { role: check-compose, tags: ['check-compose'] }
+   - { role: fedmsg/base, tags: ['fedmsg_base', 'fedmsg'] }
+   - { role: fedmsg/hub, tags: ['fedmsg_hub', 'fedmsg'] }
+   - { role: relvalconsumer, tags: ['relvalconsumer'] }
+   - { role: autocloudreporter, tags: ['autocloudreporter'] }
 
   handlers:
    - import_tasks: "{{ handlers_path }}/restart_services.yml"
