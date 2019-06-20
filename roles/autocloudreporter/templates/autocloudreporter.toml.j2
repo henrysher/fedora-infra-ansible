@@ -1,0 +1,114 @@
+# fedora-messaging consumer configuration file for autocloudreporter.
+# See autocloudreporter main.yml comments for details on the variables
+# that must be set here.
+#
+# This file is in the TOML format.
+
+amqp_url = "{{ autocloudreporter_amqp_url }}"
+{% if autocloudreporter_amqp_passive|bool %}
+passive_declares = true
+{% endif %}
+callback = "autocloudreporter:AutocloudReporter"
+
+[tls]
+ca_cert = "{{ autocloudreporter_amqp_cacert }}"
+keyfile = "{{ autocloudreporter_amqp_key }}"
+certfile = "{{ autocloudreporter_amqp_cert }}"
+
+[client_properties]
+app = "Autocloud ResultsDB result forwarder"
+app_url = "https://pagure.io/fedora-qa/autocloudreporter"
+app_contacts_email = ["adamwill@fedoraproject.org", "lruzicka@redhat.com", "qa-devel@lists.fedoraproject.org"]
+
+[exchanges."amq.topic"]
+type = "topic"
+durable = true
+auto_delete = false
+arguments = {}
+
+[queues."{{ autocloudreporter_amqp_queue }}"]
+durable = false
+auto_delete = true
+exclusive = true
+arguments = {}
+
+[[bindings]]
+queue = "{{ autocloudreporter_amqp_queue }}"
+exchange = "amq.topic"
+routing_keys = [{% for key in autocloudreporter_amqp_routing_keys %}"{{ key }}",{% endfor %}]
+# need this to receive messages from ZMQ->AMQP bridge
+[[bindings]]
+queue = "{{ autocloudreporter_amqp_queue }}"
+exchange = "zmq.topic"
+routing_keys = [{% for key in autocloudreporter_amqp_routing_keys %}"{{ key }}",{% endfor %}]
+
+[consumer_config]
+autocloud_url = "https://apps.fedoraproject.org/autocloud"
+resultsdb_url = "{{ autocloudreporter_amqp_resultsdburl }}"
+
+[qos]
+prefetch_size = 0
+prefetch_count = 25
+
+[log_config]
+version = 1
+disable_existing_loggers = true
+
+[log_config.formatters.simple]
+format = "[%(levelname)s %(name)s] %(message)s"
+
+[log_config.handlers.console]
+class = "logging.StreamHandler"
+formatter = "simple"
+stream = "ext://sys.stdout"
+
+{% if autocloudreporter_amqp_mailto is defined %}
+[log_config.handlers.email]
+class = "logging.handlers.SMTPHandler"
+formatter = "simple"
+level = "ERROR"
+mailhost = "{{ autocloudreporter_amqp_smtp }}"
+fromaddr = "{{ autocloudreporter_amqp_mailfrom }}"
+toaddrs = [{% for key in autocloudreporter_amqp_mailto %}"{{ key }}",{% endfor %}]
+subject = "relvalconsumer error"
+{% endif %}
+
+[log_config.loggers.AutocloudReporter]
+level = "INFO"
+propagate = false
+{% if autocloudreporter_amqp_mailto is defined %}
+handlers = ["console", "email"]
+{% else %}
+handlers = ["console"]
+{% endif %}
+
+[log_config.loggers.fedora_messaging]
+level = "INFO"
+propagate = false
+{% if autocloudreporter_amqp_mailto is defined %}
+handlers = ["console", "email"]
+{% else %}
+handlers = ["console"]
+{% endif %}
+
+[log_config.loggers.twisted]
+level = "INFO"
+propagate = false
+{% if autocloudreporter_amqp_mailto is defined %}
+handlers = ["console", "email"]
+{% else %}
+handlers = ["console"]
+{% endif %}
+
+[log_config.loggers.pika]
+level = "WARNING"
+propagate = false
+handlers = ["console"]
+
+[log_config.root]
+level = "ERROR"
+{% if autocloudreporter_amqp_mailto is defined %}
+handlers = ["console", "email"]
+{% else %}
+handlers = ["console"]
+{% endif %}
