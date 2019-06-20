@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: List
+items:
+# ImageStream for Fedora 30 image
+- apiVersion: image.openshift.io/v1
+  kind: ImageStream
+  metadata:
+    labels:
+      build: coreos-koji-tagger
+    name: fedora
+  spec:
+    lookupPolicy:
+      local: false
+    tags:
+    - name: "30"
+      from:
+        kind: DockerImage
+        name: registry.fedoraproject.org/fedora:30
+      importPolicy: 
+        scheduled: true
+      referencePolicy:
+        type: Source
+# ImageStream for resulting built coreos-koji-tagger-img
+- apiVersion: image.openshift.io/v1
+  kind: ImageStream
+  metadata:
+    labels:
+      build: coreos-koji-tagger
+    name: coreos-koji-tagger-img

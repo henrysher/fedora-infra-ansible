@@ -1,0 +1,49 @@
+- name: make the app be real
+  hosts: os_masters_stg[0]
+  user: root
+  gather_facts: False
+
+  vars_files:
+    - /srv/web/infra/ansible/vars/global.yml
+    - "/srv/private/ansible/vars.yml"
+    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  roles:
+  - role: openshift/project
+    app: coreos-koji-tagger
+    description: Tags builds into koji tags within Fedora's Koji instance
+    appowners:
+    - dustymabe
+    - jlebon
+    - mizdebsk
+
+  - role: openshift/keytab
+    app: coreos-koji-tagger
+    key: koji-keytab
+    secret_name: coreos-koji-tagger-coreos-bot-keytab
+    service: coreos-koji-tagger
+    host: "coreos-koji-tagger{{ env_suffix }}.fedoraproject.org"
+
+  - role: openshift/object
+    app: coreos-koji-tagger
+    template: imagestream.yml
+    objectname: imagestream.yml
+
+  - role: openshift/object
+    app: coreos-koji-tagger
+    template: buildconfig.yml
+    objectname: buildconfig.yml
+
+  - role: openshift/start-build
+    app: coreos-koji-tagger
+    buildname: coreos-koji-tagger-build
+    objectname: coreos-koji-tagger-build
+
+  - role: openshift/object
+    app: coreos-koji-tagger
+    template: deploymentconfig.yml
+    objectname: deploymentconfig.yml
+
+  - role: openshift/rollout
+    app: coreos-koji-tagger
+    dcname: coreos-koji-tagger

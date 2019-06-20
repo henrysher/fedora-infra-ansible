@@ -1,0 +1,53 @@
+apiVersion: apps.openshift.io/v1
+kind: DeploymentConfig
+metadata:
+  labels:
+    app: coreos-koji-tagger
+  name: coreos-koji-tagger
+spec:
+  replicas: 1
+  selector:
+    app: coreos-koji-tagger
+  strategy:
+    resources: {}
+  template:
+    metadata:
+      labels:
+        app: coreos-koji-tagger
+      name: coreos-koji-tagger
+    spec:
+      containers:
+      - env:
+#       - name: COREOS_KOJI_TAGGER_KEYTAB_FILE
+#         value: /etc/coreos-koji-tagger-coreos-bot-keytab
+        - name: COREOS_KOJI_TAGGER_USE_STG
+{% if env == "staging" %}
+          value: "true"
+{% else %}
+          value: "false"
+{% endif %}
+        volumeMounts:
+        - name: coreos-koji-tagger-coreos-bot-keytab-volume
+          mountPath: /etc/coreos-koji-tagger-coreos-bot-keytab
+          readOnly: true
+        image: ""
+        imagePullPolicy: IfNotPresent
+        name: coreos-koji-tagger
+        resources: {}
+      volumes:
+      - name: coreos-koji-tagger-coreos-bot-keytab-volume
+        secret:
+          secretName: coreos-koji-tagger-coreos-bot-keytab
+          optional: true
+      restartPolicy: Always
+  test: false
+  triggers:
+  - type: ConfigChange
+  - type: ImageChange
+    imageChangeParams:
+      automatic: true
+      containerNames:
+      - coreos-koji-tagger
+      from:
+        kind: ImageStreamTag
+        name: coreos-koji-tagger-img:latest

@@ -1,0 +1,29 @@
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  name: coreos-koji-tagger-build
+  labels:
+    build: coreos-koji-tagger
+spec:
+  source:
+    git:
+      ref: master 
+      uri: https://github.com/coreos/coreos-koji-tagger.git
+    type: Git
+  strategy:
+    type: Docker
+    dockerStrategy:
+      from:
+        kind: ImageStreamTag
+        name: fedora:30
+  output:
+    to:
+      kind: ImageStreamTag
+      name: coreos-koji-tagger-img:latest
+  triggers:
+  - type: ConfigChange
+{% if coreos_koji_tagger_webhook_secret is defined %}
+  - type: Generic
+    generic:
+      secret: "{{ coreos_koji_tagger_webhook_secret }}"
+{% endif %}
