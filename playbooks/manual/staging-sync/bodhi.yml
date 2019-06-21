@@ -22,6 +22,7 @@
 
   tasks:
   - command: oc -n bodhi scale dc/bodhi-web --replicas=0
+  - command: oc -n bodhi scale dc/bodhi-consumer --replicas=0
 
 - name: bring staging services down (messaging)
   hosts: bodhi_backend_stg
@@ -72,6 +73,7 @@
 
   tasks:
   - command: oc -n bodhi scale dc/bodhi-web --replicas={{ hostvars[groups['bodhi2_stg'][0]]['openshift_pods'] }}
+  - command: oc -n bodhi scale dc/bodhi-consumer --replicas={{ hostvars[groups['bodhi2_stg'][0]]['openshift_pods'] }}
 
 - name: bring staging services up (httpd)
   hosts: bodhi2_stg
