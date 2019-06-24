@@ -10,7 +10,7 @@ if [ $STATE == "MASTER" ]; then
 	systemctl stop kojira
 	rm -f /etc/cron.d/koji-directory-cleanup
 	rm -f /etc/cron.d/koji-gc
-	rm -f /etc/cron.d/koji-prunesigs
+	rm -f /etc/cron.d/koji-prune-signed-copies
 	logger "just became keepalived master"
 
 fi
@@ -21,7 +21,7 @@ if [ $STATE == "BACKUP" ]; then
 	systemctl start kojira
         cp -a /usr/local/etc/koji-directory-cleanup /etc/cron.d/koji-directory-cleanup
         cp -a /usr/local/etc/koji-gc /etc/cron.d/koji-gc
-        cp -a /usr/local/etc/koji-prunesigs /etc/cron.d/koji-prunesigs
+        cp -a /usr/local/etc/koji-prune-signed-copies /etc/cron.d/koji-prune-signed-copies
 	logger "just became keepalived backup"
 fi
 #
