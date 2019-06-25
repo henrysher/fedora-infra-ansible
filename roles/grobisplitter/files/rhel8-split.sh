@@ -11,7 +11,7 @@ if [ -d ${DATEDIR} ]; then
     echo "Directory already exists. Please remove or fix"
     exit
 else
-mkdir -vp ${DATEDIR}
+mkdir -p ${DATEDIR}
 fi
 
 for ARCH in ${ARCHES}; do
@@ -59,19 +59,8 @@ for ARCH in ${ARCHES}; do
     # Go into the main tree
     pushd RHEL-8-001
 
-    # # Build out the repos we have and merge them together with
-    # # mergerepo -k
-    # echo "Merging all the repos"
-    # repos=""
-    # for i in $( ls -1 ); do
-    # 	repos+="-r $i "
-    # done
-    # mergerepo_c -k ${repos}
-    # mv merged_repo/repodata/ . 
-    # rmdir merged_repo/
-
     # Mergerepo didn't work so lets just createrepo in the top directory.
-    createrepo_c .
+    createrepo_c .  &> /dev/null
     popd
 
     # Cleanup the trash 
@@ -81,16 +70,26 @@ done
 
 ## Set up the builds so they are pointing to the last working version
 cd ${HOMEDIR}/koji/
-if [[ -e latest ]]; then
-    if [[ -h latest ]]; then
-	rm -f latest
+if [[ -e staged ]]; then
+    if [[ -h staged ]]; then
+	rm -f staged
     else
-	echo "Unable to remove latest. it is not a symbolic link"
+	echo "Unable to remove staged. it is not a symbolic link"
 	exit
     fi
 else
-    echo "No latest link found"
+    echo "No staged link found"
 fi
 
-echo "Linking ${DATE} to latest"
-ln -s ${DATE} ${HOMEDIR}/koji/latest
+echo "Linking ${DATE} to staged"
+ln -s ${DATE} staged
+
+
+for ARCH in ${ARCHES}; do
+    pushd latest/
+    mkdir -p $ARCH
+    dnf --disablerepo=\* --enablerepo=RHEL-8-001 --repofrompath=RHEL-8-001,https://infrastructure.fedoraproject.org/repo/rhel/rhel8/koji/staged/${ARCH}/RHEL-8-001/ reposync -a ${ARCH} -a noarch -p ${ARCH} --newest --delete  &> /dev/null
+    cd RHEL-8-001
+    createrepo_c .  &> /dev/null
+    popd
+done
