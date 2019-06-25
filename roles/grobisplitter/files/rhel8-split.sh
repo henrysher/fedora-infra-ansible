@@ -26,7 +26,7 @@ for ARCH in ${ARCHES}; do
     # in a daily tree. This allows us to point koji at a particular
     # day if we have specific build concerns.
     OUTDIR=${DATEDIR}/${ARCH}
-    mkdir -vp ${OUTDIR}
+    mkdir -p ${OUTDIR}
     if [ ! -d ${OUTDIR} ]; then
 	echo "Unable to find ${ARCHDIR}"
 	exit
@@ -87,9 +87,13 @@ ln -s ${DATE} staged
 
 for ARCH in ${ARCHES}; do
     pushd latest/
-    mkdir -p $ARCH
+    mkdir -p ${ARCH}
     dnf --disablerepo=\* --enablerepo=RHEL-8-001 --repofrompath=RHEL-8-001,https://infrastructure.fedoraproject.org/repo/rhel/rhel8/koji/staged/${ARCH}/RHEL-8-001/ reposync -a ${ARCH} -a noarch -p ${ARCH} --newest --delete  &> /dev/null
-    cd RHEL-8-001
-    createrepo_c .  &> /dev/null
+    if [[ $? -eq 0 ]]; then
+	cd ${ARCH}/RHEL-8-001
+	createrepo_c .  &> /dev/null
+    else
+	echo "Unable to run createrepo on latest/${ARCH}"
+    fi
     popd
 done
