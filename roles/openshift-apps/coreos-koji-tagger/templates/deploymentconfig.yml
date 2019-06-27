@@ -18,8 +18,8 @@ spec:
     spec:
       containers:
       - env:
-#       - name: COREOS_KOJI_TAGGER_KEYTAB_FILE
-#         value: /etc/coreos-koji-tagger-coreos-bot-keytab
+        - name: COREOS_KOJI_TAGGER_KEYTAB_FILE
+          value: /etc/coreos-koji-tagger-keytab/koji-keytab
         - name: COREOS_KOJI_TAGGER_USE_STG
 {% if env == "staging" %}
           value: "true"
@@ -27,17 +27,17 @@ spec:
           value: "false"
 {% endif %}
         volumeMounts:
-        - name: coreos-koji-tagger-coreos-bot-keytab-volume
-          mountPath: /etc/coreos-koji-tagger-coreos-bot-keytab
+        - name: coreos-koji-tagger-keytab-volume
+          mountPath: /etc/coreos-koji-tagger-keytab
           readOnly: true
         image: ""
         imagePullPolicy: IfNotPresent
         name: coreos-koji-tagger
         resources: {}
       volumes:
-      - name: coreos-koji-tagger-coreos-bot-keytab-volume
+      - name: coreos-koji-tagger-keytab-volume
         secret:
-          secretName: coreos-koji-tagger-coreos-bot-keytab
+          secretName: coreos-koji-tagger-keytab
           optional: true
       restartPolicy: Always
   test: false
