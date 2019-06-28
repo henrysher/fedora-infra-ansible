@@ -41,13 +41,6 @@ class BaseConfiguration(object):
     # Set to zero to disable polling
     POLLING_INTERVAL = 3600
 
-    # Determines how many builds that can be submitted to the builder
-    # and be in the build state at a time. Set this to 0 for no restrictions
-    # New name
-    NUM_CONCURRENT_BUILDS = 5
-    # Old name https://pagure.io/fm-orchestrator/issue/574
-    NUM_CONSECUTIVE_BUILDS = 5
-
     RPMS_DEFAULT_REPOSITORY = 'git+https://src.fedoraproject.org/rpms/'
     RPMS_ALLOW_REPOSITORY = False
     RPMS_DEFAULT_CACHE = 'https://src.fedoraproject.org/repo/pkgs/'
@@ -186,9 +179,6 @@ class ProdConfiguration(BaseConfiguration):
 
     # If this is too long, we could change it to 'fm_' some day.
     DEFAULT_DIST_TAG_PREFIX = 'module_'
-
-    # New name
-    NUM_CONCURRENT_BUILDS = 100
 
     # Delete module-* targets one hour after build
     KOJI_TARGET_DELETE_TIME = 3600
