@@ -1,0 +1,33 @@
+- name: install the messaging packages
+  package: name={{ item }} state=present
+  with_items:
+  - fedora-messaging
+
+- name: create rabitmq directory
+  file: path=/etc/pki/rabbitmq/ owner=root group=root mode=0755 state=directory
+  tags:
+  - fedora-messaging
+
+- name: "create user directory for {{ item.username }}'s keys"
+  file: path=/etc/pki/rabbitmq/{{ item.username }}/
+        owner={{ item.username }} group={{ item.username }}
+        mode=0700 state=directory
+  with_items: "{{ messaging.certificates }}"
+  tags:
+  - fedora-messaging
+
+- name: "copy fedora messaging key for {{ item.username }}"
+  copy: src={{ private }}/files/rabbitmq/{{ env }}/pki/issued/{{ item.key }}{% if env == 'staging' %}.stg{% endif %}.key
+        dest=/etc/pki/rabbitmq/{{ item.username }}/{{ item.key }}.key
+        owner={{ item.username }} group=root mode={{ item.username }}
+  with_items: "{{ messaging.certificates }}"
+  tags:
+  - fedora-messaging
+
+- name: "copy fedora messaging certificate for {{ item.username }}"
+  copy: src={{ private }}/files/rabbitmq/{{ env }}/pki/issued/{{ item.key }}{% if env == 'staging' %}.stg{% endif %}.crt
+        dest=/etc/pki/rabbitmq/{{ item.username }}/{{ item.key }}.crt
+        owner={{ item.username }} group=root mode={{ item.username }}
+  with_items: "{{ messaging.certificates }}"
+  tags:
+  - fedora-messaging
