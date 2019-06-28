@@ -10,7 +10,7 @@
   tags:
   - fedora-messaging
 
-- name: "create user directory for {{ item.username }}'s keys"
+- name: "create key/cert directory"
   file: path=/etc/pki/rabbitmq/{{ item.username }}/
         owner={{ item.username }} group={{ item.username }}
         mode=0700 state=directory
@@ -18,7 +18,7 @@
   tags:
   - fedora-messaging
 
-- name: "copy fedora messaging key for {{ item.username }}"
+- name: "copy fedora messaging key"
   copy: src={{ private }}/files/rabbitmq/{{ env }}/pki/private/{{ item.key }}{% if env == 'staging' %}.stg{% endif %}.key
         dest=/etc/pki/rabbitmq/{{ item.username }}/{{ item.key }}.key
         owner={{ item.username }} group=root mode=0600
@@ -26,7 +26,7 @@
   tags:
   - fedora-messaging
 
-- name: "copy fedora messaging certificate for {{ item.username }}"
+- name: "copy fedora messaging certificate"
   copy: src={{ private }}/files/rabbitmq/{{ env }}/pki/issued/{{ item.key }}{% if env == 'staging' %}.stg{% endif %}.crt
         dest=/etc/pki/rabbitmq/{{ item.username }}/{{ item.key }}.crt
         owner={{ item.username }} group=root mode=0644
@@ -34,7 +34,7 @@
   tags:
   - fedora-messaging
 
-- name: "copy fedora messaging ca.crt for {{ item.username }} user"
+- name: "copy fedora messaging ca.crt for readers"
   copy: src={{ private }}/files/rabbitmq/{{ env }}/pki/ca.crt
         dest=/etc/pki/rabbitmq/{{ item.username }}/ca.crt
         owner={{ item.username }} group=root mode=0644
@@ -42,7 +42,7 @@
   tags:
   - fedora-messaging
 
-- name: "copy the toml file for {{ item.username }}"
+- name: "install the toml configuration file"
   template: src="messaging.toml.j2" dest="/etc/fedora-messaging/{{ item.username }}.toml"
             owner=root group=root mode=644
   vars:
@@ -52,7 +52,7 @@
   tags:
   - fedora-messaging
 
-- name: "make sure the user {{ item.username }} exists on broker"
+- name: "make sure the user exists on broker"
   include_role: name=rabbit/user
   vars:
   - username: "{{ item.username }}{{ env_suffix }}"
