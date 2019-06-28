@@ -41,3 +41,10 @@
   with_items: "{{ messaging.certificates }}"
   tags:
   - fedora-messaging
+
+- name: "copy the toml file for {{ item.username }}"
+  template: src="messaging.toml.j2" dest="/etc/fedora-messaging/{{ item.username }}.toml"
+            owner=root group=root mode=644
+  vars:
+  - msg_username: {{ item.username }}
+  - msg_appname: {{ item.app_name }}
