@@ -2,7 +2,7 @@
 
 namespace OOUI;
 
-require "/usr/share/php/OOUI/mixins/AccessKeyedElement.php";
+require_once "/usr/share/php/OOUI/mixins/AccessKeyedElement.php";
 /**
  * Base class for input widgets.
  *
