@@ -39,7 +39,7 @@ class BaseConfiguration(object):
 
     # How often should we resort to polling, in seconds
     # Set to zero to disable polling
-    POLLING_INTERVAL = 600
+    POLLING_INTERVAL = 3600
 
     # Determines how many builds that can be submitted to the builder
     # and be in the build state at a time. Set this to 0 for no restrictions
