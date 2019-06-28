@@ -17,7 +17,7 @@
   - fedora-messaging
 
 - name: "copy fedora messaging key for {{ item.username }}"
-  copy: src={{ private }}/files/rabbitmq/{{ env }}/pki/issued/{{ item.key }}{% if env == 'staging' %}.stg{% endif %}.key
+  copy: src={{ private }}/files/rabbitmq/{{ env }}/pki/private/{{ item.key }}{% if env == 'staging' %}.stg{% endif %}.key
         dest=/etc/pki/rabbitmq/{{ item.username }}/{{ item.key }}.key
         owner={{ item.username }} group=root mode={{ item.username }}
   with_items: "{{ messaging.certificates }}"
@@ -27,6 +27,14 @@
 - name: "copy fedora messaging certificate for {{ item.username }}"
   copy: src={{ private }}/files/rabbitmq/{{ env }}/pki/issued/{{ item.key }}{% if env == 'staging' %}.stg{% endif %}.crt
         dest=/etc/pki/rabbitmq/{{ item.username }}/{{ item.key }}.crt
+        owner={{ item.username }} group=root mode={{ item.username }}
+  with_items: "{{ messaging.certificates }}"
+  tags:
+  - fedora-messaging
+
+- name: "copy fedora messaging ca.crt for {{ item.username }} user"
+  copy: src={{ private }}/files/rabbitmq/{{ env }}/pki/ca.crt
+        dest=/etc/pki/rabbitmq/{{ item.username }}/ca.crt
         owner={{ item.username }} group=root mode={{ item.username }}
   with_items: "{{ messaging.certificates }}"
   tags:
