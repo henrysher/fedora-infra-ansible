@@ -23,8 +23,12 @@ spec:
       name: coreos-koji-tagger-img:latest
   triggers:
   - type: ConfigChange
-{% if coreos_koji_tagger_webhook_secret is defined %}
-  - type: Generic
-    generic:
-      secret: "{{ coreos_koji_tagger_webhook_secret }}"
+{% if env == "staging" and coreos_koji_tagger_webhook_secret_stg is defined %}
+  - type: GitHub
+    github:
+      secret: "{{ coreos_koji_tagger_webhook_secret_stg }}"
+{% elif coreos_koji_tagger_webhook_secret_prod is defined %}
+  - type: GitHub
+    github:
+      secret: "{{ coreos_koji_tagger_webhook_secret_prod }}"
 {% endif %}
