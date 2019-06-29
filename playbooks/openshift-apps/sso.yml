@@ -1,0 +1,45 @@
+- name: make the app be real
+  hosts: os_masters_stg[0]
+  user: root
+  gather_facts: False
+
+  vars_files:
+    - /srv/web/infra/ansible/vars/global.yml
+    - "/srv/private/ansible/vars.yml"
+    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  vars:
+    sso_db_host: "db-fas01{{ env_suffix }}.phx2.fedoraproject.org"
+    sso_db_user: "sso"
+    sso_db_name: "sso"
+
+  pre_tasks:
+  - include_vars: dir=/srv/web/infra/ansible/vars/all/ ignore_files=README
+
+  roles:
+  - role: openshift/project
+    app: sso
+    description: sso
+    appowners:
+    - puiterwijk
+    allow_fas_db: true
+  - role: openshift/keytab
+    app: sso
+    key: sso-keytab
+    secret_name: sso-keytab
+    service: HTTP
+    host: "sso{{ env_suffix }}.fedoraproject.org"
+  - role: openshift/route
+    app: sso
+    routename: sso
+    host: "sso{{ env_suffix }}.fedoraproject.org"
+    serviceport: web
+    servicename: sso
+    termination_reencrypt: true
+  - role: openshift/object
+    app: sso
+    template: deploymentconfig.yml
+    objectname: deploymentconfig.yml
+  - role: openshift/rollout
+    app: sso
+    dcname: sso
