@@ -6,7 +6,7 @@ The files in this directory are the configuration files for communishift to be a
 For OIDC auth, get the client secret for "communishift" from ansible-private/files/ipsilon/openidc.production.static, and run:
 > oc create secret generic fedoraidp-clientsecret --from-literal=clientSecret=<client-secret> -n openshift-config
 
-For certificates, first install [cert-manager](), and then create the Issuer object.
+For certificates, first install [cert-manager](https://docs.cert-manager.io/en/latest/), and then create the Issuer object.
 To do this, first create a new access key ID and secret key in AWS for the communishift_acme_dns01 user, and update issuer and create a secret:
 > oc create secret generic route53-access-key-secret --from-literal=access-key=THEACCESSKEY
 This gives it the ability to create a TXT record for acmechallenges.fedorainfracloud.org.
