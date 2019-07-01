@@ -1,4 +1,5 @@
 #!/bin/bash
+# A weekly cron job which actually does the items needed.
 TMPDIR=`mktemp -d /tmp/ftbfs_reminder.XXXXXX` 
 GITREPO=https://pagure.io/releng.git 
 SCRIPT=ftbfs_weekly_reminder.py
