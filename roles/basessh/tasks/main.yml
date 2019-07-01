@@ -161,7 +161,7 @@
         group=root
         mode=0600
         state=directory
-  delegate_to: "batcave01.phx2.fedoraproject.org"
+  delegate_to: localhost
   run_once: true
   changed_when: False
   tags:
@@ -200,7 +200,7 @@
 # Currently, we use the epoch as serial. That's unique enough for now
 - name: Sign the certificates
   shell: "ssh-keygen -s {{private}}/files/ssh/{{env}}_ca_host_key -I {{inventory_hostname}} -h -n {{ sign_hostnames|join(',') }} -V {{sign_validity}} -z `date +%s` {{pubkeydir}}/{{inventory_hostname}}{{item}}.pub"
-  delegate_to: "batcave01.phx2.fedoraproject.org"
+  delegate_to: localhost
   with_items: "{{certs_to_sign}}"
   tags:
   - basessh
