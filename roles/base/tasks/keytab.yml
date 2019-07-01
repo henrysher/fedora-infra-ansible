@@ -9,6 +9,8 @@
   - krb5
 
 - name: Get admin keytab
+  vars:
+    ansible_python_interpreter: /usr/bin/python2
   delegate_to: "{{ ipa_server }}"
   shell: echo "{{ipa_admin_password}}" | kinit admin
   tags:
@@ -18,6 +20,8 @@
   when: not host_keytab_status.stat.exists
 
 - name: Create host entry
+  vars:
+    ansible_python_interpreter: /usr/bin/python2
   delegate_to: "{{ ipa_server }}"
   command: ipa host-add {{inventory_hostname}}
   register: host_add_result
@@ -30,6 +34,8 @@
   when: not host_keytab_status.stat.exists
 
 - name: Create additional host entries
+  vars:
+    ansible_python_interpreter: /usr/bin/python2
   delegate_to: "{{ ipa_server }}"
   command: ipa host-add {{item}}
   with_items: "{{ additional_host_keytabs }}"
@@ -43,6 +49,8 @@
   when: not host_keytab_status.stat.exists
 
 - name: Generate host keytab
+  vars:
+    ansible_python_interpreter: /usr/bin/python2
   delegate_to: "{{ ipa_server }}"
   command: ipa-getkeytab -s {{ipa_server}} -p host/{{inventory_hostname}} -k /tmp/{{inventory_hostname}}.kt
   register: getkeytab_result
@@ -55,6 +63,8 @@
   when: not host_keytab_status.stat.exists
 
 - name: Add additional host keytabs
+  vars:
+    ansible_python_interpreter: /usr/bin/python2
   delegate_to: "{{ ipa_server }}"
   command: ipa-getkeytab -s {{ipa_server}} -p host/{{item}} -k /tmp/{{inventory_hostname}}.kt
   with_items: "{{ additional_host_keytabs }}"
@@ -68,6 +78,8 @@
   when: not host_keytab_status.stat.exists
 
 - name: Destroy kerberos ticket
+  vars:
+    ansible_python_interpreter: /usr/bin/python2
   delegate_to: "{{ ipa_server }}"
   command: kdestroy -A
   tags:
@@ -77,6 +89,8 @@
   when: not host_keytab_status.stat.exists
 
 - name: Get keytab
+  vars:
+    ansible_python_interpreter: /usr/bin/python2
   delegate_to: "{{ ipa_server }}"
   command: base64 /tmp/{{inventory_hostname}}.kt
   register: keytab
@@ -87,6 +101,8 @@
   when: not host_keytab_status.stat.exists
 
 - name: Destroy stored keytab
+  vars:
+    ansible_python_interpreter: /usr/bin/python2
   delegate_to: "{{ ipa_server }}"
   file: path=/tmp/{{inventory_hostname}}.kt state=absent
   tags:
