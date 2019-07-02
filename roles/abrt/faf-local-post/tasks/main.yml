@@ -20,7 +20,21 @@
 - import_tasks: cron.yml
   tags: cron
 
-- name: Remove old repos
+- name: get repolist of EOL releases
+  shell: "faf repolist | grep fedora-{{ item }} || true"
+  register: eol_repolist
+  loop: "{{ rs_internal_fedora_vers_removed }}"
+  changed_when: eol_repolist.stdout
+  become: yes
+  become_user: faf
+
+- name: remove repos of EOLed releases
+  command: faf repodel "{{ item }}"
+  loop: "{{ eol_repolist.results | map(attribute='stdout_lines') | flatten }}"
+  become: faf
+  become_user: faf
+
+- name: cleanup packages from EOLed fedora release
   command: "faf cleanup-packages Fedora '{{ item }}' "
   become: yes
   become_user: faf
