@@ -50,6 +50,12 @@ config = {
                     "keyid": "3c3359c4"
                 },
                 {
+                    "from": "f31-boost",
+                    "to": "f31-boost",
+                    "key": "fedora-31",
+                    "keyid": "3c3359c4"
+                },
+                {
                     "from": "f31-go",
                     "to": "f31-go",
                     "key": "fedora-31",
