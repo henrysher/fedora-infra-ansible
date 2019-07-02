@@ -27,3 +27,6 @@ else
     echo "Unable to create ${TMPDIR}"
     exit 1
 fi
+
+#FTBFS Weekly Reminder
+
