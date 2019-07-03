@@ -3,8 +3,8 @@
 [server]
 # Host name of the publically acessible bridge to clients
 
-bridge-hostname: sign-bridge.phx2.fedoraproject.org
-server-cert-nickname: sign-vault.phx2.fedoraproject.org
+bridge-hostname: sign-bridge{{ env_suffix }}.phx2.fedoraproject.org
+server-cert-nickname: sign-vault{{ env_suffix }}.phx2.fedoraproject.org
 
 # Port on which the bridge expects server connections
 bridge-port: 44333
@@ -50,6 +50,7 @@ nss-min-tls: tls1.2
 nss-max-tls: tls1.2
 
 [binding]
+{% if env == "production" %}
 # List of binding modules enabled
 enabled: pkcs11
 pkcs11_tokens: yubikey_sv03,yubikey_sv04,yubikey_sv05,yubikey_sv06
@@ -65,4 +66,5 @@ pkcs11_yubikey_sv04_privkey: pkcs11:serial=b38ee13e56b3b987;id=%03;type=private
 pkcs11_yubikey_sv05_privkey: pkcs11:serial=e8dae68ae187ff13;id=%03;type=private
 {% elif inventory_hostname.startswith('sign-vault06') %}
 pkcs11_yubikey_sv06_privkey: pkcs11:serial=e3c4804a6631dd5f;id=%03;type=private
+{% endif %}
 {% endif %}
