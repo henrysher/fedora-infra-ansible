@@ -43,8 +43,8 @@ config = {
                 {
                     "from": "f31-pending",
                     "to": "f31",
-                    "key": "fedora-31",
-                    "keyid": "3c3359c4"
+                    "key": "testkey",
+                    "keyid": "d300e724"
                 },
                 # Gated bodhi updates
                 # Non-gated bodhi triggered
