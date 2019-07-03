@@ -41,8 +41,14 @@ config = {
                 # Gated coreos-pool tag
                 # Gated rawhide and branched
                 {
-                    "from": "f31-pending",
-                    "to": "f31",
+                    "from": "epel8-signing-pending",
+                    "to": "epel8-testing-pending",
+                    "key": "testkey",
+                    "keyid": "d300e724"
+                },
+                {
+                    "from": "f31-signing-pending",
+                    "to": "f31-updates-testing-pending",
                     "key": "testkey",
                     "keyid": "d300e724"
                 },
