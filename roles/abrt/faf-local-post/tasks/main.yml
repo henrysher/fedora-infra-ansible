@@ -5,17 +5,17 @@
   become: yes
   become_user: faf
   ignore_errors: yes
-  when: not devel
+  when: not devel|bool
   tags: add_repo
-  with_items: "{{ faf_repos }}"
+  loop: "{{ faf_repos }}"
 
 - name: repoassign repositories
   command: faf repoassign "{{ item.name }}" "{{ item.opsys }}" "{{ item.arch }}"
   become: yes
   become_user: faf
-  when: not devel
+  when: not devel|bool
   tags: add_repo
-  with_items: "{{ faf_repos }}"
+  loop: "{{ faf_repos }}"
 
 - import_tasks: cron.yml
   tags: cron
@@ -38,5 +38,5 @@
   command: "faf cleanup-packages Fedora '{{ item }}' "
   become: yes
   become_user: faf
-  when: not devel
-  with_items: "{{ rs_internal_fedora_vers_removed }}"
+  when: not devel|bool
+  loop: "{{ rs_internal_fedora_vers_removed }}"

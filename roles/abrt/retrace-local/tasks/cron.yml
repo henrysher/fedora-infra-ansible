@@ -10,7 +10,7 @@
   with_nested:
       - "{{ rs_internal_fedora_vers }}"
       - "{{ rs_internal_arch_list }}"
-  when: not devel
+  when: not devel|bool
 
 - name: Remove obsolete cron job for retrace-server
   cron:
@@ -22,7 +22,7 @@
   with_nested:
       - "{{ rs_internal_fedora_vers_removed }}"
       - "{{ rs_internal_arch_list }}"
-  when: not devel
+  when: not devel|bool
 
 - name: Create cron job for retrace-server
   cron:
@@ -31,7 +31,7 @@
     job: "/usr/bin/retrace-server-reposync centos 7 x86_64 >> /var/log/retrace-server/reposync_error.log 2>&1"
     special_time: daily
     state: present
-  when: not devel
+  when: not devel|bool
 
 - name: Create cron job for retrace-server
   cron:
@@ -40,4 +40,4 @@
     job: "/usr/bin/retrace-server-cleanup >> /var/log/retrace-server/cleanup_error.log 2>&1"
     special_time: daily
     state: present
-  when: not devel
+  when: not devel|bool
