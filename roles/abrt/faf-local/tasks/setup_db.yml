@@ -63,13 +63,15 @@
   notify: restart postgresql
 
 - name: drop faf database
-  postgresql_db: name=faf
-                 owner=postgres
-                 state=absent
+  postgresql_db:
+    name: faf
+    owner: postgres
+    state: absent
   when: faf_recreate_database
 
 - name: check postgresql initdb
-  stat: path=/var/lib/pgsql/initdb.log
+  stat:
+    path: /var/lib/pgsql/initdb.log
   register: st
 
 - name: initdb postgresql
@@ -78,30 +80,34 @@
   become: true
 
 - name: start service postgresql
-  service: name=postgresql
-           state=started
-           enabled=yes
+  service:
+    name: postgresql
+    state: started
+    enabled: yes
   become: true
 
 - name: pgsql create db faf
-  postgresql_db: name=faf
-                 owner=postgres
-                 state=present
+  postgresql_db:
+    name: faf
+    owner: postgres
+    state: present
   become: true
   become_user: postgres
 
 - name: pgsql create user faf
-  postgresql_user: db=faf
-                   name=faf
-                   priv=ALL
-                   role_attr_flags=SUPERUSER
-                   state=present
+  postgresql_user:
+    db: faf
+    name: faf
+    priv: ALL
+    role_attr_flags: SUPERUSER
+    state: present
   become: true
   become_user: postgres
 
 - name: create extension for faf
-  postgresql_ext: name=semver
-                  db=faf
-                  state=present
+  postgresql_ext:
+    name: semver
+    db: faf
+    state: present
   become: true
   become_user: postgres
