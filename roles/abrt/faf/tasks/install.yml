@@ -1,36 +1,63 @@
 ---
 
-- name: enable Copr repo
-  copy: src=group_abrt-faf-el7-epel-7.repo dest=/etc/yum.repos.d/
+- name: enable Copr repo for RHEL
+  copy:
+    src: group_abrt-faf-el7-epel-7.repo
+    dest: /etc/yum.repos.d/
+  when: ansible_distribution == 'RedHat'
+
+- name: enable Copr repo for Fedora
+  copy:
+    src: group_abrt-faf-el8-fedora.repo
+    dest: /etc/yum.repos.d/
+  when: ansible_distribution == 'Fedora'
 
 - name: erase faf packages
-  package: name="faf-*" state=absent
-  when: faf_force_reinstall
+  package:
+    name: "faf-*"
+    state: absent
+  when: faf_force_reinstall|bool
 
 - name: install core faf packages
-  package: name="faf_packages" state=present
+  package:
+    name: "{{ faf_packages }}"
+    state: present
 
 - name: install faf problem packages
-  package: name="faf_problem_packages" state=present
+  package:
+    name: "{{ faf_problem_packages }}"
+    state: present
 
 - name: install faf opsys packages
-  package: name="faf_opsys_packages" state=present
+  package:
+    name: "{{ faf_opsys_packages }}"
+    state: present
 
 - name: install faf action packages
-  package: name="faf_action_packages" state=present
+  package:
+    name: "{{ faf_action_packages }}"
+    state: present
 
 - name: install faf bugtracker packages
-  package: name="faf_bugtracker_packages" state=present
-  when: faf_with_bugtrackers
+  package:
+    name: "{{ faf_bugtracker_packages }}"
+    state: present
+  when: faf_with_bugtrackers|bool
 
 - name: install faf celery packages
-  package: name="faf_celery_packages" state=present
-  when: faf_with_celery
+  package:
+    name: "{{ faf_celery_packages }}"
+    state: present
+  when: faf_with_celery|bool
 
 - name: install faf fedmsg packages
-  package: name="faf_fedmsg_packages" state=present
-  when: faf_with_fedmsg
+  package:
+    name: "{{ faf_fedmsg_packages }}"
+    state: present
+  when: faf_with_fedmsg|bool
 
 - name: install faf solutionfinder packages
-  package: name="faf_solutionfinder_packages" state=present
-  when: faf_with_solutionfinders
+  package:
+    name: "{{ faf_solutionfinder_packages }}"
+    state: present
+  when: faf_with_solutionfinders|bool

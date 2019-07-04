@@ -1,22 +1,15 @@
 ---
-# SMTP server to use
-smtp_server: localhost
-smtp_port: 25
 
-# domain of web service as seen from internet
-domain: example.org
+###########################
+# features configuration  #
+###########################
 
-# default port for memcached
-memcached_port: 11211
-
-# variables used to automatically create a connectstring
-# connectstring is used for faf web & storage in format:
-# postgresql://user:password@host:port/database
-faf_db_user:
-faf_db_password:
-faf_db_host:
-faf_db_port:
-faf_db_name: faf
+faf_with_bugtrackers: true
+faf_with_celery: true
+faf_with_fedmsg: false
+faf_with_solutionfinders: true
+faf_with_symboltransfer: false
+faf_with_web: true
 
 # dangerous, delete and re-create PostgreSQL database
 # (will wipe Postgre's data dir and re-create from scratch)
@@ -34,25 +27,62 @@ faf_migrate_db: true
 # set up cron jobs for faf
 faf_cron_jobs: true
 
+# faf reachable on httpd root (http://hostname/)
+# if false it's (http://hostname/faf/)
+faf_web_on_root: true
+
+###########################
+# faf configuration       #
+###########################
+
+# [MAIN]
+faf_plugins_dir: /etc/faf/plugins/
+faf_templates_dir: /etc/faf/templates/
+faf_autoenableplugins: False
+
+# [STORAGE]
+# variables used to automatically create a connectstring
+# connectstring is used for faf web & storage in format:
+# postgresql://user:password@host:port/database
+faf_db_user:
+faf_db_password:
+faf_db_host:
+faf_db_port:
+faf_db_name: faf
+
+# [MAIL]
 faf_admin_mail: root@localhost
+# SMTP server to use
+smtp_server: localhost
+smtp_port: 25
+smtp_username:
+smtp_password:
 faf_from: no-reply-retrace@fedoraproject.org
 
+# [uREPORT]
 faf_spool_dir: /var/spool/faf
+faf_create_components: False
 
-###########################
-# features configuration  #
-###########################
-
-faf_with_bugtrackers: true
-faf_with_celery: true
-faf_with_fedmsg: false
-faf_with_solutionfinders: true
-faf_with_symboltransfer: false
-faf_with_web: true
+# Allow uReports without affected package - meaning that crashing code was
+# not packaged
+faf_allow_unpackaged: False
 
 ###########################
 # faf-webui configuration #
 ###########################
+
+# [HUB]
+# enable debugging
+faf_web_debug: false
+
+# set to true if faf's running behind proxy like varnish
+faf_web_proxy_setup: false
+
+# important for production deployments
+faf_web_secret_key: not_a_secret
+
+# domain of web service as seen from internet
+domain: example.org
 
 # faf_server_name is the URL without protocols and trailing slash
 # the URL can be also with /path part (e.g. example-faf.org/faf)
@@ -61,16 +91,16 @@ faf_server_name: "example-faf.org"
 faf_web_brand_title: "FAF"
 faf_web_brand_subtitle: "Fedora Analysis Framework"
 
+faf_web_fedmenu_url:
+# https://apps.fedoraproject.org/fedmenu
+faf_web_fedmenu_data_url:
+# https://apps.fedoraproject.org/js/data.js
+
 # perms
 faf_web_everyone_is_admin: false
 faf_web_everyone_is_maintainer: false
 
-# enable debugging
-faf_web_debug: false
-
-# set to true if faf's running behind proxy like varnish
-faf_web_proxy_setup: false
-
+# [OPENID]
 # enable OpenID
 faf_web_openid: true
 
@@ -80,21 +110,13 @@ faf_web_openid: true
 faf_web_openid_privileged_teams:
 # provenpackager,proventesters
 
-faf_web_fedmenu_url:
-# https://apps.fedoraproject.org/fedmenu
-faf_web_fedmenu_data_url:
-# https://apps.fedoraproject.org/js/data.js
+# [DUMPDIR]
 
+# [CACHE]
 # cache type either: memcached/simple/none
 faf_web_cache_type: memcached
 
-# faf reachable on httpd root (http://hostname/)
-# if false it's (http://hostname/faf/)
-faf_web_on_root: true
-
-# important for production deployments
-faf_web_secret_key: not_a_secret
-
+memcached_port: 11211
 
 # number of mails that can be sent per the time frame
 faf_web_throttle_rate: 1
@@ -104,11 +126,31 @@ faf_web_throttle_timeframe: 30
 faf_web_throttle_burst: 1
 
 ##############################
+# fedora-messaging config    #
+##############################
+faf_fedmsg_server:
+# The topic_prefix configuration value will add a prefix to the topics of every sent message.
+# This is used for migrating from fedmsg, and should not be used afterwards.
+faf_fedmsg_topic_prefix:
+
+# [TLS]
+faf_fedmsg_ca_cert:
+faf_fedmsg_keyfile:
+faf_fedmsg_certfile:
+
+##############################
 # functionality checking     #
 ##############################
 
 faf_check: false
 faf_check_web: false
+
+##############################
+# faf cron configuration     #
+##############################
+
+faf_opsys_list:
+  - fedora
 
 ##############################
 # faf packages configuration #
@@ -140,6 +182,9 @@ faf_action_packages:
   - faf-action-assign-release-to-builds
   - faf-action-attach-centos-bugs
   - faf-action-c2p
+  - faf-action-check-repo
+  - faf-action-cleanup-packages
+  - faf-action-cleanup-unassigned
   - faf-action-cleanup-task-results
   - faf-action-create-problems
   - faf-action-delete-invalid-ureports
@@ -147,6 +192,7 @@ faf_action_packages:
   - faf-action-external-faf-clone-bz
   - faf-action-find-components
   - faf-action-find-crash-function
+  - faf-action-find-report-solution
   - faf-action-mark-probably-fixed
   - faf-action-pull-associates
   - faf-action-pull-components
@@ -155,6 +201,7 @@ faf_action_packages:
   - faf-action-repo
   - faf-action-retrace
   - faf-action-retrace-remote
+  - faf-action-sar
   - faf-action-save-reports
   - faf-action-shell
   - faf-action-stats
@@ -189,3 +236,10 @@ faf_web_celery_packages:
 
 faf_web_symboltransfer_packages:
   - faf-blueprint-symbol-transfer
+
+###############
+# EOLed Opsys #
+###############
+
+eol_opsys:
+  - { opsys: "", release: "" }

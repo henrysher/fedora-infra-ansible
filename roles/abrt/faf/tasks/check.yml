@@ -3,22 +3,25 @@
 # check backend functionality
 
 - name: faf
-  shell: faf {{ item }}
+  shell: faf "{{ item }}"
   become: yes
   become_user: faf
-  with_items:
+  loop:
     - "releaseadd -o fedora --opsys-release 42"
     - "releaselist | grep 'Fedora 42'"
     - "compadd -o fedora --opsys-release 42 meta_faf"
 
 - name: cpf
-  copy: src=ureport_sample dest={{ faf_spool_dir }}/reports/incoming
-    owner=faf group=faf
+  copy:
+    src: ureport_sample
+    dest: "{{ faf_spool_dir }}/reports/incoming"
+    owner: faf
+    group: faf
 
 - name: faf
-  shell: faf {{ item }}
+  shell: faf "{{ item }}"
   become: yes
   become_user: faf
-  with_items:
+  loop:
     - "save-reports -v"
     - "create-problems -v"
