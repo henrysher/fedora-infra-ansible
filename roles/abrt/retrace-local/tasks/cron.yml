@@ -7,9 +7,7 @@
     job: "/usr/bin/retrace-server-reposync fedora {{ item[0] }} {{ item[1] }} >> /var/log/retrace-server/reposync_error.log 2>&1"
     special_time: daily
     state: present
-  with_nested:
-      - "{{ rs_internal_fedora_vers }}"
-      - "{{ rs_internal_arch_list }}"
+  loop: "{{ rs_internal_fedora_vers | product(rs_internal_arch_list) | list }}"
   when: not devel|bool
 
 - name: Remove obsolete cron job for retrace-server
@@ -19,9 +17,7 @@
     job: "/usr/bin/retrace-server-reposync fedora {{ item[0] }} {{ item[1] }} >> /var/log/retrace-server/reposync_error.log 2>&1"
     special_time: daily
     state: absent
-  with_nested:
-      - "{{ rs_internal_fedora_vers_removed }}"
-      - "{{ rs_internal_arch_list }}"
+  loop: "{{ rs_internal_fedora_vers_removed | product(rs_internal_arch_list) | list}}"
   when: not devel|bool
 
 - name: Create cron job for retrace-server
