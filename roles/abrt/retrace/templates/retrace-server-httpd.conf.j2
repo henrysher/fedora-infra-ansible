@@ -33,6 +33,7 @@ WSGIScriptAliasMatch ^/$ /usr/share/retrace-server/index.wsgi
 
 <LocationMatch "^/(manager(/.*)?|ftp|settings|create|stats|checkpackage|[0-9]+(/(log|backtrace|delete|exploitable))?)?$">
     WSGIProcessGroup retrace
+    WSGIApplicationGroup %{GLOBAL}
     Options -Indexes -FollowSymLinks
     <IfModule mod_authz_core.c>
         # Apache 2.4
@@ -45,4 +46,9 @@ WSGIScriptAliasMatch ^/$ /usr/share/retrace-server/index.wsgi
     </IfModule>
 </LocationMatch>
 
-Alias /repos /var/cache/retrace-server
+Alias /repos {{ rs_repo_dir }}
+<Directory "{{ rs_repo_dir }}">
+    Require all granted
+    Options Indexes FollowSymLinks
+    IndexOptions FancyIndexing
+</Directory>

@@ -6,32 +6,48 @@
   changed_when: false
 
 - name: add user retrace to faf db
-  postgresql_user: db=faf
-                   name=retrace
-                   priv=ALL
-                   role_attr_flags=SUPERUSER
-                   state=present
+  postgresql_user:
+    db: faf
+    name: retrace
+    priv: ALL
+    role_attr_flags: SUPERUSER
+    state: present
   become: yes
   become_user: postgres
 
 # for already existing files/dirs
 - name: ACL for user retrace
-  acl: path="{{ faf_spool_dir }}/lob" state=present recursive=yes
-       entity=retrace etype=user permissions=rwX
+  acl:
+    path: "{{ faf_spool_dir }}/lob"
+    state: present
+    recursive: yes
+    entity: retrace
+    etype: user
+    permissions: rwX
   async: 21600
   poll: 0
 
 # for files/dirs created in future
 - name: default ACL for user retrace
-  acl: path="{{ faf_spool_dir }}/lob" state=present recursive=yes default=yes
-       entity=retrace etype=user permissions=rwX
+  acl:
+    path: "{{ faf_spool_dir }}/lob"
+    state: present
+    recursive: yes
+    default: yes
+    entity: retrace
+    etype: user
+    permissions: rwX
   async: 21600
   poll: 0
 
 - name: check for hardlink dir
-  stat: path={{ rs_faf_link_dir }}
+  stat: path="{{ rs_faf_link_dir }}"
   register: rsdir
 
 - name: make dir for hardlinks
-  file: path={{ rs_faf_link_dir }} state=directory owner=retrace group=retrace
+  file:
+    path: "{{ rs_faf_link_dir }}"
+    state: directory
+    owner: retrace
+    group: retrace
   when: rsdir.stat.exists == False

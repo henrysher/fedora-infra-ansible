@@ -8,9 +8,11 @@
     settings_url: "https://{{ ansible_default_ipv4.address }}/settings"
 
 - name: fetch settings
-  local_action: uri url={{ settings_url }}
-    return_content=yes
-    validate_certs=no
+  local_action:
+    module: uri
+    url: "{{ settings_url }}"
+    return_content: yes
+    validate_certs: no
   register: uri_res
 
 - fail: msg="{{ settings_url }} doesn't contain supported_releases"
