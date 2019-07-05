@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: BuildConfig
+metadata:
+  name: kerneltest-build
+  labels:
+    environment: "kerneltest"
+spec:
+  output:
+    to:
+      kind: ImageStreamTag
+      name: kerneltest:latest
+  source:
+    type: Git
+    git:
+      uri: https://github.com/jmflinuxtx/kerneltest-harness.git
+  strategy:
+    type: Source
+    sourceStrategy:
+      from:
+        kind: ImageStreamTag
+        namespace: openshift
+        name: python:3.6
+  triggers:
+  - type: ConfigChange
+  - type: ImageChange
