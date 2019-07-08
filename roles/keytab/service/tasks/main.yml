@@ -10,6 +10,8 @@
   - krb5
 
 - name: Get admin ticket
+  vars:
+    ansible_python_interpreter: /usr/bin/python2
   delegate_to: "{{ ipa_server }}"
   shell: echo "{{ipa_admin_password}}" | kinit admin
   check_mode: no
@@ -21,6 +23,8 @@
   when: not keytab_status.stat.exists
 
 - name: Create host entry
+  vars:
+    ansible_python_interpreter: /usr/bin/python2
   delegate_to: "{{ ipa_server }}"
   command: ipa host-add {{host}}
   register: host_add_result
@@ -34,6 +38,8 @@
   when: not keytab_status.stat.exists
 
 - name: Create service entry
+  vars:
+    ansible_python_interpreter: /usr/bin/python2
   delegate_to: "{{ ipa_server }}"
   command: ipa service-add {{service}}/{{host}}
   register: service_add_result
@@ -47,6 +53,8 @@
   when: not keytab_status.stat.exists and service != "host"
 
 - name: Grant host access to keytab
+  vars:
+    ansible_python_interpreter: /usr/bin/python2
   delegate_to: "{{ ipa_server }}"
   command: ipa service-allow-retrieve-keytab {{service}}/{{host}} --hosts={{inventory_hostname}}
   register: service_perm_add_result
@@ -73,6 +81,8 @@
   when: not keytab_status.stat.exists
 
 - name: Retrieve keytab
+  vars:
+    ansible_python_interpreter: /usr/bin/python2
   delegate_to: "{{ ipa_server }}"
   command: ipa-getkeytab --retrieve --server {{ipa_server}} --keytab /tmp/{{service}}_{{host}}.kt --principal {{service}}/{{host}}
   register: retrieve_result
@@ -86,6 +96,8 @@
   when: not keytab_status.stat.exists
 
 - name: Create keytab if it did not exist
+  vars:
+    ansible_python_interpreter: /usr/bin/python2
   delegate_to: "{{ ipa_server }}"
   command: ipa-getkeytab --server {{ipa_server}} --keytab /tmp/{{service}}_{{host}}.kt --principal {{service}}/{{host}}
   tags:
@@ -95,6 +107,8 @@
   when: not keytab_status.stat.exists and 'krbPrincipalKey not found' in retrieve_result.stderr
 
 - name: Destroy admin ticket
+  vars:
+    ansible_python_interpreter: /usr/bin/python2
   delegate_to: "{{ ipa_server }}"
   command: kdestroy -A
   tags:
@@ -104,6 +118,8 @@
   when: not keytab_status.stat.exists
 
 - name: Get keytab
+  vars:
+    ansible_python_interpreter: /usr/bin/python2
   delegate_to: "{{ ipa_server }}"
   command: base64 /tmp/{{service}}_{{host}}.kt
   register: keytab
@@ -115,6 +131,8 @@
   when: not keytab_status.stat.exists
 
 - name: Destroy stored keytab
+  vars:
+    ansible_python_interpreter: /usr/bin/python2
   delegate_to: "{{ ipa_server }}"
   file: path=/tmp/{{service}}_{{host}}.kt state=absent
   tags:
