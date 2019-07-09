@@ -123,9 +123,13 @@
 # Some virthosts we want to use nested virt (a tech preview in rhel 7.2)
 # We need this module option set and then need to tweak the libvirt xml to enable it
 #
-- name: setup nested virt on virthosts with nested=true variable
+- name: setup nested virt on virthosts with nested=true variable (x86_64)
   copy: src=kvm_intel.conf dest=/etc/modprobe.d/kvm_intel.conf
-  when: nested == true
+  when: nested == true and ansible_architecture is 'x86_64'
+
+- name: setup nested virt on virthosts with nested=true variable (s390x)
+  copy: src=kvm.conf dest=/etc/modprobe.d/kvm.conf
+  when: nested == true and ansible_architecture is 's390x'
 
 #
 # On some hosts in the fedorainfracloud network we want to add some users to be able to manage
