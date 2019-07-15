@@ -47,7 +47,7 @@ config = {
                     "keyid": "d300e724"
                 },
                 {
-                    "from": "f31-signing-pending",
+                    "from": "f31-updates-candidate",
                     "to": "f31-updates-testing-pending",
                     "key": "testkey",
                     "keyid": "d300e724"
