@@ -1,12 +1,18 @@
 - name: copy ifcfg-eth1
   copy: src="ifcfg-eth1" dest=/etc/sysconfig/network-scripts/  owner=root group=root mode=644
+
+- name: enable network-manager to use the /etc/sysconfig/network-scripts
+  ini_file:
+    path: /etc/NetworkManager/NetworkManager.conf
+    section: main
+    option: plugins
+    value: ifcfg-rh
+    backup: yes
   notify:
-  - restart network
+  - restart NetworkManager
 
 - name: set up gateway
-  lineinfile: dest=/etc/sysconfig/network  line="GATEWAYDEV=eth0"
-  #notify:
-  #- restart network
+  lineinfile: dest=/etc/sysconfig/network line="GATEWAYDEV=eth0"
 
 - name: restart network
   meta: flush_handlers
