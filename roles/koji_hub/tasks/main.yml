@@ -90,18 +90,8 @@
   - selinux
   - koji_hub
 
-- name: koji fedmsg plugin
-  template: src=fedmsg-koji-plugin.py dest=/usr/lib/koji-hub-plugins/fedmsg-koji-plugin.py
-  when: env != 'staging'
-  notify:
-  - reload httpd
-  tags:
-  - config
-  - koji_hub
-
 - name: install fedora-messaging as a dependency for the plugin
   package: name={{ item }} state=present
-  when: env == 'staging'
   with_items:
   - python2-fedora-messaging
   - python2-koji-sidetag-plugin-hub
@@ -111,7 +101,6 @@
   - fedora-messaging
 
 - name: create the config folder for fedora-messaging
-  when: env == 'staging'
   file: path=/etc/fedora-messaging/ owner=root group=root mode=0755 state=directory
   tags:
   - koji_hub
@@ -121,14 +110,12 @@
   template:
       src=fedora-messaging.toml
       dest=/etc/fedora-messaging/config.toml
-  when: env == 'staging'
   tags:
   - config
   - koji_hub
   - fedora-messaging
 
 - name: create folder where we'll place the certs
-  when: env == 'staging'
   file: path=/etc/pki/rabbitmq/kojicert/ owner=root group=root mode=0755 state=directory
   tags:
   - config
@@ -139,7 +126,6 @@
   copy: src={{ item.src }}
         dest=/etc/pki/rabbitmq/kojicert/{{ item.dest }}
         owner={{ item.owner }} group=root mode={{ item.mode }}
-  when: env == 'staging'
   with_items:
     - src: "{{private}}/files/rabbitmq/{{env}}/pki/issued/koji{{ env_suffix }}.crt"
       dest: koji.crt
@@ -164,7 +150,6 @@
       dest: /usr/lib/koji-hub-plugins/fedmsg-koji-plugin.py
       mode: 0644
       checksum: sha256:a20cd840cc2f0aa6f9720e9fe985777b614931b112e975e11aeaca2a3d185405
-  when: env == 'staging'
   notify:
   - reload httpd
   tags:
