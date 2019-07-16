@@ -46,9 +46,19 @@ config = {
                     "key": "testkey",
                     "keyid": "d300e724"
                 },
+                # Sign and move the builds from the default Rawhide target
+                # into the one used by bodhi.
                 {
                     "from": "f31-updates-candidate",
                     "to": "f31-updates-testing-pending",
+                    "key": "testkey",
+                    "keyid": "d300e724"
+                },
+                # Move the builds from the stable-pending, where bodhi put
+                # them post-gating, into the buildroot
+                {
+                    "from": "f31-stable-pending",
+                    "to": "f31",
                     "key": "testkey",
                     "keyid": "d300e724"
                 },
