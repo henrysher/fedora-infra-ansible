@@ -54,14 +54,6 @@ config = {
                     "key": "testkey",
                     "keyid": "d300e724"
                 },
-                # Move the builds from the stable-pending, where bodhi put
-                # them post-gating, into the buildroot
-                {
-                    "from": "f31-updates-pending",
-                    "to": "f31",
-                    "key": "testkey",
-                    "keyid": "d300e724"
-                },
                 # Gated bodhi updates
                 # Non-gated bodhi triggered
             ],
