@@ -74,7 +74,10 @@ echo "disable server mirror-lists-backend/mirrorlist-local1" | nc -U /var/run/ha
 sleep ${TIME_DISABLE}
 
 # restart mirrorlist1 (new pkl and make sure it's processing ok)
-systemctl restart mirrorlist1
+systemctl stop mirrorlist1
+sleep 1
+systemctl start mirrorlist1
+
 
 sleep ${TIME_RESTART}
 curl -q -H mirrors.fedoraproject.org ${mirrorlist1} -s -f --retry 50 --retry-delay 10 --retry-connrefused --retry-max-time 180 | grep "sha512" >/dev/null
@@ -97,7 +100,9 @@ echo "disable server mirror-lists-backend/mirrorlist-local2" | nc -U /var/run/ha
 sleep ${TIME_DISABLE}
 
 # restart mirrorlist2
-systemctl restart mirrorlist2
+systemctl stop mirrorlist2
+sleep 1
+systemctl start mirrorlist2
 
 sleep ${TIME_RESTART}
 curl -q -H mirrors.fedoraproject.org ${mirrorlist2} -o/dev/null -s -f --retry 50 --retry-delay 10 --retry-connrefused --retry-max-time 180
@@ -119,7 +124,9 @@ echo "disable server mirror-lists-backend/mirrorlist-local3" | nc -U /var/run/ha
 sleep ${TIME_DISABLE}
 
 # restart mirrorlist3
-systemctl restart mirrorlist3
+systemctl stop mirrorlist3
+sleep 1
+systemctl start mirrorlist3
 
 sleep ${TIME_RESTART}
 curl -q -H mirrors.fedoraproject.org ${mirrorlist3} -o/dev/null -s -f --retry 50 --retry-delay 10 --retry-connrefused --retry-max-time 180
