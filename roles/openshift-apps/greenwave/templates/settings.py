@@ -26,6 +26,7 @@ WAIVERDB_API_URL = 'https://waiverdb-web-waiverdb.app.os.fedoraproject.org/api/v
 RESULTSDB_API_URL = 'https://taskotron.fedoraproject.org/resultsdb_api/api/v2.0'
 GREENWAVE_API_URL = 'https://greenwave.fedoraproject.org/api/v1.0'
 CORS_URL = 'https://bodhi.fedoraproject.org'
+MESSAGING = "fedora-messaging"
 {% endif %}
 
 CACHE = {

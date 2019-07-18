@@ -55,7 +55,6 @@ spec:
         kind: ImageStreamTag
         name: greenwave:latest
   - type: ConfigChange
-{% if env == 'staging' %}
 ---
 # For fedmsg consumers
 apiVersion: v1
@@ -129,76 +128,6 @@ spec:
         kind: ImageStreamTag
         name: greenwave:latest
   - type: ConfigChange
-{% else %}
----
-# For fedmsg consumers
-apiVersion: v1
-kind: DeploymentConfig
-metadata:
-  name: greenwave-fedmsg-consumers
-  labels:
-    app: greenwave
-    service: fedmsg-consumers
-spec:
-  replicas: 1
-  selector:
-    service: fedmsg-consumers
-  template:
-    metadata:
-      labels:
-        app: greenwave
-        service: fedmsg-consumers
-    spec:
-      containers:
-      - name: fedmsg-consumers
-        image: registry/greenwave:latest
-        ports:
-        - containerPort: 8081
-        command:
-        - '/usr/bin/fedmsg-hub-3'
-        volumeMounts:
-        - name: config-volume
-          mountPath: /etc/greenwave
-          readOnly: true
-        - name: fedmsg-config-volume
-          mountPath: /etc/fedmsg-greenwave.d
-          readOnly: true
-        - name: fedmsg-key-volume
-          mountPath: /etc/pki/fedmsg/key
-          readOnly: true
-        - name: fedmsg-crt-volume
-          mountPath: /etc/pki/fedmsg/crt
-          readOnly: true
-        resources:
-          limits:
-            memory: 384Mi
-      volumes:
-      # Give the fedmsg-consumer container access to the general config
-      - name: config-volume
-        configMap:
-          name: greenwave-configmap
-      # But *also* access to the fedmsg-specific config
-      - name: fedmsg-config-volume
-        configMap:
-          name: greenwave-fedmsg-configmap
-      # And... this secret volume gets set up in the playbook
-      - name: fedmsg-key-volume
-        secret:
-          secretName: greenwave-fedmsg-key
-      - name: fedmsg-crt-volume
-        secret:
-          secretName: greenwave-fedmsg-crt
-  triggers:
-  - type: ImageChange
-    imageChangeParams:
-      automatic: true
-      containerNames:
-      - fedmsg-consumers
-      from:
-        kind: ImageStreamTag
-        name: greenwave:latest
-  - type: ConfigChange
-{% endif %}
 ---
 # For memcached
 apiVersion: v1
