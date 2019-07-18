@@ -77,6 +77,10 @@ sleep ${TIME_DISABLE}
 systemctl stop mirrorlist1
 sleep 1
 systemctl start mirrorlist1
+if [[ ${?} -ne 0 ]]; then
+    echo "Unable to start mirrorlist1"
+    exit 1
+fi
 
 
 sleep ${TIME_RESTART}
@@ -103,6 +107,10 @@ sleep ${TIME_DISABLE}
 systemctl stop mirrorlist2
 sleep 1
 systemctl start mirrorlist2
+if [[ ${?} -ne 0 ]]; then
+    echo "Unable to start mirrorlist2"
+    exit 1
+fi
 
 sleep ${TIME_RESTART}
 curl -q -H mirrors.fedoraproject.org ${mirrorlist2} -o/dev/null -s -f --retry 50 --retry-delay 10 --retry-connrefused --retry-max-time 180
@@ -127,6 +135,10 @@ sleep ${TIME_DISABLE}
 systemctl stop mirrorlist3
 sleep 1
 systemctl start mirrorlist3
+if [[ ${?} -ne 0 ]]; then
+    echo "Unable to start mirrorlist3"
+    exit 1
+fi
 
 sleep ${TIME_RESTART}
 curl -q -H mirrors.fedoraproject.org ${mirrorlist3} -o/dev/null -s -f --retry 50 --retry-delay 10 --retry-connrefused --retry-max-time 180
