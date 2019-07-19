@@ -56,6 +56,9 @@
   notify:
   - reload httpd
 
+- name: letsencrypt for copr-dist-git
+  include_role: name=copr/certbot
+
 - name: install copr-dist-git httpd config
   copy: src="httpd/{{ item }}" dest="/etc/httpd/conf.d/{{ item }}"
   with_items:
@@ -65,33 +68,9 @@
   notify:
   - reload httpd
 
-- name: letsencrypt cert
-  include_role: name=certbot
-
 - template: src="ssl.conf.j2" dest="/etc/httpd/conf.d/ssl.conf" owner=root group=root mode=0644
   notify:
   - reload httpd
-
-- name: certbot, correct fcontext mapping the web root
-  sefcontext:
-    target: '/srv/web/acme-challenge/.well-known(/.*)'
-    setype: httpd_sys_content_t
-    state: present
-
-- name: certbot, restorecon the web root
-  file:
-    path: /srv/web/acme-challenge/.well-known
-    state: directory
-    setype: httpd_sys_content_t
-
-- name: Install config for cert renewal
-  template: src="sysconfig/certbot" dest="/etc/sysconfig/certbot" owner=root group=root
-
-- name: Automatize cert renewal
-  service:
-    name: certbot-renew.timer
-    state: started
-    enabled: yes
 
 - name: temporary logrotation fix until copr-dist-git 0.26 is released & deployed
   copy: src="logrotate.d/copr-dist-git" dest="/etc/logrotate.d/copr-dist-git"

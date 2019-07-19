@@ -93,12 +93,13 @@
   notify:
   - restart lighttpd
 
+# TODO: move production to Let's Encrypt as well as devel
 - name: install certificates for production
   when: not devel
   import_tasks: "install_certs.yml"
 
 - name: letsencrypt cert
-  import_tasks: "letsencrypt.yml"
+  include_role: name=copr/certbot
   when: devel
   tags:
   - config

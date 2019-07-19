@@ -1,0 +1,13 @@
+# Usually it is enough to do `certbot renew --dry-run` to check that certbot is
+# configured correctly (anytime, without rate limits).  You can though (up to 5x
+# a week) try force renewal.  It is both affecting your letsencrypt quota, and
+# it requires web server restart.  But if you still want to try, please
+# uncomment the following config option, and hit `systemctl start
+# certbot-renew.service`.  WARNING WARNING  Don't forget to comment it again!
+#CERTBOT_ARGS="--force-renewal"
+{% if letsencrypt.predefined_deploy_script %}
+
+# Execute the script after certificate renewal, usually this is needed to
+# restart web server, etc.
+DEPLOY_HOOK="--deploy-hook /usr/libexec/auto-certbot-deploy"
+{% endif %}

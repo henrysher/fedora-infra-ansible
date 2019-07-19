@@ -1,0 +1,60 @@
+- name: install certbot package
+  package: name=certbot state=present
+
+- name: install certbot config
+  template: src=certbot.j2 dest=/etc/sysconfig/certbot
+            mode=0644
+
+- name: install certbot deploy script
+  template: src={{ letsencrypt.predefined_deploy_script }}
+            dest=/usr/libexec/auto-certbot-deploy
+            mode=0755
+  when: letsencrypt.predefined_deploy_script is defined
+
+- name: check whether we need to initialize letsencrypt first
+  stat: path="/etc/letsencrypt/live/{{ item.key }}"
+  register: le_stat_checks
+  with_dict: "{{ letsencrypt.certificates }}"
+
+- name: initialize certbot configuration
+  shell: |
+      certbot certonly --standalone \
+            -w {{ item.item.value.challenge_dir }} \
+            -d {{ item.item.value.domains | join(' -d ') }} \
+            --cert-name {{ item.item.key }} \
+            -m {{ item.item.value.mail }} \
+            --agree-tos \
+            -n >> /tmp/call
+  when:
+  - not item.stat.exists
+  with_items: "{{ le_stat_checks.results }}"
+
+
+- name: configure certbot to use webroot next time
+  ini_file: dest="/etc/letsencrypt/renewal/{{ item.item.key }}.conf"
+            section=renewalparams
+            option=authenticator
+            value=webroot
+  with_items: "{{ le_stat_checks.results }}"
+
+- name: configure certbot to use webroot next time
+  ini_file: dest="/etc/letsencrypt/renewal/{{ item.item.key }}.conf"
+            section=renewalparams
+            option=webroot_path
+            value="{{ item.item.value.challenge_dir }},"
+  with_items: "{{ le_stat_checks.results }}"
+
+- name: post init script
+  shell: |
+      /usr/libexec/auto-certbot-deploy \
+            --init {{ item.item.key }}
+  when:
+  - letsencrypt.predefined_deploy_script is defined
+  - not item.stat.exists
+  with_items: "{{ le_stat_checks.results }}"
+
+- name: Automatize cert renewal
+  service:
+    name: certbot-renew.timer
+    state: started
+    enabled: yes

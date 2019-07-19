@@ -1,0 +1,26 @@
+#! /bin/sh
+
+set -e
+
+pem_fixup()
+{
+    cat "/etc/letsencrypt/live/$1/cert.pem" \
+        "/etc/letsencrypt/live/$1/privkey.pem" \
+    > "/etc/letsencrypt/live/$1/combined.pem"
+}
+
+case $1 in
+  --init)
+    pem_fixup "$2"
+    exit 0
+    ;;
+esac
+
+# Automatically called by certbot.
+test -z "$RENEWED_DOMAINS" && echo "you are not certbot" && exit 1
+
+for domain in $RENEWED_DOMAINS; do
+    pem_fixup "$domain"
+done
+
+systemctl restart lighttpd
