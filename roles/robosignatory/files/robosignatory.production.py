@@ -242,6 +242,18 @@ config = {
                     "keyid": "34ec9cba"
                 },
                 {
+                    "from": "epel8-pending",
+                    "to": "epel8",
+                    "key": "epel-8",
+                    "keyid": "2f86d6a1"
+                },
+                {
+                    "from": "epel8-playground-pending",
+                    "to": "epel8-playground",
+                    "key": "epel-8",
+                    "keyid": "2f86d6a1"
+                },
+                {
                     "from": "epel7-signing-pending",
                     "to": "epel7-testing-pending",
                     "key": "epel-7",
