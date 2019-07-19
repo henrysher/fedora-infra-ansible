@@ -99,6 +99,12 @@ config = {
                     "keyid": "47dd8ef9"
                 },
                 {
+                    "from": "epel8-infra-candidate",
+                    "to": "epel8-infra-stg",
+                    "key": "fedora-infra",
+                    "keyid": "47dd8ef9"
+                },
+                {
                     "from": "f26-infra-candidate",
                     "to": "f26-infra-stg",
                     "key": "fedora-infra",
