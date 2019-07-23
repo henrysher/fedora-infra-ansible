@@ -38,6 +38,12 @@ config = {
             'tags': [
                 # Temporary tags
                 {
+                    "from": "f31-rebuild",
+                    "to": "f31-rebuild",
+                    "key": "fedora-31",
+                    "keyid": "3c3359c4"
+                },
+                {
                     "from": "f31-kde",
                     "to": "f31-kde",
                     "key": "fedora-31",
