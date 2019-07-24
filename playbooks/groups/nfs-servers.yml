@@ -159,6 +159,30 @@
       tags:
       - drives
 
+    - name: create 100 GB communishift logical volumes
+      lvol: vg=VG_nfs lv=openshift-100gb-{{item}} size=100g shrink=no
+      with_items: ["00","01"]
+      tags:
+      - drives
+
+    - name: Create FS for 100 GB communishift logical volules
+      filesystem: fstype=xfs dev=/dev/VG_nfs/openshift-100gb-{{item}}
+      with_items: ["00","01"]
+      tags:
+      - drives
+
+    - name: Create openshift 100GB tree directories
+      file: path=/srv/nfs/openshift-100gb-{{item}} state=directory owner=root group=root
+      with_items: ["00","01"]
+      tags:
+      - drives
+
+    - name: Mount openshift 100GB tree directories
+      mount: name=/srv/nfs/openshift-100gb-{{item}} src=/dev/mapper/VG_nfs-openshift--100gb--{{item}} fstype=xfs state=mounted
+      with_items: ["00","01"]
+      tags:
+      - drives
+
 - name: Deal with NFS
   hosts: storinator01.fedorainfracloud.org
   user: root
