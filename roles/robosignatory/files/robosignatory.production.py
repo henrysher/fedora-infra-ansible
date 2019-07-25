@@ -163,6 +163,12 @@ config = {
 
                 # Gated rawhide and branched
                 {
+                    "from": "f31-updates-candidate",
+                    "to": "f31-updates-testing-pending",
+                    "key": "fedora-31",
+                    "keyid": "3c3359c4"
+                },
+                {
                     "from": "f31-pending",
                     "to": "f31",
                     "key": "fedora-31",
