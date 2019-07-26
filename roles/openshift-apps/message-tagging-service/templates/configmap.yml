@@ -6,15 +6,16 @@ metadata:
   labels:
     app: "{{ app }}"
 data:
-  app_config.py: |-
+  config.py: |-
     class BaseConfiguration:
-        # Set this to False when MTS is ready to work on either stg or prod
+        # FIXME: Set this to False when MTS is ready to work on either stg or prod
         dry_run = True
+
+        log_level = 'DEBUG'
 
         keytab = '/etc/krb5.keytab'
         principal = '{{ app }}/{{ app }}{{ env_suffix }}.fedoraproject.org@{{ ipa_realm }}'
 
-        log_level = 'INFO'
         messaging_backend = 'fedmsg'
         messaging_backends = {
             'fedmsg': {'service': 'mts'},
@@ -47,6 +48,7 @@ metadata:
 data:
   mts.py: |-
     config = {
+        'zmq_enabled': True,
         'mts-consumer': True,
         'validate_signatures': False,
         'active': True,

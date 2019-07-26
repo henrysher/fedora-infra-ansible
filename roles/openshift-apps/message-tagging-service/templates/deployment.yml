@@ -18,6 +18,7 @@ spec:
     spec:
       containers:
       - name: "{{ app }}"
+        image: "quay.io/factory2/{{ app }}:{{ quay_tag }}"
         ports:
         - containerPort: 8080
         volumeMounts:
@@ -51,6 +52,12 @@ spec:
             path: /
             port: 8080
       volumes:
+      - name: "{{ app }}-config"
+        configMap:
+          name: "{{ app }}-config"
+      - name: "{{ app }}-fedmsg"
+        configMap:
+          name: "{{ app }}-fedmsg"
       - name: keytab
         secret:
           secretName: keytab
