@@ -17,15 +17,15 @@ spec:
         service: mts
     spec:
       containers:
-      - name: "{{ app }}"
-        image: "quay.io/factory2/{{ app }}:{{ quay_tag }}"
+      - name: mts
+        image: quay.io/factory2/message-tagging-service:{{ quay_tag }}
         ports:
         - containerPort: 8080
         volumeMounts:
-        - name: "{{ app }}-config"
+        - name: "mts-config"
           mountPath: /etc/mts
           readOnly: true
-        - name: "{{ app }}"-fedmsg
+        - name: "mts-fedmsg"
           mountPath: /etc/fedmsg.d
           readOnly: true
         - name: keytab
@@ -52,12 +52,12 @@ spec:
             path: /
             port: 8080
       volumes:
-      - name: "{{ app }}-config"
+      - name: "mts-config"
         configMap:
-          name: "{{ app }}-config"
-      - name: "{{ app }}-fedmsg"
+          name: "mts-config"
+      - name: "mts-fedmsg"
         configMap:
-          name: "{{ app }}-fedmsg"
+          name: "mts-fedmsg"
       - name: keytab
         secret:
           secretName: keytab
@@ -70,4 +70,4 @@ spec:
           - "{{ app }}"
           from:
             kind: ImageStreamTag
-            name: "{{ app }}:latest"
+            name: "message-tagging-service:latest"
