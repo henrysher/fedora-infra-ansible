@@ -19,7 +19,7 @@ if 'PAGURE_CONFIG' not in os.environ \
 
 
 _config = pagure.config.reload_config()
-session = pagure.lib.create_session(_config['DB_URL'])
+session = pagure.lib.model_base.create_session(_config['DB_URL'])
 
 
 def get_issue_users(session, user_id):
