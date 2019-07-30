@@ -56,8 +56,8 @@ config = {
                     "keyid": "3c3359c4"
                 },
                 {
-                    "from": "f31-boost",
-                    "to": "f31-boost",
+                    "from": "f31-ghc",
+                    "to": "f31-ghc",
                     "key": "fedora-31",
                     "keyid": "3c3359c4"
                 },
