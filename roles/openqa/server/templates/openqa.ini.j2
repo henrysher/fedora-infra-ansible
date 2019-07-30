@@ -2,11 +2,16 @@
 branding = plain
 base_url = https://{{ external_hostname }}
 download_domains = fedoraproject.org
-{% if deployment_type is defined %}
-plugins = Fedmsg FedoraUpdateRestart
+{% if openqa_webapi_plugins is defined and openqa_webapi_plugins %}
+plugins = {{ openqa_webapi_plugins }}
 {% endif %}
 hide_asset_types = repo iso hdd
 parallel_cancel_whole_cluster = 0
+
+[amqp]
+topic_prefix = fedora
+url = {{ openqa_amqp_publisher_url }}
+exchange = {{ openqa_amqp_publisher_exchange }}
 
 [auth]
 method=OpenID

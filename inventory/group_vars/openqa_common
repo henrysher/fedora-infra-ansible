@@ -21,6 +21,12 @@ openqa_assetsize_updates: 100
 # allowed to create queues on the infra AMQP broker, by broker config
 openqa_amqp_passive: true
 
+# fedora-messaging publisher settings
+openqa_amqp_publisher_url: "amqps://openqa{{ openqa_env_suffix }}:@rabbitmq{{ openqa_env_suffix }}.fedoraproject.org/%2Fpubsub"
+# openQA isn't very ssl-aware here, so we're abusing its URL construction
+# to stuff the cert and key values in here
+openqa_amqp_publisher_exchange: "amq.topic&cacertfile=/etc/fedora-messaging/cacert{{ openqa_env_suffix }}.pem&certfile=/etc/pki/fedora-messaging/openqa{{ openqa_env_suffix }}-cert.pem&keyfile=/etc/pki/fedora-messaging/openqa{{ openqa_env_suffix }}-key.pem"
+
 # fedora-messaging job scheduler settings: most of these are the same
 # for prod and stg as they both must listen for prod messages. Only
 # the queue names differs
