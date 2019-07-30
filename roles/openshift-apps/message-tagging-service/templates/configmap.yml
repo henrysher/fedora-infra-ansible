@@ -100,3 +100,29 @@ data:
             }
         },
     })
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: "koji-conf"
+  labels:
+    app: "mts"
+data:
+{% if env == 'staging' %}
+  stg.conf: |-
+    [stg]
+    server = https://koji.stg.fedoraproject.org/kojihub
+    weburl = https://koji.stg.fedoraproject.org/koji
+    topurl = https://kojipkgs.stg.fedoraproject.org/
+    authtype = kerberos
+    krb_rdns = false
+{% else %}
+  koji.conf: |-
+    [koji]
+    server = https://koji.fedoraproject.org/kojihub
+    weburl = https://koji.fedoraproject.org/koji
+    topurl = https://kojipkgs.fedoraproject.org/
+    authtype = kerberos
+    krb_rdns = false
+{% endif %}

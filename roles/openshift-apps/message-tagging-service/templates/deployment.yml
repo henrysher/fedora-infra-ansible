@@ -28,6 +28,13 @@ spec:
         - name: "mts-fedmsg"
           mountPath: /etc/fedmsg.d
           readOnly: true
+        - name: "koji-conf"
+{% if env == 'staging' %}
+          mountPath: /etc/koji.conf.d
+{% else %}
+          mountPath: /etc/
+{% endif %}
+          readOnly: true
         - name: keytab
           mountPath: /etc/krb5.keytab
           subPath: krb5.keytab
@@ -58,6 +65,9 @@ spec:
       - name: "mts-fedmsg"
         configMap:
           name: "mts-fedmsg"
+      - name: "koji-conf"
+        configMap:
+          name: "koji-conf"
       - name: keytab
         secret:
           secretName: keytab
