@@ -260,8 +260,8 @@ config = {
                     "keyid": "34ec9cba"
                 },
                 {
-                    "from": "epel8-pending",
-                    "to": "epel8",
+                    "from": "epel8-signing-pending",
+                    "to": "epel8-testing-pending",
                     "key": "epel-8",
                     "keyid": "2f86d6a1"
                 },
