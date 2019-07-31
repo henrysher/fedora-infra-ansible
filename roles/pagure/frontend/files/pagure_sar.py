@@ -9,7 +9,8 @@ import sys
 import sqlalchemy
 
 import pagure.config
-import pagure.lib
+import pagure.lib.query
+import pagure.lib.model_base
 from pagure.lib import model
 
 
@@ -99,9 +100,9 @@ def main():
 
     users = []
     if username:
-        users.append(pagure.lib.search_user(session, username=username))
+        users.append(pagure.lib.query.search_user(session, username=username))
     if email:
-        user_email = pagure.lib.search_user(session, email=email)
+        user_email = pagure.lib.query.search_user(session, email=email)
         if user_email not in users:
             users.append(user_email)
 
@@ -114,7 +115,7 @@ def main():
         temp = {}
         temp['user_info'] = user.to_json(public=False)
 
-        projects = pagure.lib.search_projects(session, user.username)
+        projects = pagure.lib.query.search_projects(session, user.username)
         projects = [
             project.to_json()
             for project in projects
