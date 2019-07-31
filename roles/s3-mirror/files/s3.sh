@@ -14,9 +14,6 @@ CMD="aws s3 sync                   \
   --exclude */ppc64/*              \
   --exclude */repoview/*           \
   --exclude */Fedora/*             \
-  --exclude */Live/*               \
-  --exclude */isolinux/*           \
-  --exclude */images/*             \
   --exclude */EFI/*                \
   --exclude */core/*               \
   --exclude */extras/*             \
