@@ -21,7 +21,10 @@
 - when:
     message_type: KojiTagChanged
     tag:
-      $regex: '/^f[0-9]{2}-updates(-testing)?-pending$$/'
+      $and:
+        - $regex: '/^f[0-9]{2}-updates(-testing)?-pending$$/'
+        - $not:
+            $regex: '/^f31-.*/'  # Rawhide CI gating not supported yet
   do:
     - tasks:
         - rpmdeplint
@@ -38,4 +41,3 @@
         - x86_64
       match_host_arch: True
 {% endif %}
-
