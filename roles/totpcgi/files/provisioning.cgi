@@ -24,7 +24,7 @@ import syslog
 import logging
 
 import cgitb
-cgitb.enable()
+cgitb.enable(display=0, logdir="/tmp")
 
 import totpcgi
 import totpcgi.backends
