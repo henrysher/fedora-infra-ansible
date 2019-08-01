@@ -12,6 +12,11 @@
 #                       with your username. For example, with a username of
 #                       "bodhi", your queue could be named "bodhi_masher".
 #   - routing_keys (list): A list of strings to use as routing keys.
+#
+# Optional parameters:
+#
+#   - write_queues (list): A list of queue name prefixes to which the user will
+#                          be allowed to publish.
 
 - assert:
     that:
@@ -25,8 +30,11 @@
   rabbitmq_user:
     user: "{{ username }}"
     vhost: "{{ vhost }}"
-    read_priv: "^(zmq\\.topic)|^(amq\\.topic)|({{ username }}.*)$"  # Read from queues prefixed with their name and bind to the topic exchange
-    write_priv: "^(amq\\.topic)|({{ username }}.*)$"  # Write to queues prefixed with their name and publish to the topic exchange
+    # Read from queues prefixed with their name and bind to the topic exchange
+    read_priv: "^(zmq\\.topic)|^(amq\\.topic)|({{ username }}.*)$"
+    # Write to queues prefixed with their name and any prefixes in
+    # write_queues, and publish to the topic exchange
+    write_priv: "^(amq\\.topic)|({{ username }}.*){% for queue in write_queues|default([]) %}|({{ queue }}.*){% endfor %}$"
     configure_priv: "^$"  # No configuration permissions
     state: present
 
