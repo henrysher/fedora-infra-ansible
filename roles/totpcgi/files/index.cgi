@@ -28,6 +28,9 @@ import urllib2
 import totpcgi
 import totpcgi.backends
 
+import cgitb
+cgitb.enable(display=0, logdir="/tmp")
+
 if len(sys.argv) > 1:
     # blindly assume it's the config file
     config_file = sys.argv[1]
