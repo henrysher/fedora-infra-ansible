@@ -233,16 +233,26 @@
   tags:
   - nagios_client
 
+- name: install nrpe config for the RabbitMQ checks
+  template:
+    src: "rabbitmq_args.ini.j2"
+    dest: "/etc/nrpe.d/rabbitmq_args.ini"
+    owner: root
+    group: nrpe
+    mode: 0640
+  when: inventory_hostname.startswith('rabbitmq')
+  tags:
+  - nagios_client
+
 - name: install nrpe checks for the RabbitMQ cluster
   template:
     src: "{{ item }}.j2"
     dest: "/etc/nrpe.d/{{ item }}"
     owner: root
     group: root
-    mode: 0600
+    mode: 0644
   with_items:
   - check_rabbitmq_server.cfg
-  - rabbitmq_args.cfg
   when: inventory_hostname.startswith('rabbitmq')
   notify:
   - restart nrpe
