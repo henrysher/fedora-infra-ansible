@@ -233,6 +233,21 @@
   tags:
   - nagios_client
 
+- name: install nrpe checks for the RabbitMQ cluster
+  template:
+    src: "{{ item }}.j2"
+    dest: "/etc/nrpe.d/{{ item }}"
+    owner: root
+    group: root
+    mode: 0600
+  with_items:
+  - rabbitmq_args.cfg
+  when: inventory_hostname.startswith('rabbitmq')
+  notify:
+  - restart nrpe
+  tags:
+  - nagios_client
+
 - name: nrpe service start
   service: name=nrpe state=started enabled=true
   tags:
