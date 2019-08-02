@@ -144,12 +144,18 @@
   - koji_hub
   - fedora-messaging
 
+# discuss how best to manage this plugin
+#- name: koji fedora-messaging plugin - installed as fedmsg-koji-plugin
+#  get_url:
+#      url: https://pagure.io/koji-fedmsg-plugin/raw/master/f/fedmsg-koji-plugin.py
+#      dest: /usr/lib/koji-hub-plugins/fedmsg-koji-plugin.py
+#      mode: 0644
+#      checksum: sha256:a20cd840cc2f0aa6f9720e9fe985777b614931b112e975e11aeaca2a3d185405
 - name: koji fedora-messaging plugin - installed as fedmsg-koji-plugin
-  get_url:
-      url: https://pagure.io/koji-fedmsg-plugin/raw/master/f/fedmsg-koji-plugin.py
-      dest: /usr/lib/koji-hub-plugins/fedmsg-koji-plugin.py
-      mode: 0644
-      checksum: sha256:a20cd840cc2f0aa6f9720e9fe985777b614931b112e975e11aeaca2a3d185405
+  template:
+        src: fedmsg-koji-plugin.py
+        dest: /usr/lib/koji-hub-plugins/fedmsg-koji-plugin.py
+        mode: 644
   notify:
   - reload httpd
   tags:
