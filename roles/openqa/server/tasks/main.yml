@@ -18,6 +18,9 @@
 ##       default - ansible_nodename
 # - openqa_webapi_plugins
 ##       string - Space-separated list of openQA WebAPI plugins to enable
+##                Note if you enable FedoraMessaging or AMQP plugins, you should
+##                also set openqa_amqp_publisher_prefix, openqa_amqp_publisher_url
+##                and openqa_amqp_publisher_exchange
 ##       default - FedoraUpdateRestart
 
 # Optional vars
@@ -41,15 +44,35 @@
 ##             (upstream default is 100GB). Lower is recommended for normal
 ##             Fedora testing, 50GB is good
 ##             FIXME: this only works for pgsql ATM
+# - openqa_amqp_publisher_prefix
+##      string - openQA AMQP 'topic_prefix' config value. This prefix is
+##               prepended to the topic when publishing messages with the
+##               AMQP or FedoraMessaging plugins, with a . added (so don't
+##               include the . in the value). If set to an empty string,
+##               openQA from before August 2019 will use 'suse' as the
+##               prefix; later openQA will omit the prefix entirely
+##      default - '' (empty string)
+# - openqa_amqp_publisher_url
+##      string - AMQP broker URL for publishing messages with the AMQP or
+##               FedoraMessaging plugins, e.g.
+##               amqps://fedora:@rabbitmq.fedoraproject.org/%2Fpubsub
+##      default - amqp://test:@localhost/%2Fpubsub
+# - openqa_amqp_publisher_exchange
+##      string - exchange to publish AMQP messages to with AMQP or
+##               FedoraMessaging plugins, e.g. amq.topic. Note, this can
+##               be (ab)used to set additional query parameters for the
+##               publish request, by just appending them, e.g.
+##               amq.topic&cacertfile=/path/to/ca_certificate_file
+##      default - amq.topic
 # - deployment_type
 ##      string - Fedora Infrastructure thing; for this role, applies an
 ##               infra-specific tweak to httpd config. Don't set it outside
 ##               Fedora infra.
-#
-# If openqa_dbhost is set, the others must be too, and the server will be
-# configured to use a pgsql database accordingly. If openqa_dbhost is not
-# set, the server will use a local SQLite database and the other values
-# are ignored.
+
+# If openqa_dbhost is set, the other openqa_db* variables must be too,
+# and the server will be configured to use a pgsql database accordingly.
+# If openqa_dbhost is not set, the server will use a local SQLite database
+# and the other openqa_db* values are ignored.
 
 - name: Create geekotest group with static GID
   group: "name=geekotest gid={{ openqa_static_uid }} system=yes"
