@@ -275,7 +275,7 @@
   tags:
   - rabbitmq_cluster
   - config
-  
+
 - name: Configure a policy to ensure the public vhost stays swept up and tidy
   run_once: true
   delegate_to: "rabbitmq01{{ env_suffix }}.phx2.fedoraproject.org"
@@ -395,6 +395,24 @@
       federation-upstream: "pubsub-to-public_pubsub"
     vhost: /public_pubsub
 
+# SELinux: allow the Nagios NRPE plugin to access the management interface
+- name: install the selinux module compilation script
+  copy:
+    src: selinux-load.sh
+    dest: /etc/nagios/selinux-load.sh
+    mode: 0755
+
+- name: copy over our custom selinux module
+  copy:
+    src: nrpe_rabbitmq.te
+    dest: /etc/nagios/nrpe_rabbitmq.te
+  register: selinux_module
+
+- name: compile and install our custom selinux module
+  command: /etc/nagios/selinux-load.sh
+  when: selinux_module is changed
+
+# Individual applications accounts & queues
 - import_tasks: apps.yml
   tags:
   - rabbitmq_cluster
