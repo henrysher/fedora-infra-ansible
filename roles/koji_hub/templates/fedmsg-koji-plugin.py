@@ -183,6 +183,10 @@ def queue_message(cbtype, *args, **kws):
                                 body.get('sigkey') == ''):
         return
 
+    # Also, do not want to send a message on volume_id changes
+    if topic == 'build.state.change' and body.get('attribute') == 'volume_id':
+        return
+
     # Last thing to do before publishing: scrub some problematic fields
     # These fields are floating points which get json-encoded differently on
     # rhel and fedora.
