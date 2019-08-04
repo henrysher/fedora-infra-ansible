@@ -3,6 +3,15 @@
   with_items:
   - "postgresql-server"
   - "postgresql-contrib"
+  - "httpd-filesystem"
+
+- name: directory for postgresql dumps
+  file: state=directory path=/var/www/html/db_dumps/
+        owner=root mode=755
+
+- name: allow postgres writing to db_dumps dir
+  acl: path=/var/www/html/db_dumps/
+       entity=postgres permissions=rwx etype=user state=present
 
 - name: See if PostgreSQL is initialized
   stat: path=/var/lib/pgsql/data/PG_VERSION
