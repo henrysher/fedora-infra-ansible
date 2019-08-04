@@ -66,9 +66,6 @@
   tags:
   - config
 
-- name: copy crond conf
-  copy: src="crond" dest="/etc/sysconfig/crond"
-
 - name: copy apache files to conf.d (templates)
   template: src="httpd/{{ item }}" dest="/etc/httpd/conf.d/{{ item }}"
   with_items:
@@ -124,6 +121,9 @@
   template: src="httpd/coprs_ssl.conf.j2" dest="/etc/httpd/conf.d/coprs_ssl.conf"
   tags:
   - config
+
+- name: configure crond
+  copy: src=sysconfig.crond dest=/etc/sysconfig/crond
 
 - name: enable services
   service: state=started enabled=yes name={{ item }}
