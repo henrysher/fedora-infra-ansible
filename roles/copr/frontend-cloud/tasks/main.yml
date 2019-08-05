@@ -1,8 +1,10 @@
 ---
 - import_tasks: "mount_fs.yml"
 
-- command: "ls -dZ /var/lib/pgsql"
+- name: register security context for pgsql directory
+  command: "ls -dZ /var/lib/pgsql"
   register: pgsql_ls
+  changed_when: False  # `ls' command is not changing anything
 
 - name: update selinux context for postgress db dir if it's wrong
   command: "restorecon -vvRF /var/lib/pgsql"
