@@ -1,0 +1,24 @@
+- name: install collectd-rabbitmq
+  package:
+    state: present
+    name: python2-collectd-rabbitmq
+  tags:
+  - packages
+  - collectd
+
+- name: install collectd rabbitmq config
+  template:
+    src: "rabbitmq-collectd.conf.j2"
+    dest: "/etc/collectd.d/rabbitmq.conf"
+    owner: root
+    group: root
+    mode: 0640
+  tags:
+  - collectd
+  - config
+  notify: restart collectd
+
+- name: Let collectd talk to the RabbitMQ management interface
+  seboolean: name=collectd_tcp_network_connect state=yes persistent=yes
+  tags:
+  - collectd
