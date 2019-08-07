@@ -841,7 +841,7 @@ openshift_node_env_vars={"ENABLE_HTTP2": "true"}
 {{ host }} openshift_node_group_name='node-config-master'
 {% endfor %}
 {% for host in groups[openshift_cluster_nodes_group] %}
-{{ host }} openshift_node_labels="{'region': 'infra', 'zone': 'default', 'node-role.kubernetes.io/compute': 'true'}" openshift_node_group_name='node-config-compute'
+{{ host }} openshift_node_group_name='node-config-compute'
 {% endfor %}
 
 {% else %}
@@ -883,3 +883,5 @@ openshift_node_env_vars={"ENABLE_HTTP2": "true"}
 {% endfor %}
 
 {% endif %}
+
+openshift_node_groups=[{'name': 'node-config-master', 'labels': ['node-role.kubernetes.io/master=true']}, {'name': 'node-config-infra', 'labels': ['node-role.kubernetes.io/infra=true',]}, {'name': 'node-config-compute', 'labels': ['node-role.kubernetes.io/compute=true'], 'edits': [{ 'key': 'kubeletArguments.pods-per-core','value': ['20']}]}]
