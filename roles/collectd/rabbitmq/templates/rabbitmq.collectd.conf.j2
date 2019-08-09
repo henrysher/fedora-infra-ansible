@@ -9,9 +9,12 @@ LoadPlugin python
     Realm "RabbitMQ Management"
     Host "localhost"
     Port "15672"
-    Ignore "^federation:"
-    {% if env != 'production' %}
-    VHostPrefix "stg_"
-    {% endif %}
+{% if env != 'production' %}
+    VHostPrefix "stg"
+{% endif %}
+    <Ignore "queue">
+      Regex "^federation%3A%20"
+      Regex "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+    </Ignore>
   </Module>
 </Plugin>
