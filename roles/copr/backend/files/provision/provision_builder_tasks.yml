@@ -27,6 +27,13 @@
 
 - name: clean dnf cache
   shell: dnf clean all
+  when:
+    - prepare_base_image is defined
+
+- name: set lower metadata expire time to enforce download
+  ini_file: dest=/etc/dnf/dnf.conf section=main option=metadata_expire value=1h
+  when:
+    - prepare_base_image is defined
 
 - name: install copr-builder
   dnf: state=latest pkg=copr-builder
