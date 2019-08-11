@@ -247,7 +247,12 @@
    fstype: swap
    state: absent
 
+- name: detect if swap is enabled
+  shell: test -n "$(swapon -s)"
+  register: swap_enabled
+  changed_when: false
+  failed_when: false
+
 - name: disable swap so that OOM killer can do his job
-  command: "{{ item }}"
-  with_items:
-  - swapoff -a
+  command: swapoff -a
+  when: swap_enabled.rc != 0
