@@ -20,7 +20,9 @@
   - hosts
   - fas_client
   - collectd/base
-  - collectd/rabbitmq
+  # RabbitMQ statistics are cluster-wide, only collect them on one member
+  - role: collectd/rabbitmq
+    when: inventory_hostname.startswith('rabbitmq03')
   - rsyncd
   - sudo
   - rabbitmq_cluster
