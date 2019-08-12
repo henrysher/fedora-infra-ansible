@@ -17,6 +17,9 @@
 #
 #   - write_queues (list): A list of queue name prefixes to which the user will
 #                          be allowed to publish.
+#   - thresholds (dict): A dictionary with two keys: "warning" and "critical".
+#                        The values are numbers. Generate an alert in Nagios if
+#                        the number of messages go above these values.
 
 - assert:
     that:
@@ -61,3 +64,25 @@
     login_user: admin
     login_password: "{{ (env == 'production')|ternary(rabbitmq_admin_password_production, rabbitmq_admin_password_staging) }}"
   loop: "{{ routing_keys }}"
+
+- name: Monitor the {{ queue_name }} queue in Nagios (NRPE)
+  when: thresholds and env == "production"
+  delegate_to: "{{ rabbitmq_server }}"
+  template:
+    src: nrpe.cfg.j2
+    dest: /etc/nrpe.d/check_rabbitmq_queue_{{ queue_name }}.cfg
+    owner: root
+    group: root
+    mode: 0644
+  notify:
+  - restart nrpe
+  tags:
+  - nagios_client
+
+- name: Monitor the {{ queue_name }} queue in Nagios
+  when: thresholds and env == "production"
+  delegate_to: "{{ nagios_server }}"
+  template:
+    src: nagios.cfg.j2
+    dest: /etc/nagios/services/rabbitmq-queue-{{ queue_name }}.cfg
+  notify: restart nagios
