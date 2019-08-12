@@ -21,9 +21,10 @@
 #                        The values are numbers. Generate an alert in Nagios if
 #                        the number of messages go above these values.
 
-- assert:
+- name: Validate parameters
+  assert:
     that:
-      - "queue_name.startswith(username)"
+    - "queue_name.startswith(username)"
     fail_msg: "Your queue name must be prefixed with your username"
 
 # See https://www.rabbitmq.com/access-control.html#permissions for details on
@@ -74,10 +75,7 @@
     owner: root
     group: root
     mode: 0644
-  notify:
-  - restart nrpe
-  tags:
-  - nagios_client
+  notify: restart nrpe on rabbitmq
 
 - name: Monitor the {{ queue_name }} queue in Nagios
   when: thresholds and env == "production"
@@ -85,4 +83,4 @@
   template:
     src: nagios.cfg.j2
     dest: /etc/nagios/services/rabbitmq-queue-{{ queue_name }}.cfg
-  notify: restart nagios
+  notify: restart nagios on noc
