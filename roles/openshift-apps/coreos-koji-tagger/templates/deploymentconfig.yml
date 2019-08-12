@@ -20,11 +20,17 @@ spec:
       - env:
         - name: COREOS_KOJI_TAGGER_KEYTAB_FILE
           value: /etc/coreos-koji-tagger-keytab/koji-keytab
-        - name: COREOS_KOJI_TAGGER_USE_STG
 {% if env == "staging" %}
+        - name: COREOS_KOJI_TAGGER_USE_STG
           value: "true"
-{% else %}
-          value: "false"
+        # We are using https://github.com/dustymabe/fedora-coreos-config/tree/fedora-infra-staging
+        # for now. Feel free to fork/create your own repo to test with and replace the values below.
+        # The repo must be set up with https://apps.fedoraproject.org/github2fedmsg so that it
+        # can get messages on the message bus when commits are made.
+        - name: GITHUB_REPO_FULLNAME
+          value: "dustymabe/fedora-coreos-config"
+        - name: GITHUB_REPO_BRANCH
+          value: "refs/heads/fedora-infra-staging"
 {% endif %}
         args: ['infinity']
         command: ['/usr/bin/sleep']
