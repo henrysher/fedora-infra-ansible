@@ -163,6 +163,46 @@ config = {
 
                 # Gated rawhide and branched
                 {
+                    "from": "f32-updates-candidate",
+                    "to": "f32-updates-testing-pending",
+                    "key": "fedora-32",
+                    "keyid": "12c944d0"
+                },
+                {
+                    "from": "f32-pending",
+                    "to": "f32",
+                    "key": "fedora-32",
+                    "keyid": "12c944d0"
+                },
+                {
+                    "from": "f32-modular-pending",
+                    "to": "f32-modular",
+                    "key": "fedora-32",
+                    "keyid": "12c944d0",
+                    "type": "modular"
+                },
+                {
+                    "from": "f32-modular-updates-candidate",
+                    "to": "f32-modular",
+                    "key": "fedora-32",
+                    "keyid": "12c944d0",
+                    "type": "modular"
+                },
+                {
+                    "from": "f31-signing-pending",
+                    "to": "f31-updates-testing-pending",
+                    "key": "fedora-31",
+                    "keyid": "3c3359c4"
+                },
+                {
+                    "from": "f31-modular-signing-pending",
+                    "to": "f31-modular-updates-testing-pending",
+                    "key": "fedora-31",
+                    "keyid": "3c3359c4",
+                    "type": "modular"
+                },
+
+                {
                     "from": "f31-updates-candidate",
                     "to": "f31-updates-testing-pending",
                     "key": "fedora-31",
@@ -188,6 +228,8 @@ config = {
                     "keyid": "3c3359c4",
                     "type": "modular"
                 },
+
+                # Gated bodhi updates
                 {
                     "from": "f30-signing-pending",
                     "to": "f30-updates-testing-pending",
@@ -201,8 +243,6 @@ config = {
                     "keyid": "cfc659b9",
                     "type": "modular"
                 },
-
-                # Gated bodhi updates
                 {
                     "from": "f29-modular-signing-pending",
                     "to": "f29-modular-updates-testing-pending",
