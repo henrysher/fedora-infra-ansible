@@ -31,6 +31,12 @@
   become: yes
   become_user: postgres
 
+- name: install .ansible.cfg for resalloc user
+  copy: src=ansible.cfg dest=/home/resalloc/.ansible.cfg
+        owner=resalloc group=resalloc mode=600
+  tags:
+  - provision_config
+
 - name: resalloc, sync copr provisioning files
   synchronize: src="provision/" dest="/var/lib/resallocserver/provision/"
   tags:
