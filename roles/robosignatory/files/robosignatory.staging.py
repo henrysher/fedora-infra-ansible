@@ -39,6 +39,24 @@ config = {
                 # Temporary tags
                 # Infra tags
                 # Gated coreos-pool tag
+                {
+                    "from": "f29-coreos-signing-pending",
+                    "to": "coreos-pool",
+                    "key": "fedora-29",
+                    "keyid": "429476b4"
+                },
+                {
+                    "from": "f30-coreos-signing-pending",
+                    "to": "coreos-pool",
+                    "key": "fedora-30",
+                    "keyid": "cfc659b9"
+                },
+                {
+                    "from": "f31-coreos-signing-pending",
+                    "to": "coreos-pool",
+                    "key": "fedora-31",
+                    "keyid": "3c3359c4"
+                },
                 # Gated rawhide and branched
                 {
                     "from": "epel8-signing-pending",
