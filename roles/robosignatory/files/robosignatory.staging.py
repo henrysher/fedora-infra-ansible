@@ -57,6 +57,12 @@ config = {
                     "key": "fedora-31",
                     "keyid": "3c3359c4"
                 },
+                {
+                    "from": "f32-coreos-signing-pending",
+                    "to": "coreos-pool",
+                    "key": "fedora-32",
+                    "keyid": "12c944d0"
+                },
                 # Gated rawhide and branched
                 {
                     "from": "epel8-signing-pending",
