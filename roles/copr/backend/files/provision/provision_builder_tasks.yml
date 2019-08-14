@@ -36,14 +36,6 @@
   when:
     - prepare_base_image is defined
 
-# For some reason, on aarch64 builders, the repo metadata download tends to run
-# amazingly slow (~300kB/s), while having fastestmirror turned ON the metadata
-# download is 10x faster.
-- name: enable dnf fastestmirror option
-  ini_file: dest=/etc/dnf/dnf.conf section=main option=fastestmirror value=True
-  when:
-    - prepare_base_image is defined
-
 - name: install copr-builder
   dnf: state=latest pkg=copr-builder
 

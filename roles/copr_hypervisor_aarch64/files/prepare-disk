@@ -30,11 +30,19 @@ install() { install_packages="$install_packages,$1" ; }
 
 install cloud-utils-growpart    # growpart called in pre-network-script.sh
 install qemu-guest-agent        # allow VM inspect from the outside
+install crudini                 # allow us to disable fastestmirror
+
+# - updates-modular is broken ATM, but we don't need it now
+# - for some reason, on aarch64 builders, the repo metadata download tends to
+#   run amazingly slow (~300kB/s), while having fastestmirror turned ON the
+#   metadata download is 10x faster
 
 virt-customize -a "$dst_img" \
+    --run-command 'dnf config-manager --set-disabled updates-modular' \
     --copy-in "$sourcedir/builder-repositories.repo":/etc/yum.repos.d \
     --update \
     --install "$install_packages" \
     --uninstall cloud-init \
+    --run-command 'crudini --set /etc/dnf/dnf.conf main fastestmirror True' \
     --ssh-inject root:string:"ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCeTO0ddXuhDZYM9HyM0a47aeV2yIVWhTpddrQ7/RAIs99XyrsicQLABzmdMBfiZnP0FnHBF/e+2xEkT8hHJpX6bX81jjvs2bb8KP18Nh8vaXI3QospWrRygpu1tjzqZT0Llh4ZVFscum8TrMw4VWXclzdDw6x7csCBjSttqq8F3iTJtQ9XM9/5tCAAOzGBKJrsGKV1CNIrfUo5CSzY+IUVIr8XJ93IB2ZQVASK34T/49egmrWlNB32fqAbDMC+XNmobgn6gO33Yq5Ly7Dk4kqTUx2TEaqDkZfhsVu0YcwV81bmqsltRvpj6bIXrEoMeav7nbuqKcPLTxWEY/2icePF copr-backend" \
     --selinux-relabel
