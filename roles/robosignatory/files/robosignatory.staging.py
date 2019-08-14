@@ -42,26 +42,26 @@ config = {
                 {
                     "from": "f29-coreos-signing-pending",
                     "to": "coreos-pool",
-                    "key": "fedora-29",
-                    "keyid": "429476b4"
+                    "key": "testkey",
+                    "keyid": "d300e724"
                 },
                 {
                     "from": "f30-coreos-signing-pending",
                     "to": "coreos-pool",
-                    "key": "fedora-30",
-                    "keyid": "cfc659b9"
+                    "key": "testkey",
+                    "keyid": "d300e724"
                 },
                 {
                     "from": "f31-coreos-signing-pending",
                     "to": "coreos-pool",
-                    "key": "fedora-31",
-                    "keyid": "3c3359c4"
+                    "key": "testkey",
+                    "keyid": "d300e724"
                 },
                 {
                     "from": "f32-coreos-signing-pending",
                     "to": "coreos-pool",
-                    "key": "fedora-32",
-                    "keyid": "12c944d0"
+                    "key": "testkey",
+                    "keyid": "d300e724"
                 },
                 # Gated rawhide and branched
                 {
