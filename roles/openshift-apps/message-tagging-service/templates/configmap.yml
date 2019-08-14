@@ -20,7 +20,8 @@ data:
         }
         build_state = 'ready'
 
-{% if env == 'staging' %}
+        {% if env == 'staging' %}
+
         dry_run = False
         # Running in staging, a rule file inside my perosnal repo is used in order to test conveniently.
         rules_file_url = 'https://pagure.io/mts-rules/raw/master/f/rules.yaml'
@@ -29,7 +30,9 @@ data:
         consumer_topics = [
             'org.fedoraproject.stg.mbs.module.state.change',
         ]
-{% else %}
+
+        {% else %}
+
         dry_run = False
         rules_file_url = ('https://infrastructure.fedoraproject.org/cgit/ansible.git/tree/'
                           'roles/openshift-apps/message-tagging-service/files/mts-rules.yml')
@@ -38,7 +41,8 @@ data:
         consumer_topics = [
             'org.fedoraproject.prod.mbs.module.state.change',
         ]
-{% endif %}
+
+        {% endif %}
 
 ---
 apiVersion: v1
@@ -54,22 +58,18 @@ data:
         'mts-consumer': True,
         'validate_signatures': False,
         'active': True,
-
-{% if env == 'staging' %}
-        'environment': 'stg',
+        'environment': {% if env == 'staging' %}'stg'{% else %}'prod'{% endif %},
         'endpoints': {
           'fedora-infrastructure': [
+            {% if env == 'staging' %}
             'tcp://stg.fedoraproject.org:9940',
-          ],
-        },
-{% else %}
-        'environment': 'prod',
-        'endpoints': {
-          'fedora-infrastructure': [
+            {% else %}
             'tcp://hub.fedoraproject.org:9940',
+            {% endif %}
           ],
+          'relay_outbound': ["tcp://127.0.0.1:4001"],
         },
-{% endif %}
+        'relay_inbound': ["tcp://127.0.0.1:2003"],
     }
   logging.py: |-
     config = dict(logging={
