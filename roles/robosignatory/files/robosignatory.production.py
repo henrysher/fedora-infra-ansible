@@ -38,6 +38,12 @@ config = {
             'tags': [
                 # Temporary tags
                 {
+                    "from": "f32-python",
+                    "to": "f32-python",
+                    "key": "fedora-32",
+                    "keyid": "12c944d0"
+                },
+                {
                     "from": "f31-kde",
                     "to": "f31-kde",
                     "key": "fedora-31",
