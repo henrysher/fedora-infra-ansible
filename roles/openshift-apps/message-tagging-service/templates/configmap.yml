@@ -130,26 +130,8 @@ data:
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: "fedoraproject-kerberos-auth-config"
+  name: "krb5-conf"
   labels:
     app: "mts"
 data:
-{% if env == 'staging' %}
-  stg_fedoraproject_org: |-
-    [realms]
-      STG.FEDORAPROJECT.ORG = {
-        kdc = https://id.stg.fedoraproject.org/KdcProxy
-      }
-    [domain_realm]
-      .stg.fedoraproject.org = STG.FEDORAPROJECT.ORG
-      stg.fedoraproject.org = STG.FEDORAPROJECT.ORG
-{% else %}
-  fedoraproject_org: |-
-    [realms]
-      FEDORAPROJECT.ORG = {
-        kdc = https://id.fedoraproject.org/KdcProxy
-      }
-    [domain_realm]
-      .fedoraproject.org = FEDORAPROJECT.ORG
-      fedoraproject.org = FEDORAPROJECT.ORG
-{% endif %}
+  {{ lookup('template', roles_path + '/base/templates/krb5.conf.j2') | indent }}

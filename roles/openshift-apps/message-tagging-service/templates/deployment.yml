@@ -29,10 +29,17 @@ spec:
           mountPath: /etc/fedmsg.d
           readOnly: true
         - name: "koji-conf"
-          mountPath: /etc/koji.conf.d
+{% if env == 'staging' %}
+          mountPath: /etc/koji.conf.d/stg.conf
+          subPath: stg.conf
+{% else %}
+          mountPath: /etc/koji.conf
+          subPath: koji.conf
+{% endif %}
           readOnly: true
-        - name: "fedoraproject-kerberos-auth-config"
-          mountPath: /etc/krb5.conf.d/
+        - name: "krb5-conf"
+          mountPath: /etc/krb5.conf
+          subPath: krb5.conf
           readOnly: true
         - name: keytab
           mountPath: /etc/krb5.keytab
@@ -67,9 +74,9 @@ spec:
       - name: "koji-conf"
         configMap:
           name: "koji-conf"
-      - name: "fedoraproject-kerberos-auth-config"
+      - name: "krb5-conf"
         configMap:
-          name: "fedoraproject-kerberos-auth-config"
+          name: "krb5-conf"
       - name: keytab
         secret:
           secretName: keytab
