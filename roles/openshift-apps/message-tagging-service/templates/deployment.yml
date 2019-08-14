@@ -19,6 +19,9 @@ spec:
       containers:
       - name: mts
         image: quay.io/factory2/message-tagging-service:{{ quay_tag }}
+        env:
+        - name: USER
+          value: mts
         ports:
         - containerPort: 8080
         volumeMounts:
@@ -29,13 +32,13 @@ spec:
           mountPath: /etc/fedmsg.d
           readOnly: true
         - name: "koji-conf"
-{% if env == 'staging' %}
+          {% if env == 'staging' %}
           mountPath: /etc/koji.conf.d/stg.conf
           subPath: stg.conf
-{% else %}
+          {% else %}
           mountPath: /etc/koji.conf
           subPath: koji.conf
-{% endif %}
+          {% endif %}
           readOnly: true
         - name: "krb5-conf"
           mountPath: /etc/krb5.conf
