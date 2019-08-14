@@ -28,6 +28,10 @@
       - php-cli
       - cronolog
 
+- name: install openstackclient for image preparation
+  dnf: state=present name=python3-openstackclient
+  when: devel|bool
+
 # disable this in favor of excluding it in /etc/dnf/dnf.conf.
 # https://github.com/ansible/ansible/issues/33187
 #- name: install python2-novaclient version that actually works with the current OpenStack deployment
@@ -178,6 +182,13 @@
   template: src="provision/rpkg.conf.j2" dest="/home/copr/provision/files/rpkg.conf" owner=copr group=copr
   tags:
   - provision_config
+
+- name: copy image preparation scripts
+  copy: src="{{ item }}" dest="/usr/local/bin/{{ item }}"
+        owner=root mode=755
+  with_fileglob:
+   - copr-image-*.sh
+  when: devel|bool
 
 - name: testing fixture
   copy: dest="/home/copr/cloud/ec2rc.variable" content=""
