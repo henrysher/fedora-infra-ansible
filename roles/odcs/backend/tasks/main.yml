@@ -71,6 +71,8 @@
   - odcs/backend
 
 - name: Configure the HA policy for the odcs queues
+  run_once: true
+  delegate_to: "rabbitmq01{{ env_suffix }}.phx2.fedoraproject.org"
   rabbitmq_policy:
     name: HA
     apply_to: queues
@@ -145,8 +147,10 @@
   - odcs/backend
 
 - name: Dump the admin password in a file for administrative operations
+  run_once: true
+  delegate_to: "rabbitmq01{{ env_suffix }}.phx2.fedoraproject.org"
   copy:
-    dest: /root/.rabbitmqpass
+    dest: /root/.odcs-rabbitmqpass
     content: "{{ (env == 'production')|ternary(rabbitmq_odcs_admin_password_production, rabbitmq_odcs_admin_password_staging) }}"
     mode: 0600
     owner: root
