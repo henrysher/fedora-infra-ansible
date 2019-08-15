@@ -46,32 +46,6 @@
   handlers:
   - import_tasks: "{{ handlers_path }}/restart_services.yml"
 
-- name: Set up a gluster share on the backend for the frontend
-  hosts: odcs:odcs_stg
-  user: root
-  gather_facts: True
-
-  vars_files:
-   - /srv/web/infra/ansible/vars/global.yml
-   - "/srv/private/ansible/vars.yml"
-   - "{{ vars_path }}/{{ ansible_distribution }}.yml"
-
-  roles:
-  - role: gluster/consolidated
-    gluster_brick_dir: /srv/glusterfs
-    gluster_mount_dir: /srv/odcs
-    gluster_brick_name: odcs
-    gluster_server_group: odcs-stg
-    tags: gluster
-    when: env == 'staging'
-  - role: gluster/consolidated
-    gluster_brick_dir: /srv/glusterfs
-    gluster_mount_dir: /srv/odcs
-    gluster_brick_name: odcs
-    gluster_server_group: odcs
-    tags: gluster
-    when: env != 'staging'
-
 - name: Set up odcs frontend service
   hosts: odcs_frontend:odcs_frontend_stg
   user: root
@@ -94,6 +68,14 @@
     mnt_dir: '/mnt/fedora_koji_prod'
     nfs_src_dir: 'fedora_koji'
     when: env == 'staging'
+  - role: nfs/client
+    mnt_dir: '/srv/odcs'
+    nfs_src_dir: 'fedora_odcs_stg'
+    when: env == 'staging'
+  - role: nfs/client
+    mnt_dir: '/srv/odcs'
+    nfs_src_dir: 'fedora_odcs'
+    when: env != 'staging'
 
   handlers:
   - import_tasks: "{{ handlers_path }}/restart_services.yml"
@@ -142,6 +124,16 @@
     mnt_dir: '/mnt/fedora_koji_prod'
     nfs_src_dir: 'fedora_koji'
     when: env == 'staging'
+
+  - role: nfs/client
+    mnt_dir: '/srv/odcs'
+    nfs_src_dir: 'fedora_odcs_stg'
+    when: env == 'staging'
+
+  - role: nfs/client
+    mnt_dir: '/srv/odcs'
+    nfs_src_dir: 'fedora_odcs'
+    when: env != 'staging'
 
   post_tasks:
   - file: src=/mnt/fedora_koji/koji dest=/mnt/koji state=link
