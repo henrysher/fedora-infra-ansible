@@ -57,11 +57,120 @@
   tags:
   - odcs
   - odcs/backend
-- name: Make sure fedmsg-hub-3 is running (we used to turn it off).
-  service:
-    name: fedmsg-hub-3
-    state: started
-    enabled: true
+
+- name: Configure the odcs virtual host
+  run_once: true
+  delegate_to: "rabbitmq01{{ env_suffix }}.phx2.fedoraproject.org"
+  rabbitmq_vhost:
+    name: /odcs
+    state: present
   tags:
+  - rabbitmq_cluster
+  - config
+  - odcs
+  - odcs/backend
+
+- name: Configure the HA policy for the odcs queues
+  rabbitmq_policy:
+    name: HA
+    apply_to: queues
+    pattern: .*
+    tags:
+      ha-mode: all
+      ha-sync-mode: automatic  # Auto sync queues to new cluster members
+      ha-sync-batch-size: 10000  # Larger is faster, but must finish in 1 net_ticktime
+    vhost: /odcs
+  tags:
+  - rabbitmq_cluster
+  - config
+  - odcs
+  - odcs/backend
+
+- name: Add a policy to limit queues to 1GB and remove after a month of no use
+  run_once: true
+  delegate_to: "rabbitmq01{{ env_suffix }}.phx2.fedoraproject.org"
+  rabbitmq_policy:
+    apply_to: queues
+    name: pubsub_sweeper
+    state: present
+    pattern: ".*"
+    tags:
+      # Unused queues are killed after 1000 * 60 * 60 * 31 milliseconds (~a month)
+      expires: 111600000
+      # Queues can use at most 1GB of storage
+      max-length-bytes: 1073741824
+    vhost: /odcs
+  tags:
+  - rabbitmq_cluster
+  - config
+  - odcs
+  - odcs/backend
+
+- name: Create the admin user for the odcs vhost
+  run_once: true
+  delegate_to: "rabbitmq01{{ env_suffix }}.phx2.fedoraproject.org"
+  rabbitmq_user:
+    user: admin
+    password: "{{ rabbitmq_odcs_admin_password_staging }}"
+    permissions:
+      - vhost: /odcs
+        configure_priv: .*
+        read_priv: .*
+        write_priv: .*
+    tags: management
+  when: env == "staging"
+  tags:
+  - rabbitmq_cluster
+  - config
+  - odcs
+  - odcs/backend
+
+- name: Create the admin user for the odcs vhost (prod)
+  run_once: true
+  delegate_to: "rabbitmq01{{ env_suffix }}.phx2.fedoraproject.org"
+  rabbitmq_user:
+    user: admin
+    password: "{{ rabbitmq_odcs_admin_password_production }}"
+    permissions:
+      - vhost: /odcs
+        configure_priv: .*
+        read_priv: .*
+        write_priv: .*
+    tags: management
+  when: env != "staging"
+  tags:
+  - rabbitmq_cluster
+  - config
+  - odcs
+  - odcs/backend
+
+- name: Dump the admin password in a file for administrative operations
+  copy:
+    dest: /root/.rabbitmqpass
+    content: "{{ (env == 'production')|ternary(rabbitmq_odcs_admin_password_production, rabbitmq_odcs_admin_password_staging) }}"
+    mode: 0600
+    owner: root
+    group: root
+  tags:
+  - rabbitmq_cluster
+  - config
+  - odcs
+  - odcs/backend
+
+# Create a user with:
+- name: Create a user for odcs access
+  run_once: true
+  delegate_to: "rabbitmq01{{ env_suffix }}.phx2.fedoraproject.org"
+  rabbitmq_user:
+    user: "odcs-private-queue{{ env_suffix }}"
+    permissions:
+      - vhost: /odcs
+        configure_priv: .*
+        write_priv: .*
+        read_priv: .*
+    state: present
+  tags:
+  - rabbitmq_cluster
+  - config
   - odcs
   - odcs/backend
