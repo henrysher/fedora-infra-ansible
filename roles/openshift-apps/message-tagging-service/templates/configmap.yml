@@ -58,18 +58,24 @@ data:
         'mts-consumer': True,
         'validate_signatures': False,
         'active': True,
-        'environment': {% if env == 'staging' %}'stg'{% else %}'prod'{% endif %},
+
+        {% if env == 'staging' %}
+
+        'environment': 'stg',
         'endpoints': {
-          'fedora-infrastructure': [
-            {% if env == 'staging' %}
-            'tcp://stg.fedoraproject.org:9940',
-            {% else %}
-            'tcp://hub.fedoraproject.org:9940',
-            {% endif %}
-          ],
-          'relay_outbound': ["tcp://127.0.0.1:4001"],
+          'fedora-infrastructure': ['tcp://stg.fedoraproject.org:9940'],
         },
-        'relay_inbound': ["tcp://127.0.0.1:2003"],
+        'relay_inbound': ['tcp://busgateway01.stg.phx2.fedoraproject.org:9941'],
+
+        {% else %}
+
+        'environment': 'prod',
+        'endpoints': {
+          'fedora-infrastructure': ['tcp://hub.fedoraproject.org:9940'],
+        },
+        'relay_inbound': ['tcp://busgateway01.phx2.fedoraproject.org:9941'],
+
+        {% endif %}
     }
   logging.py: |-
     config = dict(logging={
