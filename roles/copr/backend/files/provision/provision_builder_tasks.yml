@@ -95,3 +95,10 @@
     name: systemd-resolved.service
     state: stopped
     enabled: no
+
+- name: blacklist ipv4 addresses for some mirrors
+  shell: ip route add unreachable "{{ item }}"
+  with_items:
+  - 204.157.3.70 # https://pagure.io/fedora-infrastructure/issue/8096
+  when:
+  - prepare_base_image is not defined
