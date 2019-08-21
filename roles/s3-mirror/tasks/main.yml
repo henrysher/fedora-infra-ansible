@@ -60,15 +60,31 @@
   - s3-mirror
 
 - name: s3sync cron - updates for current
-  cron: name="s3sync-updates-current" minute="0" hour="0,3,6,9,12,15,18,21" user="s3-mirror"
+  cron: name="s3sync-updates-current" minute="0" hour="3,9,15,21" user="s3-mirror"
         job='/usr/local/bin/lock-wrapper s3sync-updates-current "/usr/local/bin/s3-sync-path.sh /pub/fedora/linux/updates/{{ FedoraCycleNumber|int }}/" 2>&1 | /usr/local/bin/nag-once s3-updates-current.sh 1d 2>&1'
         cron_file=s3-updates-current.sh
   when: env != 'staging' and inventory_hostname.startswith('mm-backend01.')
   tags:
   - s3-mirror
 
+- name: s3sync cron - updates for development/current+1 x86_64
+  cron: name="s3sync-updates-current" minute="0" hour="2,7,10" user="s3-mirror"
+  job='/usr/local/bin/lock-wrapper s3sync-updates-dev-cur-plus-1-x86_64 "/usr/local/bin/s3-sync-path.sh /pub/fedora/linux/development/{{ FedoraCycleNumber|int + 1 }}/Everything/x86_64/os/" 2>&1 | /usr/local/bin/nag-once s3-updates-dev-cur-plus-1-x86_64.sh 1d 2>&1'
+        cron_file=s3-updates-dev-cur-plus-1-x86_64.sh
+  when: env != 'staging' and inventory_hostname.startswith('mm-backend01.')
+  tags:
+  - s3-mirror
+
+- name: s3sync cron - updates for development/current+1 aarch64
+  cron: name="s3sync-updates-current" minute="0" hour="4,11,18" user="s3-mirror"
+  job='/usr/local/bin/lock-wrapper s3sync-updates-dev-cur-plus-1-aarch64 "/usr/local/bin/s3-sync-path.sh /pub/fedora/linux/development/{{ FedoraCycleNumber|int + 1 }}/Everything/aarch64/os/" 2>&1 | /usr/local/bin/nag-once s3-updates-dev-cur-plus-1-aarch64.sh 1d 2>&1'
+        cron_file=s3-updates-dev-cur-plus-1-aarch64.sh
+  when: env != 'staging' and inventory_hostname.startswith('mm-backend01.')
+  tags:
+  - s3-mirror
+
 - name: s3sync cron - updates for current-1
-  cron: name="s3sync-updates-previous" minute="30" hour="0,3,6,9,12,15,18,21" user="s3-mirror"
+  cron: name="s3sync-updates-previous" minute="30" hour="0,6,12,18" user="s3-mirror"
         job='/usr/local/bin/lock-wrapper s3sync-updates-previous "/usr/local/bin/s3-sync-path.sh /pub/fedora/linux/updates/{{ FedoraCycleNumber|int - 1 }}/" 2>&1 | /usr/local/bin/nag-once s3-updates-previous.sh 1d 2>&1'
         cron_file=s3-updates-previous.sh
   when: env != 'staging' and inventory_hostname.startswith('mm-backend01.')
