@@ -650,8 +650,14 @@ SCRIPTWHITELIST=/usr/bin/whatis
 SCRIPTWHITELIST=/usr/bin/ldd
 SCRIPTWHITELIST=/usr/bin/groups
 SCRIPTWHITELIST=/usr/bin/GET
+{% if inventory_hostname.startswith(('osbs')) %}
+# no network-scripts on newest fedora
+#SCRIPTWHITELIST=/sbin/ifup
+#SCRIPTWHITELIST=/sbin/ifdown
+{% else %}
 SCRIPTWHITELIST=/sbin/ifup
 SCRIPTWHITELIST=/sbin/ifdown
+{% endif %}
 {% if inventory_hostname.startswith(('db','pagure','retrace','anitya','upstream')) %}
 # Set this size very large on postgres running servers.
 IPC_SEG_SIZE=100000000000
