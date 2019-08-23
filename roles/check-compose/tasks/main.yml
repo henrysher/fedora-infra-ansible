@@ -140,6 +140,8 @@
   tags:
   - config
 
+# We always use the openQA cert and key here for now; we don't really
+# need a separate identity for check-compose.
 - name: Deploy the Fedora infra fedora-messaging cert
   copy:
     src: "{{ private }}/files/rabbitmq/{{checkcompose_env}}/pki/issued/openqa{{checkcompose_env_suffix}}.crt"
@@ -147,16 +149,22 @@
     mode: 0644
     owner: root
     group: root
+  when: "deployment_type is defined"
   tags:
   - config
 
+# This is kinda icky, as there's no intrinsic reason the group geekotest
+# should exist so far as this role is concerned. But as we run this role
+# on the same box as openQA, in fact we need to keep the ownership in
+# line. This needs making cleaner somehow.
 - name: Deploy the Fedora infra fedora-messaging key
   copy:
     src: "{{ private }}/files/rabbitmq/{{checkcompose_env}}/pki/private/openqa{{checkcompose_env_suffix}}.key"
     dest: /etc/pki/fedora-messaging/openqa{{checkcompose_env_suffix}}-key.pem
-    mode: 0600
+    mode: 0640
     owner: root
-    group: root
+    group: geekotest
+  when: "deployment_type is defined"
   tags:
   - config
 

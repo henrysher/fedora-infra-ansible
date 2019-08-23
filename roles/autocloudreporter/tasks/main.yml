@@ -112,13 +112,17 @@
   tags:
   - config
 
+# This is kinda icky, as there's no intrinsic reason the group geekotest
+# should exist so far as this role is concerned. But as we run this role
+# on the same box as openQA, in fact we need to keep the ownership in
+# line. This needs making cleaner somehow.
 - name: Deploy the Fedora infra fedora-messaging key (openQA production)
   copy:
     src: "{{ private }}/files/rabbitmq/production/pki/private/openqa.key"
     dest: /etc/pki/fedora-messaging/openqa-key.pem
-    mode: 0600
+    mode: 0640
     owner: root
-    group: root
+    group: geekotest
   when: "deployment_type is defined"
   tags:
   - config
