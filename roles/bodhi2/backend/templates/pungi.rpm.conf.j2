@@ -168,11 +168,7 @@ ostree = {
         # Fedora Silverblue
         {
             "version": "!VERSION_FROM_VERSION_DATE_RESPIN",
-            [% if release.version_int >= 29 %]
-                "treefile": "fedora-silverblue.yaml",
-            [% else %]
-                "treefile": "fedora-atomic-workstation-updates-[[ request.name ]].json",
-            [% endif %]
+            "treefile": "fedora-silverblue.yaml",
             "config_url": "https://pagure.io/workstation-ostree-config.git",
             "config_branch": "f[[ release.version ]]",
             "repo": [
@@ -189,14 +185,10 @@ ostree = {
                 [% endif %]
             ]
             "ostree_repo": "/mnt/koji/compose/ostree/repo",
-            # For f29+ we are changing the ref to silverblue. For f28/f27 let the files
-            # still specify the workstation ref.
-            [% if release.version_int >= 29 %]
-                [% if request.name == 'stable' %]
-                    "ostree_ref": "fedora/[[ release.version_int ]]/${basearch}/updates/silverblue",
-                [% else %]
-                    "ostree_ref": "fedora/[[ release.version_int ]]/${basearch}/testing/silverblue",
-                [% endif %]
+            [% if request.name == 'stable' %]
+                "ostree_ref": "fedora/[[ release.version_int ]]/${basearch}/updates/silverblue",
+            [% else %]
+                "ostree_ref": "fedora/[[ release.version_int ]]/${basearch}/testing/silverblue",
             [% endif %]
             "tag_ref": False,
             "arches": ["x86_64"],
