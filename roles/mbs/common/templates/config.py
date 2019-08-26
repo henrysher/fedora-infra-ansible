@@ -207,3 +207,12 @@ class ProdConfiguration(BaseConfiguration):
     KOJI_CG_DEVEL_MODULE = False
 
     MODULES_ALLOW_SCRATCH = True
+
+    # By default, MBS allows buildrequiring only modules built against
+    # compatible version of platform base module. By compatible, we mean
+    # less or equal minor number of "stream_version". For example, when building module
+    # against platform:f30, it wouldn't be possible to buildrequire a module
+    # built against platform:f29. This is not intended behaviour in Fedora
+    # and therefore we want to turn this feature off.
+    ALLOW_ONLY_COMPATIBLE_BASE_MODULE = False
+
