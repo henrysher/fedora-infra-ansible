@@ -166,21 +166,14 @@ config = {
                     "type": "modular"
                 },
                 {
-                    "from": "f31-pending",
-                    "to": "f31",
+                    "from": "f31-signing-pending",
+                    "to": "f31-updates-testing-pending",
                     "key": "fedora-31",
                     "keyid": "3c3359c4"
                 },
                 {
-                    "from": "f31-modular-pending",
-                    "to": "f31-modular",
-                    "key": "fedora-31",
-                    "keyid": "3c3359c4",
-                    "type": "modular"
-                },
-                {
-                    "from": "f31-modular-updates-candidate",
-                    "to": "f31-modular",
+                    "from": "f31-modular-signing-pending",
+                    "to": "f31-modular-updates-testing-pending",
                     "key": "fedora-31",
                     "keyid": "3c3359c4",
                     "type": "modular"
