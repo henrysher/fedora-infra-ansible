@@ -87,6 +87,30 @@
       tags:
       - drives
 
+    - name: create 1 GB communishift logical volumes
+      lvol: vg=VG_nfs lv=openshift-01gb-{{item}} size=1g shrink=no
+      with_items: ["00","01","02","03","04","05","06","07","08","09"]
+      tags:
+      - drives
+
+    - name: Create FS for 1 GB communishift logical volules
+      filesystem: fstype=xfs dev=/dev/VG_nfs/openshift-01gb-{{item}}
+      with_items: ["00","01","02","03","04","05","06","07","08","09"]
+      tags:
+      - drives
+
+    - name: Create openshift 1GB tree directories
+      file: path=/srv/nfs/openshift-01gb-{{item}} state=directory owner=root group=root
+      with_items: ["00","01","02","03","04","05","06","07","08","09"]
+      tags:
+      - drives
+
+    - name: Mount openshift 1GB tree directories
+      mount: name=/srv/nfs/openshift-01gb-{{item}} src=/dev/mapper/VG_nfs-openshift--01gb--{{item}} fstype=xfs state=mounted
+      with_items: ["00","01","02","03","04","05","06","07","08","09"]
+      tags:
+      - drives
+
     - name: create 5 GB communishift logical volumes
       lvol: vg=VG_nfs lv=openshift-05gb-{{item}} size=5g shrink=no
       with_items: ["00","01","02","03","04","05","06","07","08","09"]
