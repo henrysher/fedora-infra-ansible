@@ -165,12 +165,6 @@ config = {
                     "keyid": "3c3359c4",
                     "type": "modular"
                 },
-                {
-                    "from": "f31-signing-pending",
-                    "to": "f31-updates-testing-pending",
-                    "key": "fedora-31",
-                    "keyid": "3c3359c4"
-                },
 
                 # Gated bodhi updates
                 {
