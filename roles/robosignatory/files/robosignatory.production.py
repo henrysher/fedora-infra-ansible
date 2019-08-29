@@ -376,6 +376,22 @@ config = {
             'directory': '/mnt/fedora_koji/koji/compose/ostree/repo/',
             'key': 'fedora-31'
         },
+        'fedora/31/aarch64/updates/silverblue': {
+            'directory': '/mnt/fedora_koji/koji/compose/ostree/repo/',
+            'key': 'fedora-31'
+        },
+        'fedora/31/aarch64/testing/silverblue': {
+            'directory': '/mnt/fedora_koji/koji/compose/ostree/repo/',
+            'key': 'fedora-31'
+        },
+        'fedora/31/ppc64le/updates/silverblue': {
+            'directory': '/mnt/fedora_koji/koji/compose/ostree/repo/',
+            'key': 'fedora-31'
+        },
+        'fedora/31/ppc64le/testing/silverblue': {
+            'directory': '/mnt/fedora_koji/koji/compose/ostree/repo/',
+            'key': 'fedora-31'
+        },
         'fedora/rawhide/aarch64/silverblue': {
             'directory': '/mnt/fedora_koji/koji/compose/ostree/repo/',
             'key': 'fedora-32'
