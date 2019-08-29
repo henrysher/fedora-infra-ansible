@@ -5,35 +5,40 @@ metadata:
   labels:
     environment: "fpdc"
 spec:
+  runPolicy: Serial
+  source:
+    dockerfile: |-
+      # See imagestream.yml for the definition
+    FROM fedora:30
+
+    RUN dnf install -y python3-ujson uwsgi uwsgi-plugin-python3 && dnf clean all \
+        && mkdir /app \
+        && chown 10001:10001 /app \
+        && groupadd --gid 10001 app \
+        && useradd --no-create-home --uid 10001 --gid 10001 --home-dir /app app
+
+    USER 10001
+    EXPOSE 8080
+
+    RUN pip3 install --no-cache-dir --user kinto
+
+    ENV KINTO_INI=/etc/kinto/kinto.ini \
+        PYTHONPATH=/app/
+
+    WORKDIR /app
+    ADD https://raw.githubusercontent.com/mozilla-services/kinto-dist/master/app.wsgi /app
+
+    CMD ["uwsgi", "--http-socket", ":8080", "--ini", "/etc/kinto/kinto.ini"]
+  strategy:
+    type: Docker
+    dockerStrategy:
+      from:
+        kind: "ImageStreamTag"
+        name: "fpdc:latest"
+  triggers:
+  - type: ConfigChange
+  - type: ImageChange
   output:
     to:
       kind: ImageStreamTag
       name: fpdc:latest
-  source:
-    type: Git
-    git:
-      uri: https://github.com/fedora-infra/fpdc.git
-{% if env == 'staging' %}
-      ref: "staging"
-{% else %}
-      ref: "production"
-{% endif %}
-  strategy:
-    type: Source
-    sourceStrategy:
-      from:
-        kind: ImageStreamTag
-        namespace: openshift
-        name: python:3.6
-  triggers:
-{% if stg_fpdc_github_secret is defined and env == 'staging' %}
-  - type: GitHub
-    github:
-      secret: "{{ stg_fpdc_github_secret }}"
-{% elif fpdc_github_secret is defined and env == 'production' %}
-  - type: GitHub
-    github:
-      secret: "{{ fpdc_github_secret }}"
-{% endif %}
-  - type: ConfigChange
-  - type: ImageChange
