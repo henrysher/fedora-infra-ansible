@@ -248,3 +248,18 @@
     - name: Enable wildcard routes
       command: oc -n default set env dc/router ROUTER_ALLOW_WILDCARD_ROUTES=true
       changed_when: false
+
+
+- name: Add a cleanup cron job to the nodes
+  hosts: os_nodes_stg:os_nodes
+  tags:
+    - os-node-cleanup
+  tasks:
+  - name: Ensure a job that runs every Mondays to clean old docker images from the nodes.
+    cron:
+      name: "remove docker dangling images"
+      weekday: "1"
+      minute: "0"
+      hour: "0"
+      job: "docker rmi $(docker images --filter dangling=true -q)"
+      state: present
