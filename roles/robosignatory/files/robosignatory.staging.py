@@ -79,6 +79,12 @@ config = {
                     "keyid": "d300e724"
                 },
                 # Gated bodhi updates
+                {
+                    "from": "f30-signing-pending",
+                    "to": "f30-updates-testing-pending",
+                    "key": "fedora-30",
+                    "keyid": "cfc659b9"
+                },
                 # Non-gated bodhi triggered
             ],
         },
