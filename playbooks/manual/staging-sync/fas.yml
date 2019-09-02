@@ -2,18 +2,18 @@
 # the steps we need to keep our setup intact.
 #
 
-- name: bring staging services down
-  hosts: fas01.stg.phx2.fedoraproject.org
+- name: bring staging services down (OpenShift web services)
+  hosts: os-master01.stg.phx2.fedoraproject.org
   user: root
   vars_files:
    - /srv/web/infra/ansible/vars/global.yml
    - "/srv/private/ansible/vars.yml"
    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
-  handlers:
-  - import_tasks: "{{ handlers_path }}/restart_services.yml"
 
   tasks:
-  - service: name=httpd state=stopped
+  - command: oc -n fas scale dc/fas --replicas=0
+  - command: oc -n fas scale dc/totpcgi --replicas=0
+  - command: oc -n fas scale dc/yubikey --replicas=0
 
 - name: dump the prod db out
   hosts: db-fas01.phx2.fedoraproject.org
@@ -71,18 +71,18 @@
     shell: cat /var/tmp/fas2.dump | psql fas2
   - command: rm -f /var/tmp/fas2.dump /var/tmp/fas2.dump.xz
 
-- name: bring staging services up
-  hosts: fas01.stg.phx2.fedoraproject.org
+- name: bring staging services down (OpenShift web services)
+  hosts: os-master01.stg.phx2.fedoraproject.org
   user: root
   vars_files:
    - /srv/web/infra/ansible/vars/global.yml
    - "/srv/private/ansible/vars.yml"
    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
-  handlers:
-  - import_tasks: "{{ handlers_path }}/restart_services.yml"
 
   tasks:
-  - service: name=httpd state=started
+  - command: oc -n fas scale dc/fas --replicas=5
+  - command: oc -n fas scale dc/totpcgi --replicas=3
+  - command: oc -n fas scale dc/yubikey --replicas=3
 
 - name: Remove the prod db dump now that we are done
   hosts: db-fas01.phx2.fedoraproject.org
