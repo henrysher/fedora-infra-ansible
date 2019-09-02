@@ -1,5 +1,9 @@
 #! /bin/bash
 
+# Automatically create updated virtual machine in OpenStack so we can later
+# create a snapshot (builder image) from it.  See
+# https://docs.pagure.org/copr.copr/how_to_upgrade_builders.html
+
 . /home/copr/cloud/keystonerc_proper_tenant
 
 set -e
