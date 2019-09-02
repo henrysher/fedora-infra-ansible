@@ -12,14 +12,9 @@ spec:
 
       RUN dnf install -y python3-ujson python3-gunicorn && dnf clean all \
           && mkdir /app \
-          && chown 1001:1001 /app \
-          && groupadd --gid 1001 app \
-          && useradd --no-create-home --uid 1001 --gid 1001 --home-dir /app app
+          && pip3 install --no-cache-dir kinto
 
-      USER 1001
       EXPOSE 8080
-
-      RUN pip3 install --no-cache-dir --user kinto
 
       ENV KINTO_INI=/etc/kinto/kinto.ini \
           PYTHONPATH=/app/
@@ -27,6 +22,7 @@ spec:
       WORKDIR /app
       ADD https://raw.githubusercontent.com/mozilla-services/kinto-dist/master/app.wsgi /app
 
+      USER 1001
       CMD ["gunicorn-3", "-b", ":8080", "--paste", "/etc/kinto/kinto.ini"]
   strategy:
     type: Docker
