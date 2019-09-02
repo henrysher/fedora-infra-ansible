@@ -3,13 +3,19 @@
   package: name=pam_url state=present
   tags:
   - packages
-  when: ansible_distribution_major_version|int < 22
+  when: ansible_distribution_major_version|int < 8 and ansible_distribution is 'RedHat'
 
 - name: install pam_url
   dnf: name=pam_url state=present
   tags:
   - packages
-  when: ansible_distribution_major_version|int > 21
+  when: ansible_distribution_major_version|int > 7 and ansible_distribution is 'RedHat'
+
+- name: install pam_url
+  dnf: name=pam_url state=present
+  tags:
+  - packages
+  when: ansible_distribution_major_version|int >= 29 and ansible_distribution is 'RedHat'
 
 - name: /etc/pki/tls/private/totpcgi.pem
   copy: src="{{ private }}/files/2fa-certs/keys/{{ inventory_hostname }}.pem" dest=/etc/pki/tls/private/totpcgi.pem mode=0400

@@ -33,7 +33,17 @@
   - config
   - sshd
   - selinux
-  when: ansible_distribution_major_version|int < 30 and ansible_distribution_major_version|int != 8
+  when: ansible_distribution_major_version|int < 30 and ansible_distribution is 'Fedora'
+
+- name: make sure libselinux-python is installed
+  package: name=libselinux-python state=present
+  tags:
+  - basessh
+  - sshd_config
+  - config
+  - sshd
+  - selinux
+  when: ansible_distribution_major_version|int < 8 and ansible_distribution is 'RedHat'
 
 - name: make sure python3-libselinux is installed
   package: name=python3-libselinux state=present
@@ -43,7 +53,17 @@
   - config
   - sshd
   - selinux
-  when: ansible_distribution_major_version|int >= 30 or ansible_distribution_major_version|int == 8
+  when: ansible_distribution_major_version|int >= 30 and ansible_distribution is 'Fedora'
+
+- name: make sure python3-libselinux is installed
+  package: name=python3-libselinux state=present
+  tags:
+  - basessh
+  - sshd_config
+  - config
+  - sshd
+  - selinux
+  when: ansible_distribution_major_version|int >= 8 and ansible_distribution is 'RedHat'
 
 - name: check if sshd port is already known by selinux
   shell: semanage port -l | grep ssh

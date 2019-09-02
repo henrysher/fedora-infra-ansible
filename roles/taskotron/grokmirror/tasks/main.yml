@@ -5,14 +5,21 @@
     name:
       - git
       - python-grokmirror
-  when: ansible_distribution_major_version|int < 22
+  when: ansible_distribution_major_version|int <= 7 and ansible_distribution is 'RedHat'
 
 - name: ensure grokmirror packages are installed (dnf)
   dnf: name={{ item }} state=present
   with_items:
       - git
       - python-grokmirror
-  when: ansible_distribution_major_version|int > 21 and ansible_cmdline.ostree is not defined
+  when: ansible_distribution_major_version|int >= 29 and ansible_distribution is 'Fedora' and ansible_cmdline.ostree is not defined
+
+- name: ensure grokmirror packages are installed (dnf)
+  dnf: name={{ item }} state=present
+  with_items:
+      - git
+      - python-grokmirror
+  when: ansible_distribution_major_version|int > 7 and ansible_distribution is 'RedHat' and ansible_cmdline.ostree is not defined
 
 - name: create grokmirror user
   user: name={{ grokmirror_user }}

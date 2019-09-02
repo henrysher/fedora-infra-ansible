@@ -11,7 +11,7 @@
     - postgresql-plpython
     - python-psycopg2
     - pxz
-  when: ansible_distribution_major_version|int < 22
+  when: ansible_distribution_major_version|int < 8 and ansible_distribution is 'RedHat'
   tags:
   - packages
   - postgresql
@@ -25,7 +25,21 @@
     - postgresql-plpython
     - python-psycopg2
     - pxz
-  when: ansible_distribution_major_version|int > 21 and ansible_cmdline.ostree is not defined
+  when: ansible_distribution_major_version|int >= 29 and ansible_distribution is 'Fedora' and ansible_cmdline.ostree is not defined
+  tags:
+  - packages
+  - postgresql
+
+- name: install postgresql server packages (dnf)
+  package:
+    state: present
+    name:
+    - postgresql-server
+    - postgresql-contrib
+    - postgresql-plpython
+    - python-psycopg2
+    - pxz
+  when: ansible_distribution_major_version|int >= 8 and ansible_distribution is 'RedHat' and ansible_cmdline.ostree is not defined
   tags:
   - packages
   - postgresql

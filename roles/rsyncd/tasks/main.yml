@@ -3,7 +3,7 @@
 # This role sets up rsyncd on a server
 #
 
-- name: install rnecessary packages
+- name: install necessary packages
   package: 
     state: present
     name:
@@ -13,9 +13,9 @@
   tags:
   - packages
   - rsyncd
-  when: ansible_distribution_major_version|int < 22
+  when: ansible_distribution_major_version|int < 8 and ansible_distribution is 'RedHat'
 
-- name: install rnecessary packages
+- name: install necessary packages
   package:
     state: present
     name:
@@ -25,7 +25,19 @@
   tags:
   - packages
   - rsyncd
-  when: ansible_distribution_major_version|int > 21
+  when: ansible_distribution_major_version|int >= 8 and ansible_distribution is 'RedHat'
+
+- name: install necessary packages
+  package:
+    state: present
+    name:
+    - rsync
+    - xinetd
+    - libsemanage-python
+  tags:
+  - packages
+  - rsyncd
+  when: ansible_distribution_major_version|int >= 29 and ansible_distribution is 'Fedora'
 
 - name: rsyncd.conf file
   copy: src={{ item }} dest=/etc/rsyncd.conf mode=0644

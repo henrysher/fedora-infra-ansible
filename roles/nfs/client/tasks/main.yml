@@ -1,6 +1,6 @@
 - name: install network-scripts package
   package: name=network-scripts state=installed
-  when: ansible_distribution_major_version|int >= 29
+  when: ansible_distribution_major_version|int >= 29 and ansible_distribution is 'Fedora'
   tags:
   - nfs/client
 
@@ -51,12 +51,12 @@
   tags:
   - nfs/client
 
-- name: enable nfs-related services and run them (rhel 7 and Fedora)
+- name: enable nfs-related services and run them (rhel 7+ and Fedora)
   service: name={{ item }}  enabled=true state=started
   with_items:
   - rpcbind
   - nfs-lock
-  when: ansible_distribution_major_version|int == 7
+  when: ansible_distribution_major_version|int >= 7 and ansible_distribution is 'RedHat'
   tags:
   - nfs/client
 
@@ -67,7 +67,7 @@
   - rpcbind
   - nfs
   - nfslock
-  when: ansible_distribution_major_version|int == 6
+  when: ansible_distribution_major_version|int == 6 and ansible_distribution is 'RedHat'
   tags:
   - nfs/client
 

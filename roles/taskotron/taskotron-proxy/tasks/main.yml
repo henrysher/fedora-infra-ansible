@@ -11,13 +11,19 @@
     state: present
     name:
     - libsemanage-python
-  when: ansible_distribution_major_version|int < 22
+  when: ansible_distribution_major_version|int <= 7 and ansible_distribution is 'RedHat'
 
 - name: ensure packages required for proxying are installed (dnf)
   dnf: name={{ item }} state=present
   with_items:
     - libsemanage-python
-  when: ansible_distribution_major_version|int > 21 and ansible_cmdline.ostree is not defined
+  when: ansible_distribution_major_version|int >= 29 and ansible_distribution is 'Fedora' and ansible_cmdline.ostree is not defined
+
+- name: ensure packages required for proxying are installed (dnf)
+  dnf: name={{ item }} state=present
+  with_items:
+    - libsemanage-python
+  when: ansible_distribution_major_version|int > 7 and ansible_distribution is 'RedHat' and ansible_cmdline.ostree is not defined
 
 - name: allow httpd tcp connections with selinux
   seboolean: name=httpd_can_network_connect state=true persistent=yes

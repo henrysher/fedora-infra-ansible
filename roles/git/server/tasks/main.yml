@@ -8,7 +8,12 @@
 # If NOT using xinetd
 - name: delete stock git daemon config
   file: path="/usr/lib/systemd/system/git.service" state=absent
-  when: ansible_distribution_major_version|int == 7
+  when: ansible_distribution_major_version|int >= 7 and ansible_distribution is 'RedHat'
+  tags: git/server
+
+- name: delete stock git daemon config
+  file: path="/usr/lib/systemd/system/git.service" state=absent
+  when: ansible_distribution_major_version|int >= 29 and ansible_distribution is 'Fedora'
   tags: git/server
 
 - name: configure git daemon
@@ -16,13 +21,21 @@
     src="git@.service.j2"
     dest="/usr/lib/systemd/system/git@.service"
     mode=0644
-  when: ansible_distribution_major_version|int == 7
+  when: ansible_distribution_major_version|int >= 7 and ansible_distribution is 'RedHat'
+  tags: git/server
+
+- name: configure git daemon
+  template: >
+    src="git@.service.j2"
+    dest="/usr/lib/systemd/system/git@.service"
+    mode=0644
+  when: ansible_distribution_major_version|int >= 29 and ansible_distribution is 'Fedora'
   tags: git/server
 
 # If using xinetd
 - name: install xinetd
   package: name=xinetd state=present
-  when: ansible_distribution_major_version|int == 6
+  when: ansible_distribution_major_version|int == 6 and ansible_distribution is 'RedHat'
   tags: git/server
 
 - name: install the xinetd config file
@@ -30,7 +43,7 @@
     src="git.j2"
     dest="/etc/xinetd.d/git"
     mode=0644
-  when: ansible_distribution_major_version|int == 6
+  when: ansible_distribution_major_version|int == 6 and ansible_distribution is 'RedHat'
   tags: git/server
   notify:
   - restart xinetd

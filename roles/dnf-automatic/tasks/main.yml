@@ -23,7 +23,7 @@
 
   - name: enable and start dnf-automatic
     command: systemctl enable dnf-automatic.timer
-    when: ansible_distribution_major_version|int < 26
+    when: ansible_distribution_major_version|int < 8 and ansible_distribution is 'RedHat'
     args:
       creates: /etc/systemd/system/basic.target.wants/dnf-automatic.timer
     tags:
@@ -35,15 +35,23 @@
     check_mode: no
     changed_when: 1 != 1
     ignore_errors: true
-    when: ansible_distribution_major_version|int < 26
+    when: ansible_distribution_major_version|int < 8 and ansible_distribution is 'RedHat'
 
   - name: start dnf-automatic.timer if it is not active
     command: systemctl start dnf-automatic.timer
-    when: automaticative is failed and ansible_distribution_major_version|int < 26
+    when: automaticative is failed and ansible_distribution_major_version|int < 8 and ansible_distribution is 'RedHat'
 
   - name: enable and start dnf-automatic f26+
     command: systemctl enable dnf-automatic-install.timer
-    when: ansible_distribution_major_version|int >= 26
+    when: ansible_distribution_major_version|int >= 29 and ansible_distribution is 'Fedora'
+    register: dnfautomaticenable
+    changed_when: dnfautomaticenable.rc != 0
+    tags:
+    - config
+
+  - name: enable and start dnf-automatic RHEL8+
+    command: systemctl enable dnf-automatic-install.timer
+    when: ansible_distribution_major_version|int >= 8 and ansible_distribution is 'RedHat'
     register: dnfautomaticenable
     changed_when: dnfautomaticenable.rc != 0
     tags:
@@ -55,11 +63,23 @@
     check_mode: no
     changed_when: 1 != 1
     ignore_errors: true
-    when: ansible_distribution_major_version|int >= 26
+    when: ansible_distribution_major_version|int >= 8 and ansible_distribution is 'RedHat'
+
+  - name: check if dnf-automatic-install.timer is active
+    command: systemctl is-active dnf-automatic-install.timer
+    register: automaticative
+    check_mode: no
+    changed_when: 1 != 1
+    ignore_errors: true
+    when: ansible_distribution_major_version|int >= 29 and ansible_distribution is 'Fedora'
 
   - name: start dnf-automatic-install.timer if it is not active
     command: systemctl start dnf-automatic-install.timer
-    when: automaticative is failed and ansible_distribution_major_version|int >= 26
+    when: automaticative is failed and ansible_distribution_major_version|int >= 8 and ansible_distribution is 'RedHat'
+
+  - name: start dnf-automatic-install.timer if it is not active
+    command: systemctl start dnf-automatic-install.timer
+    when: automaticative is failed and ansible_distribution_major_version|int >= 29 and ansible_distribution is 'Fedora'
 
   - name: disable silly makecache timer
     systemd: name=dnf-makecache masked=yes

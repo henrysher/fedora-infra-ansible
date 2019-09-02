@@ -76,11 +76,12 @@
   tasks:
   - name: install cloud-utils (yum)
     package: name=cloud-utils state=present
-    when: ansible_distribution_major_version|int < 22
+    when: ansible_distribution_major_version|int < 8 and ansible_distribution is 'RedHat'
 
+# FIXME no Fedora ?
   - name: install cloud-utils (dnf)
     command: dnf install -y cloud-utils
-    when: ansible_distribution_major_version|int > 21 and ansible_cmdline.ostree is not defined
+    when: ansible_distribution_major_version|int > 7 and ansible_cmdline.ostree is not defined
 
   - import_tasks: "{{ tasks_path }}/cloud_setup_basic.yml"
 

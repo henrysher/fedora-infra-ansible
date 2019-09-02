@@ -1,4 +1,6 @@
 ---
+# FIXME: Are these hosts really running RHEL or do we need to check for CentOS ?
+#
 # Configuration for the fedora-packages webapp
 - name: install needed packages
   package: name={{ item }} state=present
@@ -91,7 +93,7 @@
   tags:
   - packages
   - packages/web
-  when: ansible_distribution_major_version|int < 7
+  when: ansible_distribution_major_version|int < 7 and ansible_distribution is 'RedHat'
 
 # Here's the indexer stuff
 - name: Create cache structure
@@ -134,7 +136,7 @@
   - packages
   - packages/web
   - hotfix
-  when: ansible_distribution_major_version|int < 7
+  when: ansible_distribution_major_version|int < 7 and ansible_distribution is 'RedHat'
 
 # Lastly, here's some selinux stuff.
 - name: set some selinux booleans
@@ -163,4 +165,4 @@
   - packages
   - packages/web
   - selinux
-  when: ansible_distribution_major_version|int > 6
+  when: ansible_distribution_major_version|int > 6 and (ansible_distribution is 'RedHat' or ansible_distribution is 'Fedora')

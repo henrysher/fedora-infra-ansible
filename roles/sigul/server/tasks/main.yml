@@ -30,15 +30,23 @@
   package: state=present name={{ item }}
   with_items:
   - gnupg1
-  when: ansible_distribution_major_version|int == 7
+  when: ansible_distribution_major_version|int == 7 and ansible_distribution is 'RedHat'
   tags:
   - packages
 
-- name: install fedora only packages
+- name: install gnupg packages
   package: state=present name={{ item }}
   with_items:
   - gnupg
-  when: ansible_distribution_major_version|int > 23
+  when: ansible_distribution_major_version|int >= 8 and ansible_distribution is 'RedHat'
+  tags:
+  - packages
+
+- name: install gnupg packages
+  package: state=present name={{ item }}
+  with_items:
+  - gnupg
+  when: ansible_distribution_major_version|int >= 29 and ansible_distribution is 'Fedora'
   tags:
   - packages
 
@@ -50,7 +58,7 @@
 
 - name: Setup gpg link on rhel7
   file: state=link src=/usr/bin/gpg1 dest=/usr/bin/gpg
-  when: ansible_distribution_major_version|int == 7
+  when: ansible_distribution_major_version|int == 7 and ansible_distribution is 'RedHat'
 
 - name: add polkit rules to allow sigul user to access the smartcard/yubikey
   copy: src=00-sigul.rules dest=/etc/polkit-1/rules.d/00-sigul.rules

@@ -17,25 +17,25 @@
 
   - name: yum update {{ package }} from main repo
     yum: name="{{ package }}" state=latest update_cache=yes
-    when: not testing and ansible_distribution_major_version|int < 22
+    when: not testing and ansible_distribution_major_version|int < 8 and ansible_distribution is 'RedHat'
 
   - name: yum update {{ package }} from testing repo
     yum: name="{{ package }}" state=latest enablerepo=infrastructure-tags-stg update_cache=yes
-    when: testing and ansible_distribution_major_version|int < 22
+    when: testing and ansible_distribution_major_version|int < 8 and ansible_distribution is 'RedHat'
 
   - name: dnf clean all (since we can't do it when updating)
     command: dnf clean all
-    when: not testing and ansible_distribution_major_version|int > 21
+    when: not testing and ansible_distribution_major_version|int > 21 and ansible_distribution is 'Fedora'
 
   - name: dnf update {{ package }} from main repo
     dnf: name="{{ package }}" state=latest
-    when: not testing and ansible_distribution_major_version|int > 21
+    when: not testing and ansible_distribution_major_version|int > 21 and ansible_distribution is 'Fedora'
 
   - name: dnf clean all (since we can't do it when updating)
     command: dnf clean all --enablerepo=infrastructure-tags-stg
-    when: testing and ansible_distribution_major_version|int > 21
+    when: testing and ansible_distribution_major_version|int > 21 and ansible_distribution is 'Fedora'
 
   - name: dnf update {{ package }} from testing repo
     dnf: name="{{ package }}" state=latest enablerepo=infrastructure-tags-stg
-    when: testing and ansible_distribution_major_version|int > 21
+    when: testing and ansible_distribution_major_version|int > 21 and ansible_distribution is 'Fedora'
 

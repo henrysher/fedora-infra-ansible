@@ -11,11 +11,11 @@
   - policycoreutils-python
   tags:
   - selinux
-  when: ansible_distribution_major_version|int < 8
+  when: ansible_distribution_major_version|int < 8 and ansible_distribution is 'RedHat'
 
 - name: ensure packages required for semanage are installed (dnf)
   package: name=policycoreutils-python-utils state=present
-  when: ansible_distribution_major_version|int > 27 and ansible_cmdline.ostree is not defined
+  when: (ansible_distribution_major_version|int > 27 and ansible_distribution is 'Fedora') or (ansible_distribution_major_version|int > 7 and ansible_distribution is 'RedHat') and ansible_cmdline.ostree is not defined
   tags:
   - selinux
 
@@ -52,7 +52,18 @@
   ini_file: dest=/etc/NetworkManager/NetworkManager.conf section=main option=dns value=none
   notify:
   - restart NetworkManager
-  when: ansible_distribution_major_version|int >=7 and nmclitest is success and ( not ansible_ifcfg_blacklist) and not nm_controlled_resolv
+  when: ansible_distribution_major_version|int >=7 and ansible_distribution is 'RedHat' and nmclitest is success and ( not ansible_ifcfg_blacklist) and not nm_controlled_resolv
+  tags:
+   - config
+   - resolvconf
+   - base
+   - ifcfg
+
+- name: disable resolv.conf control from NM
+  ini_file: dest=/etc/NetworkManager/NetworkManager.conf section=main option=dns value=none
+  notify:
+  - restart NetworkManager
+  when: ansible_distribution_major_version|int >=29 and ansible_distribution is 'Fedora' and nmclitest is success and ( not ansible_ifcfg_blacklist) and not nm_controlled_resolv
   tags:
    - config
    - resolvconf
@@ -65,7 +76,19 @@
   changed_when: false
   failed_when: 'if_uuid.stdout == ""'
   check_mode: no
-  when: ansible_distribution_major_version|int >=7 and nmclitest is success and ( not ansible_ifcfg_blacklist )
+  when: ansible_distribution_major_version|int >=7 and ansible_distribution is 'RedHat' and nmclitest is success and ( not ansible_ifcfg_blacklist )
+  tags:
+   - config
+   - ifcfg
+   - base
+
+- name: get interface uuid
+  shell: nmcli -f "DEVICE,UUID" c show --active | grep -E '^eth|^br|^em'
+  register: if_uuid
+  changed_when: false
+  failed_when: 'if_uuid.stdout == ""'
+  check_mode: no
+  when: ansible_distribution_major_version|int >=29 and ansible_distribution is 'Fedora' and nmclitest is success and ( not ansible_ifcfg_blacklist )
   tags:
    - config
    - ifcfg
@@ -92,17 +115,25 @@
   tags:
   - packages
   - base
-  when: ansible_distribution_major_version|int < 22 and ansible_distribution_major_version|int != 8
+  when: ansible_distribution_major_version|int < 8 and ansible_distribution is 'RedHat'
 
 - name: global default packages to install (dnf)
   dnf: state=present name="{{ global_pkgs_inst }}"
   tags:
   - packages
   - base
-  when: ansible_distribution_major_version|int > 21 and ansible_cmdline.ostree is not defined
+  when: ansible_distribution_major_version|int >= 8 and ansible_distribution is 'RedHat' and ansible_cmdline.ostree is not defined
+
+- name: global default packages to install (dnf)
+  dnf: state=present name="{{ global_pkgs_inst }}"
+  tags:
+  - packages
+  - base
+  when: ansible_distribution_major_version|int > 29 and ansible_distribution is 'Fedora' and ansible_cmdline.ostree is not defined
 
 - name: make sure hostname is set right on rhel7 hosts
   hostname: name="{{inventory_hostname}}"
+  when: ansible_distribution_major_version|int == 7 and ansible_distribution is 'RedHat'
 
 #
 # We set builders root password in the koji_builder role, so do not set those here
@@ -137,7 +168,7 @@
   tags:
   - packages
   - base
-  when: ansible_distribution_major_version|int < 22
+  when: ansible_distribution_major_version|int < 8 and ansible_distribution is 'RedHat'
 
 - name: dist pkgs to install (yum)
   package: state=present name={{ item }}
@@ -146,21 +177,35 @@
   tags:
   - packages
   - base
-  when: ansible_distribution_major_version|int < 22
+  when: ansible_distribution_major_version|int < 8 and ansible_distribution is 'RedHat'
 
 - name: dist pkgs to remove (dnf)
   dnf: state=absent name="{{ base_pkgs_erase }}"
   tags:
   - packages
   - base
-  when: ansible_distribution_major_version|int > 21 and ansible_cmdline.ostree is not defined
+  when: ansible_distribution_major_version|int > 29 and ansible_distribution is 'Fedora' and ansible_cmdline.ostree is not defined
+
+- name: dist pkgs to remove (dnf)
+  dnf: state=absent name="{{ base_pkgs_erase }}"
+  tags:
+  - packages
+  - base
+  when: ansible_distribution_major_version|int >= 8 and ansible_distribution is 'RedHat' and ansible_cmdline.ostree is not defined
 
 - name: dist pkgs to install (dnf)
   dnf: state=present name="{{ base_pkgs_inst }}"
   tags:
   - packages
   - base
-  when: ansible_distribution_major_version|int > 21 and ansible_cmdline.ostree is not defined
+  when: ansible_distribution_major_version|int > 29 and ansible_distribution is 'Fedora' and ansible_cmdline.ostree is not defined
+
+- name: dist pkgs to install (dnf)
+  dnf: state=present name="{{ base_pkgs_inst }}"
+  tags:
+  - packages
+  - base
+  when: ansible_distribution_major_version|int >= 8 and ansible_distribution is 'RedHat' and ansible_cmdline.ostree is not defined
 
 - name: dist disabled services
   service: state=stopped enabled=false name={{ item }}
@@ -234,7 +279,18 @@
 - name: enable journald persistence
   file: path=/var/log/journal state=directory
         owner=root group=systemd-journal mode=2755
-  when: ansible_distribution_major_version|int >= 7
+  when: ansible_distribution_major_version|int >= 7 and ansible_distribution is 'RedHat'
+  tags:
+  - journald
+  - config
+  - base
+  notify:
+  - flush journald tmpfiles to persistent store
+
+- name: enable journald persistence
+  file: path=/var/log/journal state=directory
+        owner=root group=systemd-journal mode=2755
+  when: ansible_distribution_major_version|int >= 29 and ansible_distribution is 'Fedora'
   tags:
   - journald
   - config
@@ -346,7 +402,16 @@
 - name: copy over our custom selinux module
   copy: src=selinux/mapchkpwd.pp dest=/usr/local/share/mapchkpwd.pp
   register: selinux_module
-  when: ansible_distribution_major_version|int >= 27
+  when: ansible_distribution_major_version|int >= 29 and ansible_distribution is 'Fedora'
+  tags:
+  - config
+  - selinux
+
+# Custom selinux policy to allow unix_chkpwd to map PAM database
+- name: copy over our custom selinux module
+  copy: src=selinux/mapchkpwd.pp dest=/usr/local/share/mapchkpwd.pp
+  register: selinux_module
+  when: ansible_distribution_major_version|int >= 8 and ansible_distribution is 'RedHat'
   tags:
   - config
   - selinux
