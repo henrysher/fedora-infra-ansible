@@ -50,6 +50,12 @@ config = {
                     "keyid": "3c3359c4"
                 },
                 {
+                    "from": "f31-gnome",
+                    "to": "f31-gnome",
+                    "key": "fedora-31",
+                    "keyid": "3c3359c4"
+                },
+                {
                     "from": "f31-python",
                     "to": "f31-python",
                     "key": "fedora-31",
@@ -95,6 +101,18 @@ config = {
                 {
                     "from": "f30-infra-candidate",
                     "to": "f30-infra-stg",
+                    "key": "fedora-infra",
+                    "keyid": "47dd8ef9"
+                },
+                {
+                    "from": "f31-infra-candidate",
+                    "to": "f31-infra-stg",
+                    "key": "fedora-infra",
+                    "keyid": "47dd8ef9"
+                },
+                {
+                    "from": "f32-infra-candidate",
+                    "to": "f32-infra-stg",
                     "key": "fedora-infra",
                     "keyid": "47dd8ef9"
                 },
