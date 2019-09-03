@@ -177,5 +177,83 @@ items:
             namespace: release-monitoring
         type: ImageChange
       - type: ConfigChange
+- apiVersion: v1
+  kind: DeploymentConfig
+  metadata:
+    labels:
+      app: release-monitoring-librariesio-consumer
+      service: web
+    name: release-monitoring-librariesio-consumer
+  spec:
+    replicas: 1
+    selector:
+      deploymentconfig: release-monitoring-librariesio-consumer
+    strategy:
+      activeDeadlineSeconds: 21600
+      recreateParams:
+        timeoutSeconds: 600
+      resources: {}
+      type: Recreate
+    template:
+      metadata:
+        creationTimestamp: null
+        labels:
+          app: release-monitoring-librariesio-consumer
+          deploymentconfig: release-monitoring-librariesio-consumer
+      spec:
+        containers:
+          - name: release-monitoring-web
+            image: release-monitoring/release-monitoring-web:latest
+            command:
+              - python3
+            args:
+              - /usr/local/bin/librariesio_consumer.py
+            env:
+              - name: ANITYA_WEB_CONFIG
+                value: /etc/anitya/anitya.toml
+            resources: {}
+            volumeMounts:
+              - name: config-volume
+                mountPath: /etc/anitya
+                readOnly: true
+              - name: fedora-messaging-config-volume
+                mountPath: /etc/fedora-messaging
+                readOnly: true
+              - name: fedora-messaging-ca-volume
+                mountPath: /etc/pki/rabbitmq/ca
+                readOnly: true
+              - name: fedora-messaging-key-volume
+                mountPath: /etc/pki/rabbitmq/key
+                readOnly: true
+              - name: fedora-messaging-cert-volume
+                mountPath: /etc/pki/rabbitmq/cert
+                readOnly: true
+        volumes:
+          - name: config-volume
+            configMap:
+              name: release-monitoring-configmap
+          - name: fedora-messaging-config-volume
+            configMap:
+              name: fedora-messaging-configmap
+          - name: fedora-messaging-ca-volume
+            secret:
+              secretName: release-monitoring-fedora-messaging-ca
+          - name: fedora-messaging-key-volume
+            secret:
+              secretName: release-monitoring-fedora-messaging-key
+          - name: fedora-messaging-cert-volume
+            secret:
+              secretName: release-monitoring-fedora-messaging-cert
+    triggers:
+      - imageChangeParams:
+          automatic: true
+          containerNames:
+            - release-monitoring-web
+          from:
+            kind: ImageStreamTag
+            name: release-monitoring-web:latest
+            namespace: release-monitoring
+        type: ImageChange
+      - type: ConfigChange
 kind: List
 metadata: {}
