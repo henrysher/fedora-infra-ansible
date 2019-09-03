@@ -37,7 +37,7 @@ def serialize_datetime_in_task(task):
     for date_key in date_fields:
         if task.get(date_key) is None:
             continue
-        if isinstance(task[date_key], (float, int)):
+        if isinstance(task[date_key], (float, int, long)):
             continue
         task[date_key] = time.mktime(task[date_key].timetuple())
 
