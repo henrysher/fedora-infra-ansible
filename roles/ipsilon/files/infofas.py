@@ -49,6 +49,7 @@ aws_groups = {
     'aws-cloud-poc': 'arn:aws:iam::125523088429:role/aws-cloud-poc',
     'aws-infra': 'arn:aws:iam::125523088429:role/aws-infra',
     'aws-docs': 'arn:aws:iam::125523088429:role/aws-docs',
+    'aws-copr': 'arn:aws:iam::125523088429:role/aws-copr',
 }
 
 
