@@ -30,8 +30,12 @@ def camel_to_dots(name):
 
 
 def serialize_datetime_in_task(task):
-    for date_key in ("completion_time", "create_time", "start_time"):
-        if task[date_key] is None:
+    date_fields = [
+        "completion_time", "create_time", "start_time", "buildtime",
+        "creation_ts"
+    ]
+    for date_key in date_fields:
+        if task.get(date_key) is None:
             continue
         task[date_key] = time.mktime(task[date_key].timetuple())
 
@@ -148,6 +152,8 @@ def get_message_body(topic, *args, **kws):
             msg['sighash'] = kws['sighash']
             msg['build'] = kws['build']
             msg['rpm'] = kws['rpm']
+            serialize_datetime_in_task(msg['build'])
+            serialize_datetime_in_task(msg['rpm'])
 
     return msg
 
