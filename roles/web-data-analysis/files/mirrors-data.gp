@@ -167,8 +167,8 @@ plot ["2015-01-01":"2019-12-31"] \
      '/var/www/html/csv-reports/mirrors/mirrorsdata-all.csv' using 1:36 title 'Fedora' with lines lw 3,\
      '/var/www/html/csv-reports/mirrors/mirrorsdata-all.csv' using 1:($31+$32+$65+$66+$33) title 'fed28' with filledcurves x1,\
      '/var/www/html/csv-reports/mirrors/mirrorsdata-all.csv' using 1:($32+$66+$65+$33) title 'fed29' with filledcurves x1,\
-     '/var/www/html/csv-reports/mirrors/mirrorsdata-all.csv' using 1:($65+$66+$33) title 'fed30' with filledcurves x1,
-     '/var/www/html/csv-reports/mirrors/mirrorsdata-all.csv' using 1:($66+$33) title 'fed31' with filledcurves x1,
+     '/var/www/html/csv-reports/mirrors/mirrorsdata-all.csv' using 1:($65+$66+$33) title 'fed30' with filledcurves x1,\
+     '/var/www/html/csv-reports/mirrors/mirrorsdata-all.csv' using 1:($66+$33) title 'fed31' with filledcurves x1,\
      '/var/www/html/csv-reports/mirrors/mirrorsdata-all.csv' using 1:($33) title 'rawhide' with filledcurves x1
 unset output
 
@@ -322,8 +322,8 @@ plot ["2015-01-01":"2019-12-31"] \
      '/var/www/html/csv-reports/mirrors/mirrorsdata-all.csv' using 1:36 title 'Fedora' with lines lw 3,\
      '/var/www/html/csv-reports/mirrors/mirrorsdata-all.csv' using 1:($31+$32+$65+$66+$33) title 'fed28' with filledcurves x1,\
      '/var/www/html/csv-reports/mirrors/mirrorsdata-all.csv' using 1:($32+$66+$65+$33) title 'fed29' with filledcurves x1,\
-     '/var/www/html/csv-reports/mirrors/mirrorsdata-all.csv' using 1:($65+$66+$33) title 'fed30' with filledcurves x1,
-     '/var/www/html/csv-reports/mirrors/mirrorsdata-all.csv' using 1:($66+$33) title 'fed31' with filledcurves x1,
+     '/var/www/html/csv-reports/mirrors/mirrorsdata-all.csv' using 1:($65+$66+$33) title 'fed30' with filledcurves x1,\
+     '/var/www/html/csv-reports/mirrors/mirrorsdata-all.csv' using 1:($66+$33) title 'fed31' with filledcurves x1,\
      '/var/www/html/csv-reports/mirrors/mirrorsdata-all.csv' using 1:($33) title 'rawhide' with filledcurves x1
 unset output
 
