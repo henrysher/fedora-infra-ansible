@@ -1,0 +1,163 @@
+#!/usr/bin/python2
+# Copyright (c) 2016, Patrick Uiterwijk <patrick@puiterwijk.org>
+# All rights reserved.
+#
+# This file is part of Basset.
+#
+# Basset is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# Basset is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with Basset.  If not, see <http://www.gnu.org/licenses/>.
+
+import ConfigParser
+import json
+import logging
+import requests
+import pika
+import sys
+import time as time_module
+
+from basset import Core
+
+run_once = False
+run_test = False
+run_manual = False
+if len(sys.argv) > 1:
+    if sys.argv[1] == 'once':
+        run_once = True
+    elif sys.argv[1] == 'test':
+        run_once = True
+        run_test = True
+    elif sys.argv[1] == 'manual':
+        run_manual = True
+
+config = ConfigParser.SafeConfigParser()
+config.read(['worker.default.cfg',
+             '/etc/basset/worker.default.cfg',
+             'worker.cfg',
+             '/etc/basset/worker.cfg'])
+
+logging.basicConfig(level=logging.DEBUG)
+log = logging.getLogger(__name__)
+
+core = Core(config)
+
+args = {key: val for key, val in config.items('rabbitmq')} if config.has_section('rabbitmq') else {}
+params = pika.ConnectionParameters(**args)
+connection = pika.BlockingConnection(params)
+channel = connection.channel()
+channel.queue_declare('check_submission', durable=True)
+
+def callback(ch, method, properties, body):
+    body = json.loads(body)
+    log.debug('Received message %s' % body)
+    action = body.get('action', 'unknown')
+    time = body.get('time', 0)
+    data = body.get('data')
+    requeued = body.get('requeued')
+
+    if requeued and requeued > (time_module.time() - 2000):
+        # Probably the same message as the last one
+        log.warning('Arrived at same message. Delaying processing')
+        time_module.sleep(1)
+
+    mid = None
+    if not run_test and requeued is None:
+        mid = core.store_message(action, time, data)
+        log.debug('Stored message id: %s' % mid)
+
+    override = None
+    if run_manual:
+        print 'Data: %s' % data
+        decisions = core.process_message(action, time, data,
+                                         None)
+        print 'Would do: %s' % decisions
+        override = raw_input('Override [Cancel/use/approve/reject/skip]: ')
+        override = override.lower()
+        if override not in ['use', 'approve', 'reject', 'skip']:
+            print 'Aborting'
+            sys.exit(0)
+            raise Exception('Aborted')
+
+    if override == 'skip':
+        decisions = None
+    else:
+        if override and override != 'use':
+            # This turns override into None/True/False
+            override = override == 'approve'
+        else:
+            override = None
+        decisions = core.process_message(action, time, data,
+                                         override)
+
+        log.debug('Decisions: %s' % decisions)
+    if run_test:
+        raise Exception('Generated decisions')
+
+    if decisions is None:
+        # Requeue at the back
+        log.info("Requeued message because no decisions were generated")
+        channel.basic_publish(exchange='',
+                              routing_key='check_submission',
+                              body=json.dumps({
+                                'action': action,
+                                'time': time,
+                                'data': data,
+                                'requeued': time_module.time()
+                              }),
+                              properties=pika.BasicProperties(
+                                delivery_mode=2
+                              ))
+        ch.basic_ack(delivery_tag = method.delivery_tag)
+    else:
+        if isinstance(decisions, dict):
+            decisions = [decisions]
+
+        log.debug('Storing decisions')
+        if mid:
+            mids = core.store_decisions(mid, decisions)
+            log.debug('Decision IDs: %s' % ', '.join(mids))
+        log.debug('Processing decision')
+        if core.process_decisions(decisions) is True:
+            log.debug('Decision processed. Acknowledging')
+            ch.basic_ack(delivery_tag = method.delivery_tag)
+        else:
+            log.error('Error reported during processing')
+            channel.basic_publish(exchange='',
+                              routing_key='check_submission',
+                              body=json.dumps({
+                                'action': action,
+                                'time': time,
+                                'data': data,
+                                'requeued': time_module.time()
+                              }),
+                              properties=pika.BasicProperties(
+                                delivery_mode=2
+                              ))
+            ch.basic_ack(delivery_tag = method.delivery_tag)
+    log.debug('Message processed')
+    if run_once:
+        raise Exception('Single message processed')
+    # If we get here without there having been made a decission and acted
+    # upon that decission, that means we did not fully process this message.
+    # Since we did not acknowledge the message, that means the queue will
+    # increase, and if monitoring is setup that means admins will be warned.
+
+# Make sure we leave any other messages in the queue
+channel.basic_qos(prefetch_count=1)
+channel.basic_consume(callback, queue='check_submission')
+
+try:
+    log.debug('Starting consuming')
+    channel.start_consuming()
+except KeyboardInterrupt:
+    channel.cancel()
+    connection.close()
