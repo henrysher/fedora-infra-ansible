@@ -1,0 +1,70 @@
+amqp_url = "amqps://message-tagging-service{{ env_suffix }}:@rabbitmq{{ env_suffix }}.fedoraproject.org/%2Fpubsub"
+
+{% if env == "staging" %}
+topic_prefix = "org.fedoraproject.stg"
+{% else %}
+topic_prefix = "org.fedoraproject.prod"
+{% endif %}
+
+[tls]
+ca_cert = "/etc/pki/tls/certs/ca-bundle.crt"
+keyfile = "{{private}}/files/rabbitmq/{{env}}/pki/private/mts{{ env_suffix }}.key"
+certfile = "{{private}}/files/rabbitmq/{{env}}/pki/issued/mts{{ env_suffix }}.crt"
+
+
+[client_properties]
+app = "Message Tagging Service"
+app_url = "https://github.com/fedora-modularity/message-tagging-service"
+app_contacts_email = ["cqi@redhat.com"]
+
+[exchanges."amq.topic"]
+type = "topic"
+durable = true
+auto_delete = false
+arguments = {}
+
+[queues.5de78c42-8f70-4e0b-bc0c-efa1dd4f13ad]
+durable = true
+auto_delete = false
+exclusive = false
+arguments = {}
+
+[[bindings]]
+queue = "5de78c42-8f70-4e0b-bc0c-efa1dd4f13ad"
+exchange = "amq.topic"
+routing_keys = ["org.fedoraproject.*.mbs.build.state.change"]
+
+[qos]
+prefetch_size = 0
+prefetch_count = 25
+
+[log_config]
+version = 1
+disable_existing_loggers = true
+
+[log_config.formatters.simple]
+format = "[%(levelname)s %(name)s] %(message)s"
+
+[log_config.handlers.console]
+class = "logging.StreamHandler"
+formatter = "simple"
+stream = "ext://sys.stdout"
+
+[log_config.loggers.fedora_messaging]
+level = "INFO"
+propagate = false
+handlers = ["console"]
+
+[log_config.loggers.twisted]
+level = "INFO"
+propagate = false
+handlers = ["console"]
+
+[log_config.loggers.pika]
+level = "WARNING"
+propagate = false
+handlers = ["console"]
+
+[log_config.root]
+level = "ERROR"
+handlers = ["console"]
