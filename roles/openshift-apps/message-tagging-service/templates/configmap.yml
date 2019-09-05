@@ -15,10 +15,7 @@ data:
         keytab = '/etc/krb5.keytab'
         principal = '{{ app }}/{{ app }}{{ env_suffix }}.fedoraproject.org@{{ ipa_realm }}'
 
-        messaging_backend = 'fedmsg'
-        messaging_backends = {
-            'fedmsg': {'service': 'mts'},
-        }
+        messaging_backend = 'fedora-messaging'
         build_state = 'ready'
 
         {% if env == 'staging' %}
@@ -28,9 +25,6 @@ data:
         rules_file_url = 'https://pagure.io/mts-rules/raw/master/f/rules.yaml'
         mbs_api_url = 'https://mbs.stg.fedoraproject.org/module-build-service/1/'
         koji_profile = 'stg'
-        consumer_topics = [
-            'org.fedoraproject.stg.mbs.module.state.change',
-        ]
 
         {% else %}
 
@@ -39,9 +33,6 @@ data:
                           'roles/openshift-apps/message-tagging-service/files/mts-rules.yml')
         mbs_api_url = 'https://mbs.fedoraproject.org/module-build-service/1/'
         koji_profile = 'koji'
-        consumer_topics = [
-            'org.fedoraproject.prod.mbs.module.state.change',
-        ]
 
         {% endif %}
 ---
