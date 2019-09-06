@@ -1,0 +1,32 @@
+apiVersion: v1
+kind: BuildConfig
+metadata:
+  name: bugzilla2fedmsg-build
+  labels:
+    environment: "bugzilla2fedmsg"
+spec:
+  source:
+    type: Dockerfile
+    dockerfile: |-
+        FROM fedora:30
+        LABEL \
+          name="bugzilla2fedmsg" \
+          vendor="Fedora Infrastructure" \
+          license="MIT"
+        RUN curl -o /etc/yum.repos.d/infra-tags.repo https://infrastructure.fedoraproject.org/cgit/ansible.git/plain/files/common/fedora-infra-tags.repo
+{% if env == "staging" %}
+        RUN curl -o /etc/yum.repos.d/infra-tags-stg.repo https://infrastructure.fedoraproject.org/cgit/ansible.git/plain/files/common/fedora-infra-tags-stg.repo
+{% endif %}
+        RUN dnf install -y python3-bugzilla2fedmsg
+        ENV USER=openshift
+        ENTRYPOINT /usr/bin/bugzilla2fedmsg
+  strategy:
+    type: Docker
+    dockerStrategy:
+        noCache: false
+  triggers:
+  - type: ImageChange
+  output:
+    to:
+      kind: ImageStreamTag
+      name: bugzilla2fedmsg:latest

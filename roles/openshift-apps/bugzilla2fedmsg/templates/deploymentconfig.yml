@@ -1,0 +1,96 @@
+---
+apiVersion: v1
+kind: DeploymentConfig
+metadata:
+  labels:
+    app: bugzilla2fedmsg
+    service: bugzilla2fedmsg
+  name: bugzilla2fedmsg
+spec:
+  replicas: 2
+  selector:
+    app: bugzilla2fedmsg
+    deploymentconfig: bugzilla2fedmsg
+  strategy:
+    resources: {}
+  template:
+    metadata:
+      labels:
+        app: bugzilla2fedmsg
+        deploymentconfig: bugzilla2fedmsg
+    spec:
+      containers:
+      - image: bugzilla2fedmsg:latest
+        name: bugzilla2fedmsg
+        env:
+        - name: APP_MODULE
+          value: "bugzilla2fedmsg:app"
+        ports:
+        - containerPort: 8080
+          protocol: TCP
+        volumeMounts:
+          - name: fedora-messaging-config-volume
+            mountPath: /etc/fedora-messaging
+            readOnly: true
+          - name: fedora-messaging-ca-volume
+            mountPath: /etc/pki/fedora-messaging/cacert.pem
+            subPath: cacert.pem
+            readOnly: true
+          - name: fedora-messaging-crt-volume
+            mountPath: /etc/pki/fedora-messaging/bugzilla2fedmsg-cert.pem
+            subPath: bugzilla2fedmsg-cert.pem
+            readOnly: true
+          - name: fedora-messaging-key-volume
+            mountPath: /etc/pki/fedora-messaging/bugzilla2fedmsg-key.pem
+            subPath: bugzilla2fedmsg-key.pem
+            readOnly: true
+          - name: stomp-crt-volume
+            mountPath: /etc/pki/stomp/msg-client-fedora-prod.crt
+            subPath: msg-client-fedora-prod.crt
+            readOnly: true
+          - name: stomp-key-volume
+            mountPath: /etc/pki/stomp/msg-client-fedora-prod.key
+            subPath: msg-client-fedora-prod.key
+            readOnly: true
+        readinessProbe:
+          timeoutSeconds: 1
+          initialDelaySeconds: 5
+          httpGet:
+            path: /
+            port: 8080
+        livenessProbe:
+          timeoutSeconds: 1
+          initialDelaySeconds: 30
+          httpGet:
+            path: /
+            port: 8080
+      volumes:
+        - name: fedora-messaging-config-volume
+          configMap:
+            name: fedora-messaging-configmap
+        - name: fedora-messaging-ca-volume
+          secret:
+            secretName: fedora-messaging-ca
+        - name: fedora-messaging-crt-volume
+          secret:
+            secretName: fedora-messaging-crt
+        - name: fedora-messaging-key-volume
+          secret:
+            secretName: fedora-messaging-key
+        - name: stomp-crt-volume
+          secret:
+            secretName: stomp-crt
+        - name: stomp-key-volume
+          secret:
+            secretName: stomp-key
+
+  triggers:
+  - type: ConfigChange
+  - type: ImageChange
+    imageChangeParams:
+      automatic: true
+      containerNames:
+      - bugzilla2fedmsg
+      from:
+        kind: ImageStreamTag
+        name: bugzilla2fedmsg:latest

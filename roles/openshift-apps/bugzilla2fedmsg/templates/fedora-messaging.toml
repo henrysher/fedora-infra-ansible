@@ -1,0 +1,82 @@
+# Configuraton for Fedora Messaging
+
+# Broker address
+amqp_url = "amqps://bugzilla2fedmsg{{ env_suffix }}:@rabbitmq{{ env_suffix }}.fedoraproject.org/%2Fpubsub"
+
+# The topic_prefix configuration value will add a prefix to the topics of every sent message.
+# This is used for migrating from fedmsg, and should not be used afterwards.
+{% if env == "staging" %}
+topic_prefix = "org.fedoraproject.stg"
+{% else %}
+topic_prefix = "org.fedoraproject.prod"
+{% endif %}
+
+[tls]
+ca_cert = "/etc/pki/fedora-messaging/cacert.pem"
+keyfile = "/etc/pki/fedora-messaging/bugzilla2fedmsg-key.pem"
+certfile = "/etc/pki/fedora-messaging/bugzilla2fedmsg-cert.pem"
+
+
+[consumer_config]
+    [consumer_config.stomp]
+    # Broker URI
+    # http://nikipore.github.io/stompest/protocol.html#stompest.protocol.failover.StompFailoverUri
+    # Example: failover:(tcp://remote1:61615,tcp://localhost:61616)?randomize=false,startupMaxReconnectAttempts=3,initialReconnectDelay=7,maxReconnectDelay=8,maxReconnectAttempts=0
+    uri = "ssl://localhost:61612"
+    {% if env == 'staging' %}
+    uri = "failover:(ssl://messaging-devops-broker01.dist.stage.ext.phx2.redhat.com:61612,ssl://messaging-devops-broker02.dist.stage.ext.phx2.redhat.com:61612)"
+    user = "{{ redhat_dmz_dev_broker_username }}"
+    pass = "{{ redhat_dmz_dev_broker_password }}"
+    {% else %}
+    uri = "failover:(ssl://messaging-devops-broker01.dist.prod.ext.phx2.redhat.com:61612,ssl://messaging-devops-broker02.dist.prod.ext.phx2.redhat.com:61612)"
+    user = "{{ redhat_dmz_prod_broker_username }}"
+    pass = "{{ redhat_dmz_prod_broker_password }}"
+    {% endif %}
+    ssl_crt = "/etc/pki/stomp/msg-client-fedora-prod.crt"
+    ssl_key = "/etc/pki/stomp/msg-client-fedora-prod.key"
+
+    # Queue to subscribe to
+    queue = "/queue/Consumer.fedora.DO-NOT-COPY.VirtualTopic.eng.bugzilla.>"
+
+    # Heartbeat to keep the connection open
+    heartbeat = 1000
+
+    # How many messages to prefetch
+    prefetch_size = 100
+
+    [consumer_config.bugzilla]
+    # Products to relay messages for - messages for bugs files against
+    # other products will be ignored
+    products = ["Fedora", "Fedora EPEL"]
+    # Whether to modify messages to look more like Bugzilla 4 ones did
+    bz4compat = true
+
+
+[client_properties]
+app = "bugzilla2fedmsg"
+
+[log_config]
+version = 1
+disable_existing_loggers = true
+
+[log_config.formatters.simple]
+format = "[%(name)s %(levelname)s] %(message)s"
+
+[log_config.handlers.console]
+class = "logging.StreamHandler"
+formatter = "simple"
+stream = "ext://sys.stdout"
+
+[log_config.loggers.fedora_messaging]
+level = "INFO"
+propagate = false
+handlers = ["console"]
+
+[log_config.loggers.bugzilla2fedmsg]
+level = "INFO"
+propagate = false
+handlers = ["console"]
+
+[log_config.root]
+level = "WARNING"
+handlers = ["console"]

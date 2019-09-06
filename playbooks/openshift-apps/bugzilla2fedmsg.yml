@@ -1,0 +1,71 @@
+- name: make the app be real
+  hosts: os_masters_stg[0]
+  user: root
+  gather_facts: False
+
+  vars_files:
+    - /srv/web/infra/ansible/vars/global.yml
+    - "/srv/private/ansible/vars.yml"
+    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  roles:
+
+  - role: rabbit/user
+    username: "bugzilla2fedmsg{{ env_suffix }}"
+
+  - role: openshift/project
+    app: bugzilla2fedmsg
+    description: bugzilla2fedmsg
+    appowners:
+    - abompard
+    tags:
+      - apply-appowners
+  # Fedora Messaging secrets
+  - role: openshift/secret-file
+    app: bugzilla2fedmsg
+    secret_name: fedora-messaging-ca
+    key: cacert.pem
+    privatefile: "rabbitmq/{{env}}/pki/ca.crt"
+  - role: openshift/secret-file
+    app: bugzilla2fedmsg
+    secret_name: fedora-messaging-crt
+    key: bugzilla2fedmsg-cert.pem
+    privatefile: "rabbitmq/{{env}}/pki/issued/bugzilla2fedmsg{{env_suffix}}.crt"
+  - role: openshift/secret-file
+    app: bugzilla2fedmsg
+    secret_name: fedora-messaging-key
+    key: bugzilla2fedmsg-key.pem
+    privatefile: "rabbitmq/{{env}}/pki/private/bugzilla2fedmsg{{env_suffix}}.key"
+  # STOMP secrets
+  - role: openshift/secret-file
+    app: bugzilla2fedmsg
+    secret_name: stomp-crt
+    key: msg-client-fedora-prod.crt
+    privatefile: "bugzilla2fedmsg/msg-client-fedora-prod.crt"
+  - role: openshift/secret-file
+    app: bugzilla2fedmsg
+    secret_name: stomp-key
+    key: msg-client-fedora-prod.key
+    privatefile: "bugzilla2fedmsg/msg-client-fedora-prod.key"
+
+  - role: openshift/imagestream
+    app: bugzilla2fedmsg
+    imagename: bugzilla2fedmsg
+  - role: openshift/object
+    app: bugzilla2fedmsg
+    template: buildconfig.yml
+    objectname: buildconfig.yml
+  - role: openshift/start-build
+    app: bugzilla2fedmsg
+    buildname: bugzilla2fedmsg-build
+  - role: openshift/object
+    app: bugzilla2fedmsg
+    template: configmap.yml
+    objectname: configmap.yml
+  - role: openshift/object
+    app: bugzilla2fedmsg
+    template: deploymentconfig.yml
+    objectname: deploymentconfig.yml
+  - role: openshift/rollout
+    app: bugzilla2fedmsg
+    dcname: bugzilla2fedmsg
