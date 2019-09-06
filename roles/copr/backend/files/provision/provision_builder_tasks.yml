@@ -36,8 +36,11 @@
   when:
     - prepare_base_image is defined
 
-- name: install copr-builder
-  dnf: state=latest pkg=copr-builder
+- name: install copr-builder and other latest packages
+  dnf: state=latest pkg={{ item }}
+  with_items:
+  - copr-builder
+  - libcurl # temporarily, for rhbz#1690971
 
 - name: run /bin/copr-update-builder from copr-builder package
   shell: /usr/bin/copr-update-builder
