@@ -1,3 +1,5 @@
+# vim: ts=2 sw=2 autoindent
+
 - name: provision message-tagging-service
   hosts: os_masters_stg[0]
   user: root
@@ -25,6 +27,26 @@
     serviceport: web
     servicename: mts
 
+  # cacert, certificate and private key for fedora-messaging
+
+  - role: openshift/secret-file
+    app: message-tagging-service
+    secret_name: mts-fedora-messaging-key
+    key: mts.key
+    privatefile: "rabbitmq/{{env}}/pki/private/mts{{env_suffix}}.key"
+
+  - role: openshift/secret-file
+    app: message-tagging-service
+    secret_name: mts-fedora-messaging-crt
+    key: mts.crt
+    privatefile: "rabbitmq/{{env}}/pki/issued/mts{{env_suffix}}.crt"
+
+  - role: openshift/secret-file
+    app: message-tagging-service
+    secret_name: mts-fedora-messaging-ca
+    key: mts.ca
+    privatefile: "rabbitmq/{{env}}/pki/ca.crt"
+
   tasks:
     - name: Apply objects
       include_role: name=openshift/object
@@ -34,5 +56,5 @@
       with_items:
         - configmap
         - imagestream
-        - deployment
+        - deploymentconfig
         - service
