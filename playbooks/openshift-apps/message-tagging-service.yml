@@ -27,6 +27,20 @@
     serviceport: web
     servicename: mts
 
+  # Setup for fedora-messaging
+
+  - role: rabbit/user
+    username: "mts{{ env_suffix }}"
+
+  - role: rabbit/queue
+    username: "mts{{ env_suffix }}"
+    queue_name: "mts{{ env_suffix }}"
+    routing_keys:
+      - "org.fedoraproject.*.mbs.build.state.change"
+    thresholds:
+      warning: 10
+      critical: 100
+
   # cacert, certificate and private key for fedora-messaging
 
   - role: openshift/secret-file
