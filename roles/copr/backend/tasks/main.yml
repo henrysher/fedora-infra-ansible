@@ -207,6 +207,21 @@
   tags:
   - config
 
+- name: create messaging config directory
+  file: dest=/etc/copr/msgbuses state=directory owner=copr group=copr mode=0700
+  tags:
+  - config
+
+- name: install messaging config
+  template: src="fedora-messaging.conf.j2"
+            dest=/etc/copr/msgbuses
+            owner=copr group=copr mode=0600
+  notify:
+  - restart copr-backend
+  tags:
+  - config
+  when: devel|bool
+
 - name: copy sign.conf
   template: src=sign.conf dest=/etc/sign.conf  owner=root group=copr mode=640
   tags:
