@@ -22,22 +22,14 @@ tcp_ports: [ 22, 80, 443,
 # These 8 ports are used by fedmsg.  One for each wsgi thread.
          3000, 3001, 3002, 3003, 3004, 3005, 3006, 3007]
 
-# These are consumed by a task in roles/fedmsg/base/main.yml
-fedmsg_certs:
-- service: shell
-  owner: root
-  group: root
-- service: copr
-  owner: root
-  group: copr
-  can_send:
-  - copr.build.start
-  - copr.build.end
-  - copr.chroot.start
-  - copr.worker.create
+# consumed by roles/messaging/base
+messaging:
+  certificates:
+  - key: copr
+    username: copr
+    app_name: Copr build system
 
 # Copr vars
-
 copr_hostbase: copr-be
 
 host_backup_targets: ['/var/lib/copr/public_html/results']
