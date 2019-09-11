@@ -214,5 +214,5 @@ class ProdConfiguration(BaseConfiguration):
     # against platform:f30, it wouldn't be possible to buildrequire a module
     # built against platform:f29. This is not intended behaviour in Fedora
     # and therefore we want to turn this feature off.
-    ALLOW_ONLY_COMPATIBLE_BASE_MODULE = False
+    ALLOW_ONLY_COMPATIBLE_BASE_MODULES = False
 
