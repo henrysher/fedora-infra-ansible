@@ -13,12 +13,23 @@ spec:
         env:
           - name: SUDO_USER
             value: "job-{{name}}"
+          - name: KRB5_CONFIG
+            value: /etc/koschei/krb5.conf
+          - name: KRB5_CLIENT_KTNAME
+            value: /etc/krb5.keytab
         volumeMounts:
           - name: config
             mountPath: /etc/koschei
+            readOnly: true
+          - name: keytab
+            mountPath: /etc/krb5.keytab
+            subPath: krb5.keytab
             readOnly: true
       restartPolicy: Never
       volumes:
         - name: config
           secret:
             secretName: backend-config
+        - name: keytab
+          secret:
+            secretName: keytab
