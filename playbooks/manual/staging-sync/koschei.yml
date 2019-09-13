@@ -6,8 +6,8 @@
 # In future, this playbook may be extended to sync content from
 # production Koschei database dump, but this is not needed for now.
 
-- name: stop koschei staging services
-  hosts: koschei_backend_stg:koschei_web_stg
+- name: sync staging Koschei with production
+  hosts: os_masters_stg[0]
   user: root
   vars_files:
    - /srv/web/infra/ansible/vars/global.yml
@@ -17,57 +17,24 @@
   - import_tasks: "{{ handlers_path }}/restart_services.yml"
 
   tasks:
-  - service: name={{ item }} state=stopped
-    when: '"backend" in ansible_hostname'
-    with_items: "{{ koschei_backend_services }}"
-  - service: name=httpd state=stopped
-    when: '"web" in ansible_hostname'
-
-- name: drop and recreate koji-related tables
-  hosts: koschei_backend_stg
-  user: root
-  become: yes
-  become_user: koschei
-  become_method: sudo
-  vars_files:
-   - /srv/web/infra/ansible/vars/global.yml
-   - /srv/private/ansible/vars.yml
-   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
-  handlers:
-  - import_tasks: "{{ handlers_path }}/restart_services.yml"
-
-  tasks:
+  - shell: oc -n koschei scale dc/build-resolver --replicas=0
+  - shell: oc -n koschei scale dc/repo-resolver --replicas=0
+  - shell: oc -n koschei scale dc/scheduler --replicas=0
+  - shell: oc -n koschei scale dc/polling --replicas=0
+  - shell: oc -n koschei scale dc/frontend --replicas=0
   - postgresql_db: name=koschei state=absent
     become: yes
     become_user: postgres
-    delegate_to: "{{ koschei_pgsql_hostname }}"
+    delegate_to: db01.stg.phx2.fedoraproject.org
   - postgresql_db: name=koschei owner=koscheiadmin
     become: yes
     become_user: postgres
-    delegate_to: "{{ koschei_pgsql_hostname }}"
-  - command: koschei-admin create-db
-  - command: >
-      koschei-admin create-collection f29
-        --display-name 'Fedora Rawhide'
-        --target f29
-        --bugzilla-product Fedora
-        --bugzilla-version rawhide
-  - command: >
-      koschei-admin create-group php
-
-- name: bring koschei staging services up
-  hosts: koschei_backend_stg:koschei_web_stg
-  user: root
-  vars_files:
-   - /srv/web/infra/ansible/vars/global.yml
-   - /srv/private/ansible/vars.yml
-   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
-  handlers:
-  - import_tasks: "{{ handlers_path }}/restart_services.yml"
-
-  tasks:
-  - service: name={{ item }} state=started
-    when: '"backend" in ansible_hostname'
-    with_items: "{{ koschei_backend_services }}"
-  - service: name=httpd state=started
-    when: '"web" in ansible_hostname'
+    delegate_to: db01.stg.phx2.fedoraproject.org
+  - shell: oc -n koschei apply -f /etc/openshift_apps/koschei/db-create-job.yml
+  - shell: oc -n koschei wait job/job-db-create --for condition=complete
+  - shell: oc -n koschei delete job/job-db-create
+  - shell: oc -n koschei scale dc/frontend --replicas=2
+  - shell: oc -n koschei scale dc/polling --replicas=1
+  - shell: oc -n koschei scale dc/scheduler --replicas=1
+  - shell: oc -n koschei scale dc/repo-resolver --replicas=1
+  - shell: oc -n koschei scale dc/build-resolver --replicas=1
