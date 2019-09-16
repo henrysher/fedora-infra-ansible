@@ -13,28 +13,40 @@
    - /srv/web/infra/ansible/vars/global.yml
    - /srv/private/ansible/vars.yml
    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+   - /srv/web/infra/ansible/roles/openshift-apps/koschei/vars/main.yml
+   - /srv/web/infra/ansible/roles/openshift-apps/koschei/vars/{{ env }}.yml
   handlers:
   - import_tasks: "{{ handlers_path }}/restart_services.yml"
 
   tasks:
-  - shell: oc -n koschei scale dc/build-resolver --replicas=0
-  - shell: oc -n koschei scale dc/repo-resolver --replicas=0
-  - shell: oc -n koschei scale dc/scheduler --replicas=0
-  - shell: oc -n koschei scale dc/polling --replicas=0
-  - shell: oc -n koschei scale dc/frontend --replicas=0
-  - postgresql_db: name=koschei state=absent
+  - name: Stop backend services
+    shell: oc -n koschei scale dc/{{item.name}} --replicas=0
+    with_items: "{{ koschei_backend_services }}"
+
+  - name: Stop frontend
+    shell: oc -n koschei scale dc/frontend --replicas=0
+
+  - name: Drop koschei database
+    postgresql_db: name=koschei state=absent
     become: yes
     become_user: postgres
-    delegate_to: db01.stg.phx2.fedoraproject.org
-  - postgresql_db: name=koschei owner=koscheiadmin
+    delegate_to: "{{ koschei_pgsql_hostname }}"
+
+  - name: Create empty koschei database
+    postgresql_db: name=koschei owner=koscheiadmin
     become: yes
     become_user: postgres
-    delegate_to: db01.stg.phx2.fedoraproject.org
-  - shell: oc -n koschei apply -f /etc/openshift_apps/koschei/db-create-job.yml
-  - shell: oc -n koschei wait job/job-db-create --for condition=complete
-  - shell: oc -n koschei delete job/job-db-create
-  - shell: oc -n koschei scale dc/frontend --replicas=2
-  - shell: oc -n koschei scale dc/polling --replicas=1
-  - shell: oc -n koschei scale dc/scheduler --replicas=1
-  - shell: oc -n koschei scale dc/repo-resolver --replicas=1
-  - shell: oc -n koschei scale dc/build-resolver --replicas=1
+    delegate_to: "{{ koschei_pgsql_hostname }}"
+
+  - name: Populate koschei database with schema and initial data
+    include_role: name=openshift-apps/koschei/job
+    vars:
+      name: db-create
+      command: "koschei-admin create-db && koschei-admin create-collection f29 --display-name 'Fedora Rawhide' --target f29 --bugzilla-product Fedora --bugzilla-version rawhide && koschei-admin create-group php"
+
+  - name: Start frontend
+    shell: oc -n koschei scale dc/frontend --replicas={{koschei_frontend_replicas}}
+
+  - name: Start backend services
+    shell: oc -n koschei scale dc/{{item.name}} --replicas=1
+    with_items: "{{ koschei_backend_services }}"

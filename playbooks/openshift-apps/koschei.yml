@@ -47,24 +47,7 @@
         max_cpu: "{{ item.cpu[1] }}"
         min_mem: "{{ item.memory[0] }}"
         max_mem: "{{ item.memory[1] }}"
-      with_items:
-        - { name: polling,        cpu: [ 1000, 1500 ],  memory: [  256,  512 ] }
-        - { name: scheduler,      cpu: [  200,  500 ],  memory: [   64,  128 ] }
-        - { name: build-resolver, cpu: [ 1000, 1500 ],  memory: [ 1024, 4096 ] }
-        - { name: repo-resolver,  cpu: [ 2000, 8000 ],  memory: [ 1024, 4096 ] }
-      loop_control:
-        label: "{{ item.name }}"
-
-    - name: Apply Job
-      include_role: name=openshift/object
-      vars:
-        template: job.yml
-        objectname: "{{ item.name }}-job.yml"
-        name: "{{ item.name }}"
-        command: "{{ item.command }}"
-      with_items:
-        - name: db-create
-          command: "koschei-admin create-db && koschei-admin create-collection f29 --display-name 'Fedora Rawhide' --target f29 --bugzilla-product Fedora --bugzilla-version rawhide && koschei-admin create-group php"
+      with_items: "{{ koschei_backend_services }}"
       loop_control:
         label: "{{ item.name }}"
 

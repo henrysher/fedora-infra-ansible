@@ -1,0 +1,11 @@
+- name: Start job
+  include_role: name=openshift/object
+  vars:
+    template: job.yml
+    objectname: job-{{name}}.yml
+
+- name: Wait for job to complete
+  shell: oc -n koschei wait job/job-{{name}} --for condition=complete
+
+- name: Delete job
+  shell: oc -n koschei delete job/job-{{name}}
