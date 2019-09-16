@@ -22,6 +22,8 @@
   - name: Stop backend services
     shell: oc -n koschei scale dc/{{item.name}} --replicas=0
     with_items: "{{ koschei_backend_services }}"
+    loop_control:
+      label: "{{ item.name }}"
 
   - name: Stop frontend
     shell: oc -n koschei scale dc/frontend --replicas=0
@@ -50,3 +52,5 @@
   - name: Start backend services
     shell: oc -n koschei scale dc/{{item.name}} --replicas=1
     with_items: "{{ koschei_backend_services }}"
+    loop_control:
+      label: "{{ item.name }}"
