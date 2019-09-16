@@ -3,11 +3,11 @@
     src: "{{roles_path}}/openshift-apps/{{app}}/templates/job.yml"
     dest: "/etc/openshift_apps/{{app}}/job-{{name}}.yml"
 
+- name: Delete previous job (if any)
+  shell: oc -n koschei delete --ignore-not-found=true -f /etc/openshift_apps/{{app}}/job-{{name}}.yml
+
 - name: Start job
-  shell: oc -n koschei apply -f /etc/openshift_apps/{{app}}/job-{{name}}.yml
+  shell: oc -n koschei create -f /etc/openshift_apps/{{app}}/job-{{name}}.yml
 
 - name: Wait for job to complete
   shell: oc -n koschei wait job/job-{{name}} --for condition=complete
-
-- name: Delete job
-  shell: oc -n koschei delete job/job-{{name}}
