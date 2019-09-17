@@ -19,7 +19,6 @@ CMD="aws s3 sync                   \
   --exclude */extras/*             \
   --exclude */LiveOS/*             \
   --exclude */development/rawhide/* \
-  --exclude */releases/test/*      \
   --exclude */releases/8/*         \
   --exclude */releases/9/*         \
   --exclude */releases/10/*        \
