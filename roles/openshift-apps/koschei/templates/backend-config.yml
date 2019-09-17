@@ -5,5 +5,14 @@ metadata:
 stringData:
   config-backend.cfg: |
     {{ lookup('template', roles_path + '/openshift-apps/koschei/templates/config-backend.cfg.j2') | indent }}
+  fedora-messaging.toml: |
+    {{ lookup('template', roles_path + '/openshift-apps/koschei/templates/fedora-messaging.toml.j2') | indent }}
   krb5.conf: |
     {{ lookup('template', roles_path + '/base/templates/krb5.conf.j2') | indent }}
+data:
+  rabbitmq-ca.crt: |
+    {{ lookup('file', private + '/files/rabbitmq/' + env + '/pki/ca.crt') | b64encode | indent }}
+  rabbitmq-client.crt: |
+    {{ lookup('file', private + '/files/rabbitmq/' + env + '/pki/issued/' + app + env_suffix + '.crt') | b64encode | indent }}
+  rabbitmq-client.key: |
+    {{ lookup('file', private + '/files/rabbitmq/' + env + '/pki/private/' + app + env_suffix + '.key') | b64encode | indent }}
