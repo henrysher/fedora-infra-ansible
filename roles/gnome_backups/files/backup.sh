@@ -21,7 +21,6 @@ MACHINES='signal.gnome.org
           pentagon.gimp.org
           account.gnome.org
           bugzilla.gnome.org
-          socket.gnome.org
           gnome-hispano.gnome.org
           gesture.gnome.org
           scale.gnome.org
