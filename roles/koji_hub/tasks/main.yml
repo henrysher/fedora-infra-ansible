@@ -351,19 +351,11 @@
   - koji_hub
 
 - name: set sebooleans so koji can anon write
-  seboolean: name=allow_httpd_anon_write state=true persistent=true
-  tags:
-  - selinux
-  - koji_hub
-  when: ansible_distribution == "RedHat" and ansible_distribution_major_version|int == 6
-
-- name: set sebooleans so koji can anon write
   seboolean: name=httpd_anon_write state=true persistent=true
   tags:
   - selinux
   - koji_hub
   when: ansible_distribution == "RedHat" and ansible_distribution_major_version|int == 7
-# FIXME wht about RHEL8+ ?
 
 - name: Set httpd to run on boot
   service: name=httpd enabled=yes
