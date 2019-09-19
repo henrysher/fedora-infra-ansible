@@ -64,6 +64,12 @@
 # - relvalconsumer_amqp_mailto
 ##        list - List of email addresses to email errors to. If set,
 ##               the email log handler will be configured.
+# - relvalconsumer_bugzilla_api_key
+##        string - An API key for Bugzilla. If relvalconsumer_prod and
+##                 this are both set, the consumer will be configured
+##                 to report bugs to Bugzilla for oversize images. As
+##                 with relvalconsumer_prod, only the 'official' prod
+##                 instance should have this set.
 
 # note: kept around for when we need packages from u-t
 #- name: Install required packages (testing)
@@ -157,6 +163,12 @@
     owner: root
     group: geekotest
   when: "deployment_type is defined"
+  tags:
+  - config
+
+- name: Write python-bugzilla configuration file
+  template: src=bugzillarc.j2 dest=/root/.config/python-bugzilla/bugzillarc owner=root group=root mode=0600
+  when: "relvalconsumer_bugzilla_api_key is defined"
   tags:
   - config
 
