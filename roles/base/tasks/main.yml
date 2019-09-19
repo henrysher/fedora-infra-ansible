@@ -76,28 +76,11 @@
   changed_when: false
   failed_when: 'if_uuid.stdout == ""'
   check_mode: no
-  when: ansible_distribution_major_version|int >=7 and ansible_distribution == 'RedHat' and nmclitest is success and ( not ansible_ifcfg_blacklist )
+  when: ansible_distribution_major_version|int >=7 and nmclitest is success and ( not ansible_ifcfg_blacklist )
   tags:
    - config
    - ifcfg
    - base
-
-- name: get interface uuid
-  shell: nmcli -f "DEVICE,UUID" c show --active | grep -E '^eth|^br|^em'
-  register: if_uuid
-  changed_when: false
-  failed_when: 'if_uuid.stdout == ""'
-  check_mode: no
-  when: ansible_distribution_major_version|int >=29 and ansible_distribution == 'Fedora' and nmclitest is success and ( not ansible_ifcfg_blacklist )
-  tags:
-   - config
-   - ifcfg
-   - base
-
-- name: debug
-  debug: var=if_uuid
-  tags:
-  - base
 
 - name: copy ifcfg files - non virthost
   template: src=ifcfg.j2 dest=/etc/sysconfig/network-scripts/ifcfg-{{item}} mode=0644
