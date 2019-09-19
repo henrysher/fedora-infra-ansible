@@ -9,7 +9,7 @@
   tags:
   - packages
   - openvpn
-  when: ansible_distribution_major_version|int < 8 and ansible_distribution is 'RedHat'
+  when: ansible_distribution_major_version|int < 8 and ansible_distribution == 'RedHat'
 
 - name: Install needed packages
   package:
@@ -19,7 +19,7 @@
   tags:
   - packages
   - openvpn
-  when: ansible_distribution_major_version|int > 7 and ansible_distribution is 'RedHat' and ansible_cmdline.ostree is not defined
+  when: ansible_distribution_major_version|int > 7 and ansible_distribution == 'RedHat' and ansible_cmdline.ostree is not defined
 
 - name: Install needed packages
   package:
@@ -29,7 +29,7 @@
   tags:
   - packages
   - openvpn
-  when: ansible_distribution_major_version|int > 29 and ansible_distribution is 'Fedora' and ansible_cmdline.ostree is not defined
+  when: ansible_distribution_major_version|int > 29 and ansible_distribution == 'Fedora' and ansible_cmdline.ostree is not defined
 
 - name: Install main config file (rhel7 and fedora)
   template: src=client.conf
@@ -41,7 +41,7 @@
 #  notify:
 #  - restart openvpn (Fedora)
 #  - restart openvpn (RHEL6+)
-  when: (ansible_distribution is 'RedHat' or ansible_distribution is 'Fedora') and ansible_cmdline.ostree is not defined
+  when: (ansible_distribution == 'RedHat' or ansible_distribution == 'Fedora') and ansible_cmdline.ostree is not defined
 
 - name: Install configuration files (rhel7 and fedora)
   copy: src={{ item.file }}
@@ -60,7 +60,7 @@
 #  notify:
 #  - restart openvpn (Fedora)
 #  - restart openvpn (RHEL7)
-  when: (ansible_distribution_major_version|int >= 7 and ansible_distribution is 'RedHat') or (ansible_distribution_major_version|int >= 29 and ansible_distribution is 'Fedora') and ansible_cmdline.ostree is not defined
+  when: (ansible_distribution_major_version|int >= 7 and ansible_distribution == 'RedHat') or (ansible_distribution_major_version|int >= 29 and ansible_distribution == 'Fedora') and ansible_cmdline.ostree is not defined
 
 - name: Install configuration files (rhel6)
   copy: src={{ item.file }}
@@ -81,25 +81,25 @@
   - openvpn
 #  notify:
 #  - restart openvpn (RHEL6)
-  when: (ansible_distribution_major_version|int == 6 and ansible_distribution is 'RedHat') and ansible_cmdline.ostree is not defined
+  when: (ansible_distribution_major_version|int == 6 and ansible_distribution == 'RedHat') and ansible_cmdline.ostree is not defined
 
 - name: enable openvpn service for rhel 6
   service: name=openvpn state=started enabled=true
-  when: ansible_distribution_major_version|int == 6 and ansible_distribution is 'RedHat'
+  when: ansible_distribution_major_version|int == 6 and ansible_distribution == 'RedHat'
   tags:
   - service
   - openvpn
 
 - name: Make sure old openvpn is not running in rhel 7
   service: name=openvpn@openvpn state=stopped enabled=false
-  when: ansible_distribution_major_version|int == 7 and ansible_distribution is 'RedHat'
+  when: ansible_distribution_major_version|int == 7 and ansible_distribution == 'RedHat'
   tags:
   - service
   - openvpn
 
 - name: Make sure openvpn is running in rhel 7+
   service: name=openvpn-client@openvpn state=started enabled=true
-  when: ansible_distribution_major_version|int >= 7 and ansible_distribution is 'RedHat'
+  when: ansible_distribution_major_version|int >= 7 and ansible_distribution == 'RedHat'
   tags:
   - service
   - openvpn
@@ -114,7 +114,7 @@
 - name: Create directories for post-vpn service configs
   file: path="/etc/systemd/system/{{item}}.service.d" state=directory
   with_items: "{{postvpnservices}}"
-  when: is_fedora is defined or (ansible_distribution_major_version|int >= 7 and ansible_distribution is 'RedHat')
+  when: is_fedora is defined or (ansible_distribution_major_version|int >= 7 and ansible_distribution == 'RedHat')
   tags:
   - service
   - openvpn
@@ -122,7 +122,7 @@
 - name: Deploy postvpn.conf for post-vpn services
   copy: src=postvpn.conf dest="/etc/systemd/system/{{item}}.service.d/postvpn.conf"
   with_items: "{{postvpnservices}}"
-  when: is_fedora is defined or (ansible_distribution_major_version|int >= 7 and ansible_distribution is 'RedHat')
+  when: is_fedora is defined or (ansible_distribution_major_version|int >= 7 and ansible_distribution == 'RedHat')
   tags:
   - service
   - openvpn

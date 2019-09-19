@@ -17,7 +17,7 @@
   - name: Get list of active loaded services with systemctl
     shell: '/bin/systemctl -t service --no-legend | egrep "loaded active" | tr -s " " | cut -d " " -f1'
     changed_when: False
-    when: ansible_distribution_major_version|int >= 29 and ansible_distribution is 'Fedora'
+    when: ansible_distribution_major_version|int >= 29 and ansible_distribution == 'Fedora'
     register: loaded_active_services_systemctl
     tags:
       - check
@@ -26,7 +26,7 @@
   - name: Get list of active loaded services with systemctl
     shell: '/bin/systemctl -t service --no-legend | egrep "loaded active" | tr -s " " | cut -d " " -f1'
     changed_when: False
-    when: ansible_distribution_major_version|int > 6 and ansible_distribution is 'RedHat'
+    when: ansible_distribution_major_version|int > 6 and ansible_distribution == 'RedHat'
     register: loaded_active_services_systemctl
     tags:
       - check
@@ -35,7 +35,7 @@
   - name: Get list of inactive loaded services with systemctl
     shell: '/bin/systemctl -t service --no-legend | egrep -v "loaded active" | tr -s " " | cut -d " " -f1'
     changed_when: False
-    when: ansible_distribution_major_version|int >= 29 and ansible_distribution is 'Fedora'
+    when: ansible_distribution_major_version|int >= 29 and ansible_distribution == 'Fedora'
     register: loaded_inactive_services_systemctl
     tags:
       - check
@@ -44,7 +44,7 @@
   - name: Get list of inactive loaded services with systemctl
     shell: '/bin/systemctl -t service --no-legend | egrep -v "loaded active" | tr -s " " | cut -d " " -f1'
     changed_when: False
-    when: ansible_distribution_major_version|int > 6 and ansible_distribution is 'RedHat'
+    when: ansible_distribution_major_version|int > 6 and ansible_distribution == 'RedHat'
     register: loaded_inactive_services_systemctl
     tags:
       - check
@@ -54,7 +54,7 @@
   - name: Get list of enabled services with chkconfig at current runlevel
     shell: "chkconfig | grep \"`runlevel | cut -d ' ' -f 2`:on\" | awk '{print $1}'"
     changed_when: False
-    when: ansible_distribution_major_version|int <= 6 and ansible_distribution is 'RedHat'
+    when: ansible_distribution_major_version|int <= 6 and ansible_distribution == 'RedHat'
     register: enabled_services_chkconfig
     tags:
       - check
@@ -63,7 +63,7 @@
   - name: Get list of disabled services with chkconfig at current runlevel
     shell: "chkconfig | grep \"`runlevel | cut -d ' ' -f 2`:off\" | awk '{print $1}'"
     changed_when: False
-    when: ansible_distribution_major_version|int <= 6 and ansible_distribution is 'RedHat'
+    when: ansible_distribution_major_version|int <= 6 and ansible_distribution == 'RedHat'
     register: disabled_services_chkconfig
     tags:
       - check

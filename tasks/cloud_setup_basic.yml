@@ -6,7 +6,7 @@
   - ntp
   - libsemanage-python
   - libselinux-python
-  when: ansible_distribution_major_version|int < 8 and ansible_distribution is 'RedHat'
+  when: ansible_distribution_major_version|int < 8 and ansible_distribution == 'RedHat'
   tags:
   - packages
 
@@ -15,7 +15,7 @@
   with_items:
   - ntpdate
   - libselinux-python
-  when: ansible_distribution_major_version|int > 7 and ansible_distribution is 'RedHat' and ansible_cmdline.ostree is not defined
+  when: ansible_distribution_major_version|int > 7 and ansible_distribution == 'RedHat' and ansible_cmdline.ostree is not defined
   tags:
   - packages
 
@@ -24,7 +24,7 @@
   with_items:
   - ntpdate
   - libselinux-python
-  when: ansible_distribution_major_version|int >=29 and ansible_distribution is 'Fedora' and ansible_cmdline.ostree is not defined
+  when: ansible_distribution_major_version|int >=29 and ansible_distribution == 'Fedora' and ansible_cmdline.ostree is not defined
   tags:
   - packages
 
@@ -66,21 +66,21 @@
 - name: update all
   command: yum -y update creates=/etc/sysconfig/global-update-applied
   register: updated
-  when: ansible_distribution_major_version|int < 8 and ansible_distribution is 'RedHat'
+  when: ansible_distribution_major_version|int < 8 and ansible_distribution == 'RedHat'
   tags:
   - packages
 
 - name: update all
   command: dnf -y update creates=/etc/sysconfig/global-update-applied
   register: updated
-  when: ansible_distribution_major_version|int > 7 and ansible_distribution is 'RedHat' and ansible_cmdline.ostree is not defined
+  when: ansible_distribution_major_version|int > 7 and ansible_distribution == 'RedHat' and ansible_cmdline.ostree is not defined
   tags:
   - packages
 
 - name: update all
   command: dnf -y update creates=/etc/sysconfig/global-update-applied
   register: updated
-  when: ansible_distribution_major_version|int >= 29 and ansible_distribution is 'Fedora' and ansible_cmdline.ostree is not defined
+  when: ansible_distribution_major_version|int >= 29 and ansible_distribution == 'Fedora' and ansible_cmdline.ostree is not defined
   tags:
   - packages
 

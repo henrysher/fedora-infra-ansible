@@ -6,35 +6,35 @@
   package: name=collectd state=present
   tags:
   - collectd
-  when: ansible_distribution_major_version|int <= 7 and ansible_distribution is 'RedHat'
+  when: ansible_distribution_major_version|int <= 7 and ansible_distribution == 'RedHat'
 
 # install pkg
 - name: install collectd
   dnf: name=collectd state=present
   tags:
   - collectd
-  when: ansible_distribution_major_version|int > 7 and ansible_distribution is 'RedHat'
+  when: ansible_distribution_major_version|int > 7 and ansible_distribution == 'RedHat'
 
 # install pkg
 - name: install collectd
   dnf: name=collectd state=present
   tags:
   - collectd
-  when: ansible_distribution_major_version|int >= 29 and ansible_distribution is 'Fedora'
+  when: ansible_distribution_major_version|int >= 29 and ansible_distribution == 'Fedora'
 
 # install collectd-disk (it was split out)
 - name: install collectd-disk
   dnf: name=collectd-disk state=present
   tags:
   - collectd
-  when: ansible_distribution_major_version|int > 7 and ansible_distribution is 'RedHat'
+  when: ansible_distribution_major_version|int > 7 and ansible_distribution == 'RedHat'
 
 # install collectd-disk on F25+ (it was split out)
 - name: install collectd-disk
   dnf: name=collectd-disk state=present
   tags:
   - collectd
-  when: ansible_distribution_major_version|int > 24 and ansible_distribution is 'Fedora'
+  when: ansible_distribution_major_version|int > 24 and ansible_distribution == 'Fedora'
 
 # install collected.conf
 - name: /etc/collectd.conf
@@ -69,7 +69,7 @@
   - collectd
   notify:
   - restart collectd
-  when: collectd_apache and ansible_distribution_major_version|int <= 7 and ansible_distribution is 'RedHat'
+  when: collectd_apache and ansible_distribution_major_version|int <= 7 and ansible_distribution == 'RedHat'
 
 - name: install collectd-apache (dnf)
   dnf: state=present name=collectd-apache
@@ -77,7 +77,7 @@
   - collectd
   notify:
   - restart collectd
-  when: collectd_apache and ansible_distribution_major_version|int > 7 and ansible_distribution is 'RedHat'
+  when: collectd_apache and ansible_distribution_major_version|int > 7 and ansible_distribution == 'RedHat'
 
 - name: install collectd-apache (dnf)
   dnf: state=present name=collectd-apache
@@ -85,7 +85,7 @@
   - collectd
   notify:
   - restart collectd
-  when: collectd_apache and ansible_distribution_major_version|int >= 29 and ansible_distribution is 'Fedora'
+  when: collectd_apache and ansible_distribution_major_version|int >= 29 and ansible_distribution == 'Fedora'
 
 - name: /etc/collectd/apache.conf
   copy: src=apache.conf dest=/etc/collectd.d/apache.conf
@@ -99,7 +99,7 @@
   package: name=libsemanage-python state=present
   tags:
   - collectd
-  when: collectd_apache is defined and ansible_distribution_major_version|int <= 7 and ansible_distribution is 'RedHat'
+  when: collectd_apache is defined and ansible_distribution_major_version|int <= 7 and ansible_distribution == 'RedHat'
 
 - name: Let collectd talk to things over tcp
   seboolean: name=collectd_tcp_network_connect state=yes persistent=yes
