@@ -11,8 +11,13 @@
     - /srv/web/infra/ansible/roles/openshift-apps/koschei/vars/{{ env }}.yml
 
   roles:
-  - role: rabbit/user
+  - role: rabbit/queue
     username: "{{ app }}{{ env_suffix }}"
+    queue_name: "{{ app }}{{ env_suffix }}"
+    routing_keys:
+    - org.fedoraproject.stg.buildsys.tag
+    - org.fedoraproject.stg.buildsys.task.state.change
+    message_ttl: 60000
 
   - openshift/project
 
