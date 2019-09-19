@@ -1,12 +1,28 @@
 amqp_url = "amqps://koschei{{ env_suffix }}:@rabbitmq{{ env_suffix }}.fedoraproject.org/%2Fpubsub"
-
-{% if env == "staging" %}
-topic_prefix = "org.fedoraproject.stg"
-{% else %}
-topic_prefix = "org.fedoraproject.prod"
-{% endif %}
+topic_prefix = "org.fedoraproject.{{ fedmsg_env }}"
+passive_declares = true
 
 [tls]
 ca_cert = "/etc/koschei/rabbitmq-ca.crt"
 certfile = "/etc/koschei/rabbitmq-client.crt"
 keyfile = "/etc/koschei/rabbitmq-client.key"
+
+[exchanges."amq.topic"]
+type = "topic"
+durable = true
+auto_delete = false
+arguments = {}
+
+[queues."koschei.stg"]
+durable = true
+auto_delete = false
+exclusive = false
+arguments = {}
+
+[[bindings]]
+queue = "koschei.stg"
+exchange = "amq.topic"
+routing_keys = [
+  "org.fedoraproject.stg.buildsys.tag",
+  "org.fedoraproject.stg.buildsys.task.state.change",
+]
