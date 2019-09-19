@@ -24,6 +24,20 @@ except:
     
 mmd = Modulemd
 
+# This code is from Stephen Gallagher to make my other caveman code
+# less icky.
+def _get_latest_streams (mymod, stream):
+    """
+    Routine takes modulemd object and a stream name.
+    Finds the lates stream from that and returns that as a stream
+    object. 
+    """
+    all_streams = mymod.search_streams(stream, 0)
+    latest_streams = mymod.search_streams(stream,
+                                          all_streams[0].props.version) 
+    
+    return latest_streams
+    
 def _get_repoinfo(directory):
     """
     A function which goes into the given directory and sets up the
@@ -190,7 +204,6 @@ def get_default_modules(directory):
     # better way to do this that would be a lot better. However after
     # a long long day.. this is what I have.
 
-
     # First we oo through the default streams and create a set of
     # provides that we can check against later.
     for modname in idx.get_default_streams():
@@ -199,8 +212,8 @@ def get_default_modules(directory):
         stream_set = mod.get_streams_by_stream_name(
             mod.get_defaults().get_default_stream())
         for stream in stream_set:
-            templist = stream.get_NSVCA().split(":")
-            tempstr = "%s:%s" % (templist[0],templist[1])
+            tempstr = "%s:%s" % (stream.props.module_name,
+                                 stream.props.stream_name)
             provides.add(tempstr)
 
 
@@ -210,17 +223,20 @@ def get_default_modules(directory):
     for modname in idx.get_default_streams():
         mod = idx.get_module(modname)
         # Get the default streams and loop through them.
+        # This is a sorted list with the latest in it. We could drop
+        # looking at later ones here in a future version. (aka lines
+        # 237 to later)
         stream_set = mod.get_streams_by_stream_name(
             mod.get_defaults().get_default_stream())
         for stream in stream_set:
-            isprovided = True # a variable to say this can be added.
             ourname = stream.get_NSVCA()
-            on_list = ourname.split(":")
-            tmp_name = "%s:%s" % (on_list[0],on_list[1])
+            tmp_name = "%s:%s" % (stream.props.module_name,
+                                 stream.props.stream_name)
             # Get dependencies is a list of items. All of the modules
             # seem to only have 1 item in them, but we should loop
             # over the list anyway.
             for deps in stream.get_dependencies():
+                isprovided = True # a variable to say this can be added.
                 for mod in deps.get_runtime_modules():
                     tempstr=""
                     # It does not seem easy to figure out what the
@@ -229,16 +245,27 @@ def get_default_modules(directory):
                         for stm in deps.get_runtime_streams(mod):
                             tempstr = "%s:%s" %(mod,stm)
                             if tempstr not in provides:
+                                # print( "%s : %s not found." % (ourname,tempstr))
                                 isprovided = False
                     if isprovided:
                         if tmp_name in tempdict:
-                            print("We found %s" % tmp_name)
+                            # print("We found %s" % tmp_name)
+                            # Get the stream version we are looking at
                             ts1=ourname.split(":")[2]
+                            # Get the stream version we stored away
                             ts2=tempdict[tmp_name].split(":")[2]
+                            # See if we got a newer one. We probably
+                            # don't as it is a sorted list but we
+                            # could have multiple contexts which would
+                            # change things.
                             if ( int(ts1) > int(ts2) ):
+                                # print ("%s > %s newer for %s", ts1,ts2,ourname)
                                 tempdict[tmp_name] = ourname
                         else:
+                            # print("We did not find %s" % tmp_name)
                             tempdict[tmp_name] = ourname
+    # OK we finally got all our stream names we want to send back to
+    # our calling function. Read them out and add them to the set.
     for indx in tempdict:
         contents.add(tempdict[indx])
 
