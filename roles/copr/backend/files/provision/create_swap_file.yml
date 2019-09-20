@@ -1,47 +1,21 @@
-- name: Create swap file
-  command: dd if=/dev/zero of={{ swap_file_path }} bs=1024 count={{ swap_file_size_mb }}k
-           creates="{{ swap_file_path }}"
-  tags:
-    - swap.file.create
+- name: install enable-swap.service
+  copy:
+    src: files/enable-swap.service
+    dest: /etc/systemd/system/
+  register: enable-swap_service
 
+- name: install enable-swap.sh
+  copy:
+    src: files/enable-swap.sh
+    dest: /usr/local/sbin/
+    mode: '0755'
 
-- name: Change swap file permissions
-  file: path="{{ swap_file_path }}"
-        owner=root
-        group=root
-        mode=0600
-  tags:
-    - swap.file.permissions
+- name: reload systemd
+  command: systemctl daemon-reload
+  when: enable-swap_service.changed
 
-
-- name: "Check swap file type"
-  command: file {{ swap_file_path }}
-  register: swapfile
-  tags:
-    - swap.file.mkswap
-
-
-- name: Make swap file
-  command: "sudo mkswap {{ swap_file_path }}"
-  when: swapfile.stdout.find('swap file') == -1
-  tags:
-    - swap.file.mkswap
-
-
-- name: Write swap entry in fstab
-  mount: name=none
-         src={{ swap_file_path }}
-         fstype=swap
-         opts=sw
-         passno=0
-         dump=0
-         state=present
-  tags:
-    - swap.fstab
-
-
-- name: Mount swap
-  command: "swapon {{ swap_file_path }}"
-  when: ansible_swaptotal_mb < 1
-  tags:
-    - swap.file.swapon
+- name: enable enable-swap.sh
+  service:
+    name: enable-swap
+    state: started
+    enabled: yes
