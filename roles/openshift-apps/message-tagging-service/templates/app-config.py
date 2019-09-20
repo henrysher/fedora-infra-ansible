@@ -23,7 +23,7 @@ class BaseConfiguration:
 
     # Disable dry_run when enable MTS
     dry_run = True
-    rules_file_url = ('https://infrastructure.fedoraproject.org/cgit/ansible.git/tree/'
+    rules_file_url = ('https://infrastructure.fedoraproject.org/cgit/ansible.git/plain/'
                       'roles/openshift-apps/message-tagging-service/files/mts-rules.yml')
     mbs_api_url = 'https://mbs.fedoraproject.org/module-build-service/1/'
     koji_profile = 'koji'
