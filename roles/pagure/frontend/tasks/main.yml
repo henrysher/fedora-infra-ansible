@@ -153,6 +153,22 @@
   - stunnel
   - config
 
+- name: make a bundle file of the cert and intermediate for stunnel
+  shell: cat /etc/pki/tls/certs/pagure.io.cert /etc/pki/tls/certs/pagure.io.intermediate.cert > /etc/pki/tls/certs/pagure.io.bundle.cert creates=/etc/pki/tls/certs/pagure.io.bundle.cert
+  tags:
+  - pagure
+  - stunnel
+  - config
+  when: env != 'pagure-staging'
+
+- name: make a bundle file of the cert and intermediate for stunnel (stg)
+  shell: cat /etc/pki/tls/certs/stg.pagure.io.cert /etc/pki/tls/certs/stg.pagure.io.intermediate.cert > /etc/pki/tls/certs/stg.pagure.io.bundle.cert creates=/etc/pki/tls/certs/stg.pagure.io.bundle.cert
+  tags:
+  - pagure
+  - stunnel
+  - config
+  when: env == 'pagure-staging'
+
 - name: install stunnel.conf
   template: src={{ item.file }}
             dest={{ item.dest }}
