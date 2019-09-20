@@ -13,7 +13,7 @@ class BaseConfiguration:
 
     {% if env == 'staging' %}
 
-    dry_run = False
+    dry_run = True
     # Running in staging, a rule file inside my perosnal repo is used in order to test conveniently.
     rules_file_url = 'https://pagure.io/mts-rules/raw/master/f/rules.yaml'
     mbs_api_url = 'https://mbs.stg.fedoraproject.org/module-build-service/1/'
