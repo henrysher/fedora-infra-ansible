@@ -4,7 +4,7 @@
 DB=$1
 
 # Make our latest backup
-/bin/mysqldump --user=root --add-drop-database $DB | /usr/bin/xz > /backups/$DB-$(date +%F).dump.xz
+ionice -c3 /bin/mysqldump --user=root --add-drop-database $DB | /usr/bin/xz > /backups/$DB-$(date +%F).dump.xz
 
 # link to the latest backup
 ln -sf /backups/$DB-$(date +%F).dump.xz /backups/$DB-latest.xz
