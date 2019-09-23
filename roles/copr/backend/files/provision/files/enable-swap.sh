@@ -1,3 +1,3 @@
 #!/usr/bin/bash
-mkswap /dev/xvdb
-swapon /dev/xvdb
+mkswap /dev/nvme0n1
+swapon /dev/nvme0n1
