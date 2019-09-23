@@ -81,7 +81,7 @@ CMD="aws s3 sync                   \
   #--dryrun                         \
 
 # Sync EPEL
-echo $CMD /srv/pub/epel/ s3://s3-mirror-us-west-1-02.fedoraproject.org/pub/epel/
+#echo $CMD /srv/pub/epel/ s3://s3-mirror-us-west-1-02.fedoraproject.org/pub/epel/
 echo "Starting EPEL sync at $(date)" >> /var/log/s3-mirror/timestamps
 $CMD /srv/pub/epel/ s3://s3-mirror-us-west-1-02.fedoraproject.org/pub/epel/
 echo "Ending EPEL sync at $(date)" >> /var/log/s3-mirror/timestamps
@@ -95,7 +95,7 @@ for file in $(echo /srv/pub/epel/7/*/repodata/repomd.xml | sed 's#/srv##g'); do
 done
 
 # Sync Fedora
-echo $CMD /srv/pub/fedora/ s3://s3-mirror-us-west-1-02.fedoraproject.org/pub/fedora/
+#echo $CMD /srv/pub/fedora/ s3://s3-mirror-us-west-1-02.fedoraproject.org/pub/fedora/
 echo "Starting Fedora sync at $(date)" >> /var/log/s3-mirror/timestamps
 $CMD /srv/pub/fedora/ s3://s3-mirror-us-west-1-02.fedoraproject.org/pub/fedora/
 echo "Ending Fedora sync at $(date)" >> /var/log/s3-mirror/timestamps

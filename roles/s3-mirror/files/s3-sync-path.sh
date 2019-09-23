@@ -30,7 +30,7 @@ CMD="aws s3 sync                   \
   "
   #--dryrun                         \
 
-echo "$CMD /srv$1 s3://s3-mirror-us-west-1-02.fedoraproject.org$1"
+#echo "$CMD /srv$1 s3://s3-mirror-us-west-1-02.fedoraproject.org$1"
 echo "Starting $1 sync at $(date)" >> /var/log/s3-mirror/timestamps
 $CMD /srv$1 s3://s3-mirror-us-west-1-02.fedoraproject.org$1
 echo "Ending $1 sync at $(date)" >> /var/log/s3-mirror/timestamps
