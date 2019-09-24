@@ -27,6 +27,8 @@ spec:
             value: /etc/krb5.keytab
           - name: FEDORA_MESSAGING_CONF
             value: /etc/koschei/fedora-messaging.toml
+          - name: WATCHDOG_PATH
+            value: /var/run/koschei-watchdog
         volumeMounts:
         - name: config
           mountPath: /etc/koschei
@@ -42,6 +44,13 @@ spec:
           limits:
             cpu: "{{ max_cpu }}m"
             memory: "{{ max_mem }}Mi"
+        readinessProbe:
+          initialDelaySeconds: 5
+          command: ["/bin/bash", "-c", "[[ -e /var/run/koschei-watchdog ]]"]
+        livenessProbe:
+          initialDelaySeconds: 30
+          periodSeconds: 5
+          command: ["/bin/bash", "-c", "(($(stat -c%Y /var/run/koschei-watchdog) + {{ koschei_watchdog_timeout }} > $(date +%s)))"]
       volumes:
       - name: config
         secret:
