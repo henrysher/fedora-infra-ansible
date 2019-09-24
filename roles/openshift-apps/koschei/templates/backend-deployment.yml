@@ -46,11 +46,13 @@ spec:
             memory: "{{ max_mem }}Mi"
         readinessProbe:
           initialDelaySeconds: 5
-          command: ["/bin/bash", "-c", "[[ -e /var/run/koschei-watchdog ]]"]
+          exec:
+            command: ["/bin/bash", "-c", "[[ -e /var/run/koschei-watchdog ]]"]
         livenessProbe:
           initialDelaySeconds: 30
           periodSeconds: 5
-          command: ["/bin/bash", "-c", "(($(stat -c%Y /var/run/koschei-watchdog) + {{ koschei_watchdog_timeout }} > $(date +%s)))"]
+          exec:
+            command: ["/bin/bash", "-c", "(($(stat -c%Y /var/run/koschei-watchdog) + {{ koschei_watchdog_timeout }} > $(date +%s)))"]
       volumes:
       - name: config
         secret:
