@@ -28,7 +28,7 @@ spec:
           - name: FEDORA_MESSAGING_CONF
             value: /etc/koschei/fedora-messaging.toml
           - name: WATCHDOG_PATH
-            value: /var/run/koschei-watchdog
+            value: /var/tmp/koschei-watchdog
         volumeMounts:
         - name: config
           mountPath: /etc/koschei
@@ -47,12 +47,12 @@ spec:
         readinessProbe:
           initialDelaySeconds: 5
           exec:
-            command: ["/bin/bash", "-c", "[[ -e /var/run/koschei-watchdog ]]"]
+            command: ["/bin/bash", "-c", "[[ -e /var/tmp/koschei-watchdog ]]"]
         livenessProbe:
           initialDelaySeconds: 30
           periodSeconds: 5
           exec:
-            command: ["/bin/bash", "-c", "(($(stat -c%Y /var/run/koschei-watchdog) + {{ koschei_watchdog_timeout }} > $(date +%s)))"]
+            command: ["/bin/bash", "-c", "(($(stat -c%Y /var/tmp/koschei-watchdog) + {{ koschei_watchdog_timeout }} > $(date +%s)))"]
       volumes:
       - name: config
         secret:
