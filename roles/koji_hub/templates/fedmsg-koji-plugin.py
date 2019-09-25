@@ -32,7 +32,7 @@ def camel_to_dots(name):
 def serialize_datetime_in_task(task):
     date_fields = [
         "completion_time", "create_time", "start_time", "buildtime",
-        "creation_ts"
+        "creation_ts", "creation_time",
     ]
     for date_key in date_fields:
         if task.get(date_key) is None:
