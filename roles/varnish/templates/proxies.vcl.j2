@@ -92,11 +92,6 @@ backend paste {
     .port = "10055";
 }
 
-backend koschei {
-    .host = "localhost";
-    .port = "10040";
-}
-
 backend registry {
     .host = "localhost";
     .port = "10048";
@@ -232,14 +227,6 @@ sub vcl_recv {
         set req.backend_hint = mailman;
     }
     if (req.http.X-Forwarded-Server ~ "^apps.fedoraproject.org" || req.http.X-Forwarded-Server ~ "^apps.stg.fedoraproject.org") { 
-        if (req.url ~ "^/koschei") {
-            set req.backend_hint = koschei;
-            if (req.url ~ "^/koschei/static/") {
-                unset req.http.cookie;
-                set req.http.clear-cookies = "yes";
-                set req.url = regsub(req.url, "\?.*", "");
-            }
-        }
         if (req.url ~ "^/kerneltest") {
             set req.backend_hint = kerneltest;
             if (req.url ~ "^/kerneltest/static/") {
