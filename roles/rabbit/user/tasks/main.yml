@@ -11,6 +11,16 @@
 
 # See https://www.rabbitmq.com/access-control.html#permissions for details on
 # the RabbitMQ permissions configuration.
+
+- name: Validate parameters
+  assert:
+    that:
+    - username != "admin"
+    - username != "guest"
+    - username != "nagios-monitoring"
+    fail_msg: "This user name is reserved"
+  tags: fedora-messaging
+
 - name: Create the user in RabbitMQ
   delegate_to: "{{ rabbitmq_server }}"
   rabbitmq_user:
