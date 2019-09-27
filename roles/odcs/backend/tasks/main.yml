@@ -108,38 +108,17 @@
   - odcs
   - odcs/backend
 
-- name: Create the admin user for the odcs vhost
-  run_once: true
-  delegate_to: "rabbitmq01{{ env_suffix }}.phx2.fedoraproject.org"
-  rabbitmq_user:
-    user: admin
-    password: "{{ rabbitmq_odcs_admin_password_staging }}"
-    permissions:
-      - vhost: /odcs
-        configure_priv: .*
-        read_priv: .*
-        write_priv: .*
-    tags: management
-  when: env == "staging"
-  tags:
-  - rabbitmq_cluster
-  - config
-  - odcs
-  - odcs/backend
-
 - name: Create the admin user for the odcs vhost (prod)
   run_once: true
   delegate_to: "rabbitmq01{{ env_suffix }}.phx2.fedoraproject.org"
   rabbitmq_user:
     user: admin
-    password: "{{ rabbitmq_odcs_admin_password_production }}"
-    permissions:
-      - vhost: /odcs
-        configure_priv: .*
-        read_priv: .*
-        write_priv: .*
+    password: "{{ (env == 'production')|ternary(rabbitmq_odcs_admin_password_production, rabbitmq_odcs_admin_password_staging) }}"
+    vhost: /odcs
+    configure_priv: .*
+    read_priv: .*
+    write_priv: .*
     tags: management
-  when: env != "staging"
   tags:
   - rabbitmq_cluster
   - config
@@ -167,11 +146,10 @@
   delegate_to: "rabbitmq01{{ env_suffix }}.phx2.fedoraproject.org"
   rabbitmq_user:
     user: "odcs-private-queue{{ env_suffix }}"
-    permissions:
-      - vhost: /odcs
-        configure_priv: .*
-        write_priv: .*
-        read_priv: .*
+    vhost: /odcs
+    configure_priv: .*
+    write_priv: .*
+    read_priv: .*
     state: present
   tags:
   - rabbitmq_cluster

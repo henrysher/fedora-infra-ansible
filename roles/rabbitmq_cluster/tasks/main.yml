@@ -224,48 +224,20 @@
   - rabbitmq_cluster
   - config
 
-- name: Create the admin user for the pubsub vhost
+- name: Create the admin user for the {{ item }} vhost
   rabbitmq_user:
     user: admin
-    password: "{{ rabbitmq_admin_password_staging }}"
-    permissions:
-      - vhost: /
-        configure_priv: .*
-        read_priv: .*
-        write_priv: .*
-      - vhost: /pubsub
-        configure_priv: .*
-        read_priv: .*
-        write_priv: .*
-      - vhost: /public_pubsub
-        configure_priv: .*
-        read_priv: .*
-        write_priv: .*
+    password: "{{ (env == 'production')|ternary(rabbitmq_admin_password_production, rabbitmq_admin_password_staging) }}"
+    vhost: "{{ item }}"
+    configure_priv: .*
+    read_priv: .*
+    write_priv: .*
     tags: management
-  when: env == "staging" and inventory_hostname.startswith('rabbitmq01')
-  tags:
-  - rabbitmq_cluster
-  - config
-
-- name: Create the admin user for the pubsub vhost
-  rabbitmq_user:
-    user: admin
-    password: "{{ rabbitmq_admin_password_production }}"
-    permissions:
-      - vhost: /
-        configure_priv: .*
-        read_priv: .*
-        write_priv: .*
-      - vhost: /pubsub
-        configure_priv: .*
-        read_priv: .*
-        write_priv: .*
-      - vhost: /public_pubsub
-        configure_priv: .*
-        read_priv: .*
-        write_priv: .*
-    tags: management
-  when: env == "production" and inventory_hostname.startswith('rabbitmq01')
+  with_items:
+  - /
+  - /pubsub
+  - /public_pubsub
+  when: inventory_hostname.startswith('rabbitmq01')
   tags:
   - rabbitmq_cluster
   - config
