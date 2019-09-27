@@ -1,0 +1,35 @@
+---
+freezes: false
+# the if connected to the infra network on this box is eth2, not eth0
+ansible_ifcfg_infra_net_devices: [ 'eth2' ]
+gw: 10.5.131.254
+dns: 10.5.126.21
+eth2_ip: 10.5.131.75
+eth2_nm: 255.255.255.0
+datacenter: phx2
+fas_client_groups: sysadmin-qa,sysadmin-main,sysadmin-noc,fi-apprentice,sysadmin-veteran
+nrpe_procs_warn: 250
+nrpe_procs_crit: 300
+
+sudoers: "{{ private }}/files/sudo/qavirt-sudoers"
+
+# openQA tap worker hosts (like this one) do stuff with ifcfg that base
+# doesn't understand. terrible, terrible stuff. seriously - it doesn't
+# handle the openvswitch config well. so let's tell it to just configure
+# the regular interfaces (which on this system is eth0-eth3) for us,
+# disabling all but the one we want to use (eth2), and leave everything
+# else alone.
+ansible_ifcfg_whitelist: ['eth0', 'eth1', 'eth2', 'eth3']
+ansible_ifcfg_disabled: ['eth0', 'eth1', 'eth3']
+
+# this is a powerful machine, can handle more openQA workers
+openqa_workers: 8
+# firewall ports for server->worker websockets connections
+# this port is 'QEMUPORT plus 1'
+# QEMUPORT is:
+# $ENV{QEMUPORT} = ($options{instance}) * 10 + 20002;
+# so for worker 1 it's 20012, for worker 2 it's 20022, etc etc
+tcp_ports: ['20013', '20023', '20033', '20043', '20053', '20063', '20073', '20083']
+
+# has an HW RNG, so let's have rngd
+openqa_rngd: True
