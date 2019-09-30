@@ -1,7 +1,7 @@
 - name: Install packages
   package: state=present name={{ item }}
   with_items:
-  - python-robosignatory
+  - python2-robosignatory
   - trousers
   - tpm-tools
   - sigul
@@ -9,41 +9,160 @@
   - packages
   - robosignatory
 
+- name: Create robosignatory user
+  user:
+    name: robosignatory
+    state: present
+    group: robosignatory
+    system: yes
+    home: /etc/robosignatory
+    comment: Robosignatory
+    shell: /sbin/nologin
+  tags:
+  - config
+  - robosignatory
+
 - name: Create config directory
-  file: path=/etc/robosignatory state=directory owner=fedmsg group=fedmsg mode=0750
+  file:
+    path: /etc/robosignatory
+    state: directory
+    owner: robosignatory
+    group: robosignatory
+    mode: 0750
   tags:
   - config
   - robosignatory
 
 - name: Create robosignatory sigul directory
-  file: path=/etc/robosignatory/sigul state=directory owner=fedmsg group=fedmsg mode=0750
+  file:
+    path: /etc/robosignatory/sigul
+    state: directory
+    owner: robosignatory
+    group: robosignatory
+    mode: 0750
   tags:
   - config
   - robosignatory
 
 - name: Install sigul configuration
-  copy: src=sigul.{{env}}.conf dest=/etc/sigul/client.conf owner=fedmsg group=fedmsg mode=0640
+  copy:
+    src: sigul.{{env}}.conf
+    dest: /etc/sigul/client.conf
+    owner: robosignatory
+    group: robosignatory
+    mode: 0640
   tags:
   - config
   - robosignatory
 
 - name: Install koji config
-  template: src=koji.conf dest=/etc/robosignatory/koji.config
-            owner=fedmsg group=fedmsg mode=0640
+  template:
+    src: koji.conf
+    dest: /etc/robosignatory/koji.config
+    owner: robosignatory
+    group: robosignatory
+    mode: 0640
   tags:
   - config
   - robosignatory
 
 - name: Install koji CA certificate
-  copy: src="{{ private }}/files/fedora-ca.cert" dest=/etc/robosignatory/serverca.cert
-        owner=fedmsg group=fedmsg mode=0640
+  copy:
+    src: "{{ private }}/files/fedora-ca.cert"
+    dest: /etc/robosignatory/serverca.cert
+    owner: robosignatory
+    group: robosignatory
+    mode: 0640
+  tags:
+  - config
+  - robosignatory
+
+# Fedora Messaging
+
+- name: Create /etc/pki/fedora-messaging
+  file:
+    dest: /etc/pki/fedora-messaging
+    mode: 0775
+    owner: root
+    group: root
+    state: directory
+  tags:
+  - config
+  - robosignatory
+
+- name: Deploy the fedora-messaging CA
+  copy:
+    src: "{{ private }}/files/rabbitmq/{{env}}/pki/ca.crt"
+    dest: /etc/pki/fedora-messaging/cacert.pem
+    mode: 0644
+    owner: root
+    group: root
+  tags:
+  - config
+  - robosignatory
+
+- name: Deploy the fedora-messaging cert
+  copy:
+    src: "{{ private }}/files/rabbitmq/{{env}}/pki/issued/robosignatory{{env_suffix}}.crt"
+    dest: /etc/pki/fedora-messaging/robosignatory-cert.pem
+    mode: 0644
+    owner: robosignatory
+    group: robosignatory
+  tags:
+  - config
+  - robosignatory
+
+- name: Deploy the fedora-messaging key
+  copy:
+    src: "{{ private }}/files/rabbitmq/{{env}}/pki/private/robosignatory{{env_suffix}}.key"
+    dest: /etc/pki/fedora-messaging/robosignatory-key.pem
+    mode: 0600
+    owner: robosignatory
+    group: robosignatory
   tags:
   - config
   - robosignatory
 
 - name: Setup robosignatory config
-  copy: src=robosignatory.{{env}}.py dest=/etc/fedmsg.d/robosignatory.py
-        owner=fedmsg group=fedmsg mode=0640
+  template:
+    src: robosignatory.toml.j2
+    dest: /etc/fedora-messaging/robosignatory.toml
+    owner: robosignatory
+    group: robosignatory
+    mode: 0640
+  tags:
+  - config
+  - robosignatory
+
+- name: Create /etc/systemd/system/fm-consumer@.service.d
+  file:
+    state: directory
+    path: /etc/systemd/system/fm-consumer@.service.d
+    owner: root
+    group: root
+    mode: 0755
+  tags:
+  - config
+  - robosignatory
+
+- name: Configure fm-consumer@.service to run as robosignatory
+  copy:
+    src: fm-consumer@.service
+    dest: /etc/systemd/system/fm-consumer@.service.d/local.conf
+    owner: root
+    group: root
+    mode: 0644
+  notify:
+  - reload systemd
+  tags:
+  - config
+  - robosignatory
+
+- name: Ensure fedora-messaging is enabled and started on the backend
+  service:
+    name: fm-consumer@robosignatory.service
+    enabled: yes
+    state: started
   tags:
   - config
   - robosignatory

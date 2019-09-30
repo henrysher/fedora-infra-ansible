@@ -1,0 +1,466 @@
+amqp_url = "amqps://robosignatory{{ env_suffix }}:@rabbitmq{{ env_suffix }}.fedoraproject.org/%2Fpubsub"
+
+publish_exchange = "amq.topic"
+passive_declares = true
+
+callback = "robosignatory.consumer:Consumer"
+
+# Don't use topic_prefix, since outgoing message topics are derived from incoming messages.
+# topic_prefix = ""
+
+# Note the double brackets below.
+# To add another binding, add another [[bindings]] section.
+[[bindings]]
+queue = "robosignatory"
+exchange = "amq.topic"
+routing_keys = [
+    "org.fedoraproject.*.pungi.compose.ostree",
+    "org.fedoraproject.*.coreos.build.request.artifacts-sign",
+    "org.fedoraproject.*.coreos.build.request.ostree-sign",
+    "org.fedoraproject.*.buildsys.tag",
+]
+
+[tls]
+ca_cert = "/etc/pki/fedora-messaging/cacert.pem"
+keyfile = "/etc/pki/fedora-messaging/robosignatory-key.pem"
+certfile = "/etc/pki/fedora-messaging/robosignatory-cert.pem"
+
+[client_properties]
+app = "RoboSignatory"
+
+[queues.robosignatory]
+durable = true
+auto_delete = false
+exclusive = false
+arguments = {}
+
+[qos]
+prefetch_size = 0
+prefetch_count = 25
+
+[log_config]
+version = 1
+disable_existing_loggers = true
+
+[log_config.formatters.simple]
+format = "[%(name)s %(levelname)s] %(message)s"
+
+[log_config.handlers.console]
+class = "logging.StreamHandler"
+formatter = "simple"
+stream = "ext://sys.stdout"
+
+[log_config.loggers.fedora_messaging]
+level = "INFO"
+propagate = false
+handlers = ["console"]
+
+[log_config.loggers.robosignatory]
+level = "INFO"
+propagate = false
+handlers = ["console"]
+
+[log_config.root]
+level = "INFO"
+handlers = ["console"]
+
+
+# robosignatory consumer configuration
+[consumer_config]
+
+    # Any tag prefixed with "module-" will be considered a module.
+    module_prefixes = ["module-"]
+
+    [consumer_config.signing]
+    backend = "sigul"
+    user = "autopen"
+    passphrase_file = "/etc/sigul/autosign.pass"
+    config_file = "/etc/sigul/client.conf"
+
+    [consumer_config.koji_instances]
+    # The keys here need to be the same in the sigul bridge
+        [consumer_config.koji_instances.primary]
+        url = "https://koji{{ env_suffix }}.fedoraproject.org/kojihub"
+        mbs_user = "mbs/mbs{{ env_suffix }}.fedoraproject.org"
+
+            [consumer_config.koji_instances.primary.options]
+            # Only ssl and kerberos are supported at the moment
+            authmethod = "kerberos"
+            principal = "autosign/autosign01{{ env_suffix }}.phx2.fedoraproject.org@{{ env_suffix|upper }}FEDORAPROJECT.ORG"
+            keytab = "/etc/krb5.autosign_autosign01{{ env_suffix }}.phx2.fedoraproject.org.keytab"
+            krb_rdns = false
+
+            # Temporary tags
+
+            [[consumer_config.koji_instances.primary.tags]]
+            from = "f32-python"
+            to = "f32-python"
+            key = ""
+            keyid = ""
+            key = "{{ (env == 'production')|ternary('fedora-32', 'testkey') }}"
+            keyid = "{{ (env == 'production')|ternary('12c944d0', 'd300e724') }}"
+
+            [[consumer_config.koji_instances.primary.tags]]
+            from = "f31-kde"
+            to = "f31-kde"
+            key = ""
+            keyid = ""
+            key = "{{ (env == 'production')|ternary('fedora-31', 'testkey') }}"
+            keyid = "{{ (env == 'production')|ternary('3c3359c4', 'd300e724') }}"
+
+            [[consumer_config.koji_instances.primary.tags]]
+            from = "f31-gnome"
+            to = "f31-gnome"
+            key = ""
+            keyid = ""
+            key = "{{ (env == 'production')|ternary('fedora-31', 'testkey') }}"
+            keyid = "{{ (env == 'production')|ternary('3c3359c4', 'd300e724') }}"
+
+            [[consumer_config.koji_instances.primary.tags]]
+            from = "f31-python"
+            to = "f31-python"
+            key = ""
+            keyid = ""
+            key = "{{ (env == 'production')|ternary('fedora-31', 'testkey') }}"
+            keyid = "{{ (env == 'production')|ternary('3c3359c4', 'd300e724') }}"
+
+            [[consumer_config.koji_instances.primary.tags]]
+            from = "f30-kde"
+            to = "f30-kde"
+            key = ""
+            keyid = ""
+            key = "{{ (env == 'production')|ternary('fedora-30', 'testkey') }}"
+            keyid = "{{ (env == 'production')|ternary('cfc659b9', 'd300e724') }}"
+
+            [[consumer_config.koji_instances.primary.tags]]
+            from = "f29-kde"
+            to = "f29-kde"
+            key = "
+            keyid = ""
+            key = "{{ (env == 'production')|ternary('fedora-29', 'testkey') }}"
+            keyid = "{{ (env == 'production')|ternary('429476b4', 'd300e724') }}"
+
+            # Infra tags
+
+            [[consumer_config.koji_instances.primary.tags]]
+            from = "epel6-infra-candidate"
+            to = "epel6-infra-stg"
+            key = ""
+            keyid = ""
+            key = "{{ (env == 'production')|ternary('fedora-infra', 'testkey') }}"
+            keyid = "{{ (env == 'production')|ternary('47dd8ef9', 'd300e724') }}"
+
+            [[consumer_config.koji_instances.primary.tags]]
+            from = "epel7-infra-candidate"
+            to = "epel7-infra-stg"
+            key = "{{ (env == 'production')|ternary('fedora-infra', 'testkey') }}"
+            keyid = "{{ (env == 'production')|ternary('47dd8ef9', 'd300e724') }}"
+
+            [[consumer_config.koji_instances.primary.tags]]
+            from = "epel8-infra-candidate"
+            to = "epel8-infra-stg"
+            key = "{{ (env == 'production')|ternary('fedora-infra', 'testkey') }}"
+            keyid = "{{ (env == 'production')|ternary('47dd8ef9', 'd300e724') }}"
+
+            [[consumer_config.koji_instances.primary.tags]]
+            from = "f29-infra-candidate"
+            to = "f29-infra-stg"
+            key = "{{ (env == 'production')|ternary('fedora-infra', 'testkey') }}"
+            keyid = "{{ (env == 'production')|ternary('47dd8ef9', 'd300e724') }}"
+
+            [[consumer_config.koji_instances.primary.tags]]
+            from = "f30-infra-candidate"
+            to = "f30-infra-stg"
+            key = "{{ (env == 'production')|ternary(''fedora-infra, 'testkey') }}"
+            keyid = "{{ (env == 'production')|ternary('47dd8ef9', 'd300e724') }}"
+
+            [[consumer_config.koji_instances.primary.tags]]
+            from = "f31-infra-candidate"
+            to = "f31-infra-stg"
+            key = "{{ (env == 'production')|ternary('fedora-infra', 'testkey') }}"
+            keyid = "{{ (env == 'production')|ternary('47dd8ef9', 'd300e724') }}"
+
+            [[consumer_config.koji_instances.primary.tags]]
+            from = "f32-infra-candidate"
+            to = "f32-infra-stg"
+            key = "{{ (env == 'production')|ternary('fedora-infra', 'testkey') }}"
+            keyid = "{{ (env == 'production')|ternary('47dd8ef9', 'd300e724') }}"
+
+            # Gated coreos-pool tag
+
+            [[consumer_config.koji_instances.primary.tags]]
+            from = "f29-coreos-signing-pending"
+            to = "coreos-pool"
+            key = "{{ (env == 'production')|ternary('fedora-29', 'testkey') }}"
+            keyid = "{{ (env == 'production')|ternary('429476b4', 'd300e724') }}"
+
+            [[consumer_config.koji_instances.primary.tags]]
+            from = "f30-coreos-signing-pending"
+            to = "coreos-pool"
+            key = "{{ (env == 'production')|ternary('fedora-30', 'testkey') }}"
+            keyid = "{{ (env == 'production')|ternary('cfc659b9', 'd300e724') }}"
+
+            [[consumer_config.koji_instances.primary.tags]]
+            from = "f31-coreos-signing-pending"
+            to = "coreos-pool"
+            key = "{{ (env == 'production')|ternary('fedora-31', 'testkey') }}"
+            keyid = "{{ (env == 'production')|ternary('3c3359c4', 'd300e724') }}"
+
+            [[consumer_config.koji_instances.primary.tags]]
+            from = "f32-coreos-signing-pending"
+            to = "coreos-pool"
+            key = "{{ (env == 'production')|ternary('fedora-32', 'testkey') }}"
+            keyid = "{{ (env == 'production')|ternary('12c944d0', 'd300e724') }}"
+
+            # Gated rawhide and branched
+
+            [[consumer_config.koji_instances.primary.tags]]
+            from = "f32-updates-candidate"
+            to = "f32-updates-testing-pending"
+            key = "{{ (env == 'production')|ternary('fedora-32', 'testkey') }}"
+            keyid = "{{ (env == 'production')|ternary('12c944d0', 'd300e724') }}"
+
+            [consumer_config.koji_instances.primary.tags.sidetags]
+            pattern = '<to>-build-side-<seq_id>'
+            from = '<sidetag>-pending-signing'
+            to = '<sidetag>-testing'
+            trusted_taggers = ['bodhi']
+
+            [[consumer_config.koji_instances.primary.tags]]
+            from = "f32-pending"
+            to = "f32"
+            key = "{{ (env == 'production')|ternary('fedora-32', 'testkey') }}"
+            keyid = "{{ (env == 'production')|ternary('12c944d0', 'd300e724') }}"
+
+            [[consumer_config.koji_instances.primary.tags]]
+            from = "f32-modular-pending"
+            to = "f32-modular"
+            key = "{{ (env == 'production')|ternary('fedora-32', 'testkey') }}"
+            keyid = "{{ (env == 'production')|ternary('12c944d0', 'd300e724') }}"
+            type = "modular"
+
+            [[consumer_config.koji_instances.primary.tags]]
+            from = "f32-modular-updates-candidate"
+            to = "f32-modular"
+            key = "{{ (env == 'production')|ternary('fedora-32', 'testkey') }}"
+            keyid = "{{ (env == 'production')|ternary('12c944d0', 'd300e724') }}"
+            type = "modular"
+
+            [[consumer_config.koji_instances.primary.tags]]
+            from = "f31-signing-pending"
+            to = "f31-updates-testing-pending"
+            key = "{{ (env == 'production')|ternary('fedora-31', 'testkey') }}"
+            keyid = "{{ (env == 'production')|ternary('3c3359c4', 'd300e724') }}"
+
+            [[consumer_config.koji_instances.primary.tags]]
+            from = "f31-modular-signing-pending"
+            to = "f31-modular-updates-testing-pending"
+            key = "{{ (env == 'production')|ternary('fedora-31', 'testkey') }}"
+            keyid = "{{ (env == 'production')|ternary('3c3359c4', 'd300e724') }}"
+            type = "modular"
+
+            # Gated bodhi updates
+
+            [[consumer_config.koji_instances.primary.tags]]
+            from = "f30-signing-pending"
+            to = "f30-updates-testing-pending"
+            key = "{{ (env == 'production')|ternary('fedora-30', 'testkey') }}"
+            keyid = "{{ (env == 'production')|ternary('cfc659b9', 'd300e724') }}"
+
+            [[consumer_config.koji_instances.primary.tags]]
+            from = "f30-modular-signing-pending"
+            to = "f30-modular-updates-testing-pending"
+            key = "{{ (env == 'production')|ternary('fedora-30', 'testkey') }}"
+            keyid = "{{ (env == 'production')|ternary('cfc659b9', 'd300e724') }}"
+            type = "modular"
+
+            [[consumer_config.koji_instances.primary.tags]]
+            from = "f29-modular-signing-pending"
+            to = "f29-modular-updates-testing-pending"
+            key = "{{ (env == 'production')|ternary('fedora-29', 'testkey') }}"
+            keyid = "{{ (env == 'production')|ternary('429476b4', 'd300e724') }}"
+            type = "modular"
+
+            [[consumer_config.koji_instances.primary.tags]]
+            from = "f29-signing-pending"
+            to = "f29-updates-testing-pending"
+            key = "{{ (env == 'production')|ternary('fedora-29', 'testkey') }}"
+            keyid = "{{ (env == 'production')|ternary('429476b4', 'd300e724') }}"
+
+            [[consumer_config.koji_instances.primary.tags]]
+            from = "epel8-signing-pending"
+            to = "epel8-testing-pending"
+            key = "{{ (env == 'production')|ternary('epel-8', 'testkey') }}"
+            keyid = "{{ (env == 'production')|ternary('2f86d6a1', 'd300e724') }}"
+
+            [[consumer_config.koji_instances.primary.tags]]
+            from = "epel8-playground-pending"
+            to = "epel8-playground"
+            key = "{{ (env == 'production')|ternary('epel-8', 'testkey') }}"
+            keyid = "{{ (env == 'production')|ternary('2f86d6a1', 'd300e724') }}"
+
+            [[consumer_config.koji_instances.primary.tags]]
+            from = "epel7-signing-pending"
+            to = "epel7-testing-pending"
+            key = "{{ (env == 'production')|ternary('epel-7', 'testkey') }}"
+            keyid = "{{ (env == 'production')|ternary('352c64e5', 'd300e724') }}"
+
+            # Non-gated bodhi triggered
+
+            [[consumer_config.koji_instances.primary.tags]]
+            from = "dist-6E-epel-testing-candidate"
+            to = "dist-6E-epel-testing-candidate"
+            key = "{{ (env == 'production')|ternary('epel-6', 'testkey') }}"
+            keyid = "{{ (env == 'production')|ternary('0608b895', 'd300e724') }}"
+
+
+    [consumer_config.ostree_refs]
+        [consumer_config.ostree_refs."fedora/rawhide/x86_64/iot"]
+        directory = "/mnt/fedora_koji/koji/compose/iot/repo/"
+        key = "fedora-32"
+        [consumer_config.ostree_refs."fedora/rawhide/aarch64/iot"]
+        directory = "/mnt/fedora_koji/koji/compose/iot/repo/"
+        key = "fedora-32"
+        [consumer_config.ostree_refs."fedora/rawhide/armhfp/iot"]
+        directory = "/mnt/fedora_koji/koji/compose/iot/repo/"
+        key = "fedora-32"
+        [consumer_config.ostree_refs."fedora/devel/x86_64/iot"]
+        directory = "/mnt/fedora_koji/koji/compose/iot/repo/"
+        key = "fedora-31"
+        [consumer_config.ostree_refs."fedora/devel/aarch64/iot"]
+        directory = "/mnt/fedora_koji/koji/compose/iot/repo/"
+        key = "fedora-31"
+        [consumer_config.ostree_refs."fedora/devel/armhfp/iot"]
+        directory = "/mnt/fedora_koji/koji/compose/iot/repo/"
+        key = "fedora-31"
+        [consumer_config.ostree_refs."fedora/stable/x86_64/iot"]
+        directory = "/mnt/fedora_koji/koji/compose/iot/repo/"
+        key = "fedora-iot-2019"
+        [consumer_config.ostree_refs."fedora/stable/aarch64/iot"]
+        directory = "/mnt/fedora_koji/koji/compose/iot/repo/"
+        key = "fedora-iot-2019"
+        [consumer_config.ostree_refs."fedora/stable/armhfp/iot"]
+        directory = "/mnt/fedora_koji/koji/compose/iot/repo/"
+        key = "fedora-iot-2019"
+        [consumer_config.ostree_refs."fedora/31/x86_64/iot"]
+        directory = "/mnt/fedora_koji/koji/compose/iot/repo/"
+        key = "fedora-31"
+        [consumer_config.ostree_refs."fedora/31/aarch64/iot"]
+        directory = "/mnt/fedora_koji/koji/compose/iot/repo/"
+        key = "fedora-31"
+        [consumer_config.ostree_refs."fedora/31/armhfp/iot"]
+        directory = "/mnt/fedora_koji/koji/compose/iot/repo/"
+        key = "fedora-31"
+        [consumer_config.ostree_refs."fedora/30/x86_64/iot"]
+        directory = "/mnt/fedora_koji/koji/compose/iot/repo/"
+        key = "fedora-30"
+        [consumer_config.ostree_refs."fedora/30/aarch64/iot"]
+        directory = "/mnt/fedora_koji/koji/compose/iot/repo/"
+        key = "fedora-30"
+        [consumer_config.ostree_refs."fedora/30/armhfp/iot"]
+        directory = "/mnt/fedora_koji/koji/compose/iot/repo/"
+        key = "fedora-30"
+        [consumer_config.ostree_refs."fedora/29/x86_64/iot"]
+        directory = "/mnt/fedora_koji/koji/compose/iot/repo/"
+        key = "fedora-29"
+        [consumer_config.ostree_refs."fedora/29/aarch64/iot"]
+        directory = "/mnt/fedora_koji/koji/compose/iot/repo/"
+        key = "fedora-29"
+        [consumer_config.ostree_refs."fedora/29/armhfp/iot"]
+        directory = "/mnt/fedora_koji/koji/compose/iot/repo/"
+        key = "fedora-29"
+
+        [consumer_config.ostree_refs."fedora/29/x86_64/atomic-host"]
+        directory = "/mnt/fedora_koji/koji/compose/ostree/repo/"
+        key = "fedora-29"
+        [consumer_config.ostree_refs."fedora/29/ppc64le/atomic-host"]
+        directory = "/mnt/fedora_koji/koji/compose/ostree/repo/"
+        key = "fedora-29"
+        [consumer_config.ostree_refs."fedora/29/aarch64/atomic-host"]
+        directory = "/mnt/fedora_koji/koji/compose/ostree/repo/"
+        key = "fedora-29"
+        [consumer_config.ostree_refs."fedora/29/x86_64/updates/atomic-host"]
+        directory = "/mnt/fedora_koji/koji/compose/ostree/repo/"
+        key = "fedora-29"
+        [consumer_config.ostree_refs."fedora/29/ppc64le/updates/atomic-host"]
+        directory = "/mnt/fedora_koji/koji/compose/ostree/repo/"
+        key = "fedora-29"
+        [consumer_config.ostree_refs."fedora/29/aarch64/updates/atomic-host"]
+        directory = "/mnt/fedora_koji/koji/compose/ostree/repo/"
+        key = "fedora-29"
+        [consumer_config.ostree_refs."fedora/29/x86_64/testing/atomic-host"]
+        directory = "/mnt/fedora_koji/koji/compose/ostree/repo/"
+        key = "fedora-29"
+        [consumer_config.ostree_refs."fedora/29/ppc64le/testing/atomic-host"]
+        directory = "/mnt/fedora_koji/koji/compose/ostree/repo/"
+        key = "fedora-29"
+        [consumer_config.ostree_refs."fedora/29/aarch64/testing/atomic-host"]
+        directory = "/mnt/fedora_koji/koji/compose/ostree/repo/"
+        key = "fedora-29"
+        [consumer_config.ostree_refs."fedora/29/x86_64/silverblue"]
+        directory = "/mnt/fedora_koji/koji/compose/ostree/repo/"
+        key = "fedora-29"
+        [consumer_config.ostree_refs."fedora/29/x86_64/updates/silverblue"]
+        directory = "/mnt/fedora_koji/koji/compose/ostree/repo/"
+        key = "fedora-29"
+        [consumer_config.ostree_refs."fedora/29/x86_64/testing/silverblue"]
+        directory = "/mnt/fedora_koji/koji/compose/ostree/repo/"
+        key = "fedora-29"
+
+        [consumer_config.ostree_refs."fedora/30/x86_64/silverblue"]
+        directory = "/mnt/fedora_koji/koji/compose/ostree/repo/"
+        key = "fedora-30"
+        [consumer_config.ostree_refs."fedora/30/x86_64/updates/silverblue"]
+        directory = "/mnt/fedora_koji/koji/compose/ostree/repo/"
+        key = "fedora-30"
+        [consumer_config.ostree_refs."fedora/30/x86_64/testing/silverblue"]
+        directory = "/mnt/fedora_koji/koji/compose/ostree/repo/"
+        key = "fedora-30"
+
+        [consumer_config.ostree_refs."fedora/31/x86_64/silverblue"]
+        directory = "/mnt/fedora_koji/koji/compose/ostree/repo/"
+        key = "fedora-31"
+        [consumer_config.ostree_refs."fedora/31/aarch64/silverblue"]
+        directory = "/mnt/fedora_koji/koji/compose/ostree/repo/"
+        key = "fedora-31"
+        [consumer_config.ostree_refs."fedora/31/ppc64le/silverblue"]
+        directory = "/mnt/fedora_koji/koji/compose/ostree/repo/"
+        key = "fedora-31"
+        [consumer_config.ostree_refs."fedora/31/x86_64/updates/silverblue"]
+        directory = "/mnt/fedora_koji/koji/compose/ostree/repo/"
+        key = "fedora-31"
+        [consumer_config.ostree_refs."fedora/31/x86_64/testing/silverblue"]
+        directory = "/mnt/fedora_koji/koji/compose/ostree/repo/"
+        key = "fedora-31"
+        [consumer_config.ostree_refs."fedora/31/aarch64/updates/silverblue"]
+        directory = "/mnt/fedora_koji/koji/compose/ostree/repo/"
+        key = "fedora-31"
+        [consumer_config.ostree_refs."fedora/31/aarch64/testing/silverblue"]
+        directory = "/mnt/fedora_koji/koji/compose/ostree/repo/"
+        key = "fedora-31"
+        [consumer_config.ostree_refs."fedora/31/ppc64le/updates/silverblue"]
+        directory = "/mnt/fedora_koji/koji/compose/ostree/repo/"
+        key = "fedora-31"
+        [consumer_config.ostree_refs."fedora/31/ppc64le/testing/silverblue"]
+        directory = "/mnt/fedora_koji/koji/compose/ostree/repo/"
+        key = "fedora-31"
+
+        [consumer_config.ostree_refs."fedora/rawhide/aarch64/silverblue"]
+        directory = "/mnt/fedora_koji/koji/compose/ostree/repo/"
+        key = "fedora-"32
+        [consumer_config.ostree_refs."fedora/rawhide/ppc64le/silverblue"]
+        directory = "/mnt/fedora_koji/koji/compose/ostree/repo/"
+        key = "fedora-32"
+        [consumer_config.ostree_refs."fedora/rawhide/x86_64/silverblue"]
+        directory = "/mnt/fedora_koji/koji/compose/ostree/repo/"
+        key = "fedora-32"
+
+
+    [consumer_config.coreos]
+    bucket = "robosig-dev-fcos-builds"
+    key = "coreos"
+
+        [consumer_config.coreos.aws]
+        access_key = "{{ fcos_builds_releng_aws_access_id }}"
+        access_secret = "{{ fcos_builds_releng_aws_secret_key }}"
+        region = "us-east-1"
