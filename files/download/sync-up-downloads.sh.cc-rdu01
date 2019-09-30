@@ -6,7 +6,7 @@
 ##
 
 RSYNC='/usr/bin/rsync'
-RS_OPT="-avSHP  --numeric-ids"
+RS_OPT="-avSHP  --numeric-ids --log-file=/var/log/rsync-update.log"
 RS_DEADLY="--delete --delete-excluded --delete-delay --delay-updates"
 EPL_EXCLUDES=""
 FED_EXCLUDES=""
@@ -15,15 +15,31 @@ SERVER=download-ib01.fedoraproject.org
 
 # http://dl.fedoraproject.org/pub/epel/
 ${RSYNC} ${RS_OPT} ${RS_DEADLY} ${EPL_EXCLUDES} ${SERVER}::fedora-epel/ /srv/pub/epel/ | tail -n2 | logger -p local0.notice -t rsync_updates_epel
+if [[ $? -ne 0 ]]; then
+    echo "Unable to finish sync to epel"
+fi
+
 # http://dl.fedoraproject.org/pub/fedora/
 ${RSYNC} ${RS_OPT} ${RS_DEADLY} ${FED_EXCLUDES} ${SERVER}::fedora-enchilada0/ /srv/pub/fedora/ | tail -n2 | logger -p local0.notice -t rsync_updates_fedora
+if [[ $? -ne 0 ]]; then
+    echo "Unable to finish sync to fedora"
+fi
 # http://dl.fedoraproject.org/pub/fedora-secondary/
 ${RSYNC} ${RS_OPT} ${RS_DEADLY} ${FED_EXCLUDES} ${SERVER}::fedora-secondary0/ /srv/pub/fedora-secondary/ | tail -n2 | logger -p local0.notice -t rsync_updates_fedora_2nd
+if [[ $? -ne 0 ]]; then
+    echo "Unable to finish sync to fedora-secondary"
+fi
 
 # CentOS
 ${RSYNC} ${RS_OPT} ${RD_DEADLY} master-1.centos.org::CentOS-community-cage/centos/ /srv/pub/centos/ | tail -n2 | logger -p local0.notice -t rsync_centos
+if [[ $? -ne 0 ]]; then
+    echo "Unable to finish sync to CentOS"
+fi
 # CentOS-altarch
 ${RSYNC} ${RS_OPT} ${RD_DEADLY} master-1.centos.org::CentOS-community-cage/altarch/ /srv/pub/centos-altarch/ | tail -n2 | logger -p local0.notice -t rsync_centos_alt
+if [[ $? -ne 0 ]]; then
+    echo "Unable to finish sync to CentOS-altarch"
+fi
 
 
 # Let MM know I'm all up to date
