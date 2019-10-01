@@ -24,7 +24,9 @@
 # take a day to combine all the logs onto combined-httpd. So we assume 
 # we are 5 days behind.
 
-let NUMDAYS=5
+# We have dropped this down to 3 days on 2019-10-01
+
+let NUMDAYS=4
 let OLDDAYS=$(( $NUMDAYS+1 ))
 
 PROJECT=mirrors

@@ -24,7 +24,9 @@
 # take a day to combine all the logs onto combined-httpd. So we assume 
 # we are 6 days behind.
 
-let NUMDAYS=6
+# We have dropped this down to 3 days on 2019-10-01
+
+let NUMDAYS=5
 
 # This is the year/month/day for a N days ago.
 YEAR=$(/bin/date -d "-${NUMDAYS} days" +%Y)
