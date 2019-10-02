@@ -25,15 +25,23 @@
   - fas_client
   - collectd/base
   - sudo
-  - fedmsg/base
-  - fedmsg/hub
   - role: nfs/client
     mnt_dir: '/mnt/fedora_koji'
     nfs_src_dir: 'fedora_koji'
     when: env != 'staging'
+  - role: rabbit/queue
+    username: "robosignatory{{ env_suffix }}"
+    queue_name: "robosignatory{{ env_suffix }}"
+    routing_keys:
+    - "org.fedoraproject.*.pungi.compose.ostree"
+    - "org.fedoraproject.*.coreos.build.request.artifacts-sign"
+    - "org.fedoraproject.*.coreos.build.request.ostree-sign"
+    - "org.fedoraproject.*.buildsys.tag"
+  - robosignatory
   - role: keytab/service
     service: autosign
-  - robosignatory
+    owner_user: robosignatory
+    owner_group: robosignatory
 
   pre_tasks:
   - import_tasks: "{{ tasks_path }}/yumrepos.yml"
