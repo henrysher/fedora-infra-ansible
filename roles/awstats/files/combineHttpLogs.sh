@@ -24,7 +24,7 @@
 
 # 2019-10-01 Dropped this down to 3 days.. 
 
-NUMDAYS=3
+NUMDAYS=2
 YEAR=$(/bin/date -d "-${NUMDAYS} days" +%Y)
 MONTH=$(/bin/date -d "-${NUMDAYS} days" +%m)
 DAY=$(/bin/date -d "-${NUMDAYS} days" +%d)

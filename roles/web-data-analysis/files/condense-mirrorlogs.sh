@@ -26,7 +26,7 @@
 
 # We have dropped this down to 3 days on 2019-10-01
 
-let NUMDAYS=4
+let NUMDAYS=3
 let OLDDAYS=$(( $NUMDAYS+1 ))
 
 PROJECT=mirrors
