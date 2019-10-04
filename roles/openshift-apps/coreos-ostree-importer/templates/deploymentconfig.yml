@@ -1,0 +1,38 @@
+apiVersion: apps.openshift.io/v1
+kind: DeploymentConfig
+metadata:
+  labels:
+    app: coreos-ostree-importer
+  name: coreos-ostree-importer
+spec:
+  replicas: 1
+  selector:
+    app: coreos-ostree-importer
+  strategy:
+    resources: {}
+  template:
+    metadata:
+      labels:
+        app: coreos-ostree-importer
+      name: coreos-ostree-importer
+    spec:
+      containers:
+        name: coreos-ostree-importer
+        image: registry.fedoraproject.org/fedora:30
+        # sleep infinity is useful for debugging environment issues
+        # comment out when not debugging
+        args: ['infinity']
+        command: ['/usr/bin/sleep']
+        volumeMounts:
+        - name: fedora-ostree-content-volume
+          mountPath: /mnt/koji
+        imagePullPolicy: IfNotPresent
+        resources: {}
+      volumes:
+      - name: fedora-ostree-content-volume
+        persistentVolumeClaim:
+          claimName: fedora-ostree-content-volume
+      restartPolicy: Always
+  test: false
+  triggers:
+  - type: ConfigChange

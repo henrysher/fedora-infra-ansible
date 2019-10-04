@@ -1,0 +1,41 @@
+- name: make the app be real
+  hosts: os_masters_stg[0]
+  user: root
+  gather_facts: False
+
+  vars_files:
+    - /srv/web/infra/ansible/vars/global.yml
+    - "/srv/private/ansible/vars.yml"
+    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  roles:
+  - role: openshift/project
+    app: coreos-ostree-importer
+    description: Imports OSTree commits into Fedora from the Fedora CoreOS pipeline
+    appowners:
+    - dustymabe
+    - jlebon
+    - kevin
+
+  - role: openshift/object
+    template: deploymentconfig.yml
+    objectname: deploymentconfig.yml
+
+  - role: openshift/object
+    app: coreos-ostree-importer
+    template: pvc.yml
+    objectname: pvc.yml
+
+  - role: openshift/rollout
+    app: coreos-ostree-importer
+    dcname: coreos-ostree-importer
+
+###############################################
+# actions to delete the project from OpenShift
+###############################################
+# to run: sudo rbac-playbook -l os_masters_stg[0] -t delete openshift-apps/coreos-ostree-importer.yml
+  - role: openshift/object-delete
+    app: coreos-ostree-importer
+    objecttype: project
+    objectname: coreos-ostree-importer
+    tags: [ never, delete ]
