@@ -1,0 +1,38 @@
+apiVersion: apps.openshift.io/v1
+kind: DeploymentConfig
+metadata:
+  labels:
+    app: fedora-ostree-pruner
+  name: fedora-ostree-pruner
+spec:
+  replicas: 1
+  selector:
+    app: fedora-ostree-pruner
+  strategy:
+    resources: {}
+  template:
+    metadata:
+      labels:
+        app: fedora-ostree-pruner
+      name: fedora-ostree-pruner
+    spec:
+      containers:
+      - name: fedora-ostree-pruner
+        image: registry.fedoraproject.org/fedora:30
+        # sleep infinity is useful for debugging environment issues
+        # comment out when not debugging
+        args: ['infinity']
+        command: ['/usr/bin/sleep']
+        volumeMounts:
+        - name: fedora-ostree-content-volume
+          mountPath: /mnt/koji
+        imagePullPolicy: IfNotPresent
+        resources: {}
+      volumes:
+      - name: fedora-ostree-content-volume
+        persistentVolumeClaim:
+          claimName: fedora-ostree-content-volume
+      restartPolicy: Always
+  test: false
+  triggers:
+  - type: ConfigChange

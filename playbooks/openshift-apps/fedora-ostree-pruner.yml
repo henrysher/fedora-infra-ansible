@@ -1,0 +1,42 @@
+- name: make the app be real
+  hosts: os_masters_stg[0]
+  user: root
+  gather_facts: False
+
+  vars_files:
+    - /srv/web/infra/ansible/vars/global.yml
+    - "/srv/private/ansible/vars.yml"
+    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  roles:
+  - role: openshift/project
+    app: fedora-ostree-pruner
+    description: Prunes OSTree repositories based on policy
+    appowners:
+    - dustymabe
+    - jlebon
+    - kevin
+
+  - role: openshift/object
+    app: fedora-ostree-pruner
+    template: deploymentconfig.yml
+    objectname: deploymentconfig.yml
+
+  - role: openshift/object
+    app: fedora-ostree-pruner
+    template: pvc.yml
+    objectname: pvc.yml
+
+  - role: openshift/rollout
+    app: fedora-ostree-pruner
+    dcname: fedora-ostree-pruner
+
+###############################################
+# actions to delete the project from OpenShift
+###############################################
+# to run: sudo rbac-playbook -l os_masters_stg[0] -t delete openshift-apps/fedora-ostree-pruner.yml
+  - role: openshift/object-delete
+    app: fedora-ostree-pruner
+    objecttype: project
+    objectname: fedora-ostree-pruner
+    tags: [ never, delete ]
