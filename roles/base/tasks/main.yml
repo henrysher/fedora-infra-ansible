@@ -5,7 +5,7 @@
 # Things in here are things we want to do to every machine no matter what.
 #
 
-- name: ensure packages required for semanage are installed (yum)
+- name: ensure packages required for semanage are installed (rhel 6 and 7)
   package: name={{ item }} state=present
   with_items:
   - policycoreutils-python
@@ -13,9 +13,9 @@
   - selinux
   when: ansible_distribution_major_version|int < 8 and ansible_distribution == 'RedHat'
 
-- name: ensure packages required for semanage are installed (dnf)
+- name: ensure packages required for semanage are installed (fedora/rhel8)
   package: name=policycoreutils-python-utils state=present
-  when: (ansible_distribution_major_version|int > 27 and ansible_distribution == 'Fedora') or (ansible_distribution_major_version|int > 7 and ansible_distribution == 'RedHat') and ansible_cmdline.ostree is not defined
+  when: ansible_distribution_major_version|int => 8
   tags:
   - selinux
 
