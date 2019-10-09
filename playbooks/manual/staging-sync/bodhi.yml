@@ -35,8 +35,11 @@
 
   tasks:
   - service:
-      name: fm-consumer@config.service
+      name: "{{ item }}"
       state: stopped
+    with_items:
+    - fm-consumer@config.service
+    - bodhi-celery
 
 # Here's the meaty part in the middle
 - name: drop and re-create the staging db entirely
@@ -98,5 +101,8 @@
 
   tasks:
   - service:
-      name: fm-consumer@config.service
-      state: started
+      name: "{{ item }}"
+      state: stopped
+    with_items:
+    - fm-consumer@config.service
+    - bodhi-celery
