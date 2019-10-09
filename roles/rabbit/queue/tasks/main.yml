@@ -66,10 +66,25 @@
     login_password: "{{ (env == 'production')|ternary(rabbitmq_admin_password_production, rabbitmq_admin_password_staging) }}"
   tags: fedora-messaging
 
-- name: Bind the {{ queue_name }} queue to the topic exchange
+- name: Bind the {{ queue_name }} queue to the amq.topic exchange
   delegate_to: "{{ rabbitmq_server }}"
   rabbitmq_binding:
     name: "amq.topic"
+    destination: "{{ queue_name }}"
+    destination_type: queue
+    routing_key: "{{ item }}"
+    vhost: "{{ vhost }}"
+    state: present
+    login_user: admin
+    login_password: "{{ (env == 'production')|ternary(rabbitmq_admin_password_production, rabbitmq_admin_password_staging) }}"
+  loop: "{{ routing_keys }}"
+  tags: fedora-messaging
+
+# This can be removed when we're done with fedmsg and the bridges are retired.
+- name: Bind the {{ queue_name }} queue to the zmq.topic exchange
+  delegate_to: "{{ rabbitmq_server }}"
+  rabbitmq_binding:
+    name: "zmq.topic"
     destination: "{{ queue_name }}"
     destination_type: queue
     routing_key: "{{ item }}"
