@@ -11,3 +11,77 @@
   tags:
   - config
   - bodhi
+
+# Bodhi virtualhost in RabbitMQ
+
+- name: Configure the bodhi virtual host
+  run_once: true
+  delegate_to: "rabbitmq01{{ env_suffix }}.phx2.fedoraproject.org"
+  rabbitmq_vhost:
+    name: /bodhi
+    state: present
+  tags:
+  - rabbitmq_cluster
+  - config
+  - bodhi
+
+- name: Configure the HA policy for the bodhi queues
+  run_once: true
+  delegate_to: "rabbitmq01{{ env_suffix }}.phx2.fedoraproject.org"
+  rabbitmq_policy:
+    name: HA
+    apply_to: queues
+    pattern: .*
+    tags:
+      ha-mode: all
+      ha-sync-mode: automatic  # Auto sync queues to new cluster members
+      ha-sync-batch-size: 10000  # Larger is faster, but must finish in 1 net_ticktime
+    vhost: /bodhi
+  tags:
+  - rabbitmq_cluster
+  - config
+  - bodhi
+
+- name: Grant the admin user access to the bodhi vhost
+  run_once: true
+  delegate_to: "rabbitmq01{{ env_suffix }}.phx2.fedoraproject.org"
+  rabbitmq_user:
+    user: admin
+    vhost: /bodhi
+    configure_priv: .*
+    read_priv: .*
+    write_priv: .*
+  tags:
+  - rabbitmq_cluster
+  - config
+  - bodhi
+
+# Create a user for Celery
+# - name: Create a user for Celery usage
+#   run_once: true
+#   delegate_to: "rabbitmq01{{ env_suffix }}.phx2.fedoraproject.org"
+#   rabbitmq_user:
+#     user: "bodhi-celery{{ env_suffix }}"
+#     vhost: /bodhi
+#     configure_priv: .*
+#     write_priv: .*
+#     read_priv: .*
+#     state: present
+#   tags:
+#   - rabbitmq_cluster
+#   - config
+#   - bodhi
+
+- name: Grant the bodhi user access to the bodhi vhost
+  run_once: true
+  delegate_to: "rabbitmq01{{ env_suffix }}.phx2.fedoraproject.org"
+  rabbitmq_user:
+    user: "bodhi{{ env_suffix }}"
+    vhost: /bodhi
+    configure_priv: .*
+    read_priv: .*
+    write_priv: .*
+  tags:
+  - rabbitmq_cluster
+  - config
+  - bodhi

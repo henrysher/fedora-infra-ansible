@@ -205,3 +205,98 @@ items:
     - type: ConfigChange
 kind: List
 metadata: {}
+---
+apiVersion: v1
+items:
+- apiVersion: v1
+  kind: DeploymentConfig
+  metadata:
+    labels:
+      app: bodhi
+      service: celery
+    name: bodhi-celery
+  spec:
+{% if env == "staging" %}
+    replicas: {{ hostvars[groups['bodhi2_stg'][0]]['openshift_pods'] }}
+{% else %}
+    replicas: {{ hostvars[groups['bodhi2'][0]]['openshift_pods'] }}
+{% endif %}
+    selector:
+      deploymentconfig: bodhi-celery
+    strategy:
+      activeDeadlineSeconds: 21600
+      recreateParams:
+        timeoutSeconds: 600
+      resources: {}
+      rollingParams:
+        intervalSeconds: 1
+        maxSurge: 25%
+        maxUnavailable: 25%
+        timeoutSeconds: 600
+        updatePeriodSeconds: 1
+      type: Rolling
+    template:
+      metadata:
+        creationTimestamp: null
+        labels:
+          app: bodhi-celery
+          deploymentconfig: bodhi-celery
+      spec:
+        containers:
+        - name: bodhi-celery
+          image: bodhi-celery:latest
+          resources: {}
+          volumeMounts:
+          - name: config-volume
+            mountPath: /etc/bodhi
+            readOnly: true
+          - name: keytab-volume
+            mountPath: /etc/keytabs
+            readOnly: true
+          - name: fedora-messaging-config-volume
+            mountPath: /etc/fedora-messaging
+            readOnly: true
+          - name: fedora-messaging-ca-volume
+            mountPath: /etc/pki/fedora-messaging/cacert.pem
+            subPath: cacert.pem
+            readOnly: true
+          - name: fedora-messaging-crt-volume
+            mountPath: /etc/pki/fedora-messaging/bodhi-cert.pem
+            subPath: bodhi-cert.pem
+            readOnly: true
+          - name: fedora-messaging-key-volume
+            mountPath: /etc/pki/fedora-messaging/bodhi-key.pem
+            subPath: bodhi-key.pem
+            readOnly: true
+        volumes:
+        - name: config-volume
+          configMap:
+            name: bodhi-configmap
+        - name: keytab-volume
+          secret:
+            secretName: bodhi-keytab
+        - name: fedora-messaging-config-volume
+          configMap:
+            name: fedora-messaging-configmap
+        - name: fedora-messaging-ca-volume
+          secret:
+            secretName: bodhi-fedora-messaging-ca
+        - name: fedora-messaging-crt-volume
+          secret:
+            secretName: bodhi-fedora-messaging-crt
+        - name: fedora-messaging-key-volume
+          secret:
+            secretName: bodhi-fedora-messaging-key
+    triggers:
+    - imageChangeParams:
+        automatic: true
+        containerNames:
+        - bodhi-celery
+        from:
+          kind: ImageStreamTag
+          name: bodhi-celery:latest
+          namespace: bodhi
+      type: ImageChange
+    - type: ConfigChange
+kind: List
+metadata: {}

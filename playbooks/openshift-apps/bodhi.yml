@@ -69,11 +69,14 @@
   - role: openshift/imagestream
     app: bodhi
     imagename: bodhi-consumer
+  - role: openshift/imagestream
+    app: bodhi
+    imagename: bodhi-celery
   - role: openshift/object
     app: bodhi
     template: buildconfig.yml
     objectname: buildconfig.yml
-    bodhi_version: 4.1.1-1.fc29.infra
+    bodhi_version: 5.0.0-0.beta.1.761b898.fc29.infra
     when: env == "staging"
   - role: openshift/object
     app: bodhi
@@ -108,16 +111,25 @@
   - role: openshift/rollout
     app: bodhi
     dcname: bodhi-consumer
+  - role: openshift/rollout
+    app: bodhi
+    dcname: bodhi-celery
 
   post_tasks:
   - name: Scale up pods
     command: oc -n bodhi scale dc/bodhi-consumer --replicas={{ hostvars[groups['bodhi2'][0]]['openshift_pods'] }}
     when: env == "production"
   - name: Scale up pods
+    command: oc -n bodhi scale dc/bodhi-celery --replicas={{ hostvars[groups['bodhi2'][0]]['openshift_pods'] }}
+    when: env == "production"
+  - name: Scale up pods
     command: oc -n bodhi scale dc/bodhi-web --replicas={{ hostvars[groups['bodhi2'][0]]['openshift_pods'] }}
     when: env == "production"
   - name: Scale up pods
     command: oc -n bodhi scale dc/bodhi-consumer --replicas={{ hostvars[groups['bodhi2_stg'][0]]['openshift_pods'] }}
+    when: env == "staging"
+  - name: Scale up pods
+    command: oc -n bodhi scale dc/bodhi-celery --replicas={{ hostvars[groups['bodhi2_stg'][0]]['openshift_pods'] }}
     when: env == "staging"
   - name: Scale up pods
     command: oc -n bodhi scale dc/bodhi-web --replicas={{ hostvars[groups['bodhi2_stg'][0]]['openshift_pods'] }}

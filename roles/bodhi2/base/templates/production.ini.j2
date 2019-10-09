@@ -425,14 +425,6 @@ koji_url = https://koji{{env_suffix}}.fedoraproject.org
 # fmn_url = https://apps.fedoraproject.org/notifications/
 fmn_url = https://apps{{env_suffix}}.fedoraproject.org/notifications/
 
-# If this is defined, fedmenu's JS will be injected into the master template. Fedora's fedmenu URL
-# is https://apps.fedoraproject.org/fedmenu and its data_url is
-# https://apps.fedoraproject.org/js/data.js
-# fedmenu.url =
-# fedmenu.data_url =
-fedmenu.url = https://apps{{env_suffix}}.fedoraproject.org/fedmenu
-fedmenu.data_url = https://apps{{env_suffix}}.fedoraproject.org/js/data.js
-
 # Koji krb5
 # krb_principal =
 # krb_keytab =
@@ -517,10 +509,14 @@ bugtracker = bugzilla
 
 # A URL to a Bugzilla instance's xmlrpc.cgi script for Bodhi to use.
 # bz_server = https://bugzilla.redhat.com/xmlrpc.cgi
+# A URL to a Bugzilla instance's REST api for Bodhi to use.
+# bz_server_rest = https://bugzilla.redhat.com/rest/
 {% if env == 'production' %}
 bz_server = https://bugzilla.redhat.com/xmlrpc.cgi
+bz_server_rest = https://bugzilla.redhat.com/rest/
 {% elif env == 'staging' %}
 bz_server = https://partner-bugzilla.redhat.com/xmlrpc.cgi
+bz_server_rest = https://partner-bugzilla.redhat.com/rest/
 {% endif %}
 
 # Bodhi will avoid touching bugs that are not against the following comma-separated products.
@@ -657,7 +653,7 @@ admin_packager_groups = provenpackager releng-team security_respons
 openid.provider = https://id{{env_suffix}}.fedoraproject.org/openid/
 openid.url = https://id{{env_suffix}}.fedoraproject.org/
 openid_template = {username}.id{{env_suffix}}.fedoraproject.org
-openid.sreg_required = email
+openid.sreg_required = email nickname
 
 # CORS allowed origins for cornice services
 # This can be wide-open.  read-only, we don't care as much about.
@@ -746,6 +742,9 @@ cache.second.expire = 1
 cache.short_term.expire = 60
 cache.default_term.expire = 300
 cache.long_term.expire = 3600
+
+# Celery configuration file
+celery_config = /etc/bodhi/celeryconfig.py
 
 [server:main]
 use = egg:waitress#main

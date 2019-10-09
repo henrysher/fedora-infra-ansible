@@ -1,0 +1,29 @@
+#
+# Celery configuration file
+# See: docs.celeryproject.org/en/latest/userguide/configuration.html
+#
+
+# Broker URL
+# This might be more appropriate in prod:
+# broker_url = amqps://user:password@hostname:port//vhost
+# broker_use_ssl =
+#   keyfile=/var/ssl/private/worker-key.pem
+#   certfile=/var/ssl/amqp-server-cert.pem
+#   ca_certs=/var/ssl/myca.pem
+#   cert_reqs=ssl.CERT_REQUIRED
+broker_url = "amqps://bodhi{{ env_suffix }}:@rabbitmq{{ env_suffix }}.fedoraproject.org//bodhi"
+broker_use_ssl =
+    ca_certs=/etc/pki/fedora-messaging/cacert.pem
+    keyfile=/etc/pki/fedora-messaging/bodhi-key.pem
+    certfile=/etc/pki/fedora-messaging/bodhi-cert.pem
+    cert_reqs=ssl.CERT_REQUIRED
+
+# Where the tasks are defined
+imports = "bodhi.server.tasks"
+
+# Task routing
+task_routes = {
+    # Route the compose task to a specific queue that will only be run on hosts
+    # that have a Koji mount.
+    'compose': {'queue': 'has_koji_mount'},
+}

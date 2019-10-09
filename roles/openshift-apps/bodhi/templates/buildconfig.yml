@@ -112,3 +112,39 @@ items:
         name: bodhi-consumer:latest
 kind: List
 metadata: {}
+---
+apiVersion: v1
+items:
+- apiVersion: v1
+  kind: BuildConfig
+  metadata:
+    labels:
+      build: bodhi-celery
+    name: bodhi-celery
+  spec:
+    runPolicy: Serial
+    source:
+      dockerfile: |-
+        FROM bodhi-base
+        LABEL \
+          name="bodhi-celery" \
+          vendor="Fedora Infrastructure" \
+          license="MIT"
+        ENTRYPOINT /usr/bin/celery-3 worker -A bodhi.server.tasks.app -l info -Q celery
+      type: Dockerfile
+    strategy:
+      type: Docker
+      dockerStrategy:
+        from:
+          kind: "ImageStreamTag"
+          name: "bodhi-base:latest"
+        noCache: false
+    triggers:
+      - type: "imageChange"
+        imageChange: {}
+    output:
+      to:
+        kind: ImageStreamTag
+        name: bodhi-celery:latest
+kind: List
+metadata: {}

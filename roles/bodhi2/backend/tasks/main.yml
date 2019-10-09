@@ -18,6 +18,10 @@
       - bodhi-composer
       - python3-pyramid_sawing
       - sigul
+      # This next one is not strictly needed since bodhi-composer depends on bodhi-server which
+      # depends on python3-celery, but since we're depoying a service file calling celery in this
+      # role I think it makes sense to require it here instead of assuming a dependency chain.
+      - python3-celery
       # This is used to generate zchunk data more efficiently
       - fedora-repo-zdicts
       # The new-updates-sync script uses this
@@ -217,23 +221,34 @@
   - bodhi
 
 - name: Install production.ini
-  template: >
-    src="{{  roles_path  }}/bodhi2/base/templates/production.ini.j2"
-    dest="/etc/bodhi/production.ini"
-    owner=apache
-    group=apache
-    mode=0600
+  template:
+    src: "{{ roles_path }}/bodhi2/base/templates/production.ini.j2"
+    dest: /etc/bodhi/production.ini
+    owner: apache
+    group: apache
+    mode: 0600
+  tags:
+  - config
+  - bodhi
+
+- name: Install celeryconfig.py
+  template:
+    src: "{{ roles_path }}/bodhi2/base/templates/celeryconfig.py.j2"
+    dest: /etc/bodhi/celeryconfig.py
+    owner: apache
+    group: apache
+    mode: 0600
   tags:
   - config
   - bodhi
 
 - name: Install fedora-messaging config
-  template: >
-    src="{{  roles_path  }}/bodhi2/base/templates/fedora-messaging.toml.j2"
-    dest="/etc/fedora-messaging/config.toml"
-    owner=apache
-    group=apache
-    mode=0600
+  template:
+    src: "{{ roles_path }}/bodhi2/base/templates/fedora-messaging.toml.j2"
+    dest: /etc/fedora-messaging/config.toml
+    owner: apache
+    group: apache
+    mode: 0600
   tags:
   - config
   - bodhi
@@ -267,6 +282,19 @@
   - bodhi
   - config
 
+- name: Setup the Celery service
+  copy:
+    src: bodhi-celery.service
+    dest: /etc/systemd/system/bodhi-celery.service
+    owner: root
+    group: root
+    mode: 0644
+  notify:
+  - reload systemd
+  tags:
+  - bodhi
+  - config
+
 - name: ensure apache is disabled on the backend
   service: name=httpd enabled=no state=stopped
   tags:
@@ -291,7 +319,7 @@
     group: apache
   tags:
   - bodhi
-  
+
 - name: Deploy the fedora-messaging cert
   copy:
     src: "{{ private }}/files/rabbitmq/{{env}}/pki/issued/bodhi{{env_suffix}}.crt"
@@ -301,7 +329,7 @@
     group: apache
   tags:
   - bodhi
-  
+
 - name: Deploy the fedora-messaging key
   copy:
     src: "{{ private }}/files/rabbitmq/{{env}}/pki/private/bodhi{{env_suffix}}.key"
@@ -311,9 +339,15 @@
     group: apache
   tags:
   - bodhi
-  
-- name: ensure fedora-messaging is enabled and started on the backend
-  service: name=fm-consumer@config.service enabled=yes state=started
+
+- name: ensure fedora-messaging and celery are enabled and started on the backend
+  service:
+    name: "{{ item }}"
+    enabled: yes
+    state: started
+  with_items:
+  - fm-consumer@config
+  - bodhi-celery
   tags:
   - bodhi
 
