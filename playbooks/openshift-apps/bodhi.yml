@@ -18,6 +18,14 @@
 
   pre_tasks:
   - include_vars: dir=/srv/web/infra/ansible/vars/all/ ignore_files=README
+  - set_fact:
+    args:
+      bodhi_version: {{ hostvars[groups['bodhi2_stg'][0]]['bodhi_version'] }}
+    when: env == "staging"
+  - set_fact:
+    args:
+      bodhi_version: {{ hostvars[groups['bodhi2'][0]]['bodhi_version'] }}
+    when: env == "production"
 
   roles:
   - role: rabbit/user
