@@ -1,0 +1,121 @@
+{% macro load_file(filename) %}{% include filename %}{%- endmacro -%}
+apiVersion: v1
+items:
+- apiVersion: v1
+  kind: BuildConfig
+  metadata:
+    labels:
+      build: bodhi-base
+    name: bodhi-base
+  spec:
+    runPolicy: Serial
+    source:
+      dockerfile: |-
+        {{ load_file('dockerfile') | indent }}
+      type: Dockerfile
+    strategy:
+      type: Docker
+      dockerStrategy:
+        noCache: false
+    output:
+      to:
+        kind: ImageStreamTag
+        name: bodhi-base:latest
+kind: List
+metadata: {}
+
+---
+apiVersion: v1
+items:
+- apiVersion: v1
+  kind: BuildConfig
+  metadata:
+    labels:
+      build: bodhi-web
+    name: bodhi-web
+  spec:
+    runPolicy: Serial
+    source:
+      dockerfile: |-
+        {{ load_file('dockerfile-web') | indent }}
+      type: Dockerfile
+    strategy:
+      type: Docker
+      dockerStrategy:
+        from:
+          kind: "ImageStreamTag"
+          name: "bodhi-base:latest"
+        noCache: false
+    triggers:
+      - type: "imageChange"
+        imageChange: {}
+    output:
+      to:
+        kind: ImageStreamTag
+        name: bodhi-web:latest
+kind: List
+metadata: {}
+
+---
+apiVersion: v1
+items:
+- apiVersion: v1
+  kind: BuildConfig
+  metadata:
+    labels:
+      build: bodhi-consumer
+    name: bodhi-consumer
+  spec:
+    runPolicy: Serial
+    source:
+      dockerfile: |-
+        {{ load_file('dockerfile-consumer') | indent }}
+      type: Dockerfile
+    strategy:
+      type: Docker
+      dockerStrategy:
+        from:
+          kind: "ImageStreamTag"
+          name: "bodhi-base:latest"
+        noCache: false
+    triggers:
+      - type: "imageChange"
+        imageChange: {}
+    output:
+      to:
+        kind: ImageStreamTag
+        name: bodhi-consumer:latest
+kind: List
+metadata: {}
+
+---
+apiVersion: v1
+items:
+- apiVersion: v1
+  kind: BuildConfig
+  metadata:
+    labels:
+      build: bodhi-celery
+    name: bodhi-celery
+  spec:
+    runPolicy: Serial
+    source:
+      dockerfile: |-
+        {{ load_file('dockerfile-celery') | indent }}
+      type: Dockerfile
+    strategy:
+      type: Docker
+      dockerStrategy:
+        from:
+          kind: "ImageStreamTag"
+          name: "bodhi-base:latest"
+        noCache: false
+    triggers:
+      - type: "imageChange"
+        imageChange: {}
+    output:
+      to:
+        kind: ImageStreamTag
+        name: bodhi-celery:latest
+kind: List
+metadata: {}

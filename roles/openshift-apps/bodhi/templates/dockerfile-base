@@ -1,0 +1,17 @@
+FROM fedora:30
+LABEL \
+  name="bodhi-base" \
+  vendor="Fedora Infrastructure" \
+  license="MIT"
+RUN curl -o /etc/yum.repos.d/infra-tags.repo https://infrastructure.fedoraproject.org/cgit/ansible.git/plain/files/common/fedora-infra-tags.repo
+{% if env == "staging" %}
+RUN curl -o /etc/yum.repos.d/infra-tags-stg.repo https://infrastructure.fedoraproject.org/cgit/ansible.git/plain/files/common/fedora-infra-tags-stg.repo
+{% endif %}
+# While dnf has a --nodocs, it doesen't have a --docs...
+RUN sed -i '/nodocs/d' /etc/dnf/dnf.conf
+RUN dnf install -y bodhi-server-{{bodhi_version}}
+# Set up krb5
+RUN rm -f /etc/krb5.conf && \
+    ln -sf /etc/bodhi/krb5.conf /etc/krb5.conf && \
+    ln -sf /etc/keytabs/koji-keytab /etc/krb5.bodhi_bodhi{{ env_suffix }}.fedoraproject.org.keytab
+ENV USER=openshift
