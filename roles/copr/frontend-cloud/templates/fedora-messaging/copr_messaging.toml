@@ -1,0 +1,110 @@
+# A basic configuration for Fedora's message broker, using the example callback
+# which simply prints messages to standard output.
+#
+# This file is in the TOML format.
+amqp_url = "amqps://fedora:@rabbitmq.fedoraproject.org/%2Fpublic_pubsub"
+callback = "fedora_messaging.example:printer"
+
+[tls]
+ca_cert = "/etc/fedora-messaging/cacert.pem"
+keyfile = "/etc/fedora-messaging/fedora-key.pem"
+certfile = "/etc/fedora-messaging/fedora-cert.pem"
+
+[client_properties]
+app = "Example Application"
+# Some suggested extra fields:
+# URL of the project that provides this consumer
+app_url = "https://github.com/fedora-infra/fedora-messaging"
+# Contact emails for the maintainer(s) of the consumer - in case the
+# broker admin needs to contact them, for e.g.
+app_contacts_email = ["jcline@fedoraproject.org"]
+
+[exchanges."amq.topic"]
+type = "topic"
+durable = true
+auto_delete = false
+arguments = {}
+
+# Queue names *must* be in the normal UUID format: run "uuidgen" and use the
+# output as your queue name. If your queue is not exclusive, anyone can connect
+# and consume from it, causing you to miss messages, so do not share your queue
+# name. Any queues that are not auto-deleted on disconnect are garbage-collected
+# after approximately one hour.
+#
+# If you require a stronger guarantee about delivery, please talk to Fedora's
+# Infrastructure team.
+[queues.00000000-0000-0000-0000-000000000000]
+durable = false
+auto_delete = true
+exclusive = true
+arguments = {}
+
+[[bindings]]
+queue = "00000000-0000-0000-0000-000000000000"
+exchange = "amq.topic"
+routing_keys = [
+    'io.pagure.prod.pagure.git.receive',
+    'io.pagure.prod.pagure.pull-request.new',
+    'io.pagure.prod.pagure.pull-request.rebased',
+    'io.pagure.prod.pagure.pull-request.updated',
+    'io.pagure.prod.pagure.pull-request.comment.added',
+    'org.fedoraproject.prod.pagure.git.receive',
+    'org.fedoraproject.prod.pagure.pull-request.new',
+    'org.fedoraproject.prod.pagure.pull-request.rebased',
+    'org.fedoraproject.prod.pagure.pull-request.updated',
+    'org.fedoraproject.prod.pagure.pull-request.comment.added',
+{% if devel %}
+    'io.pagure.stg.pagure.git.receive',
+    'io.pagure.stg.pagure.pull-request.new',
+    'io.pagure.stg.pagure.pull-request.rebased',
+    'io.pagure.stg.pagure.pull-request.updated',
+    'io.pagure.stg.pagure.pull-request.comment.added'
+{% endif %}
+]
+
+[consumer_config]
+example_key = "for my consumer"
+
+[qos]
+prefetch_size = 0
+prefetch_count = 25
+
+[log_config]
+version = 1
+disable_existing_loggers = true
+
+[log_config.formatters.simple]
+format = "[%(levelname)s %(name)s] %(message)s"
+
+[log_config.handlers.console]
+class = "logging.FileHandler"
+formatter = "simple"
+filename = "/var/log/copr-frontend/pagure-events.log"
+
+[log_config.loggers.fedora_messaging]
+level = "INFO"
+propagate = false
+handlers = ["console"]
+
+[log_config.loggers.twisted]
+level = "INFO"
+propagate = false
+handlers = ["console"]
+
+[log_config.loggers.pika]
+level = "WARNING"
+propagate = false
+handlers = ["console"]
+
+# If your consumer sets up a logger, you must add a configuration for it
+# here in order for the messages to show up. e.g. if it set up a logger
+# called 'example_printer', you could do:
+#[log_config.loggers.basicConfig]
+#[log_config.loggers.example_printer]
+#level = "INFO"
+#propagate = false
+#handlers = ["console"]
+
+[log_config.root]
+level = "ERROR"
+handlers = ["console"]
