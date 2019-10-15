@@ -52,6 +52,8 @@
 
 - name: letsencrypt cert
   include_role: name=certbot
+  when:
+    - inventory_hostname != "resultsdb-stg01.qa.fedoraproject.org"
   tags:
   - config
   - certbot
@@ -60,6 +62,8 @@
   stat:
     path: "/etc/letsencrypt/live/resultsdb.ci.centos.org/cert.pem"
   register: stat_cert
+  when:
+    - inventory_hostname != "resultsdb-stg01.qa.fedoraproject.org"
   tags:
   - config
   - certbot
@@ -68,7 +72,7 @@
   fail:
     msg: Please see roles/certbot/README step (3) and manually run certbot
   when:
-    - stat_cert.stat.exists == False
+    - stat_cert.stat.exists == False and inventory_hostname != "resultsdb-stg01.qa.fedoraproject.org"
   tags:
   - config
   - certbot
