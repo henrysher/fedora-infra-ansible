@@ -1,8 +1,10 @@
 MAILTO=root
 
-# Refresh the mirrorlist cache at the top of the hour and sync it to the
-# mirrorlist servers
-55 * * * * mirrormanager /usr/bin/mm2_update-mirrorlist-server && /usr/local/bin/sync_pkl_to_mirrorlists.sh
+# Refresh the mirrorlist cache once every hour.
+# This can take up to 35 minutes. The mirrorlist servers
+# are restarted :15 after the full hour. Starting at :30
+# should give us enough time.
+30 * * * * mirrormanager /usr/bin/mm2_update-mirrorlist-server -p && /usr/local/bin/sync_pkl_to_mirrorlists.sh
 
 # update master directory
 # logs sent to /var/log/mirrormanager/umdl.log by default

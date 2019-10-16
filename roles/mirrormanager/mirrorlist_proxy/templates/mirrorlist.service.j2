@@ -2,12 +2,12 @@
 Description=Mirrorlist Container {{ item }}
 
 [Service]
-{% if env == "staging" %}
+{% if env == "staging" or inventory_hostname == "proxy14.fedoraproject.org" %}
 User=mirrormanager
 {% endif %}
 ExecStartPre=-/usr/bin/podman stop %n
 ExecStartPre=-/usr/bin/podman rm %n --force
-{% if env == "staging" %}
+{% if env == "staging" or inventory_hostname == "proxy14.fedoraproject.org" %}
 ExecStart=/usr/bin/podman run \
             --rm=true \
             --net=host --userns=keep-id \
