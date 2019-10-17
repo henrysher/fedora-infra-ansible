@@ -90,13 +90,24 @@
   - config
   - postgresql
 
+- name: postgresql recover.conf template (standby only)
+  template: dest=/var/lib/pgsql/data/resovery.conf src=recovery.conf
+  when: inventory_hostname.startswith('db-koji02')
+  notify:
+  - restart postgresql
+  tags:
+  - config
+  - postgresql
+
 - name: Ensure postgres has a place to backup to
   file: dest=/backups state=directory owner=postgres
+  when: inventory_hostname.startswith('db-koji02')
   tags:
   - postgresql
 
 - name: Copy over backup scriplet
   copy: src=backup-database dest=/usr/local/bin/backup-database mode=0755
+  when: inventory_hostname.startswith('db-koji02')
   tags:
   - postgresql
 
