@@ -1,0 +1,74 @@
+# A sample configuration for fedora-messaging. This file is in the TOML format.
+# For complete details on all configuration options, see the documentation
+# https://fedora-messaging.readthedocs.io/en/latest/configuration.html.
+
+amqp_url = "amqps://resultsdb{{ env_suffix }}:@rabbitmq{{ env_suffix }}.fedoraproject.org/%2Fpubsub"
+
+
+{% if env == "staging" %}
+topic_prefix = "org.fedoraproject.stg"
+{% else %}
+topic_prefix = "org.fedoraproject.prod"
+{% endif %}
+
+publish_exchange = "amq.topic"
+passive_declares = true
+
+callback = "resultsdb_listener.consumer:consume"
+
+
+# Note the double brackets below.
+# To add another binding, add another [[bindings]] section.
+[[bindings]]
+queue = "resultsdb{{ env_suffix }}_ci_listener"
+exchange = "amq.topic"
+routing_keys = [
+    'org.centos.prod.ci.pipeline.allpackages-build.complete',
+    'org.centos.prod.ci.pipeline.allpackages-build.image.complete',
+    'org.centos.prod.ci.pipeline.allpackages-build.package.test.functional.complete',
+    'org.centos.prod.ci.pipeline.allpackages-build.package.complete',
+    'org.centos.prod.ci.pipeline.allpackages-build.package.ignored',
+    'org.centos.prod.ci.koji-build.test.queued',
+    'org.centos.prod.ci.koji-build.test.running',
+    'org.centos.prod.ci.koji-build.test.complete',
+    'org.centos.prod.ci.koji-build.test.error',
+]
+
+[tls]
+ca_cert = "/etc/fedora-messaging/cacert.pem"
+keyfile = "/etc/fedora-messaging/fedora-key.pem"
+certfile = "/etc/fedora-messaging/fedora-cert.pem"
+
+[client_properties]
+app = "resultsdb_listener"
+# Some suggested extra fields:
+# URL of the project that provides this consumer
+app_url = "https://pagure.io/ci-resultsdb-listener/"
+# Contact emails for the maintainer(s) of the consumer - in case the
+# broker admin needs to contact them, for e.g.
+app_contacts_email = ["pingou@fedoraproject.org"]
+
+[qos]
+prefetch_size = 0
+prefetch_count = 25
+
+[log_config]
+version = 1
+disable_existing_loggers = true
+
+[log_config.formatters.simple]
+format = "[%(name)s %(levelname)s] %(message)s"
+
+[log_config.handlers.console]
+class = "logging.StreamHandler"
+formatter = "simple"
+stream = "ext://sys.stdout"
+
+[log_config.loggers.fedora_messaging]
+level = "INFO"
+propagate = false
+handlers = ["console"]
+
+[log_config.root]
+level = "WARNING"
+handlers = ["console"]
