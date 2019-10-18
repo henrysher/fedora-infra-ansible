@@ -30,11 +30,33 @@
        when: deployment_type == "prod" }
    - apache
    - { role: fedmsg/base,
-       when: deployment_type != "dev" }
+       when: deployment_type == "prod" }
    - { role: dnf-automatic, tags: ['dnfautomatic'] }
    # Set up for fedora-messaging
    - { role: rabbit/user,
        username: "resultsdb{{ env_suffix }}"}
+   - role: rabbit/queue
+     username: "resultsdb{{ env_suffix }}"
+     queue_name: "resultsdb{{ env_suffix }}_ci_listener"
+     routing_keys:
+       - "org.centos.prod.ci.pipeline.allpackages-build.complete"
+       - "org.centos.prod.ci.pipeline.allpackages-build.image.complete"
+       - "org.centos.prod.ci.pipeline.allpackages-build.package.test.functional.complete"
+       - "org.centos.prod.ci.pipeline.allpackages-build.package.complete"
+       - "org.centos.prod.ci.pipeline.allpackages-build.package.ignored"
+       - "org.centos.prod.ci.koji-build.test.queued"
+       - "org.centos.prod.ci.koji-build.test.running"
+       - "org.centos.prod.ci.koji-build.test.complete"
+       - "org.centos.prod.ci.koji-build.test.error"
+     write_queues:
+       - "ci"
+       - "openqa"
+     vars:
+       # yes, even the staging scheduler listens to production, it
+       # has to or else it wouldn't schedule any jobs
+       env: "production"
+       env_suffix: ""
+       tags: ['rabbit']
 
   tasks:
   # this is how you include other task lists
@@ -78,5 +100,5 @@
    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
 
   roles:
-   - { role: rdbsync, tags: ['rdbsync']}
+   - { role: rdbsync, tags: ['rdbsync'], when: deployment_type == "prod" }
    - { role: ci_resultsdb, tags: ['ci_resultsdb'], when: deployment_type == "stg" }

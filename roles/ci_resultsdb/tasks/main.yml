@@ -5,12 +5,16 @@
     - python-ci-resultsdb-listener
     - libsemanage-python
     - rdbsync
+  when:
+    - inventory_hostname != "resultsdb-stg01.qa.fedoraproject.org" }
 
 - name: Create /etc/pki/fedmsg/
   file: name=/etc/pki/fedmsg
         state=directory
         recurse=yes
         owner=root group=root
+  when:
+    - inventory_hostname != "resultsdb-stg01.qa.fedoraproject.org" }
   tags:
   - config
 
@@ -21,6 +25,8 @@
     owner=root
     group=root
     mode=0644
+  when:
+    - inventory_hostname != "resultsdb-stg01.qa.fedoraproject.org" }
   tags:
   - config
 
@@ -38,19 +44,19 @@
             owner=root group=root mode=0644
   with_items:
   - { file: listener.cfg, location: /etc/ci-resultsdb-listener/ }
-  - { file: endpoints.py, location: /etc/fedmsg.d/,
-      when: inventory_hostname != "resultsdb-stg01.qa.fedoraproject.org" }
-  - { file: ci-resultsdb-listener.py, location: /etc/fedmsg.d/,
-      when: inventory_hostname != "resultsdb-stg01.qa.fedoraproject.org" }
-  - { file: settings.py, location: /etc/resultsdb/,
-      when: inventory_hostname != "resultsdb-stg01.qa.fedoraproject.org" }
-  - { file: cert.conf, location: /etc/httpd/conf.d/,
-      when: inventory_hostname != "resultsdb-stg01.qa.fedoraproject.org" }
+  - { file: endpoints.py, location: /etc/fedmsg.d/ }
+  - { file: ci-resultsdb-listener.py, location: /etc/fedmsg.d/ }
+  - { file: settings.py, location: /etc/resultsdb/ }
+  - { file: cert.conf, location: /etc/httpd/conf.d/ }
+  when:
+   - inventory_hostname != "resultsdb-stg01.qa.fedoraproject.org"
   notify:
     - reload httpd
 
 - name: Start and enable the fedmsg-hub service
   service: name={{ item }} enabled=yes state=started
+  when:
+    - inventory_hostname != "resultsdb-stg01.qa.fedoraproject.org" }
   with_items:
   - fedmsg-hub
 
@@ -81,3 +87,26 @@
   - config
   - certbot
 
+
+- name: install ci_resultsdb's
+  package: name={{ item }} state=present
+  with_items:
+    - python-ci-resultsdb-listener
+  when: deployment_type == "stg"
+
+- name: generate ci-resultsdb config files and override default resultsdb settings
+  template: src={{ item.file }}
+            dest={{ item.location }}/{{ item.file }}
+            owner=root group=root mode=0644
+  with_items:
+  - { file: listener.cfg, location: /etc/ci-resultsdb-listener/}
+  - { file: config.toml, location: /etc/fedora-messaging/}
+  when:
+    - inventory_hostname == "resultsdb-stg01.qa.fedoraproject.org"
+
+- name: Start and enable the fedora-messaging service
+  service: name={{ item }} enabled=yes state=started
+  with_items:
+  - fm-consumer@config.service
+  when:
+    - inventory_hostname == "resultsdb-stg01.qa.fedoraproject.org" }
