@@ -48,15 +48,31 @@
        - "org.centos.prod.ci.koji-build.test.running"
        - "org.centos.prod.ci.koji-build.test.complete"
        - "org.centos.prod.ci.koji-build.test.error"
-     write_queues:
-       - "ci"
-       - "openqa"
-     vars:
-       # yes, even the staging scheduler listens to production, it
-       # has to or else it wouldn't schedule any jobs
-       # env: "production"
-       # env_suffix: ""
-       tags: ['rabbit']
+     when: deployment_type == "prod"
+
+   - role: rabbit/queue
+     username: "resultsdb{{ env_suffix }}"
+     queue_name: "resultsdb{{ env_suffix }}_ci_listener"
+     routing_keys:
+       - "org.centos.prod.ci.pipeline.allpackages-build.complete"
+       - "org.centos.prod.ci.pipeline.allpackages-build.image.complete"
+       - "org.centos.prod.ci.pipeline.allpackages-build.package.test.functional.complete"
+       - "org.centos.prod.ci.pipeline.allpackages-build.package.complete"
+       - "org.centos.prod.ci.pipeline.allpackages-build.package.ignored"
+       - "org.centos.prod.ci.koji-build.test.queued"
+       - "org.centos.prod.ci.koji-build.test.running"
+       - "org.centos.prod.ci.koji-build.test.complete"
+       - "org.centos.prod.ci.koji-build.test.error"
+       - "org.centos.stage.ci.pipeline.allpackages-build.complete"
+       - "org.centos.stage.ci.pipeline.allpackages-build.image.complete"
+       - "org.centos.stage.ci.pipeline.allpackages-build.package.test.functional.complete"
+       - "org.centos.stage.ci.pipeline.allpackages-build.package.complete"
+       - "org.centos.stage.ci.pipeline.allpackages-build.package.ignored"
+       - "org.centos.stage.ci.koji-build.test.queued"
+       - "org.centos.stage.ci.koji-build.test.running"
+       - "org.centos.stage.ci.koji-build.test.complete"
+       - "org.centos.stage.ci.koji-build.test.error"
+     when: deployment_type == "stg"
 
   tasks:
   # this is how you include other task lists
