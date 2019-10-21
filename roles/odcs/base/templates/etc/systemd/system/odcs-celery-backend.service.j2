@@ -1,0 +1,24 @@
+[Unit]
+Description=ODCS Celery backend service
+After=network.target remote-fs.target nss-lookup.target
+
+[Service]
+Type=forking
+User=odcs
+Group=fedmsg
+WorkingDirectory=/tmp
+ExecStart=/bin/sh -c '/usr/bin/celery multi start worker \
+  -A odcs.server.celery_tasks --pidfile=/var/run/odcs-backend/%%n.pid \
+  --max-tasks-per-child=10 \
+  --logfile=/var/log/odcs-backend/%%n%%I.log --loglevel=INFO --concurrency={{ odcs_celery_concurrency }} -Q {{ odcs_celery_queues|join(',') }}'
+ExecStop=/bin/sh -c '/usr/bin/celery multi stopwait worker \
+  --pidfile=/var/run/odcs-backend/%%n.pid'
+ExecReload=/bin/sh -c '/usr/bin/celery multi restart worker \
+  -A odcs.server.celery_tasks --pidfile=/var/run/odcs-backend/%%n.pid \
+  --max-tasks-per-child=10 \
+  --logfile=/var/log/odcs-backend/%%n%%I.log --loglevel=INFO --concurrency={{ odcs_celery_concurrency }} -Q {{ odcs_celery_queues|join(',') }}'
+
+
+[Install]
+WantedBy=multi-user.target
+

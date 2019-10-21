@@ -42,8 +42,6 @@
     state: present
   with_items:
   - koji
-  - libmodulemd
-  - pdc-client
   when: inventory_hostname.startswith('odcs-backend')
   tags:
   - odcs
@@ -78,7 +76,7 @@
     group: fedmsg
     mode: 0440
   notify:
-  - restart fedmsg-hub
+  - restart odcs-celery-backend
   when: inventory_hostname.startswith('odcs-backend')
   tags:
   - odcs
@@ -92,7 +90,7 @@
     group: fedmsg
     mode: 0440
   notify:
-  - restart fedmsg-hub-3
+  - restart odcs-celery-backend
   when: inventory_hostname.startswith('odcs-backend')
   tags:
   - odcs
@@ -106,7 +104,7 @@
     group: fedmsg
     mode: 0440
   notify:
-  - restart fedmsg-hub-3
+  - restart odcs-celery-backend
   when: inventory_hostname.startswith('odcs-backend')
   tags:
   - odcs
@@ -117,7 +115,7 @@
     path: /etc/fedmsg.d/odcs.py
     state: absent
   notify:
-  - restart fedmsg-hub-3
+  - restart odcs-celery-backend
   tags:
   - odcs
   - odcs/backend
@@ -130,8 +128,58 @@
     group: fedmsg
     mode: 0640
   notify:
-  - restart fedmsg-hub-3
+  - restart odcs-celery-backend
   when: inventory_hostname.startswith('odcs-backend')
   tags:
   - odcs
   - odcs/backend
+
+- name: copy the odcs-celery-backend.service file.
+  copy:
+    src: "{{ roles_path }}/odcs/base/files/etc/systemd/system/odcs-celery-backend.service.j2"
+    dest: /etc/systemd/system/odcs-celery-backend.service
+    owner: odcs
+    group: fedmsg
+    mode: 0640
+  notify:
+  - restart odcs-celery-backend
+  when: inventory_hostname.startswith('odcs-backend')
+  tags:
+  - odcs
+  - odcs/backend
+
+- name: enable ODCS backend (odcs-celery-backend)
+  systemd:
+    name: odcs-celery-backend
+    enabled: yes
+    daemon_reload: yes
+  when: inventory_hostname.startswith('odcs-backend')
+  tags:
+  - odcs
+  - odcs/backend
+
+- name: copy the odcs-backend.conf tmpfiles.d file.
+  copy:
+    src: "{{ roles_path }}/odcs/base/files/etc/tmpfiles.d/odcs-backend.conf"
+    dest: /etc/tmpfiles.d/odcs-backend.conf
+    owner: odcs
+    group: fedmsg
+    mode: 0640
+  notify:
+  - restart odcs-celery-backend
+  when: inventory_hostname.startswith('odcs-backend')
+  tags:
+  - odcs
+  - odcs/backend
+
+- name: Run systemd-tmpfiles --create
+  command: systemd-tmpfiles --create
+  args:
+    creates: /var/run/odcs-backend
+  notify:
+  - restart odcs-celery-backend
+  when: inventory_hostname.startswith('odcs-backend')
+  tags:
+  - odcs
+  - odcs/backend
+
