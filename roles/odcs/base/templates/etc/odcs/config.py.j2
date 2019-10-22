@@ -153,3 +153,13 @@ class ProdConfiguration(BaseConfiguration):
     ALLOWED_SOURCES = {{ odcs_allowed_sources }}
 {% endif %}
 
+    CELERY_BROKER_URL = "amqps://odcs-private-queue{{ env_suffix }}@rabbitmq01{{ env_suffix }}.phx2.fedoraproject.org/odcs"
+    CELERY_CONFIG = {
+        'certfile': "{{private}}/files/rabbitmq/{{env}}/pki/issued/odcs-private-queue{{env_suffix}}.crt",
+        'keyfile': "{{private}}/files/rabbitmq/{{env}}/pki/private/odcs-private-queue{{env_suffix}}.key",
+    }
+
+{% if odcs_celery_router_config %}
+    CELERY_ROUTER_CONFIG = {{ odcs_celery_router_config }}
+{% endif %}
+
