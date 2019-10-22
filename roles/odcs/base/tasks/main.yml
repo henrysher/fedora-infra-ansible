@@ -171,6 +171,30 @@
   - odcs
   - odcs/backend
 
+- name: copy the odcs-celery-beat.service file.
+  template:
+    src: "etc/systemd/system/odcs-celery-beat.service.j2"
+    dest: /etc/systemd/system/odcs-celery-beat.service
+    owner: odcs
+    group: fedmsg
+    mode: 0640
+  notify:
+  - restart odcs-celery-beat
+  when: inventory_hostname.startswith('odcs-frontend')
+  tags:
+  - odcs
+  - odcs/frontend
+
+- name: enable ODCS beat (odcs-celery-beat)
+  systemd:
+    name: odcs-celery-beat
+    enabled: yes
+    daemon_reload: yes
+  when: inventory_hostname.startswith('odcs-frontend')
+  tags:
+  - odcs
+  - odcs/frontend
+
 - name: copy the odcs-backend.conf tmpfiles.d file.
   copy:
     src: "{{ roles_path }}/odcs/base/files/tmpfiles.d/odcs-backend.conf"
