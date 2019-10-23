@@ -185,6 +185,18 @@
   - odcs
   - odcs/frontend
 
+- name: copy the odcs-celery-beat.service file.
+  template:
+    src: "fedora-messaging.toml.j2"
+    dest: /etc/fedora-messaging/config.toml
+    owner: odcs
+    group: fedmsg
+    mode: 0640
+  tags:
+  - odcs
+  - odcs/frontend
+  - odcs/backend
+
 - name: enable ODCS beat (odcs-celery-beat)
   systemd:
     name: odcs-celery-beat
@@ -220,7 +232,7 @@
   - odcs
   - odcs/backend
 
-- name: copy the odcs rabbitmq crt.
+- name: copy the odcs rabbitmq private queue crt.
   copy:
     src: "{{private}}/files/rabbitmq/{{env}}/pki/issued/odcs-private-queue{{env_suffix}}.crt"
     dest: /etc/odcs/odcs-private-queue.crt
@@ -232,7 +244,7 @@
   - odcs/backend
   - odcs/frontend
 
-- name: copy the odcs rabbitmq key.
+- name: copy the odcs rabbitmq private queue key.
   copy:
     src: "{{private}}/files/rabbitmq/{{env}}/pki/private/odcs-private-queue{{env_suffix}}.key"
     dest: /etc/odcs/odcs-private-queue.key
@@ -243,6 +255,30 @@
   - odcs
   - odcs/backend
   - odcs/frontend
+
+- name: copy the odcs rabbitmq crt.
+  copy:
+    src: "{{private}}/files/rabbitmq/{{env}}/pki/issued/odcs{{env_suffix}}.crt"
+    dest: /etc/odcs/odcs-rabbitmq.crt
+    owner: odcs
+    group: fedmsg
+    mode: 0640
+  tags:
+  - odcs
+  - odcs/backend
+  - odcs/frontend
+
+- name: copy the odcs rabbitmq key.
+  copy:
+    src: "{{private}}/files/rabbitmq/{{env}}/pki/private/odcs-{{env_suffix}}.key"
+    dest: /etc/odcs/odcs-rabbitmq.key
+    owner: odcs
+    group: fedmsg
+    mode: 0640
+  tags:
+  - odcs
+  - odcs/backend
+  - odcs/frontendi
 
 - name: copy the odcs rabbitmq CA cert.
   copy:
