@@ -137,6 +137,9 @@ class ProdConfiguration(BaseConfiguration):
                'git+https://src.stg.fedoraproject.org/flatpaks/',
                'https://src.stg.fedoraproject.org/flatpaks/',
                'https://src.stg.fedoraproject.org/git/flatpaks/']
+    RPMS_DEFAULT_REPOSITORY = 'git+https://src.stg.fedoraproject.org/rpms/'
+    RPMS_DEFAULT_CACHE = 'https://src.stg.fedoraproject.org/repo/pkgs/'
+    MODULES_DEFAULT_REPOSITORY = 'git+https://src.stg.fedoraproject.org/modules/'
 
 {% else %}
     KOJI_PROFILE = 'production'
