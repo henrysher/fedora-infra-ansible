@@ -127,7 +127,14 @@ class ProdConfiguration(BaseConfiguration):
     KOJI_CONFIG = path.join(confdir, 'koji.conf')
 {% if env == 'staging' %}
     KOJI_PROFILE = 'staging'
-    ARCHES = ['aarch64', 'x86_64', 'i686']
+    ARCHES = ['aarch64', 'x86_64']
+    BASE_MODULE_ARCHES = {
+        # Fedora 31 and later drop 'i686'. Keep it around for older releases.
+        # https://fedoraproject.org/wiki/Changes/Noi686Repositories
+        'platform:f28': ['aarch64', 'x86_64', 'i686'],
+        'platform:f29': ['aarch64', 'x86_64', 'i686'],
+        'platform:f30': ['aarch64', 'x86_64', 'i686'],
+    }
     KOJI_REPOSITORY_URL = 'https://kojipkgs.stg.fedoraproject.org/repos'
     MESSAGING_TOPIC_PREFIX = ['org.fedoraproject.stg']
     PDC_URL = 'https://pdc.stg.fedoraproject.org/rest_api/v1'
