@@ -138,7 +138,7 @@ def detach_disk(domain, doc, device):
         source = disk.find('source')
         if source is not None and 'file' in source.attrib:
             del source.attrib['file']
-            domain.updateDeviceFlags(ET.tostring(disk), libvirt.VIR_DOMAIN_AFFECT_CONFIG)
+            domain.updateDeviceFlags(ET.tostring(disk).decode('utf-8'), libvirt.VIR_DOMAIN_AFFECT_CONFIG)
             return True
     return False
 
@@ -287,7 +287,7 @@ def main():
         changed = True
 
     ### save back
-    conn.defineXML( ET.tostring(doc) )
+    conn.defineXML( ET.tostring(doc).decode('utf-8') )
 
     if start and not domain.isActive():
         changed = True
