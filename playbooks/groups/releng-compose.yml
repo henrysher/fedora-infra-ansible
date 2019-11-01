@@ -75,26 +75,26 @@
       key_src: "{{private}}/files/docker-registry/{{env}}/pki/private/containerstable.key",
     when: env == "production"
   }
-  - {
-    role: push-docker,
-      candidate_registry: "candidate-registry.stg.fedoraproject.org",
-      candidate_registry_osbs_username: "{{candidate_registry_osbs_stg_username}}",
-      candidate_registry_osbs_password: "{{candidate_registry_osbs_stg_password}}",
-  }
-  - {
-    role: push-docker,
-      candidate_registry: "candidate-registry.fedoraproject.org",
-      candidate_registry_osbs_username: "{{candidate_registry_osbs_prod_username}}",
-      candidate_registry_osbs_password: "{{candidate_registry_osbs_prod_password}}",
-    when: env == "production"
-  }
-  - {
-    role: push-docker,
-      candidate_registry: "quay.io",
-      candidate_registry_osbs_username: "{{quay_io_username}}",
-      candidate_registry_osbs_password: "{{quay_io_password}}",
-    when: env == "production"
-  }
+#  - {
+#    role: push-docker,
+#      candidate_registry: "candidate-registry.stg.fedoraproject.org",
+#      candidate_registry_osbs_username: "{{candidate_registry_osbs_stg_username}}",
+#      candidate_registry_osbs_password: "{{candidate_registry_osbs_stg_password}}",
+#  }
+#  - {
+#    role: push-docker,
+#      candidate_registry: "candidate-registry.fedoraproject.org",
+#      candidate_registry_osbs_username: "{{candidate_registry_osbs_prod_username}}",
+#      candidate_registry_osbs_password: "{{candidate_registry_osbs_prod_password}}",
+#    when: env == "production"
+#  }
+#  - {
+#    role: push-docker,
+#      candidate_registry: "quay.io",
+#      candidate_registry_osbs_username: "{{quay_io_username}}",
+#      candidate_registry_osbs_password: "{{quay_io_password}}",
+#    when: env == "production"
+#  }
 
 
   tasks:
@@ -108,23 +108,23 @@
     tags:
     - containerrebuild
 
-  - name: install docker for container management
-    package:
-      name: docker
-    tags:
-    - containerrebuild
-
-  - name: enable and start docker service
-    service:
-      name: docker
-      state: started
-      enabled: yes
-
+#  - name: install docker for container management
+#    package:
+#      name: docker
+#    tags:
+#    - containerrebuild
+#
+#  - name: enable and start docker service
+#    service:
+#      name: docker
+#      state: started
+#      enabled: yes
+#
   - name: install ansible for container automated rebuilds
     package:
       name:
         - ansible
-        - python2-dockerfile-parse
+        - python3-dockerfile-parse
     tags:
     - containerrebuild
 
