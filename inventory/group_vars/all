@@ -137,9 +137,19 @@ virt_install_command_aarch64_one_nic: virt-install -n {{ inventory_hostname }}
                  --network bridge={{ main_bridge }},model=virtio,mac={{ mac_address }}
                  --autostart --noautoconsole
 
-virt_install_command_aarch64_two_nic: virt-install -n {{ inventory_hostname }}
+virt_install_command_aarch64_one_nic_unsafe: virt-install -n {{ inventory_hostname }}
                  --memory={{ mem_size }},maxmemory={{ max_mem_size }} --memballoon virtio
                  --disk bus=virtio,path={{ volgroup }}/{{ inventory_hostname }},cache=unsafe,io=threads
+                 --vcpus={{ num_cpus }},maxvcpus={{ max_cpu }} -l {{ ks_repo }} -x
+                 'net.ifnames=0 ksdevice=eth0 ks={{ ks_url }}
+                  hostname={{ inventory_hostname }} nameserver={{ dns }}
+                  ip={{ eth0_ip }}::{{ gw }}:{{ nm }}:{{ inventory_hostname }}:eth0:none'
+                 --network bridge={{ main_bridge }},model=virtio,mac={{ mac_address }}
+                 --autostart --noautoconsole
+
+virt_install_command_aarch64_two_nic: virt-install -n {{ inventory_hostname }}
+                 --memory={{ mem_size }},maxmemory={{ max_mem_size }} --memballoon virtio
+                 --disk bus=virtio,path={{ volgroup }}/{{ inventory_hostname }}
                  --vcpus={{ num_cpus }},maxvcpus={{ max_cpu }} -l {{ ks_repo }} -x
                  'net.ifnames=0 ksdevice=eth0 ks={{ ks_url }}
                   hostname={{ inventory_hostname }} nameserver={{ dns }}
@@ -150,6 +160,16 @@ virt_install_command_aarch64_two_nic: virt-install -n {{ inventory_hostname }}
                  --autostart --noautoconsole --rng /dev/random
 
 virt_install_command_armv7_one_nic: virt-install -n {{ inventory_hostname }} --arch armv7l
+                 --memory={{ mem_size }},maxmemory={{ max_mem_size }} --memballoon virtio
+                 --disk bus=virtio,path={{ volgroup }}/{{ inventory_hostname }}
+                 --vcpus={{ num_cpus }},maxvcpus={{ max_cpu }} -l {{ ks_repo }} -x
+                 'net.ifnames=0 ksdevice=eth0 ks={{ ks_url }} console=tty0 console=ttyAMA0
+                  hostname={{ inventory_hostname }} nameserver={{ dns }}
+                  ip={{ eth0_ip }}::{{ gw }}:{{ nm }}:{{ inventory_hostname }}:eth0:none'
+                 --network bridge={{ main_bridge }}
+                 --autostart --noautoconsole --rng /dev/random
+
+virt_install_command_armv7_one_nic_unsafe: virt-install -n {{ inventory_hostname }} --arch armv7l
                  --memory={{ mem_size }},maxmemory={{ max_mem_size }} --memballoon virtio
                  --disk bus=virtio,path={{ volgroup }}/{{ inventory_hostname }},cache=unsafe,io=threads
                  --vcpus={{ num_cpus }},maxvcpus={{ max_cpu }} -l {{ ks_repo }} -x
@@ -162,6 +182,16 @@ virt_install_command_armv7_one_nic: virt-install -n {{ inventory_hostname }} --a
 virt_install_command_s390x_one_nic: virt-install -n {{ inventory_hostname }}
                  --memory={{ mem_size }},maxmemory={{ max_mem_size }} --memballoon virtio
                  --disk bus=virtio,path={{ volgroup }}/{{ inventory_hostname }}
+                 --vcpus={{ num_cpus }},maxvcpus={{ max_cpu }} -l {{ ks_repo }} -x
+                 'net.ifnames=0 ksdevice=eth0 ks={{ ks_url }}
+                  hostname={{ inventory_hostname }} nameserver={{ dns }}
+                  ip={{ eth0_ip }}::{{ gw }}:{{ nm }}:{{ inventory_hostname }}:eth0:none'
+                 --network bridge={{ main_bridge }},model=virtio,mac={{ mac_address }}
+                 --autostart --noautoconsole --rng /dev/random --cpu host
+
+virt_install_command_s390x_one_nic_unsafe: virt-install -n {{ inventory_hostname }}
+                 --memory={{ mem_size }},maxmemory={{ max_mem_size }} --memballoon virtio
+                 --disk bus=virtio,path={{ volgroup }}/{{ inventory_hostname }},cache=unsafe,io=threads
                  --vcpus={{ num_cpus }},maxvcpus={{ max_cpu }} -l {{ ks_repo }} -x
                  'net.ifnames=0 ksdevice=eth0 ks={{ ks_url }}
                   hostname={{ inventory_hostname }} nameserver={{ dns }}
