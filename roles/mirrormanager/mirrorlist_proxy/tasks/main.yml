@@ -7,6 +7,12 @@
   tags:
   - mirrorlist_proxy
 
+- name: add mirrormanager subdirectories
+  file: dest="{{item}}" mode=0755 state=directory
+  with_items:
+    - /home/mirrormanager/rundir
+    - /home/mirrormanager/rundir/libpod
+
 - name: mirrormanager subgid
   lineinfile:
     dest: /etc/subgid
@@ -53,12 +59,27 @@
   tags:
   - mirrorlist_proxy
 
-- name: for the rust based mirrorlist server chown directories (stg only right now)
+- name: for the rust based mirrorlist server chown directories
   file: dest="{{item}}" owner=mirrormanager group=mirrormanager
   with_items:
   - /var/log/mirrormanager
   tags:
   - mirrorlist_proxy
+
+- name: Ensure log file for content exists
+  file: dest="{{item}}" owner=mirrormanager group=mirrormanager mode=0755 state=file
+  with_items:
+  - /var/log/mirrormanager/mirrorlist1.service.log
+  - /var/log/mirrormanager/mirrorlist2.service.log
+  - /var/log/mirrormanager/mirrorlist3.service.log
+
+- name: for the rust based mirrorlist server chown log files
+  file: dest="{{item}}" owner=mirrormanager group=mirrormanager
+  with_items:
+  - /var/log/mirrormanager/mirrorlist1.service.log
+  - /var/log/mirrormanager/mirrorlist2.service.log
+  - /var/log/mirrormanager/mirrorlist3.service.log
+
 
 - name: set logrotate_read_inside_containers so logrotate works
   seboolean: name=logrotate_read_inside_containers state=yes persistent=yes
