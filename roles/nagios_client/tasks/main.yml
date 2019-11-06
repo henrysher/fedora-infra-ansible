@@ -231,6 +231,16 @@
   tags:
   - nagios_client
 
+- name: install nrpe checks for sigul_bridge
+  template: src={{ item }}.j2 dest=/etc/nrpe.d/{{ item }}
+  with_items:
+  - check_sigul_bridge_proc.cfg
+  when: inventory_hostname.startswith('sigul-bridge')
+  notify:
+  - restart nrpe
+  tags:
+  - nagios_client
+
 - name: install nrpe config for the RabbitMQ checks
   template:
     src: "rabbitmq_args.ini.j2"
