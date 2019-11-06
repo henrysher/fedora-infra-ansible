@@ -69,11 +69,10 @@
   - mirrorlist_proxy
 
 - name: Ensure log file for content exists
-  file: dest="{{item}}" owner=mirrormanager group=mirrormanager mode=0755 state=file
+  file: dest="{{item}}" owner=mirrormanager group=mirrormanager mode=0755 state=touch
   with_items:
   - /var/log/mirrormanager/mirrorlist1.service.log
   - /var/log/mirrormanager/mirrorlist2.service.log
-  - /var/log/mirrormanager/mirrorlist3.service.log
   tags:
   - mirrorlist_proxy
 
@@ -82,6 +81,20 @@
   with_items:
   - /var/log/mirrormanager/mirrorlist1.service.log
   - /var/log/mirrormanager/mirrorlist2.service.log
+  tags:
+  - mirrorlist_proxy
+
+- name: Ensure log file for content exists
+  file: dest="{{item}}" owner=mirrormanager group=mirrormanager mode=0755 state=touch
+  with_items:
+  - /var/log/mirrormanager/mirrorlist3.service.log
+  when: datacenter == 'phx2'
+  tags:
+  - mirrorlist_proxy
+
+- name: for the rust based mirrorlist server chown log files
+  file: dest="{{item}}" owner=mirrormanager group=mirrormanager
+  with_items:
   - /var/log/mirrormanager/mirrorlist3.service.log
   tags:
   - mirrorlist_proxy
