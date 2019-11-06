@@ -2,12 +2,9 @@
 Description=Mirrorlist Container {{ item }}
 
 [Service]
-{% if env == "staging" or inventory_hostname == "proxy14.fedoraproject.org" %}
 User=mirrormanager
-{% endif %}
 ExecStartPre=-/usr/bin/podman stop %n
 ExecStartPre=-/usr/bin/podman rm %n --force
-{% if env == "staging" or inventory_hostname == "proxy14.fedoraproject.org" %}
 ExecStart=/usr/bin/podman run \
             --rm=true \
             --net=host --userns=keep-id \
@@ -19,9 +16,6 @@ ExecStart=/usr/bin/podman run \
                  --port 1808{{ item }} \
                  --listen 127.0.0.1 \
                  -l /var/log/mirrormanager/%n.log
-{% else %}
-ExecStart=/usr/bin/podman run --rm=true --name %n -v /srv/mirrorlist/data/mirrorlist{{ item }}:/var/lib/mirrormanager:z -v /var/log/mirrormanager:/var/log/mirrormanager:z -p 1808{{ item }}:80 {{ mirrorlist_container_image }} -l /var/log/mirrormanager/%n.log
-{% endif %}
 ExecStop=/usr/bin/podman stop %n
 
 [Install]
