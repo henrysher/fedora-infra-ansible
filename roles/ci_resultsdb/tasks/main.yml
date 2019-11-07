@@ -3,32 +3,9 @@
   package: name={{ item }} state=present
   with_items:
     - python-ci-resultsdb-listener
-    - libsemanage-python
-    - rdbsync
-  when:
-    - inventory_hostname != "resultsdb-stg01.qa.fedoraproject.org"
-
-- name: Create /etc/pki/fedmsg/
-  file: name=/etc/pki/fedmsg
-        state=directory
-        recurse=yes
-        owner=root group=root
-  when:
-    - inventory_hostname != "resultsdb-stg01.qa.fedoraproject.org"
+    - fedora-messaging
   tags:
-  - config
-
-- name: install fedmsg ca.cert
-  copy: >
-    src="{{ private }}/files/fedmsg-certs/keys/ca.crt"
-    dest=/etc/pki/fedmsg/ca.crt
-    owner=root
-    group=root
-    mode=0644
-  when:
-    - inventory_hostname != "resultsdb-stg01.qa.fedoraproject.org"
-  tags:
-  - config
+  - packages
 
 - name: Create /etc/ci-resultsdb-listener/
   file: name=/etc/ci-resultsdb-listener/
@@ -38,76 +15,19 @@
   tags:
   - config
 
-- name: generate ci-resultsdb config files and override default resultsdb settings
-  template: src={{ item.file }}
-            dest={{ item.location }}/{{ item.file }}
-            owner=root group=root mode=0644
-  with_items:
-  - { file: listener.cfg, location: /etc/ci-resultsdb-listener/ }
-  - { file: endpoints.py, location: /etc/fedmsg.d/ }
-  - { file: ci-resultsdb-listener.py, location: /etc/fedmsg.d/ }
-  - { file: settings.py, location: /etc/resultsdb/ }
-  - { file: cert.conf, location: /etc/httpd/conf.d/ }
-  when:
-   - inventory_hostname != "resultsdb-stg01.qa.fedoraproject.org"
-  notify:
-    - reload httpd
-
-- name: Start and enable the fedmsg-hub service
-  service: name={{ item }} enabled=yes state=started
-  when:
-    - inventory_hostname != "resultsdb-stg01.qa.fedoraproject.org"
-  with_items:
-  - fedmsg-hub
-
-- name: letsencrypt cert
-  include_role: name=certbot
-  when:
-    - inventory_hostname != "resultsdb-stg01.qa.fedoraproject.org"
-  tags:
-  - config
-  - certbot
-
-- name: Check that cert file exists
-  stat:
-    path: "/etc/letsencrypt/live/resultsdb.ci.centos.org/cert.pem"
-  register: stat_cert
-  when:
-    - inventory_hostname != "resultsdb-stg01.qa.fedoraproject.org"
-  tags:
-  - config
-  - certbot
-
-- name: Should admin run certbot?
-  fail:
-    msg: Please see roles/certbot/README step (3) and manually run certbot
-  when:
-    - inventory_hostname != "resultsdb-stg01.qa.fedoraproject.org" and stat_cert.stat.exists == False
-  tags:
-  - config
-  - certbot
-
-
-- name: install ci_resultsdb's
-  package: name={{ item }} state=present
-  with_items:
-    - python-ci-resultsdb-listener
-    - fedora-messaging
-  when: deployment_type == "stg"
-
-- name: generate ci-resultsdb config files and override default resultsdb settings
+- name: generate ci-resultsdb config files
   template: src={{ item.file }}
             dest={{ item.location }}/{{ item.file }}
             owner=root group=root mode=0644
   with_items:
   - { file: listener.cfg, location: /etc/ci-resultsdb-listener/}
   - { file: config.toml, location: /etc/fedora-messaging/}
-  when:
-    - inventory_hostname == "resultsdb-stg01.qa.fedoraproject.org"
+  notify:
+    - reload httpd
+  tags:
+  - config
 
 - name: Start and enable the fedora-messaging service
   service: name={{ item }} enabled=yes state=started
   with_items:
   - fm-consumer@config.service
-  when:
-    - inventory_hostname == "resultsdb-stg01.qa.fedoraproject.org"
