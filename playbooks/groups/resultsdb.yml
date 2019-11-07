@@ -54,24 +54,15 @@
      username: "resultsdb{{ env_suffix }}"
      queue_name: "resultsdb{{ env_suffix }}_ci_listener"
      routing_keys:
-       - "org.centos.prod.ci.pipeline.allpackages-build.complete"
-       - "org.centos.prod.ci.pipeline.allpackages-build.image.complete"
-       - "org.centos.prod.ci.pipeline.allpackages-build.package.test.functional.complete"
-       - "org.centos.prod.ci.pipeline.allpackages-build.package.complete"
-       - "org.centos.prod.ci.pipeline.allpackages-build.package.ignored"
-       - "org.centos.prod.ci.koji-build.test.queued"
-       - "org.centos.prod.ci.koji-build.test.running"
-       - "org.centos.prod.ci.koji-build.test.complete"
-       - "org.centos.prod.ci.koji-build.test.error"
-       - "org.centos.stage.ci.pipeline.allpackages-build.complete"
-       - "org.centos.stage.ci.pipeline.allpackages-build.image.complete"
-       - "org.centos.stage.ci.pipeline.allpackages-build.package.test.functional.complete"
-       - "org.centos.stage.ci.pipeline.allpackages-build.package.complete"
-       - "org.centos.stage.ci.pipeline.allpackages-build.package.ignored"
-       - "org.centos.stage.ci.koji-build.test.queued"
-       - "org.centos.stage.ci.koji-build.test.running"
-       - "org.centos.stage.ci.koji-build.test.complete"
-       - "org.centos.stage.ci.koji-build.test.error"
+       - "org.centos.*.ci.pipeline.allpackages-build.complete"
+       - "org.centos.*.ci.pipeline.allpackages-build.image.complete"
+       - "org.centos.*.ci.pipeline.allpackages-build.package.test.functional.complete"
+       - "org.centos.*.ci.pipeline.allpackages-build.package.complete"
+       - "org.centos.*.ci.pipeline.allpackages-build.package.ignored"
+       - "org.centos.*.ci.koji-build.test.queued"
+       - "org.centos.*.ci.koji-build.test.running"
+       - "org.centos.*.ci.koji-build.test.complete"
+       - "org.centos.*.ci.koji-build.test.error"
      when: deployment_type == "stg"
 
   tasks:
@@ -102,7 +93,7 @@
   handlers:
    - import_tasks: "{{ handlers_path }}/restart_services.yml"
 
-- name: Install rdbsync
+- name: Install ci-resultsdb-listener
   hosts: resultsdb_stg:resultsdb_prod
   user: root
   gather_facts: True
@@ -116,5 +107,4 @@
    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
 
   roles:
-   - { role: rdbsync, tags: ['rdbsync'], when: deployment_type == "prod" }
-   - { role: ci_resultsdb, tags: ['ci_resultsdb'], when: deployment_type == "stg" }
+   - { role: ci_resultsdb, tags: ['ci_resultsdb'] }
