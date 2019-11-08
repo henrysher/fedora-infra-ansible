@@ -1,0 +1,59 @@
+- name: make the app be real
+  #hosts: os_masters[0]:os_masters_stg[0]
+  hosts: os_masters_stg[0]
+  user: root
+  gather_facts: False
+
+  vars_files:
+    - /srv/web/infra/ansible/vars/global.yml
+    - "/srv/private/ansible/vars.yml"
+    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  roles:
+  - role: openshift/project
+    app: sanitarium
+    description: sanitarium
+    appowners:
+    - codeblock
+    - puiterwijk
+  - role: openshift/secret-file
+    app: sanitarium
+    key: intermediate
+    secret_name: intermediate
+    privatefile: "sanitarium/intermediate.{{env}}.key"
+  - role: openshift/secret-file
+    app: sanitarium
+    key: signer
+    secret_name: signer
+    privatefile: "sanitarium/signer.{{env}}"
+  - role: openshift/object
+    app: sanitarium
+    objectname: secret.yml
+    template: secret.yml
+  - role: openshift/imagestream
+    app: sanitarium
+    imagename: sanitarium
+  - role: openshift/object
+    app: sanitarium
+    file: buildconfig.yml
+    objectname: buildconfig.yml
+  - role: openshift/start-build
+    app: sanitarium
+    buildname: sanitarium
+  - role: openshift/object
+    app: sanitarium
+    file: service.yml
+    objectname: service.yml
+  - role: openshift/route
+    app: sanitarium
+    routename: sanitarium
+    host: sanitarium-sanitarium.app.os{{env_suffix}}.fedoraproject.org
+    serviceport: web
+    servicename: sanitarium
+  - role: openshift/object
+    app: sanitarium
+    file: deploymentconfig.yml
+    objectname: deploymentconfig.yml
+  - role: openshift/rollout
+    app: sanitarium
+    dcname: sanitarium

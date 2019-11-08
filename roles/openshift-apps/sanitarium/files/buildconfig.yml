@@ -1,0 +1,23 @@
+---
+apiVersion: v1
+kind: BuildConfig
+metadata:
+  name: sanitarium
+  labels:
+    app: sanitarium
+spec:
+  completionDeadlineSeconds: 1800
+  runPolicy: Serial
+  strategy:
+    dockerStrategy:
+      dockerfilePath: Dockerfile.server
+  source:
+    type: Git
+    git:
+      uri: https://github.com/puiterwijk/Sanitarium.git
+  triggers:
+    - type: ConfigChange
+  output:
+    to:
+      kind: ImageStreamTag
+      name: sanitarium:latest

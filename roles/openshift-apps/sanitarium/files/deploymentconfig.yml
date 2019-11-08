@@ -1,0 +1,106 @@
+apiVersion: v1
+kind: DeploymentConfig
+metadata:
+  name: sanitarium
+  labels:
+    app: sanitarium
+spec:
+  replicas: 1
+  selector:
+    app: sanitarium
+  strategy:
+    activeDeadlineSeconds: 21600
+    recreateParams:
+      timeoutSeconds: 600
+  template:
+    metadata:
+      name: sanitarium
+      labels:
+        app: sanitarium
+    spec:
+      containers:
+        - env:
+            - name: SERVICE_ROOT
+              value: 'https://sanitarium-sanitarium.app.os.fedoraproject.org'
+            - name: OIDC_PROVIDER_ROOT
+              value: 'https://id.fedoraproject.org/openidc/'
+            - name: OIDC_CLIENT_ID
+              value: sshcerttest
+            - name: OIDC_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: sanitarium
+                  key: oidc-client-secret
+            - name: OIDC_SUPPORTS_OOB
+              value: 'no'
+            - name: OIDC_REQUIRED_SCOPES
+              value: 'openid,profile'
+            - name: REQUIRE_TPM
+              value: 'no'
+            - name: REQUIRE_MEASUREMENT
+              value: 'no'
+            - name: OIDC_TOKEN_INFO_URL
+              value: 'https://id.fedoraproject.org/openidc/TokenInfo'
+            - name: OIDC_USERNAME_CLAIM
+              value: sub
+            - name: INTERMEDIATE_CERT_VALIDITY
+              value: 8h
+            - name: SSH_CERT_VALIDITY
+              value: 5m
+            - name: SSH_CERT_SIGNING_KEY_PATH
+              value: /sshkey/signer.key
+            - name: SSH_CERT_ADD_GITHUB
+              value: 'yes'
+            - name: INTERMEDIATE_SIGNING_KEY_PATH
+              value: /sshkey/intermediate.key
+          image: >-
+            docker-registry.default.svc:5000/sanitarium:latest
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /info
+              port: 8080
+              scheme: HTTP
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
+          name: sanitarium
+          ports:
+            - containerPort: 8080
+              protocol: TCP
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /info
+              port: 8080
+              scheme: HTTP
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
+          resources:
+            limits:
+              memory: 80Mi
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          volumeMounts:
+            - name: signer
+              mountPath: /sshkey/signer.key
+              readyOnly: true
+            - name: intermediate
+              mountPath: /sshkey/intermediate.key
+              readyOnly: true
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+      volumes:
+      - name: signer
+        secret:
+          secretName: signer
+      - name: intermediate
+        secret:
+          secretName: intermediate
+  triggers:
+  - type: ConfigChange
