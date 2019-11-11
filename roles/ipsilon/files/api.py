@@ -63,7 +63,7 @@ class APIV1Page(Page):
         openid_request = None
         try:
             openid_request = openid.cfg.server.decodeRequest(arguments)
-        except Exception, ex:
+        except Exception as ex:
             print 'Error during openid decoding: %s' % ex
             return {'success': False,
                     'status': 400,
@@ -91,7 +91,7 @@ class APIV1Page(Page):
                 userdata = fas.page.make_userdata(user.user)
             else:
                 userdata = fas_make_userdata(user.user)
-        except Exception, ex:
+        except Exception as ex:
             print 'Error during auth: %s' % ex
             pass
 
