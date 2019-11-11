@@ -1047,7 +1047,20 @@ class OpenIDResponse(object):
         @change: 2.1.0 added the ENCODE_HTML_FORM response.
         """
         if self.request.mode in BROWSER_REQUEST_MODES:
-            if self.fields.getOpenIDNamespace() == OPENID2_NS and \
+            do_post_trusts = ['http://taigastg.cloud.fedoraproject.org/',
+                              'http://taiga.cloud.fedoraproject.org/',
+                              'http://taiga.fedorainfracloud.org/',
+                              'http://taigastg.fedorainfracloud.org/',
+                              'https://taigastg.cloud.fedoraproject.org/',
+                              'https://taiga.cloud.fedoraproject.org/',
+                              'https://taiga.fedorainfracloud.org/',
+                              'https://taigastg.fedorainfracloud.org/']
+            if self.request.trust_root in do_post_trusts:
+                return ENCODE_HTML_FORM
+            elif self.fields.isOpenID1() and \
+               len(self.encodeToURL()) > OPENID1_URL_LIMIT:
+                return ENCODE_HTML_FORM
+            elif self.fields.getOpenIDNamespace() == OPENID2_NS and \
                len(self.encodeToURL()) > OPENID1_URL_LIMIT:
                 return ENCODE_HTML_FORM
             else:
