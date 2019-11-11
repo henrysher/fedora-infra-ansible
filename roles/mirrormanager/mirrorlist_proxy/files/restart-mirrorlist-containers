@@ -15,19 +15,19 @@ TIME_DISABLE=5
 
 ##
 
-# Initial expected state is mirrorlist1 running, mirrorlist2 running and new pkl
+# Initial expected state is mirrorlist1 running, mirrorlist2 running and new protobuf file
 
 if [ ! -f /srv/mirrorlist/data/mirrorlist2/global_netblocks.txt ];
 then
 	cp /srv/mirrorlist/data/mirrorlist1/* /srv/mirrorlist/data/mirrorlist2/
 fi
 
-## Check that pkl is newer than old pkl
-if [ /srv/mirrorlist/data/mirrorlist1/mirrorlist_cache.pkl -nt /srv/mirrorlist/data/mirrorlist2/mirrorlist_cache.pkl ]; then
-	# new pkl
+## Check that the new protobuf file is newer than old protobuf file
+if [ /srv/mirrorlist/data/mirrorlist1/mirrorlist_cache.proto -nt /srv/mirrorlist/data/mirrorlist2/mirrorlist_cache.proto ]; then
+	# new proto
         :
 else
-	# No new pkl
+	# No new proto
         exit 0
 fi
 ## check mirrorlist1 running
@@ -37,7 +37,7 @@ if [ `systemctl show mirrorlist1 -p ActiveState` != 'ActiveState=active' ]; then
 	exit 1
 fi
 
-# check mirrorlist2 (old pkl and see that it's processing ok)
+# check mirrorlist2 (old proto and see that it's processing ok)
 curl -q -H mirrors.fedoraproject.org ${mirrorlist2} -s -f --retry 50 --retry-delay 10 --retry-connrefused --retry-max-time 180 | grep "sha512" >/dev/null
 if [ $? != 0 ]; then
 	echo "ERROR: mirrorlist2 not processing correctly"
@@ -51,7 +51,7 @@ sleep ${TIME_DRAIN}
 echo "disable server mirror-lists-backend/mirrorlist-local1" | nc -U /var/run/haproxy-admin >& /dev/null
 sleep ${TIME_DISABLE}
 
-# restart mirrorlist1 (new pkl and make sure it's processing ok)
+# restart mirrorlist1 (new proto and make sure it's processing ok)
 systemctl restart mirrorlist1
 
 sleep ${TIME_RESTART}
@@ -65,7 +65,7 @@ fi
 echo "enable server mirror-lists-backend/mirrorlist-local1" | nc -U /var/run/haproxy-admin >& /dev/null
 sleep ${TIME_RESTART}
 
-# copy new pkl to mirrorlist2
+# copy new proto to mirrorlist2
 cp -a /srv/mirrorlist/data/mirrorlist1/* /srv/mirrorlist/data/mirrorlist2/
 
 # Drain mirrorlist2
