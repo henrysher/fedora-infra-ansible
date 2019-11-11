@@ -1060,9 +1060,9 @@ class OpenIDResponse(object):
             elif self.fields.isOpenID1() and \
                len(self.encodeToURL()) > OPENID1_URL_LIMIT:
                 return ENCODE_HTML_FORM
-            elif self.fields.getOpenIDNamespace() == OPENID2_NS and \
-               len(self.encodeToURL()) > OPENID1_URL_LIMIT:
-                return ENCODE_HTML_FORM
+            #elif self.fields.getOpenIDNamespace() == OPENID2_NS and \
+            #   len(self.encodeToURL()) > OPENID1_URL_LIMIT:
+            #    return ENCODE_HTML_FORM
             else:
                 return ENCODE_URL
         else:
@@ -1708,7 +1708,7 @@ class ProtocolError(Exception):
             displayed to the user.
         """
         if self.hasReturnTo():
-            if self.openid_message.getOpenIDNamespace() == OPENID2_NS and \
+            if self.openid_message.isOpenID1() and \
                len(self.encodeToURL()) > OPENID1_URL_LIMIT:
                 return ENCODE_HTML_FORM
             else:
