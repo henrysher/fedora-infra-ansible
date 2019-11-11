@@ -51,7 +51,7 @@
   tags:
   - mirrorlist_proxy
 
-- name: make sure mirrormanager user can write new pkl files
+- name: make sure mirrormanager user can write new protobuf based cache file
   file: dest="{{item}}" owner=mirrormanager group=mirrormanager
   with_items:
   - /srv/mirrorlist/data
@@ -125,7 +125,7 @@
   check_mode: yes
 
 # We deploy two service files. Both listen on a different port, so that we can switch
-# them out as part of the pkl deployment without having any local downtime.
+# them out as part of the protobuf cache deployment without having any local downtime.
 - name: Deploy service files
   template: src=mirrorlist.service.j2 dest=/etc/systemd/system/mirrorlist{{ item }}.service
   with_items:
@@ -137,7 +137,7 @@
   - reload systemd
 
 # We deploy two service files. Both listen on a different port, so that we can switch
-# them out as part of the pkl deployment without having any local downtime.
+# them out as part of the protobuf cache deployment without having any local downtime.
 - name: Deploy service files for m3
   template: src=mirrorlist.service.j2 dest=/etc/systemd/system/mirrorlist{{ item }}.service
   with_items:
@@ -165,13 +165,13 @@
   - mirrorlist_proxy
   when: datacenter == 'phx2'
 
-# install our cron script to handle hourly new pkl changes. 
-- name: install script to restart mirrorlist containers on pkl changes
+# install our cron script to handle hourly new protbuf cache changes.
+- name: install script to restart mirrorlist containers on protobuf cache changes
   template: src=restart-mirrorlist-containers.j2 dest=/usr/local/bin/restart-mirrorlist-containers mode=0755
   tags:
   - mirrorlist_proxy
 
-- name: Setup hourly cron at for pkl reload restarts
+- name: Setup hourly cron at for mirrorlist restarts
   cron: name="restart-mirrorlist-containers" minute="20" user="root"
         job="/usr/local/bin/restart-mirrorlist-containers"
         cron_file=restart-mirrorlist-containers
@@ -200,13 +200,13 @@
   - mirrorlist_proxy
 
 - name: check for mirrorlist files
-  stat: path=/srv/mirrorlist/data/mirrorlist1/mirrorlist_cache.pkl
+  stat: path=/srv/mirrorlist/data/mirrorlist1/mirrorlist_cache.proto
   register: mirrorlist_cache_status
   tags:
   - mirrorlist_proxy
 
 - name: Deploy mirrorlist data files (if this is a initial install)
-  command: "rsync -az --delete-delay --delay-updates --delete /var/lib/mirrormanager/mirrorlist_cache.pkl /var/lib/mirrormanager/global_netblocks.txt /var/lib/mirrormanager/i2_netblocks.txt {{ inventory_hostname }}:/srv/mirrorlist/data/mirrorlist1/"
+  command: "rsync -az --delete-delay --delay-updates --delete /var/lib/mirrormanager/mirrorlist_cache.proto /usr/share/mirrormanager2/country_continent.csv /var/lib/mirrormanager/global_netblocks.txt /var/lib/mirrormanager/i2_netblocks.txt {{ inventory_hostname }}:/srv/mirrorlist/data/mirrorlist1/"
   become: yes
   become_user: mirrormanager
   delegate_to: "mm-backend01.phx2.fedoraproject.org"
