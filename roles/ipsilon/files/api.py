@@ -64,19 +64,19 @@ class APIV1Page(Page):
         try:
             openid_request = openid.cfg.server.decodeRequest(arguments)
         except Exception as ex:
-            print 'Error during openid decoding: %s' % ex
+            print('Error during openid decoding: %s' % ex)
             return {'success': False,
                     'status': 400,
                     'message': 'Invalid request'
                     }
         if not openid_request:
-            print 'No OpenID request parsed'
+            print('No OpenID request parsed')
             return {'success': False,
                     'status': 400,
                     'message': 'Invalid request'
                     }
         if not arguments['auth_module'] == 'fedoauth.auth.fas.Auth_FAS':
-            print 'Unknown auth module selected'
+            print('Unknown auth module selected')
             return {'success': False,
                     'status': 400,
                     'message': 'Unknown authentication module'
@@ -92,11 +92,11 @@ class APIV1Page(Page):
             else:
                 userdata = fas_make_userdata(user.user)
         except Exception as ex:
-            print 'Error during auth: %s' % ex
+            print('Error during auth: %s' % ex)
             pass
 
         if user is None or userdata is None:
-            print 'No user or data: %s, %s' % (user, userdata)
+            print('No user or data: %s, %s' % (user, userdata))
             return {'success': False,
                     'status': 400,
                     'message': 'Authentication failed'}
