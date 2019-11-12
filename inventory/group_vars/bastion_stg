@@ -1,0 +1,48 @@
+---
+# Define resources for this group of hosts here.
+lvm_size: 20000
+mem_size: 3192
+num_cpus: 2
+
+tcp_ports: [ 22 ]
+
+#
+# drop incoming traffic from less trusted vpn hosts
+# allow ntp from internal phx2 10 nets
+#
+custom_rules: [
+    '-A INPUT -s 192.168.100/24 -j REJECT --reject-with icmp-host-prohibited',
+    '-A INPUT -s 10.0.0.0/8 -p udp -m udp --dport 123 -j ACCEPT',
+]
+#
+# allow a bunch of sysadmin groups here so they can access internal stuff
+
+# TODO - remove modularity-wg membership here once it is not longer needed:
+# https://fedorahosted.org/fedora-infrastructure/ticket/5363
+fas_client_groups: sysadmin-ask,sysadmin-atomic,sysadmin-web,sysadmin-main,sysadmin-cvs,sysadmin-noc,sysadmin-releng,sysadmin-dba,sysadmin-hosted,sysadmin-tools,sysadmin-spin,sysadmin-cloud,fi-apprentice,sysadmin-badges,sysadmin-troubleshoot,sysadmin-qa,sysadmin-centos,sysadmin-ppc,sysadmin-koschei,sysadmin-secondary,sysadmin-fedimg,sysadmin-veteran,sysadmin-mbs,modularity-wg,pungi-devel,sysadmin-upstreamfirst,sysadmin-releasemonitoring,sysadmin-gnome,sysadmin-copr,sysadmin-coreos,sysadmin-dbgserver,sysadmin-osbs,sysadmin-odcs
+
+# Disable mail stuff in stg
+fas_aliases: false
+
+#
+# Sometimes there are lots of postfix processes
+#
+nrpe_procs_warn: 1100
+nrpe_procs_crit: 1200
+
+# These variables are pushed into /etc/system_identification by the base role.
+# Groups and individual hosts should override them with specific info.
+# See http://infrastructure.fedoraproject.org/csi/security-policy/
+
+csi_security_category: High
+csi_primary_contact: sysadmin-main admin@fedoraproject.org
+csi_purpose: SSH proxy to access STAGING infrastructure not exposed to the web
+csi_relationship: |
+  - Provides ssh access to all phx2/vpn connected servers.
+  - Bastion is the hub for all infrastructure's VPN connections.
+  - All incoming SMTP from phx2 and VPN, as well as outgoing SMTP, pass or are filtered here.
+  - Bastion does not accept any mail outside phx2/vpn.
+
+nagios_Check_Services:
+  nrpe: true
+  mail: false

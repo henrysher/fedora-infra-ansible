@@ -1,0 +1,34 @@
+- import_playbook: "/srv/web/infra/ansible/playbooks/include/virt-create.yml myhosts=bastion_stg"
+
+- name: make the boxen be real for real
+  hosts: bastion_stg
+  user: root
+  gather_facts: True
+
+  vars_files:
+   - /srv/web/infra/ansible/vars/global.yml
+   - "/srv/private/ansible/vars.yml"
+   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  roles:
+  - base
+  #- rkhunter
+  #- nagios_client
+  - hosts
+  #- fas_client
+  - sudo
+  #- collectd/base
+  #- { role: openvpn/server, when: not inventory_hostname.startswith('bastion-comm01') or inventory_hostname.startswith('bastion13') }
+  #- { role: openvpn/client, when: inventory_hostname.startswith('bastion13') }
+  #- { role: packager_alias, when: not inventory_hostname.startswith('bastion-comm01') or inventory_hostname.startswith('bastion13') }
+  #- opendkim
+
+  pre_tasks:
+  - import_tasks: "{{ tasks_path }}/yumrepos.yml"
+
+  tasks:
+  - import_tasks: "{{ tasks_path }}/2fa_client.yml"
+  - import_tasks: "{{ tasks_path }}/motd.yml"
+
+  handlers:
+  - import_tasks: "{{ handlers_path }}/restart_services.yml"
