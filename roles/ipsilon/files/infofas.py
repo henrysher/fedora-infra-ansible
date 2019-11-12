@@ -50,7 +50,7 @@ aws_groups = {
     'aws-infra': 'arn:aws:iam::125523088429:role/aws-infra',
     'aws-docs': 'arn:aws:iam::125523088429:role/aws-docs',
     'aws-copr': 'arn:aws:iam::125523088429:role/aws-copr',
-    'aws-centos': 'arn:aws:iam::125523088429:role/aws-copr',
+    'aws-centos': 'arn:aws:iam::125523088429:role/aws-centos',
 }
 
 
