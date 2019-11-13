@@ -8,20 +8,20 @@
    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
 
   tasks:
-  - name: Copy borked pkl
-    copy: src=/var/lib/mirrormanager/mirrorlist_cache.pkl dest=/root/mirrorlist_cache.pkl-{{ ansible_date_time.date }} remote_src=yes
+  - name: Copy borked proto
+    copy: src=/var/lib/mirrormanager/mirrorlist_cache.proto dest=/root/mirrorlist_cache.proto-{{ ansible_date_time.date }} remote_src=yes
 
-  - name: Nuke borked pkl
-    file: path=/var/lib/mirrormanager/mirrorlist_cache.pkl state=absent
+  - name: Nuke borked proto
+    file: path=/var/lib/mirrormanager/mirrorlist_cache.proto state=absent
 
-  - name: Copy old pkl/files into place
+  - name: Copy old proto/files into place
     copy: src=/var/lib/mirrormanager/old/{{item}} dest=/var/lib/mirrormanager/{{item}} force=yes remote_src=yes
     with_items:
-    - mirrorlist_cache.pkl
+    - mirrorlist_cache.proto
     - i2_netblocks.txt
     - global_netblocks.txt
 
-  - name: Sync the pkl
+  - name: Sync the proto
     command: /usr/local/bin/sync_pkl_to_mirrorlists.sh
     become: yes
     become_user: mirrormanager
@@ -41,3 +41,7 @@
 
   - name: Stop mirrorlist2
     command: systemctl stop mirrorlist2
+
+  - name: Stop mirrorlist3
+    command: systemctl stop mirrorlist3
+    when: datacenter == 'phx2'
