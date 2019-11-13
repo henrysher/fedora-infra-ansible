@@ -1,0 +1,113 @@
+# fedora-messaging consumer configuration file for relvalconsumer
+# (release validation event creator). See relvalconsumer main.yml
+# comments for details on the variables that must be set here.
+#
+# This file is in the TOML format.
+
+amqp_url = "{{ relvalconsumer_amqp_url }}"
+{% if relvalconsumer_amqp_passive|bool %}
+passive_declares = true
+{% endif %}
+callback = "relvalconsumer:RelvalAMIConsumer"
+
+[tls]
+ca_cert = "{{ relvalconsumer_amqp_cacert }}"
+keyfile = "{{ relvalconsumer_amqp_key }}"
+certfile = "{{ relvalconsumer_amqp_cert }}"
+
+[client_properties]
+app = "Fedora release validation event AMI page updater (relvalconsumer)"
+app_url = "https://pagure.io/fedora-qa/relvalconsumer"
+app_contacts_email = ["adamwill@fedoraproject.org", "lruzicka@redhat.com", "qa-devel@lists.fedoraproject.org"]
+
+[exchanges."amq.topic"]
+type = "topic"
+durable = true
+auto_delete = false
+arguments = {}
+
+[queues."{{ relvalamiconsumer_amqp_queue }}"]
+durable = false
+auto_delete = true
+exclusive = true
+arguments = {}
+
+[[bindings]]
+queue = "{{ relvalamiconsumer_amqp_queue }}"
+exchange = "amq.topic"
+routing_keys = [{% for key in relvalconsumer_amqp_routing_keys %}"{{ key }}",{% endfor %}]
+# need this to receive messages from ZMQ->AMQP bridge
+[[bindings]]
+queue = "{{ relvalamiconsumer_amqp_queue }}"
+exchange = "zmq.topic"
+routing_keys = [{% for key in relvalconsumer_amqp_routing_keys %}"{{ key }}",{% endfor %}]
+
+[consumer_config]
+relvalami_prod = {{ relvalconsumer_prod|lower }}
+
+[qos]
+prefetch_size = 0
+prefetch_count = 25
+
+[log_config]
+version = 1
+disable_existing_loggers = true
+
+[log_config.formatters.simple]
+format = "[%(levelname)s %(name)s] %(message)s"
+
+[log_config.handlers.console]
+class = "logging.StreamHandler"
+formatter = "simple"
+stream = "ext://sys.stdout"
+
+{% if relvalconsumer_amqp_mailto is defined %}
+[log_config.handlers.email]
+class = "logging.handlers.SMTPHandler"
+formatter = "simple"
+level = "ERROR"
+mailhost = "{{ relvalconsumer_amqp_smtp }}"
+fromaddr = "{{ relvalconsumer_amqp_mailfrom }}"
+toaddrs = [{% for key in relvalconsumer_amqp_mailto %}"{{ key }}",{% endfor %}]
+subject = "relvalconsumer error"
+{% endif %}
+
+[log_config.loggers.RelvalConsumer]
+level = "INFO"
+propagate = false
+{% if relvalconsumer_amqp_mailto is defined %}
+handlers = ["console", "email"]
+{% else %}
+handlers = ["console"]
+{% endif %}
+
+[log_config.loggers.fedora_messaging]
+level = "INFO"
+propagate = false
+{% if relvalconsumer_amqp_mailto is defined %}
+handlers = ["console", "email"]
+{% else %}
+handlers = ["console"]
+{% endif %}
+
+[log_config.loggers.twisted]
+level = "INFO"
+propagate = false
+{% if relvalconsumer_amqp_mailto is defined %}
+handlers = ["console", "email"]
+{% else %}
+handlers = ["console"]
+{% endif %}
+
+[log_config.loggers.pika]
+level = "WARNING"
+propagate = false
+handlers = ["console"]
+
+[log_config.root]
+level = "ERROR"
+{% if relvalconsumer_amqp_mailto is defined %}
+handlers = ["console", "email"]
+{% else %}
+handlers = ["console"]
+{% endif %}
