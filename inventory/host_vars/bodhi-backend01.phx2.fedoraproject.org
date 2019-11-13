@@ -24,14 +24,6 @@ sar_output_file: bodhi.json
 
 # These are consumed by a task in roles/fedmsg/base/main.yml
 fedmsg_certs:
-# This first cert is used by the push-tool.   releng members run it and it fires
-# off a simple fedmsg message that the masher (running as fedmsg-hub) is
-# listening for.  It then does all the worker.
-- service: shell
-  owner: root
-  group: masher
-  can_send:
-  - bodhi.masher.start
 # These are certs for pungi
 - service: releng
   owner: apache
@@ -48,7 +40,7 @@ fedmsg_certs:
 # These are certs for the masher to publish its own messages as it progresses.
 - service: bodhi
   owner: root
-  group: masher
+  group: apache
   can_send:
   - bodhi.mashtask.complete
   - bodhi.mashtask.mashing
