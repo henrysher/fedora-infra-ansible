@@ -1,5 +1,4 @@
-#!/usr/bin/python
-from __future__ import print_function
+#!/usr/bin/python3
 
 # A simple script to generate a file list in a format easily consumable by a
 # shell script.
@@ -37,9 +36,9 @@ class SEntry(object):
         self.name = direntry.name
 
         info = direntry.stat(follow_symlinks=False)
-        # The py2 backport of scandir gives direntrys whose stat info (ctime)
-        # is an int, while py3 returns a real os.stat result (float).
-        # Floats blow up mirrormanager UMDL, so let's just always use an int.
+        # Make sure we have an int here.  Whether the stat calls give us ints
+        # or floats depends on the python version, and the extra precision
+        # isn't really helpful.
         self.modtime = int(max(info.st_mtime, info.st_ctime))
         self.readable_group = info.st_mode & stat.S_IRGRP
         self.readable_world = info.st_mode & stat.S_IROTH
