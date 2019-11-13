@@ -103,6 +103,23 @@
       env: "production"
       env_suffix: ""
     tags: ['rabbit']
+    # relvalamiconsumer queue, we still use openqa auth for this as it's
+    # easy that way
+  - role: rabbit/queue
+    username: "openqa"
+    queue_name: "openqa_relvalamiconsumer{{ relvalconsumer_env_suffix }}"
+    routing_keys:
+        - "org.fedoraproject.prod.fedimg.image.publish"
+    write_queues:
+        - "ci"
+        - "openqa"
+    vars:
+      # yes, even the staging updater listens to production, it
+      # has to as we never publish fedimg.image.publish on stg
+      env: "production"
+      env_suffix: ""
+    tags: ['rabbit']
+
     # autocloudreporter queue, we still use openqa auth for this as it's
     # easy that way
   - role: rabbit/queue
