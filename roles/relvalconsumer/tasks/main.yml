@@ -69,11 +69,19 @@
 ##      string - Hostname of SMTP server to use for sending error
 ##               emails. Defaults to 'localhost'. Only relevant if
 ##               relvalconsumer_amqp_mailto is set.
+# - relvalconsumer_disabled
+##        bool - If true, don't enable the consumer service. This is
+##               mainly just for temporary use if something's broken.
+##     default - False
 # - relvalamiconsumer_amqp_routing_keys
 ##        list - List of routing key names for the event AMI page
 ##               updater to subscribe to. The role default for this
 ##               is the appropriate keys for the Fedora production
 ##               broker.
+# - relvalamiconsumer_disabled
+##        bool - If true, don't enable the consumer service. This is
+##               mainly just for temporary use if something's broken.
+##     default - False
 #
 # Optional vars
 # - relvalconsumer_amqp_mailto
@@ -221,6 +229,8 @@
 
 - name: Enable and start fedora-messaging relvalconsumer
   service: name=fm-consumer@relvalconsumer enabled=yes state=started
+  when: not relvalconsumer_disabled|bool
 
 - name: Enable and start fedora-messaging relvalamiconsumer
   service: name=fm-consumer@relvalamiconsumer enabled=yes state=started
+  when: not relvalamiconsumer_disabled|bool
