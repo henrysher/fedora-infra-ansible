@@ -40,6 +40,18 @@
   - config
   - base
 
+- name: work around s390 privatedevices bug
+  ini_file:
+    path: /usr/lib/systemd/system/postfix.service
+    section: service
+    option: PrivateDevices
+    value: false
+  when: inventory_hostname.startswith('buildvm-s390x')
+  tags:
+  - postfix
+  - config
+  - base
+
 - name: enable postfix to start
   service: name=postfix state=started enabled=true
   tags:
