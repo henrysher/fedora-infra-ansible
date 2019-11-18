@@ -78,8 +78,14 @@ systemctl stop mirrorlist1
 sleep 1
 systemctl start mirrorlist1
 if [[ ${?} -ne 0 ]]; then
-    echo "Unable to start mirrorlist1"
-    exit 1
+    # We have seen this to fail because podman was not able to completely
+    # remove the container for some reason. First try this:
+    sudo -u mirrormanager /usr/bin/podman rm mirrorlist1.service --storage --force
+    systemctl start mirrorlist1
+    if [[ ${?} -ne 0 ]]; then
+        echo "Unable to start mirrorlist1"
+        exit 1
+    fi
 fi
 
 
