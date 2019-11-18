@@ -3,6 +3,7 @@
   with_items:
   - datagrepper
   - python-psycopg2
+  - fedora-messaging
   tags:
   - packages
   - datagrepper
@@ -71,3 +72,35 @@
 
 # selinux policy has been intentionally omitted since that is obtained from fedmsg/base
 
+- name: Create /etc/pki/fedora-messaging
+  file:
+    dest: /etc/pki/fedora-messaging
+    mode: 0775
+    owner: root
+    group: root
+    state: directory
+  when: "deployment_type is defined"
+  tags:
+  - config
+
+- name: Deploy the Fedora datagrepper fedora-messaging cert
+  copy:
+    src: "{{ private }}/files/rabbitmq/{{env}}/pki/issued/datagrepper{{env_suffix}}.crt"
+    dest: /etc/pki/fedora-messaging/datagrepper{{env_suffix}}-cert.pem
+    mode: 0644
+    owner: root
+    group: root
+  when: "deployment_type is defined"
+  tags:
+  - config
+
+- name: Deploy the Fedora datagrepper fedora-messaging key
+  copy:
+    src: "{{ private }}/files/rabbitmq/{{env}}/pki/private/datagrepper{{env_suffix}}.key"
+    dest: /etc/pki/fedora-messaging/datagrepper{{env_suffix}}-key.pem
+    mode: 0640
+    owner: root
+    group: root
+  when: "deployment_type is defined"
+  tags:
+  - config

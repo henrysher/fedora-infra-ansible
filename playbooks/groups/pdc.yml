@@ -44,7 +44,11 @@
   - role: openvpn/client
     when: env != "staging"
   - mod_wsgi
-  - fedmsg/base
+  - { role: fedmsg/base,
+      when: deployment_type == "prod" }
+  # Set up for fedora-messaging
+  - { role: rabbit/user,
+      username: "pdc{{ env_suffix }}"}
   - pdc/frontend
 
 - name: stuff just for the backend nodes

@@ -25,7 +25,11 @@
   - fas_client
   - nagios_client
   - collectd/base
-  - fedmsg/base
+  - { role: fedmsg/base,
+      when: deployment_type == "prod" }
+  # Set up for fedora-messaging
+  - { role: rabbit/user,
+      username: "notifs-backend{{ env_suffix }}"}
   - sudo
   # The proxies don't actually need to talk to these hosts so we won't bother
   # putting them on the vpn.

@@ -115,6 +115,7 @@
   - python34-PyYAML
   # mailman soft dep to convert html to plaintext
   - lynx
+  - fedora-messaging
   tags:
   - packages
   - mailman
@@ -554,3 +555,37 @@
   - webui-warm-up-cache
   tags: mailman
   when: inventory_hostname.startswith('mailman01.phx2') or inventory_hostname.startswith('lists-dev')
+
+- name: Create /etc/pki/fedora-messaging
+  file:
+    dest: /etc/pki/fedora-messaging
+    mode: 0775
+    owner: root
+    group: root
+    state: directory
+  when: "deployment_type is defined"
+  tags:
+  - config
+
+# FIXME: Need to create a mailman cert
+- name: Deploy the Fedora mailman fedora-messaging cert
+  copy:
+    src: "{{ private }}/files/rabbitmq/{{env}}/pki/issued/mailman{{env_suffix}}.crt"
+    dest: /etc/pki/fedora-messaging/mailman{{env_suffix}}-cert.pem
+    mode: 0644
+    owner: root
+    group: root
+  when: "deployment_type is defined"
+  tags:
+  - config
+
+- name: Deploy the Fedora infra fedora-messaging key
+  copy:
+    src: "{{ private }}/files/rabbitmq/{{env}}/pki/private/mailman{{env_suffix}}.key"
+    dest: /etc/pki/fedora-messaging/mailman{{env_suffix}}-key.pem
+    mode: 0640
+    owner: root
+    group: root
+  when: "deployment_type is defined"
+  tags:
+  - config

@@ -26,7 +26,13 @@
   - fas_client
   - collectd/base
   - apache
-  - fedmsg/base
+  - { fedmsg/base,
+      when: deployment_type == "prod" }
+  # Set up for fedora-messaging
+  - { role: rabbit/user,
+      username: "wiki{{ env_suffix }}"}
+  - role: rabbit/queue
+    username: "wiki{{ env_suffix }}"
   - { role: nfs/client, when: env == "staging", mnt_dir: '/mnt/web/attachments',  nfs_src_dir: 'fedora_app_staging/app/attachments' }
   - { role: nfs/client, when: env != "staging", mnt_dir: '/mnt/web/attachments',  nfs_src_dir: 'fedora_app/app/attachments' }
   - mediawiki

@@ -23,7 +23,11 @@
   - fas_client
   - collectd/base
   - mod_wsgi
-  - fedmsg/base
+  - { role: fedmsg/base,
+      when: deployment_type == "prod" }
+  # Set up for fedora-messaging
+  - { role: rabbit/user,
+      username: "notifs-web{{ env_suffix }}"}
   - notifs/frontend
   - sudo
   - { role: openvpn/client,

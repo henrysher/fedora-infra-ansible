@@ -72,6 +72,47 @@
   - config
   - mediawiki
 
+#- name: adding fedora-messaging emit
+#  copy: src=fedora-message-emit.php dest=/usr/share/{{ wikiver }}/extensions/fedora-messaging-emit.php owner=root group=root mode=775
+#  tags:
+#  - config
+#  - mediawiki
+
+- name: Create /etc/pki/fedora-messaging
+  file:
+    dest: /etc/pki/fedora-messaging
+    mode: 0775
+    owner: root
+    group: root
+    state: directory
+  when: "deployment_type is defined"
+  tags:
+  - config
+
+# FIXME: We currently don't seem to have a wiki cert, need to create one
+- name: Deploy the Fedora wiki fedora-messaging cert
+  copy:
+    src: "{{ private }}/files/rabbitmq/{{env}}/pki/issued/mediawiki{{env_suffix}}.crt"
+    dest: /etc/pki/fedora-messaging/mediawiki{{env_suffix}}-cert.pem
+    mode: 0644
+    owner: root
+    group: root
+  when: "deployment_type is defined"
+  tags:
+  - config
+
+# FIXME: We currently don't seem to have a wiki key, need to create one
+- name: Deploy the Fedora wiki fedora-messaging key
+  copy:
+    src: "{{ private }}/files/rabbitmq/{{env}}/pki/private/mediawiki{{env_suffix}}.key"
+    dest: /etc/pki/fedora-messaging/mediawiki{{env_suffix}}-key.pem
+    mode: 0640
+    owner: root
+    group: root
+  when: "deployment_type is defined"
+  tags:
+  - config
+
 - name: startup apache
   service: name=httpd enabled=yes state=started
   tags:

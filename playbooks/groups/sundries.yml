@@ -51,6 +51,15 @@
     when: master_sundries_node|bool
   - role: developer/build
     when: master_sundries_node|bool
+  - { role: fedmsg/base,
+      when:
+        - master_sundries_node|bool
+        - deployment_type == "prod" }
+  - { role: rabbit/user,
+      username: "sundries{{ env_suffix }}",
+      when:
+        - master_sundries_node|bool
+        - deployment_type == "stg" }
   - role: fedmsg/base
     when: master_sundries_node|bool
   - role: nfs/client

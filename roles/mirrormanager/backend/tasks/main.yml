@@ -9,6 +9,7 @@
   - bzip2
   - python-psycopg2
   - fedmsg
+  - fedora-messaging
   - jq
   - geolite2-city
   - geolite2-country
@@ -85,6 +86,40 @@
   tags:
   - config
   when: env != 'staging'
+
+- name: Create /etc/pki/fedora-messaging
+  file:
+    dest: /etc/pki/fedora-messaging
+    mode: 0775
+    owner: root
+    group: root
+    state: directory
+  when: "deployment_type is defined"
+  tags:
+  - config
+
+# FIXME: do we need to create a mirrormanager cert ?
+- name: Deploy the Fedora mirrormanager fedora-messaging cert
+  copy:
+    src: "{{ private }}/files/rabbitmq/{{env}}/pki/issued/mirrormanager{{env_suffix}}.crt"
+    dest: /etc/pki/fedora-messaging/mirrormanager{{env_suffix}}-cert.pem
+    mode: 0644
+    owner: root
+    group: root
+  when: "deployment_type is defined"
+  tags:
+  - config
+
+- name: Deploy the Fedora infra fedora-messaging key
+  copy:
+    src: "{{ private }}/files/rabbitmq/{{env}}/pki/private/mirrormanager{{env_suffix}}.key"
+    dest: /etc/pki/fedora-messaging/mirrormanager{{env_suffix}}-key.pem
+    mode: 0640
+    owner: root
+    group: root
+  when: "deployment_type is defined"
+  tags:
+  - config
 
 # To decrease the crawl duration on the mirrors we have been
 # recommending to lower the default value of vfs_cache_pressure

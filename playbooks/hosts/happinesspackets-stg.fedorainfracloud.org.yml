@@ -34,7 +34,11 @@
 
   roles:
   - basessh
-  - fedmsg/base
+  - { role: fedmsg/base,
+      when: deployment_type == "prod" }
+  # Set up for fedora-messaging
+  - { role: rabbit/user,
+      username: "happipstgfedorainfracloud{{ env_suffix }}"}
   - { role: letsencrypt, site_name: 'happinesspackets-stg.fedorainfracloud.org' }
 
   handlers:

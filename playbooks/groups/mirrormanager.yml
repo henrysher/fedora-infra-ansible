@@ -100,7 +100,11 @@
   - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
 
   roles:
-  - fedmsg/base
+  - { role: fedmsg/base,
+      when: deployment_type == "prod" }
+  # Set up for fedora-messaging
+  - { role: rabbit/user,
+      username: "mirrormanager{{ env_suffix }}"}
 
   handlers:
   - import_tasks: "{{ handlers_path }}/restart_services.yml"
