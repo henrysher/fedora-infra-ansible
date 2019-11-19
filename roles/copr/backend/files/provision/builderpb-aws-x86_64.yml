@@ -1,0 +1,74 @@
+- name: create an instance in aws
+  hosts: 127.0.0.1
+  gather_facts: False
+
+  vars_files:
+    - vars.yml
+
+  vars:
+    keypair: copr-builder
+    instance_type: i3.large
+    security_group: ssh-only
+    region: us-east-1
+    vm_name: "copr-builder-x86_64-{{ builder_uniq_suffix }}"
+    max_spawn_time: 1100
+    spawning_vm_user: "fedora"
+    image_name: "{{ builder_images.aws.x86_64 }}"
+    arch: x86_64
+
+  tasks:
+    - debug: msg="vm_name={{ vm_name }}"
+
+    - name: Launch instance
+      ec2:
+        key_name: "{{ keypair }}"
+        group: "{{ security_group }}"
+        instance_type: "{{ instance_type }}"
+        image: "{{ image_name }}"
+        wait: true
+        region: "{{ region }}"
+        vpc_subnet_id: subnet-01d4e967ab5e78005
+        assign_public_ip: yes
+        instance_tags:
+          FedoraGroup: copr
+          Name: "{{ vm_name }}"
+          arch: "{{ arch }}"
+      register: ec2
+
+    - name: Add new instance to host group
+      add_host:
+        hostname: "{{ item.public_ip }}"
+        groupname: builder_temp_group
+      loop: "{{ ec2.instances }}"
+
+    - set_fact: builder_ip={{ ec2.instances[0].public_ip }}
+
+    - debug: msg="VM_IP={{ builder_ip }}"
+
+    - name: wait for he host to be hot
+      local_action: wait_for host={{ builder_ip }} port=22 delay=1 timeout={{ max_spawn_time }}
+
+    - name: wait until ssh is available
+      local_action:  shell false; until [ "$?" -eq "0" ]; do sleep 2; ssh -o PasswordAuthentication=no {{ spawning_vm_user|default('fedora') }}@{{ builder_ip }} 'echo foobar' 2>/dev/null; done
+      async: 600
+      poll: 2
+
+
+- name: provision builder
+  hosts: builder_temp_group
+  gather_facts: False
+  sudo: True
+  user: fedora
+
+  vars_files:
+    - vars.yml
+
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
+
+  tasks:
+  - include: "create_swap_file.yml"
+    when:
+    - prepare_base_image is defined
+
+  - include: "provision_builder_tasks.yml"
