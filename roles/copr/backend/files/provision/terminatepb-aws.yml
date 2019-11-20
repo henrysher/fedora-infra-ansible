@@ -1,0 +1,26 @@
+- name: terminate instance
+  hosts: 127.0.0.1
+  gather_facts: False
+
+  vars_files:
+    - vars.yml
+    - nova_cloud_vars.yml
+
+  tasks:
+    - local_action:
+        module: ec2
+        instance_tags:
+            Name: "{{ copr_task.vm_name }}"
+        region: "{{ aws_region }}"
+        state: running
+        aws_access_key: "{{ aws_access_key }}"
+        aws_secret_key: "{{ aws_secret_key }}"
+      register: ec2
+
+    - local_action:
+        module: ec2
+        region: "{{ aws_region }}"
+        state: absent
+        instance_ids: "{{ ec2.instance_ids }}"
+        aws_access_key: "{{ aws_access_key }}"
+        aws_secret_key: "{{ aws_secret_key }}"
