@@ -33,6 +33,13 @@
   delay: 20
   when: inventory_hostname not in result.list_vms
 
+- name: nuke the facts cache for this hosts/host
+  file:
+    path: /root/.ansible_facts_cache/{{ inventory_hostname }}
+    state: absent
+  delegate_to: localhost
+  when: inventory_hostname not in result.list_vms
+
 - name: ARMv7 copy the kernel out
   shell: "virt-builder --get-kernel {{ volgroup }}/{{ inventory_hostname }} --output /var/lib/libvirt/images/  | awk -F/ '{print $NF}' > /var/lib/libvirt/images/{{ inventory_hostname }}-details.txt"
   delegate_to: "{{ vmhost}}"
