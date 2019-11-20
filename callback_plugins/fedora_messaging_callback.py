@@ -94,7 +94,7 @@ class CallbackModule(CallbackBase):
                     'playbook': self.playbook_path,
                     'userid': getlogin(),
                     'results': results
-                )
+                }
             )
             publish(msg)
         except PublishReturned as e:
