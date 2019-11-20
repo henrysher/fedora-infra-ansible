@@ -14,12 +14,14 @@
         state: running
         aws_access_key: "{{ aws_access_key }}"
         aws_secret_key: "{{ aws_secret_key }}"
-      register: ec2
+      ignore_errors: yes
+      register: ec2_list_result
 
     - local_action:
         module: ec2
         region: "{{ aws_region }}"
         state: absent
-        instance_ids: "{{ ec2.instance_ids }}"
+        instance_ids: "{{ ec2_list_result.instance_ids }}"
         aws_access_key: "{{ aws_access_key }}"
         aws_secret_key: "{{ aws_secret_key }}"
+      when: not ec2_list_result.failed
