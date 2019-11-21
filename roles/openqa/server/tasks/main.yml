@@ -106,7 +106,7 @@
     name: ['python3-libselinux', 'git', 'json_diff', 'libselinux-utils', 'python3-libsemanage',
            'nfs-utils', 'perl(Class::DBI::Pg)', 'expect', 'libguestfs-tools-c', 'libguestfs-xfs',
            'libvirt-daemon-config-network', 'libvirt-python3', 'python3-libguestfs',
-           'virt-install', 'withlock']
+           'virt-install', 'withlock', 'genisoimage']
     state: present
   tags:
   - packages
@@ -147,6 +147,7 @@
   file: path={{ item }} state=directory owner=geekotest group=root mode=0755
   with_items:
   - /var/lib/openqa/share/factory/iso
+  - /var/lib/openqa/share/factory/iso/fixed
   - /var/lib/openqa/share/factory/hdd
   - /var/lib/openqa/share/factory/hdd/fixed
   - /var/lib/openqa/share/factory/repo
@@ -183,6 +184,18 @@
 #  command: "/etc/cron.daily/createhdds"
 #  when: "diskcheck.rc > 1"
 #  ignore_errors: yes
+
+- name: Copy in meta-data for cloud-init ISO creation
+  copy: src=meta-data dest=/var/tmp/meta-data owner=root group=root mode=0644
+
+- name: Copy in user-data for cloud-init ISO creation
+  copy: src=user-data dest=/var/tmp/user-data owner=root group=root mode=0644
+
+- name: Create cloud-init ISO
+  command: genisoimage -output cloudinit.iso -volid cidata -joliet -rock /var/tmp/user-data /var/tmp/meta-data
+  args:
+    chdir: /var/lib/openqa/share/factory/iso/fixed
+    creates: /var/lib/openqa/share/factory/iso/fixed/cloudinit.iso
 
 - name: Create exports file
   template: src=exports.j2 dest=/etc/exports.d/openqa.exports owner=root group=root mode=0644
