@@ -119,9 +119,10 @@ virt_install_command_two_nic_unsafe: virt-install -n {{ inventory_hostname }}
                  --memory={{ mem_size }},maxmemory={{ max_mem_size }} --memballoon virtio
                  --disk bus=virtio,path={{ volgroup }}/{{ inventory_hostname }},cache=unsafe,io=threads
                  --vcpus={{ num_cpus }},maxvcpus={{ max_cpu }} -l {{ ks_repo }} -x
-                 'systemd.log_level=debug net.ifnames=0 ksdevice=eth0 ks={{ ks_url }} console=tty0 console=ttyS0
+                 'net.ifnames=0 ksdevice=eth0 ks={{ ks_url }} console=tty0 console=ttyS0
                   hostname={{ inventory_hostname }} nameserver={{ dns }}
-                  ip={{ eth0_ip }}::{{ gw }}:{{ nm }}:{{ inventory_hostname }}:eth0:off'
+                  ip={{ eth1_ip }}:::{{ nm }}:{{ inventory_hostname_short }}-nfs:eth1:none
+                  ip={{ eth0_ip }}::{{ gw }}:{{ nm }}:{{ inventory_hostname }}:eth0:none'
                  --network bridge={{ main_bridge }},model=virtio,mac={{ mac_address }}
                  --network bridge={{ nfs_bridge }},model=virtio,mac={{ mac_address1 }}
                  --autostart --noautoconsole --watchdog default --rng /dev/random
