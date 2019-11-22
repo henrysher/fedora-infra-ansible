@@ -362,3 +362,14 @@
   copy: src=schedule-live-respins.cron dest=/etc/cron.hourly/schedule-live-respins owner=root group=root mode=0755
   tags:
   - config
+
+# This is to deal with an annoying bug in fedora-messaging: sometimes
+# consumers seem to get stuck allegedly running fine but not parsing
+# any messages. So we'll restart all running consumers every day just
+# to kick any that are in this state. Strictly speaking this shouldn't
+# really be tied to the dispatcher role, but separating it out would
+# be a pain, it's easier just to stuff it here
+- name: Set up cron job to restart all running fm-consumer services
+  copy: src=restart-consumers.cron dest=/etc/cron.daily/restart-consumers owner=root group=root mode=0755
+  tags:
+  - config
