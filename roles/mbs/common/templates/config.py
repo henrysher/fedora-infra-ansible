@@ -148,6 +148,12 @@ class ProdConfiguration(BaseConfiguration):
     RPMS_DEFAULT_CACHE = 'https://src.stg.fedoraproject.org/repo/pkgs/'
     MODULES_DEFAULT_REPOSITORY = 'git+https://src.stg.fedoraproject.org/modules/'
 
+    KOJI_TAG_EXTRA_OPTS = {
+        "mock.package_manager": "dnf",
+        "repo_include_all": True,
+        "mock.new_chroot": 0,
+        "mock.yum.module_hotfixes": 1,
+    }
 {% else %}
     KOJI_PROFILE = 'production'
     ARCHES = ['aarch64', 'armv7hl', 'i686', 'ppc64le', 'x86_64', 's390x']
@@ -165,12 +171,6 @@ class ProdConfiguration(BaseConfiguration):
                'git+https://src.fedoraproject.org/flatpaks/',
                'https://src.fedoraproject.org/flatpaks/',
                'https://src.fedoraproject.org/git/flatpaks/']
-    KOJI_TAG_EXTRA_OPTS = {
-        "mock.package_manager": "dnf",
-        "repo_include_all": True,
-        "mock.new_chroot": 0,
-        "mock.yum.module_hotfixes": 1,
-    }
 {% endif %}
 
     RESOLVER = "db"
