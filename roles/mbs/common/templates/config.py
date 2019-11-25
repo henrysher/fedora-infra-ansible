@@ -165,6 +165,12 @@ class ProdConfiguration(BaseConfiguration):
                'git+https://src.fedoraproject.org/flatpaks/',
                'https://src.fedoraproject.org/flatpaks/',
                'https://src.fedoraproject.org/git/flatpaks/']
+    KOJI_TAG_EXTRA_OPTS = {
+        "mock.package_manager": "dnf",
+        "repo_include_all": True,
+        "mock.new_chroot": 0,
+        "mock.yum.module_hotfixes": 1,
+    }
 {% endif %}
 
     RESOLVER = "db"
