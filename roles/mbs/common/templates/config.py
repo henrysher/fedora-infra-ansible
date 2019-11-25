@@ -148,12 +148,6 @@ class ProdConfiguration(BaseConfiguration):
     RPMS_DEFAULT_CACHE = 'https://src.stg.fedoraproject.org/repo/pkgs/'
     MODULES_DEFAULT_REPOSITORY = 'git+https://src.stg.fedoraproject.org/modules/'
 
-    KOJI_TAG_EXTRA_OPTS = {
-        "mock.package_manager": "dnf",
-        "repo_include_all": True,
-        "mock.new_chroot": 0,
-        "mock.yum.module_hotfixes": 1,
-    }
 {% else %}
     KOJI_PROFILE = 'production'
     ARCHES = ['aarch64', 'armv7hl', 'i686', 'ppc64le', 'x86_64', 's390x']
@@ -192,6 +186,23 @@ class ProdConfiguration(BaseConfiguration):
         # Scratch module builds have this prefix
         'scrmod',
     ]
+
+    # Extra options set for newly created Koji tags
+    KOJI_TAG_EXTRA_OPTS = {
+        "mock.package_manager": "dnf",
+        # This is needed to include all the Koji builds (and therefore
+        # all the packages) from all inherited tags into this tag.
+        # See https://pagure.io/koji/issue/588 and
+        # https://pagure.io/fm-orchestrator/issue/660 for background.
+        "repo_include_all": True,
+        # Has been requested by Fedora infra in
+        # https://pagure.io/fedora-infrastructure/issue/7620.
+        # Disables systemd-nspawn for chroot.
+        "mock.new_chroot": 0,
+        # Works around fail-safe mechanism added in DNF 4.2.7
+        # https://pagure.io/fedora-infrastructure/issue/8410
+        "mock.yum.module_hotfixes": 1,
+    }
 
     # If this is too long, we could change it to 'fm_' some day.
     DEFAULT_DIST_TAG_PREFIX = 'module_'
