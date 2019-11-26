@@ -25,8 +25,6 @@ sigkeys = [
     'f5282ee4',
 [% elif release.version_int == 28 %]
     '9db62fb1',
-[% elif release.version_int == 29 %]
-    '429476b4',
 [% elif release.version_int == 30 %]
     'cfc659b9',
 [% elif release.version_int == 31 %]
@@ -138,35 +136,6 @@ createiso_skip = [
 [% if release.id_prefix == 'FEDORA' %]
 ostree = {
     "^Everything$": [
-        # Atomic Host
-        # Atomic Host will be avilable till F29 EOL
-        # See https://github.com/coreos/fedora-coreos-tracker/issues/145
-        [% if release.version_int <= 29 %]
-        {
-            "version": "!VERSION_FROM_VERSION_DATE_RESPIN",
-            "force_new_commit": True
-            "treefile": "fedora-atomic-host.json",
-            "config_url": "https://pagure.io/fedora-atomic.git",
-            "config_branch": "f[[ release.version ]]",
-            "repo": [
-                "Everything",
-                "https://kojipkgs{{ env_suffix }}.fedoraproject.org/compose/[[ release.version_int ]]/latest-Fedora-[[ release.version_int ]]/compose/Everything/$basearch/os/",
-                [% if request.name == 'testing' %]
-                    # In the case of testing, also inject the last stable updates
-                    "https://kojipkgs{{ env_suffix }}.fedoraproject.org/compose/updates/f[[ release.version_int ]]-updates/compose/Everything/$basearch/os/"
-                [% endif %]
-            ]
-            "ostree_repo": "/mnt/koji/compose/ostree/repo",
-            [% if request.name == 'stable' %]
-                "ostree_ref": "fedora/[[ release.version_int ]]/${basearch}/updates/atomic-host",
-            [% else %]
-                "ostree_ref": "fedora/[[ release.version_int ]]/${basearch}/testing/atomic-host",
-            [% endif %]
-            "tag_ref": False,
-            "arches": ["x86_64", "ppc64le", "aarch64" ],
-            "failable": ["ppc64le", "aarch64"],
-        },
-        [% endif %]
         # Fedora Silverblue
         {
             "version": "!VERSION_FROM_VERSION_DATE_RESPIN",
