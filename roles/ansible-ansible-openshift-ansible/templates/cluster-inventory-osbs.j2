@@ -2,6 +2,24 @@
 # openshift-ansible project available:
 #   https://github.com/openshift/openshift-ansible/tree/master/inventory/byo
 
+[masters]
+{% for host in groups[openshift_cluster_masters_group] %}
+{{ host }}
+{% endfor %}
+
+[etcd]
+{% for host in groups[openshift_cluster_masters_group] %}
+{{ host }}
+{% endfor %}
+
+[nodes]
+{% for host in groups[openshift_cluster_masters_group] %}
+{{ host }} openshift_node_group_name='node-config-master'
+{% endfor %}
+{% for host in groups[openshift_cluster_nodes_group] %}
+{{ host }} openshift_node_group_name='node-config-compute'
+{% endfor %}
+
 
 # Create an OSEv3 group that contains the masters and nodes groups
 [OSEv3:children]
@@ -28,6 +46,16 @@ openshift_disable_check=disk_availability,package_version,docker_image_availabil
 # ssh agent.
 ansible_ssh_user={{openshift_ansible_ssh_user}}
 
+# Specify the deployment type. Valid values are origin and openshift-enterprise.
+deployment_type={{openshift_deployment_type}}
+
+# Specify the generic release of OpenShift to install. This is used mainly just during installation, after which we
+# rely on the version running on the first master. Works best for containerized installs where we can usually
+# use this to lookup the latest exact version of the container images, which is the tag actually used to configure
+# the cluster. For RPM installations we just verify the version detected in your configured repos matches this
+# release.
+openshift_release={{openshift_release}}
+
 # For whatever reason, this keeps hitting a race condition and docker is
 # excluded before docker is installed so we're just going to remove it.
 openshift_enable_docker_excluder = False
@@ -48,15 +76,6 @@ ansible_python_interpreter={{openshift_ansible_python_interpreter}}
 # Debug level for all OpenShift components (Defaults to 2)
 debug_level={{openshift_debug_level}}
 
-# Specify the deployment type. Valid values are origin and openshift-enterprise.
-deployment_type={{openshift_deployment_type}}
-
-# Specify the generic release of OpenShift to install. This is used mainly just during installation, after which we
-# rely on the version running on the first master. Works best for containerized installs where we can usually
-# use this to lookup the latest exact version of the container images, which is the tag actually used to configure
-# the cluster. For RPM installations we just verify the version detected in your configured repos matches this
-# release.
-openshift_release={{openshift_release}}
 
 # Specify an exact container image tag to install or configure.
 # WARNING: This value will be used for all hosts in containerized environments, even those that have another version installed.
@@ -199,6 +218,19 @@ openshift_master_identity_providers=[{"name": "fedoraidp", "login": "true", "cha
 {% if openshift_auth_profile == "fedoraidp-stg" %}
 openshift_master_identity_providers=[{"name": "fedoraidp", "login": "true", "challenge": "false", "kind": "OpenIDIdentityProvider", "client_id": "openshift", "client_secret": "{{openshift_stg_client_secret}}", "claims": {"id": ["sub"], "preferredUsername": ["sub"], "name": ["name"], "email": ["email"]}, "urls": {"authorize": "https://id{{env_suffix}}.fedoraproject.org/openidc/Authorization", "token": "https://id{{env_suffix}}.fedoraproject.org/openidc/Token", "userInfo": "https://id{{env_suffix}}.fedoraproject.org/openidc/UserInfo"}}]
 {% endif %}
+
+# If oreg_url points to a registry requiring authentication, provide the following:
+{% if env == "staging" %}
+oreg_auth_user="{{ os_stg_registry_user }}"
+oreg_auth_password="{{ os_stg_registry_password }}"
+{% else %}
+oreg_auth_user="{{ os_prod_registry_user }}"
+oreg_auth_password="{{ os_prod_registry_password }}"
+{% endif %}
+# NOTE: oreg_url must be defined by the user for oreg_auth_* to have any affect.
+# oreg_auth_pass should be generated from running docker login.
+# To update registry auth credentials, uncomment the following:
+#oreg_auth_credentials_replace=True
 
 # Allow all auth
 #openshift_master_identity_providers=[{'name': 'allow_all', 'login': 'true', 'challenge': 'true', 'kind': 'AllowAllPasswordIdentityProvider'}]
@@ -823,65 +855,3 @@ openshift_node_env_vars={"ENABLE_HTTP2": "true"}
 # NOTE: Currently we require that masters be part of the SDN which requires that they also be nodes
 # However, in order to ensure that your masters are not burdened with running pods you should
 # make them unschedulable by adding openshift_schedulable=False any node that's also a master.
-
-[masters]
-{% for host in groups[openshift_cluster_masters_group] %}
-{{ host }}
-{% endfor %}
-
-[etcd]
-{% for host in groups[openshift_cluster_masters_group] %}
-{{ host }}
-{% endfor %}
-
-{% if openshift_shared_infra is defined %}
-{% if openshift_shared_infra %}
-
-[nodes]
-{% for host in groups[openshift_cluster_masters_group] %}
-{{ host }} openshift_node_group_name='node-config-master'
-{% endfor %}
-{% for host in groups[openshift_cluster_nodes_group] %}
-{{ host }} openshift_node_group_name='node-config-compute'
-{% endfor %}
-
-{% else %}
-
-[nodes]
-{% for host in groups[openshift_cluster_infra_group] %}
-{{ host }} openshift_node_labels="{'region':'infra'}"
-{% endfor %}
-{% for host in groups[openshift_cluster_masters_group] %}
-{{ host }}
-{% endfor %}
-{% for host in groups[openshift_cluster_nodes_group] %}
-{{ host }} openshift_node_labels="{'region': 'primary', 'zone': 'default', 'node-role.kubernetes.io/compute': 'true'}"
-{% endfor %}
-
-{% endif %}
-
-{% else %}
-
-[nodes]
-{% for host in groups[openshift_cluster_infra_group] %}
-{{ host }} openshift_node_labels="{'region':'infra'}"
-{% endfor %}
-
-{% for host in groups[openshift_cluster_masters_group] %}
-{{ host }}
-{% endfor %}
-
-{% for host in groups[openshift_cluster_nodes_group] %}
-
-{% if openshift_nodeselectors is defined %}
-{% if openshift_nodeselectors %}
-{{ host }} openshift_node_labels="{'region': 'primary', 'zone': 'default', {{openshift_nodeselectors}}, 'node-role.kubernetes.io/compute': 'true'}"
-{% else %}
-{{ host }} openshift_node_labels="{'region': 'primary', 'zone': 'default', 'node-role.kubernetes.io/compute': 'true'}"
-{% endif %}
-{% endif %}
-
-{% endfor %}
-
-{% endif %}
-
