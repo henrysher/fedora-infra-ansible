@@ -19,13 +19,14 @@
   when: prepare_base_image is defined
 
 - name: enable copr and copr-dev repos in staging
-  command: dnf copr -y enable {{ item }}
+  command:
+    cmd: dnf copr -y enable {{ item }}
+    warn: no
   with_items:
     - "@copr/copr"
   when:
     - devel
     - prepare_base_image is not defined
-  warn: false
 
 - name: clean dnf cache
   shell: dnf clean all
