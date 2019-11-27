@@ -10,9 +10,7 @@ import pkg_resources
 import os
 ## Set the environment variable pointing to the configuration file
 os.environ['PAGURE_CONFIG'] = '/etc/pagure/pagure.cfg'
-{% if env == 'staging' %}
 os.environ['PAGURE_PLUGIN'] = '/etc/pagure/pagure_plugins.cfg'
-{% endif %}
 
 ## Set the environment variable if the tmp folder needs to be moved
 ## Is necessary to work around bug in libgit2:
