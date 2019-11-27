@@ -18,9 +18,18 @@ tracked()
         test -n "$name"
 }
 
+old_enough()
+{
+    # give them 1 hour
+    started=$(date --date="$1" +%s)
+    now=$(date +%s)
+    old_enough=$(( now - 3600 ))
+    test "$started" -le "$old_enough"
+}
+
 aws_command=(
     aws ec2 describe-instances
-        --query "Reservations[].Instances[].{Id:InstanceId,Name:Tags[?Key=='Name']|[0].Value}"
+        --query "Reservations[].Instances[].{Id:InstanceId,Name:Tags[?Key=='Name']|[0].Value,Time:LaunchTime}"
         --filters "Name=tag-key,Values=FedoraCopr,Name=tag-value,Values=copr"
                   "Name=instance-state-name,Values=running"
         --output text
@@ -35,14 +44,22 @@ case $(hostname) in
         ;;
 esac
 
-while read -r aws_id vm_name; do
+while read -r aws_id vm_name launch_time; do
     case $vm_name in
     copr-$prefix-builder*)
         something_found=true
-        if ! tracked "$vm_name"; then
-                echo "removing $vm_name"
-                dump_command aws ec2 terminate-instances --instance-ids "$aws_id"
+
+        # skip known VMs
+        tracked "$vm_name" && continue
+
+        # skip recently started VMs
+        if ! old_enough "$launch_time"; then
+            echo >&2 "$vm_name is not yet old enough: $launch_time"
+            continue
         fi
+
+        # delete the rest
+        dump_command aws ec2 terminate-instances --instance-ids "$aws_id"
         ;;
     *)
         continue ;;
