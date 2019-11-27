@@ -255,10 +255,20 @@
   - redis       # TODO: .service in copr-backend should depend on redis
   - copr-backend
 
-- copy: src="cleanup_vm_nova.py" dest=/home/copr/ mode=755
+- name: install aws cleaning script
+  copy: src="cleanup-vms-aws" dest=/usr/local/bin/ mode=755
 
-- copy: src="cleanup_vms.sh" dest=/etc/cron.hourly/copr_cleanup_vms.sh mode=755
-  when: not devel
+- name: setup crontab for VMs
+  cron: name="cleanup nova VMs periodically"
+        job="/usr/bin/cleanup_vm_nova.py"
+        minute="*/20"
+        user=copr
+
+- name: setup crontab for VMs
+  cron: name="cleanup AWS VMs periodically"
+        job="/usr/local/bin/cleanup-vms-aws"
+        minute="0"
+        user=copr
 
 - name: setup monitoring
   import_tasks: "monitoring.yml"

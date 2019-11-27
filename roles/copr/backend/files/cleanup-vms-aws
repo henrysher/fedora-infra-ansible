@@ -1,0 +1,53 @@
+#! /bin/bash
+
+set -e
+
+test "$UID" != "0" || { echo "execute as copr user" && exit 1 ; }
+
+something_found=false
+
+dump_command ()
+{
+        echo >&2 " -> $*"
+        "$@"
+}
+
+tracked()
+{
+        name=$(redis-cli --scan --pattern "copr:backend:vm_instance:hset::$1")
+        test -n "$name"
+}
+
+aws_command=(
+    aws ec2 describe-instances
+        --query "Reservations[].Instances[].{Id:InstanceId,Name:Tags[?Key=='Name']|[0].Value}"
+        --filters "Name=tag-key,Values=FedoraCopr,Name=tag-value,Values=copr"
+                  "Name=instance-state-name,Values=running"
+        --output text
+)
+
+something_found=false
+
+prefix=dev
+case $(hostname) in
+    copr-be.*)
+        prefix=prod
+        ;;
+esac
+
+while read -r aws_id vm_name; do
+    case $vm_name in
+    copr-$prefix-builder*)
+        something_found=true
+        if ! tracked "$vm_name"; then
+                echo "removing $vm_name"
+                dump_command aws ec2 terminate-instances --instance-ids "$aws_id"
+        fi
+        ;;
+    *)
+        continue ;;
+    esac
+done < <( "${aws_command[@]}" )
+
+# fail if no VM was found (weird situation)
+$something_found
