@@ -353,7 +353,6 @@
 
 - name: install fedora-messaging as a dependency
   package: name={{ item }} state=present
-  when: env == 'staging'
   with_items:
   - python2-fedora-messaging
   tags:
@@ -361,7 +360,6 @@
   - fedora-messaging
 
 - name: create the config folder for fedora-messaging
-  when: env == 'staging'
   file: path=/etc/fedora-messaging/ owner=root group=root mode=0755 state=directory
   tags:
   - pagure
@@ -371,13 +369,11 @@
   template:
       src=fedora-messaging.toml
       dest=/etc/fedora-messaging/config.toml
-  when: env == 'staging'
   tags:
   - pagure
   - fedora-messaging
 
 - name: create folder where we'll place the certs
-  when: env == 'staging'
   file: path=/etc/pki/rabbitmq/pagurecert/ owner=root group=root mode=0755 state=directory
   tags:
   - pagure
@@ -387,7 +383,6 @@
   copy: src={{ item.src }}
         dest=/etc/pki/rabbitmq/pagurecert/{{ item.dest }}
         owner={{ item.owner }} group={{ item.group}} mode={{ item.mode }}
-  when: env == 'staging'
   with_items:
     - src: "{{private}}/files/rabbitmq/{{env}}/pki/issued/pagure{{ env_suffix }}.crt"
       dest: src.fp.o.crt
