@@ -1,0 +1,196 @@
+- name: post-install master host osbs tasks
+  hosts: osbs_masters_stg:osbs_masters:osbs_aarch64_masters_stg[0]:osbs_aarch64_masters[0]
+  tags:
+    - osbs-post-install
+  vars_files:
+    - /srv/web/infra/ansible/vars/global.yml
+    - /srv/private/ansible/vars.yml
+    - /srv/private/ansible/files/openstack/passwords.yml
+    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+  vars:
+    osbs_kubeconfig_path: /etc/origin/master/admin.kubeconfig
+    osbs_environment:
+      KUBECONFIG: "{{ osbs_kubeconfig_path }}"
+
+  tasks:
+    - name: cron entry to clean up old builds
+      copy:
+        src: "{{files}}/osbs/cleanup-old-osbs-builds"
+        dest: "/etc/cron.d/cleanup-old-osbs-builds"
+
+- name: post-install osbs control tasks
+  hosts: osbs_control
+  tags: osbs-post-install
+  vars_files:
+    - /srv/web/infra/ansible/vars/global.yml
+    - /srv/private/ansible/vars.yml
+    - /srv/private/ansible/files/openstack/passwords.yml
+    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+  tasks:
+    - name: enable nrpe for monitoring (noc01)
+      iptables: action=insert chain=INPUT destination_port=5666 protocol=tcp source=10.5.126.41 state=present jump=ACCEPT
+      tags:
+      - iptables
+
+
+- name: post-install node host osbs tasks
+  hosts: osbs_nodes_stg:osbs_nodes:osbs_aarch64_nodes_stg:osbs_aarch64_nodes
+  tags:
+    - osbs-post-install
+  vars_files:
+    - /srv/web/infra/ansible/vars/global.yml
+    - /srv/private/ansible/vars.yml
+    - /srv/private/ansible/files/openstack/passwords.yml
+    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+  vars:
+    osbs_kubeconfig_path: /etc/origin/master/admin.kubeconfig
+    osbs_environment:
+      KUBECONFIG: "{{ osbs_kubeconfig_path }}"
+
+
+  handlers:
+    - name: Remove the previous buildroot image
+      docker_image:
+        state: absent
+        name: buildroot
+
+    - name: Build the new buildroot container
+      docker_image:
+        path: /etc/osbs/buildroot/
+        name: buildroot
+        nocache: yes
+
+    - name: restart and reload docker service
+      systemd:
+        name: docker
+        state: restarted
+        daemon_reload: yes
+
+  tasks:
+    - name: enable nrpe for monitoring (noc01)
+      iptables: action=insert chain=INPUT destination_port=5666 protocol=tcp source=10.5.126.41 state=present jump=ACCEPT
+      tags:
+      - iptables
+
+    - name: copy docker iptables script
+      copy:
+        src: "{{files}}/osbs/fix-docker-iptables.{{ env }}"
+        dest: /usr/local/bin/fix-docker-iptables
+        mode: 0755
+      tags:
+      - iptables
+      notify:
+        - restart and reload docker service
+
+    - name: copy docker custom service config
+      copy:
+        src: "{{files}}/osbs/docker.firewall.service"
+        dest: /etc/systemd/system/docker.service.d/firewall.conf
+      tags:
+      - docker
+      notify:
+        - restart and reload docker service
+
+    - name: copy the osbs customization file
+      copy:
+        src: "{{item}}"
+        dest: "/etc/osbs/buildroot/"
+        owner: root
+        mode: 0600
+      with_items:
+        - "{{files}}/osbs/worker_customize.json"
+        - "{{files}}/osbs/orchestrator_customize.json"
+
+    - name: Create buildroot container conf directory
+      file:
+        path: "/etc/osbs/buildroot/"
+        state: directory
+
+    - name: Upload Dockerfile for buildroot container
+      template:
+        src: "{{ files }}/osbs/buildroot-Dockerfile-{{env}}.j2"
+        dest: "/etc/osbs/buildroot/Dockerfile"
+        mode: 0400
+      notify:
+        - Remove the previous buildroot image
+        - Build the new buildroot container
+
+    - name: Upload krb5.conf for buildroot container
+      template:
+        src: "{{ roles_path }}/base/templates/krb5.conf.j2"
+        dest: "/etc/osbs/buildroot/krb5.conf"
+        mode: 0644
+      notify:
+        - Remove the previous buildroot image
+        - Build the new buildroot container
+
+    - name: Upload internal CA for buildroot
+      copy:
+        src: "{{private}}/files/osbs/{{env}}/osbs-internal.pem"
+        dest: "/etc/osbs/buildroot/ca.crt"
+        mode: 0400
+      notify:
+        - Remove the previous buildroot image
+        - Build the new buildroot container
+
+    - name: stat infra repofile
+      stat:
+        path: "/etc/yum.repos.d/infra-tags.repo"
+      register: infra_repo_stat
+
+    - name: stat /etc/osbs/buildroot/ infra repofile
+      stat:
+        path: "/etc/osbs/buildroot/infra-tags.repo"
+      register: etcosbs_infra_repo_stat
+
+    - name: remove old /etc/osbs/buildroot/ infra repofile
+      file:
+        path: "/etc/osbs/buildroot/infra-tags.repo"
+        state: absent
+      when: etcosbs_infra_repo_stat.stat.exists and infra_repo_stat.stat.checksum != etcosbs_infra_repo_stat.stat.checksum
+
+    - name: Copy repofile for buildroot container (because Docker)
+      copy:
+        src: "/etc/yum.repos.d/infra-tags.repo"
+        dest: "/etc/osbs/buildroot/infra-tags.repo"
+        remote_src: true
+      notify:
+        - Remove the previous buildroot image
+        - Build the new buildroot container
+      when: etcosbs_infra_repo_stat.stat.exists == false
+
+    - name: stat /etc/ keytab
+      stat:
+        path: "/etc/krb5.osbs_{{osbs_url}}.keytab"
+      register: etc_kt_stat
+
+    - name: stat /etc/osbs/buildroot/ keytab
+      stat:
+        path: "/etc/osbs/buildroot/krb5.osbs_{{osbs_url}}.keytab"
+      register: etcosbs_kt_stat
+
+    - name: remove old hardlink to /etc/osbs/buildroot/ keytab
+      file:
+        path: "/etc/osbs/buildroot/krb5.osbs_{{osbs_url}}.keytab"
+        state: absent
+      when: etcosbs_kt_stat.stat.exists and etc_kt_stat.stat.checksum != etcosbs_kt_stat.stat.checksum
+
+    - name: Hardlink keytab for buildroot container (because Docker)
+      file:
+        src: "/etc/krb5.osbs_{{osbs_url}}.keytab"
+        dest: "/etc/osbs/buildroot/krb5.osbs_{{osbs_url}}.keytab"
+        state: hard
+      notify:
+        - Remove the previous buildroot image
+        - Build the new buildroot container
+
+      when: etcosbs_kt_stat.stat.exists == false
+
+    - name: pull fedora required docker images
+      command: "docker pull {{source_registry}}/{{item}}"
+      with_items: "{{fedora_required_images}}"
+      register: docker_pull_fedora
+      changed_when: "'Downloaded newer image' in docker_pull_fedora.stdout"
+
+    - name: enable nrpe for monitoring (noc01)
+      iptables: action=insert chain=INPUT destination_port=5666 protocol=tcp source=10.5.126.41 state=present jump=ACCEPT

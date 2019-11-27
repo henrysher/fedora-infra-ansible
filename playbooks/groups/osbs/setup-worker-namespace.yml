@@ -1,0 +1,106 @@
+- name: Create worker namespace
+  hosts: osbs_masters_stg[0]:osbs_masters[0]:osbs_aarch64_masters_stg[0]:osbs_aarch64_masters[0]
+  tags:
+    - osbs-worker-namespace
+  user: root
+  vars_files:
+    - /srv/web/infra/ansible/vars/global.yml
+    - "/srv/private/ansible/vars.yml"
+    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  vars:
+    osbs_kubeconfig_path: /etc/origin/master/admin.kubeconfig
+    osbs_environment:
+      KUBECONFIG: "{{ osbs_kubeconfig_path }}"
+
+  roles:
+    - role: osbs-namespace
+      osbs_namespace: "{{ osbs_worker_namespace }}"
+      osbs_service_accounts: "{{ osbs_worker_service_accounts }}"
+      osbs_nodeselector: "{{ osbs_worker_default_nodeselector|default('') }}"
+      osbs_sources_command: "{{ osbs_conf_sources_command }}"
+
+- name: setup ODCS secret in worker namespace
+  hosts: osbs_masters_stg[0]:osbs_masters[0]:osbs_aarch64_masters_stg[0]:osbs_aarch64_masters[0]
+  vars_files:
+    - /srv/web/infra/ansible/vars/global.yml
+    - "/srv/private/ansible/vars.yml"
+    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+  roles:
+  - role: osbs-secret
+    osbs_namespace: "{{ osbs_worker_namespace }}"
+    osbs_secret_name: odcs-oidc-secret
+    osbs_secret_files:
+    - source: "{{ private }}/files/osbs/{{ env }}/odcs-oidc-token"
+      dest: token
+  tags:
+    - osbs-worker-namespace
+
+- name: Add dockercfg secret to allow registry push worker
+  hosts: osbs_masters_stg[0]:osbs_masters[0]:osbs_aarch64_masters_stg[0]:osbs_aarch64_masters[0]
+  tags:
+    - osbs-dockercfg-secret
+    - osbs-worker-namespace
+  user: root
+
+  vars_files:
+    - /srv/web/infra/ansible/vars/global.yml
+    - "/srv/private/ansible/vars.yml"
+    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  pre_tasks:
+    - name: Create the username:password string needed by the template
+      set_fact:
+        auth_info_prod: "{{candidate_registry_osbs_prod_username}}:{{candidate_registry_osbs_prod_password}}"
+        auth_info_stg: "{{candidate_registry_osbs_stg_username}}:{{candidate_registry_osbs_stg_password}}"
+
+    - name: Create the dockercfg secret file
+      local_action: >
+        template
+        src="{{ files }}/osbs/dockercfg-{{env}}-secret.j2"
+        dest="/tmp/.dockercfg"
+        mode=0400
+
+  roles:
+    - role: osbs-secret
+      osbs_namespace: "{{ osbs_worker_namespace }}"
+      osbs_secret_name: "v2-registry-dockercfg"
+      osbs_secret_type: kubernetes.io/dockercfg
+      osbs_secret_files:
+      - source: "/tmp/.dockercfg"
+        dest: .dockercfg
+
+  post_tasks:
+    - name: Delete the temporary secret file
+      local_action: >
+        file
+        state=absent
+        path="/tmp/.dockercfg"
+
+- name: Add the worker labels to the nodes x86_64
+  hosts: osbs_masters_stg[0]:osbs_masters[0]
+  tags:
+    - osbs-labels-nodes
+  tasks:
+    - name: Add the worker label
+      command: "oc -n {{ osbs_worker_namespace }} label nodes {{ item }} worker=true --overwrite"
+      loop: "{{ groups['osbs_nodes_stg'] }}"
+      when: env == "staging"
+    - name: Add the worker label
+      command: "oc -n {{ osbs_worker_namespace }} label nodes {{ item }} worker=true --overwrite"
+      loop: "{{ groups['osbs_nodes'] }}"
+      when: env == "production"
+
+- name: Add the worker labels to the nodes aarch64
+  hosts: osbs_aarch64_masters_stg[0]:osbs_aarch64_masters[0]
+  tags:
+    - osbs-labels-nodes
+  tasks:
+    - name: Add the worker label
+      command: "oc -n {{ osbs_worker_namespace }} label nodes {{ item }} worker=true --overwrite"
+      loop: "{{ groups['osbs-aarch64-nodes-stg'] }}"
+      when: env == "staging"
+    - name: Add the worker label
+      command: "oc -n {{ osbs_worker_namespace }} label nodes {{ item }} worker=true --overwrite"
+      loop: "{{ groups['osbs-aarch64-nodes'] }}"
+      when: env == "production"
