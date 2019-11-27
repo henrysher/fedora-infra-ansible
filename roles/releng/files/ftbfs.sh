@@ -1,5 +1,7 @@
 #!/bin/bash
 # A weekly cron job which actually does the items needed.
+# Only run every third week, see https://pagure.io/releng/issue/8915
+test $(($(date +%W) % 3)) -eq 0 || exit 0
 TMPDIR=`mktemp -d /tmp/ftbfs_reminder.XXXXXX` 
 GITREPO=https://pagure.io/releng.git 
 SCRIPT=ftbfs_weekly_reminder.py
