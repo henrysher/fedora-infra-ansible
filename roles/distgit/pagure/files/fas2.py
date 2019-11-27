@@ -279,7 +279,7 @@ class AccountSystem(BaseClient):
             216452: 'dwd@fedoraproject.org',
             # Till Hofmann: <till.hofmann@posteo.de>
             175557: 'thofmann@fedoraproject.org',
-            # Philip Kovacs: pkfed@mxbits.io
+            # Philip Kovacs: phil@mxbits.io
             218108: 'pkfed@fedoraproject.org',
         }
         # A few people have an email account that is used in owners.list but
