@@ -32,7 +32,7 @@ etcd
 
 # Set variables common for all OSEv3 hosts
 [OSEv3:vars]
-openshift_node_groups=[{'name': 'node-config-master', 'labels': ['node-role.kubernetes.io/master=true']}, {'name': 'node-config-infra', 'labels': ['node-role.kubernetes.io/infra=true',]}, {'name': 'node-config-compute', 'labels': ['node-role.kubernetes.io/compute=true'], 'edits': [{ 'key': 'kubeletArguments.pods-per-core','value': ['20']}]}]
+openshift_node_groups=[{'name': 'node-config-master', 'labels': ['node-role.kubernetes.io/master=true', 'orchestrator=true']}, {'name': 'node-config-infra', 'labels': ['node-role.kubernetes.io/infra=true',]}, {'name': 'node-config-compute', 'labels': ['node-role.kubernetes.io/compute=true', 'node-role.kubernetes.io/infra=true', 'worker=true'], 'edits': [{ 'key': 'kubeletArguments.pods-per-core','value': ['20']}]}]
 # Disable the service catalog. We don't use it and it needs persistent storage.
 openshift_enable_service_catalog=false
 # Set this because we have nfs which isn't supported
@@ -40,7 +40,7 @@ openshift_enable_unsupported_configurations=true
 # Have upgrader also restart systems in a rolling manner.
 openshift_rolling_restart_mode=system
 # Disable the disk and package version tests
-openshift_disable_check=disk_availability,package_version,docker_image_availability
+openshift_disable_check=disk_availability,package_version,docker_image_availability,memory_availability,docker_storage
 # SSH user, this user should allow ssh based auth without requiring a
 # password. If using ssh key based auth, then the key should be managed by an
 # ssh agent.
