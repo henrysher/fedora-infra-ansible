@@ -76,31 +76,3 @@
         file
         state=absent
         path="/tmp/.dockercfg"
-
-- name: Add the worker labels to the nodes x86_64
-  hosts: osbs_masters_stg[0]:osbs_masters[0]
-  tags:
-    - osbs-labels-nodes
-  tasks:
-    - name: Add the worker label
-      command: "oc -n {{ osbs_worker_namespace }} label nodes {{ item }} worker=true --overwrite"
-      loop: "{{ groups['osbs_nodes_stg'] }}"
-      when: env == "staging"
-    - name: Add the worker label
-      command: "oc -n {{ osbs_worker_namespace }} label nodes {{ item }} worker=true --overwrite"
-      loop: "{{ groups['osbs_nodes'] }}"
-      when: env == "production"
-
-- name: Add the worker labels to the nodes aarch64
-  hosts: osbs_aarch64_masters_stg[0]:osbs_aarch64_masters[0]
-  tags:
-    - osbs-labels-nodes
-  tasks:
-    - name: Add the worker label
-      command: "oc -n {{ osbs_worker_namespace }} label nodes {{ item }} worker=true --overwrite"
-      loop: "{{ groups['osbs-aarch64-nodes-stg'] }}"
-      when: env == "staging"
-    - name: Add the worker label
-      command: "oc -n {{ osbs_worker_namespace }} label nodes {{ item }} worker=true --overwrite"
-      loop: "{{ groups['osbs-aarch64-nodes'] }}"
-      when: env == "production"
