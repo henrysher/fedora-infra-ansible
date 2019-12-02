@@ -51,6 +51,7 @@ aws_groups = {
     'aws-docs': 'arn:aws:iam::125523088429:role/aws-docs',
     'aws-copr': 'arn:aws:iam::125523088429:role/aws-copr',
     'aws-centos': 'arn:aws:iam::125523088429:role/aws-centos',
+    'aws-min': 'arn:aws:iam::125523088429:role/aws-min',
 }
 
 
