@@ -43,7 +43,7 @@ test -z "$2" || ansible_options+=( -e image_name="$2" )
 
 ansible-playbook "$playbook" "${ansible_options[@]}" |& tee "$logfile"
 
-vm_name=$(sed -n 's/.*vm_name=\(\w\+\).*/\1/p' "$logfile" | head -1)
+vm_name=$(sed -n 's/.*vm_name=\([[:alnum:]_-]\+\).*/\1/p' "$logfile" | head -1)
 test -n "$vm_name"
 ip=$(sed -n 's/.*VM_IP=\([0-9\.]\+\).*/\1/p' "$logfile" | head -1)
 test -n "$ip"
