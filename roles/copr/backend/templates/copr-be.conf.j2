@@ -26,7 +26,7 @@ frontend_auth={{ copr_backend_password }}
 #   vm_max_check_fails=2 - when machine is consequently X times marked as failed then it is terminated
 #   vm_terminating_timeout=600 - when machine was terminated and terminate PB did not finish within this number of second, we will run the PB once again.
 
-build_groups=4
+build_groups={% if devel %}5{% else %}4{% endif %}
 
 group0_name=PC
 group0_archs=i386,x86_64,i586,armhfp
@@ -98,6 +98,24 @@ group3_max_spawn_processes=8
 group3_max_vm_total=4
 group3_max_vm_per_user=2
 group3_max_spawn_processes=2
+{% endif %}
+
+group4_name=aarch64_AWS
+group4_archs=aarch64
+group4_spawn_playbook=/home/copr/provision/builderpb-aws-aarch64.yml
+group4_terminate_playbook=/home/copr/provision/terminatepb-aws.yml
+group4_vm_health_check_period=30
+group4_vm_health_check_max_time=80
+group4_vm_spawn_min_interval=5
+
+{% if not devel %}
+group4_max_vm_total=10
+group4_max_vm_per_user=3
+group4_max_spawn_processes=5
+{% else %}
+group4_max_vm_total=2
+group4_max_vm_per_user=2
+group4_max_spawn_processes=2
 {% endif %}
 
 # directory where results are stored
