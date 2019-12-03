@@ -127,7 +127,7 @@ class ProdConfiguration(BaseConfiguration):
     KOJI_CONFIG = path.join(confdir, 'koji.conf')
 {% if env == 'staging' %}
     KOJI_PROFILE = 'staging'
-    ARCHES = ['aarch64', 'x86_64']
+    ARCHES = ['aarch64', 'ppc64le', 's390x', 'x86_64']
     BASE_MODULE_ARCHES = {
         # Fedora 31 and later drop 'i686'. Keep it around for older releases.
         # https://fedoraproject.org/wiki/Changes/Noi686Repositories
