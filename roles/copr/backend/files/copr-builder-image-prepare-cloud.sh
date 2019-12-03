@@ -24,9 +24,28 @@ parse_first_argument()
     IFS=$old_IFS
 }
 
+help_output()
+{
+    cat >&2 <<EOF
+Usage: $0 CLOUD:ARCH [IMAGE]
+
+Prepare image for spawning copr builder VM.
+
+Valid values for CLOUD are 'os' (OpenStack) or 'aws' (Amazon Web Services).
+ARCH can be 'x86_64|aarch64' for CLOUD=aws, or 'x86_64|ppc64le' for CLOUD=os.
+
+By default, each CLOUD:ARCH pair has it's own default image ID preconfigured,
+and we spinup the VM from that image.  This can be overwritten by IMAGE
+argument, e.g. when migrating from Fedora N to Fedora N+1.
+EOF
+}
+
+die() { echo "$*" >&2; echo >&2; help_output; exit 1; }
+
+test -n "$1" || die "No CLOUD:ARCH specified."
+
 parse_first_argument "$1"
 
-die() { echo "$*" >&2 ; exit 1 ; }
 
 case $cloud:$arch in
     os:ppc64le) playbook=/home/copr/provision/builderpb_nova_ppc64le.yml ;;
@@ -100,4 +119,7 @@ elif test $cloud = aws; then
     aws ec2 create-tags \
         --resources "$image_id" \
         --tags Key=FedoraGroup,Value=copr
+
+    echo >&2 "The new image ID   is: $image_id"
+    echo >&2 "The new image Name is: $new_volume_name"
 fi
