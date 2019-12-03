@@ -32,6 +32,7 @@ case $cloud:$arch in
     os:ppc64le) playbook=/home/copr/provision/builderpb_nova_ppc64le.yml ;;
     os:x86_64)  playbook=/home/copr/provision/builderpb_nova.yml ;;
     aws:x86_64) playbook=/home/copr/provision/builderpb-aws-x86_64.yml ;;
+    aws:aarch64) playbook=/home/copr/provision/builderpb-aws-aarch64.yml ;;
     *) die "bad cloud ($cloud) or architecture ($arch)" ;;
 esac
 
