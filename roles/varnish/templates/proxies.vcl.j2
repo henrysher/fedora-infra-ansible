@@ -87,11 +87,6 @@ backend kerneltest {
     .port = "10038";
 }
 
-backend paste {
-    .host = "localhost";
-    .port = "10055";
-}
-
 backend registry {
     .host = "localhost";
     .port = "10048";
@@ -196,14 +191,6 @@ sub vcl_recv {
     }
     if (req.url ~ "^/freemedia/") {
         set req.backend_hint = freemedia;
-    }
-    if (req.http.X-Forwarded-Server ~ "^paste.fedoraproject.org") {
-        set req.backend_hint = paste;
-        if (req.url ~ "^/static/") {
-            unset req.http.cookie;
-            set req.http.clear-cookies = "yes";
-            set req.url = regsub(req.url, "\?.*", "");
-        }
     }
     if (req.http.X-Forwarded-Server ~ "^ask.fedoraproject.org") {
         set req.backend_hint = askbot;
