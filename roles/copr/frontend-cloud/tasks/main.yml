@@ -1,4 +1,7 @@
 ---
+- fail: msg='not ready for production ATM'
+  when: not devel
+
 - import_tasks: "mount_fs.yml"
 
 - name: register security context for pgsql directory
@@ -119,9 +122,8 @@
   when: devel|bool
   copy: src=robots.txt dest=/var/www/html/
 
-
 - name: register whether indexes rebuild is required
-  command: copr-frontend update_indexes_required
+  command: copr-frontend update-indexes-required
   become: yes
   become_user: copr-fe
   register: update_indexes_required_result
@@ -129,7 +131,7 @@
   failed_when: False
 
 - name: rebuild indexes
-  command: ./manage.py update_indexes
+  command: ./manage.py update-indexes
   become: yes
   become_user: copr-fe
   args:
