@@ -144,6 +144,9 @@
   tags:
   - config
 
+- name: detect copr-frontend version
+  package_facts: manager=auto
+
 - name: start fm-consumer service
   service: state=started enabled=yes name="fm-consumer@copr_messaging"
-  when: devel|bool  # Remove this condition on next copr-frontend release
+  when: ansible_facts.packages['copr-frontend'][0].version is version('1.156', '>=')
