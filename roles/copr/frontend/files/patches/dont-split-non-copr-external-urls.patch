@@ -1,0 +1,44 @@
+commit 7387806b22e51a1e93e968dbaee1404558f0a06a (HEAD -> master, praiskup/fix-rewritten-build-config, fix-rewritten-build-config)
+Author:     Pavel Raiskup <praiskup@redhat.com>
+AuthorDate: Thu Dec 5 09:00:59 2019 +0100
+Commit:     Pavel Raiskup <praiskup@redhat.com>
+CommitDate: Thu Dec 5 09:00:59 2019 +0100
+
+    frontend: don't assume all additional repos are copr://
+    
+    The get_copr_by_repo_safe() is designed to return None.  It calls
+    helpers.copr_repo_fullname() which may return None as well, so when it
+    happens we need to return None (not try to None.split()).
+    
+    Fixes: #1142
+
+diff --git a/frontend/coprs_frontend/coprs/logic/complex_logic.py b/frontend/coprs_frontend/coprs/logic/complex_logic.py
+index 6e6c7954..4d7ee44d 100644
+--- a/frontend/coprs_frontend/coprs/logic/complex_logic.py
++++ b/frontend/coprs_frontend/coprs/logic/complex_logic.py
+@@ -144,21 +144,24 @@ class ComplexLogic(object):
+                         .format(user_name, copr_name))
+ 
+     @staticmethod
+     def get_copr_by_owner_safe(owner_name, copr_name, **kwargs):
+         if owner_name[0] == "@":
+             return ComplexLogic.get_group_copr_safe(owner_name[1:], copr_name, **kwargs)
+         return ComplexLogic.get_copr_safe(owner_name, copr_name, **kwargs)
+ 
+     @staticmethod
+     def get_copr_by_repo_safe(repo_url):
+-        owner, copr = helpers.copr_repo_fullname(repo_url).split("/")
++        copr_repo = helpers.copr_repo_fullname(repo_url)
++        if not copr_repo:
++            return None
++        owner, copr = copr_repo.split("/")
+         return ComplexLogic.get_copr_by_owner_safe(owner, copr)
+ 
+     @staticmethod
+     def get_copr_dir_safe(ownername, copr_dirname, **kwargs):
+         try:
+             return CoprDirsLogic.get_by_ownername(ownername, copr_dirname).one()
+         except sqlalchemy.orm.exc.NoResultFound:
+             raise ObjectNotFound(message="copr dir {}/{} does not exist."
+                         .format(ownername, copr_dirname))
+ 
