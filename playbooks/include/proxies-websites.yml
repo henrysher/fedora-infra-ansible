@@ -13,11 +13,28 @@
 
 
   pre_tasks:
-  - name: Install policycoreutils-python
-    package: name={{item}} state=present
-    with_items:
-    - policycoreutils-python-utils
-    - policycoreutils-python
+  - name: install libsemanage
+    package:
+      state: present
+      name:
+      - policycoreutils-python-utils
+      - policycoreutils-python
+    tags:
+    - httpd
+    - httpd/website
+    when: (ansible_distribution == 'RedHat' and ansible_distribution_major_version|int < 8) or (ansible_distribution_major_version|int < 30 and ansible_distribution == 'Fedora')
+
+  - name: install libsemanage in a python3 manner
+    package:
+      state: present
+      name:
+      - python3-policycoreutils
+      - policycoreutils-python-utils
+    tags:
+    - httpd
+    - httpd/website
+    when: (ansible_distribution_major_version|int >= 30 and ansible_distribution == 'Fedora') or (ansible_distribution == 'RedHat' and ansible_distribution_major_version|int >= 8)
+
 
   - name: Create /srv/web/ for all the goodies.
     file: >
