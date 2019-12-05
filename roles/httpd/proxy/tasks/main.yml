@@ -53,12 +53,27 @@
   - httpd
   - httpd/proxy
 
-- name: Install libsemanage-python so we can manage selinux with python...
-  package: name=libsemanage-python state=present
+- name: install libsemanage
+  package:
+    state: present
+    name:
+    - libsemanage-python
   tags:
   - httpd
   - httpd/proxy
   - selinux
+  when: (ansible_distribution == 'RedHat' and ansible_distribution_major_version|int < 8) or (ansible_distribution_major_version|int < 30 and ansible_distribution == 'Fedora')
+
+- name: install libsemanage in a python3 manner
+  package:
+    state: present
+    name:
+    - python3-libsemanage
+  tags:
+  - httpd
+  - httpd/proxy
+  - selinux
+  when: (ansible_distribution_major_version|int >= 30 and ansible_distribution == 'Fedora') or (ansible_distribution == 'RedHat' and ansible_distribution_major_version|int >= 8)
 
 - name: Turn on certain selinux booleans we need for our proxy layer
   seboolean: name={{ item }} state=true persistent=true
