@@ -159,6 +159,16 @@ virt_install_command_aarch64_one_nic_unsafe: virt-install -n {{ inventory_hostna
                  --network bridge={{ main_bridge }},model=virtio,mac={{ mac_address }}
                  --autostart --noautoconsole
 
+virt_install_command_aarch64_2nd_nic: virt-install -n {{ inventory_hostname }}
+                 --memory={{ mem_size }},maxmemory={{ max_mem_size }} --memballoon virtio
+                 --disk bus=virtio,path={{ volgroup }}/{{ inventory_hostname }}
+                 --vcpus={{ num_cpus }},maxvcpus={{ max_cpu }} -l {{ ks_repo }} -x
+                 'net.ifnames=0 ksdevice=eth0 ks={{ ks_url }}
+                  hostname={{ inventory_hostname }} nameserver={{ dns }}
+                  ip={{ eth0_ip }}::{{ gw }}:{{ nm }}:{{ inventory_hostname }}:eth0:none'
+                 --network bridge={{ nfs_bridge }},model=virtio,mac={{ mac_address }}
+                 --autostart --noautoconsole
+
 virt_install_command_aarch64_two_nic: virt-install -n {{ inventory_hostname }}
                  --memory={{ mem_size }},maxmemory={{ max_mem_size }} --memballoon virtio
                  --disk bus=virtio,path={{ volgroup }}/{{ inventory_hostname }}
