@@ -1,0 +1,48 @@
+- name: make the app be real
+  hosts: os_masters_stg[0]:os_masters
+  user: root
+  gather_facts: False
+
+  vars_files:
+    - /srv/web/infra/ansible/vars/global.yml
+    - "/srv/private/ansible/vars.yml"
+    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
+
+  roles:
+  - role: openshift/project
+    app: distgit_bugzilla_sync
+    description: Cron job syncing to bugzilla the default assignee and CC list set in dist-git
+    appowners:
+    - cverna
+    - pingou
+
+  - role: openshift/object
+    app: distgit_bugzilla_sync
+    template: imagestream.yml
+    objectname: imagestream.yml
+
+  - role: openshift/object
+    app: distgit_bugzilla_sync
+    template: buildconfig.yml
+    objectname: buildconfig.yml
+
+  - role: openshift/object
+    app: distgit_bugzilla_sync
+    template: configmap.yml
+    objectname: configmap.yml
+
+  - role: openshift/object
+    app: distgit_bugzilla_sync
+    file: cron.yml
+    objectname: cron.yml
+    tags:
+      - cron-job
+
+  - role: openshift/start-build
+    app: distgit_bugzilla_sync
+    buildname: mdapi-build
+    objectname: mdapi-build
+
+  - role: openshift/rollout
+    app: distgit_bugzilla_sync
+    dcname: distgit_bugzilla_sync

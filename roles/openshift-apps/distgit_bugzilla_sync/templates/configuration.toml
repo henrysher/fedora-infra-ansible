@@ -1,0 +1,130 @@
+environment = "staging"
+data_cache = "/var/tmp/pagure_sync_bz.json"
+default_qa_contact_email = "extras-qa@fedoraproject.org"
+bz_maintainer_change_comment = """
+This package has changed maintainer in the Fedora.
+Reassigning to the new maintainer of this component.
+"""
+
+[products]
+    [products.Fedora]
+        namespace = "rpms"
+        versions = ["rawhide", "31", "30", "29"]
+    [products."Fedora Container"]
+        namespace = "container"
+        versions = ["rawhide", "29"]
+        bz_product_name = "Fedora Container Images"
+    [products."Fedora Modules"]
+        namespace = "modules"
+        versions = []
+    [products."Fedora EPEL"]
+        branch_regex = '^epel\d+$'
+        versions = ["epel8", "epel7", "el6"]
+
+[pdc_types]
+    "rpms" = "rpm"
+    "modules" = "module"
+    "container" = "container"
+
+[email]
+    send_mails = false
+    smtp_host = "bastion.fedoraproject.org"
+    from = "accounts@fedoraproject.org"
+    notify_admins = [
+        "root@localhost.localdomain",
+    ]
+
+    [email.templates]
+        admin_notification = """
+The following errors were encountered while updating bugzilla with information
+from the Package Database.  Please have the problems taken care of:
+
+{errors}
+"""
+
+        # User email for invalid setup
+        user_notification = """Greetings.
+
+You are receiving this email because there's a problem with your
+bugzilla.redhat.com account.
+
+If you recently changed the email address associated with your
+Fedora account in the Fedora Account System, it is now out of sync
+with your bugzilla.redhat.com account. This leads to problems
+with Fedora packages you own or are CC'ed on bug reports for.
+
+Please take one of the following actions:
+
+a) login to your old bugzilla.redhat.com account and change the email
+address to match your current email in the Fedora account system.
+https://bugzilla.redhat.com login, click preferences, account
+information and enter new email address.
+
+b) Create a new account in bugzilla.redhat.com to match your
+email listed in your Fedora account system account.
+https://bugzilla.redhat.com/ click 'new account' and enter email
+address.
+
+c) Change your Fedora Account System email to match your existing
+bugzilla.redhat.com account.
+https://admin.fedoraproject.org/accounts login, click on 'my account',
+then 'edit' and change your email address.
+
+If you have questions or concerns, please let us know.
+
+Your prompt attention in this matter is appreciated.
+
+The Fedora admins.
+"""
+
+[environments]
+
+[environments.staging]
+    verbose = true
+    dryrun = false
+
+    pagure_url = "https://stg.pagure.io"
+    distgit_url = "https://src.stg.fedoraproject.org"
+    pdc_url = "https://pdc.stg.fedoraproject.org/rest_api/v1/"
+    mdapi_url = "https://mdapi.stg.fedoraproject.org/"
+
+
+    [environments.staging.bugzilla]
+        url = "https://partner-bugzilla.redhat.com"
+        user = "{{ bugzilla_user }}"
+        password = "{{ bugzilla_password }}"
+        compat_api = "component.get"
+        # Should land in pagure at one point
+        override_repo = "releng/fedora-scm-requests"
+        # When querying for current info, take segments of 1000 packages a time
+        req_segment = 1000
+
+    [environments.staging.fas]
+        url = "https://admin.stg.fedoraproject.org/accounts"
+        username = "{{ fcommFasUser }}"
+        password = "{{ fcommFasPassword }}"
+
+[environments.production]
+    verbose = false
+    dryrun = false
+
+    pagure_url = "https://pagure.io"
+    distgit_url = "https://src.fedoraproject.org"
+    pdc_url = "https://pdc.fedoraproject.org/rest_api/v1/"
+    mdapi_url = "https://mdapi.fedoraproject.org/"
+
+
+    [environments.production.bugzilla]
+        url = "https://bugzilla.redhat.com"
+        user = "{{ bugzilla_user }}"
+        password = "{{ bugzilla_password }}"
+        compat_api = "component.get"
+        # Should land in pagure at one point
+        override_repo = "releng/fedora-scm-requests"
+        # When querying for current info, take segments of 1000 packages a time
+        req_segment = 1000
+
+    [environments.production.fas]
+        url = "https://admin.fedoraproject.org/accounts"
+        username = "{{ fcommFasUser }}"
+        password = "{{ fcommFasPassword }}"
