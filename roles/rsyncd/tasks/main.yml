@@ -13,7 +13,7 @@
   tags:
   - packages
   - rsyncd
-  when: ansible_distribution_major_version|int < 8 and ansible_distribution == 'RedHat'
+  when: (ansible_distribution == 'RedHat' and ansible_distribution_major_version|int < 8) or (ansible_distribution_major_version|int < 30 and ansible_distribution == 'Fedora')
 
 - name: install necessary packages
   package:
@@ -21,23 +21,11 @@
     name:
     - rsync
     - xinetd
-    - libsemanage-python
+    - python3-libsemanage
   tags:
   - packages
   - rsyncd
-  when: ansible_distribution_major_version|int >= 8 and ansible_distribution == 'RedHat'
-
-- name: install necessary packages
-  package:
-    state: present
-    name:
-    - rsync
-    - xinetd
-    - libsemanage-python
-  tags:
-  - packages
-  - rsyncd
-  when: ansible_distribution_major_version|int >= 29 and ansible_distribution == 'Fedora'
+  when: (ansible_distribution_major_version|int >= 30 and ansible_distribution == 'Fedora') or (ansible_distribution == 'RedHat' and ansible_distribution_major_version|int >= 8)
 
 - name: rsyncd.conf file
   copy: src={{ item }} dest=/etc/rsyncd.conf mode=0644
