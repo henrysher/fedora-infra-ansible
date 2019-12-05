@@ -1,7 +1,7 @@
 apiVersion: batch/v1beta1
 kind: CronJob
 metadata:
-  name: distgit_bugzilla_sync
+  name: distgit-bugzilla-sync
 spec:
   successfulJobsHistoryLimit: 3
   failedJobsHistoryLimit: 1
@@ -12,19 +12,19 @@ spec:
       template:
         metadata:
           labels:
-            parent: "cronjobdistgit_bugzilla_sync"
+            parent: "cronjobdistgit-bugzilla-sync"
         spec:
           containers:
-          - name: distgit_bugzilla_sync
-            image: docker-registry.default.svc:5000/distgit_bugzilla_sync/mdapi:latest
+          - name: distgit-bugzilla-sync
+            image: docker-registry.default.svc:5000/distgit-bugzilla-sync/mdapi:latest
             command: ["distgit-bugzilla-sync --verbose --no-user-notifications"]
             volumeMounts:
             - name: config-volume
-              mountPath: /etc/distgit_bugzilla_sync
+              mountPath: /etc/distgit-bugzilla-sync
               readOnly: true
           restartPolicy: Never
           volumes:
           - name: config-volume
             configMap:
                 defaultMode: 420
-                name: distgit_bugzilla_sync-configmap
+                name: distgit-bugzilla-sync-configmap
