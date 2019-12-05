@@ -1,6 +1,7 @@
 ---
 # Tasks to set up fedmsg-gateway-slave
 
+
 - name: install needed packages
   package:
     state: present
@@ -11,6 +12,20 @@
   - packages
   - fedmsg/gateway
   - fedmsg/gateway/slave
+  when: (ansible_distribution == 'RedHat' and ansible_distribution_major_version|int < 8) or (ansible_distribution_major_version|int < 30 and ansible_distribution == 'Fedora')
+
+- name: install needed packages in a python 3 manner
+  package:
+    state: present
+    name:
+    - python3-fedmsg
+    - stunnel
+  tags:
+  - packages
+  - fedmsg/gateway
+  - fedmsg/gateway/slave
+  when: (ansible_distribution_major_version|int >= 30 and ansible_distribution == 'Fedora') or (ansible_distribution == 'RedHat' and ansible_distribution_major_version|int >= 8)
+
 
 #- name: Apply fixing patch
 #  patch: src=fixup.patch dest=/usr/lib/python2.7/site-packages/fedmsg/consumers/__init__.py
@@ -96,6 +111,14 @@
   tags:
   - fedmsg/gateway
   - fedmsg/gateway/slave
+  when: (ansible_distribution == 'RedHat' and ansible_distribution_major_version|int < 8) or (ansible_distribution_major_version|int < 30 and ansible_distribution == 'Fedora')
+
+- name: start the gateway for raw zeromq traffic
+  service: name=fedmsg-gateway-3 state=started enabled=yes
+  tags:
+  - fedmsg/gateway
+  - fedmsg/gateway/slave
+  when: (ansible_distribution_major_version|int >= 30 and ansible_distribution == 'Fedora') or (ansible_distribution == 'RedHat' and ansible_distribution_major_version|int >= 8)
 
 - name: start stunnel for websockets traffic
   service: name=stunnel state=started enabled=yes
