@@ -2,7 +2,54 @@
 
 set -e
 
-test "$UID" != "0" || { echo "execute as copr user" && exit 1 ; }
+help_output()
+{
+    cat >&2 <<EOF
+Usage: $0 [--kill-also-unused]
+
+This script terminates all VMs started in AWS which are "probably" started by
+this instance of Copr, but are no more relevant for us.
+
+Normal mode (no --kill-also-unused) only terminates VMs which
+- are in running state,
+- are named properly (e.g. copr-builder-<instance>....)
+- and are not in our redis database.
+Such leftover VM usually occurs by manual spawning of bulider, during image
+creation.  But bug in VM spawner can cause this, etc.  That's why we run this
+mode periodically in cron job.
+
+The --kill-also-unused mode is useful when we need to re-distribute new
+mock/rpmbuild configuration to all builders.  All unused builders are
+terminated (so we don't kill running builds) and respawned.
+EOF
+}
+
+die ()
+{
+    echo >&2 "$*"
+    echo >&2
+    help_output
+    exit 1
+}
+
+test "$UID" != "0" || die "execute as copr user"
+
+kill_unused=false
+
+for arg; do
+    case $arg in
+    -h|--help)
+        help_output
+        exit 1
+        ;;
+    --kill-also-unused)
+        kill_unused=true
+        ;;
+    *)
+        die "unknown arg $arg"
+        ;;
+    esac
+done
 
 something_found=false
 
@@ -16,6 +63,12 @@ tracked()
 {
         name=$(redis-cli --scan --pattern "copr:backend:vm_instance:hset::$1")
         test -n "$name"
+}
+
+used()
+{
+    task=$(redis-cli hget "copr:backend:vm_instance:hset::$1" task_id)
+    test -n "$task"
 }
 
 old_enough()
@@ -49,11 +102,14 @@ while read -r aws_id vm_name launch_time; do
     copr-$prefix-builder*)
         something_found=true
 
-        # skip known VMs
-        tracked "$vm_name" && continue
+        if tracked "$vm_name"; then
+            # skip known VMs
+            ! $kill_unused && continue
+            used "$vm_name" && continue
+        fi
 
         # skip recently started VMs
-        if ! old_enough "$launch_time"; then
+        if ! $kill_unused && ! old_enough "$launch_time"; then
             echo >&2 "$vm_name is not yet old enough: $launch_time"
             continue
         fi
