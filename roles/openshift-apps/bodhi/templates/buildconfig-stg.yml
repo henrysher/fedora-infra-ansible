@@ -119,3 +119,35 @@ items:
         name: bodhi-celery:latest
 kind: List
 metadata: {}
+
+---
+apiVersion: v1
+items:
+- apiVersion: v1
+  kind: BuildConfig
+  metadata:
+    labels:
+      build: bodhi-celery-beat
+    name: bodhi-celery-beat
+  spec:
+    runPolicy: Serial
+    source:
+      dockerfile: |-
+        {{ load_file('dockerfile-celery-beat') | indent(8) }}
+      type: Dockerfile
+    strategy:
+      type: Docker
+      dockerStrategy:
+        from:
+          kind: "ImageStreamTag"
+          name: "bodhi-base:latest"
+        noCache: false
+    triggers:
+      - type: "imageChange"
+        imageChange: {}
+    output:
+      to:
+        kind: ImageStreamTag
+        name: bodhi-celery-beat:latest
+kind: List
+metadata: {}

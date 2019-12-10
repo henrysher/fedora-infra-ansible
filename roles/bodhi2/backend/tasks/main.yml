@@ -29,7 +29,7 @@
       - pungi-utils
       # Needed for runroot
       - python2-koji-cli-plugins
-      # needed to make comps 
+      # needed to make comps
       - make
       # needed for updates sync
       - rsync
@@ -175,39 +175,58 @@
   - bodhi
   - cron
 
-# bodhi jobs, previously run by the TurboGears scheduler.
+# Bodhi cron jobs, disabled on staging because we replaced them with celery-beat
 
 - name: bodhi-approve-testing cron job.
-  cron: name="bodhi-approve-testing" minute="*/3" user="apache"
-        job="/usr/bin/bodhi-approve-testing /etc/bodhi/production.ini > /dev/null"
-        cron_file=bodhi-approve-testing-job
+  cron:
+    name: bodhi-approve-testing
+    minute: "*/3"
+    user: apache
+    job: "/usr/bin/bodhi-approve-testing /etc/bodhi/production.ini > /dev/null"
+    cron_file: bodhi-approve-testing-job
+    state: "{{ (env == 'production')|ternary('present', 'absent') }}"
   tags:
   - config
   - bodhi
   - cron
 
 - name: bodhi-check-policies cron job.
-  cron: name="bodhi-check-policies" hour="*/1" minute=0 user="apache"
-        job="/usr/bin/bodhi-check-policies >& /dev/null"
-        cron_file=bodhi-check-policies-job
+  cron:
+    name: bodhi-check-policies
+    hour: "*/1"
+    minute: "0"
+    user: apache
+    job: "/usr/bin/bodhi-check-policies >& /dev/null"
+    cron_file: bodhi-check-policies-job
+    state: "{{ (env == 'production')|ternary('present', 'absent') }}"
   tags:
   - config
   - bodhi
   - cron
 
 - name: bodhi-clean-old-composes cron job.
-  cron: name="bodhi-clean-old-composes" hour="03" minute="03" user="root"
-        job="/usr/bin/bodhi-clean-old-composes 2>&1 | logger -t bodhi-clean-old-composes"
-        cron_file=bodhi-clean-old-composes
+  cron:
+    name: bodhi-clean-old-composes
+    hour: "03"
+    minute: "03"
+    user: root
+    job: "/usr/bin/bodhi-clean-old-composes 2>&1 | logger -t bodhi-clean-old-composes"
+    cron_file: bodhi-clean-old-composes
+    state: "{{ (env == 'production')|ternary('present', 'absent') }}"
   tags:
   - config
   - bodhi
   - cron
 
 - name: bodhi-expire-overrides cron job.
-  cron: name="bodhi-expire-overrides" hour="*" minute=0 user="apache"
-        job="/usr/bin/bodhi-expire-overrides /etc/bodhi/production.ini 2>&1 | logger -t bodhi-expire-overrides"
-        cron_file=bodhi-expire-overrides-job
+  cron:
+    name: bodhi-expire-overrides
+    hour: "*"
+    minute: "0"
+    user: apache
+    job: "/usr/bin/bodhi-expire-overrides /etc/bodhi/production.ini 2>&1 | logger -t bodhi-expire-overrides"
+    cron_file: bodhi-expire-overrides-job
+    state: "{{ (env == 'production')|ternary('present', 'absent') }}"
   tags:
   - config
   - bodhi
