@@ -120,24 +120,6 @@
       env_suffix: ""
     tags: ['rabbit']
 
-    # autocloudreporter queue, we still use openqa auth for this as it's
-    # easy that way
-  - role: rabbit/queue
-    username: "openqa"
-    queue_name: "openqa_autocloudreporter{{ autocloudreporter_env_suffix }}"
-    routing_keys:
-        - "org.fedoraproject.prod.autocloud.image.failed"
-        - "org.fedoraproject.prod.autocloud.image.success"
-    write_queues:
-        - "ci"
-        - "openqa"
-    vars:
-      # yes, even the staging reporter listens to production, the
-      # staging autocloud has been inactive since 2017 so there are
-      # no results to forward...
-      env: "production"
-      env_suffix: ""
-    tags: ['rabbit']
     # check-compose queue, we still use openqa auth for this as it's
     # easy that way
   - role: rabbit/queue
@@ -211,10 +193,9 @@
    - "/srv/private/ansible/vars.yml"
    - /srv/web/infra/ansible/vars/{{ ansible_distribution }}.yml
 
-# relvalconsumer and autocloudreporter aren't particularly related
-# to openQA in any way, we just put those role on these boxes. There's
-# nowhere more obviously correct for rvc and acr should be on an
-# Autocloud box but I don't know if they're authed for RDB.
+# relvalconsumer isn't particularly related to openQA in any way, we
+# just put that role on these boxes. There's nowhere more obviously
+# correct for it, really.
   roles:
    - { role: openqa/server, tags: ['openqa_server'] }
    - { role: openqa/dispatcher, tags: ['openqa_dispatcher'] }
@@ -222,7 +203,6 @@
    - { role: fedmsg/base, tags: ['fedmsg_base', 'fedmsg'] }
    - { role: fedmsg/hub, tags: ['fedmsg_hub', 'fedmsg'] }
    - { role: relvalconsumer, tags: ['relvalconsumer'] }
-   - { role: autocloudreporter, tags: ['autocloudreporter'] }
 
   handlers:
    - import_tasks: "{{ handlers_path }}/restart_services.yml"
