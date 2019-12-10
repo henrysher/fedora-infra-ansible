@@ -155,6 +155,7 @@ class ProdConfiguration(BaseConfiguration):
         # Fedora 28 includes 'ppc64'.  F29 and later drops it.
         # https://fedoraproject.org/wiki/Changes/DiscontinuePPC64
         'platform:f28': ['aarch64', 'armv7hl', 'i686', 'ppc64', 'ppc64le', 'x86_64', 's390x'],
+        'platform:el8' : ['aarch64', 'ppc64le', 'x86_64', 's390x']
     }
     KOJI_REPOSITORY_URL = 'https://kojipkgs.fedoraproject.org/repos'
     MESSAGING_TOPIC_PREFIX = ['org.fedoraproject.prod']
