@@ -224,7 +224,11 @@ openshift_master_identity_providers=[{"name": "fedoraidp", "login": "true", "cha
 {% endif %}
 
 # If oreg_url points to a registry requiring authentication, provide the following:
-{% if env == "staging" %}
+{% if openshift_arch == "aarch64" %}
+oreg_url=quay.io/multi-arch/aarch64-${component}:${version}
+oreg_auth_user="{{ os_multiarch_registry_user }}"
+oreg_auth_password="{{ os_multiarch_registry_password }}"
+{% elif env == "staging" %}
 oreg_auth_user="{{ os_stg_registry_user }}"
 oreg_auth_password="{{ os_stg_registry_password }}"
 {% else %}
