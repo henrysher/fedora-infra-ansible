@@ -2,12 +2,12 @@
 apiVersion: v1
 kind: DeploymentConfig
 metadata:
+  name: bugzilla2fedmsg
   labels:
     app: bugzilla2fedmsg
     service: bugzilla2fedmsg
-  name: bugzilla2fedmsg
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     app: bugzilla2fedmsg
     deploymentconfig: bugzilla2fedmsg
@@ -20,14 +20,13 @@ spec:
         deploymentconfig: bugzilla2fedmsg
     spec:
       containers:
-      - image: bugzilla2fedmsg:latest
-        name: bugzilla2fedmsg
+      - name: bugzilla2fedmsg
+        image: bugzilla2fedmsg:latest
         env:
-        - name: APP_MODULE
-          value: "bugzilla2fedmsg:app"
-        ports:
-        - containerPort: 8080
-          protocol: TCP
+          - name: APP_SCRIPT
+            value: "bugzilla2fedmsg"
+          # - name: FEDORA_MESSAGING_CONF
+          #   value: "/etc/fedora-messaging/config.toml"
         volumeMounts:
           - name: fedora-messaging-config-volume
             mountPath: /etc/fedora-messaging
@@ -52,18 +51,6 @@ spec:
             mountPath: /etc/pki/stomp/msg-client-fedora-prod.key
             subPath: msg-client-fedora-prod.key
             readOnly: true
-        readinessProbe:
-          timeoutSeconds: 1
-          initialDelaySeconds: 5
-          httpGet:
-            path: /
-            port: 8080
-        livenessProbe:
-          timeoutSeconds: 1
-          initialDelaySeconds: 30
-          httpGet:
-            path: /
-            port: 8080
       volumes:
         - name: fedora-messaging-config-volume
           configMap:

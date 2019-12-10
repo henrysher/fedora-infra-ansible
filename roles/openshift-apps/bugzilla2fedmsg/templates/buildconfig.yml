@@ -6,26 +6,19 @@ metadata:
     environment: "bugzilla2fedmsg"
 spec:
   source:
-    type: Dockerfile
-    dockerfile: |-
-        FROM fedora:31
-        LABEL \
-          name="bugzilla2fedmsg" \
-          vendor="Fedora Infrastructure" \
-          license="MIT"
-        RUN curl -o /etc/yum.repos.d/infra-tags.repo https://infrastructure.fedoraproject.org/cgit/ansible.git/plain/files/common/fedora-infra-tags.repo
-{% if env == "staging" %}
-        RUN curl -o /etc/yum.repos.d/infra-tags-stg.repo https://infrastructure.fedoraproject.org/cgit/ansible.git/plain/files/common/fedora-infra-tags-stg.repo
-{% endif %}
-        RUN dnf install -y bugzilla2fedmsg
-        ENV USER=openshift
-        ENTRYPOINT /usr/bin/bugzilla2fedmsg
+    type: Git
+    git:
+      uri: https://github.com/fedora-infra/bugzilla2fedmsg.git
   strategy:
-    type: Docker
-    dockerStrategy:
-        noCache: false
+    type: Source
+    sourceStrategy:
+      from:
+        kind: ImageStreamTag
+        namespace: openshift
+        name: python:3.6
   triggers:
   - type: ImageChange
+  - type: ConfigChange
   output:
     to:
       kind: ImageStreamTag
