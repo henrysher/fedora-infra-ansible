@@ -4,6 +4,9 @@
   user: root
   gather_facts: True
 
+  vars:
+    cache_file: /var/lib/copr/.ansible-copr-frontend-version
+
   vars_files:
    - /srv/web/infra/ansible/vars/global.yml
    - "/srv/private/ansible/vars.yml"
@@ -19,12 +22,20 @@
       - python3-copr-common
       update_cache: true
 
+  - package_facts: manager=auto
+
+  - name: cache the new package version
+    copy: content="{{ ansible_facts.packages['copr-frontend'][0].version }}"
+          dest="{{ cache_file }}"
+    register: version_file
+
   - name: upgrade db to head
     command: alembic-3 upgrade head
     become: yes
     become_user: copr-fe
     args:
       chdir: /usr/share/copr/coprs_frontend/
+    when: version_file.changed
 
   handlers:
   - import_tasks: "{{ handlers_path }}/restart_services.yml"
