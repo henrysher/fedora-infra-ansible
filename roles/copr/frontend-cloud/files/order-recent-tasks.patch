@@ -1,0 +1,11 @@
+--- /usr/share/copr/coprs_frontend/coprs/logic/builds_logic.py	2019-12-11 06:29:55.000000000 +0000
++++ /usr/share/copr/coprs_frontend/coprs/logic/builds_logic.py	2019-12-11 08:38:06.132204688 +0000
+@@ -102,7 +102,7 @@
+     def get_recent_tasks(cls, *args, **kwargs):
+         task_ids = cls.get_recent_task_ids(*args, **kwargs)
+         query = models.Build.query.filter(models.Build.id.in_(task_ids))
+-        return list(query.all())
++        return sorted(query.all(), key=lambda o: task_ids.index(o.id))
+ 
+     @classmethod
+     def get_running_tasks_by_time(cls, start, end):
