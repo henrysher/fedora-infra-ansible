@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: List
+items:
+# ImageStream for Fedora 31 image
+- apiVersion: image.openshift.io/v1
+  kind: ImageStream
+  metadata:
+    labels:
+      build: fedora-ostree-pruner
+    name: fedora
+  spec:
+    lookupPolicy:
+      local: false
+    tags:
+    - name: "31"
+      from:
+        kind: DockerImage
+        name: registry.fedoraproject.org/fedora:31
+      importPolicy: 
+        scheduled: true
+      referencePolicy:
+        type: Source
+# ImageStream for resulting built fedora-ostree-pruner-img
+- apiVersion: image.openshift.io/v1
+  kind: ImageStream
+  metadata:
+    labels:
+      build: fedora-ostree-pruner
+    name: fedora-ostree-pruner-img

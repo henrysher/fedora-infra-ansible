@@ -1,0 +1,39 @@
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  name: coreos-ostree-importer-build
+  labels:
+    build: coreos-ostree-importer
+spec:
+  source:
+    type: Git
+    contextDir: coreos-ostree-importer
+    git:
+{% if env == "staging" %}
+      ref: fedora-infra-staging
+      uri: https://github.com/coreos/fedora-coreos-releng-automation.git
+{% else %}
+      ref: master 
+      uri: https://github.com/coreos/fedora-coreos-releng-automation.git
+{% endif %}
+  strategy:
+    type: Docker
+    dockerStrategy:
+      from:
+        kind: ImageStreamTag
+        name: fedora:31
+  output:
+    to:
+      kind: ImageStreamTag
+      name: coreos-ostree-importer-img:latest
+  triggers:
+  - type: ConfigChange
+{% if env == "staging" and coreos_ostree_importer_webhook_secret_stg is defined %}
+  - type: GitHub
+    github:
+      secret: "{{ coreos_ostree_importer_webhook_secret_stg }}"
+{% elif coreos_ostree_importer_webhook_secret_prod is defined %}
+  - type: GitHub
+    github:
+      secret: "{{ coreos_ostree_importer_webhook_secret_prod }}"
+{% endif %}

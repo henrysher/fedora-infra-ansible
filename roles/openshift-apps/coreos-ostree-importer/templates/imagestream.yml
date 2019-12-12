@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: List
+items:
+# ImageStream for Fedora 31 image
+- apiVersion: image.openshift.io/v1
+  kind: ImageStream
+  metadata:
+    labels:
+      build: coreos-ostree-importer
+    name: fedora
+  spec:
+    lookupPolicy:
+      local: false
+    tags:
+    - name: "31"
+      from:
+        kind: DockerImage
+        name: registry.fedoraproject.org/fedora:31
+      importPolicy: 
+        scheduled: true
+      referencePolicy:
+        type: Source
+# ImageStream for resulting built coreos-ostree-importer-img
+- apiVersion: image.openshift.io/v1
+  kind: ImageStream
+  metadata:
+    labels:
+      build: coreos-ostree-importer
+    name: coreos-ostree-importer-img

@@ -1,0 +1,39 @@
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  name: fedora-ostree-pruner-build
+  labels:
+    build: fedora-ostree-pruner
+spec:
+  source:
+    type: Git
+    contextDir: coreos-ostree-importer
+    git:
+{% if env == "staging" %}
+      ref: fedora-infra-staging
+      uri: https://github.com/coreos/fedora-coreos-releng-automation.git
+{% else %}
+      ref: master 
+      uri: https://github.com/coreos/fedora-coreos-releng-automation.git
+{% endif %}
+  strategy:
+    type: Docker
+    dockerStrategy:
+      from:
+        kind: ImageStreamTag
+        name: fedora:31
+  output:
+    to:
+      kind: ImageStreamTag
+      name: fedora-ostree-pruner-img:latest
+  triggers:
+  - type: ConfigChange
+{% if env == "staging" and fedora_ostree_pruner_webhook_secret_stg is defined %}
+  - type: GitHub
+    github:
+      secret: "{{ fedora_ostree_pruner_webhook_secret_stg }}"
+{% elif fedora_ostree_pruner_webhook_secret_prod is defined %}
+  - type: GitHub
+    github:
+      secret: "{{ fedora_ostree_pruner_webhook_secret_prod }}"
+{% endif %}
