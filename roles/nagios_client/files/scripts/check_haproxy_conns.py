@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python2
 """ Nagios check for haproxy over-subscription.
 
 fedmsg-gateway is the primary concern as it can eat up a ton of simultaneous

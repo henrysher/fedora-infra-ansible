@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python2
 #
 # very simple python script to parse out /proc/mdstat
 # and give results for nagios to monitor

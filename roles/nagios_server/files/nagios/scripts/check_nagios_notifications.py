@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python2
 #
 #  A script to read the Nagios status file and send email for notifications
 #  off, but have recovered.

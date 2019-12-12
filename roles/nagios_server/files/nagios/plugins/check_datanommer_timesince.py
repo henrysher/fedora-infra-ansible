@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python2
 """ NRPE check for datanommer/fedmsg health.
 Given a category like 'bodhi', 'buildsys', or 'git', return an error if
 datanommer hasn't seen a message of that type in such and such time.
