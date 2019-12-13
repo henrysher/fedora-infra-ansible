@@ -1,0 +1,46 @@
+#! /bin/sh
+
+# check that the build assigned to worker isn't running, and if yes - shutdown
+# the VM (it will be later garbage collected).
+
+prefix=copr:backend:vm_instance:hset::
+
+{% if devel %}
+hostname=copr-fe-dev.cloud.fedoraproject.org
+{% else %}
+hostname=copr.fedoraproject.org
+{% endif %}
+
+set -- $(redis-cli --scan --pattern "$prefix*")
+
+for worker; do
+    build_id=$(redis-cli hget "$worker" build_id)
+    test -z "$build_id" && continue
+
+    output=$(curl --fail "https://$hostname/api_3/build/$build_id/" 2>/dev/null)
+    if test $? -ne 0; then
+        # curl --fail said server error, but it still can be 404 (deleted build)
+        case $(curl "https://$hostname/api_3/build/$build_id/" 2>/dev/null) in
+            *'does not exist'*) state=deleted ;;
+            *) continue ;;
+        esac
+    else
+        state=$(echo "$output" | python -c 'import sys, json; print json.load(sys.stdin)["state"]')
+    fi
+
+    case $state in
+        running) continue ;;
+        cancel*|succeeded|failed|deleted) ;; # go to delete
+        *) echo "$worker state=$state build_id=$build_id  skip" ; continue ;;
+    esac
+
+    since=$(redis-cli hget "$worker" in_use_since)
+
+    remove=$(python -c "import time; out = ':' if time.time() - $since  > 1800 else 'false'; print(out)")
+
+    ! $remove && continue
+
+    echo >&2 "REMOVING $since -- $worker"
+    ip=$(redis-cli hget "$worker" vm_ip)
+    timeout 5 ssh "root@$ip" shutdown -h now &>/dev/null
+done
